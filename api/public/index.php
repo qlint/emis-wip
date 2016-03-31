@@ -68,7 +68,7 @@ $app->post('/login/', function () use($app){
             echo json_encode(array('response' => 'success', 'data' => $result ));
             $db = null;
         } else {
-            throw new PDOException('No user found.');
+            throw new PDOException('The username or password you have entered is incorrect.');
         }
  
     } catch(PDOException $e) {
@@ -864,7 +864,7 @@ $app->get('/getStudentDetails(/:studentId)', function ($studentId) {
 			$results->guardians = $results2;
 						
 			// get medical history
-			$sth3 = $db->prepare("SELECT medical_id, illness_condition, comments, creation_date as date_medical_added
+			$sth3 = $db->prepare("SELECT medical_id, illness_condition, age, comments, creation_date as date_medical_added
 							 FROM hog.student_medical_history 
 							 WHERE student_id = :studentID
 							 ORDER BY creation_date");
@@ -874,6 +874,7 @@ $app->get('/getStudentDetails(/:studentId)', function ($studentId) {
 			$results->medical_history = $results3;
 			
 			// get fee items
+			
 			$sth4 = $db->prepare("SELECT student_fee_item_id, student_fee_items.fee_item_id, fee_item, amount, payment_method
 							 FROM hog.student_fee_items 
 							 INNER JOIN hog.fee_items on student_fee_items.fee_item_id = fee_items.fee_item_id
@@ -884,9 +885,7 @@ $app->get('/getStudentDetails(/:studentId)', function ($studentId) {
 			$results4 = $sth4->fetchAll(PDO::FETCH_OBJ);
 
 			$results->fee_items = $results4;
-	
-			
-			
+
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));
@@ -904,6 +903,86 @@ $app->get('/getStudentDetails(/:studentId)', function ($studentId) {
     }
 
 });
+
+$app->get('/getStudentNextPayment(/:studentId)', function ($studentId) {
+    // Return students next payment
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		
+		// check the students payment method
+		$sth = $db->prepare("SELECT payment_method
+							 FROM hog.students 
+							 WHERE student_id = :studentID");
+        $sth->execute( array(':studentID' => $studentId)); 
+        $result = $sth->fetch(PDO::FETCH_OBJ);
+		
+		// if per term
+		if( $result->payment_method == 'Per Term')
+		{
+			// get the next term
+			$sth = $db->prepare("SELECT start_date || ' (' || term_name || ')' as next_payment_due
+								FROM hog.terms
+								WHERE
+								CASE WHEN date_part('month', start_date) in (1,5,9) THEN
+										now() + interval '4 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+									 WHEN date_part('month', start_date) in (2,6,10) THEN
+										now() + interval '3 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+									 WHEN date_part('month', start_date) in (3,7,11) THEN
+										now() + interval '2 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+									 ELSE
+										now() + interval '1 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+								END");
+			$sth->execute();
+			$results = $sth->fetch(PDO::FETCH_OBJ);
+		}
+		else if ( $result->payment_method == 'Per Month' )
+		{
+			// if per month
+			$sth = $db->prepare("SELECT date_trunc('month', now() + interval '1 month')::date as next_payment_due");
+			$sth->execute();
+			$results = $sth->fetch(PDO::FETCH_OBJ);
+		}
+		else if ( $result->payment_method == 'Annually' )
+		{
+			// if per year
+			$sth = $db->prepare("SELECT date_trunc('year', now() + interval '1 year')::date as next_payment_due ");
+			$sth->execute();
+			$results = $sth->fetch(PDO::FETCH_OBJ);
+		}
+
+		/*
+		this query gets the total amounts that are due per payment option
+		
+		SELECT
+		sum(amount) as total_amount, payment_method
+		FROM hog.student_fee_items
+		WHERE student_id = 6
+		GROUP BY payment_method
+		*/
+ 
+        if($results) {			
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 $app->get('/getStudentFeeSummary(/:studentId)', function ($studentId) {
     // Return students fee summary
@@ -1231,6 +1310,237 @@ $app->post('/addStudent/', function () use($app) {
 
 });
 
+$app->put('/updateStudent/', function () use($app) {
+    // Update student	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$updateDetails = false;
+	$updateFamily = false;
+	$updateMedical = false;
+	
+//	$admissionNumber =				( isset($allPostVars['admission_number']) ? $allPostVars['admission_number']: null);
+//	$admissionDate = 				( isset($allPostVars['admission_date']) ? $allPostVars['admission_date']: null);
+
+	$studentId = ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+	if( isset($allPostVars['details']) )
+	{
+		$updateDetails = true;
+		$gender = 			( isset($allPostVars['details']['gender']) ? $allPostVars['details']['gender']: null);
+		$firstName = 		( isset($allPostVars['details']['first_name']) ? $allPostVars['details']['first_name']: null);
+		$middleName = 		( isset($allPostVars['details']['middle_name']) ? $allPostVars['details']['middle_name']: null);
+		$lastName =			( isset($allPostVars['details']['last_name']) ? $allPostVars['details']['last_name']: null);
+		$dob = 				( isset($allPostVars['details']['dob']) ? $allPostVars['details']['dob']: null);
+		$studentCat = 		( isset($allPostVars['details']['student_category']) ? $allPostVars['details']['student_category']: null);
+		$nationality = 		( isset($allPostVars['details']['nationality']) ? $allPostVars['details']['nationality']: null);
+		$currentClass = 	( isset($allPostVars['details']['current_class']) ? $allPostVars['details']['current_class']: null);
+		$previousClass = 	( isset($allPostVars['details']['previous_class']) ? $allPostVars['details']['previous_class']: null);
+		$updateClass = 		( isset($allPostVars['details']['update_class']) ? $allPostVars['details']['update_class']: false);
+		$studentImg = 		( isset($allPostVars['details']['student_image']) ? $allPostVars['details']['student_image']: null);
+		$active = 			( isset($allPostVars['details']['active']) ? $allPostVars['details']['active']: true);
+	}
+	
+	if( isset($allPostVars['family']) )
+	{
+		$updateFamily = true;
+		$marialStatusParents = 	( isset($allPostVars['family']['marial_status_parents']) ? $allPostVars['family']['marial_status_parents']: null);
+		$adopted = 				( isset($allPostVars['family']['adopted']) ? $allPostVars['family']['adopted']: 'f');
+		$adoptedAge = 			( isset($allPostVars['family']['adopted_age']) ? $allPostVars['family']['adopted_age']: null);	
+		$maritalSeparationAge = ( isset($allPostVars['family']['marital_separation_age']) ? $allPostVars['family']['marital_separation_age']: null);
+		$adoptionAware = 		( isset($allPostVars['family']['adoption_aware']) ? $allPostVars['family']['adoption_aware']: 'f');
+		$emergencyContact = 	( isset($allPostVars['family']['emergency_name']) ? $allPostVars['family']['emergency_name']: null);
+		$emergencyRelation = 	( isset($allPostVars['family']['emergency_relationship']) ? $allPostVars['family']['emergency_relationship']: null);
+		$emergencyPhone = 		( isset($allPostVars['family']['emergency_telephone']) ? $allPostVars['family']['emergency_telephone']: null);
+		$pickUpIndividual =		( isset($allPostVars['family']['pick_up_drop_off_individual']) ? $allPostVars['family']['pick_up_drop_off_individual']: null);
+	}
+	
+	if( isset($allPostVars['medical']) )
+	{
+		$updateMedical = true;
+		$comments = 					( isset($allPostVars['medical']['comments']) ? $allPostVars['medical']['comments']: null);
+		$hasMedicalConditions = 		( isset($allPostVars['medical']['has_medical_conditions']) ? $allPostVars['medical']['has_medical_conditions']: 'f');
+		$hospitalized = 				( isset($allPostVars['medical']['hospitalized']) ? $allPostVars['medical']['hospitalized']: 'f');
+		$hospitalizedDesc = 			( isset($allPostVars['medical']['hospitalized_description']) ? $allPostVars['medical']['hospitalized_description']: null);
+		$currentMedicalTreatment = 		( isset($allPostVars['medical']['current_medical_treatment']) ? $allPostVars['medical']['current_medical_treatment']: 'f');	
+		$currentMedicalTreatmentDesc = 	( isset($allPostVars['medical']['current_medical_treatment_description']) ? $allPostVars['medical']['current_medical_treatment_description']: null);
+		$otherMedicalConditions = 		( isset($allPostVars['medical']['other_medical_conditions']) ? $allPostVars['medical']['other_medical_conditions']: 'f');
+		$otherMedicalConditionsDesc = 	( isset($allPostVars['medical']['other_medical_conditions_description']) ? $allPostVars['medical']['other_medical_conditions_description']: null);
+	}
+	
+	// fee item fields
+	//$feeItems = ( isset($allPostVars['feeItems']) ? $allPostVars['feeItems']: null);
+	//$paymentMethod = 	( isset($allPostVars['details']['payment_method']) ? $allPostVars['details']['payment_method']: null);
+
+    try 
+    {
+        $db = getDB();
+		
+		if( $updateDetails )
+		{
+			$studentUpdate = $db->prepare(
+				"UPDATE hog.students
+					SET gender = :gender,
+						first_name = :firstName, 
+						middle_name = :middleName, 
+						last_name = :lastName, 
+						dob = :dob, 
+						student_category = :studentCat, 
+						nationality = :nationality,
+						student_image = :studentImg, 
+						current_class = :currentClass,
+						active = :active,
+						modified_date = now(),
+						modified_by = :userId
+					WHERE student_id = :studentId"
+			);
+			
+			// if they changed the class, make entry into class history table
+			if( $updateClass )
+			{		
+				$classInsert1 = $db->prepare("UPDATE hog.student_class_history SET end_date = now() WHERE student_id = :studentId AND class_id = :previousClass;");
+
+				$classInsert2 = $db->prepare("
+					INSERT INTO hog.student_class_history(student_id,class_id,created_by)
+					VALUES(:studentId,:currentClass,:createdBy);"
+				);
+			}
+				
+		}
+		
+		if( $updateFamily )
+		{
+			$studentFamilyUpdate = $db->prepare(
+				"UPDATE hog.students
+					SET marial_status_parents = :marialStatusParents,
+						adopted = :adopted, 
+						adopted_age = :adoptedAge, 
+						marital_separation_age = :maritalSeparationAge, 
+						adoption_aware = :adoptionAware, 
+						emergency_name = :emergencyName, 
+						emergency_relationship = :emergencyRelationship,
+						emergency_telephone = :emergencyTelephone, 
+						pick_up_drop_off_individual = :pickUpIndividual,
+						modified_date = now(),
+						modified_by = :userId
+					WHERE student_id = :studentId"
+			);
+		}
+		
+		if( $updateMedical )
+		{
+			$studentMedicalUpdate = $db->prepare(
+				"UPDATE hog.students
+					SET medical_conditions = :hasMedicalConditions,
+						hospitalized = :hospitalized, 
+						hospitalized_description = :hospitalizedDesc, 
+						current_medical_treatment = :currentMedicalTreatment, 
+						current_medical_treatment_description = :currentMedicalTreatmentDesc, 
+						other_medical_conditions = :otherMedicalConditions, 
+						other_medical_conditions_description = :otherMedicalConditionsDesc,
+						modified_date = now(),
+						modified_by = :userId
+					WHERE student_id = :studentId"
+			);
+		}
+		
+		/*	
+		
+		if( count($feeItems) > 0 )
+		{
+			$feesInsert = $db->prepare("INSERT INTO hog.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
+            VALUES(currval('hog.students_student_id_seq'),?,?,?,?);"); 
+		}
+		*/
+		
+		
+		$db->beginTransaction();
+	
+		if( $updateDetails )
+		{
+			$studentUpdate->execute( array(':studentId' => $studentId,
+							':gender' => $gender,
+							':firstName' => $firstName,
+							':middleName' => $middleName,
+							':lastName' => $lastName,
+							':dob' => $dob,
+							':studentCat' => $studentCat,
+							':nationality' => $nationality,
+							':studentImg' => $studentImg,
+							':currentClass' => $currentClass,
+							':active' => $active,
+							':userId' => $userId							
+			) );
+			if( $updateClass )
+			{
+				$classInsert1->execute(array('studentId' => $studentId, ':previousClass' => $previousClass));
+				$classInsert2->execute(array('studentId' => $studentId, ':currentClass' => $currentClass,':createdBy' => $userId));
+			}
+		}
+		
+		if( $updateFamily )
+		{
+			
+			$studentFamilyUpdate->execute( array(':studentId' => $studentId,
+							':marialStatusParents' => $marialStatusParents,
+							':adopted' => $adopted,
+							':adoptedAge' => $adoptedAge,
+							':maritalSeparationAge' => $maritalSeparationAge,
+							':adoptionAware' => $adoptionAware,
+							':emergencyName' => $emergencyContact,
+							':emergencyRelationship' => $emergencyRelation,
+							':emergencyTelephone' => $emergencyPhone,
+							':pickUpIndividual' => $pickUpIndividual,
+							':userId' => $userId							
+			) );
+		}
+		
+		if( $updateMedical )
+		{
+			$studentMedicalUpdate->execute( array(':studentId' => $studentId,
+							':hasMedicalConditions' => $hasMedicalConditions,
+							':hospitalized' => $hospitalized,
+							':hospitalizedDesc' => $hospitalizedDesc,
+							':currentMedicalTreatment' => $currentMedicalTreatment,
+							':currentMedicalTreatmentDesc' => $currentMedicalTreatmentDesc,
+							':otherMedicalConditions' => $otherMedicalConditions,
+							':otherMedicalConditionsDesc' => $otherMedicalConditionsDesc,
+							':userId' => $userId							
+			) );
+		}
+		/*
+		
+		
+		if( count($feeItems) > 0 )
+		{
+        
+			for( $i=0; $i < count($feeItems); $i++ )
+			{
+				$feesInsert->execute( array($feeItems[$i]['fee_item_id'],
+							$feeItems[$i]['amount'],
+							$feeItems[$i]['payment_method'],
+							$createdBy
+				) );
+			}
+		}
+		*/
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+		$db->rollBack();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->post('/addGuardian/', function () use($app) {
     // Add guardian	
 	$allPostVars = json_decode($app->request()->getBody(),true);
@@ -1392,24 +1702,116 @@ $app->put('/updateGuardian/', function () use($app) {
 
 });
 
-$app->put('/deleteGuardian/', function () use($app) {
-    // update guardian	
-	$allPostVars = json_decode($app->request()->getBody(),true);
+$app->delete('/deleteGuardian/:guardian_id', function ($guardianId) {
+    // delete guardian
 	
-	$guardianId =			( isset($allPostVars['guardian_id']) ? $allPostVar['guardian_id']: null);
-	$userId = 				( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
-
+	$app = \Slim\Slim::getInstance();
 
     try 
     {
         $db = getDB();
 
-		$sth = $db->prepare("UPDATE hog.student_guardians
-								SET active = false
-								WHERE guardian_id = :guardianId"
+		$sth = $db->prepare("DELETE FROM hog.student_guardians WHERE guardian_id = :guardianId");		
+										
+		$sth->execute( array(':guardianId' => $guardianId) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addMedicalConditions/', function () use($app) {
+    // Add medical conditions	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$studentId =	( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+	$userId = 		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+	// medical fields
+	$medicalConditions = ( isset($allPostVars['medicalConditions']) ? $allPostVars['medicalConditions']: null);
+	
+    try 
+    {
+        $db = getDB();
+
+		$studentUpdate = $db->prepare("UPDATE hog.students SET medical_conditions = true WHERE student_id = :studentId");
+		$conditionInsert = $db->prepare("INSERT INTO hog.student_medical_history(student_id, illness_condition, age, comments, created_by) 
+		VALUES(?,?,?,?,?);"); 
+		$query = $db->prepare("SELECT currval('hog.student_medical_history_medical_id_seq') as medical_id, now() as date_medical_added");
+		
+		
+        $results = array();
+		// loop through the medical conditions and insert
+		// place the resulting id in array for return
+		for( $i=0; $i < count($medicalConditions); $i++ )
+		{
+			$db->beginTransaction();
+			$studentUpdate->execute(array(':studentId' => $studentId));
+			$conditionInsert->execute( array(
+						$studentId,
+						$medicalConditions[$i]['illness_condition'],
+						$medicalConditions[$i]['age'],
+						$medicalConditions[$i]['comments'],
+						$userId
+			) );			
+			$query->execute();
+			$db->commit();
+			
+			$results[] = $query->fetch(PDO::FETCH_OBJ);
+			
+		}
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "data" => $results));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+		$db->rollBack();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateMedicalConditions/', function () use($app) {
+    // update medical condition	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$medicalId =		( isset($allPostVars['medicalCondition']['medical_id']) ? $allPostVars['medicalCondition']['medical_id']: null);
+	$illnessCondition = ( isset($allPostVars['medicalCondition']['illness_condition']) ? $allPostVars['medicalCondition']['illness_condition']: null);
+	$age = 				( isset($allPostVars['medicalCondition']['age']) ? $allPostVars['medicalCondition']['age']: null);
+	$comments = 		( isset($allPostVars['medicalCondition']['comments']) ? $allPostVars['medicalCondition']['comments']: null);
+	$userId = 			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("UPDATE hog.student_medical_history
+								SET illness_condition = :illnessCondition, 
+									age = :age, 
+									comments =:comments, 
+									modified_date = now(),
+									modified_by = :userId
+								WHERE medical_id = :medicalId"
 								);		
 										
-		$sth->execute( array(':guardianId' => $guardianId
+		$sth->execute( array(':medicalId' => $medicalId,
+						':illnessCondition' => $illnessCondition,
+						':age' => $age,
+						':comments' => $comments,
 						':userId' => $userId
 		) );
  
@@ -1427,6 +1829,32 @@ $app->put('/deleteGuardian/', function () use($app) {
 
 });
 
+$app->delete('/deleteMedicalCondition/:medical_id', function ($medicalId) {
+    // delete guardian
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("DELETE FROM hog.student_medical_history WHERE medical_id = :medicalId");		
+										
+		$sth->execute( array(':medicalId' => $medicalId) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
 
 
 // Run app

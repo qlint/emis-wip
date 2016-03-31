@@ -9,10 +9,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.currentTab = 'Details';
 	$scope.currentStep = 0;
 	$scope.firstStep = true;
+	$scope.hasChanges = false;
 	
 	$scope.edit = ($rootScope.permissions.students.edit ? true : false );
 	//$scope.edit = false;
-	$scope.student = data;
+	
+	var originalData = angular.copy(data);
+	$scope.student = angular.copy(data);
 	
 	$scope.feeItemSelection = [];
 	$scope.conditionSelection = [];
@@ -68,9 +71,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			
 		}, function(){});
 		
-		
-		
-		console.log($scope.student);
+
 		
 	}
 	$scope.initializeController();
@@ -84,12 +85,36 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	$scope.getTabContent = function(tab)
 	{
+	
+		if( !$scope.studentForm.$pristine )
+		{
+			var dlg = $dialogs.confirm('Changes Where Made','You have made changes to the data on this page. Did you want to save these changes?', {size:'sm'});
+			
+			dlg.result.then(function(btn){
+				 // save the form
+				 save(tab);
+				 
+			},function(btn){
+				// revert the changes and move on
+				$scope.student = angular.copy(originalData);	
+				goToTab(tab);
+			});
+		}
+		else
+		{
+			goToTab(tab);
+		}
+		
+	}
+	
+	var goToTab = function(tab)
+	{
 		$scope.currentTab = tab;
 		$scope.currentStep = $scope.tabs.indexOf(tab);
 		$scope.lastStep = false;
 		$scope.firstStep = false;
 		if( $scope.currentTab == $scope.tabs[0] ) $scope.firstStep = true;
-		else if( $scope.currentTab == $scope.tabs[ $scope.tabs.length - 1 ] ) $scope.lastStep = true;
+		else if( $scope.currentTab == $scope.tabs[ $scope.tabs.length - 1 ] ) $scope.lastStep = true;	
 	}
 	
 	$scope.cancel = function()
@@ -112,8 +137,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.$watch('student.current_class', function(newVal, oldVal){
 		if( newVal == oldVal) return;
-		console.log(newVal);
+
+		// update class fields for student
+		$scope.student.class_id = $scope.student.current_class.class_id;
+		$scope.student.class_name = $scope.student.current_class.class_name;
+		$scope.student.class_cat_id = $scope.student.current_class.class_cat_id;
 		$scope.feeItems = filterFeeItems();		
+	});
+	
+	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){
+		// need to watch the uploaded and manually set form to dirty if changed
+		if( newVal === undefined) return;
+		$scope.studentForm.$setDirty();
 	});
 	
 	var filterFeeItems = function()
@@ -144,7 +179,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		return feeItems;
 	}
 	
-	$scope.addParent = function()
+	$scope.addGuardian = function()
 	{
 		// show small dialog with add form
 		var data = {student_id: $scope.student.student_id};
@@ -159,7 +194,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	}
 	
-	$scope.editParent = function(item)
+	$scope.editGuardian = function(item)
 	{
 		// show small dialog with edit form
 		var data = {
@@ -170,15 +205,38 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'md',backdrop:'static'});
 		dlg.result.then(function(guardian){
 			
-			console.log(guardian);
 			// find guardian and update
 			angular.forEach( $scope.student.guardians, function(item,key){
 				if( item.guardian_id == guardian.guardian_id) $scope.student.guardians[key] = guardian;
 			});
-			console.log($scope.student.guardians);
 			
 		},function(){
 			
+		});
+		
+	}
+	
+	$scope.deleteGuardian = function(item,index)
+	{
+
+		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete <b>' + item.parent_full_name + '</b> as a parent/guardian? <br><br><b><i>(THIS CAN NOT BE UNDONE)</i></b>',{size:'sm'});
+		dlg.result.then(function(btn){
+			apiService.deleteGuardian(item.guardian_id, function(response,status,params){
+				var result = angular.fromJson(response);
+				if( result.response == 'success')
+				{
+					// remove row
+					$scope.student.guardians.splice(params.index,1);
+				
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, createError,{index:index});
+
 		});
 		
 	}
@@ -191,11 +249,66 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.addMedicalHistory = function()
 	{
 		// show small dialog with add form
+		var data = {
+			student_id: $scope.student.student_id,
+			medicalHistory: $scope.student.medical_history,
+			action: 'add'
+		};
+		var dlg = $dialogs.create('addMedicalHistory.html','addMedicalHistoryCtrl',data,{size: 'md',backdrop:'static'});
+		dlg.result.then(function(medicalHistory){
+			
+			angular.forEach(medicalHistory, function(item,key){
+				$scope.student.medical_history.push(item);
+			});
+			
+		},function(){
+			
+		});
 	}
 	
-	$scope.editMedical = function()
+	$scope.editMedical = function(item)
 	{
 		// show small dialog with add form
+		var data = {
+			student_id: $scope.student.student_id,
+			medicalCondition: item,
+			action: 'edit'
+		};
+		var dlg = $dialogs.create('updateMedicalCondition.html','updateMedicalConditionCtrl',data,{size: 'md',backdrop:'static'});
+		dlg.result.then(function(medicalCondition){
+			
+			// find medical condition and update
+			angular.forEach( $scope.student.medical_history, function(item,key){
+				if( item.medical_id == medicalCondition.medical_id ) $scope.student.medical_history[key] = medicalCondition;
+			});
+			
+		},function(){
+			
+		});
+	}
+	
+	$scope.deleteMedical = function(item,index)
+	{
+		// show small dialog with add form
+		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete <b>' + item.illness_condition + '</b> as a medical condition for this student? <br><br><b><i>(THIS CAN NOT BE UNDONE)</i></b>',{size:'sm'});
+		dlg.result.then(function(btn){
+			apiService.deleteMedicalCondition(item.medical_id, function(response,status,params){
+				var result = angular.fromJson(response);
+				if( result.response == 'success')
+				{
+					// remove row
+					$scope.student.medical_history.splice(params.index,1);
+	
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, createError,{index:index});
+
+		});
 	}
 	
 	$scope.toggleFeeItem = function(item) 
@@ -225,57 +338,107 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	};
 	
-	$scope.toggleMedicalCondition = function(item) 
-	{
-	
-		var id = $scope.conditionSelection.indexOf(item);
 
-		// is currently selected
-		if (id > -1) {
-			$scope.conditionSelection.splice(id, 1);
-		}
-
-		// is newly selected
-		else {
-			$scope.conditionSelection.push(item);
-		}
-	};
-	
-	$scope.save = function()
+	$scope.save = function(tab)
 	{
-	
-		if( uploader.queue[0] !== undefined ){
-			$scope.student.student_image = uploader.queue[0].file.name;
-		}
+		// going to only send data that is on the current tab
 		
-		$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
+		if( $scope.currentTab == 'Details' )
+		{
+			if( uploader.queue[0] !== undefined )
+			{
+				// need a unique filename
+				uploader.queue[0].file.name = $scope.student.student_id + "_" + uploader.queue[0].file.name;
+				uploader.uploadAll();
+			}
+			
+			//postData.feeItems = $scope.feeItemSelection;
+			
+			var postData = {
+				student_id : $scope.student.student_id,
+				user_id : $rootScope.currentUser.user_id,
+				details : {
+					student_category : $scope.student.student_category,
+					first_name : $scope.student.first_name,
+					middle_name : $scope.student.middle_name,
+					last_name : $scope.student.last_name,
+					gender : $scope.student.gender,
+					dob: $scope.student.dob,
+					nationality : $scope.student.nationality,
+					current_class : $scope.student.class_id,
+					update_class : ( originalData.class_id != $scope.student.class_id ? true : false),
+					previous_class :  originalData.class_id,
+					student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null),
+					active : ( $scope.student.active ? 't' : 'f' )
+				}
+			}
+		}
+		else if ( $scope.currentTab == 'Family' )
+		{
+			var postData = {
+				student_id : $scope.student.student_id,
+				user_id : $rootScope.currentUser.user_id,
+				family : {
+					marial_status_parents : $scope.student.marial_status_parents,
+					adopted : ( $scope.student.adopted ? 't' : 'f' ),
+					adopted_age : $scope.student.adopted_age,
+					marital_separation_age : $scope.student.marital_separation_age,
+					adoption_aware : ( $scope.student.adoption_aware ? 't' : 'f'),
+					emergency_name: $scope.student.emergency_name,
+					emergency_relationship : $scope.student.emergency_relationship,
+					emergency_telephone : $scope.student.emergency_telephone,
+					pick_up_drop_off_individual : $scope.student.pick_up_drop_off_individual
+				}
+			}
+		}
+		else if ( $scope.currentTab == 'Medical History' )
+		{
 
-		var postData = angular.copy($scope.student);
-		postData.admission_date = $scope.student.admission_date.startDate;
-		postData.current_class = $scope.student.current_class.class_id;		
-		postData.medicalConditions = $scope.conditionSelection;
-		postData.feeItems = $scope.feeItemSelection;
-		postData.user_id = $rootScope.currentUser.user_id;
+			var postData = {
+				student_id : $scope.student.student_id,
+				user_id : $rootScope.currentUser.user_id,
+				medical : {
+					has_medical_conditions : ($scope.student.has_medical_conditions || $scope.student.other_medical_conditions ? 't' : 'f' ),
+					hospitalized: ( $scope.student.hospitalized ? 't' : 'f' ),
+					hospitalized_description: ( $scope.student.hospitalized ? $scope.student.hospitalized_description : null),
+					current_medical_treatment: ( $scope.student.current_medical_treatment ? 't' : 'f' ),
+					current_medical_treatment_description: ( $scope.student.current_medical_treatment ? $scope.student.current_medical_treatment_description : null),
+					other_medical_conditions: ($scope.student.other_medical_conditions ? 't' : 'f'),
+					other_medical_conditions_description: ($scope.student.other_medical_conditions ? $scope.student.other_medical_conditions_description : null);
+				}
+			}
+
+		}
 		console.log(postData);
-		
-		apiService.putStudent(postData, createCompleted, createError);
+		apiService.updateStudent(postData, createCompleted, createError, {tab:tab});
 	}
 	
-	var createCompleted = function ( response, status ) 
+	var createCompleted = function ( response, status, params ) 
 	{
 
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
-			uploader.uploadAll();
-			$uibModalInstance.close();
+			if( uploader.queue[0] !== undefined )
+			{
+				$scope.student.student_image = uploader.queue[0].file.name;
+			}
+			
+			// saved, update the originalData
+			originalData = angular.copy($scope.student);
+			$scope.studentForm.$setPristine();
+			
+			// if moving tabs, continue
+			if( params.tab !== undefined) goToTab(params.tab);
+
+			// refresh the main student list
 			$rootScope.$emit('studentAdded', {'msg' : 'Student was updated.', 'clear' : true});
+			
 		}
 		else
 		{
 			$scope.error = true;
 			$scope.errMsg = result.data;
-			//$rootScope.$emit('jobError', {'msg' : result.data });
 		}
 	}
 	
@@ -339,21 +502,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			
 		}; // end update
 		
-		$scope.deleteGuardian = function()
-		{
-			var postData = {
-				guardian_id: $scope.guardian.guardian_id,
-				active: false,
-				user_id: $rootScope.currentUser.user_id
-			}
-			apiService.deleteGuardian(postData, createCompleted, createError);
-		}
+		
 		
 		var createCompleted = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			if( result.response == 'success' )
 			{
+				$scope.guardian.guardian_id = result.data;
 				$scope.guardian.parent_full_name = $scope.guardian.first_name + ' ' + $scope.guardian.middle_name + ' ' + $scope.guardian.last_name;
 				$uibModalInstance.close($scope.guardian);
 			}
@@ -518,10 +674,243 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				'</ng-form>' +
 			'</div>'+
 			'<div class="modal-footer">' +
-				'<div class="pull-left" ng-show="edit"><button type="button" class="btn btn-danger" ng-click="deleteGuardian()">Delete</button></div>' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
 				'<button ng-show="!edit" type="button" class="btn btn-primary" ng-click="save()">Save</button>' +
 				'<button ng-show="edit" type="button" class="btn btn-primary" ng-click="update()">Update</button>' +
+			'</div>'
+		);
+}])
+.controller('addMedicalHistoryCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
+		
+		//-- Variables --//
+		
+		$scope.fullMedicalHistory =  data.medicalHistory || {};
+		
+		var medicalConditions = $rootScope.currentUser.settings['Medical Conditions'];
+		medicalConditions = medicalConditions.split(',');
+		
+		// build array of just the medical condition names for the student
+		var medicalHistory = $scope.fullMedicalHistory.reduce(function(sum,item){
+			sum.push(item.illness_condition);
+			return sum;
+		}, []);
+		
+		// map medicalConditions to an object to hold user entry fields
+		// remove medical conditions that are already set for the student
+		$scope.medicalConditions = medicalConditions.reduce(function(sum,item){
+			if( medicalHistory.indexOf(item) === -1 )
+			{
+				sum.push({
+					'illness_condition' : item,
+					'age': '',
+					'comments' :''
+				});
+			}
+			return sum;
+		}, []);
+
+
+		//-- Methods --//
+		
+		$scope.cancel = function(){
+			$uibModalInstance.dismiss('Canceled');
+		}; // end cancel
+		
+		$scope.save = function()
+		{
+			//console.log($scope.guardian);
+			var postData = {
+				student_id: data.student_id,
+				medicalConditions: $scope.conditionSelection,
+				user_id: $rootScope.currentUser.user_id
+			}
+			apiService.postMedicalConditions(postData, createCompleted, createError);
+			
+			
+		}; // end save
+		
+		var createCompleted = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				// loop through results and add medical_id to each condition
+				angular.forEach( result.data, function(item,key){
+					$scope.conditionSelection[key].medical_id = item.medical_id;
+					$scope.conditionSelection[key].date_medical_added = item.date_medical_added;
+				});
+				
+				$uibModalInstance.close($scope.conditionSelection);
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		}
+		
+		var createError = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+		
+		$scope.hitEnter = function(evt){
+			if( angular.equals(evt.keyCode,13) )
+				$scope.save();
+		};
+		
+		$scope.conditionSelection = [];
+		$scope.toggleMedicalCondition = function(item) 
+		{
+		
+			var id = $scope.conditionSelection.indexOf(item);
+
+			// is currently selected
+			if (id > -1) {
+				$scope.conditionSelection.splice(id, 1);
+			}
+
+			// is newly selected
+			else {
+				$scope.conditionSelection.push(item);
+			}
+	};
+	
+	}) // end controller(addCargoCtrl)
+.run(['$templateCache',function($templateCache){
+  		$templateCache.put('addMedicalHistory.html',
+			'<div class="modal-header dialog-header-form">'+
+				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Medical History</h4>' +
+			'</div>' +
+			'<div class="modal-body cleafix">' +
+				'<ng-form name="cargoDialog" class="form-horizontal modalForm" novalidate role="form">' +
+					'<div ng-show="error" class="alert alert-danger">' +
+						'{{errMsg}}'+
+					'</div>' +
+					'<table class="display dataTable">' +
+					'<thead>' +
+						'<tr>' +
+							'<th>Illness/Condition</th>' +
+							'<th>Age</th>' +
+							'<th>Explain</th>' +
+						'</tr>' +
+					'</thead>' +
+					'<tbody>' +
+						'<tr ng-class-odd="\'odd\'" ng-class-even="\'even\'" ng-repeat="item in medicalConditions track by $index">' +
+							'<td width="150">' +
+								'<label class="checkbox-inline">' +
+								  '<input ' +
+									'type="checkbox" ' +
+									'name="conditions[]" ' +
+									'value="{{item.illness_condition}}" ' +
+									'ng-checked="conditionSelection.indexOf(item) > -1" ' +
+									'ng-click="toggleMedicalCondition(item)" ' +
+								  '> {{item.illness_condition}}' +
+								'</label>' +
+							'</td>' +
+							'<td width="80">' +
+								'<input type="text" class="form-control" name="medical_condition_age[]" ng-model="item.age" >' +
+							'</td>' +
+							'<td>' +
+								'<input type="text" class="form-control" name="medical_condition_comments[]" ng-model="item.comments" >' +
+							'</td>' +
+						'</tr>' +
+					'</tbody>' +
+				'</table>' +
+				'</ng-form>' +
+			'</div>'+
+			'<div class="modal-footer">' +
+				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
+				'<button ng-show="!edit" type="button" class="btn btn-primary" ng-click="save()">Save</button>' +
+			'</div>'
+		);
+}])
+.controller('updateMedicalConditionCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
+		
+		//-- Variables --//
+		
+		$scope.medicalCondition =  data.medicalCondition || {};
+		
+		
+		//-- Methods --//
+		
+		$scope.cancel = function(){
+			$uibModalInstance.dismiss('Canceled');
+		}; // end cancel
+		
+		$scope.save = function()
+		{
+			//console.log($scope.guardian);
+			var postData = {
+				student_id: data.student_id,
+				medicalCondition: $scope.medicalCondition,
+				user_id: $rootScope.currentUser.user_id
+			}
+			apiService.updateMedicalConditions(postData, createCompleted, createError);
+			
+			
+		}; // end save
+		
+		var createCompleted = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				// loop through results and add medical_id to each condition				
+				$uibModalInstance.close($scope.medicalCondition);
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		}
+		
+		var createError = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+		
+		$scope.hitEnter = function(evt){
+			if( angular.equals(evt.keyCode,13) )
+				$scope.save();
+		};
+		
+	
+	}) // end controller(addCargoCtrl)
+.run(['$templateCache',function($templateCache){
+  		$templateCache.put('updateMedicalCondition.html',
+			'<div class="modal-header dialog-header-form">'+
+				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Update Medical Condition : {{medicalCondition.illness_condition}}</h4>' +
+			'</div>' +
+			'<div class="modal-body cleafix">' +
+				'<ng-form name="cargoDialog" class="form-horizontal modalForm" novalidate role="form">' +
+					'<div class="row">' +
+						'<div class="col-sm-12">' +
+							'<div ng-show="error" class="alert alert-danger">' +
+								'{{errMsg}}'+
+							'</div>' +
+							'<!-- Age -->' +
+							'<div class="form-group">' +
+								'<div class="col-sm-12"><label for="age">Age</label></div>' +
+								'<div class="col-sm-3"><input type="text" name="age" ng-model="medicalCondition.age" class="form-control"  ></div>' +
+							'</div>' +
+							'<!-- Explain -->' +
+							'<div class="form-group">' +
+								'<div class="col-sm-12"><label for="comments">Explain</label></div>' +
+								'<div class="col-sm-12"><textarea name="comments" rows="5" ng-model="medicalCondition.comments" class="form-control"></textarea></div>' +
+							'</div>' +
+						'</div>' +
+					'</div>' +
+				'</ng-form>' +
+			'</div>'+
+			'<div class="modal-footer">' +
+				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
+				'<button ng-show="!edit" type="button" class="btn btn-primary" ng-click="save()">Save</button>' +
 			'</div>'
 		);
 }]);

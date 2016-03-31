@@ -138,7 +138,7 @@
 								<label for="current_class">Class Entry</label>
 								<p class="form-control-static" ng-show="!edit">{{student.class_name}}</p>
 								<div ng-show="edit">
-									<select class="form-control" ng-options="class.class_name for class in allClasses track by class.class_id" ng-model="student.current_class">
+									<select name="current_class" class="form-control" ng-options="class.class_name for class in allClasses track by class.class_id" ng-model="student.current_class">
 										<option value="">--select class--</option>
 									</select>									
 									<p ng-show="studentForm.current_class.$invalid && (studentForm.current_class.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Current Class is required.</p>
@@ -174,7 +174,7 @@
 					
 					<div class="col-sm-3">
 						<div class="pic-container">
-							<img ng-show="student.student_image !== null" src="assets/students/{{student.student_image}}" height="220" />
+							<img ng-show="student.student_image !== null" src="/assets/students/{{student.student_image}}" height="220" />
 							<span ng-show="student.student_image === null" class="glyphicon glyphicon-user"></span>
 						</div>
 					</div>
@@ -186,10 +186,11 @@
 				
 				<div class="section-container">
 					<h2 class="pull-left">Parents/Guardians</h2>
-					<button type="button" class="pull-right btn btn-link" ng-click="addParent()"><i class="glyphicon glyphicon-plus-sign"></i> Add Parent/Guardian</button>
+					<button type="button" class="pull-right btn btn-link" ng-click="addGuardian()"><i class="glyphicon glyphicon-plus-sign"></i> Add Parent/Guardian</button>
 					<table class="display dataTable">
 						<thead>
 							<tr>
+								<th></th>
 								<th>Name</th>
 								<th>Relationship</th>
 								<th>Telephone</th>
@@ -198,11 +199,15 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="item in student.guardians track by $index">
-								<td ng-click="editParent(item)">{{item.parent_full_name}}</td>
-								<td ng-click="editParent(item)">{{item.relationship}}</td>
-								<td ng-click="editParent(item)">{{item.telephone}}</td>
-								<td ng-click="editParent(item)">{{item.email}}</td>
+							<tr ng-if="student.guardians.length==0">
+								<td colspan="5">This student does not have any parents/guardians entered.</td>
+							</tr>
+							<tr ng-if="student.guardians.length>0" ng-repeat="item in student.guardians track by $index" ng-class-odd="'odd'" ng-class-even="'even'">
+								<td><span ng-click="deleteGuardian(item,$index)" class="glyphicon glyphicon-trash text-danger"></span></td>
+								<td ng-click="editGuardian(item)">{{item.parent_full_name}}</td>
+								<td ng-click="editGuardian(item)">{{item.relationship}}</td>
+								<td ng-click="editGuardian(item)">{{item.telephone}}</td>
+								<td ng-click="editGuardian(item)">{{item.email}}</td>
 								<!--td><a ng-click="sendMessage(item)"><i class="glyphicon glyphicon-email"></i> Send Email</a></td-->
 							</tr>
 						</tbody>
@@ -282,10 +287,10 @@
 							<p class="form-control-static" ng-show="!edit">{{student.adoptedStr}}</p>
 							<div ng-show="edit" class="col-sm-7">
 								<label class="radio-inline">
-								  <input type="radio" name="adopted" ng-model="student.adopted" value="true"> Yes
+								  <input type="radio" name="adopted" ng-model="student.adopted" ng-value="true"> Yes
 								</label>
 								<label class="radio-inline">
-								  <input type="radio" name="adopted" ng-model="student.adopted" value="false"> No
+								  <input type="radio" name="adopted" ng-model="student.adopted" ng-value="false"> No
 								</label>
 								<p ng-show="studentForm.adopted.$invalid && (studentForm.adopted.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Adoption selection is required.</p>
 							</div>
@@ -306,10 +311,10 @@
 							<p class="form-control-static" ng-show="!edit">{{student.adoptionAwareStr}}</p>
 							<div ng-show="edit" class="col-sm-7">
 								<label class="radio-inline">
-								  <input type="radio" name="adoption_aware" ng-model="student.adoption_aware" value="true"> Yes
+								  <input type="radio" name="adoption_aware" ng-model="student.adoption_aware" ng-value="true"> Yes
 								</label>
 								<label class="radio-inline">
-								  <input type="radio" name="adoption_aware" ng-model="student.adoption_aware" value="false"> No
+								  <input type="radio" name="adoption_aware" ng-model="student.adoption_aware" ng-value="false"> No
 								</label>
 							</div>	
 						</div>
@@ -326,6 +331,7 @@
 					<table class="display dataTable">
 						<thead>
 							<tr>
+								<th></th>
 								<th>Illness/Condition</th>
 								<th>Age</th>
 								<th>Comments</th>
@@ -336,7 +342,8 @@
 							<tr ng-if="student.medical_history.length==0">
 								<td colspan="5">This student does not have any reported medical illness/conditions.</td>
 							</tr>
-							<tr ng-if="student.medical_history.length>0" ng-repeat="item in student.medical_history track by $index">
+							<tr ng-if="student.medical_history.length>0" ng-repeat="item in student.medical_history track by $index" ng-class-odd="'odd'" ng-class-even="'even'" >
+								<td><span ng-click="deleteMedical(item,$index)" class="glyphicon glyphicon-trash text-danger"></span></td>
 								<td ng-click="editMedical(item)">{{item.illness_condition}}</td>
 								<td ng-click="editMedical(item)">{{item.age}}</td>
 								<td ng-click="editMedical(item)">{{item.comments}}</td>
@@ -418,13 +425,44 @@
 				<h2>Additional Comments</h2>
 				<p class="form-control-static" ng-show="!edit">{{student.comments}}</p>
 				<div ng-show="edit">
-					<textarea name="comments" ng-model="student.comments" rows="8" class="form-control"></textarea>
+					<textarea name="comments" ng-model="student.comments" rows="5" class="form-control"></textarea>
 				</div>
 
 			</script>
 			
 			<script type="text/ng-template" id="Fees">
-			
+				<h2>Fees</h2>
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="row">
+							<!-- preferred payment method -->
+							<div class="form-group">		
+								<label for="payment_method" class="col-sm-6 control-label">Preferred Payment Method</label>
+								<div class="col-sm-6">
+									<p class="form-control-static" ng-show="!edit">{{student.class_name}}</p>
+									<div ng-show="edit">
+										<select name="payment_method" ng-model="student.payment_method" class="form-control">
+											<option value="">--select payment option--</option>
+											<option value="{{item}}" ng-repeat="item in paymentOptions">{{item}}</option>
+										</select>
+									</div>
+								</div>	
+							</div>	
+						</div>
+						<div class="row">
+							<!-- next payment due -->
+							<div class="form-group">		
+								<label for="payment_method" class="col-sm-6 control-label">Next Payment Due</label>
+								<div class="col-sm-6">
+									<p class="form-control-static">{{student.next_payment_due}}</p>
+								</div>	
+							</div>	
+						</div>
+					</div>
+					<div class="col-sm-6">
+					
+					</div>
+				</div>
 			</script>
 			
 			<script type="text/ng-template" id="Report Cards">
@@ -440,12 +478,9 @@
 			</script>
 		</div>
 		<div class="modal-footer">
-			<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+			<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
 			
-			<button type="button" class="btn btn-default" ng-click="getStep('prev')" ng-show="!firstStep">Back</button>
-			<button type="button" class="btn btn-info" ng-click="getStep('next')" ng-show="!lastStep">Next</button>
-			
-			<button type="submit" class="btn btn-success" ng-show="lastStep">
+			<button type="submit" class="btn btn-success" ng-show="!studentForm.$pristine">
 				<span ng-hide="saving">Save</span>
 				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
 			</button>

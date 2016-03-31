@@ -40,7 +40,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		
 
 	}
-	initializeController();
+	$timeout(initializeController,1);
 	
 	var getStudents = function(status, filtering)
 	{

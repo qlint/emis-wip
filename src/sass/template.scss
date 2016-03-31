@@ -148,7 +148,7 @@ body {
 	background-color: #30603C;
     font-size: 12px;
     color: #fff;
-    margin: -10px 32px 0 0;
+    margin: -10px 17px 0 0;
     padding: 10px 15px;
 	
 	p{
@@ -393,13 +393,16 @@ table.dataTable thead td {
 	@include rounded(0);
 	
 	.modal-header{
-		background-color:$dark-green;
+		background-color:$mid-green;
 		color:#fff;
 		padding:10px 15px;
 		
 		.panel-title{
 			padding:10px 15px 0;
 		}
+	}
+	.dialog-header-confirm{
+		background-color:#AB0E0B;
 	}
 	
 	h2{
@@ -448,6 +451,8 @@ table.dataTable thead td {
 		}
 	}
 }
+
+
 
 .section-container{
 	margin-bottom: 27px;

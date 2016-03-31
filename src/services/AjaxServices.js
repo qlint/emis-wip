@@ -59,18 +59,12 @@
 
         }
 		
-		this.AjaxDelete = function (data, route, successFunction, errorFunction, extras) {
-			$http({
-				method: 'DELETE',
-				url: route,
-				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-				data: data
-			}).success(function (response, status, headers, config) {
+		this.AjaxDelete = function (route, successFunction, errorFunction, extras) {
+			$http({ method: 'DELETE', url: route}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
 			}).error(function (response) {
 				errorFunction(response);
 			});
-
         }
 
 		this.AjaxGet = function (route, successFunction, errorFunction, extras) {

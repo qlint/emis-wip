@@ -51,15 +51,16 @@ function($http, $rootScope, $window, Session, AUTH_EVENTS, ajaxService) {
 				else
 				{
 					//console.log('login failed');
+					console.log(loginData);
 					$rootScope.$broadcast(AUTH_EVENTS.loginFailed, {errorMsg: loginData.data});
 				}
 			},
-			function(){
+			function(e){
 				// error
 				//unsuccessful login, fire login failed event for 
 				//the according functions to run
 				//console.log('login failed');
-				$rootScope.$broadcast(AUTH_EVENTS.loginFailed);
+				$rootScope.$broadcast(AUTH_EVENTS.loginFailed, {errorMsg: e.data});
 				error();
 			});
 		

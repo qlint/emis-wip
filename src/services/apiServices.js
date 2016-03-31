@@ -36,6 +36,10 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addStudent/", successFunction, errorFunction, params);
 	};
 	
+	this.updateStudent = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateStudent/", successFunction, errorFunction, params);
+	};
+	
 	this.postGuardian = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addGuardian/", successFunction, errorFunction, params);
 	};
@@ -44,8 +48,20 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateGuardian/", successFunction, errorFunction, params);
 	};
 	
-	this.deleteGuardian = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxDelete(request, "http://api.eduweb.localhost/deleteGuardian/", successFunction, errorFunction, params);
+	this.deleteGuardian = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete("http://api.eduweb.localhost/deleteGuardian/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.postMedicalConditions = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addMedicalConditions/", successFunction, errorFunction, params);
+	};
+	
+	this.updateMedicalConditions = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateMedicalConditions/", successFunction, errorFunction, params);
+	};
+	
+	this.deleteMedicalCondition = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete("http://api.eduweb.localhost/deleteMedicalCondition/" + param, successFunction, errorFunction, params);
 	};
 	
 	

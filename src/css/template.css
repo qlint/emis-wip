@@ -54,7 +54,7 @@ body {
   background-color: #30603C;
   font-size: 12px;
   color: #fff;
-  margin: -10px 32px 0 0;
+  margin: -10px 17px 0 0;
   padding: 10px 15px; }
   .poweredby-branding p {
     font-size: 10px;
@@ -255,11 +255,13 @@ table.dataTable thead td {
   -moz-border-radius: 0;
   border-radius: 0; }
   .modal-content .modal-header {
-    background-color: #1F3D26;
+    background-color: #30603C;
     color: #fff;
     padding: 10px 15px; }
     .modal-content .modal-header .panel-title {
       padding: 10px 15px 0; }
+  .modal-content .dialog-header-confirm {
+    background-color: #AB0E0B; }
   .modal-content h2 {
     font-size: 18px; }
   .modal-content h3 {

@@ -69,6 +69,7 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 	};	
 	
 	$rootScope.$on('displayLoginError', function(event, args) {
+		console.log(args);
 		$scope.errorMsg = args.errorMsg;
 		$scope.credentials.user_pwd = '';
 		$scope.error = true;
