@@ -1,0 +1,70 @@
+<div id="loginbox" class="mainbox">
+	<div class="modal-header">
+			<img src="assets/eduweb-logo-sm.png" title="Eduweb" height="41" class="pull-left" />
+			<div class="panel-title pull-right">
+				<h1>Login</h1>
+			</div>
+			<!--div class="forgot-pwd pull-right">
+				<a href="#">Forgot your password?</a>
+			</div-->
+	</div>
+	<div class="modal-body">
+	
+		<p ng-show="error" class="error alert alert-danger">
+			{{errorMsg}}
+		</p>
+		<p ng-show="validationError" class="error alert alert-danger">
+			There was an error attempting to validate your email. {{validationErrorMsg}}
+		</p>
+		<p ng-show="pwdupdated" class="error alert alert-success">
+			Success! Your password has successfully been updated. Please login in below.
+		</p>
+
+		<form name="loginForm" class="form-horizontal" method="post" ng-submit="submit()" novalidate >
+			
+			<div class="input-group" ng-class="{'input-error':(submitted  || loginForm.user_name.$dirty)  && loginForm.user_name.$invalid}">
+				<span class="input-group-addon"><i
+					class="glyphicon glyphicon-user"></i></span> <input type="text"
+					class="form-control" name="user_name"  autocapitalize="off"
+					ng-model="credentials.user_name" placeholder="Username/Email Address"
+					focus-me="true"
+					required />
+			</div>
+			<div class="inline-error"
+				ng-show="(submitted  || loginForm.user_name.$dirty)  && loginForm.user_name.$invalid">
+				<span class="error text-danger" ng-show="loginForm.user_name.$error.required">Username is mandatory</span>
+			</div>
+			<div class="input-group" ng-class="{'input-error':(submitted  || loginForm.user_pwd.$dirty)  && loginForm.user_pwd.$invalid}">
+				<span class="input-group-addon"><i
+					class="glyphicon glyphicon-lock"></i></span> <input type="password"
+					class="form-control" name="user_pwd"
+					ng-model="credentials.user_pwd" placeholder="Password" required />
+			</div>
+			<div class="inline-error"
+				ng-show="(submitted  || loginForm.user_pwd.$dirty)  && loginForm.user_pwd.$invalid">
+				<span class="error text-danger" ng-show="loginForm.user_pwd.$error.required">Password is mandatory</span>
+			</div>
+			<div class="form-group">
+				<!-- Button -->
+
+				<div class="col-sm-12 controls">
+					<button type="submti" class="btn btn-success">
+						<span ng-hide="loggingIn">Login</span>
+						<span ng-show="loggingIn" class="fa fa-spinner fa-pulse"></span>
+					</button>
+					<button type="button" class="btn btn-link">
+						<span ng-hide="loggingIn" ng-click="cancel()">Cancel</span>
+					</button>
+					
+					<!--button type="button" class="btn btn-link pull-right">
+						Forgot Password?
+					</button-->
+				</div>
+
+			</div>			
+
+		</form>
+		
+	</div>
+</div>
+

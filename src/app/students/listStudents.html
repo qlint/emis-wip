@@ -1,0 +1,102 @@
+<div ng-controller="listStudentsCtrl">	
+	
+	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+		
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="alert alert-danger" ng-show="error">
+			{{errMsg}}
+		</div>
+		
+		<div class="fixed content-fixed-header">
+			
+			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+					<div class="btn add-btn" title="Add Student" ng-show="permissions.students.add" ng-click="addStudent()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Student</span></a></div>
+					<!--div class="btn" title="Print" ng-hide="isSmallScreen" ng-click="printablePage()"><a class="print-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div-->
+					<div class="btn" title="Import" ng-click="importStudents()"><a class="export-btn"><span class="glyphicon glyphicon-upload"></span> <span class="tool-text">Import Students</span></a></div>
+					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
+				</div>			
+			</div>
+			
+			<div class="clearfix">
+				<h1 id="pageTitle">Students</h1>
+			</div>
+			
+			<!-- search form -->
+			<div class="dataFilterForm">	
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+					<!-- category select -->
+					<div class="form-group">
+						<label for="category">Category</label>
+						<select class="form-control" id="category" name="class_cat_id" ng-model="filters.class_cat_id">
+							<option value="">All Class Categories</option>
+							<option value="{{cat.class_cat_id}}" ng-repeat="cat in classCats">{{cat.class_cat_name}}</option>
+						</select>
+					</div>
+					<!-- class select -->
+					<div class="form-group">
+						<label for="class">Class</label>	
+						<select name="class" id="class" class="form-control" ng-model="filters.class_id">
+							<option value="">All Classes</option>
+							<option value="{{class.class_id}}" ng-repeat="class in classes">{{class.class_name}}</option>
+						</select>
+					</div>		
+
+					<!-- status select -->
+					<div class="form-group">
+						<label for="status">Status</label>	
+						<select name="status" id="status" class="form-control" ng-model="filters.status">
+							<option value="true">Current</option>
+							<option value="false">Former</option>							
+						</select>
+					</div>	
+					
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="loadFilter()" value="Load" />
+						<img src="assets/spinner.gif" ng-show="loading" />
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+
+				</form>
+			</div>
+			<!-- // end search form -->
+			
+			
+		</div>
+		
+		<div class="full-height datagrid main-datagrid" ng-class="{tableLoading: loading}">
+			<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%">
+				<thead>
+					<tr>
+						<th></th>
+						<th>Name</th>
+						<th>Class</th>
+						<th>Admission Number</th>
+					</tr>
+				</thead>	
+				<tbody>
+					<tr ng-repeat="item in students track by $index">
+						<td></td>
+						<td id="{{item.student_id}}" class="student_id" ng-click="viewStudent(item)">{{item.student_name}}</td>
+						<td ng-click="viewStudent(item)">{{item.class_name}}</td>
+						<td ng-click="viewStudent(item)">{{item.admission_number}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		
+		<div class="loading-screen modal-backdrop fade in" ng-show="modalLoading">
+			<p class="msg"><span class="fa fa-cog fa-spin"></span> Fetching data...</p>
+		</div>
+		
+	</div>
+</div>
+
+
+

@@ -1,0 +1,748 @@
+$font-stack: Arial,Verdana,Helvetica,sans-serif;
+$text-color: #333;
+$green: #397C49;
+$mid-green: #30603C;
+$dark-green: #1F3D26;
+$bright-green: #009e0f;
+$light-gray: #EEEEEE;
+$mid-gray: #DDDDDD;
+
+
+/********************** Mixins ******************************/
+@mixin rounded($radius: 0.5em) {
+  -webkit-border-radius: $radius;
+  -moz-border-radius: $radius;
+  border-radius: $radius;
+}
+@mixin border-radius-top-btm($radiusTop, $radiusBtm) {
+  -webkit-border-top-right-radius: $radiusTop;
+     -moz-border-top-right-radius: $radiusTop;
+      -ms-border-top-right-radius: $radiusTop;
+          border-top-right-radius: $radiusTop;
+	
+  -webkit-border-top-left-radius: $radiusTop;
+     -moz-border-top-left-radius: $radiusTop;
+      -ms-border-top-left-radius: $radiusTop;
+          border-top-left-radius: $radiusTop;	
+
+  -webkit-border-bottom-right-radius: $radiusBtm;
+     -moz-border-bottom-right-radius: $radiusBtm;
+      -ms-border-bottom-right-radius: $radiusBtm;
+          border-bottom-right-radius: $radiusBtm;
+	
+  -webkit-border-bottom-left-radius: $radiusBtm;
+     -moz-border-bottom-left-radius: $radiusBtm;
+      -ms-border-bottom-left-radius: $radiusBtm;
+          border-bottom-left-radius: $radiusBtm;	
+}
+@mixin border-radiuses( $topLeft, $topRight, $btnLeft, $btnRight) {
+  -webkit-border-top-right-radius: $topRight;
+     -moz-border-top-right-radius: $topRight;
+      -ms-border-top-right-radius: $topRight;
+          border-top-right-radius: $topRight;
+	
+  -webkit-border-top-left-radius: $topLeft;
+     -moz-border-top-left-radius: $topLeft;
+      -ms-border-top-left-radius: $topLeft;
+          border-top-left-radius: $topLeft;	
+
+  -webkit-border-bottom-right-radius: $btnRight;
+     -moz-border-bottom-right-radius: $btnRight;
+      -ms-border-bottom-right-radius: $btnRight;
+          border-bottom-right-radius: $btnRight;
+	
+  -webkit-border-bottom-left-radius: $btnLeft;
+     -moz-border-bottom-left-radius: $btnLeft;
+      -ms-border-bottom-left-radius: $btnLeft;
+          border-bottom-left-radius: $btnLeft;	
+}
+@mixin box-shadow($top, $left, $blur, $color, $inset: false) {
+  @if $inset {
+    -webkit-box-shadow:inset $top $left $blur $color;
+    -moz-box-shadow:inset $top $left $blur $color;
+    box-shadow:inset $top $left $blur $color;
+  } @else {
+    -webkit-box-shadow: $top $left $blur $color;
+    -moz-box-shadow: $top $left $blur $color;
+    box-shadow: $top $left $blur $color;
+  }
+}
+
+// generic transform
+@mixin transform($transforms) {
+	   -moz-transform: $transforms;
+	     -o-transform: $transforms;
+	    -ms-transform: $transforms;
+	-webkit-transform: $transforms;
+          transform: $transforms;
+}
+// rotate
+@mixin rotate ($deg) {
+  @include transform(rotate(#{$deg}deg));
+}
+
+
+/********************** Layout Styles ******************************/
+html, body {
+	height: 100%;
+	margin:0;
+	padding:0;
+}
+
+body {
+	background: #fff;
+	overflow-x: hidden;
+	overflow-y: auto;
+	box-sizing: border-box;
+	color: $text-color;
+	font:12px  $font-stack;
+}
+
+#page-wrap {
+    height: 100%;
+    position:relative;
+}
+#mainContainer{
+	top: 62px;
+    left:0;
+    right:0;
+    bottom:0;
+    position:absolute;
+}
+
+.fixed{
+	position:fixed;
+	width:100%;
+	z-index:1000;
+}
+#body-content{
+	height:98%;
+}
+
+
+/********************** Branding Styles ******************************/
+.navbar-brand{
+	padding:5px;
+	color:#fff;
+	
+	span{
+		font-size:12px;
+		line-height:42px;
+		color:#fff;
+	}
+	
+	.brand{
+		max-height: 45px;
+		float: left;
+		margin-right: 10px;
+	}
+}
+.login {
+    padding: 18px 25px;
+	
+	a{
+		color: #fff;
+	}
+}
+.poweredby-branding{
+	background-color: #30603C;
+    font-size: 12px;
+    color: #fff;
+    margin: -10px 32px 0 0;
+    padding: 10px 15px;
+	
+	p{
+		font-size: 10px;
+		color: #fff;
+		margin: 0;
+		padding: 0;
+		font-style: italic;
+		margin-top: -5px;
+		margin-bottom: 0;
+	}
+}
+
+/********************** Navbar Styles ******************************/
+.navbar {
+	@include rounded(0);
+	background: $green;
+	height:50px;
+	padding:0;
+	margin:0;
+	border:none;
+}
+
+.navbar-inverse .navbar-toggle{
+	border:none;
+}
+.mainNav{
+	margin-top:50px;
+	background-color:$light-gray;
+	
+	.navbar-nav>li>a{
+		color:#777;
+		background:$mid-gray;
+		padding-left:20px;
+		padding-right:20px;
+	}
+}
+.navbar-nav{
+	margin-top:0;
+}
+
+
+.navbar-inverse .navbar-nav>.active>a, 
+.navbar-inverse .navbar-nav>.active>a:focus, 
+.navbar-inverse .navbar-nav>.active>a:hover{
+	background-color: #fff;
+	color: $text-color;
+}
+
+.navbar-nav>li>a{
+	padding-top:10px;
+	padding-bottom:10px;
+}
+	
+	
+.user-nav{
+	color:#fff;
+	font-size:12px;
+	
+	#welcome-msg{
+		font-style:italic;
+		text-align:right;
+		margin-right:5px;
+	}
+	
+	.nav>li>a{
+		padding:0px 5px 0 0;
+		font-size:11px;
+	}
+	
+	.nav>li a:after{
+		content:' | ';
+	}
+	.nav>li:last-child a:after{
+		content:' ';
+	}
+}
+
+/********************** Page Styles ******************************/
+h1{
+	font-size:22px;
+	margin:0 0 5px 0;
+}
+.students .content-fixed-header{
+	height:30px;
+}
+#body-content{
+
+	.content-fixed-header{
+		padding: 0 5px;
+	}
+	
+	h1#pageTitle{
+		position: fixed;
+		z-index: 1002;
+	}
+	
+	h4{
+		font-size:18px;
+		
+		.caret{
+			border-top: 8px dashed;
+			border-right: 8px solid transparent;
+			border-left: 8px solid transparent;
+		}
+	}
+}
+
+.pageToolsToggler{
+	position: fixed;
+	top: 50px;
+	z-index: 1002;
+	right: 110px;
+}
+
+.alert{
+
+	padding:7px 15px;
+
+	.glyphicon{
+		margin-right:10px;
+		font-size:16px;
+	}
+	
+	button.close{
+		margin-top:-3px;
+	}
+}
+
+/********************** Form Element Styles ******************************/
+::-webkit-input-placeholder,
+.placeholder-text {
+   color: #aaa;
+   font-size:12px!important;
+   line-height:18px;
+   font-weight:normal;
+   font-style: italic;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+   color: #eee;  font-size:12px;line-height:18px;
+}
+
+::-moz-placeholder {  /* Firefox 19+ */
+   color: #eee;  font-size:12px;line-height:18px;
+}
+
+:-ms-input-placeholder {  
+   color: #eee;  font-size:12px;line-height:18px;
+}
+
+.question-block{
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    margin-top: 5px;
+}
+
+
+/********************** DataTable Styles ******************************/
+.dataFilterForm{
+	position: fixed;
+	top: 50px;
+	right: 0;
+	width: 100%;
+	border-bottom: 1px solid #aaa;
+	z-index: 1001;
+	background: #eee;
+	
+	h4{
+		text-align: right;
+		margin-right: 10px;
+	}
+	
+	form{
+		margin: 0 -5px;
+		padding: 5px 15px 0 10px;
+	}
+}
+
+.main-datagrid{
+	padding-top:65px;
+	
+	.dataTables_filter{
+	
+		position: fixed;
+		margin-top: -37px;
+		margin-left:5px;
+		z-index: 1000;
+
+		label{
+			text-align:left;
+			font-size:11px;
+		}
+
+		input{
+			font-size: 14px;
+			line-height: 1.42857143;
+			color: #555;
+			margin-left:0!important;
+			background-color: #fff;
+			background-image: none;
+			border: 1px solid #ccc;
+			@include rounded(4px);
+			@include box-shadow(0, 1px, 1px, rgba(0,0,0,.075), true);
+			height: 24px;
+			padding: 3px;
+		}
+	}
+}
+table.dataTable{
+	border-bottom:none;
+}
+table.dataTable thead th, 
+table.dataTable thead td {
+    padding: 5px 18px 5px 2px;
+    border-bottom: none;
+	background:#969696;
+	color:#fff;
+}
+
+
+/********************** Modal Styles ******************************/
+.loading-screen{
+	z-index:1040;
+		
+		.msg{
+			position: absolute;
+			top: 30%;
+			left: 32%;
+			font-size: 70px;
+			text-align:center;
+			.fa{
+				display:block;
+				font-size: 100px;
+			}
+		}
+}
+.modal-dialog{
+	margin:-1px 10px 0 -1px;
+}
+.modal-content{
+	@include rounded(0);
+	
+	.modal-header{
+		background-color:$dark-green;
+		color:#fff;
+		padding:10px 15px;
+		
+		.panel-title{
+			padding:10px 15px 0;
+		}
+	}
+	
+	h2{
+		font-size:18px;
+	}
+	h3{
+		font-size: 14px;
+		border-bottom: 1px solid #ddd;
+		margin: 0 0 10px 0;
+		padding-bottom:5px;
+		font-weight:600;
+	}
+	
+	.modal-tabs{
+		margin: 0 -14px;
+		
+		.nav>li>a{
+			padding: 5px 7px;
+			font-size: 11px;
+		}
+		.nav-tabs>li>a{
+			@include rounded(0);
+		}
+	}
+	
+	.input-group{
+		margin-bottom:5px;
+	}
+	
+	.modalForm{
+		.form-group{
+			margin-bottom:5px;
+		}
+		input[type=text], select{
+			height:26px;
+			padding: 3px;
+		}
+		.input-group-addon{
+			height:26px;
+			padding:0 12px;
+		}
+		
+		.checkbox-inline, .radio-inline{
+			padding-top: 0!important;
+			line-height: 20px;
+		}
+	}
+}
+
+.section-container{
+	margin-bottom: 27px;
+    border-bottom: 1px dashed #eee;
+    padding-bottom: 15px;
+	
+	.btn{
+		margin-top:15px;
+	}
+}
+
+.stacked-form{
+	label{
+		margin-bottom:3px;
+	}
+	.row{
+		padding:10px 0;
+	}
+	.row:nth-child(even){
+		background-color:#eee;
+	}
+}
+.pic-container{
+	padding: 10px;
+    background: #ddd;
+    @include rounded(7px);
+    text-align: center;
+	
+	img{
+		max-width: 97%;
+		height: initial;
+		@include rounded(7px);
+	}
+	
+	span{
+		font-size: 100px;
+		padding: 25px 0;
+	}
+}
+
+/*
+ * Max-Width 768 Styling
+ * --------------------------------------------------
+ */
+@media (max-width: 767px) {
+
+	.toolbar-container{
+		position: fixed;
+		top: 88px;
+		z-index: 1002;
+		width:100%;
+		background: rgba(238, 238, 238, 0.48);
+		margin: -1px 5px 0 -5px;
+		
+		.toolbar{
+
+			display: block!important;
+			
+			.btn{
+				width: 33.333%;
+				border-right: 1px solid #fff;
+			}
+			.btn:last-child{
+				border-right:none;
+			}
+		}
+	}
+}
+
+/*
+ * Min-Width 768 Styling
+ * --------------------------------------------------
+ */
+@media (min-width: 425px) {
+
+	.modal-content{
+		.modal-tabs{
+			
+			.nav>li>a{
+				padding: 5px 10px;
+				font-size: 12px;
+			}
+
+		}
+	}
+}
+
+/*
+ * Min-Width 768 Styling
+ * --------------------------------------------------
+ */
+@media (min-width: 768px) {
+
+	#mainContainer{
+		top: 81px;
+	}
+	
+	/********************** Branding Styles ******************************/
+	.navbar-brand{
+		padding:0 25px;
+		color:#fff;
+		/*width:100%;*/
+		
+		span{
+			font-size:20px;
+			line-height:42px;
+			color:#fff;
+		}
+		
+		.brand{
+			max-width: 200px;
+		}
+	}
+
+	/********************** Navbar Styles ******************************/
+	.navbar {
+		height:60px;
+		padding:10px 0;
+		margin:0 -1px;
+	}
+	.navbar-header{
+		float:none;
+		margin: 0 -15px!important;
+	}
+
+	.navbar-inverse .navbar-toggle{
+		border:none;
+	}
+	
+	.mainNav{
+		background-color:$light-gray;
+		border-right:1px solid #fff;
+		color: $text-color;
+		
+		.navbar-nav > li > a{
+			border-right:1px solid #fff;
+		}
+	}
+	
+	.navbar-nav{
+		margin-top:0;
+	}
+
+	
+	.user-nav .navbar-nav>li>a{
+		color:#fff;
+		background:transparent;
+	}
+	
+	.navbar-nav>li>a{
+		padding-top:3px;
+		padding-bottom:3px;
+	}
+	
+	/********************** Page Styles ******************************/
+	h1{
+		font-size:24px;
+		margin:7px 0 5px 5px;
+	}
+	.students .content-fixed-header{
+		height:auto;
+	}
+	#body-content{
+
+		.content-fixed-header{
+			padding: 0;
+		}
+		
+		h1#pageTitle{
+			position: static;
+		}
+		
+		h4{
+			font-size:18px;
+			
+			.caret{
+				border-top: 4px dashed;
+				border-right: 4px solid transparent;
+				border-left: 4px solid transparent;
+			}
+		}
+		
+		.toolbar{
+			margin-top:4px;
+		
+			a{
+				font-size:12px;
+				color:#000;
+				
+			}
+			
+			.add-btn a{
+				color: $bright-green;
+			}
+		}
+		
+		
+	}
+	
+	
+	/********************** Modal Styles ******************************/
+	.modal-dialog{
+		margin:30px auto;
+	}
+	.modal-content{
+		.modal-tabs{
+			margin: 0;
+			
+			.nab-tabs{
+				padding-left:10px;
+			}
+			
+			.nav>li>a{
+				padding:5px 15px;
+			}
+
+		}
+		h3{
+			margin-top:30px;
+		}
+		h3:first-child{
+			margin-top:0;
+		}
+	}
+
+	/********************** DataTable Styles ******************************/
+	.dataFilterForm{
+		position:static;
+		background: #eee;
+		width: auto;
+		border-top-right-radius: 10px;
+		padding: 5px 0;
+		display: inline-block;
+		height: 45px;
+		padding-right: 215px;
+		border-bottom:none;
+		
+		
+		h4{
+			color:#fff;
+			background-color:#666666;
+			@include rotate(-90);
+			font-size: 12px!important;
+			display: inline-block;
+			float: left;
+			padding: 5px;
+			margin: 6px 0 0 -11px;
+			width:45px;
+			position:static;
+		}
+		
+		form{
+			display:inline;
+			background:#eee;
+			margin-left:-15px;
+		}
+		
+		label{
+			display:block;
+			font-size: 11px;
+			margin: 0;
+		}
+		input, select{
+			height:24px;
+			padding: 3px;
+		}
+		.submit-btn{
+			margin-top:12px;
+		}
+	}
+	.main-datagrid{
+		padding-top:83px;
+		border-top:1px solid #fff;
+		
+		.dataTables_filter{
+			margin-top: -40px;
+			left: 350px;
+		}
+	}	
+	
+	table.dataTable tbody th, table.dataTable tbody td{
+		padding:2px;
+	}
+	
+}
+
+
+
+
+
+
+/*
+ * Min-Width 1024 Styling
+ * --------------------------------------------------
+ */
+@media (min-width: 1024px) {
+
+}
