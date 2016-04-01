@@ -11,7 +11,7 @@
 				 			
 			<div class="row">
 				<div class="col-sm-12">
-					<div class="modal-tabs">					
+					<div class="modal-tabs main-tabs">					
 						<ul class="nav nav-tabs">
 							<li ng-class="{active: currentTab==item}" ng-repeat="item in tabs"><a class="clickable" ng-click="getTabContent(item)">{{item}}</a></li>
 						</ul>						
@@ -432,14 +432,17 @@
 			
 			<script type="text/ng-template" id="Fees">
 				<h2>Fees</h2>
+				<div ng-show="balanceSummary.unapplied_payments" class="alert alert-info">
+					<i class="glyphicon glyphicon-info-sign"></i> This student has a payment of {{balanceSummary.unapplied_payments}} {{currency}} that has not been applied to a fee item.
+				</div>
 				<div class="row">
 					<div class="col-sm-6">
 						<div class="row">
 							<!-- preferred payment method -->
 							<div class="form-group">		
-								<label for="payment_method" class="col-sm-6 control-label">Preferred Payment Method</label>
-								<div class="col-sm-6">
-									<p class="form-control-static" ng-show="!edit">{{student.class_name}}</p>
+								<label for="payment_method" class="col-sm-5 control-label">Preferred Payment Method</label>
+								<div class="col-sm-7">
+									<p class="form-control-static" ng-show="!edit">{{student.payment_method}}</p>
 									<div ng-show="edit">
 										<select name="payment_method" ng-model="student.payment_method" class="form-control">
 											<option value="">--select payment option--</option>
@@ -452,15 +455,178 @@
 						<div class="row">
 							<!-- next payment due -->
 							<div class="form-group">		
-								<label for="payment_method" class="col-sm-6 control-label">Next Payment Due</label>
-								<div class="col-sm-6">
-									<p class="form-control-static">{{student.next_payment_due}}</p>
+								<label for="payment_method" class="col-sm-5 control-label">Next Payment Due</label>
+								<div class="col-sm-7">
+									<p class="form-control-static">{{balanceSummary.due_next_timeframe|number}} {{currency}} {{balanceSummary.next_due_date|date}}</p>
 								</div>	
 							</div>	
+							<!-- amount overdue -->
+							<div class="form-group text-danger" ng-show="totalOverdue>0">		
+								<label for="payment_method" class="col-sm-5 control-label">Amount Overdue</label>
+								<div class="col-sm-7">
+									<p class="form-control-static">{{totalOverdue|number}} {{currency}}</p>
+								</div>	
+							</div>	
+							
 						</div>
 					</div>
 					<div class="col-sm-6">
+						<div class="info-boxes pull-right" ng-show="feeSummary.length>0">
+							<div class="info-box alert alert-info">
+								Due this {{balanceSummary.pay_period}}
+								<p>{{balanceSummary.due_for_timeframe|number}}<span>{{currency}}</span></p>
+							</div>
+							<div class="info-box alert" ng-class="{'alert-success':balanceSummary.pay_period_balance==0, 'alert-danger': balanceSummary.pay_period_balance>10000, 'alert-warning' : balanceSummary.pay_period_balance>0}">
+								Paid this {{balanceSummary.pay_period}}
+								<p>{{balanceSummary.paid_for_timeframe|number}}<span>{{currency}}</span></p>
+							</div>
+							<div class="info-box alert" ng-class="{'alert-success':totalBalance==0, 'alert-warning' : totalBalance>0, 'alert-danger': totalBalance>0}">
+								Balance Due
+								<p>{{ totalBalance|number}}<span>{{currency}}</span></p>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+				
+				<div class="modal-tabs sub-tabs">					
+					<ul class="nav nav-tabs">
+						<li ng-class="{active: currentFeeTab==item}" ng-repeat="item in feeTabs"><a class="clickable" ng-click="getFeeTabContent(item)">{{item}}</a></li>
+					</ul>						
+				</div>
+									
+				<div class="subtab-content clearfix" ng-include="currentFeeTab"></div>				
+				
 					
+			</script>
+			
+			<script type="text/ng-template" id="Fee Summary">
+				<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Item</th>
+							<th>Payment Method</th>
+							<th class="center">Opening Balance</th>
+							<th class="center">Due/Pay Period ({{currency}})</th>
+							<th class="center">Amount Paid ({{currency}})</th>
+							<th class="center">Balance ({{currency}})</th>
+						</tr>
+					</thead>	
+					<tbody>
+						<tr ng-repeat="item in feeSummary track by $index" ng-class="{'alert-danger': item.pay_period_balance>0, 'alert-success':item.total_balance==0}">
+							<td></td>
+							<td id="{{item.fee_item_id}}">{{item.fee_item}}</td>
+							<td>{{item.payment_method}}</td>
+							<td class="center">{{item.total_amount|number}}</td>
+							<td class="center">{{item.pay_period_due|number}}</td>
+							<td class="center">{{item.total_amount_paid|number}}</td>
+							<td class="center">{{item.total_balance|number}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</script>
+			
+			<script type="text/ng-template" id="Payments Received">
+				<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Receipt</th>
+							<th>Payment Date</th>
+							<th>Payment Method</th>
+							<th>Amount ({{currency}})</th>
+							<th>Applied To</th>
+						</tr>
+					</thead>	
+					<tbody>
+						<tr ng-repeat="item in payments track by $index">
+							<td></td>
+							<td class="center" id="{{item.payment_id}}"><span class="glyphicon glyphicon-file" ng-click="getReceipt(item)"></span></td>
+							<td ng-click="viewPayment(item)">{{item.payment_date}}</td>
+							<td ng-click="viewPayment(item)">{{item.payment_method}}</td>
+							<td ng-click="viewPayment(item)">{{item.payment_amt}}</td>
+							<td ng-click="viewPayment(item)">{{item.applied_to}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</script>
+			
+			<script type="text/ng-template" id="Fee Items">
+				<div class="row">
+					<div class="col-sm-6">
+						<table class="display dataTable">
+							<thead>
+								<tr>
+									<th>Item</th>
+									<th>Amount</th>
+									<th>Paid</th>
+									<th>Payment Method</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="item in feeItems.slice(0,feeItems.length/2) track by $index">
+									<td>
+										<label class="checkbox-inline">
+										  <input
+											type="checkbox"
+											name="fee_items[]"
+											value="{{item.fee_item_id}}"
+											ng-checked="feeItemSelection.indexOf(item) > -1"
+											ng-click="toggleFeeItem(item)"
+										  > {{item.fee_item}}
+										</label>										
+									</td>
+									<td width="70">
+										<input type="text" name="fee_item_amount[]" ng-model="item.amount" class="form-control" placeholder="{{item.default_amount}}">
+									</td>
+									<td>{{item.frequency}}</td>
+									<td>
+										<select name="fee_items_payment_methods[]" ng-model="item.payment_method" class="form-control">
+											<option value=""></option>
+											<option value="{{item}}" ng-repeat="item in paymentOptions">{{item}}</option>
+										</select>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="col-sm-6">
+						<table class="display dataTable">
+							<thead>
+								<tr>
+									<th>Item</th>
+									<th>Amount</th>
+									<th>Paid</th>
+									<th>Payment Method</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="item in feeItems.slice(feeItems.length/2) track by $index">
+									<td>
+										<label class="checkbox-inline">
+										  <input
+											type="checkbox"
+											name="fee_items[]"
+											value="{{item.fee_item_id}}"
+											ng-checked="feeItemSelection.indexOf(item) > -1"
+											ng-click="toggleFeeItem(item)"
+										  > {{item.fee_item}}
+										</label>										
+									</td>
+									<td width="70">
+										<input type="text" name="fee_item_amount[]" ng-model="item.amount" class="form-control" placeholder="{{item.default_amount}}">
+									</td>
+									<td>{{item.frequency}}</td>
+									<td>
+										<select name="fee_items_payment_methods[]" ng-model="item.payment_method" class="form-control">
+											<option value=""></option>
+											<option value="{{item}}" ng-repeat="item in paymentOptions">{{item}}</option>
+										</select>
+									</td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
 				</div>
 			</script>

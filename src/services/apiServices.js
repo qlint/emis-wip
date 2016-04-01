@@ -20,16 +20,20 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getAllClasses", successFunction, errorFunction, params);
 	};
 	
+	this.getFeeItems = function (param, successFunction, errorFunction) {  
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getFeeItems/", successFunction, errorFunction);
+	};
+	
 	this.getAllStudents = function (param, successFunction, errorFunction) {          
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllStudents/" + param, successFunction, errorFunction);
 	};
 	
-	this.getAllEmployees = function (param, successFunction, errorFunction) {  
-		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllEmployees/" + param, successFunction, errorFunction);
+	this.getStudentDetails = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentDetails/" + param, successFunction, errorFunction, params);
 	};
 	
-	this.getFeeItems = function (param, successFunction, errorFunction) {  
-		ajaxService.AjaxGet("http://api.eduweb.localhost/getFeeItems/", successFunction, errorFunction);
+	this.getStudentBalance = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentBalance/" + param, successFunction, errorFunction, params);
 	};
 	
 	this.postStudent = function (request, successFunction, errorFunction, params) {          
@@ -65,8 +69,10 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 	};
 	
 	
-	this.getStudentDetails = function (param, successFunction, errorFunction, params) {          
-		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentDetails/" + param, successFunction, errorFunction, params);
+	
+	
+	this.getAllEmployees = function (param, successFunction, errorFunction) {  
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllEmployees/" + param, successFunction, errorFunction);
 	};
 	
 	

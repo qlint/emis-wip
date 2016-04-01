@@ -904,7 +904,7 @@ $app->get('/getStudentDetails(/:studentId)', function ($studentId) {
 
 });
 
-$app->get('/getStudentNextPayment(/:studentId)', function ($studentId) {
+$app->get('/getStudentBalance(/:studentId)', function ($studentId) {
     // Return students next payment
 	
 	$app = \Slim\Slim::getInstance();
@@ -913,56 +913,302 @@ $app->get('/getStudentNextPayment(/:studentId)', function ($studentId) {
     {
         $db = getDB();
 		
-		// check the students payment method
-		$sth = $db->prepare("SELECT payment_method
-							 FROM hog.students 
-							 WHERE student_id = :studentID");
-        $sth->execute( array(':studentID' => $studentId)); 
-        $result = $sth->fetch(PDO::FETCH_OBJ);
-		
-		// if per term
-		if( $result->payment_method == 'Per Term')
-		{
-			// get the next term
-			$sth = $db->prepare("SELECT start_date || ' (' || term_name || ')' as next_payment_due
-								FROM hog.terms
-								WHERE
-								CASE WHEN date_part('month', start_date) in (1,5,9) THEN
-										now() + interval '4 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
-									 WHEN date_part('month', start_date) in (2,6,10) THEN
-										now() + interval '3 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
-									 WHEN date_part('month', start_date) in (3,7,11) THEN
-										now() + interval '2 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
-									 ELSE
-										now() + interval '1 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
-								END");
-			$sth->execute();
-			$results = $sth->fetch(PDO::FETCH_OBJ);
-		}
-		else if ( $result->payment_method == 'Per Month' )
-		{
-			// if per month
-			$sth = $db->prepare("SELECT date_trunc('month', now() + interval '1 month')::date as next_payment_due");
-			$sth->execute();
-			$results = $sth->fetch(PDO::FETCH_OBJ);
-		}
-		else if ( $result->payment_method == 'Annually' )
-		{
-			// if per year
-			$sth = $db->prepare("SELECT date_trunc('year', now() + interval '1 year')::date as next_payment_due ");
-			$sth->execute();
-			$results = $sth->fetch(PDO::FETCH_OBJ);
-		}
+		// get total amount of student fee items
+		// calculate the amount due and due date
+		// calculate the balance owing
+		$sth = $db->prepare("SELECT
+							CASE WHEN student_fee_items.payment_method IN ('Once','Annually') THEN
+									-- whole sum is due
+									student_fee_items.amount
+								WHEN student_fee_items.payment_method = 'Per Term' THEN
+									-- if fee item is billed by term, whole sum
+									-- if fee item is billed once or anually, divide by 3
+									CASE WHEN fee_items.frequency = 'per term' THEN
+										student_fee_items.amount
+									     ELSE
+										student_fee_items.amount/3
+									END
+								WHEN student_fee_items.payment_method = 'Per Month' THEN
+									-- if fee item is billed by term, divide by 4
+									-- if fee item is billed once or anually, divide by 12
+									CASE WHEN fee_items.frequency = 'per term' THEN
+										student_fee_items.amount/4
+									     ELSE
+										student_fee_items.amount/12
+									END
+							END AS due_for_timeframe,
+							
+							CASE WHEN student_fee_items.payment_method in ('Once','Annually') THEN
+									-- due date is start of first term
+									(SELECT start_date || ' (' || term_name || ')' AS next_payment_due
+									FROM hog.terms
+									WHERE date_trunc('year', start_date) = date_trunc('year',now())
+									AND term_name = 'Term 1')
+								 WHEN student_fee_items.payment_method = 'Per Term' THEN
+									-- due date is next term
+									(SELECT start_date || ' (' || term_name || ')' AS next_payment_due
+									FROM hog.terms
+									WHERE
+									CASE WHEN date_part('month', start_date) in (1,5,9) THEN
+											now() + interval '4 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+										WHEN date_part('month', start_date) in (2,5,10) THEN
+											now() + interval '3 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+										WHEN date_part('month', start_date) in (3,7,11) THEN
+											now() + interval '2 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+										ELSE
+											now() + interval '1 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+									END
+									)
+								 WHEN student_fee_items.payment_method = 'Per Month' THEN
+									-- due date is next month
+									(SELECT date_trunc('month', now() + interval '1 month')::date::text next_payment_due)
+							END AS next_due_date,
 
-		/*
-		this query gets the total amounts that are due per payment option
+							CASE WHEN student_fee_items.payment_method in ('Once','Annually') THEN
+									-- due date is start of first term
+									(SELECT start_date || ' (' || term_name || ')' AS next_payment_due
+									FROM hog.terms
+									WHERE date_trunc('year', start_date) = date_trunc('year',now())
+									AND term_name = 'Term 1')
+								 WHEN student_fee_items.payment_method = 'Per Term' THEN
+									-- due date is next term
+									(SELECT start_date || ' (' || term_name || ')' AS next_payment_due
+									FROM hog.terms
+									WHERE
+									CASE WHEN date_part('month', start_date) in (1,5,9) THEN
+											now() BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+										WHEN date_part('month', start_date) in (2,5,10) THEN
+											now() - interval '1 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+										WHEN date_part('month', start_date) in (3,7,11) THEN
+											now() - interval '2 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+										ELSE
+											now() - interval '3 months' BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day'
+									END
+									)
+								 WHEN student_fee_items.payment_method = 'Per Month' THEN
+									-- due date is next month
+									(SELECT date_trunc('month', now())::date::text next_payment_due)
+							END AS current_due_date,
+
+							(
+							SELECT coalesce(sum(payment_fee_items.amount),0)
+							FROM hog.student_fee_items SF
+							LEFT JOIN hog.payment_fee_items
+								INNER JOIN hog.payments 
+								ON payment_fee_items.payment_id = payments.payment_id
+							ON SF.student_fee_item_id = payment_fee_items.student_fee_item_id
+							WHERE SF.student_id = 6	
+							AND SF.student_fee_item_id = student_fee_items.student_fee_item_id
+							)
+							 AS total_amount_paid, 
+
+							 CASE WHEN student_fee_items.payment_method = 'Once' THEN
+							
+								-- what was paid this year
+								(SELECT sum(payment_fee_items.amount)
+								FROM hog.student_fee_items as SF								
+								INNER JOIN hog.payment_fee_items										
+								ON SF.student_fee_item_id = payment_fee_items.student_fee_item_id
+								INNER JOIN hog.terms
+								ON SF.term_id = terms.term_id									
+								WHERE date_trunc('year', now()) = date_trunc('year',start_date)
+								AND SF.student_fee_item_id = student_fee_items.student_fee_item_id
+								AND student_id = 6)
+							 WHEN student_fee_items.payment_method = 'Annually' THEN
+							
+								-- what was paid this year
+								(SELECT sum(payment_fee_items.amount)
+								FROM hog.student_fee_items as SF									
+								INNER JOIN hog.payment_fee_items										
+								ON SF.student_fee_item_id = payment_fee_items.student_fee_item_id
+								INNER JOIN hog.terms
+								ON SF.term_id = terms.term_id									
+								WHERE date_trunc('year', now()) = date_trunc('year',start_date)
+								AND SF.student_fee_item_id = student_fee_items.student_fee_item_id
+								AND student_id = 6)
+							 WHEN student_fee_items.payment_method = 'Per Term' THEN
+								-- what was paid this term
+								(SELECT sum(payment_fee_items.amount)
+								FROM hog.student_fee_items AS SF								
+								INNER JOIN hog.payment_fee_items										
+								ON SF.student_fee_item_id = payment_fee_items.student_fee_item_id
+								INNER JOIN hog.terms
+								ON SF.term_id = terms.term_id	
+								INNER JOIN hog.payments
+								ON payment_fee_items.payment_id = payments.payment_id										
+								WHERE date_trunc('year', now()) = date_trunc('year',start_date)
+								AND date_trunc('month',payment_date) BETWEEN date_trunc('month', start_date) AND (end_date + interval '1 month') - interval '1 day' 
+								AND SF.student_fee_item_id = student_fee_items.student_fee_item_id
+								AND SF.student_id = 6)
+							 WHEN student_fee_items.payment_method = 'Per Month' THEN
+								-- what was paid this month
+								(SELECT sum(payment_fee_items.amount)																	
+								FROM hog.student_fee_items AS SF
+								INNER JOIN hog.payment_fee_items										
+								ON SF.student_fee_item_id = payment_fee_items.student_fee_item_id
+								INNER JOIN hog.payments
+								ON payment_fee_items.payment_id = payments.payment_id	
+								INNER JOIN hog.terms
+								ON SF.term_id = terms.term_id								
+								WHERE date_trunc('year', now()) = date_trunc('year',start_date)
+								AND date_trunc('month', now()) = date_trunc('month',payment_date)
+								AND SF.student_fee_item_id = student_fee_items.student_fee_item_id
+								AND SF.student_id = 6)
+							END as paid_for_timeframe,
+
+							(
+								SELECT payments.amount - (select sum(amount) from hog.payment_fee_items where payment_id = payments.payment_id ) as diff
+								FROM hog.payments
+								LEFT JOIN hog.payment_fee_items ON payments.payment_id = payment_fee_items.payment_id
+								WHERE student_id = :studentID
+								AND reversed is false
+								AND (student_fee_item_id is null OR  payments.amount - (select sum(amount) from hog.payment_fee_items where payment_id = payments.payment_id )  > 0)
+							) AS unapplied_payments,
+							case when student_fee_items.payment_method = 'Per Term' then
+								'Term'
+							      when student_fee_items.payment_method = 'Per Month' then
+								'Month'
+							else
+								'Year'
+							end as pay_period,
+							student_fee_items.payment_method,
+							CASE WHEN fee_items.frequency in ('once','yearly') THEN
+								student_fee_items.amount 
+								 WHEN fee_items.frequency = 'per term' THEN
+								student_fee_items.amount*3 
+							END AS total_amount,
+							fee_item, frequency
+						FROM hog.student_fee_items
+	
+						INNER JOIN hog.fee_items
+						ON student_fee_items.fee_item_id = fee_items.fee_item_id	
+						WHERE student_fee_items.student_id = :studentID
+						GROUP BY student_fee_items.payment_method, fee_items.frequency, fee_item, student_fee_items.student_fee_item_id");
+        $sth->execute( array(':studentID' => $studentId)); 
+        $balances = $sth->fetchAll(PDO::FETCH_OBJ);
 		
-		SELECT
-		sum(amount) as total_amount, payment_method
-		FROM hog.student_fee_items
-		WHERE student_id = 6
-		GROUP BY payment_method
+		/* 
+		Calculate balances and check if anything is past due
+		*/		
+		$totalOverdue = 0;
+		for( $i=0; $i < count($balances); $i++)
+		{
+			$currentItem = $balances[$i];
+			
+			$balances[$i]->total_balance = ( $currentItem->total_amount - $currentItem->total_amount_paid );
+			$pay_period_balance = ( $currentItem->due_for_timeframe - $currentItem->paid_for_timeframe );
+			$balances[$i]->pay_period_balance = ( $pay_period_balance < 0 ? 0 : $pay_period_balance);
+			
+			$balances[$i]->pay_period_due = ( $balances[$i]->total_balance > 0 ? $balances[$i]->due_for_timeframe  : 0 );
+			
+			// what is overdue?
+			$current_due_date = substr( $currentItem->current_due_date, 0, strpos($currentItem->current_due_date, " ") ); // trim off term
+			if( new DateTime() > new DateTime($current_due_date) )
+			{
+				$totalOverdue += ( $currentItem->due_for_timeframe - $currentItem->paid_for_timeframe );
+			}			
+		}
+		
+		//  set the next due summary
+		$balanceSummary = array();
+		for( $i=0; $i < count($balances); $i++)
+		{
+			if( $balances[$i]->pay_period == 'Month' )
+			{
+				$balanceSummary[] = $balances[$i];
+			}
+		}
+		// if no monthly balances, look for terms
+		if( count($balanceSummary) == 0 )
+		{
+			for( $i=0; $i < count($balances); $i++)
+			{
+				if( $balances[$i]->pay_period == 'Term' )
+				{
+				
+					$balanceSummary[] = $balances[$i];
+				}
+			}
+			
+			// if no term balances, look for yearly
+			if( count($balanceSummary) == 0 )
+			{
+				for( $i=0; $i < count($balances); $i++)
+				{
+					if( $balances[$i]->pay_period == 'Year' )
+					{
+						$balanceSummary[] = $balances[$i];
+					}
+				}
+			}
+		}
+	
+		// now loop through and total it up
+		$balanceSummaryTotals = new stdClass();
+		//var_dump($balanceSummary);
+		for( $i=0; $i < count($balanceSummary); $i++)
+		{
+			$balanceSummaryTotals->next_due_date = $balanceSummary[$i]->next_due_date;
+			$balanceSummaryTotals->current_due_date = $balanceSummary[$i]->current_due_date;
+			$balanceSummaryTotals->unapplied_payments = $balanceSummary[$i]->unapplied_payments;
+			$balanceSummaryTotals->pay_period = $balanceSummary[$i]->pay_period;			
+					
+			$balanceSummaryTotals->due_for_timeframe += $balanceSummary[$i]->due_for_timeframe;
+			$balanceSummaryTotals->paid_for_timeframe += $balanceSummary[$i]->paid_for_timeframe;
+			$balanceSummaryTotals->pay_period_balance += $balanceSummary[$i]->pay_period_balance;
+			
+			// if the item still has a balance due, add it up	
+			if( $balanceSummary[$i]->total_balance > 0 )
+			{	
+				$balanceSummaryTotals->due_next_timeframe += $balanceSummary[$i]->due_for_timeframe;
+			}
+		}
+		
+		
+		
+		/*
+			Get the open balances summary rows
 		*/
+		/*
+		$query = $db->prepare("SELECT fee_item, frequency,
+							max(student_fee_items.amount) as opening_balance, 
+							coalesce(sum(payment_fee_items.amount),0) as amount_paid, 
+							(max(student_fee_items.amount) - coalesce(sum(payment_fee_items.amount),0)) as balance, 
+							payment_method,
+							CASE WHEN student_fee_items.payment_method IN ('Once','Annually') THEN
+								max(student_fee_items.amount)
+							WHEN student_fee_items.payment_method = 'Per Term' THEN
+								-- if fee item is billed by term, whole sum
+								-- if fee item is billed once or anually, divide by 3
+								CASE WHEN fee_items.frequency = 'per term' THEN
+									max(student_fee_items.amount)
+									 ELSE
+									max(student_fee_items.amount)/3
+								END
+							WHEN student_fee_items.payment_method = 'Per Month' THEN
+								-- if fee item is billed by term, divide by 4
+								-- if fee item is billed once or anually, divide by 12
+								CASE WHEN fee_items.frequency = 'per term' THEN
+									max(student_fee_items.amount)/4
+									 ELSE
+									max(student_fee_items.amount)/12
+								END
+							END AS due_per_pay_period
+						FROM hog.student_fee_items
+						LEFT JOIN hog.payment_fee_items
+						ON student_fee_items.student_fee_item_id = payment_fee_items.student_fee_item_id
+						INNER JOIN hog.fee_items
+						ON student_fee_items.fee_item_id = fee_items.fee_item_id
+						WHERE student_id = :studentID
+						GROUP BY fee_item, frequency, payment_method");
+		$query->execute( array(':studentID' => $studentId)); 
+        $summaryRows = $query->fetchAll(PDO::FETCH_OBJ);
+		*/
+		
+		$results = new stdClass();
+		$results->totalOverdue = $totalOverdue;
+		$results->balance_summary = $balanceSummaryTotals;
+		$results->fee_summary = $balances;
  
         if($results) {			
             $app->response->setStatus(200);

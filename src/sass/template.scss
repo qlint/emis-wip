@@ -368,6 +368,26 @@ table.dataTable thead td {
 	background:#969696;
 	color:#fff;
 }
+td.center,
+th.center{
+	text-align:center;
+}
+
+tr.alert-danger{
+	background-color: #f2dede!important;
+	
+	td{
+		background-color: #f2dede!important;
+	}
+}
+
+tr.alert-success{
+	background-color: #dff0d8!important;
+	
+	td{
+		background-color: #dff0d8!important;
+	}
+}
 
 
 /********************** Modal Styles ******************************/
@@ -416,7 +436,7 @@ table.dataTable thead td {
 		font-weight:600;
 	}
 	
-	.modal-tabs{
+	.modal-tabs.main-tabs{
 		margin: 0 -14px;
 		
 		.nav>li>a{
@@ -426,6 +446,24 @@ table.dataTable thead td {
 		.nav-tabs>li>a{
 			@include rounded(0);
 		}
+	}
+	
+	.modal-tabs.sub-tabs{
+		margin: 0;
+		
+		.nav>li>a{
+			padding: 5px 7px;
+			font-size: 11px;
+		}
+		.nav-tabs>li>a{
+			@include rounded(0);
+		}
+	}
+	
+	.subtab-content{
+		padding:10px;
+		border:1px solid #ddd;
+		border-top:none;
 	}
 	
 	.input-group{
@@ -440,6 +478,11 @@ table.dataTable thead td {
 			height:26px;
 			padding: 3px;
 		}
+		.form-control-static{
+			height:26px;
+			min-height:26px;
+			padding: 7px 3px;
+		}
 		.input-group-addon{
 			height:26px;
 			padding:0 12px;
@@ -450,9 +493,36 @@ table.dataTable thead td {
 			line-height: 20px;
 		}
 	}
+	
+	.modal-tabs.main-tabs{
+		margin: -15px;
+		background: #eee;
+		
+		.nav>li>a{
+			padding: 5px 15px;
+			font-size: 12px;
+			color: #777;
+			border-right: 1px solid white;
+		}
+		.nav>li.active>a{
+			border-right: 1px solid #ddd;
+		}
+
+	}
+	
+	.modal-tabs.sub-tabs{
+		margin: 15px 0 0 0;
+		
+		.nav>li>a{
+			padding: 5px 15px;
+			font-size: 12px;
+		}
+	}
 }
 
+.info-box{
 
+}
 
 .section-container{
 	margin-bottom: 27px;
@@ -659,22 +729,51 @@ table.dataTable thead td {
 	}
 	.modal-content{
 		.modal-tabs{
-			margin: 0;
 			
 			.nab-tabs{
 				padding-left:10px;
-			}
-			
+			}			
 			.nav>li>a{
 				padding:5px 15px;
+				
 			}
-
+		}
+		.modal-tabs.main-tabs{
+			.nav-tabs>li {
+				margin-left: -3px;
+				margin-top: -1px;
+			}
+			.nav-tabs>li:first-child{
+				margin-left: 0;
+			}
 		}
 		h3{
 			margin-top:30px;
 		}
 		h3:first-child{
 			margin-top:0;
+		}
+	}
+	
+	.info-boxes{
+	
+		
+		.info-box{
+			padding:10px;
+			margin:0 2px 0 0;
+			text-align:center;
+			float:left;
+			
+			p{
+				display:block;
+				font-size:24px;
+				font-weight:bold;
+				
+				span{
+					font-size:11px;
+					font-weight:normal;
+				}
+			}
 		}
 	}
 

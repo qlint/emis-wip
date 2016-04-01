@@ -234,6 +234,20 @@ table.dataTable thead td {
   background: #969696;
   color: #fff; }
 
+td.center,
+th.center {
+  text-align: center; }
+
+tr.alert-danger {
+  background-color: #f2dede !important; }
+  tr.alert-danger td {
+    background-color: #f2dede !important; }
+
+tr.alert-success {
+  background-color: #dff0d8 !important; }
+  tr.alert-success td {
+    background-color: #dff0d8 !important; }
+
 /********************** Modal Styles ******************************/
 .loading-screen {
   z-index: 1040; }
@@ -270,15 +284,28 @@ table.dataTable thead td {
     margin: 0 0 10px 0;
     padding-bottom: 5px;
     font-weight: 600; }
-  .modal-content .modal-tabs {
+  .modal-content .modal-tabs.main-tabs {
     margin: 0 -14px; }
-    .modal-content .modal-tabs .nav > li > a {
+    .modal-content .modal-tabs.main-tabs .nav > li > a {
       padding: 5px 7px;
       font-size: 11px; }
-    .modal-content .modal-tabs .nav-tabs > li > a {
+    .modal-content .modal-tabs.main-tabs .nav-tabs > li > a {
       -webkit-border-radius: 0;
       -moz-border-radius: 0;
       border-radius: 0; }
+  .modal-content .modal-tabs.sub-tabs {
+    margin: 0; }
+    .modal-content .modal-tabs.sub-tabs .nav > li > a {
+      padding: 5px 7px;
+      font-size: 11px; }
+    .modal-content .modal-tabs.sub-tabs .nav-tabs > li > a {
+      -webkit-border-radius: 0;
+      -moz-border-radius: 0;
+      border-radius: 0; }
+  .modal-content .subtab-content {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-top: none; }
   .modal-content .input-group {
     margin-bottom: 5px; }
   .modal-content .modalForm .form-group {
@@ -286,12 +313,31 @@ table.dataTable thead td {
   .modal-content .modalForm input[type=text], .modal-content .modalForm select {
     height: 26px;
     padding: 3px; }
+  .modal-content .modalForm .form-control-static {
+    height: 26px;
+    min-height: 26px;
+    padding: 7px 3px; }
   .modal-content .modalForm .input-group-addon {
     height: 26px;
     padding: 0 12px; }
   .modal-content .modalForm .checkbox-inline, .modal-content .modalForm .radio-inline {
     padding-top: 0 !important;
     line-height: 20px; }
+  .modal-content .modal-tabs.main-tabs {
+    margin: -15px;
+    background: #eee; }
+    .modal-content .modal-tabs.main-tabs .nav > li > a {
+      padding: 5px 15px;
+      font-size: 12px;
+      color: #777;
+      border-right: 1px solid white; }
+    .modal-content .modal-tabs.main-tabs .nav > li.active > a {
+      border-right: 1px solid #ddd; }
+  .modal-content .modal-tabs.sub-tabs {
+    margin: 15px 0 0 0; }
+    .modal-content .modal-tabs.sub-tabs .nav > li > a {
+      padding: 5px 15px;
+      font-size: 12px; }
 
 .section-container {
   margin-bottom: 27px;
@@ -432,16 +478,32 @@ table.dataTable thead td {
   .modal-dialog {
     margin: 30px auto; }
 
-  .modal-content .modal-tabs {
-    margin: 0; }
-    .modal-content .modal-tabs .nab-tabs {
-      padding-left: 10px; }
-    .modal-content .modal-tabs .nav > li > a {
-      padding: 5px 15px; }
+  .modal-content .modal-tabs .nab-tabs {
+    padding-left: 10px; }
+  .modal-content .modal-tabs .nav > li > a {
+    padding: 5px 15px; }
+  .modal-content .modal-tabs.main-tabs .nav-tabs > li {
+    margin-left: -3px;
+    margin-top: -1px; }
+  .modal-content .modal-tabs.main-tabs .nav-tabs > li:first-child {
+    margin-left: 0; }
   .modal-content h3 {
     margin-top: 30px; }
   .modal-content h3:first-child {
     margin-top: 0; }
+
+  .info-boxes .info-box {
+    padding: 10px;
+    margin: 0 2px 0 0;
+    text-align: center;
+    float: left; }
+    .info-boxes .info-box p {
+      display: block;
+      font-size: 24px;
+      font-weight: bold; }
+      .info-boxes .info-box p span {
+        font-size: 11px;
+        font-weight: normal; }
 
   /********************** DataTable Styles ******************************/
   .dataFilterForm {

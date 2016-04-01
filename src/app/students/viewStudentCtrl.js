@@ -6,10 +6,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$rootScope.modalLoading = false;
 	$scope.tabs = ['Details','Family','Medical History','Fees','Report Cards','Exams','News'];
-	$scope.currentTab = 'Details';
-	$scope.currentStep = 0;
-	$scope.firstStep = true;
+	$scope.feeTabs = ['Fee Summary','Payments Received','Fee Items'];
+	$scope.currentTab = $scope.tabs[0];
+	$scope.currentFeeTab = $scope.feeTabs[0];
 	$scope.hasChanges = false;
+	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	
 	$scope.edit = ($rootScope.permissions.students.edit ? true : false );
 	//$scope.edit = false;
@@ -76,13 +77,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	}
 	$scope.initializeController();
 	
-	
-	$scope.getStep = function(direction)
-	{
-		$scope.currentStep = (direction == 'next' ? ($scope.currentStep+1): ($scope.currentStep-1));
-		$scope.getTabContent($scope.tabs[$scope.currentStep]);
-	}
-
 	$scope.getTabContent = function(tab)
 	{
 	
@@ -109,12 +103,80 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var goToTab = function(tab)
 	{
+		if( tab == 'Fees' )
+		{
+			// go get fee data
+			$scope.loading = true;			
+			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
+		}
 		$scope.currentTab = tab;
-		$scope.currentStep = $scope.tabs.indexOf(tab);
-		$scope.lastStep = false;
-		$scope.firstStep = false;
-		if( $scope.currentTab == $scope.tabs[0] ) $scope.firstStep = true;
-		else if( $scope.currentTab == $scope.tabs[ $scope.tabs.length - 1 ] ) $scope.lastStep = true;	
+	}
+	
+	$scope.getFeeTabContent = function(tab)
+	{
+		$scope.currentFeeTab = tab;
+		if( tab == 'Fee Summary' )
+		{
+			setTimeout(initFeesDataGrid,10);
+		}
+	}
+	
+	
+	var loadFeeBalance = function(response,status)
+	{
+		$scope.loading = false;		
+		var result = angular.fromJson(response);
+				
+		if( result.response == 'success') 
+		{
+			// need to get next due, if per month, that is next
+			// if no per month, use per term date
+			// if no per term, use annually or once date
+			$scope.totalOverdue = result.data.totalOverdue;
+			$scope.feeSummary = angular.copy(result.data.fee_summary);
+			$scope.balanceSummary = angular.copy(result.data.balance_summary);
+
+			// total balance is anything that is overdue
+			$scope.totalBalance =  parseInt($scope.totalOverdue);
+
+			
+			setTimeout(initFeesDataGrid,10);
+		}
+	}
+	
+	var initFeesDataGrid = function() 
+	{
+		var tableElement = $('#resultsTable');
+		$scope.dataGrid = tableElement.DataTable( {
+				responsive: {
+					details: {
+						type: 'column'
+					}
+				},
+				columnDefs: [ {
+					className: 'control',
+					orderable: false,
+					targets:   0
+				} ],
+				paging: false,
+				destroy:true,
+				order: [6,'desc'],
+				filter: false,
+				info: false,
+				sorting:[],
+				scrollY:'200px',
+				initComplete: function(settings, json) {
+					$scope.loading = false;
+					$rootScope.loading = false;
+					$scope.$apply();
+				},
+				language: {
+					lengthMenu: "Display _MENU_",
+					emptyTable: "No fee items found."
+				},
+			} );
+			
+		
 	}
 	
 	$scope.cancel = function()
@@ -235,7 +297,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					$scope.errMsg = result.data;
 				}
 				
-			}, createError,{index:index});
+			}, apiError,{index:index});
 
 		});
 		
@@ -306,7 +368,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					$scope.errMsg = result.data;
 				}
 				
-			}, createError,{index:index});
+			}, apiError,{index:index});
 
 		});
 	}
@@ -404,13 +466,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					current_medical_treatment: ( $scope.student.current_medical_treatment ? 't' : 'f' ),
 					current_medical_treatment_description: ( $scope.student.current_medical_treatment ? $scope.student.current_medical_treatment_description : null),
 					other_medical_conditions: ($scope.student.other_medical_conditions ? 't' : 'f'),
-					other_medical_conditions_description: ($scope.student.other_medical_conditions ? $scope.student.other_medical_conditions_description : null);
+					other_medical_conditions_description: ($scope.student.other_medical_conditions ? $scope.student.other_medical_conditions_description : null)
 				}
 			}
 
 		}
 		console.log(postData);
-		apiService.updateStudent(postData, createCompleted, createError, {tab:tab});
+		apiService.updateStudent(postData, createCompleted, apiError, {tab:tab});
 	}
 	
 	var createCompleted = function ( response, status, params ) 
@@ -442,7 +504,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 	
-	var createError = function (response, status) 
+	var apiError = function (response, status) 
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
@@ -485,7 +547,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				guardian: $scope.guardian,
 				user_id: $rootScope.currentUser.user_id
 			}
-			apiService.postGuardian(postData, createCompleted, createError);
+			apiService.postGuardian(postData, createCompleted, apiError);
 			
 			
 		}; // end save
@@ -497,7 +559,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				guardian: $scope.guardian,
 				user_id: $rootScope.currentUser.user_id
 			}
-			apiService.updateGuardian(postData, createCompleted, createError);
+			apiService.updateGuardian(postData, createCompleted, apiError);
 			
 			
 		}; // end update
@@ -521,7 +583,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 		
 		
-		var createError = function(response,status)
+		var apiError = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
@@ -724,7 +786,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				medicalConditions: $scope.conditionSelection,
 				user_id: $rootScope.currentUser.user_id
 			}
-			apiService.postMedicalConditions(postData, createCompleted, createError);
+			apiService.postMedicalConditions(postData, createCompleted, apiError);
 			
 			
 		}; // end save
@@ -749,7 +811,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 		}
 		
-		var createError = function(response,status)
+		var apiError = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
@@ -848,7 +910,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				medicalCondition: $scope.medicalCondition,
 				user_id: $rootScope.currentUser.user_id
 			}
-			apiService.updateMedicalConditions(postData, createCompleted, createError);
+			apiService.updateMedicalConditions(postData, createCompleted, apiError);
 			
 			
 		}; // end save
@@ -868,7 +930,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 		}
 		
-		var createError = function(response,status)
+		var apiError = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
