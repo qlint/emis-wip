@@ -398,7 +398,7 @@
 						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_last_name.$invalid && (studentForm.mother_last_name.$touched || studentForm.$submitted) }">		
 							<label for="mother_last_name" class="col-sm-3 control-label">Last Name</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_last_name" ng-model="mother.last_name" class="form-control"  >	
+								<input type="text" name="mother_last_name" ng-model="student.guardian.mother.last_name" class="form-control"  >	
 								<p ng-show="studentForm.mother_last_name.$invalid && (studentForm.mother_last_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Last Name is required.</p>
 							</div>	
 						</div>
@@ -406,7 +406,7 @@
 						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_first_name.$invalid && (studentForm.mother_first_name.$touched || studentForm.$submitted) }">		
 							<label for="mother_first_name" class="col-sm-3 control-label">First Name</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_first_name" ng-model="mother.first_name" class="form-control"  >	
+								<input type="text" name="mother_first_name" ng-model="student.guardian.mother.first_name" class="form-control"  >	
 								<p ng-show="studentForm.mother_first_name.$invalid && (studentForm.mother_first_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's First Name is required.</p>
 							</div>	
 						</div>
@@ -414,7 +414,7 @@
 						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_middle_name.$invalid && (studentForm.mother_middle_name.$touched || studentForm.$submitted) }">		
 							<label for="mother_middle_name" class="col-sm-3 control-label">Middle Name</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_middle_name" ng-model="mother.middle_name" class="form-control"  >	
+								<input type="text" name="mother_middle_name" ng-model="student.guardian.mother.middle_name" class="form-control"  >	
 								<p ng-show="studentForm.mother_middle_name.$invalid && (studentForm.mother_middle_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Middle Name is required.</p>
 							</div>	
 						</div>
@@ -422,7 +422,7 @@
 						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_title.$invalid && (studentForm.mother_title.$touched || studentForm.$submitted) }">		
 							<label for="mother_title" class="col-sm-3 control-label">Title</label>
 							<div class="col-sm-9">
-								<select name="mother_title" ng-model="mother.title" class="form-control">
+								<select name="mother_title" ng-model="student.guardian.mother.title" class="form-control">
 									<option value="{{title}}" ng-repeat="title in titles">{{title}}</option>
 								</select>
 								<p ng-show="studentForm.mother_title.$invalid && (studentForm.mother_title.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Title is required.</p>
@@ -432,7 +432,7 @@
 						<div class="form-group"> <!-- ng-class="{ 'has-error' : studentForm.mother_id_number.$invalid && (studentForm.mother_id_number.$touched || studentForm.$submitted) }">-->
 							<label for="mother_id_number" class="col-sm-3 control-label">ID Number</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_id_number" ng-model="mother.id_number" class="form-control"  >	
+								<input type="text" name="mother_id_number" ng-model="student.guardian.mother.id_number" class="form-control"  >	
 								<!--p ng-show="studentForm.mother_id_number.$invalid && (studentForm.mother_id_number.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's ID Number is required.</p-->
 							</div>
 						</div>
@@ -440,7 +440,7 @@
 						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_address.$invalid && (studentForm.mother_id_number.$touched || studentForm.$submitted) }">
 							<label for="mother_address" class="col-sm-3 control-label">Address</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_address" ng-model="mother.address" class="form-control"  >	
+								<input type="text" name="mother_address" ng-model="student.guardian.mother.address" class="form-control"  >	
 								<p ng-show="studentForm.mother_address.$invalid && (studentForm.mother_address.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's address is required.</p>
 							</div>
 						</div>
@@ -449,7 +449,7 @@
 						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_telephone.$invalid && (studentForm.mother_telephone.$touched || studentForm.$submitted) }">		
 							<label for="mother_telephone" class="col-sm-3 control-label">Telephone</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_telephone" ng-model="mother.telephone" class="form-control"  >	
+								<input type="text" name="mother_telephone" ng-model="student.guardian.mother.telephone" class="form-control"  >	
 								<p ng-show="studentForm.mother_telephone.$invalid && (studentForm.mother_telephone.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Telephone number is required.</p>
 							</div>	
 						</div>
@@ -457,7 +457,7 @@
 						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_email.$invalid && (studentForm.mother_email.$touched || studentForm.$submitted) }">		
 							<label for="mother_email" class="col-sm-3 control-label">Email</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_email" ng-model="mother.email" class="form-control"  >	
+								<input type="text" name="mother_email" ng-model="student.guardian.mother.email" class="form-control"  >	
 								<p ng-show="studentForm.mother_email.$invalid && (studentForm.mother_email.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Email is required.</p>
 							</div>	
 						</div>
@@ -465,42 +465,42 @@
 						<div class="form-group">		
 							<label for="mother_occupation" class="col-sm-3 control-label">Occupation</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_occupation" ng-model="mother.occupation" class="form-control"  >	
+								<input type="text" name="mother_occupation" ng-model="student.guardian.mother.occupation" class="form-control"  >	
 							</div>	
 						</div>
 						<!-- employer -->
 						<div class="form-group">		
 							<label for="mother_employer" class="col-sm-3 control-label">Employer</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_employer" ng-model="mother.employer" class="form-control"  >	
+								<input type="text" name="mother_employer" ng-model="student.guardian.mother.employer" class="form-control"  >	
 							</div>	
 						</div>
 						<!-- employer address -->
 						<div class="form-group">		
 							<label for="mother_employer_address" class="col-sm-3 control-label">Employer Address</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_employer_address" ng-model="mother.employer_address" class="form-control"  >	
+								<input type="text" name="mother_employer_address" ng-model="student.guardian.mother.employer_address" class="form-control"  >	
 							</div>	
 						</div>
 						<!-- phone number -->
 						<div class="form-group">		
 							<label for="mother_work_phone" class="col-sm-3 control-label">Work Phone</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_work_phone" ng-model="mother.work_phone" class="form-control"  >	
+								<input type="text" name="mother_work_phone" ng-model="student.guardian.mother.work_phone" class="form-control"  >	
 							</div>	
 						</div>
 						<!-- work_email -->
 						<div class="form-group">
 							<label for="mother_work_email" class="col-sm-3 control-label">Work Email</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_work_email" ng-model="mother.work_email" class="form-control"  >	
+								<input type="text" name="mother_work_email" ng-model="student.guardian.mother.work_email" class="form-control"  >	
 							</div>	
 						</div>
 						<!-- relationship -->
 						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_relationship.$invalid && (studentForm.mother_relationship.$touched || studentForm.$submitted) }">		
 							<label for="mother_relationship" class="col-sm-3 control-label">Relationship</label>
 							<div class="col-sm-9">
-								<select name="mother_relationship" ng-model="mother.relationship" class="form-control">
+								<select name="mother_relationship" ng-model="student.guardian.mother.relationship" class="form-control">
 									<option value="">--select relationship--</option>
 									<option value="{{item}}" ng-repeat="item in relationships">{{item}}</option>
 								</select>
@@ -511,7 +511,7 @@
 						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_marital_status.$invalid && (studentForm.mother_marital_status.$touched || studentForm.$submitted) }">		
 							<label for="mother_marital_status" class="col-sm-3 control-label">Marital Status</label>
 							<div class="col-sm-9">
-								<select name="mother_marital_status" ng-model="mother.marital_status" class="form-control">
+								<select name="mother_marital_status" ng-model="student.guardian.mother.marital_status" class="form-control">
 									<option value="">--select one--</option>
 									<option value="{{item}}" ng-repeat="item in maritalStatuses">{{item}}</option>
 								</select>

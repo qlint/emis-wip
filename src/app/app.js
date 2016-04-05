@@ -36,8 +36,13 @@ eduwebApp.filter('titlecase', function() {
             return ch.toUpperCase();
         });
     };
+})
+
+eduwebApp.filter('arrayToList', function(){
+	return function(arr) {
+		return arr.join(',');
+	}
 });
-;
 
 
 

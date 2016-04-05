@@ -380,7 +380,13 @@ tr.alert-danger{
 		background-color: #f2dede!important;
 	}
 }
-
+tr.alert-warning{
+	background-color: #fcf8e3!important;
+	
+	td{
+		background-color: #fcf8e3!important;
+	}
+}
 tr.alert-success{
 	background-color: #dff0d8!important;
 	

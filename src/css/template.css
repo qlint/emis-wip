@@ -243,6 +243,11 @@ tr.alert-danger {
   tr.alert-danger td {
     background-color: #f2dede !important; }
 
+tr.alert-warning {
+  background-color: #fcf8e3 !important; }
+  tr.alert-warning td {
+    background-color: #fcf8e3 !important; }
+
 tr.alert-success {
   background-color: #dff0d8 !important; }
   tr.alert-success td {

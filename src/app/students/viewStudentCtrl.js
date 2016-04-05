@@ -119,6 +119,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		{
 			setTimeout(initFeesDataGrid,10);
 		}
+		else if( tab == 'Payments Received' )
+		{
+			$scope.loading = true;			
+			apiService.getStudentPayments($scope.student.student_id, loadPayments, apiError);
+		}
 	}
 	
 	
@@ -132,20 +137,47 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// need to get next due, if per month, that is next
 			// if no per month, use per term date
 			// if no per term, use annually or once date
-			$scope.totalOverdue = result.data.totalOverdue;
 			$scope.feeSummary = angular.copy(result.data.fee_summary);
-			$scope.balanceSummary = angular.copy(result.data.balance_summary);
-
-			// total balance is anything that is overdue
-			$scope.totalBalance =  parseInt($scope.totalOverdue);
-
+			$scope.fees = angular.copy(result.data.fees);
 			
 			setTimeout(initFeesDataGrid,10);
 		}
 	}
 	
+	var loadPayments = function(response,status)
+	{
+		$scope.loading = false;		
+		var result = angular.fromJson(response);
+				
+		if( result.response == 'success') 
+		{
+			$scope.payments = angular.copy(result.data);
+			
+			setTimeout(initPaymentsDataGrid,10);
+		}
+	}
+	
 	var initFeesDataGrid = function() 
 	{
+		var settings = {
+			sortOrder: [5,'desc'],
+			noResultsTxt: "No fee items found."
+		}
+		initDataGrid(settings);
+	}
+	
+	var initPaymentsDataGrid = function() 
+	{
+		var settings = {
+			sortOrder: [2,'desc'],
+			noResultsTxt: "No payments found."
+		}
+		initDataGrid(settings);
+	}
+	
+	var  initDataGrid = function(settings)
+	{
+	
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {
@@ -160,7 +192,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				} ],
 				paging: false,
 				destroy:true,
-				order: [6,'desc'],
+				order: settings.sortOrder,
 				filter: false,
 				info: false,
 				sorting:[],
@@ -172,12 +204,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				},
 				language: {
 					lengthMenu: "Display _MENU_",
-					emptyTable: "No fee items found."
+					emptyTable: settings.noResultsTxt
 				},
 			} );
-			
-		
-	}
+		}
 	
 	$scope.cancel = function()
 	{

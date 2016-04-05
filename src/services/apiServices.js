@@ -36,6 +36,10 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentBalance/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getStudentPayments = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentPayments/" + param, successFunction, errorFunction, params);
+	};
+	
 	this.postStudent = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addStudent/", successFunction, errorFunction, params);
 	};
