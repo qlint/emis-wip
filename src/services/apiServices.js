@@ -20,8 +20,8 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getAllClasses", successFunction, errorFunction, params);
 	};
 	
-	this.getFeeItems = function (param, successFunction, errorFunction) {  
-		ajaxService.AjaxGet("http://api.eduweb.localhost/getFeeItems/", successFunction, errorFunction);
+	this.getFeeItems = function (request, successFunction, errorFunction) {  
+		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getFeeItems", successFunction, errorFunction);
 	};
 	
 	this.getAllStudents = function (param, successFunction, errorFunction) {          

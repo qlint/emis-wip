@@ -639,6 +639,7 @@
 				</div>
 				<div class="row">
 					<div class="col-sm-6">
+						<h3>School Fees</h3>
 						<table class="display dataTable">
 							<thead>
 								<tr>
@@ -649,7 +650,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr ng-repeat="item in feeItems.slice(0,feeItems.length/2) track by $index">
+								<tr ng-repeat="item in feeItems track by $index">
 									<td>
 										<label class="checkbox-inline">
 										  <input
@@ -657,7 +658,7 @@
 											name="fee_items[]"
 											value="{{item.fee_item_id}}"
 											ng-checked="feeItemSelection.indexOf(item) > -1"
-											ng-click="toggleFeeItem(item)"
+											ng-click="toggleFeeItem(item,'required')"
 										  > {{item.fee_item}}
 										</label>										
 									</td>
@@ -676,6 +677,7 @@
 						</table>
 					</div>
 					<div class="col-sm-6">
+						<h3>Optional Lessons per Term</h3>
 						<table class="display dataTable">
 							<thead>
 								<tr>
@@ -686,7 +688,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr ng-repeat="item in feeItems.slice(feeItems.length/2) track by $index">
+								<tr ng-repeat="item in optFeeItems track by $index">
 									<td>
 										<label class="checkbox-inline">
 										  <input
@@ -694,7 +696,7 @@
 											name="fee_items[]"
 											value="{{item.fee_item_id}}"
 											ng-checked="feeItemSelection.indexOf(item) > -1"
-											ng-click="toggleFeeItem(item)"
+											ng-click="toggleFeeItem(item,'optional')"
 										  > {{item.fee_item}}
 										</label>										
 									</td>

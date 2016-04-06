@@ -457,7 +457,8 @@
 							<div class="form-group">		
 								<label for="payment_method" class="col-sm-5 control-label">Next Payment Due</label>
 								<div class="col-sm-7">
-									<p class="form-control-static">{{feeSummary.next_due_date|date}}</p>
+									<p class="form-control-static text-danger" ng-show="feeSummary.next_due_date=='Immediately'"><b>{{feeSummary.next_due_date|date}}</b></p>
+									<p class="form-control-static" ng-show="feeSummary.next_due_date!='Immediately'" ng-class="{'text-warning': feeSummary.within30days}"><b>{{feeSummary.next_due_date|date}} | {{feeSummary.next_payperiod_due|number}}{{currency}}</b></p>
 								</div>	
 							</div>	
 							<!-- amount overdue -->
@@ -476,11 +477,11 @@
 								Amount Due
 								<p>{{feeSummary.total_amount_per_payperiod|number}}<span>{{currency}}</span></p>
 							</div>
-							<div class="info-box alert" ng-class="{'alert-success':feeSummary.total_balance==0, 'alert-danger': feeSummary.total_balance>10000, 'alert-warning' : feeSummary.total_balance>0}">
+							<div class="info-box alert" ng-class="{'alert-success':feeSummary.total_balance<=0, 'alert-danger': feeSummary.total_balance>10000, 'alert-warning' : feeSummary.total_balance>0}">
 								Amount Paid
 								<p>{{feeSummary.total_amount_paid|number}}<span>{{currency}}</span></p>
 							</div>
-							<div class="info-box alert" ng-class="{'alert-success':feeSummary.total_balance==0, 'alert-warning' : feeSummary.total_balance>0 && gracePeriod, 'alert-danger': feeSummary.total_balance>0}">
+							<div class="info-box alert" ng-class="{'alert-success':feeSummary.total_balance<=0, 'alert-warning' : feeSummary.total_balance>0 && gracePeriod, 'alert-danger': feeSummary.total_balance>0}">
 								Balance Due
 								<p>{{ feeSummary.total_balance|number}}<span>{{currency}}</span></p>
 							</div>
@@ -494,13 +495,15 @@
 						<li ng-class="{active: currentFeeTab==item}" ng-repeat="item in feeTabs"><a class="clickable" ng-click="getFeeTabContent(item)">{{item}}</a></li>
 					</ul>						
 				</div>
-									
-				<div class="subtab-content clearfix" ng-include="currentFeeTab"></div>				
 				
+				
+				<div class="subtab-content clearfix" ng-include="currentFeeTab"></div>				
 					
 			</script>
 			
 			<script type="text/ng-template" id="Fee Summary">
+				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Add Payment</button>
+				
 				<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
@@ -526,25 +529,29 @@
 			</script>
 			
 			<script type="text/ng-template" id="Payments Received">
-				<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%">
+				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Add Payment</button>
+				
+				<table id="resultsTable" class="display clickable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
 							<th></th>
-							<th>Receipt</th>
+							<th class="center">Receipt</th>
 							<th>Payment Date</th>
 							<th>Payment Method</th>
-							<th>Amount ({{currency}})</th>
+							<th class="center">Amount ({{currency}})</th>
 							<th>Applied To</th>
+							<th class="center">Amount Unapplied</th>
 						</tr>
 					</thead>	
 					<tbody>
 						<tr ng-repeat="item in payments track by $index">
 							<td></td>
-							<td class="center" id="{{item.payment_id}}"><span class="glyphicon glyphicon-file" ng-click="getReceipt(item)"></span></td>
-							<td ng-click="viewPayment(item)">{{item.payment_date}}</td>
+							<td class="center" id="{{item.payment_id}}" ng-click="getReceipt(item)"><span class="glyphicon glyphicon-file"></span></td>
+							<td ng-click="viewPayment(item)">{{item.payment_date|date}}</td>
 							<td ng-click="viewPayment(item)">{{item.payment_method}}</td>
-							<td ng-click="viewPayment(item)">{{item.amount|number}}</td>
+							<td class="center" ng-click="viewPayment(item)">{{item.amount|number}}</td>
 							<td ng-click="viewPayment(item)">{{item.applied_to|arrayToList}}</td>
+							<td class="center" ng-class="{'alert-danger': item.unapplied_amount>0}" ng-click="viewPayment(item)">{{item.unapplied_amount|number}}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -552,8 +559,15 @@
 			
 			<script type="text/ng-template" id="Fee Items">
 				<div class="row">
+					<div class="col-sm-12">
+						<button ng-show="permissions.fees.fee_structure.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addFeeItem()"><i class="glyphicon glyphicon-plus-sign"></i> Add Fee Item</button>
+					</div>
+				</div>
+				<div class="row">
+				
 					<div class="col-sm-6">
-						<table class="display dataTable">
+						<h3>School Fees</h3>
+						<table class="display nosort dataTable">
 							<thead>
 								<tr>
 									<th>Item</th>
@@ -563,7 +577,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr ng-repeat="item in feeItems.slice(0,feeItems.length/2) track by $index">
+								<tr ng-repeat="item in feeItems track by $index">
 									<td>
 										<label class="checkbox-inline">
 										  <input
@@ -571,7 +585,8 @@
 											name="fee_items[]"
 											value="{{item.fee_item_id}}"
 											ng-checked="feeItemSelection.indexOf(item) > -1"
-											ng-click="toggleFeeItem(item)"
+											ng-click="toggleFeeItem(item,'required')"
+											ng-disabled="item.payment_made>0"
 										  > {{item.fee_item}}
 										</label>										
 									</td>
@@ -590,7 +605,8 @@
 						</table>
 					</div>
 					<div class="col-sm-6">
-						<table class="display dataTable">
+						<h3>Optional Lessons per Term</h3>
+						<table class="display nosort dataTable">
 							<thead>
 								<tr>
 									<th>Item</th>
@@ -600,15 +616,15 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr ng-repeat="item in feeItems.slice(feeItems.length/2) track by $index">
+								<tr ng-repeat="item in optFeeItems track by $index">
 									<td>
 										<label class="checkbox-inline">
 										  <input
 											type="checkbox"
 											name="fee_items[]"
 											value="{{item.fee_item_id}}"
-											ng-checked="feeItemSelection.indexOf(item) > -1"
-											ng-click="toggleFeeItem(item)"
+											ng-checked="optFeeItemSelection.indexOf(item) > -1"
+											ng-click="toggleFeeItem(item,'optional')"
 										  > {{item.fee_item}}
 										</label>										
 									</td>

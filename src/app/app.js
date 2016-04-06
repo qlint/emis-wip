@@ -40,7 +40,7 @@ eduwebApp.filter('titlecase', function() {
 
 eduwebApp.filter('arrayToList', function(){
 	return function(arr) {
-		return arr.join(',');
+		return arr.join(', ');
 	}
 });
 

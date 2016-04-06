@@ -19,6 +19,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.student = angular.copy(data);
 	
 	$scope.feeItemSelection = [];
+	$scope.optFeeItemSelection = [];
 	$scope.conditionSelection = [];
 	
 	$scope.initializeController = function()
@@ -51,31 +52,53 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			return sum;
 		}, []);
 		
-		
 		// get fee items
 		apiService.getFeeItems({}, function(response){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
 			{
-				$scope.feeItems = result.data.map(function(item){
-					// format the class restrictions into any array
-					if( item.class_cats_restriction !== null )
-					{
-						var classCatsRestriction = (item.class_cats_restriction).slice(1, -1);
-						item.class_cats_restriction = classCatsRestriction.split(',');
-					}
-					return item;
-				});
+			
+				// set the required fee items
+				// format returned fee items for our needs
+				$scope.feeItems = formatFeeItems(result.data.required_items);
+				
+				// store unfiltered required fee items				
 				$scope.allFeeItems = $scope.feeItems;
+				
+				// remove any items that do not apply to this students class category
+				$scope.feeItems = filterFeeItems($scope.allFeeItems);				
+				console.log($scope.feeItems);
+				
+				
+				// set the selected fee items based on what fee items are set for student
+				$scope.feeItemSelection = setSelectedFeeItems($scope.feeItems);
+				console.log($scope.feeItemSelection);
+				
+				
+				// repeat for optional fees
+				// convert the classCatsRestriction to array for future filtering
+				$scope.optFeeItems = formatFeeItems(result.data.optional_items);
+				
+				// store unfiltered required fee items				
+				$scope.allOptFeeItems = $scope.optFeeItems;
+				
+				// remove any items that do not apply to this students class category
+				$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);				
+				
+				// set the selected fee items based on what fee items are set for student
+				$scope.optFeeItemSelection = setSelectedFeeItems($scope.optFeeItems);
+				
+				console.log($scope.optFeeItemSelection);
+				
 			}
 			
 		}, function(){});
 		
-
 		
 	}
 	$scope.initializeController();
+	
 	
 	$scope.getTabContent = function(tab)
 	{
@@ -112,70 +135,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.currentTab = tab;
 	}
 	
-	$scope.getFeeTabContent = function(tab)
-	{
-		$scope.currentFeeTab = tab;
-		if( tab == 'Fee Summary' )
-		{
-			setTimeout(initFeesDataGrid,10);
-		}
-		else if( tab == 'Payments Received' )
-		{
-			$scope.loading = true;			
-			apiService.getStudentPayments($scope.student.student_id, loadPayments, apiError);
-		}
-	}
-	
-	
-	var loadFeeBalance = function(response,status)
-	{
-		$scope.loading = false;		
-		var result = angular.fromJson(response);
-				
-		if( result.response == 'success') 
-		{
-			// need to get next due, if per month, that is next
-			// if no per month, use per term date
-			// if no per term, use annually or once date
-			$scope.feeSummary = angular.copy(result.data.fee_summary);
-			$scope.fees = angular.copy(result.data.fees);
-			
-			setTimeout(initFeesDataGrid,10);
-		}
-	}
-	
-	var loadPayments = function(response,status)
-	{
-		$scope.loading = false;		
-		var result = angular.fromJson(response);
-				
-		if( result.response == 'success') 
-		{
-			$scope.payments = angular.copy(result.data);
-			
-			setTimeout(initPaymentsDataGrid,10);
-		}
-	}
-	
-	var initFeesDataGrid = function() 
-	{
-		var settings = {
-			sortOrder: [5,'desc'],
-			noResultsTxt: "No fee items found."
-		}
-		initDataGrid(settings);
-	}
-	
-	var initPaymentsDataGrid = function() 
-	{
-		var settings = {
-			sortOrder: [2,'desc'],
-			noResultsTxt: "No payments found."
-		}
-		initDataGrid(settings);
-	}
-	
-	var  initDataGrid = function(settings)
+	var initDataGrid = function(settings)
 	{
 	
 		var tableElement = $('#resultsTable');
@@ -214,14 +174,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$uibModalInstance.dismiss('canceled');  
 	}; // end cancel
 	
-	$scope.$watch('student.payment_method', function(newVal, oldVal){
-		if( newVal == oldVal) return;
-		
-		// want to set all selected fee item payment methods to this value
-		
-		
-	});
-	
 	$scope.$watch('student.new_student', function(newVal, oldVal){
 		if( newVal == oldVal ) return;
 		$scope.feeItems = filterFeeItems();		
@@ -242,35 +194,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		if( newVal === undefined) return;
 		$scope.studentForm.$setDirty();
 	});
+
 	
-	var filterFeeItems = function()
-	{
-		var feeItems = [];
-		if( $scope.student.new_student == 'true' )
-		{
-			// all fees apply to new students
-			feeItems = $scope.allFeeItems;
-		}
-		else
-		{
-			// remove new student fees
-			feeItems = $scope.allFeeItems.filter(function(item){
-				if( !item.new_student_only ) return item;
-			});
-		}
-		
-		// now filter by selected class
-		if( $scope.student.current_class !== undefined )
-		{
-			feeItems = feeItems.filter(function(item){
-				if( item.class_cats_restriction === null ) return item;
-				else if( item.class_cats_restriction.indexOf(($scope.student.current_class.class_cat_id).toString()) > -1 ) return item;
-			});
-		}
-		console.log(feeItems);
-		return feeItems;
-	}
 	
+	/************************************* Guardian Function ***********************************************/
 	$scope.addGuardian = function()
 	{
 		// show small dialog with add form
@@ -358,6 +285,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	}
 	
+	/************************************* Medical History Function ***********************************************/
 	$scope.editMedical = function(item)
 	{
 		// show small dialog with add form
@@ -403,18 +331,200 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	}
 	
-	$scope.toggleFeeItem = function(item) 
-	{
+	/************************************* Fees Function ***********************************************/
 	
-		var id = $scope.feeItemSelection.indexOf(item);
+	$scope.$watch('student.payment_method', function(newVal, oldVal){
+		if( newVal == oldVal) return;
+		
+		// want to set all selected fee item payment methods to this value
+		
+		
+	});
+	
+	
+	$scope.getFeeTabContent = function(tab)
+	{
+		$scope.currentFeeTab = tab;
+		if( tab == 'Fee Summary' )
+		{
+			setTimeout(initFeesDataGrid,10);
+		}
+		else if( tab == 'Payments Received' )
+		{
+			$scope.loading = true;			
+			apiService.getStudentPayments($scope.student.student_id, loadPayments, apiError);
+		}
+	}
+	
+	var loadFeeBalance = function(response,status)
+	{
+		$scope.loading = false;		
+		var result = angular.fromJson(response);
+				
+		if( result.response == 'success') 
+		{
+			// need to get next due, if per month, that is next
+			// if no per month, use per term date
+			// if no per term, use annually or once date
+			$scope.feeSummary = angular.copy(result.data.fee_summary);
+			$scope.fees = angular.copy(result.data.fees);
+			
+			setTimeout(initFeesDataGrid,10);
+		}
+	}
+	
+	var loadPayments = function(response,status)
+	{
+		$scope.loading = false;		
+		var result = angular.fromJson(response);
+				
+		if( result.response == 'success') 
+		{
+			$scope.payments = angular.copy(result.data);
+			
+			setTimeout(initPaymentsDataGrid,10);
+		}
+	}
+	
+	var initFeesDataGrid = function() 
+	{
+		var settings = {
+			sortOrder: [5,'desc'],
+			noResultsTxt: "No fee items found."
+		}
+		initDataGrid(settings);
+	}
+	
+	var initPaymentsDataGrid = function() 
+	{
+		var settings = {
+			sortOrder: [2,'desc'],
+			noResultsTxt: "No payments found."
+		}
+		initDataGrid(settings);
+	}
+	
+	$scope.addPayment = function()
+	{
+		// open dialog
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentForm.html','paymentFormCtrl',{action:'add'},{size: 'md',backdrop:'static'});
+		dlg.result.then(function(payment){
+			// update payments
+			$scope.payments.push(payment);
+		},function(){
+			if(angular.equals($scope.payment,''))
+				$scope.errMsg = 'You did not enter a payment!';
+		});
+	}
+	
+	$scope.getReceipt = function()
+	{
+		var dlg = $dialogs.notify('Feature in Development','This feature is not yet complete. Hang in there, it will be awesome :)');
+	}
+	
+	$scope.viewPayment = function(payment)
+	{
+		$rootScope.modalLoading = true;
+		apiService.getPaymentDetails(payment.payment_id, function(response){
+			var result = angular.fromJson(response);
+			
+			if( result.response == 'success')
+			{
+				var payment = angular.copy(result.data);
+				$scope.openModal('fees', 'viewPayment', 'lg',payment);
+			}
+		});
+	}
+	
+	var formatFeeItems = function(feeItems)
+	{
+		// convert the classCatsRestriction to array for future filtering
+		return feeItems.map(function(item){
+			// format the class restrictions into any array
+			if( item.class_cats_restriction !== null )
+			{
+				var classCatsRestriction = (item.class_cats_restriction).slice(1, -1);
+				item.class_cats_restriction = classCatsRestriction.split(',');
+			}
+			item.amount = undefined;
+			item.payment_method = undefined;
+			
+			return item;
+		});
+	}
+	
+	var setSelectedFeeItems = function(feeItems)
+	{
+		return feeItems.filter(function(item){
+			return $scope.student.fee_items.filter(function(a){ 
+				if( a.fee_item_id == item.fee_item_id )
+				{
+					item.amount = a.amount;
+					item.payment_method = a.payment_method;
+					item.student_fee_item_id = a.student_fee_item_id;
+					item.payment_made = a.payment_made;
+					return item;
+				}
+			})[0];
+			
+		});
+	}
+	
+	var filterFeeItems = function(feesArray)
+	{
+		var feeItems = [];
+
+		if( $scope.student.new_student == 'true' )
+		{
+			// all fees apply to new students
+			feeItems = feesArray;
+		}
+		else
+		{
+			// remove new student fees
+			feeItems = feesArray.filter(function(item){
+				if( !item.new_student_only ) return item;
+			});
+		}
+		
+		// now filter by selected class
+		if( $scope.student.current_class !== undefined )
+		{
+			feeItems = feeItems.filter(function(item){
+				if( item.class_cats_restriction === null ) return item;
+				else if( item.class_cats_restriction.indexOf(($scope.student.current_class.class_cat_id).toString()) > -1 ) return item;
+			});
+		}
+
+		return feeItems;
+	}
+	
+	
+	$scope.toggleFeeItem = function(item,type) 
+	{
+		var selectionObj = ( type ==  'optional'  ? $scope.optFeeItemSelection : $scope.feeItemSelection);
+		
+		var id = selectionObj.indexOf(item);
 
 		// is currently selected
 		if (id > -1) {
-			$scope.feeItemSelection.splice(id, 1);
+		
+			if( type == 'optional' && item.made_payment > 0 )
+			{
+				var dlg = $dialog.confirm('Payment Made for Current Term','This student will be removed from this optional lesson for all remaining terms this year, as a payment has been made for the current term. Do you wish to continue?', {size:'sm'});
+				dlg.result.then(function(btn){
+					selectionObj.splice(id, 1);
+				});
+			}
+			else
+			{
+				selectionObj.splice(id, 1);
+			}
 			
 			// clear out fields
-			item.amount = undefined;
-			item.payment_method = undefined;
+			//item.amount = undefined;
+			//item.payment_method = undefined;
 		}
 
 		// is newly selected
@@ -422,19 +532,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 			// set value and payment method
 			item.amount = item.default_amount;
-			item.payment_method = $scope.student.payment_method;
+			item.payment_method = $scope.student.payment_method;			
 		
-			$scope.feeItemSelection.push(item);
-			
+			selectionObj.push(item);
+			$scope.studentForm.$setDirty();
 			
 		}
 	};
 	
-
+	/************************************* Update Function ***********************************************/
 	$scope.save = function(tab)
 	{
-		// going to only send data that is on the current tab
-		
+		// going to only send data that is on the current tab		
 		if( $scope.currentTab == 'Details' )
 		{
 			if( uploader.queue[0] !== undefined )
@@ -500,6 +609,34 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				}
 			}
 
+		}
+		else if( $scope.currentTab == 'Fees' )
+		{
+			/* not sure we need to restrict this....
+			angular.forEach($scope.feeItemSelection, function(item,key){
+				if( item.fee_item == 'Tuition' && item.payment_made > 0 )
+				{
+					var dlg = $dialog.confirm('Payment Made for Current Term','This students tuition per term amount will be changed for all future terms this year, as a payment has already been made for the current term. Do you wish to continue?', {size:'sm'});
+					dlg.result.then(function(btn){
+						 // do nothing, continue on
+						 
+					},function(btn){
+						// do not continue to save
+						return;
+					});
+				}
+			});
+			*/
+			console.log($scope.optFeeItemSelection);
+			var postData = {
+				student_id : $scope.student.student_id,
+				user_id : $rootScope.currentUser.user_id,
+				fees : {
+					payment_method : $scope.student.payment_method,
+					feeItems : $scope.feeItemSelection,
+					optFeeItems : $scope.optFeeItemSelection
+				}
+			}
 		}
 		console.log(postData);
 		apiService.updateStudent(postData, createCompleted, apiError, {tab:tab});

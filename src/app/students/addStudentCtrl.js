@@ -57,17 +57,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			
 			if( result.response == 'success')
 			{
-				$scope.feeItems = result.data.map(function(item){
-					// format the class restrictions into any array
-					if( item.class_cats_restriction !== null )
-					{
-						var classCatsRestriction = (item.class_cats_restriction).slice(1, -1);
-						item.class_cats_restriction = classCatsRestriction.split(',');
-					}
-					return item;
-				});
+				$scope.feeItems = formatFeeItems(result.data.required_items);
 				$scope.allFeeItems = $scope.feeItems;
-				console.log($scope.allFeeItems);
+				
+				$scope.optFeeItems = formatFeeItems(result.data.optional_items);
+				$scope.allOptFeeItems = $scope.optFeeItems;
 			}
 			
 		}, function(){});
@@ -75,6 +69,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 	}
 	$scope.initializeController();
+	
+	var formatFeeItems = function(feeItems)
+	{
+		// convert the classCatsRestriction to array for future filtering
+		return feeItems.map(function(item){
+			// format the class restrictions into any array
+			if( item.class_cats_restriction !== null )
+			{
+				var classCatsRestriction = (item.class_cats_restriction).slice(1, -1);
+				item.class_cats_restriction = classCatsRestriction.split(',');
+			}
+			item.amount = undefined;
+			item.payment_method = undefined;
+			
+			return item;
+		});
+	}
+	
 	
 	$scope.getStep = function(direction)
 	{
@@ -145,12 +157,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	$scope.toggleFeeItem = function(item) 
 	{
-	
-		var id = $scope.feeItemSelection.indexOf(item);
+		var selectionObj = ( type ==  'optional'  ? $scope.optFeeItemSelection : $scope.feeItemSelection);
+		var id = selectionObj.indexOf(item);
 
 		// is currently selected
 		if (id > -1) {
-			$scope.feeItemSelection.splice(id, 1);
+			selectionObj.splice(id, 1);
 			
 			// clear out fields
 			item.amount = undefined;
@@ -164,7 +176,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			item.amount = item.default_amount;
 			item.payment_method = $scope.student.payment_method;
 		
-			$scope.feeItemSelection.push(item);
+			selectionObj.push(item);
 			
 			
 		}

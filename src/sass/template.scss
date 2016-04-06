@@ -467,7 +467,7 @@ tr.alert-success{
 	}
 	
 	.subtab-content{
-		padding:10px;
+		padding:0 10px 10px;
 		border:1px solid #ddd;
 		border-top:none;
 	}
@@ -839,6 +839,10 @@ tr.alert-success{
 	}	
 	
 	table.dataTable tbody th, table.dataTable tbody td{
+		padding:2px 18px 2px 2px;
+	}
+	table.dataTable.nosort tbody th, 
+	table.dataTable.nosort tbody td{
 		padding:2px;
 	}
 	
