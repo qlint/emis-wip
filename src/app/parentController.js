@@ -202,6 +202,8 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				$rootScope.mainSubNavItems = item.subnav;
 			}
 		});
+		console.log($scope.navItems);
+		console.log($scope.mainSubNavItems);
 		/*
 		if( params !== undefined )
 		{

@@ -38,10 +38,6 @@ function($http, $rootScope, $window, Session, AUTH_EVENTS, ajaxService) {
 		
 					$rootScope.currentUser = loginData.data;
 										
-					
-					
-					console.log($rootScope.currentUser);
-					
 					//fire event of successful login
 					$rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
 					//run success function

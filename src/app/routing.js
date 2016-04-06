@@ -53,5 +53,12 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
+	.state('fees/dashboard', {
+      url: "/fees/dashboard",
+	  templateUrl: 'app/fees/feesDashboard.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
 	;
 }]);

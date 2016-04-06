@@ -1,0 +1,55 @@
+<div ng-controller="feesDashboardCtrl">	
+	
+	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+		
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="alert alert-danger" ng-show="error">
+			{{errMsg}}
+		</div>
+		
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+					<div class="btn add-btn" title="Add Payment" ng-show="permissions.fees.payments_received.add" ng-click="addPayment()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Payment</span></a></div>
+					<div class="btn" title="Adjust Payment" ng-show="permissions.fees.payments_received.edit" ng-click="adjustPayment()"><a class="clickable"><span class="glyphicon glyphicon-pencil"></span> <span class="tool-text">Adjust Payment</span></a></div>
+				</div>			
+			</div>
+			
+			<div class="clearfix">
+				<h1 id="pageTitle">Fee Summary for {{currentTermTitle}}</h1>
+			</div>
+
+		</div>
+		
+		<div class="full-height datagrid main-datagrid">
+			<div class="col-sm-4">
+				<h2>Payment Received<h2>
+				
+			
+			</div>
+			<div class="col-sm-4">
+				<h2>Payments Due this Month<h2>
+			</div>
+			<div class="col-sm-4">
+				<h2>Payments Past Due<h2>
+			</div>
+			
+		</div>
+		
+		<div class="loading-screen modal-backdrop fade in" ng-show="modalLoading">
+			<p class="msg"><span class="fa fa-cog fa-spin"></span> Fetching data...</p>
+		</div>
+		
+	</div>
+</div>
+
+
+

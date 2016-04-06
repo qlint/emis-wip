@@ -121,7 +121,7 @@ h1 {
   font-size: 22px;
   margin: 0 0 5px 0; }
 
-.students .content-fixed-header {
+.content-fixed-header {
   height: 30px; }
 
 #body-content .content-fixed-header {
@@ -311,6 +311,13 @@ tr.alert-success {
     padding: 0 10px 10px;
     border: 1px solid #ddd;
     border-top: none; }
+    .modal-content .subtab-content .tab-header {
+      background: #eee;
+      padding: 5px 0 0;
+      margin: 0px -10px 10px; }
+      .modal-content .subtab-content .tab-header label {
+        line-height: 24px;
+        margin-right: 10px; }
   .modal-content .input-group {
     margin-bottom: 5px; }
   .modal-content .modalForm .form-group {
@@ -343,6 +350,20 @@ tr.alert-success {
     .modal-content .modal-tabs.sub-tabs .nav > li > a {
       padding: 5px 15px;
       font-size: 12px; }
+  .modal-content .modalDataFilter {
+    padding: 0 15px; }
+    .modal-content .modalDataFilter .form-group {
+      float: left;
+      margin-right: 18px; }
+    .modal-content .modalDataFilter label {
+      display: block;
+      font-size: 11px;
+      margin: 0; }
+    .modal-content .modalDataFilter input, .modal-content .modalDataFilter select {
+      height: 24px;
+      padding: 3px; }
+    .modal-content .modalDataFilter .submit-btn {
+      margin-top: 12px; }
 
 .section-container {
   margin-bottom: 27px;
@@ -458,7 +479,7 @@ tr.alert-success {
     font-size: 24px;
     margin: 7px 0 5px 5px; }
 
-  .students .content-fixed-header {
+  .content-fixed-header {
     height: auto; }
 
   #body-content .content-fixed-header {
@@ -479,11 +500,18 @@ tr.alert-success {
     #body-content .toolbar .add-btn a {
       color: #009e0f; }
 
+  .subnavbar {
+    margin: 10px 0; }
+    .subnavbar .nav-tabs {
+      padding-left: 10px; }
+    .subnavbar .nav > li > a {
+      padding: 5px 15px; }
+
   /********************** Modal Styles ******************************/
   .modal-dialog {
     margin: 30px auto; }
 
-  .modal-content .modal-tabs .nab-tabs {
+  .modal-content .modal-tabs .nav-tabs {
     padding-left: 10px; }
   .modal-content .modal-tabs .nav > li > a {
     padding: 5px 15px; }

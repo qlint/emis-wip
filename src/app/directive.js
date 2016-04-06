@@ -18,10 +18,6 @@ angular.module('eduwebApp')
 				
 				// watch for resizing and adjust layout as necessary
 				$window.addEventListener('resize', function() {
-					
-					// variable used to control items based on screen size
-					console.log('window resize');
-
 					$timeout( function () {
 						adjustPositions();						
 					}, 100);
@@ -59,6 +55,16 @@ angular.module('eduwebApp')
 
     }
 })
+.directive('ignoreDirty', [function() {
+    return {
+    restrict: 'A',
+    require: 'ngModel',
+    link: function(scope, elm, attrs, ctrl) {
+      ctrl.$setPristine = function() {};
+      ctrl.$pristine = false;
+    }
+  }
+}])
 .directive('ngEnter', function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {

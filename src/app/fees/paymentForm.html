@@ -1,0 +1,28 @@
+<form name="studentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+		<div class="modal-header dialog-header-form">
+			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+			<h4 class="modal-title">Add Payment {{ (student !== null ? ' for ' + student.student_name}}</h4>
+		</div>
+		<div class="modal-body">
+	
+			<p ng-show="error" class="error alert alert-danger">
+				{{errMsg}}
+			</p>
+			
+			
+			
+			
+			
+			
+			
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+			
+			<button type="submit" class="btn btn-success">
+				<span ng-hide="saving">Save</span>
+				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
+			</button>
+			
+		</div>
+</form>

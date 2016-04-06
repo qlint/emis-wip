@@ -18,6 +18,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.showSeparationAge = false;	
 	
 	$scope.feeItemSelection = [];
+	$scope.optFeeItemSelection = [];
 	$scope.conditionSelection = [];
 	
 	$scope.initializeController = function()
@@ -119,26 +120,28 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.$watch('student.new_student', function(newVal, oldVal){
 		if( newVal == oldVal ) return;
-		$scope.feeItems = filterFeeItems();		
+		$scope.feeItems = filterFeeItems($scope.allFeeItems);		
 	});
 	
 	$scope.$watch('student.current_class', function(newVal, oldVal){
 		if( newVal == oldVal) return;
-		$scope.feeItems = filterFeeItems();		
+		$scope.feeItems = filterFeeItems($scope.allFeeItems);
+		$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);			
 	});
 	
-	var filterFeeItems = function()
+	var filterFeeItems = function(feesArray)
 	{
 		var feeItems = [];
+
 		if( $scope.student.new_student == 'true' )
 		{
 			// all fees apply to new students
-			feeItems = $scope.allFeeItems;
+			feeItems = feesArray;
 		}
 		else
 		{
 			// remove new student fees
-			feeItems = $scope.allFeeItems.filter(function(item){
+			feeItems = feesArray.filter(function(item){
 				if( !item.new_student_only ) return item;
 			});
 		}
@@ -151,7 +154,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				else if( item.class_cats_restriction.indexOf(($scope.student.current_class.class_cat_id).toString()) > -1 ) return item;
 			});
 		}
-		console.log(feeItems);
+
 		return feeItems;
 	}
 
@@ -212,6 +215,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		postData.current_class = $scope.student.current_class.class_id;		
 		postData.medicalConditions = $scope.conditionSelection;
 		postData.feeItems = $scope.feeItemSelection;
+		postData.optFeeItems = $scope.optFeeItemSelection;
 		postData.user_id = $rootScope.currentUser.user_id;
 		console.log(postData);
 		

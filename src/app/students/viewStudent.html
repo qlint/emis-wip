@@ -496,7 +496,6 @@
 					</ul>						
 				</div>
 				
-				
 				<div class="subtab-content clearfix" ng-include="currentFeeTab"></div>				
 					
 			</script>
@@ -504,7 +503,7 @@
 			<script type="text/ng-template" id="Fee Summary">
 				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Add Payment</button>
 				
-				<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%">
+				<table id="resultsTable2" class="display nowrap clickable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
 							<th></th>
@@ -531,7 +530,7 @@
 			<script type="text/ng-template" id="Payments Received">
 				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Add Payment</button>
 				
-				<table id="resultsTable" class="display clickable" cellspacing="0" width="100%">
+				<table id="resultsTable2" class="display clickable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
 							<th></th>
@@ -558,13 +557,22 @@
 			</script>
 			
 			<script type="text/ng-template" id="Fee Items">
-				<div class="row">
-					<div class="col-sm-12">
+				<div class="row tab-header">
+					<div class="col-xs-6">
+						<!-- new student? -->				
+						<label for="new_student">Show new student items?</label>
+						<label class="radio-inline">
+						  <input type="radio" name="new_student" ng-model="show_new_student" value="true"> Yes
+						</label>
+						<label class="radio-inline">
+						  <input type="radio" name="new_student" ng-model="show_new_student" value="false"> No
+						</label>
+					</div>
+					<div class="col-xs-6">						
 						<button ng-show="permissions.fees.fee_structure.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addFeeItem()"><i class="glyphicon glyphicon-plus-sign"></i> Add Fee Item</button>
 					</div>
 				</div>
-				<div class="row">
-				
+				<div class="row">				
 					<div class="col-sm-6">
 						<h3>School Fees</h3>
 						<table class="display nosort dataTable">
@@ -645,16 +653,82 @@
 				</div>
 			</script>
 			
-			<script type="text/ng-template" id="Report Cards">
+			<script type="text/ng-template" id="Exams">
+				<h2>Exams</h2>
+				
+				<!-- search form -->
+				<div class="modalDataFilter clearfix">	
+					<!-- category select -->
+					<div class="form-group">
+						<label for="category">Category</label>
+						<select class="form-control" ng-options="item.class_cat_id as item.class_cat_name for item in classCats" ng-model="filters.class_cat_id" ignore-dirty>
+							<option value="">--select class category--</option>
+						</select>	
+					</div>
+					<!-- class select -->
+					<div class="form-group">
+						<label for="class">Class</label>	
+						<select class="form-control" ng-options="item.class_id as item.class_name for item in classes" ng-model="filters.class_id" ignore-dirty>
+							<option value="">--select class--</option>
+						</select>	
+					</div>		
+
+					<!-- term select -->
+					<div class="form-group">
+						<label for="term">Term</label>	
+						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" ignore-dirty>
+							<option value="">--select term--</option>
+						</select>	
+					</div>	
+					
+					<!-- exam select -->
+					<div class="form-group">
+						<label for="term">Exam</label>	
+						<select id="term" class="form-control" ng-model="filters.exam_type_id" ignore-dirty>
+							<option value="">All Exams</option>
+							<option value="{{exam.exam_type_id}}" ng-repeat="exam in examTypes">{{exam.exam_type}}</option>							
+						</select>
+					</div>	
+					
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="button" class="btn btn-sm btn-info" ng-click="getExams()" value="Load" />
+						<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
+					</div>					
+				</div>
+				<!-- // end search form -->
+				
+				<p ng-show="marksNotFound" class="error alert alert-danger">
+					{{errMsg}}
+				</p>
+				
+				<table ng-show="!marksNotFound" id="resultsTable2" class="display dataTable clickable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Exam</th>
+							<th class="center" ng-repeat="item in examMarks.subjects">{{item}}</th>
+						</tr>
+					</thead>	
+					<tbody>
+						<tr ng-repeat="item in examMarks.types track by $index">
+							<td></td>
+							<td id="{{item.exam_id}}">{{item.exam_type}}</td>
+							<td class="center" ng-repeat="mark in item.marks track by $index">{{mark}}</td>
+						</tr>
+					</tbody>
+				</table>
 			
 			</script>
 			
-			<script type="text/ng-template" id="Exams">
-			
+			<script type="text/ng-template" id="Report Cards">
+				<h2>Report Cards</h2>
+				<p>This is a work in progress...</p>
 			</script>
 			
 			<script type="text/ng-template" id="News">
-			
+				<h2>News</h2>
+				<p>This is a work in progress...</p>
 			</script>
 		</div>
 		<div class="modal-footer">

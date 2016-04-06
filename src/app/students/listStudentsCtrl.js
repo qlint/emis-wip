@@ -12,6 +12,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	var currentStatus = true;
 	var isFiltered = false;	
 	$rootScope.modalLoading = false;
+	$scope.alert = null;
 	
 	
 	var initializeController = function () 
@@ -19,7 +20,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		// get classes
 		if( $rootScope.allClasses === undefined )
 		{
-			var test = apiService.getAllClasses({}, function(response){
+			apiService.getAllClasses({}, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often
