@@ -432,7 +432,7 @@
 			
 			<script type="text/ng-template" id="Fees">
 				<h2>Fees</h2>
-				<div ng-show="feeSummary.unapplied_payments" class="alert alert-info">
+				<div ng-show="feeSummary.unapplied_payments" class="alert alert-danger">
 					<i class="glyphicon glyphicon-info-sign"></i> This student has a payment of {{feeSummary.unapplied_payments|number}} {{currency}} that has not been applied to a fee item.
 				</div>
 				<div class="row">
@@ -455,17 +455,17 @@
 						<div class="row">
 							<!-- next payment due -->
 							<div class="form-group">		
-								<label for="payment_method" class="col-sm-5 control-label">Next Payment Due</label>
+								<label for="payment_method" class="col-sm-5 control-label">Next Invoice</label>
 								<div class="col-sm-7">
-									<p class="form-control-static text-danger" ng-show="feeSummary.next_due_date=='Immediately'"><b>{{feeSummary.next_due_date|date}}</b></p>
-									<p class="form-control-static" ng-show="feeSummary.next_due_date!='Immediately'" ng-class="{'text-warning': feeSummary.within30days}"><b>{{feeSummary.next_due_date|date}} | {{feeSummary.next_payperiod_due|number}}{{currency}}</b></p>
+									<p class="form-control-static" ng-show="feeSummary.next_due_date===null"><i>This students next invoice has not been generated.</i></p>
+									<p class="form-control-static" ng-show="feeSummary.next_due_date!==null" ng-class="{'text-warning': feeSummary.within30days}"><b> {{feeSummary.next_amount|makePositive}}{{currency}} due {{feeSummary.next_due_date|date}}</b></p>
 								</div>	
 							</div>	
 							<!-- amount overdue -->
-							<div class="form-group text-danger" ng-show="feeSummary.total_balance>0">		
+							<div class="form-group text-danger" ng-show="feeSummary.balance>0">		
 								<label for="payment_method" class="col-sm-5 control-label">Amount Overdue</label>
 								<div class="col-sm-7">
-									<p class="form-control-static">{{feeSummary.total_balance|number}} {{currency}}</p>
+									<p class="form-control-static">{{feeSummary.balance|number}} {{currency}}</p>
 								</div>	
 							</div>	
 							
@@ -475,15 +475,15 @@
 						<div class="info-boxes pull-right" >
 							<div class="info-box alert alert-info">
 								Amount Due
-								<p>{{feeSummary.total_amount_per_payperiod|number}}<span>{{currency}}</span></p>
+								<p>{{feeSummary.total_due|number}}<span>{{currency}}</span></p>
 							</div>
-							<div class="info-box alert" ng-class="{'alert-success':feeSummary.total_balance<=0, 'alert-danger': feeSummary.total_balance>10000, 'alert-warning' : feeSummary.total_balance>0}">
+							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-danger': feeSummary.balance<-10000, 'alert-warning' : feeSummary.balance<0}">
 								Amount Paid
-								<p>{{feeSummary.total_amount_paid|number}}<span>{{currency}}</span></p>
+								<p>{{feeSummary.total_paid|number}}<span>{{currency}}</span></p>
 							</div>
-							<div class="info-box alert" ng-class="{'alert-success':feeSummary.total_balance<=0, 'alert-warning' : feeSummary.total_balance>0 && gracePeriod, 'alert-danger': feeSummary.total_balance>0}">
-								Balance Due
-								<p>{{ feeSummary.total_balance|number}}<span>{{currency}}</span></p>
+							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning' : feeSummary.balance<0 && gracePeriod, 'alert-danger': feeSummary.balance<0}">
+								Balance
+								<p>{{ feeSummary.balance|number}}<span>{{currency}}</span></p>
 							</div>
 						</div>
 						
@@ -515,13 +515,13 @@
 						</tr>
 					</thead>	
 					<tbody>
-						<tr ng-repeat="item in fees track by $index" ng-class="{'alert-danger': item.amount_outstanding>0, 'alert-success':item.amount_outstanding==0}">
+						<tr ng-repeat="item in fees track by $index" ng-class="{'alert-danger': item.balance>0, 'alert-success':item.balance==0}">
 							<td></td>
 							<td id="{{item.fee_item_id}}">{{item.fee_item}}</td>
 							<td>{{item.payment_method}}</td>
-							<td class="center">{{item.amount_due|number}}</td>
-							<td class="center">{{item.amount_paid|number}}</td>
-							<td class="center">{{item.amount_outstanding|number}}</td>
+							<td class="center">{{item.total_due|number}}</td>
+							<td class="center">{{item.total_paid|number}}</td>
+							<td class="center">{{item.balance|number}}</td>
 						</tr>
 					</tbody>
 				</table>

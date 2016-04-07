@@ -92,6 +92,17 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getPaymentsReceived/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getPaymentsDue = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getPaymentsDue/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getPaymentsPastDue = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getPaymentsPastDue", successFunction, errorFunction, params);
+	};
+	
+	this.getTotalsForTerm = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getTotalsForTerm", successFunction, errorFunction, params);
+	};	
 	
 	
 	

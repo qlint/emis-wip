@@ -44,5 +44,9 @@ eduwebApp.filter('arrayToList', function(){
 	}
 });
 
+eduwebApp.filter('makePositive', function() {
+    return function(num) { return Math.abs(num); }
+});
+
 
 

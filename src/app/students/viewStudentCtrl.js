@@ -430,9 +430,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				
 		if( result.response == 'success') 
 		{
-			// need to get next due, if per month, that is next
-			// if no per month, use per term date
-			// if no per term, use annually or once date
 			$scope.feeSummary = angular.copy(result.data.fee_summary);
 			$scope.fees = angular.copy(result.data.fees);
 			

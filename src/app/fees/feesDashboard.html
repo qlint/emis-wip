@@ -30,16 +30,128 @@
 		</div>
 		
 		<div class="full-height datagrid main-datagrid">
-			<div class="col-sm-4">
-				<h2>Payment Received<h2>
-				
 			
+			<div class="row">
+				<div class="info-boxes clearfix">
+					<div class="info-box">
+						Amount Due
+						<p>{{totals.total_due|number}} <span>{{currency}}</span></p>
+					</div>
+					<div class="info-box">
+						Amount Paid
+						<p>{{totals.total_paid|number}} <span>{{currency}}</span></p>
+					</div>
+					<div class="info-box">
+						Balance
+						<p ng-show="totals.total_balance<0" ng-class="{'alert-success':totals.total_balance>=0, 'text-warning' : totals.total_balance<0 && gracePeriod, 'text-danger': totals.total_balance<0}">({{totals.total_balance|makePositive}}) <span>{{currency}}</span></p>
+						<p ng-show="totals.total_balance>=0" ng-class="{'alert-success':totals.total_balance>=0, 'text-warning' : totals.total_balance<0 && gracePeriod, 'text-danger': totals.total_balance<0}">{{totals.total_balance|number}} <span>{{currency}}</span></p>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-sm-4">
+				<div class="dashboard-panel alert alert-success">					
+					<div class="row dashboard-panel-header">
+						<div class="col-xs-12">
+							<h2>Payment Received</h2>
+						</div>
+						<div class="col-xs-7">
+							<!-- date range picker -->				
+							<div class="input-group">
+								<input type="text" name="dob" date-range-picker class="form-control date-picker input-sm" ng-model="date" options="{}" />
+								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+							</div>
+						</div>
+						<div class="col-xs-5">
+							<span class="totalSum pull-right">{{paymentsReceivedTotal|number}} {{currency}}</span>
+						</div>
+					</div>
+					<div class="dashboard-panel-body">
+						<table id="paymentsReceivedTable" class="display clickable" cellspacing="0" width="100%">
+							<thead>
+								<tr>
+									<th></th>
+									<th>Student</th>
+									<th class="center">Amt ({{currency}})</th>
+									<th>Date</th>
+								</tr>
+							</thead>	
+							<tbody>
+								<tr ng-repeat="item in paymentsReceived track by $index">
+									<td></td>
+									<td ng-click="viewPayment(item)">{{item.student_name}}</td>
+									<td ng-click="viewPayment(item)" class="center">{{item.amount|number}}</td>
+									<td ng-click="viewPayment(item)" data-order="{{item.payment_date}}">{{item.payment_date|date}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="row dashboard-panel-footer">
+						<button type="button" class=" btn btn-link pull-right" ng-click="goto('payments received')">See All</button>
+					</div>
+				</div>
 			</div>
 			<div class="col-sm-4">
-				<h2>Payments Due this Month<h2>
+				<div class="dashboard-panel alert alert-warning">					
+					<div class="dashboard-panel-header clearfix">
+						<h2 class="pull-left">Invoices Due This Month</h2>
+						<span class="totalSum pull-right">{{paymentsDueTotal|number}} {{currency}}</span>
+					</div>
+					<div class="dashboard-panel-body">
+						<table id="paymentsDueTable" class="display clickable" cellspacing="0" width="100%">
+							<thead>
+								<tr>
+									<th></th>
+									<th>Student</th>
+									<th class="center">Amt ({{currency}})</th>
+									<th>Due Date</th>
+								</tr>
+							</thead>	
+							<tbody>
+								<tr ng-repeat="item in paymentsDue track by $index">
+									<td></td>
+									<td ng-click="viewStudent(item)">{{item.student_name}}</td>
+									<td ng-click="viewStudent(item)" class="center">{{item.amount|number}}</td>
+									<td ng-click="viewStudent(item)" data-order="{{item.due_date}}">{{item.due_date|date}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="row dashboard-panel-footer">
+						<button type="button" class=" btn btn-link pull-right" ng-click="goto('payments due')">See All</button>
+					</div>
+				</div>
 			</div>
 			<div class="col-sm-4">
-				<h2>Payments Past Due<h2>
+				<div class="dashboard-panel alert alert-danger">
+					<div class="dashboard-panel-header clearfix">
+						<h2 class="pull-left">Invoices Past Due</h2>
+						<span class="totalSum pull-right">{{paymentsPastDueTotal|number}} {{currency}}</span>
+					</div>
+					<div class="dashboard-panel-body">
+						<table id="paymentsPastDueTable" class="display clickable" cellspacing="0" width="100%">
+							<thead>
+								<tr>
+									<th></th>
+									<th>Student</th>
+									<th class="center">Amt ({{currency}})</th>
+									<th>Due Date</th>
+								</tr>
+							</thead>	
+							<tbody>
+								<tr ng-repeat="item in paymentsPastDue track by $index">
+									<td></td>
+									<td ng-click="viewStudent(item)">{{item.student_name}}</td>
+									<td ng-click="viewStudent(item)" class="center">{{item.amount|number}}</td>
+									<td ng-click="viewStudent(item)" data-order="{{item.due_date}}">{{item.due_date|date}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="row dashboard-panel-footer">
+						<button type="button" class=" btn btn-link pull-right" ng-click="goto('past due')">See All</button>
+					</div>
+				</div>
 			</div>
 			
 		</div>
