@@ -60,5 +60,19 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
+	.state('fees/opening_balances', {
+      url: "/fees/opening_balances",
+	  templateUrl: 'app/fees/openingBalances.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('fees/invoices', {
+      url: "/fees/invoices",
+	  templateUrl: 'app/fees/invoices.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
 	;
 }]);

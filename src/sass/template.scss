@@ -322,11 +322,6 @@ h1{
 		margin-bottom:5px;
 	}
 	
-	.input-group-addon{
-		height:24px;
-		padding:0 12px;
-	}
-	
 	.dataTables_filter{
 		position:relative!important;
 		margin-left:0!important;
@@ -370,6 +365,10 @@ h1{
     margin-top: 5px;
 }
 
+.input-group-addon{
+	height:24px;
+	padding:0 5px;
+}
 
 /********************** DataTable Styles ******************************/
 .dataFilterForm{
@@ -437,28 +436,44 @@ th.center{
 	text-align:center;
 }
 
-tr.alert-danger{
+.alert-danger{
 	background-color: #f2dede!important;
-	
+}
+tr.alert-danger{
 	td{
 		background-color: #f2dede!important;
 	}
 }
-tr.alert-warning{
+.alert-warning{
 	background-color: #fcf8e3!important;
-	
+}
+tr.alert-warning{
 	td{
 		background-color: #fcf8e3!important;
 	}
 }
-tr.alert-success{
+.alert-success{
 	background-color: #dff0d8!important;
-	
+}
+tr.alert-success{
 	td{
 		background-color: #dff0d8!important;
 	}
 }
+.alert-info{
+	background-color: #d9edf7!important;
+}
+tr.alert-info{
+	td{
+		background-color: #d9edf7!important;
+	}
+}
 
+table.clickable{
+	tr{
+		cursor:pointer;
+	}
+}
 
 /********************** Modal Styles ******************************/
 .loading-screen{
@@ -493,6 +508,16 @@ tr.alert-success{
 	}
 	.dialog-header-confirm{
 		background-color:#AB0E0B;
+		.text-info{
+			color:#fff;
+		}
+	}
+	.dialog-header-notify{
+		background-color:#FFC107;
+		
+		.text-info{
+			color:#fff;
+		}
 	}
 	
 	h2{
@@ -566,7 +591,7 @@ tr.alert-success{
 		}
 		.input-group-addon{
 			height:26px;
-			padding:0 12px;
+			padding:0 5px;
 		}
 		
 		.checkbox-inline, .radio-inline{
@@ -837,6 +862,30 @@ tr.alert-success{
 		}
 	}
 	
+	.info-boxes{	
+		
+		.info-box{
+			padding:8px;
+			margin:0 2px 0 0;
+			text-align:center;
+			background-color:#eee;
+			@include rounded(7px);
+			margin-bottom:2px;
+			
+			
+			p{
+				display:block;
+				font-size:20px;
+				font-weight:bold;
+				
+				span{
+					font-size:11px;
+					font-weight:normal;
+				}
+			}
+		}
+	}
+	
 	/********************** Dashboard Styles ******************************/
 	.dashboard-panel{
 		
@@ -858,9 +907,21 @@ tr.alert-success{
 		.dashboard-panel-body{
 		
 		}
-		
-		
+
 	}
+	
+	
+	
+	.fees.dashboard .main-datagrid .info-boxes{
+		margin-left:20px;
+		margin-bottom: 10px;
+		.info-box{
+			margin-right:10px;
+			float:left;
+		}
+
+	}
+	
 	
 	
 	/********************** Modal Styles ******************************/
@@ -893,38 +954,16 @@ tr.alert-success{
 		h3:first-child{
 			margin-top:0;
 		}
-	}
-	
-	.info-boxes{	
 		
-		.info-box{
-			padding:10px;
-			margin:0 2px 0 0;
-			text-align:center;
+		.info-boxes .info-box{
 			float:left;
-			
-			p{
-				display:block;
-				font-size:24px;
-				font-weight:bold;
-				
-				span{
-					font-size:11px;
-					font-weight:normal;
-				}
-			}
 		}
+		
 	}
 	
-	.fees.dashboard .info-boxes{
-		margin-left:20px;
-		margin-bottom: 10px;
-		.info-box{
-			background-color:#eee;
-			@include rounded(7px);
-			margin-right:10px;
-		}
-	}
+	
+	
+	
 
 	/********************** DataTable Styles ******************************/
 	.dataFilterForm{
@@ -980,6 +1019,10 @@ tr.alert-success{
 			left: 350px;
 		}
 	}	
+	.hasSubNav .main-datagrid,
+	{
+		padding-top:131px
+	}
 	
 	table.dataTable tbody th, table.dataTable tbody td{
 		padding:2px 18px 2px 2px;

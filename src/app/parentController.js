@@ -70,11 +70,16 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true,
 						},
-						'payments_received': {
+						'invoices': {
 							'view': true,
 							'add': true,
 							'edit': true,
 						},
+						'payments_received': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},						
 						'fee_structure': {
 							'view': true,
 							'add': true,
@@ -202,8 +207,8 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				$rootScope.mainSubNavItems = item.subnav;
 			}
 		});
-		console.log($scope.navItems);
-		console.log($scope.mainSubNavItems);
+		//console.log($scope.navItems);
+		//console.log($scope.mainSubNavItems);
 		/*
 		if( params !== undefined )
 		{

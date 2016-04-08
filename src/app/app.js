@@ -28,7 +28,20 @@ var eduwebApp = angular.module('eduwebApp', ['ui.router', 'ui.bootstrap', 'dialo
     }
   ]);
 })
-
+eduwebApp.filter('numeric', function($filter) {
+    return function (value) {
+        if (value < 0) {
+			value =  Math.abs(value);
+			value = $filter('currency')(value, "");
+            value = '(' +value + ')';
+			return value;
+        }
+        else{
+			value = $filter('currency')(value, "");
+			return value;
+		}
+    };
+});
 eduwebApp.filter('titlecase', function() {
     return function(s) {
         s = ( s === undefined || s === null ) ? '' : s;
@@ -40,7 +53,8 @@ eduwebApp.filter('titlecase', function() {
 
 eduwebApp.filter('arrayToList', function(){
 	return function(arr) {
-		return arr.join(', ');
+		if( arr instanceof Array ) return arr.join(', ');
+		else return arr;
 	}
 });
 

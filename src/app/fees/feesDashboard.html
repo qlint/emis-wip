@@ -35,16 +35,15 @@
 				<div class="info-boxes clearfix">
 					<div class="info-box">
 						Amount Due
-						<p>{{totals.total_due|number}} <span>{{currency}}</span></p>
+						<p>{{totals.total_due|currency:""}} <span>{{currency}}</span></p>
 					</div>
 					<div class="info-box">
 						Amount Paid
-						<p>{{totals.total_paid|number}} <span>{{currency}}</span></p>
+						<p>{{totals.total_paid|currency:""}} <span>{{currency}}</span></p>
 					</div>
 					<div class="info-box">
 						Balance
-						<p ng-show="totals.total_balance<0" ng-class="{'alert-success':totals.total_balance>=0, 'text-warning' : totals.total_balance<0 && gracePeriod, 'text-danger': totals.total_balance<0}">({{totals.total_balance|makePositive}}) <span>{{currency}}</span></p>
-						<p ng-show="totals.total_balance>=0" ng-class="{'alert-success':totals.total_balance>=0, 'text-warning' : totals.total_balance<0 && gracePeriod, 'text-danger': totals.total_balance<0}">{{totals.total_balance|number}} <span>{{currency}}</span></p>
+						<p ng-class="{'alert-success':totals.total_balance>=0, 'text-warning' : totals.total_balance<0 && gracePeriod, 'text-danger': totals.total_balance<0}">{{totals.total_balance|numeric}} <span>{{currency}}</span></p>						
 					</div>
 				</div>
 			</div>
@@ -63,7 +62,7 @@
 							</div>
 						</div>
 						<div class="col-xs-5">
-							<span class="totalSum pull-right">{{paymentsReceivedTotal|number}} {{currency}}</span>
+							<span class="totalSum pull-right">{{paymentsReceivedTotal|currency:""}} {{currency}}</span>
 						</div>
 					</div>
 					<div class="dashboard-panel-body">
@@ -80,14 +79,14 @@
 								<tr ng-repeat="item in paymentsReceived track by $index">
 									<td></td>
 									<td ng-click="viewPayment(item)">{{item.student_name}}</td>
-									<td ng-click="viewPayment(item)" class="center">{{item.amount|number}}</td>
+									<td ng-click="viewPayment(item)" class="center">{{item.amount|currency:""}}</td>
 									<td ng-click="viewPayment(item)" data-order="{{item.payment_date}}">{{item.payment_date|date}}</td>
 								</tr>
 							</tbody>
 						</table>
 					</div>
 					<div class="row dashboard-panel-footer">
-						<button type="button" class=" btn btn-link pull-right" ng-click="goto('payments received')">See All</button>
+						<a ui-sref="fees/payments_received" class="btn btn-link pull-right">See All</a>
 					</div>
 				</div>
 			</div>
@@ -95,7 +94,7 @@
 				<div class="dashboard-panel alert alert-warning">					
 					<div class="dashboard-panel-header clearfix">
 						<h2 class="pull-left">Invoices Due This Month</h2>
-						<span class="totalSum pull-right">{{paymentsDueTotal|number}} {{currency}}</span>
+						<span class="totalSum pull-right">{{paymentsDueTotal|currency:""}} {{currency}}</span>
 					</div>
 					<div class="dashboard-panel-body">
 						<table id="paymentsDueTable" class="display clickable" cellspacing="0" width="100%">
@@ -111,14 +110,14 @@
 								<tr ng-repeat="item in paymentsDue track by $index">
 									<td></td>
 									<td ng-click="viewStudent(item)">{{item.student_name}}</td>
-									<td ng-click="viewStudent(item)" class="center">{{item.amount|number}}</td>
+									<td ng-click="viewStudent(item)" class="center">{{item.amount|currency:""}}</td>
 									<td ng-click="viewStudent(item)" data-order="{{item.due_date}}">{{item.due_date|date}}</td>
 								</tr>
 							</tbody>
 						</table>
 					</div>
 					<div class="row dashboard-panel-footer">
-						<button type="button" class=" btn btn-link pull-right" ng-click="goto('payments due')">See All</button>
+						<a ui-sref="fees/invoices" class="btn btn-link pull-right">See All</a>
 					</div>
 				</div>
 			</div>
@@ -126,7 +125,7 @@
 				<div class="dashboard-panel alert alert-danger">
 					<div class="dashboard-panel-header clearfix">
 						<h2 class="pull-left">Invoices Past Due</h2>
-						<span class="totalSum pull-right">{{paymentsPastDueTotal|number}} {{currency}}</span>
+						<span class="totalSum pull-right">{{paymentsPastDueTotal|numeric}} {{currency}}</span>
 					</div>
 					<div class="dashboard-panel-body">
 						<table id="paymentsPastDueTable" class="display clickable" cellspacing="0" width="100%">
@@ -134,7 +133,7 @@
 								<tr>
 									<th></th>
 									<th>Student</th>
-									<th class="center">Amt ({{currency}})</th>
+									<th class="center">Balance ({{currency}})</th>
 									<th>Due Date</th>
 								</tr>
 							</thead>	
@@ -142,14 +141,14 @@
 								<tr ng-repeat="item in paymentsPastDue track by $index">
 									<td></td>
 									<td ng-click="viewStudent(item)">{{item.student_name}}</td>
-									<td ng-click="viewStudent(item)" class="center">{{item.amount|number}}</td>
+									<td ng-click="viewStudent(item)" class="center">{{item.balance|numeric}}</td>
 									<td ng-click="viewStudent(item)" data-order="{{item.due_date}}">{{item.due_date|date}}</td>
 								</tr>
 							</tbody>
 						</table>
 					</div>
 					<div class="row dashboard-panel-footer">
-						<button type="button" class=" btn btn-link pull-right" ng-click="goto('past due')">See All</button>
+						<a ui-sref="fees/invoices" class="btn btn-link pull-right">See All</a>
 					</div>
 				</div>
 			</div>

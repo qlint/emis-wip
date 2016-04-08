@@ -1,7 +1,7 @@
 /**
  * Contains functions that are added to the root AngularJs scope.
  */
-angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiService) {
+angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiService, dialogs) {
 	
 	//before each state change, check if the user is logged in
 	//and authorized to move onto the next state
@@ -28,7 +28,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 			$rootScope.currentUser = JSON.parse($window.sessionStorage["userInfo"]);
 			Session.create($rootScope.currentUser);
 			$rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
-			console.log($rootScope.currentUser);
+			//console.log($rootScope.currentUser);
 			
 			// get class categories and classes
 			$rootScope.getClassCats();
@@ -119,6 +119,10 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 		}
 	}
 
+	$rootScope.wipNotice = function()
+	{
+		var dlg = dialogs.notify('Feature in Development','This feature is not yet complete, but hang in there, it will be awesome.', {size:'sm'});
+	}
 	
 	$rootScope.checkIfMobile = (function() 
 	{
@@ -156,6 +160,38 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 	};
 	*/
 	
+	$rootScope.formatStudentData = function(data)
+	{
+		// make adjustments to student data
+		var formatedResults = data.map(function(item){
+			item.student_name = item.first_name + ' ' + item.middle_name + ' ' + item.last_name;
+			var theClass = $rootScope.allClasses.filter(function(a){ 
+				return a.class_id == item.current_class;
+			})[0];
+			item.class_name = (theClass ? theClass.class_name : '');
+			item.class_cat_id = (theClass ? theClass.class_cat_id : '');
+			item.class_id = (theClass ? theClass.class_id : '');
+			
+			if( item.guardians)
+			{
+				item.guardians = item.guardians.map(function(parent){
+					parent.parent_full_name = parent.first_name + ' ' + parent.middle_name + ' ' + parent.last_name;
+					return parent;
+				});
+			}
+			
+			item.status = ( item.active ? 'Active' : 'In-Active');
+			item.adoptedStr = ( item.adopted ? 'Yes' : 'No');
+			item.adoptionAwareStr = ( item.adoption_aware ? 'Yes' : 'No');
+			item.other_medical_conditions_str = ( item.other_medical_conditions ? 'Yes' : 'No');
+			item.hospitalized_str = ( item.hospitalized ? 'Yes' : 'No');
+			item.current_medical_treatment_str = ( item.current_medical_treatment ? 'Yes' : 'No');
+			
+			return item;
+		});
+		console.log(formatedResults);
+		return formatedResults;
+	}
 	
 	
 	$rootScope.$on('studentAdded', function(event, args) {

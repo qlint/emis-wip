@@ -6,7 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$rootScope.modalLoading = false;
 	$scope.tabs = ['Details','Family','Medical History','Fees','Exams','Report Cards','News'];
-	$scope.feeTabs = ['Fee Summary','Payments Received','Fee Items'];
+	$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
 	$scope.currentTab = $scope.tabs[0];
 	$scope.currentFeeTab = $scope.feeTabs[0];
 	$scope.hasChanges = false;
@@ -416,6 +416,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		{
 			setTimeout(initFeesDataGrid,50);
 		}
+		else if( tab == 'Invoices' )
+		{
+			$scope.loading = true;			
+			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
+		}
 		else if( tab == 'Payments Received' )
 		{
 			$scope.loading = true;			
@@ -437,6 +442,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 	
+	var loadInvoices = function(response,status)
+	{
+		$scope.loading = false;		
+		var result = angular.fromJson(response);
+				
+		if( result.response == 'success') 
+		{
+			$scope.invoices = angular.copy(result.data);
+			
+			setTimeout(initInvoicesDataGrid,10);
+		}
+	}
+	
 	var loadPayments = function(response,status)
 	{
 		$scope.loading = false;		
@@ -455,6 +473,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var settings = {
 			sortOrder: [5,'desc'],
 			noResultsTxt: "No fee items found."
+		}
+		initDataGrid(settings);
+	}
+	
+	var initInvoicesDataGrid = function() 
+	{
+		var settings = {
+			sortOrder: [1,'desc'],
+			noResultsTxt: "No invoices found."
 		}
 		initDataGrid(settings);
 	}
@@ -484,7 +511,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.getReceipt = function()
 	{
-		var dlg = $dialogs.notify('Feature in Development','This feature is not yet complete. Hang in there, it will be awesome :)');
+		$rootScope.wipNotice();
 	}
 	
 	$scope.viewPayment = function(payment)

@@ -48,6 +48,10 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentBalance/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getStudentInvoices = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentInvoices/" + param, successFunction, errorFunction, params);
+	};
+	
 	this.getStudentPayments = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentPayments/" + param, successFunction, errorFunction, params);
 	};
@@ -104,8 +108,13 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getTotalsForTerm", successFunction, errorFunction, params);
 	};	
 	
+	this.getStudentBalances = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentBalances/" + param, successFunction, errorFunction, params);
+	};	
 	
-	
+	this.getInvoices = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getInvoices/" + param, successFunction, errorFunction, params);
+	};	
 	
 	this.getAllEmployees = function (param, successFunction, errorFunction) {  
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllEmployees/" + param, successFunction, errorFunction);

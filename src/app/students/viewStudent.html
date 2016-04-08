@@ -433,7 +433,7 @@
 			<script type="text/ng-template" id="Fees">
 				<h2>Fees</h2>
 				<div ng-show="feeSummary.unapplied_payments" class="alert alert-danger">
-					<i class="glyphicon glyphicon-info-sign"></i> This student has a payment of {{feeSummary.unapplied_payments|number}} {{currency}} that has not been applied to a fee item.
+					<i class="glyphicon glyphicon-info-sign"></i> This student has a payment of {{feeSummary.unapplied_payments|currency:""}} {{currency}} that has not been applied to a fee item.
 				</div>
 				<div class="row">
 					<div class="col-sm-6">
@@ -458,14 +458,14 @@
 								<label for="payment_method" class="col-sm-5 control-label">Next Invoice</label>
 								<div class="col-sm-7">
 									<p class="form-control-static" ng-show="feeSummary.next_due_date===null"><i>This students next invoice has not been generated.</i></p>
-									<p class="form-control-static" ng-show="feeSummary.next_due_date!==null" ng-class="{'text-warning': feeSummary.within30days}"><b> {{feeSummary.next_amount|makePositive}}{{currency}} due {{feeSummary.next_due_date|date}}</b></p>
+									<p class="form-control-static" ng-show="feeSummary.next_due_date!==null" ng-class="{'text-warning': feeSummary.within30days}"><b> {{feeSummary.next_amount|numeric}} {{currency}} due {{feeSummary.next_due_date|date}}</b></p>
 								</div>	
 							</div>	
 							<!-- amount overdue -->
 							<div class="form-group text-danger" ng-show="feeSummary.balance>0">		
 								<label for="payment_method" class="col-sm-5 control-label">Amount Overdue</label>
 								<div class="col-sm-7">
-									<p class="form-control-static">{{feeSummary.balance|number}} {{currency}}</p>
+									<p class="form-control-static">{{feeSummary.balance|numeric}} {{currency}}</p>
 								</div>	
 							</div>	
 							
@@ -475,15 +475,15 @@
 						<div class="info-boxes pull-right" >
 							<div class="info-box alert alert-info">
 								Amount Due
-								<p>{{feeSummary.total_due|number}}<span>{{currency}}</span></p>
+								<p>{{feeSummary.total_due|currency:""}}<span>{{currency}}</span></p>
 							</div>
-							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-danger': feeSummary.balance<-10000, 'alert-warning' : feeSummary.balance<0}">
+							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-danger': feeSummary.balance<0}">
 								Amount Paid
-								<p>{{feeSummary.total_paid|number}}<span>{{currency}}</span></p>
+								<p>{{feeSummary.total_paid|currency:""}}<span>{{currency}}</span></p>
 							</div>
 							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning' : feeSummary.balance<0 && gracePeriod, 'alert-danger': feeSummary.balance<0}">
 								Balance
-								<p>{{ feeSummary.balance|number}}<span>{{currency}}</span></p>
+								<p>{{ feeSummary.balance|numeric}}<span>{{currency}}</span></p>
 							</div>
 						</div>
 						
@@ -519,9 +519,37 @@
 							<td></td>
 							<td id="{{item.fee_item_id}}">{{item.fee_item}}</td>
 							<td>{{item.payment_method}}</td>
-							<td class="center">{{item.total_due|number}}</td>
-							<td class="center">{{item.total_paid|number}}</td>
-							<td class="center">{{item.balance|number}}</td>
+							<td class="center">{{item.total_due|currency:""}}</td>
+							<td class="center">{{item.total_paid|currency:""}}</td>
+							<td class="center">{{item.balance|numeric}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</script>
+			
+			<script type="text/ng-template" id="Invoices">
+				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Add Payment</button>
+				<button ng-show="permissions.fees.invoices.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addInvoice()"><i class="glyphicon glyphicon-plus-sign"></i> Add Invoice</button>
+				
+				<table id="resultsTable2" class="display nowrap clickable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Invoice Date</th>
+							<th class="center">Amount ({{currency}})</th>
+							<th class="center">Amount Paid ({{currency}})</th>
+							<th class="center">Balance ({{currency}})</th>
+							<th>Due Date</th>
+						</tr>
+					</thead>	
+					<tbody>
+						<tr ng-repeat="item in invoices track by $index" ng-class="{'alert-danger': item.balance>0, 'alert-success':item.balance==0}">
+							<td></td>
+							<td id="{{item.fee_item_id}}" data-order="{{item.inv_date}}">{{item.inv_date|date}}</td>
+							<td class="center">{{item.total_due|currency:""}}</td>
+							<td class="center">{{item.total_paid|currency:""}}</td>
+							<td class="center">{{item.balance|numeric}}</td>
+							<td>{{item.due_date}}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -548,9 +576,9 @@
 							<td class="center" id="{{item.payment_id}}" ng-click="getReceipt(item)"><span class="glyphicon glyphicon-file"></span></td>
 							<td ng-click="viewPayment(item)">{{item.payment_date|date}}</td>
 							<td ng-click="viewPayment(item)">{{item.payment_method}}</td>
-							<td class="center" ng-click="viewPayment(item)">{{item.amount|number}}</td>
+							<td class="center" ng-click="viewPayment(item)">{{item.amount|currency:""}}</td>
 							<td ng-click="viewPayment(item)">{{item.applied_to|arrayToList}}</td>
-							<td class="center" ng-class="{'alert-danger': item.unapplied_amount>0}" ng-click="viewPayment(item)">{{item.unapplied_amount|number}}</td>
+							<td class="center" ng-class="{'alert-danger': item.unapplied_amount>0}" ng-click="viewPayment(item)">{{item.unapplied_amount|currency:""}}</td>
 						</tr>
 					</tbody>
 				</table>

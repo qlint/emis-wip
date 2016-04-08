@@ -740,7 +740,7 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 		$db = getDB();
 		if( $year == null )
 		{
-			$query = $db->prepare("SELECT term_id, term_name || ' ' || date_part('year',start_date) as term_year_name,
+			$query = $db->prepare("SELECT term_id, term_name || ' ' || date_part('year',start_date) as term_year_name, start_date, end_date,
 										  case when term_id = (select term_id from hog.current_term) then true else false end as current_term
 										FROM hog.terms
 										WHERE date_part('year',start_date) <= date_part('year',now())
@@ -1025,7 +1025,7 @@ $app->get('/getPaymentsPastDue', function () {
         $db = getDB();
        $sth = $db->prepare("SELECT student_id,  
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-									total_due as amount, total_paid,  due_date
+									balance,  due_date
 							FROM hog.invoice_balances
 							INNER JOIN hog.students using (student_id)
 							WHERE due_date < now() - interval '1 mon' 
@@ -1067,6 +1067,101 @@ $app->get('/getTotalsForTerm', function () {
 							WHERE due_date between (select start_date from hog.current_term) and (select end_date from hog.current_term)");
 		$sth->execute(); 
         $results = $sth->fetch(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true) {
+    // Get all students balances
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+       $sth = $db->prepare("SELECT 
+								students.student_id,
+								first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
+								class_name, class_id, class_cat_id,
+								sum(total_due) as total_due, sum(total_paid) as total_paid, sum(balance) as balance,
+								(SELECT to_char(amount, '999,999,999.99') || ' - ' || to_char(payment_date,'Mon DD, YYYY')  FROM hog.payments WHERE student_id = students.student_id ORDER BY payment_date desc LIMIT 1 ) as last_payment,
+								(SELECT to_char(total_due, '999,999,999.99') || ' - ' || to_char(due_date,'Mon DD, YYYY')   FROM hog.invoice_balances WHERE student_id = students.student_id AND due_date > now() ORDER BY due_date asc LIMIT 1 ) as next_payment
+							FROM hog.invoice_balances
+							INNER JOIN hog.students
+								INNER JOIN hog.classes
+								ON students.current_class = classes.class_id
+							ON invoice_balances.student_id = students.student_id
+							WHERE invoice_balances.due_date < now()
+							AND date_part('year', inv_date) = :year
+							AND students.active = :status
+							GROUP BY students.student_id, class_name, class_id, class_cat_id");
+		$sth->execute( array(':year' => $year, ':status' => $status) ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+// ************** Invoices  ****************** //
+$app->get('/getInvoices/:startDate/:endDate(/:status)', function ($startDate, $endDate, $status = true) {
+    // Get all students balances
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+       $sth = $db->prepare("SELECT 
+								students.student_id,
+								invoice_balances.inv_id,
+								first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
+								class_name, class_id, class_cat_id,
+								inv_date,
+								total_due,
+								total_paid,
+								balance,
+								due_date,
+								case when now()::date > due_date and balance < 0 then now()::date - due_date end as days_overdue
+							FROM hog.invoice_balances
+							INNER JOIN hog.students
+								INNER JOIN hog.classes
+								ON students.current_class = classes.class_id
+							ON invoice_balances.student_id = students.student_id
+							WHERE inv_date between :startDate and :endDate
+							AND students.active = :status");
+		$sth->execute( array(':startDate' => $startDate, ':endDate' => $endDate, ':status' => $status) ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
         if($results) {
             $app->response->setStatus(200);
@@ -1258,8 +1353,8 @@ $app->get('/getStudentBalance(/:studentId)', function ($studentId) {
 		// calculate the balance owing
 		$sth = $db->prepare("SELECT  fee_item, payment_method,
 									sum(invoice_line_items.amount) AS total_due, 
-									COALESCE(sum(payment_inv_items.amount), 0::double precision) AS total_paid, 
-									COALESCE(sum(payment_inv_items.amount), 0::double precision) - sum(invoice_line_items.amount) AS balance        
+									COALESCE(sum(payment_inv_items.amount), 0) AS total_paid, 
+									COALESCE(sum(payment_inv_items.amount), 0) - sum(invoice_line_items.amount) AS balance        
 							FROM hog.invoices
 							INNER JOIN hog.invoice_line_items 
 								INNER JOIN hog.student_fee_items
@@ -1285,16 +1380,15 @@ $app->get('/getStudentBalance(/:studentId)', function ($studentId) {
 									(SELECT balance from hog.invoice_balances WHERE student_id = :studentID AND due_date > now()::date) AS next_amount,
 									(
 										SELECT sum(diff) FROM (
-											SELECT (payments.amount - (select sum(amount) from hog.payment_inv_items where payment_id = payments.payment_id )) AS diff
-											FROM hog.payments
-											LEFT JOIN hog.payment_inv_items ON payments.payment_id = payment_inv_items.payment_id
-											WHERE student_id = :studentID
-											AND reversed is false
-											AND replacement_payment is false
-											AND (payment_inv_item_id is null OR  payments.amount - (select sum(amount) from hog.payment_inv_items where payment_id = payments.payment_id )  > 0)
-											GROUP BY payment_inv_items.payment_id, payments.amount, payments.payment_id
-										) AS q
-									) AS unapplied_payments	");
+										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from hog.payment_inv_items where payment_id = p.payment_id ),0)) as diff
+										FROM hog.payments as p
+										LEFT JOIN hog.payment_inv_items 
+										ON p.payment_id = payment_inv_items.payment_id
+										WHERE student_id = :studentID
+										AND reversed is false
+										AND replacement_payment is false
+									) AS q
+									) AS unapplied_payments");
 			$sth2->execute( array(':studentID' => $studentId)); 
 			$details = $sth2->fetch(PDO::FETCH_OBJ);
 			
@@ -1350,6 +1444,40 @@ $app->get('/getStudentBalance(/:studentId)', function ($studentId) {
 
 });
 
+$app->get('/getStudentInvoices(/:studentId)', function ($studentId) {
+    // Return students invoices
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		
+		// get fee items
+		$sth = $db->prepare("SELECT * FROM hog.invoice_balances WHERE student_id = :studentID ORDER BY inv_date");
+		$sth->execute( array(':studentID' => $studentId));
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+ 
+        if($results) {			
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getStudentPayments(/:studentId)', function ($studentId) {
     // Return students payments
 	
@@ -1360,7 +1488,7 @@ $app->get('/getStudentPayments(/:studentId)', function ($studentId) {
         $db = getDB();
 		
 		// get fee items
-		$sth = $db->prepare("SELECT
+		$sth = $db->prepare("SELECT payment_id,
 								payment_date,
 								payment_method,
 								amount,
@@ -1373,7 +1501,7 @@ $app->get('/getStudentPayments(/:studentId)', function ($studentId) {
 								 ) as applied_to,
 								  (
 									SELECT sum(diff) FROM (
-										SELECT (p.amount - (select sum(amount) from hog.payment_inv_items where payment_id = p.payment_id )) as diff
+										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from hog.payment_inv_items where payment_id = p.payment_id ),0)) as diff
 										FROM hog.payments as p
 										LEFT JOIN hog.payment_inv_items 
 										ON p.payment_id = payment_inv_items.payment_id

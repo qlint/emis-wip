@@ -1,20 +1,31 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('listStudentsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window',
+controller('invoicesCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window',
 function($scope, $rootScope, apiService, $timeout, $window){
 
 	$scope.filters = {};
 	$scope.filters.status = 'true';
-	$scope.students = [];
+	$scope.invoices = [];
 	$scope.filterShowing = false;
 	$scope.toolsShowing = false;
 	var currentStatus = true;
 	var isFiltered = false;	
 	$rootScope.modalLoading = false;
 	$scope.alert = null;
+	$scope.currency = $rootScope.currentUser.settings['Currency'];
+	$scope.totals = {};
+	$scope.balanceStatuses = ['Balance Owing','Paid in Full','Due This Month','Past Due'];
+
+	var start_date = moment().format('YYYY-01-01');
+	var end_date = moment().format('YYYY-MM-DD');
+	$scope.date = {startDate: start_date, endDate: end_date};
+	var lastQueriedDateRange = angular.copy($scope.date);
+	var requery = false;
 	
-	
+	$scope.filters.date = $scope.date;			
+			
+
 	var initializeController = function () 
 	{
 		// get classes
@@ -28,7 +39,6 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				{
 					$rootScope.allClasses = result.data;
 					$scope.classes = $rootScope.allClasses;
-					getStudents('true',false);
 				}
 				
 			}, function(){});
@@ -36,36 +46,79 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		else
 		{
 			$scope.classes = $rootScope.allClasses;
-			getStudents('true',false);
 		}
 		
+		// get terms
+		if( $rootScope.terms === undefined )
+		{
+			apiService.getTerms({}, function(response){
+				var result = angular.fromJson(response);				
+				if( result.response == 'success')
+				{ 
+					$scope.terms = result.data;	
+					$rootScope.terms = result.data;
+					setTermRanges(result.data);
+				}		
+			}, function(){});
+		}
+		else
+		{
+			$scope.terms  = $rootScope.terms;
+			setTermRanges($scope.terms );
+		}
+		
+		getInvoices('true',false);
 
 	}
 	$timeout(initializeController,1);
+
 	
-	var getStudents = function(status, filtering)
+	var setTermRanges = function(terms)
 	{
-		apiService.getAllStudents(status, function(response){
+		$scope.termRanges = {};
+		angular.forEach(terms, function(item,key){
+			$scope.termRanges[item.term_year_name] = [item.start_date, item.end_date];
+		});
+	}
+	
+	var getInvoices = function(status, filtering)
+	{
+		if( $scope.dataGrid !== undefined )
+		{	
+			$scope.dataGrid.destroy();
+			$scope.dataGrid = undefined;			
+		}		
+		
+		var filters = angular.copy($scope.filters);
+		var request =  moment(filters.date.startDate).format('YYYY-MM-DD') + '/' + moment(filters.date.endDate).format('YYYY-MM-DD') + '/' + status;
+		apiService.getInvoices(request, function(response,status,params){
 			var result = angular.fromJson(response);
 			
 			// store these as they do not change often
 			if( result.response == 'success')
-			{
-				if( result.nodata ) var formatedResults = [];
-				else {
-					// make adjustments to student data
-					var formatedResults = $rootScope.formatStudentData(result.data);
-				}
-					
-				if( filtering )
+			{	
+				if(result.nodata !== undefined )
 				{
-					$scope.formerStudents = formatedResults
-					filterStudents();
+					$scope.students = {};
+					$timeout(initDataGrid,10);
 				}
 				else
 				{
-					$scope.allStudents = formatedResults;
-					$scope.students = formatedResults;
+					lastQueriedDateRange = params.filters.date;
+
+					var invoices = result.data;			
+						
+					if( params.filters.status === false )
+					{
+						$scope.formerStudents = invoices;
+						$scope.invoices = filterResults(invoices,params.filters);
+					}
+					else
+					{
+						$scope.allStudents = invoices;
+						$scope.invoices = ( filtering ? filterResults(invoices,params.filters): invoices);						
+					}
+					
 					$timeout(initDataGrid,10);
 				}
 				
@@ -76,13 +129,30 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				$scope.errMsg = result.data;
 			}
 			
-		}, function(){});
+		}, function(){}, {filters:filters});
 	}
 	
-	
+	var calcTotals = function()
+	{
+		$scope.totals.total_due = $scope.invoices.reduce(function(sum,item){
+			return sum = (parseInt(sum) + parseInt(item.total_due));
+		},0);
+		
+		$scope.totals.total_paid = $scope.invoices.reduce(function(sum,item){
+			return sum = (parseInt(sum) + parseInt(item.total_paid));
+		},0);
+		
+		$scope.totals.total_balance = $scope.invoices.reduce(function(sum,item){
+			return sum = (parseInt(sum) + parseInt(item.balance));
+		},0);
+	}
 	
 	var initDataGrid = function() 
 	{
+		// updating datagrid, also update totals
+		calcTotals();
+		
+		
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {
@@ -97,7 +167,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				} ],
 				paging: false,
 				destroy:true,
-				order: [1,'asc'],
+				order: [8,'desc'],
 				filter: true,
 				info: false,
 				sorting:[],
@@ -110,7 +180,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 						search: "Search Results<br>",
 						searchPlaceholder: "Filter",
 						lengthMenu: "Display _MENU_",
-						emptyTable: "No students found."
+						emptyTable: "No student balances found."
 				},
 			} );
 			
@@ -130,7 +200,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
 			console.log(filterFormWidth);
-			$('#resultsTable_filter').css('left',filterFormWidth+45);
+			$('#resultsTable_filter').css('left',filterFormWidth+50);
 		}
 		
 		$window.addEventListener('resize', function() {
@@ -164,7 +234,13 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			}, []);
 		}
 	});
-		
+	
+	$scope.$watch('filters.date', function(newVal,oldVal){
+		if(newVal == oldVal) return;
+		if( newVal !== lastQueriedDateRange ) requery = true;
+		else requery = false;
+	});
+	
 	$scope.toggleFilter = function()
 	{
 		$scope.filterShowing = !$scope.filterShowing;
@@ -208,11 +284,18 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		if( $scope.filters.status == 'false' && $scope.formerStudents === undefined )
 		{
 			// we need to fetch inactive students first
-			getStudents('false', true);			
+			getInvoices('false', true);			
+		}
+		else if( requery )
+		{
+			// need to get fresh data, most likely because the user selected a new year
+			getInvoices(currentStatus, true);		
 		}
 		else
 		{
-			filterStudents();
+			// otherwise we have all we need, just filter it down 
+			$scope.invoices = filterResults(( $scope.filters.status == 'false' ? $scope.formerStudents : $scope.allStudents), $scope.filters);
+			$timeout(initDataGrid,1);
 		}
 		
 		// store the current status filter
@@ -220,43 +303,91 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		
 	}
 	
-	var filterStudents = function()
+	var filterResults = function(data, filters)
 	{
-		$scope.dataGrid.destroy();
-		
-		// filter by class category
-		// allStudents holds current students, formerStudents, the former...
-		var filteredResults = ( $scope.filters.status == 'false' ? $scope.formerStudents : $scope.allStudents);
-		
-		if( $scope.filters.class_cat_id !== undefined && $scope.filters.class_cat_id !== ''  )
+		if ($scope.dataGrid !== undefined)
 		{
-			filteredResults = filteredResults.reduce(function(sum, item) {
-			  if( item.class_cat_id == $scope.filters.class_cat_id) sum.push(item);
+			$scope.dataGrid.destroy();
+			$scope.dataGrid = undefined;
+		}
+		
+		// filter by class category		
+		
+		if( filters.class_cat_id !== undefined && filters.class_cat_id !== ''  )
+		{
+			data = data.reduce(function(sum, item) {
+			  if( item.class_cat_id == filters.class_cat_id) sum.push(item);
 			  return sum;
 			}, []);
 		}
 		
-		if( $scope.filters.class_id !== undefined && $scope.filters.class_id !== ''  )
+		if( filters.class_id !== undefined && filters.class_id !== ''  )
 		{
-			filteredResults = filteredResults.reduce(function(sum, item) {
-			  if( item.class_id == $scope.filters.class_id) sum.push(item);
+			data = data.reduce(function(sum, item) {
+			  if( item.class_id == filters.class_id) sum.push(item);
 			  return sum;
 			}, []);
 		}
 		
-		$scope.students = filteredResults;
-		$timeout(initDataGrid,1);
+		if( filters.balance_status !== undefined && filters.balance_status !== '' )
+		{
+			switch (filters.balance_status)
+			{
+				case "Balance Owing":
+					data = data.reduce(function(sum, item) {
+					  if( item.balance < 0 ) sum.push(item);
+					  return sum;
+					}, []);
+					break;
+				case "Paid in Full":
+					data = data.reduce(function(sum, item) {
+					  if( item.balance >=0 ) sum.push(item);
+					  return sum;
+					}, []);
+					break;
+				case "Due This Month":
+					var start_date = moment().startOf('month').format('YYYY-MM-DD');
+					var end_date = moment().endOf('month').format('YYYY-MM-DD');
+					
+					data = data.reduce(function(sum, item) {
+						var due_date = moment(item.due_date).format('YYYY-MM-DD');
+					   if( due_date >= start_date && due_date <= end_date ) sum.push(item);
+					   return sum;
+					}, []);
+					break;
+				case "Past Due":
+					data = data.reduce(function(sum, item) {
+					  if( item.days_overdue > 0 ) sum.push(item);
+					  return sum;
+					}, []);
+					break;
+			}
+			
+		}
+		
+		return data;
+		
 	}
 	
-	$scope.addStudent = function()
+	$scope.addInvoice = function()
 	{
-		$scope.openModal('students', 'addStudent', 'lg');
+		$scope.openModal('fees', 'invoiceForm', 'lg');
 	}
 	
-	$scope.viewStudent = function(student)
+	$scope.generateInvoices = function()
+	{
+	
+	}
+	
+	$scope.exportInvoices = function()
+	{
+		$rootScope.wipNotice();
+	}
+	
+	$scope.viewInvoice = function(item)
 	{
 		$rootScope.modalLoading = true;
-		apiService.getStudentDetails(student.student_id, function(response){
+		apiService.getInvoiceDetails(item.inv_id, function(response){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
@@ -277,7 +408,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		
 	}
 	
-	$scope.$on('refreshStudents', function(event, args) {
+	$scope.$on('refreshInvoices', function(event, args) {
 
 		$scope.loading = true;
 		$rootScope.loading = true;
@@ -302,13 +433,12 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	{
 		$scope.loading = true;
 		$rootScope.loading = true;
-		getStudents(currentStatus,isFiltered);
+		getInvoices(currentStatus,isFiltered);
 	}
 	
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid) $scope.dataGrid.destroy();
 		$rootScope.isModal = false;
     });
-	
 
 } ]);
