@@ -1,4 +1,4 @@
-<div ng-controller="openingBalancesCtrl">	
+<div ng-controller="paymentsReceivedCtrl">	
 	
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 		
@@ -19,14 +19,14 @@
 			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
-					<div class="btn add-btn" title="Add Payment" ng-show="permissions.fees.payments_received.add" ng-click="addPayment()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Payment</span></a></div>
+					<div class="btn add-btn" title="Make Payment" ng-show="permissions.fees.payments_received.add" ng-click="addPayment()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Make Payment</span></a></div>
 					<div class="btn" title="Adjust Payment" ng-show="permissions.fees.payments_received.edit" ng-click="adjustPayment()"><a class="clickable"><span class="glyphicon glyphicon-pencil"></span> <span class="tool-text">Adjust Payment</span></a></div>
 					<div class="btn" title="Export" ng-click="exportBalances()"><a class="clickable"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
-				</div>			
+				</div>				
 			</div>
 			
 			<div class="clearfix">
-				<h1 id="pageTitle">Opening Balances</h1>
+				<h1 id="pageTitle">Payments Received</h1>
 			</div>
 			
 			<!-- search form -->
@@ -51,35 +51,34 @@
 						</select>
 					</div>
 
-					<!-- year select -->
+					<!-- date range -->
 					<div class="form-group">
-						<label for="class">Year</label>	
-						<select name="class" id="class" class="form-control" ng-model="filters.year">
-							<option value="{{year}}" ng-repeat="year in years">{{year}}</option>
-						</select>
+						<label for="class">Date Range</label>	
+						<!-- date range picker -->				
+						<div class="input-group">
+							<input type="text" name="dob" date-range-picker class="form-control date-picker input-sm" ng-model="filters.date" options="{ranges:termRanges}" />
+							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+						</div>
 					</div>
 					
 					<!-- status select -->
 					<div class="form-group">
 						<label for="status">Status</label>	
 						<select name="status" id="status" class="form-control" ng-model="filters.status">
+							<option value="">All</option>
 							<option value="true">Current</option>
 							<option value="false">Former</option>							
 						</select>
 					</div>	
-
-					<!-- balance status select 
+					
+					<!-- payment status select -->
 					<div class="form-group">
-						<label for="balance_status">Show</label>	
-						<select name="balance_status" id="balance_status" class="form-control" ng-model="filters.balance_status">
-							<option value="">All</option>
-							<option value="owing">Balance Owing</option>	
-							<option value="owing">Paid in Full</option>
-							<option value="owing">Due This Month</option>
-							<option value="owing">Past Due</option>
+						<label for="payment_status">Show</label>	
+						<select name="payment_status" id="payment_status" class="form-control" ng-model="filters.payment_status">
+							<option value="{{item.value}}" ng-repeat="item in paymentStatuses">{{item.label}}</option>
 						</select>
 					</div>	
-					-->
+					
 					<!-- search btn -->
 					<div class="form-group submit-btn">
 						<input type="submit" class="btn btn-sm btn-info" ng-click="loadFilter()" value="Load" />
@@ -97,31 +96,29 @@
 		<div class="full-height datagrid main-datagrid" ng-class="{tableLoading: loading}">
 			<div class="row">
 				<div class="col-sm-10">
-				<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%">
+				<table id="resultsTable" class="display clickable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
 							<th></th>
+							<th class="center">Receipt</th>
 							<th>Name</th>
 							<th>Class</th>
-							<th class="center">Opening Balance ({{currency}})</th>
-							<th class="center">Payments Received ({{currency}})</th>
-							<th class="center">Balance ({{currency}})</th>
-							<!--th>Payment Method</th-->
-							<th>Last Payment</th>
-							<th>Next Payment Due</th>
+							<th>Payment Date</th>
+							<th>Payment Method</th>
+							<th class="center">Amount ({{currency}})</th>
+							<th>Applied To</th>
 						</tr>
 					</thead>	
 					<tbody>
-						<tr ng-repeat="item in students track by $index" ng-class="{'alert-danger': item.balance<0}">
+						<tr ng-repeat="item in payments track by $index" ng-class="{'alert-warning': item.replacement_payment}">
 							<td></td>
-							<td id="{{item.student_id}}" class="student_id" ng-click="viewStudent(item)">{{item.student_name}}</td>
+							<td class="center" ng-click="viewReceipt(item)"><i class="glyphicon glyphicon-file"></i></td>
+							<td id="{{item.inv_id}}" class="inv_id" ng-click="viewStudent(item)">{{item.student_name}}</td>
 							<td ng-click="viewStudent(item)">{{item.class_name}}</td>
-							<td ng-click="viewStudent(item)" class="center">{{item.total_due|currency:""}}</td>
-							<td ng-click="viewStudent(item)" class="center">{{item.total_paid|currency:""}}</td>
-							<td ng-click="viewStudent(item)" class="center">{{item.balance|numeric}}</td>
-							<!--td ng-click="viewStudent(item)">{{item.payment_method}}</td-->
-							<td ng-click="viewStudent(item)">{{item.last_payment}}</td>
-							<td ng-click="viewStudent(item)">{{item.next_payment}}</td>
+							<td ng-click="viewPayment(item)" data-order="{{item.payment_date}}">{{item.payment_date|date}}</td>
+							<td ng-click="viewPayment(item)">{{item.payment_method}}</td>
+							<td ng-click="viewPayment(item)" class="center">{{item.amount|currency:""}}</td>
+							<td ng-click="viewPayment(item)">{{item.applied_to|arrayToList}}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -129,16 +126,8 @@
 			<div class="col-sm-2">
 				<div class="info-boxes clearfix">
 					<div class="info-box">
-						Amount Due
-						<p>{{totals.total_due|currency:""}} <span>{{currency}}</span></p>
-					</div>
-					<div class="info-box">
 						Amount Paid
 						<p>{{totals.total_paid|currency:""}} <span>{{currency}}</span></p>
-					</div>
-					<div class="info-box">
-						Balance
-						<p ng-class="{'alert-success':totals.total_balance>=0, 'text-warning' : totals.total_balance<0 && gracePeriod, 'text-danger': totals.total_balance<0}">{{totals.total_balance|numeric}} <span>{{currency}}</span></p>						
 					</div>
 				</div>
 			</div>

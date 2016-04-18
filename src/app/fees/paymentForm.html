@@ -1,7 +1,7 @@
-<form name="studentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+<form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-			<h4 class="modal-title">Add Payment {{ (student !== null ? ' for ' + student.student_name}}</h4>
+			<h4 class="modal-title">Make Payment: {{ selectedStudent.student_name}}</h4>
 		</div>
 		<div class="modal-body">
 	
@@ -9,12 +9,155 @@
 				{{errMsg}}
 			</p>
 			
-			
-			
-			
-			
-			
-			
+						
+				<div class="form-group" ng-class="{ 'has-error' : invoiceForm.student.$invalid && (!invoiceForm.student.$pristine || invoiceForm.$submitted) }">
+					<!-- student -->
+					<label for="student" class="col-sm-3 control-label">Student</label>
+					<div class="col-sm-9" ng-show="selectedStudent!==undefined"><p class="form-control-static">{{selectedStudent.student_name}}</p></div>
+					<div class="col-sm-9" ng-show="selectedStudent===undefined">
+						<ui-select ng-model="student.selected" theme="select2" class="form-control" name="student" required> 
+						  <ui-select-match placeholder="Select or search a student...">
+							<span>{{$select.selected.student_name}}</span>
+							<button type="button" class="clear text-danger" ng-click="clearSelect('student',$event)"><span class="glyphicon glyphicon-remove"></span></button>	  
+						  </ui-select-match>
+						  <ui-select-choices repeat="item in students | filter: $select.search">
+							<span ng-bind-html="item.student_name | highlight: $select.search"></span>
+						  </ui-select-choices>
+						</ui-select>
+						<p ng-show="invoiceForm.student.$invalid && (!invoiceForm.student.$pristine || invoiceForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a student.</p>
+					</div>
+				</div>
+				
+				<!-- date -->
+				<div class="form-group" ng-class="{ 'has-error' : paymentForm.payment_date.$invalid && (paymentForm.payment_date.$touched || paymentForm.$submitted) }">
+					<label for="payment_date" class="col-sm-3 control-label">Date</label>
+					<div class="col-sm-3">
+						<div class="input-group">
+							<input type="text" name="payment_date" date-range-picker id="payment_date" class="form-control date-picker input-sm" ng-model="payment.payment_date" options="{singleDatePicker: true,autoApply: true}" />
+							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+						</div>
+						<p ng-show="paymentForm.payment_date.$invalid && (paymentForm.payment_date.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Payment Date is required.</p>
+					</div>
+				</div>
+				
+				<!-- amount -->
+				<div class="form-group" ng-class="{ 'has-error' : paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted) }">		
+					<label for="amount" class="col-sm-3 control-label">Amount</label>
+					<div class="col-sm-3">
+						<div class="input-group">
+							<input type="text" name="amount" ng-model="payment.amount" class="form-control"  >	
+							<div class="input-group-addon">{{currency}}</div>
+						</div>
+						<p ng-show="paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Last Name is required.</p>
+					</div>	
+				</div>
+				
+				<!-- payment method -->
+				<div class="form-group" ng-class="{ 'has-error' : paymentForm.payment_method.$invalid && (paymentForm.payment_method.$touched || paymentForm.$submitted) }">
+					<label for="payment_method" class="col-sm-3 control-label">Payment Method</label>
+					<div class="col-sm-8">
+						<select name="payment_method" ng-model="payment.payment_method" class="form-control">
+							<option value="">--select payment method--</option>
+							<option value="{{item}}" ng-repeat="item in paymentMethods">{{item}}</option>
+						</select>
+						<p ng-show="paymentForm.payment_method.$invalid && (paymentForm.payment_method.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Payment Method is required.</p>
+					</div>
+				</div>
+				
+				<!-- slip/cheque no -->
+				<div class="form-group">		
+					<label for="slip_cheque_no" class="col-sm-3 control-label">Slip/Cheque No.</label>
+					<div class="col-sm-5">
+						<input type="text" name="slip_cheque_no" ng-model="payment.slip_cheque_no" class="form-control"  >	
+					</div>	
+				</div>
+				
+				<!-- replacement? -->
+				<div class="form-group">		
+					<label class="col-sm-3 control-label"></label>
+					<div class="col-sm-5">
+						<label class="checkbox-inline">
+						<input type="checkbox" name="replacement_payment" ng-model="payment.replacement_payment" ng-value="true"  > This is a replacement payment
+						</label>
+					</div>	
+				</div>
+				
+				<!-- apply to -->
+				<div class="form-group" ng-show="payment.replacement_payment==false">		
+					<label class="col-sm-3 control-label">Apply To</label>
+					<div class="col-sm-9">
+					
+						<p ng-show="invoices.length==0">This student do not have any open invoices.</p>
+																	
+						<select ng-show="invoices.length>0" name="invoice" class="form-control" ng-options="' Bal: ' + invoice.balance + ' Ksh Due: ' + invoice.due_date for invoice in invoices track by invoice.inv_id" ng-model="payment.invoice">
+							<option value="">--select invoice--</option>
+						</select>					
+						
+					</div>
+					<div class="col-sm-12" ng-show="payment.invoice!==undefined">
+						<table class="display dataTable" cellspacing="0" width="100%">
+							<thead>
+								<tr>
+									<th class="center"><input type="checkbox" name="apply_to_all" ng-model="payment.apply_to_all" ng-value="true"  ></th>
+									<th>Fee Item</th>
+									<th>Balance</th>
+									<th>Paying</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="feeitem in selectedInvoice.fee_items ">
+									<td class="center">
+									 <input
+											type="checkbox"
+											name="selected_invoices[]"
+											value="{{item.inv_item_id}}"
+											ng-checked="feeItemsSelection.indexOf(feeitem) > -1"
+											ng-click="toggleFeeItems(feeitem)"
+										  >
+									</td>
+									<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
+									<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance}}</td>
+									<td>
+										<input type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance}}">
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				
+				<div class="form-group" ng-show="payment.replacement_payment==true">	
+					<label class="col-sm-3 control-label">Apply To</label>
+					<div class="col-sm-9">
+						<table class="display dataTable" cellspacing="0" width="100%">
+							<thead>
+								<tr>
+									<th>Fee Item</th>
+									<th>Amount</th>
+									<th>Paying</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="feeitem in replaceableFeeItems">
+									<td ng-click="toggleFeeItems2(feeitem)">
+										<input
+											type="checkbox"
+											name="selected_invoices[]"
+											value="{{item.inv_item_id}}"
+											ng-checked="feeItemsSelection2.indexOf(feeitem) > -1"
+											ng-click="toggleFeeItems2(feeitem)"
+										  >	{{feeitem.fee_item}}
+									</td>
+									<td ng-click="toggleFeeItems2(feeitem)">{{feeitem.amount}}</td>
+									<td>
+										<input type="text" name="fee_item_amount[]" ng-model="feeitem.paying_amount" class="form-control" placeholder="{{feeitem.amount}}">
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				
 		</div>
 		<div class="modal-footer">
 			<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>

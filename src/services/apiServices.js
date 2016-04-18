@@ -16,6 +16,10 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getCountries", successFunction, errorFunction, params);
 	};
 	
+	this.getInstallmentOptions = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getInstallmentOptions", successFunction, errorFunction, params);
+	};
+	
 	this.getAllClasses = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getAllClasses", successFunction, errorFunction, params);
 	};
@@ -115,6 +119,35 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 	this.getInvoices = function (param, successFunction, errorFunction, params) {      
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getInvoices/" + param, successFunction, errorFunction, params);
 	};	
+	
+	this.getOpenInvoices = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getOpenInvoices/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getInvoiceDetails = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getInvoiceDetails/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.generateInvoices = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet("http://api.eduweb.localhost/generateInvoices/" + param, successFunction, errorFunction, params);
+	};	
+	
+	this.createInvoice = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/createInvoice/", successFunction, errorFunction, params);
+	};
+	
+	this.addPayment = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addPayment/", successFunction, errorFunction, params);
+	};
+	
+	this.getReplaceableFeeItems = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getReplaceableFeeItems/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getStudentFeeItems = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentFeeItems/" + param, successFunction, errorFunction, params);
+	};
+	
 	
 	this.getAllEmployees = function (param, successFunction, errorFunction) {  
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllEmployees/" + param, successFunction, errorFunction);

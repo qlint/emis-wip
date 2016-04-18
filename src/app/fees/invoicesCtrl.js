@@ -99,7 +99,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			{	
 				if(result.nodata !== undefined )
 				{
-					$scope.students = {};
+					$scope.invoices = {};
 					$timeout(initDataGrid,10);
 				}
 				else
@@ -150,7 +150,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	var initDataGrid = function() 
 	{
 		// updating datagrid, also update totals
-		calcTotals();
+		if( $scope.invoices.length > 0 ) calcTotals();
 		
 		
 		var tableElement = $('#resultsTable');
@@ -371,12 +371,12 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	$scope.addInvoice = function()
 	{
-		$scope.openModal('fees', 'invoiceForm', 'lg');
+		$scope.openModal('fees', 'invoiceForm', 'lg',{});
 	}
 	
 	$scope.generateInvoices = function()
 	{
-	
+		$scope.openModal('fees', 'invoiceWizard', 'lg');
 	}
 	
 	$scope.exportInvoices = function()
@@ -384,28 +384,14 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		$rootScope.wipNotice();
 	}
 	
+	$scope.viewStudent = function(student)
+	{
+		$scope.openModal('students', 'viewStudent', 'lg',student);
+	}
+	
 	$scope.viewInvoice = function(item)
 	{
-		$rootScope.modalLoading = true;
-		apiService.getInvoiceDetails(item.inv_id, function(response){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
-			{
-				var student = $rootScope.formatStudentData([result.data]);
-				
-				// set current class to full class object
-				var currentClass = $rootScope.allClasses.filter(function(item){
-					if( item.class_id == student[0].class_id ) return item;
-				});
-				
-				student[0].current_class = currentClass[0];
-
-				$scope.openModal('students', 'viewStudent', 'lg',student[0]);
-			}
-		});
-		
-		
+		$scope.openModal('fees', 'invoiceDetails', 'lg', item);	
 	}
 	
 	$scope.$on('refreshInvoices', function(event, args) {

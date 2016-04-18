@@ -36,6 +36,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 			$rootScope.getEmpCats();
 			$rootScope.getDepts();
 			$rootScope.getCountries();
+			$rootScope.getInstallmentOptions();
 		}
 		else
 		{
@@ -198,6 +199,14 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
         $rootScope.$broadcast('refreshStudents', args);
     });
 	
+	$rootScope.$on('invoiceAdded', function(event, args) {
+        $rootScope.$broadcast('refreshInvoices', args);
+    });
+	
+	$rootScope.$on('paymentAdded', function(event, args) {
+        $rootScope.$broadcast('refreshPayments', args);
+    });
+	
 	$rootScope.getClassCats = function()
 	{
 		// get class categories
@@ -220,7 +229,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 		// get classes
 		if( $rootScope.allClasses === undefined )
 		{
-			var test = apiService.getAllClasses({}, function(response){
+			apiService.getAllClasses({}, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often
@@ -236,7 +245,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 		// get departments
 		if( $rootScope.departments === undefined )
 		{
-			var test = apiService.getDepts({}, function(response){
+			apiService.getDepts({}, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often
@@ -252,7 +261,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 		// get classes
 		if( $rootScope.empCats === undefined )
 		{
-			var test = apiService.getEmpCats({}, function(response){
+			apiService.getEmpCats({}, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often
@@ -268,7 +277,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 		// get classes
 		if( $rootScope.countries === undefined )
 		{
-			var test = apiService.getCountries({}, function(response){
+			apiService.getCountries({}, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often
@@ -279,5 +288,19 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 		}
 	}
 	
-	
+	$rootScope.getInstallmentOptions = function()
+	{
+		// get classes
+		if( $rootScope.installmentOptions === undefined )
+		{
+			apiService.getInstallmentOptions({}, function(response){
+				var result = angular.fromJson(response);
+				
+				// store these as they do not change often
+				if( result.response == 'success') $rootScope.installmentOptions = result.data;
+				return result.data;
+				
+			}, function(){});
+		}
+	}
 });

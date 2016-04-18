@@ -4,8 +4,8 @@ angular.module('eduwebApp').
 controller('feesDashboardCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window',
 function($scope, $rootScope, apiService, $timeout, $window){
 
-	var start_date = moment().subtract(30, 'days').format('YYYY-MM-DD HH:MM');
-	var end_date = moment().format('YYYY-MM-DD HH:MM');
+	var start_date = moment().subtract(30, 'days').format('YYYY-MM-DD');
+	var end_date = moment().add(1,'day').format('YYYY-MM-DD');
 	$scope.date = {startDate: start_date, endDate: end_date};
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	
@@ -20,8 +20,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			{
 				$scope.currentTerm = result.data;
 				$scope.currentTermTitle = $scope.currentTerm.term_name + ' ' + $scope.currentTerm.year;
-				$scope.date = {startDate: $scope.currentTerm.start_date, endDate: $scope.currentTerm.end_date};
-				getPaymentsReceived($scope.currentTerm.start_date, $scope.currentTerm.end_date);
+				var end_date = moment().add(1,'day').format('YYYY-MM-DD');
+				$scope.date = {startDate: $scope.currentTerm.start_date, endDate: end_date};
+				getPaymentsReceived($scope.currentTerm.start_date, end_date);
 				
 			}
 		},function(){});
@@ -38,8 +39,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	var getPaymentsReceived = function(startDate, endDate)
 	{
-		// get payments received for curren term
-		var request = startDate + "/" + endDate;
+		// get payments received for current term, that has not been reversed
+		var request = startDate + "/" + endDate + "/false";
 		apiService.getPaymentsReceived(request, loadPaymentsReceived, apiError);
 	}
 	
@@ -55,7 +56,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			if( result.data  instanceof Array )
 			{
 				$scope.paymentsReceivedTotal = result.data.reduce(function(sum,item){
-					return sum = (parseInt(sum) + parseInt(item.amount));
+					console.log(parseFloat(item.amount));
+					return sum = (sum + parseFloat(item.amount));
 				},0);
 			}
 			
@@ -95,7 +97,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			if( result.data  instanceof Array )
 			{
 				$scope.paymentsDueTotal = result.data.reduce(function(sum,item){
-					return sum = (parseInt(sum) + parseInt(item.amount));
+					return sum = (sum + parseFloat(item.amount));
 				},0);
 			}
 			
@@ -134,7 +136,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			if( result.data  instanceof Array )
 			{
 				$scope.paymentsPastDueTotal = result.data.reduce(function(sum,item){
-					return sum = (parseInt(sum) + parseInt(item.balance));
+					return sum = (sum + parseFloat(item.balance));
 				},0);
 			}
 			
@@ -227,26 +229,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		});
 	}
 	
-	$scope.viewStudent = function(item)
+	$scope.viewStudent = function(student)
 	{
-		$rootScope.modalLoading = true;
-		apiService.getStudentDetails(item.student_id, function(response){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
-			{
-				var student = $rootScope.formatStudentData([result.data]);
-				
-				// set current class to full class object
-				var currentClass = $rootScope.allClasses.filter(function(item){
-					if( item.class_id == student[0].class_id ) return item;
-				});
-				
-				student[0].current_class = currentClass[0];
-
-				$scope.openModal('students', 'viewStudent', 'lg',student[0]);
-			}
-		});
+		$scope.openModal('students', 'viewStudent', 'lg',student);
 	}	
 	
 	

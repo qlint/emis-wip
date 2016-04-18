@@ -5,7 +5,8 @@
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
 		</div>
-		<div class="alert alert-danger" ng-show="error">
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 			{{errMsg}}
 		</div>
 		

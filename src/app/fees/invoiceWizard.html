@@ -1,0 +1,72 @@
+<form name="invoiceForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+		<div class="modal-header dialog-header-form">
+			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+			<h4 class="modal-title">Invoice Wizard</h4>
+		</div>
+		<div class="modal-body">
+	
+			<p ng-show="error" class="error alert alert-danger">
+				{{errMsg}}
+			</p>
+			
+			<div class="row header">
+				<div class="col-sm-4" ng-hide="invoice.creation_method=='manual'">
+					<!-- term -->
+					<label for="student">Timeframe</label>
+					<p>
+					<button type="button" class="btn btn-sm" ng-class="{'btn-success':invoice.term=='current'}" ng-click="invoice.term='current';generateInvoice()">Current Term</button>
+					<button type="button" class="btn btn-sm" ng-class="{'btn-success':invoice.term=='next'}" ng-click="invoice.term='next';generateInvoice()">Next Term</button>
+					</p>
+				</div>		
+			</div>
+			
+			<div class="" ng-show="invoice.term!==undefined">
+				<div ng-show="allResults.length==0">
+					<p class="alert alert-info">There is no items to invoice for the {{invoice.term}} term.</p>
+				</div>
+				<div ng-show="allResults.length>0">
+					<h2>Invoice Preview</h2>				
+					<div class="modal-tabs sub-tabs">					
+						<ul class="nav nav-tabs">
+							<li ng-class="{active: activeMonth==key}" ng-repeat="(key,item) in invoices track by $index"><a class="clickable" ng-click="getInvoice(key)">Invoice for {{key}}</a></li>
+						</ul>
+					</div>
+				
+					<div class="subtab-content clearfix">
+						<!-- invoice date -->				
+						<h2>Balance Due ({{currency}}) {{invoiceTotal[activeMonth]|currency:""}}</h2>
+						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
+							<thead>
+								<tr>
+									<th>Student</th>
+									<th>Invoice Date</th>
+									<th class="center">Amount</th>
+									<th>Fee Items</th>									
+								</tr>
+							</thead>	
+							<tbody>
+								<tr ng-repeat="item in invoices[activeMonth] track by $index">
+									<td>{{item.student_name}}</td>
+									<td>{{item.due_date}}</td>
+									<td class="center">{{item.total_amount|current:""}}</td>
+									<td>{{item.fee_items|arrayToList}}</td>									
+								</tr>
+							</tbody>
+						</table>
+
+					</div>
+					
+				</div>
+			</div>
+			
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+			
+			<button type="submit" class="btn btn-success" ng-show="allResults.length>0">
+				<span ng-hide="saving">Create Invoice(s)</span>
+				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
+			</button>
+			
+		</div>
+</form>

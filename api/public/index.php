@@ -164,7 +164,7 @@ $app->post('/addClass/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -199,7 +199,7 @@ $app->put('/updateClass/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -256,7 +256,7 @@ $app->post('/addClassCat/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -284,7 +284,7 @@ $app->put('/updateClassCat/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -379,7 +379,7 @@ $app->post('/addDepartment/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -410,7 +410,7 @@ $app->put('/updateDepartment/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -544,7 +544,7 @@ $app->post('/addEmployee/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -631,7 +631,7 @@ $app->put('/updateEmployee/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -688,7 +688,7 @@ $app->post('/addEmployeeCat/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -716,7 +716,7 @@ $app->put('/updateEmployeeCat/', function () use($app) {
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("status" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
  
  
@@ -803,6 +803,7 @@ $app->get('/getCurrentTerm', function () {
     }
 
 });
+
 
 // ************** Exam Marks  ****************** //
 $app->get('/getExamTypes/', function () {
@@ -941,8 +942,9 @@ $app->get('/getExamMarks/:class/:year/:term/:type', function ($class,$year,$term
 
 });
 
+
 // ************** Payments  ****************** //
-$app->get('/getPaymentsReceived/:startDate/:endDate', function ($startDate,$endDate) {
+$app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStatus/)', function ($startDate,$endDate, $paymentStatus = false, $studentStatus = null) {
     // Get all payment received for given date range
 	
 	$app = \Slim\Slim::getInstance();
@@ -950,16 +952,51 @@ $app->get('/getPaymentsReceived/:startDate/:endDate', function ($startDate,$endD
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT payments.student_id, payment_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-									amount, payment_date
-							FROM hog.payments
-							INNER JOIN hog.students ON payments.student_id = students.student_id
-							WHERE reversed is false
-							AND payment_date between :startDate and :endDate");
-		$sth->execute( array(':startDate' => $startDate, ':endDate' => $endDate) ); 
+		$query = "SELECT payments.student_id, 
+						 payment_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
+						 amount, payment_date, payments.payment_method,
+						 CASE WHEN replacement_payment = true THEN
+						 (SELECT array_agg(fee_item || ' Replacement') 
+								 FROM hog.payment_replacement_items 
+								 INNER JOIN hog.student_fee_items using (student_fee_item_id)
+								 INNER JOIN hog.fee_items using (fee_item_id) 
+								 WHERE payment_id = payments.payment_id
+								 )
+						 ELSE
+							(SELECT array_agg(fee_item) 
+								 FROM hog.payment_inv_items 
+								 INNER JOIN hog.invoice_line_items using (inv_item_id)
+								 INNER JOIN hog.student_fee_items using (student_fee_item_id)
+								 INNER JOIN hog.fee_items using (fee_item_id) 
+								 WHERE payment_id = payments.payment_id
+								 )
+						 END as applied_to,
+						 class_name, class_id, class_cat_id, students.active as status, replacement_payment
+					FROM hog.payments
+					INNER JOIN hog.students ON payments.student_id = students.student_id
+					INNER JOIN hog.classes ON students.current_class = classes.class_id
+					WHERE payment_date between :startDate and :endDate
+					AND reversed = :reversed
+							";
+		$queryParams = array(':startDate' => $startDate, ':endDate' => $endDate, ':reversed' => $paymentStatus);
+		
+		if( $studentStatus != null )
+		{
+			// interested to pull payments for a specific student status
+			$query .= "AND students.active = :status ";
+			$queryParams[':status'] = $studentStatus;
+		}
+		
+		
+        $sth = $db->prepare($query);
+		$sth->execute( $queryParams ); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
         if($results) {
+			foreach( $results as $result)
+			{
+				$result->applied_to = pg_array_parse($result->applied_to);
+			}
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));
@@ -1060,11 +1097,23 @@ $app->get('/getTotalsForTerm', function () {
     try 
     {
         $db = getDB();
-       $sth = $db->prepare("SELECT sum(total_due) as total_due, 
-								   sum(total_paid) as total_paid,
-								   sum(balance) as total_balance
+		// replacement payments do not have invoices, need to select these in addition to invoice payments to add to total paid amount
+       $sth = $db->prepare("SELECT 
+							sum(total_due) as total_due, 
+							sum(total_paid) as total_paid,
+							sum(balance) as total_balance
+						FROM (
+							SELECT total_due, total_paid,balance
 							FROM hog.invoice_balances
-							WHERE due_date between (select start_date from hog.current_term) and (select end_date from hog.current_term)");
+							WHERE due_date between (select start_date from hog.current_term) and (select start_date - interval '1 day' from hog.next_term)
+
+							UNION
+							SELECT 0 as total_due, amount as total_paid,0 as balance
+							FROM hog.payments
+							WHERE payment_date between (select start_date from hog.current_term) and (select start_date - interval '1 day' from hog.next_term)
+							AND replacement_payment is true
+
+						) q");
 		$sth->execute(); 
         $results = $sth->fetch(PDO::FETCH_OBJ);
  
@@ -1108,7 +1157,7 @@ $app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true
 								ON students.current_class = classes.class_id
 							ON invoice_balances.student_id = students.student_id
 							WHERE invoice_balances.due_date < now()
-							AND date_part('year', inv_date) = :year
+							AND date_part('year', due_date) = :year
 							AND students.active = :status
 							GROUP BY students.student_id, class_name, class_id, class_cat_id");
 		$sth->execute( array(':year' => $year, ':status' => $status) ); 
@@ -1132,6 +1181,123 @@ $app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true
     }
 
 });
+
+$app->get('/getInstallmentOptions/', function () {
+    // Get countries
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT installment_id, payment_plan_name FROM hog.installment_options ORDER BY payment_plan_name");
+        $sth->execute(); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addPayment/', function () use($app) {
+    // create payment	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$userId = 				( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$studentId = 			( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+	$paymentDate = 			( isset($allPostVars['payment_date']) ? $allPostVars['payment_date']: null);
+	$amount = 				( isset($allPostVars['amount']) ? $allPostVars['amount']: null);
+	$paymentMethod = 		( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
+	$slipChequeNo = 		( isset($allPostVars['slip_cheque_no']) ? $allPostVars['slip_cheque_no']: null);
+	$replacementPayment = 	( isset($allPostVars['replacement_payment']) ? $allPostVars['replacement_payment']: null);
+	$invId = 				( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
+	$lineItems =			( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
+	$replacementItems =		( isset($allPostVars['replacement_items']) ? $allPostVars['replacement_items']: null);
+	
+    try 
+    {
+        $db = getDB();
+        $payment = $db->prepare("INSERT INTO hog.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, inv_id, created_by) 
+									VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :invId, :userId)");
+		if( count($lineItems) > 0 )
+		{	
+			$paymentItems = $db->prepare("INSERT INTO hog.payment_inv_items(payment_id, inv_id, inv_item_id, amount, created_by)
+									VALUES(currval('hog.payments_payment_id_seq'), :invId, :invItemId, :amount, :userId)");
+		}
+		if( count($replacementItems) > 0 )
+		{
+			$replaceItems = $db->prepare("INSERT INTO hog.payment_replacement_items(payment_id, student_fee_item_id, amount, created_by)
+									VALUES(currval('hog.payments_payment_id_seq'), :studenFeeItemId, :amount, :userId)");							
+		}
+ 
+		$db->beginTransaction();	
+		
+			
+		$payment->execute( array(':studentId' => $studentId, 
+								 ':paymentDate' => $paymentDate, 
+								 ':amount' => $amount, 
+								 ':paymentMethod' => $paymentMethod, 
+								 ':slipChequeNo' => $slipChequeNo, 
+								 ':replacementPayment' => $replacementPayment, 
+								 ':invId' => $invId, 
+								 ':userId' => $userId ) );
+		
+		if( count($lineItems) > 0 )
+		{
+			foreach( $lineItems as $lineItem )
+			{
+				$invItemId = ( isset($lineItem['inv_item_id']) ? $lineItem['inv_item_id']: null);
+				$amount = ( isset($lineItem['amount']) ? $lineItem['amount']: null);
+				
+				$paymentItems->execute( array(':invId' => $invId, 
+										   ':invItemId' => $invItemId, 
+										   ':amount' => $amount,
+										   ':userId' => $userId ) );
+			}
+		}
+		
+		if( count($replacementItems) > 0 )
+		{
+			foreach( $replacementItems as $replacementItem )
+			{
+				$studenFeeItemId = ( isset($replacementItem['student_fee_item_id']) ? $replacementItem['student_fee_item_id']: null);
+				$amount = ( isset($replacementItem['amount']) ? $replacementItem['amount']: null);
+				
+				$replaceItems->execute( array(':studenFeeItemId' => $studenFeeItemId, 
+										   ':amount' => $amount,
+										   ':userId' => $userId ) );
+			}
+		}
+		
+		$db->commit();
+	
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Invoices  ****************** //
 $app->get('/getInvoices/:startDate/:endDate(/:status)', function ($startDate, $endDate, $status = true) {
@@ -1158,7 +1324,7 @@ $app->get('/getInvoices/:startDate/:endDate(/:status)', function ($startDate, $e
 								INNER JOIN hog.classes
 								ON students.current_class = classes.class_id
 							ON invoice_balances.student_id = students.student_id
-							WHERE inv_date between :startDate and :endDate
+							WHERE due_date between :startDate and :endDate
 							AND students.active = :status");
 		$sth->execute( array(':startDate' => $startDate, ':endDate' => $endDate, ':status' => $status) ); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1182,7 +1348,338 @@ $app->get('/getInvoices/:startDate/:endDate(/:status)', function ($startDate, $e
 
 });
 
+$app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = null) {
+    // Generate invoice(s) for given term
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		$params = array();
+		$termStatment = (  $term == 'current'  ? 'hog.current_term' : 'hog.next_term' );
+		$query = "SELECT *
+							FROM (
+								SELECT
+								student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,
+								fee_item, student_fee_item_id, payment_method, frequency,
+								CASE WHEN payment_method = 'Annually' AND total_invoices_created = 0 THEN
+										-- if fee item is by term, times by 3
+										-- else full sum
+										CASE WHEN frequency = 'per term' THEN round(amount*3,2) ELSE round(amount,2) END
+									WHEN payment_method = 'Per Term' AND total_invoices_created_this_term = 0 THEN
+										-- if fee item is billed by term, whole sum
+										-- if fee item is billed once or annually, divide by 3
+										CASE WHEN frequency = 'per term' THEN round(amount,2) ELSE round(amount/3,2) END
+									WHEN payment_method = 'Per Month' AND total_invoices_created_this_term < 4 THEN
+										-- if fee item is billed by term, divide by 4
+										-- if fee item is billed once or annually, divide by 12
+										CASE WHEN frequency = 'per term' THEN round(amount/4,2) ELSE round(amount/12,2) END
+									WHEN payment_method = 'Installments' AND total_invoices_created < num_payments THEN
+										-- if fee item is by term, times by 3
+										-- else full sum
+										CASE WHEN frequency = 'per term' THEN round( (amount*3)/num_payments ,2) ELSE round(amount/num_payments,2) END
+								END AS amount,
+								CASE WHEN payment_method = 'Per Month' THEN
+									generate_series(term_start_date, term_end_date + interval '1 mon', interval '1' month)::date    
+								     WHEN payment_method = 'Annually' THEN
+									year_start_date
+								     WHEN payment_method = 'Installments' THEN
+									generate_series(year_start_date, year_start_date + payment_interval, (payment_interval::text || 'days')::interval)::date    
+								     ELSE
+									year_start_date
+								
+								END as due_date
+								FROM (
+									SELECT 
+									students.student_id, first_name, middle_name, last_name, fee_item, student_fee_item_id, student_fee_items.payment_method,frequency,amount,installment_option_id,num_payments, payment_interval,
+									(select count(inv_id) from hog.invoices inner join hog.invoice_line_items using (inv_id) where invoices.canceled = false and student_fee_item_id = student_fee_items.student_fee_item_id) as total_invoices_created,
+									(select count(inv_id) from hog.invoices inner join hog.invoice_line_items using (inv_id) where invoices.canceled = false and student_fee_item_id = student_fee_items.student_fee_item_id and due_date between (select start_date from $termStatment) and (select end_date from $termStatment)) as total_invoices_created_this_term,
+									(select start_date from $termStatment) as term_start_date,
+									(select end_date from $termStatment) as term_end_date,
+									CASE WHEN date_part('month',now()) > 9 THEN 
+										( select min(start_date) from hog.terms where date_part('year',start_date) = date_part('year', now() + interval '1 year') )
+									ELSE 
+										( select min(start_date) from hog.terms where date_part('year',start_date) = date_part('year', now()) )
+									END as year_start_date
+									FROM hog.students
+									LEFT JOIN hog.invoices 
+									ON students.student_id = invoices.student_id AND invoices.canceled = false AND due_date between (select start_date from $termStatment) and (select end_date from $termStatment)
+									INNER JOIN hog.student_fee_items
+										INNER JOIN hog.fee_items
+										ON student_fee_items.fee_item_id = fee_items.fee_item_id	
+									ON students.student_id = student_fee_items.student_id AND student_Fee_items.active = true
+									LEFT JOIN hog.installment_options ON students.installment_option_id = installment_options.installment_id
+									WHERE students.active = true
+									ORDER BY students.student_id
+								) q
+							) q2
+							WHERE amount > 0							
+							";
+		if( $studentId !== null )
+		{
+			$query .= "AND student_id = :studentId ";
+			$params = array('studentId' => $studentId);
+		}
 
+		$query .= " ORDER BY student_id, fee_item";
+		
+        $sth = $db->prepare($query);
+		$sth->execute( $params ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/createInvoice/', function () use($app) {
+    // create invoice	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$invoices = ( isset($allPostVars['invoices']) ? $allPostVars['invoices']: null);
+	
+    try 
+    {
+        $db = getDB();
+        $invoiceQry = $db->prepare("INSERT INTO hog.invoices(student_id, inv_date, total_amount, due_date, created_by) 
+									VALUES(:studentId, :invDate, :totalAmt, :dueDate, :userId)");
+			
+		$lineItems = $db->prepare("INSERT INTO hog.invoice_line_items(inv_id, student_fee_item_id, amount, created_by)
+									VALUES(currval('hog.invoices_inv_id_seq'), :studentFeeItemId, :amount, :userId)");
+ 
+ 
+		$db->beginTransaction();	
+		foreach( $invoices as $invoice )
+		{
+			$studentId = ( isset($invoice['student_id']) ? $invoice['student_id']: null);
+			$invDate = ( isset($invoice['inv_date']) ? $invoice['inv_date']: null);
+			$totalAmt = ( isset($invoice['total_amount']) ? $invoice['total_amount']: null);
+			$dueDate = ( isset($invoice['due_date']) ? $invoice['due_date']: null);
+			
+			$invoiceQry->execute( array(':studentId' => $studentId, ':invDate' => $invDate, ':totalAmt' => $totalAmt, ':dueDate' => $dueDate, ':userId' => $userId ) );
+			
+			foreach( $invoice['line_items'] as $lineItem )
+			{
+				$studentFeeItemId = ( isset($lineItem['student_fee_item_id']) ? $lineItem['student_fee_item_id']: null);
+				$amount = ( isset($lineItem['amount']) ? $lineItem['amount']: null);
+				
+				$lineItems->execute( array(':studentFeeItemId' => $studentFeeItemId, ':amount' => $amount, ':userId' => $userId ) );
+			}
+		}
+		$db->commit();
+	
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getInvoiceDetails/:inv_id', function ($invId) {
+    // Get all invoice details
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+       $db = getDB();
+       $sth = $db->prepare("SELECT *, amount - total_paid as balance
+							FROM (
+							SELECT 
+								invoices.inv_id,
+								inv_date,
+								invoice_line_items.amount,
+								coalesce((select sum(payment_inv_items.amount) 
+										from hog.payment_inv_items 
+										inner join hog.payments on payment_inv_items.payment_id = payments.payment_id
+										where payment_inv_items.inv_item_id = invoice_line_items.inv_item_id 
+										AND reversed = false),0) as total_paid,
+								due_date,
+								inv_item_id,
+								fee_item
+							FROM hog.invoices
+							INNER JOIN hog.invoice_line_items
+								INNER JOIN hog.student_fee_items
+									INNER JOIN hog.fee_items
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id
+								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+							ON invoices.inv_id = invoice_line_items.inv_id
+							INNER JOIN hog.students
+								INNER JOIN hog.classes
+								ON students.current_class = classes.class_id
+							ON invoices.student_id = students.student_id
+							WHERE invoices.inv_id = :invId
+							AND canceled = false
+							ORDER BY fee_item
+							) q");
+		$sth->execute( array(':invId' => $invId) ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateInvoice', function() use($app){
+	 // Update invoice	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$invId = 	 ( isset($lineItem['inv_id']) ? $feeItem['inv_id']: null);
+	$invDate = 	 ( isset($lineItem['inv_date']) ? $feeItem['inv_date']: null);
+	$totalAmt =  ( isset($lineItem['total_amount']) ? $feeItem['total_amount']: null);
+	$dueDate = 	 ( isset($lineItem['due_date']) ? $feeItem['due_date']: null);
+	$userId = 	 ( isset($lineItem['user_id']) ? $feeItem['user_id']: null);
+	$lineItems = ( isset($lineItem['line_items']) ? $feeItem['line_items']: null);
+	
+	try 
+    {
+        $db = getDB();
+		
+		$updateInvoice = $db->prepare("UPDATE hog.invoices	
+										SET inv_date = :invDate,
+											total_amount = :totalAmt,
+											due_date = :dueDate,
+											modified_date = now(),
+											modified_by= :userId
+										WHERE inv_id = :invId");
+		
+		// prepare the possible statements
+		$itemsUpdate = $db->prepare("UPDATE hog.invoice_line_items
+									SET amount = :amount,
+										modified_date = now(),
+										modified_by = :userID
+									WHERE inv_item_id = :invItemId");
+		
+		$itemInsert = $db->prepare("INSERT INTO hog.invoice_line_items(student_id, inv_id, student_fee_item_id, amount, created_by) 
+									VALUES(:studentID,:invId,:studentFeeItemID,:amount,:userId);"); 
+		
+
+		$deleteLine = $db->prepare("DELETE FROM hog.invoice_line_items
+									WHERE inv_item_id = :invItemId");
+		
+		
+		$db->beginTransaction();
+	
+		$updateInvoice->execute( array(':invId' => $invId,
+						':invDate' => $invDate,
+						':totalAmt' => $totalAmt,
+						':dueDate' => $dueDate,
+						':userId' => $userId
+		) );	
+		
+		if( count($lineItems) > 0 ) 
+		{		
+			// get what is already set of this student
+			$query = $db->prepare("SELECT inv_item_id FROM hog.invoice_line_items WHERE inv_id = :invId");
+			$query->execute( array('invId' => $invId) );
+			$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);
+			
+			
+			// loop through and add or update
+			foreach( $lineItems as $lineItem )
+			{
+				$amount = 			( isset($lineItem['amount']) ? $lineItem['amount']: null);
+				$invItemId = 		( isset($lineItem['inv_item_id']) ? $lineItem['inv_item_id']: null);				
+				$studentFeeItemID = ( isset($lineItem['student_fee_item_id']) ? $lineItem['student_fee_item_id']: null);
+				
+				// this item exists, update it, else insert
+				if( $invItemId !== null && !empty($invItemId) )
+				{
+					// need to update all terms, current and future of this year
+					// leaving previous terms as they were
+					$itemUpdate->execute(array(':amount' => $amount, 
+												':userID' => $userId ));
+				}
+				else
+				{
+					// check if was previously added, if so, reactivate
+					// else fee items is new, add it
+					// needs to be added once term term if per term fee item
+
+					$itemInsert->execute( array(
+						':invId' => $invId,
+						':studentFeeItemID' => $studentFeeItemID,
+						':amount' => $feeItem['amount'],
+						':userId' => $userId)
+					);
+					
+				}
+			}	
+			
+		
+			// look for items to remove
+			// compare to what was passed in			
+			foreach( $currentLineItems as $currentLineItem )
+			{	
+				$deleteMe = true;
+				// if found, do not delete
+				foreach( $lineItems as $lineItem )
+				{
+					if( $lineItem['inv_item_id'] == $currentLineItem->inv_item_id )
+					{
+						$deleteMe = false;
+					}
+				}
+				
+				if( $deleteMe )
+				{
+					$deleteLine->execute(array(':invId' => $invId));
+				}
+			}
+
+		}
+		
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+		$db->rollBack();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
 
 // ************** Fee Items  ****************** //
 $app->get('/getFeeItems(/:status)', function ($status = true) {
@@ -1193,7 +1690,7 @@ $app->get('/getFeeItems(/:status)', function ($status = true) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT fee_item_id, fee_item, default_amount, frequency, active, class_cats_restriction, optional, new_student_only
+        $sth = $db->prepare("SELECT fee_item_id, fee_item, default_amount, frequency, active, class_cats_restriction, optional, new_student_only, replaceable
 							FROM hog.fee_items 
 							WHERE active = :status
 							AND optional is false
@@ -1274,8 +1771,9 @@ $app->get('/getStudentDetails(/:studentId)', function ($studentId) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT *
+        $sth = $db->prepare("SELECT *, payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' days apart)' as payment_plan_name
 							 FROM hog.students 
+							 LEFT JOIN hog.installment_options ON students.installment_option_id = installment_options.installment_id
 							 WHERE student_id = :studentID 
 							 ORDER BY first_name, middle_name, last_name");
         $sth->execute( array(':studentID' => $studentId)); 
@@ -1310,7 +1808,11 @@ $app->get('/getStudentDetails(/:studentId)', function ($studentId) {
 									student_fee_items.fee_item_id, 
 									fee_item, amount, 
 									payment_method,
-									(select sum(amount) from hog.payment_inv_items where student_fee_item_id = student_fee_items.student_fee_item_id) as payment_made,
+									(select sum(payment_inv_items.amount) 
+										from hog.payment_inv_items 
+										inner join hog.invoice_line_items 
+										on payment_inv_items.inv_item_id = invoice_line_items.inv_item_id 
+										where invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id) as payment_made,
 									student_fee_items.active
 								FROM hog.student_fee_items 
 								INNER JOIN hog.fee_items on student_fee_items.fee_item_id = fee_items.fee_item_id
@@ -1351,7 +1853,7 @@ $app->get('/getStudentBalance(/:studentId)', function ($studentId) {
 		// get total amount of student fee items
 		// calculate the amount due and due date
 		// calculate the balance owing
-		$sth = $db->prepare("SELECT  fee_item, payment_method,
+		$sth = $db->prepare("SELECT fee_item, payment_method,
 									sum(invoice_line_items.amount) AS total_due, 
 									COALESCE(sum(payment_inv_items.amount), 0) AS total_paid, 
 									COALESCE(sum(payment_inv_items.amount), 0) - sum(invoice_line_items.amount) AS balance        
@@ -1360,11 +1862,12 @@ $app->get('/getStudentBalance(/:studentId)', function ($studentId) {
 								INNER JOIN hog.student_fee_items
 									INNER JOIN hog.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
-								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id AND student_fee_items.active = true
 								LEFT JOIN hog.payment_inv_items
 								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id
 							ON invoices.inv_id = invoice_line_items.inv_id
 							WHERE invoices.student_id = :studentID
+							AND invoices.canceled = false
 							AND invoices.due_date < now()
 							GROUP BY fee_item, payment_method
 							");
@@ -1478,6 +1981,139 @@ $app->get('/getStudentInvoices(/:studentId)', function ($studentId) {
 
 });
 
+$app->get('/getOpenInvoices/:studentId', function ($studentId) {
+    // Get all students open invoices
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+       $sth = $db->prepare("SELECT 
+								students.student_id,
+								invoice_balances.inv_id,
+								first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
+								class_name, class_id, class_cat_id,
+								inv_date,
+								total_due,
+								total_paid,
+								balance,
+								due_date,
+								inv_item_id,
+								fee_item,
+								invoice_line_items.amount as line_item_amount
+							FROM hog.invoice_balances
+							INNER JOIN hog.invoice_line_items
+								INNER JOIN hog.student_fee_items
+									INNER JOIN hog.fee_items
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id
+								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+							ON invoice_balances.inv_id = invoice_line_items.inv_id
+							INNER JOIN hog.students
+								INNER JOIN hog.classes
+								ON students.current_class = classes.class_id
+							ON invoice_balances.student_id = students.student_id
+							WHERE students.student_id = :studentId
+							AND balance < 0
+							ORDER BY due_date, fee_item");
+		$sth->execute( array(':studentId' => $studentId) ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getStudentFeeItems/:studentId', function ($studentId) {
+    // Get all students replaceable fee items
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+       $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount, 
+									CASE WHEN frequency = 'per term' THEN 3 
+									     ELSE 1
+									END as frequency
+							FROM hog.student_fee_items
+							INNER JOIN hog.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+							WHERE student_id = :studentId
+							AND student_fee_items.active = true
+							ORDER BY fee_item");
+		$sth->execute( array(':studentId' => $studentId) ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getReplaceableFeeItems/:studentId', function ($studentId) {
+    // Get all students replaceable fee items
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+       $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount
+							FROM hog.student_fee_items
+							INNER JOIN hog.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+							WHERE student_id = :studentId
+							AND student_fee_items.active = true
+							AND replaceable = true
+							ORDER BY fee_item");
+		$sth->execute( array(':studentId' => $studentId) ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getStudentPayments(/:studentId)', function ($studentId) {
     // Return students payments
 	
@@ -1520,9 +2156,9 @@ $app->get('/getStudentPayments(/:studentId)', function ($studentId) {
         if($results) {			
 			// convert pgarray to php array
 			
-			for( $i=0; $i < count($results); $i++ )
+			foreach( $results as $result)
 			{
-				$results[$i]->applied_to = pg_array_parse($results[$i]->applied_to);
+				$result->applied_to = pg_array_parse($result->applied_to);
 			}
 			
             $app->response->setStatus(200);
@@ -1577,6 +2213,7 @@ $app->post('/addStudent/', function () use($app) {
 	$emergencyRelation = 			( isset($allPostVars['emergency_relationship']) ? $allPostVars['emergency_relationship']: null);
 	$emergencyPhone = 				( isset($allPostVars['emergency_telephone']) ? $allPostVars['emergency_telephone']: null);
 	$pickUpIndividual =				( isset($allPostVars['pick_up_drop_off_individual']) ? $allPostVars['pick_up_drop_off_individual']: null);
+	$installmentOption =			( isset($allPostVars['installment_option']) ? $allPostVars['installment_option']: null);
 	
 	// guardian fields
 	$fatherTelephone = 			( isset($allPostVars['guardian']['father']['telephone']) ? $allPostVars['guardian']['father']['telephone']: null);
@@ -1631,11 +2268,11 @@ $app->post('/addStudent/', function () use($app) {
 																adopted, adopted_age, marital_separation_age, adoption_aware, comments, medical_conditions, hospitalized,
 																hospitalized_description, current_medical_treatment, current_medical_treatment_description,
 																other_medical_conditions, other_medical_conditions_description, 
-																emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual) 
+																emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual, installment_option_id) 
             VALUES(:admissionNumber,:gender,:firstName,:middleName,:lastName,:dob,:studentCat,:nationality,:studentImg, :currentClass, :paymentMethod, :active, :createdBy, 
 					:admissionDate, :marialStatusParents, :adopted, :adoptedAge, :maritalSeparationAge, :adoptionAware, :comments, :hasMedicalConditions, :hospitalized,
 					:hospitalizedDesc, :currentMedicalTreatment, :currentMedicalTreatmentDesc, :otherMedicalConditions, :otherMedicalConditionsDesc, 
-					:emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual);"); 
+					:emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption);"); 
 					
 		$studentClassInsert = $db->prepare("INSERT INTO hog.student_class_history(student_id,class_id,created_by)
 											VALUES(currval('hog.students_student_id_seq'),:currentClass,:createdBy);");
@@ -1702,7 +2339,8 @@ $app->post('/addStudent/', function () use($app) {
 							':emergencyContact' => $emergencyContact, 
 							':emergencyRelation' => $emergencyRelation, 
 							':emergencyPhone' => $emergencyPhone,
-							':pickUpIndividual' => $pickUpIndividual
+							':pickUpIndividual' => $pickUpIndividual,
+							':installmentOption' => $installmentOption
 		) );
 		
 		$studentClassInsert->execute(array(':currentClass' => $currentClass,':createdBy' => $createdBy));
@@ -1752,11 +2390,11 @@ $app->post('/addStudent/', function () use($app) {
 		if( count($medicalConditions) > 0 )
 		{
         
-			for( $i=0; $i < count($medicalConditions); $i++ )
+			foreach($medicalConditions as $medicalCondition )
 			{
-				$conditionInsert->execute( array($medicalConditions[$i]['medical_condition'],
-							$medicalConditions[$i]['age'],
-							$medicalConditions[$i]['comments'],
+				$conditionInsert->execute( array($medicalCondition['medical_condition'],
+							$medicalCondition['age'],
+							$medicalCondition['comments'],
 							$createdBy
 				) );
 			}
@@ -1765,7 +2403,7 @@ $app->post('/addStudent/', function () use($app) {
 		if( count($feeItems) > 0 )
 		{
         
-			for( $i=0; $i < count($feeItems); $i++ )
+			foreach( $feeItems as $feeItem )
 			{
 				// if the fee item has a frequency of per term, need to enter once per term
 				// if frequency is yearly, enter first term
@@ -1779,9 +2417,9 @@ $app->post('/addStudent/', function () use($app) {
 				*/
 				$feesInsert->execute( array(
 					':studentID' => $studentId,
-					':feeItemID' => $feeItems[$i]['fee_item_id'],
-					':amount' => $feeItems[$i]['amount'],
-					':paymentMethod' => $feeItems[$i]['payment_method'],
+					':feeItemID' => $feeItem['fee_item_id'],
+					':amount' => $feeItem['amount'],
+					':paymentMethod' => $feeItem['payment_method'],
 					':userId' => $createdBy)
 				);
 			}
@@ -1790,7 +2428,7 @@ $app->post('/addStudent/', function () use($app) {
 		if( count($optFeeItems) > 0 )
 		{
         
-			for( $i=0; $i < count($optFeeItems); $i++ )
+			foreach( $optFeeItems as $optFeeItem )
 			{
 				// if the fee item has a frequency of per term, need to enter once per term
 				// if frequency is yearly, enter first term
@@ -1804,9 +2442,9 @@ $app->post('/addStudent/', function () use($app) {
 				*/
 				$feesInsert->execute( array(
 					':studentID' => $studentId,
-					':feeItemID' => $optFeeItems[$i]['fee_item_id'],
-					':amount' => $optFeeItems[$i]['amount'],
-					':paymentMethod' => $optFeeItems[$i]['payment_method'],
+					':feeItemID' => $optFeeItem['fee_item_id'],
+					':amount' => $optFeeItem['amount'],
+					':paymentMethod' => $optFeeItem['payment_method'],
 					':userId' => $createdBy)
 				);
 			}
@@ -1859,6 +2497,7 @@ $app->put('/updateStudent/', function () use($app) {
 		$updateClass = 		( isset($allPostVars['details']['update_class']) ? $allPostVars['details']['update_class']: false);
 		$studentImg = 		( isset($allPostVars['details']['student_image']) ? $allPostVars['details']['student_image']: null);
 		$active = 			( isset($allPostVars['details']['active']) ? $allPostVars['details']['active']: true);
+		$newStudent = 		( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: true);
 	}
 	
 	if( isset($allPostVars['family']) )
@@ -1891,6 +2530,7 @@ $app->put('/updateStudent/', function () use($app) {
 	{
 		$updateFees = true;
 		$paymentMethod = 	( isset($allPostVars['fees']['payment_method']) ? $allPostVars['fees']['payment_method']: null);
+		$installmentOption = 	( isset($allPostVars['fees']['installment_option']) ? $allPostVars['fees']['installment_option']: null);
 		$feeItems =			( isset($allPostVars['fees']['feeItems']) ? $allPostVars['fees']['feeItems']: array());
 		$optFeeItems =		( isset($allPostVars['fees']['optFeeItems']) ? $allPostVars['fees']['optFeeItems']: array());
 	}
@@ -1914,6 +2554,7 @@ $app->put('/updateStudent/', function () use($app) {
 						student_image = :studentImg, 
 						current_class = :currentClass,
 						active = :active,
+						new_student = :newStudent,
 						modified_date = now(),
 						modified_by = :userId
 					WHERE student_id = :studentId"
@@ -1974,6 +2615,7 @@ $app->put('/updateStudent/', function () use($app) {
 			$studentUpdate = $db->prepare(
 				"UPDATE hog.students
 					SET payment_method = :paymentMethod,
+						installment_option_id = :installmentOption,
 						active = true,
 						modified_date = now(),
 						modified_by = :userId
@@ -1988,9 +2630,7 @@ $app->put('/updateStudent/', function () use($app) {
 											modified_date = now(),
 											modified_by = :userID
 										WHERE student_id = :studentID
-										AND fee_item_id = :feeItemId
-									)"
-			);
+										AND fee_item_id = :feeItemId");
 			
 			$feesInsert = $db->prepare("INSERT INTO hog.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
 										VALUES(:studentID,:feeItemID,:amount,:paymentMethod,:userId);"); 
@@ -2029,6 +2669,7 @@ $app->put('/updateStudent/', function () use($app) {
 							':studentImg' => $studentImg,
 							':currentClass' => $currentClass,
 							':active' => $active,
+							':newStudent' => $newStudent,
 							':userId' => $userId							
 			) );
 			if( $updateClass )
@@ -2073,6 +2714,7 @@ $app->put('/updateStudent/', function () use($app) {
 		{
 			
 			$studentUpdate->execute(array( ':paymentMethod' => $paymentMethod,
+						':installmentOption' => $installmentOption,
 						':userId' => $userId,
 						':studentId' => $studentId)
 			);
@@ -2086,12 +2728,12 @@ $app->put('/updateStudent/', function () use($app) {
 			if( count($feeItems) > 0 )
 			{
 				// loop through and add or update
-				for( $i=0; $i<count($feeItems); $i++ )
+				foreach( $feeItems as $feeItem )
 				{
-					$amount = 			( isset($feeItems[$i]['amount']) ? $feeItems[$i]['amount']: null);
-					$paymentMethod = 	( isset($feeItems[$i]['payment_method']) ? $feeItems[$i]['payment_method']: null);
-					$studentFeeItemID = ( isset($feeItems[$i]['student_fee_item_id']) ? $feeItems[$i]['student_fee_item_id']: null);
-					$feeItemId = 		( isset($feeItems[$i]['fee_item_id']) ? $feeItems[$i]['fee_item_id']: null);
+					$amount = 			( isset($feeItem['amount']) ? $feeItem['amount']: null);
+					$paymentMethod = 	( isset($feeItem['payment_method']) ? $feeItem['payment_method']: null);
+					$studentFeeItemID = ( isset($feeItem['student_fee_item_id']) ? $feeItem['student_fee_item_id']: null);
+					$feeItemId = 		( isset($feeItem['fee_item_id']) ? $feeItem['fee_item_id']: null);
 					
 					// this fee item exists, update it, else insert
 					if( $studentFeeItemID !== null && !empty($studentFeeItemID) )
@@ -2119,9 +2761,9 @@ $app->put('/updateStudent/', function () use($app) {
 						*/
 						$feesInsert->execute( array(
 							':studentID' => $studentId,
-							':feeItemID' => $feeItems[$i]['fee_item_id'],
-							':amount' => $feeItems[$i]['amount'],
-							':paymentMethod' => $feeItems[$i]['payment_method'],
+							':feeItemID' => $feeItem['fee_item_id'],
+							':amount' => $feeItem['amount'],
+							':paymentMethod' => $feeItem['payment_method'],
 							':userId' => $userId)
 						);
 						
@@ -2133,12 +2775,12 @@ $app->put('/updateStudent/', function () use($app) {
 			{
 							
 				// loop through and add or update
-				for( $i=0; $i<count($optFeeItems); $i++ )
+				foreach( $optFeeItems as $optFeeItem )
 				{
-					$amount = 			( isset($optFeeItems[$i]['amount']) ? $optFeeItems[$i]['amount']: null);
-					$paymentMethod = 	( isset($optFeeItems[$i]['payment_method']) ? $optFeeItems[$i]['payment_method']: null);
-					$studentFeeItemID = ( isset($optFeeItems[$i]['student_fee_item_id']) ? $optFeeItems[$i]['student_fee_item_id']: null);
-					$feeItemId = 		( isset($optFeeItems[$i]['fee_item_id']) ? $optFeeItems[$i]['fee_item_id']: null);
+					$amount = 			( isset($optFeeItem['amount']) ? $optFeeItem['amount']: null);
+					$paymentMethod = 	( isset($optFeeItem['payment_method']) ? $optFeeItem['payment_method']: null);
+					$studentFeeItemID = ( isset($optFeeItem['student_fee_item_id']) ? $optFeeItem['student_fee_item_id']: null);
+					$feeItemId = 		( isset($optFeeItem['fee_item_id']) ? $optFeeItem['fee_item_id']: null);
 					
 					// this fee item exists, update it, else insert
 					if( $studentFeeItemID !== null && !empty($studentFeeItemID) )
@@ -2161,9 +2803,9 @@ $app->put('/updateStudent/', function () use($app) {
 						*/
 						$feesInsert->execute( array(
 							':studentID' => $studentId,
-							':feeItemID' => $optFeeItems[$i]['fee_item_id'],
-							':amount' => $optFeeItems[$i]['amount'],
-							':paymentMethod' => $optFeeItems[$i]['payment_method'],
+							':feeItemID' => $optFeeItem['fee_item_id'],
+							':amount' => $optFeeItem['amount'],
+							':paymentMethod' => $optFeeItem['payment_method'],
 							':userId' => $userId)
 						);
 					}
@@ -2174,20 +2816,20 @@ $app->put('/updateStudent/', function () use($app) {
 
 			// look for fee items to remove
 			// compare to what was passed in			
-			for( $i=0; $i<count($currentFeeItems); $i++ )
+			foreach( $currentFeeItems as $currentFeeItem )
 			{	
 				$deleteMe = true;
 				// if found, do not delete
-				for( $j=0; $j<count($feeItems); $j++ )
+				foreach( $feeItems as $feeItem )
 				{
-					if( $feeItems[$j]['fee_item_id'] == $currentFeeItems[$i]->fee_item_id )
+					if( $feeItem['fee_item_id'] == $currentFeeItem->fee_item_id )
 					{
 						$deleteMe = false;
 					}
 				}
-				for( $j=0; $j<count($optFeeItems); $j++ )
+				foreach( $optFeeItems as $optFeeItem )
 				{
-					if( $optFeeItems[$j]['fee_item_id'] == $currentFeeItems[$i]->fee_item_id )
+					if( $optFeeItem['fee_item_id'] == $currentFeeItem->fee_item_id )
 					{
 						$deleteMe = false;
 					}
@@ -2195,7 +2837,7 @@ $app->put('/updateStudent/', function () use($app) {
 				
 				if( $deleteMe )
 				{
-					$inactivate->execute(array(':studentId' => $studentId, ':feeItemId' => $currentFeeItems[$i]->fee_item_id, ':userId' => $userId));
+					$inactivate->execute(array(':studentId' => $studentId, ':feeItemId' => $currentFeeItem->fee_item_id, ':userId' => $userId));
 				}
 			}
 			
@@ -2430,15 +3072,15 @@ $app->post('/addMedicalConditions/', function () use($app) {
         $results = array();
 		// loop through the medical conditions and insert
 		// place the resulting id in array for return
-		for( $i=0; $i < count($medicalConditions); $i++ )
+		foreach( $medicalConditions as $medicalCondition )
 		{
 			$db->beginTransaction();
 			$studentUpdate->execute(array(':studentId' => $studentId));
 			$conditionInsert->execute( array(
 						$studentId,
-						$medicalConditions[$i]['illness_condition'],
-						$medicalConditions[$i]['age'],
-						$medicalConditions[$i]['comments'],
+						$medicalCondition['illness_condition'],
+						$medicalCondition['age'],
+						$medicalCondition['comments'],
 						$userId
 			) );			
 			$query->execute();

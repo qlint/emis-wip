@@ -5,7 +5,8 @@
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
 		</div>
-		<div class="alert alert-danger" ng-show="error">
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 			{{errMsg}}
 		</div>
 		
@@ -112,8 +113,8 @@
 					<tbody>
 						<tr ng-repeat="item in invoices track by $index" ng-class="{'alert-danger': item.days_overdue>0}">
 							<td></td>
-							<td id="{{item.inv_id}}" class="inv_id" ng-click="viewInvoice(item)">{{item.student_name}}</td>
-							<td ng-click="viewInvoice(item)">{{item.class_name}}</td>
+							<td id="{{item.inv_id}}" class="inv_id" ng-click="viewStudent(item)">{{item.student_name}}</td>
+							<td ng-click="viewStudent(item)">{{item.class_name}}</td>
 							<td ng-click="viewInvoice(item)" data-order="{{item.inv_date}}">{{item.inv_date|date}}</td>
 							<td ng-click="viewInvoice(item)" class="center">{{item.total_due|currency:""}}</td>
 							<td ng-click="viewInvoice(item)" class="center">{{item.total_paid|currency:""}}</td>

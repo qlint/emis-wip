@@ -12,7 +12,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	var currentStatus = true;
 	var isFiltered = false;	
 	$rootScope.modalLoading = false;
-	$scope.alert = null;
+	$scope.alert = {};
 	
 	
 	var initializeController = function () 
@@ -255,26 +255,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	$scope.viewStudent = function(student)
 	{
-		$rootScope.modalLoading = true;
-		apiService.getStudentDetails(student.student_id, function(response){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
-			{
-				var student = $rootScope.formatStudentData([result.data]);
-				
-				// set current class to full class object
-				var currentClass = $rootScope.allClasses.filter(function(item){
-					if( item.class_id == student[0].class_id ) return item;
-				});
-				
-				student[0].current_class = currentClass[0];
-
-				$scope.openModal('students', 'viewStudent', 'lg',student[0]);
-			}
-		});
-		
-		
+		$scope.openModal('students', 'viewStudent', 'lg',student);
 	}
 	
 	$scope.$on('refreshStudents', function(event, args) {

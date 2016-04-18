@@ -168,6 +168,23 @@
 							</div>	
 						
 						</div>
+						
+						<div class="row">
+							<!-- new_student -->
+							<div class="col-sm-4" ng-class="{ 'has-error' : studentForm.new_student.$invalid && (studentForm.new_student.$touched || studentForm.$submitted) }">		
+								<label for="new_student">New Student?</label>
+								<p class="form-control-static" ng-show="!edit">{{student.new_student}}</p>
+								<div ng-show="edit">				
+									<label class="radio-inline">
+									  <input type="radio" name="new_student" ng-model="student.new_student" ng-value="true"> Yes
+									</label>
+									<label class="radio-inline">
+									  <input type="radio" name="new_student" ng-model="student.new_student" ng-value="false"> No
+									</label>
+									<p ng-show="studentForm.new_student.$invalid && (studentForm.new_student.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> New Student selection is required.</p>
+								</div>	
+							</div>	
+						</div>
 					
 					
 					</div>
@@ -432,7 +449,7 @@
 			
 			<script type="text/ng-template" id="Fees">
 				<h2>Fees</h2>
-				<div ng-show="feeSummary.unapplied_payments" class="alert alert-danger">
+				<div ng-show="feeSummary.unapplied_payments>0" class="alert alert-danger">
 					<i class="glyphicon glyphicon-info-sign"></i> This student has a payment of {{feeSummary.unapplied_payments|currency:""}} {{currency}} that has not been applied to a fee item.
 				</div>
 				<div class="row">
@@ -451,8 +468,20 @@
 									</div>
 								</div>	
 							</div>	
+							<!-- installment plan -->
+							<div class="form-group" ng-show="student.payment_method=='Installments'">		
+								<label for="installment_option" class="col-sm-5 control-label">Installment Option</label>
+								<div class="col-sm-7">
+									<p class="form-control-static" ng-show="!edit">{{student.payment_plan_name}}</p>
+									<div ng-show="edit">
+										<select name="installment_option" class="form-control" ng-options="item.installment_id as item.payment_plan_name for item in installmentOptions"  ng-model="student.installment_option_id">
+											<option value="">--select installment option--</option>
+										</select>
+									</div>	
+								</div>
+							</div>	
 						</div>
-						<div class="row">
+						<div class="row" ng-show="!nofeeSummary">
 							<!-- next payment due -->
 							<div class="form-group">		
 								<label for="payment_method" class="col-sm-5 control-label">Next Invoice</label>
@@ -472,12 +501,12 @@
 						</div>
 					</div>
 					<div class="col-sm-6">
-						<div class="info-boxes pull-right" >
+						<div class="info-boxes pull-right" ng-show="!nofeeSummary">
 							<div class="info-box alert alert-info">
 								Amount Due
 								<p>{{feeSummary.total_due|currency:""}}<span>{{currency}}</span></p>
 							</div>
-							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-danger': feeSummary.balance<0}">
+							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning': feeSummary.balance<0 && feeSummary.total_paid>0, 'alert-danger': feeSummary.balance<0 && feeSummary.total_paid==0}">
 								Amount Paid
 								<p>{{feeSummary.total_paid|currency:""}}<span>{{currency}}</span></p>
 							</div>
@@ -501,7 +530,7 @@
 			</script>
 			
 			<script type="text/ng-template" id="Fee Summary">
-				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Add Payment</button>
+				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
 				
 				<table id="resultsTable2" class="display nowrap clickable" cellspacing="0" width="100%">
 					<thead>
@@ -528,7 +557,7 @@
 			</script>
 			
 			<script type="text/ng-template" id="Invoices">
-				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Add Payment</button>
+				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
 				<button ng-show="permissions.fees.invoices.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addInvoice()"><i class="glyphicon glyphicon-plus-sign"></i> Add Invoice</button>
 				
 				<table id="resultsTable2" class="display nowrap clickable" cellspacing="0" width="100%">
@@ -536,27 +565,27 @@
 						<tr>
 							<th></th>
 							<th>Invoice Date</th>
+							<th>Due Date</th>
 							<th class="center">Amount ({{currency}})</th>
 							<th class="center">Amount Paid ({{currency}})</th>
-							<th class="center">Balance ({{currency}})</th>
-							<th>Due Date</th>
+							<th class="center">Balance ({{currency}})</th>							
 						</tr>
 					</thead>	
 					<tbody>
 						<tr ng-repeat="item in invoices track by $index" ng-class="{'alert-danger': item.balance>0, 'alert-success':item.balance==0}">
 							<td></td>
 							<td id="{{item.fee_item_id}}" data-order="{{item.inv_date}}">{{item.inv_date|date}}</td>
+							<td data-order="{{item.due_date}}">{{item.due_date|date}}</td>
 							<td class="center">{{item.total_due|currency:""}}</td>
 							<td class="center">{{item.total_paid|currency:""}}</td>
-							<td class="center">{{item.balance|numeric}}</td>
-							<td>{{item.due_date}}</td>
+							<td class="center">{{item.balance|numeric}}</td>							
 						</tr>
 					</tbody>
 				</table>
 			</script>
 			
 			<script type="text/ng-template" id="Payments Received">
-				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Add Payment</button>
+				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
 				
 				<table id="resultsTable2" class="display clickable" cellspacing="0" width="100%">
 					<thead>
@@ -568,6 +597,8 @@
 							<th class="center">Amount ({{currency}})</th>
 							<th>Applied To</th>
 							<th class="center">Amount Unapplied</th>
+							<th class="center">Replacement?</th>
+							<th class="center">Reversed?</th>
 						</tr>
 					</thead>	
 					<tbody>
@@ -579,26 +610,16 @@
 							<td class="center" ng-click="viewPayment(item)">{{item.amount|currency:""}}</td>
 							<td ng-click="viewPayment(item)">{{item.applied_to|arrayToList}}</td>
 							<td class="center" ng-class="{'alert-danger': item.unapplied_amount>0}" ng-click="viewPayment(item)">{{item.unapplied_amount|currency:""}}</td>
+							<td class="center">{{item.replacement}}</td>
+							<td class="center">{{item.reverse}}</td>
 						</tr>
 					</tbody>
 				</table>
 			</script>
 			
 			<script type="text/ng-template" id="Fee Items">
-				<div class="row tab-header">
-					<div class="col-xs-6">
-						<!-- new student? -->				
-						<label for="new_student">Show new student items?</label>
-						<label class="radio-inline">
-						  <input type="radio" name="new_student" ng-model="show_new_student" value="true"> Yes
-						</label>
-						<label class="radio-inline">
-						  <input type="radio" name="new_student" ng-model="show_new_student" value="false"> No
-						</label>
-					</div>
-					<div class="col-xs-6">						
-						<button ng-show="permissions.fees.fee_structure.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addFeeItem()"><i class="glyphicon glyphicon-plus-sign"></i> Add Fee Item</button>
-					</div>
+				<div class="col-sm-12">
+					<button ng-show="permissions.fees.fee_structure.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addFeeItem()"><i class="glyphicon glyphicon-plus-sign"></i> Add Fee Item</button>
 				</div>
 				<div class="row">				
 					<div class="col-sm-6">

@@ -636,6 +636,16 @@
 							<p ng-show="studentForm.payment_method.$invalid && (studentForm.payment_method.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
 						</div>	
 					</div>	
+					<!-- installment plan -->
+					<div class="form-group" ng-show="student.payment_method=='Installments'">		
+						<label for="installment_option" class="col-sm-3 control-label">Installment Option</label>
+						<div class="col-sm-3">
+							<select name="installment_option" ng-model="student.installment_option" class="form-control">
+								<option value="">--select installment option--</option>
+								<option value="{{item.installment_id}}" ng-repeat="item in installmentOptions">{{item.payment_plan_name}}</option>
+							</select>
+						</div>	
+					</div>	
 				</div>
 				<div class="row">
 					<div class="col-sm-6">

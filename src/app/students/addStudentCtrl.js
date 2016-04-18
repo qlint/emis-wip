@@ -158,7 +158,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		return feeItems;
 	}
 
-	$scope.toggleFeeItem = function(item) 
+	$scope.toggleFeeItem = function(item,type) 
 	{
 		var selectionObj = ( type ==  'optional'  ? $scope.optFeeItemSelection : $scope.feeItemSelection);
 		var id = selectionObj.indexOf(item);
@@ -229,7 +229,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		if( result.response == 'success' )
 		{
 			uploader.uploadAll();
-			$modalInstance.close();
+			$uibModalInstance.close();
 			$rootScope.$emit('studentAdded', {'msg' : 'Student was created.', 'clear' : true});
 		}
 		else
