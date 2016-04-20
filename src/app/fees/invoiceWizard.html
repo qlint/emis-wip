@@ -34,7 +34,7 @@
 				
 					<div class="subtab-content clearfix">
 						<!-- invoice date -->				
-						<h2>Balance Due ({{currency}}) {{invoiceTotal[activeMonth]|currency:""}}</h2>
+						<h2>Balance Due {{invoiceTotal[activeMonth]|currency:""}} {{currency}}</h2>
 						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
@@ -48,7 +48,7 @@
 								<tr ng-repeat="item in invoices[activeMonth] track by $index">
 									<td>{{item.student_name}}</td>
 									<td>{{item.due_date}}</td>
-									<td class="center">{{item.total_amount|current:""}}</td>
+									<td class="center">{{item.total_amount|currency:""}}</td>
 									<td>{{item.fee_items|arrayToList}}</td>									
 								</tr>
 							</tbody>

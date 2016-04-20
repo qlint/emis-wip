@@ -13,22 +13,22 @@
 				<div class="col-sm-8">
 					<!-- invoice id -->
 					<div class="form-group">		
-						<label class="col-sm-3 control-label">Invoice Number</label>
-						<div class="col-sm-7">
+						<label class="col-sm-4 control-label">Invoice Number</label>
+						<div class="col-sm-8">
 							<p class="form-control-static">{{invoice.inv_id}}</p>
 						</div>	
 					</div>
 					<!-- student -->
 					<div class="form-group">		
-						<label class="col-sm-3 control-label">Student</label>
-						<div class="col-sm-7">
+						<label class="col-sm-4 control-label">Student</label>
+						<div class="col-sm-8">
 							<p class="form-control-static">{{invoice.student_name}}</p>
 						</div>	
 					</div>
 					<!-- invoice date -->
 					<div class="form-group">		
-						<label for="inv_date" class="col-sm-3 control-label">Invoice Date</label>
-						<div class="col-sm-3">
+						<label for="inv_date" class="col-sm-4 control-label">Invoice Date</label>
+						<div class="col-sm-6">
 							<p class="form-control-static" ng-show="!edit">{{invoice.inv_date}}</p>
 							<div class="input-group" ng-show="edit">
 								<input type="text" name="inv_date" date-range-picker class="form-control date-picker input-sm" ng-model="date" options="{singleDatePicker: true,autoApply: true}" />
@@ -39,8 +39,8 @@
 					
 					<!-- due date -->
 					<div class="form-group">		
-						<label for="due_date" class="col-sm-3 control-label">Due Date</label>
-						<div class="col-sm-3">
+						<label for="due_date" class="col-sm-4 control-label">Due Date</label>
+						<div class="col-sm-6">
 							<p class="form-control-static" ng-show="!edit">{{invoice.due_date}}</p>
 							<div class="input-group" ng-show="edit">
 								<input type="text" name="due_date" date-range-picker class="form-control date-picker input-sm" ng-model="due_date" options="{singleDatePicker: true,autoApply: true}" />
@@ -51,18 +51,21 @@
 					
 					<!-- balance -->
 					<div class="form-group">		
-						<label class="col-sm-3 control-label">Balance</label>
-						<div class="col-sm-7">
+						<label class="col-sm-4 control-label">Balance</label>
+						<div class="col-sm-8">
 							<p class="form-control-static"><strong>{{totals.balance|numeric}} {{currency}}</strong></p>
 						</div>	
 					</div>
 				</div>
 				<div class="col-sm-3">
-					<div class="alert alert-success invoice-status" ng-show="invoice.balance==0">
+					<div class="alert alert-success invoice-status" ng-show="invoice.balance==0 && !invoice.canceled">
 						Paid in Full
 					</div>
-					<div class="alert alert-warning invoice-status" ng-show="invoice.balance<0 && invoice.total_paid>0">
+					<div class="alert alert-warning invoice-status" ng-show="invoice.balance<0 && invoice.total_paid>0 && !invoice.canceled">
 						Partial Paid
+					</div>
+					<div class="alert alert-danger invoice-status" ng-show="invoice.canceled">
+						Canceled!
 					</div>
 				</div>
 			</div>
@@ -77,7 +80,7 @@
 				</thead>	
 				<tbody>
 					<tr ng-repeat="item in invoiceLineItems track by $index">
-						<td width="25" ng-click="removeLineItem($index)"><span class="glyphicon glyphicon-trash text-danger clickable"></span></td>
+						<td width="25" ng-click="removeLineItem($index)"><span class="glyphicon glyphicon-trash text-danger clickable" ng-show="!invoice.canceled"></span></td>
 						<td width="90%">							
 							<span ng-show="edit && item.fee_item==undefined">
 								<select ng-options="feeitem.fee_item for feeitem in studentFeeItems track by feeitem.student_fee_item_id"  ng-model="invoice.newItem">
@@ -95,7 +98,7 @@
 				<tfoot>
 					<tr>
 						<td colspan="3">
-							<button type="button" class="btn btn-sm btn-success" ng-click="addRow()">Add Line Item</button>
+							<button type="button" class="btn btn-sm btn-success" ng-click="addRow()" ng-show="!invoice.canceled">Add Line Item</button>
 						</td>
 					</tr>
 					<tr>
@@ -117,13 +120,14 @@
 		<div class="modal-footer">
 			
 			<div class="pull-left">
-				<button type="button" class="btn btn-danger" ng-click="cancelInvoice()" ng-show="permissions.fees.invoices.delete">Cancel Invoice</button>
+				<button type="button" class="btn btn-danger" ng-click="cancelInvoice()" ng-show="permissions.fees.invoices.delete && !invoice.canceled">Cancel Invoice</button>
+				<button type="button" class="btn btn-success" ng-click="reactivateInvoice()" ng-show="permissions.fees.invoices.edit && invoice.canceled">Reactivate Invoice</button>
 				<button type="button" class="btn btn-link" ng-click="revertInvoice()" ng-show="edit && changes">Undo Changes</button>
 			</div>
 			
 			<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
 			
-			<button type="submit" class="btn btn-success" ng-show="edit">
+			<button type="submit" class="btn btn-success" ng-show="edit && !invoice.canceled">
 				<span ng-hide="saving">Update</span>
 				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
 			</button>

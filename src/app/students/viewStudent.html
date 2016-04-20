@@ -532,7 +532,7 @@
 			<script type="text/ng-template" id="Fee Summary">
 				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
 				
-				<table id="resultsTable2" class="display nowrap clickable" cellspacing="0" width="100%">
+				<table id="resultsTable2" class="display nowrap" cellspacing="0" width="100%">
 					<thead>
 						<tr>
 							<th></th>
@@ -572,13 +572,13 @@
 						</tr>
 					</thead>	
 					<tbody>
-						<tr ng-repeat="item in invoices track by $index" ng-class="{'alert-danger': item.balance>0, 'alert-success':item.balance==0}">
+						<tr ng-repeat="item in invoices track by $index" ng-class="{'alert-danger': item.balance>0, 'alert-success':item.balance==0, 'canceled': item.canceled}">
 							<td></td>
-							<td id="{{item.fee_item_id}}" data-order="{{item.inv_date}}">{{item.inv_date|date}}</td>
-							<td data-order="{{item.due_date}}">{{item.due_date|date}}</td>
-							<td class="center">{{item.total_due|currency:""}}</td>
-							<td class="center">{{item.total_paid|currency:""}}</td>
-							<td class="center">{{item.balance|numeric}}</td>							
+							<td ng-click="viewInvoice(item)" id="{{item.fee_item_id}}" data-order="{{item.inv_date}}">{{item.inv_date|date}}</td>
+							<td ng-click="viewInvoice(item)" data-order="{{item.due_date}}">{{item.due_date|date}}</td>
+							<td ng-click="viewInvoice(item)" class="center">{{item.total_due|currency:""}}</td>
+							<td ng-click="viewInvoice(item)" class="center">{{item.total_paid|currency:""}}</td>
+							<td ng-click="viewInvoice(item)" class="center">{{item.balance|numeric}}</td>							
 						</tr>
 					</tbody>
 				</table>
@@ -602,16 +602,16 @@
 						</tr>
 					</thead>	
 					<tbody>
-						<tr ng-repeat="item in payments track by $index">
+						<tr ng-repeat="item in payments track by $index"ng-class="{'alert-warning': item.replacement_payment}">
 							<td></td>
-							<td class="center" id="{{item.payment_id}}" ng-click="getReceipt(item)"><span class="glyphicon glyphicon-file"></span></td>
+							<td ng-click="getReceipt(item)" class="center" id="{{item.payment_id}}"><span class="glyphicon glyphicon-file"></span></td>
 							<td ng-click="viewPayment(item)">{{item.payment_date|date}}</td>
 							<td ng-click="viewPayment(item)">{{item.payment_method}}</td>
-							<td class="center" ng-click="viewPayment(item)">{{item.amount|currency:""}}</td>
+							<td ng-click="viewPayment(item)" class="center">{{item.amount|currency:""}}</td>
 							<td ng-click="viewPayment(item)">{{item.applied_to|arrayToList}}</td>
-							<td class="center" ng-class="{'alert-danger': item.unapplied_amount>0}" ng-click="viewPayment(item)">{{item.unapplied_amount|currency:""}}</td>
-							<td class="center">{{item.replacement}}</td>
-							<td class="center">{{item.reverse}}</td>
+							<td ng-click="viewPayment(item)" class="center" ng-class="{'alert-danger': item.unapplied_amount>0}">{{item.unapplied_amount|currency:""}}</td>
+							<td ng-click="viewPayment(item)" class="center">{{item.replacement}}</td>
+							<td ng-click="viewPayment(item)" class="center">{{item.reverse}}</td>
 						</tr>
 					</tbody>
 				</table>

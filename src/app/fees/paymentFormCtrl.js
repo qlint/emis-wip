@@ -7,6 +7,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.student = {};
 	$scope.selectedStudent = ( data.selectedStudent !== undefined ? data.selectedStudent : undefined);
 	$scope.student.selected = $scope.selectedStudent;
+	
+	$scope.edit = ( $scope.permissions.fees.payments_received.edit !== undefined && data.payment_id !== undefined ? $scope.permissions.fees.payments_received.edit : false);
+	
 	$scope.payment = {};
 	$scope.payment.payment_date = {startDate: moment().format('YYYY-MM-DD')};
 	$scope.payment.replacement_payment = false;
@@ -20,26 +23,86 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		var paymentMethods = $rootScope.currentUser.settings['Payment Methods'];
 		$scope.paymentMethods = paymentMethods.split(',');	
 		
-		if( $scope.selectedStudent === undefined )
+		if( $scope.edit )
 		{
-			apiService.getAllStudents(true, function(response){
+			apiService.getOpenInvoices(data.student_id, loadInvoices, apiError);
+			
+			// get payment details
+			apiService.getPaymentDetails(data.payment_id, function(response){
 				var result = angular.fromJson(response);
-				
+					
 				if( result.response == 'success')
 				{
-					$scope.students = ( result.nodata ? {} : $rootScope.formatStudentData(result.data) );				
+					var results = ( result.nodata ? {} : result.data );
+					
+					$scope.payment = results.payment;
+					$scope.selectedInvoice = formateInvoices(results.invoice)[0];
+					console.log($scope.selectedInvoice);
+					
+					// need to loop through the selected invoice and check off what is associated with payment
+					
+					angular.forEach( $scope.selectedInvoice.fee_items, function(item, key){
+						
+						angular.forEach( results.paymentItems, function(item2,key2)
+						{
+							if( item.inv_item_id == item2.inv_item_id)
+							{
+								item.amount = item2.line_item_amount;
+								item.payment_inv_item_id = item2.payment_inv_item_id;
+								$scope.feeItemsSelection.push(item);
+							}
+						});						
+					});
+					/*
+					$scope.feeItemsSelection = results.paymentItems.map(function(item){
+					
+						return $scope.selectedInvoice.fee_items.filter(function(a){ 
+							a.amount = item.line_item_amount;
+							a.payment_inv_item_id = item.payment_inv_item_id;
+							return a.inv_item_id == item.inv_item_id;
+						})[0];
+						
+					});
+					*/
+					console.log($scope.feeItemsSelection);
+					
+					
+					$scope.payment.payment_date = {startDate: moment(result.data.payment_date).format('YYYY-MM-DD')};
+					$scope.selectedStudent = {
+						student_name: data.student_name,
+						student_id : data.student_id
+					}
 				}
 				else
 				{
 					$scope.error = true;
 					$scope.errMsg = result.data;
 				}
-				
-			}, function(){});
+			},apiError);
 		}
 		else
-		{
-			apiService.getOpenInvoices($scope.selectedStudent.student_id, loadInvoices, apiError);
+		{		
+			if( $scope.selectedStudent === undefined )
+			{
+				apiService.getAllStudents(true, function(response){
+					var result = angular.fromJson(response);
+					
+					if( result.response == 'success')
+					{
+						$scope.students = ( result.nodata ? {} : $rootScope.formatStudentData(result.data) );				
+					}
+					else
+					{
+						$scope.error = true;
+						$scope.errMsg = result.data;
+					}
+					
+				}, function(){});
+			}
+			else
+			{
+				apiService.getOpenInvoices($scope.selectedStudent.student_id, loadInvoices, apiError);
+			}
 		}
 	}
 	setTimeout(initializeController,1);
@@ -60,9 +123,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.$watch('student.selected', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 		
-		// grab what should be invoice for next term
-		$scope.selectedStudent = $scope.student.selected;
-		apiService.getOpenInvoices($scope.student.selected.student_id, loadInvoices, apiError);
+		if( !$scope.edit )
+		{
+			// grab what should be invoice for next term
+			$scope.selectedStudent = $scope.student.selected;
+			apiService.getOpenInvoices($scope.student.selected.student_id, loadInvoices, apiError);
+		}
 	});
 	
 	$scope.$watch('payment.apply_to_all', function(newVal,oldVal){
@@ -125,12 +191,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				
 		if( result.response == 'success') 
 		{
-			var invoices = angular.copy(result.data);
+			$scope.invoices = formateInvoices(angular.copy(result.data));
+			//setTimeout(initInvoicesDataGrid,10);
+		}
+	}
+	
+	var formateInvoices = function(invoiceData)
+	{
+		
 			var currentInvoice = {};
 			var currentItem = {};
-			$scope.invoices = [];
+			var invoices = [];
 			var feeItems = []
-			angular.forEach( invoices, function(item,key){
+			angular.forEach( invoiceData, function(item,key){
 			
 				if( key > 0 && currentInvoice != item.inv_id )
 				{
@@ -159,17 +232,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				currentItem = item;				
 			});
 			// push in last row
-			$scope.invoices.push({
+			invoices.push({
 				inv_id: currentItem.inv_id,
 				inv_date: currentItem.inv_date,
 				due_date: currentItem.due_date,
 				balance: currentItem.balance,
 				fee_items: feeItems,
 			});
-			console.log($scope.invoices);
-			
-			//setTimeout(initInvoicesDataGrid,10);
-		}
+			console.log(invoices);
+			return invoices;
 	}
 	
 	var apiError = function (response, status) 

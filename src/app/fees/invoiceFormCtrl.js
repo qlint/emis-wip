@@ -117,7 +117,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			console.log($scope.results.length);
 			
 			// group results by due date	
-			$scope.invoices = $scope.results.reduce(function(sum, item) {					
+			$scope.invoices = $scope.results.reduce(function(sum, item) {		
+				item.amount = item.invoice_amount;
 				if( sum[item.due_date] === undefined ) sum[item.due_date] = [];	
 				sum[item.due_date].push( item );				
 				return sum;
@@ -248,6 +249,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		}
 		else
 		{
+			console.log($scope.invoiceLineItems);
 			angular.forEach($scope.invoiceLineItems, function(item,key){				
 				lineItems.push({
 					student_fee_item_id: item.student_fee_item_id,

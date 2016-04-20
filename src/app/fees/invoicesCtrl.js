@@ -88,9 +88,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$scope.dataGrid.destroy();
 			$scope.dataGrid = undefined;			
 		}		
-		
+		// TO DO: ability to change the invoice canceled status from false to true
 		var filters = angular.copy($scope.filters);
-		var request =  moment(filters.date.startDate).format('YYYY-MM-DD') + '/' + moment(filters.date.endDate).format('YYYY-MM-DD') + '/' + status;
+		var request =  moment(filters.date.startDate).format('YYYY-MM-DD') + '/' + moment(filters.date.endDate).format('YYYY-MM-DD') + '/false/' + status;
 		apiService.getInvoices(request, function(response,status,params){
 			var result = angular.fromJson(response);
 			

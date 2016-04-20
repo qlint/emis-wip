@@ -1,7 +1,7 @@
 <form name="invoiceForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-			<h4 class="modal-title">Invoice: {{student.student_name}}</h4>
+			<h4 class="modal-title">Invoice: {{selectedStudent.student_name}}</h4>
 		</div>
 		<div class="modal-body">
 	
@@ -51,7 +51,7 @@
 			
 			<div class="" ng-show="invoice.creation_method=='manual'">
 				<div class="row">	
-					<div class="col-sm-8">
+					<div class="col-sm-12">
 
 						<!-- student -->
 						<div class="form-group">		
@@ -82,9 +82,7 @@
 							</div>	
 						</div>
 					</div>
-					<div class="col-sm-3">
 
-					</div>
 				</div>
 
 				<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
@@ -125,7 +123,7 @@
 				</table>
 			</div>
 			
-			<div class="" ng-show="invoice.term!==undefined">
+			<div class="" ng-show="invoice.creation_method=='automatic' && invoice.term!==undefined">
 				
 				<h2>Invoice Preview</h2>				
 				<button type="button" class="btn btn-sm btn-link pull-right" ng-click="viewStudent(student.selected)" ng-show="!selectedStudent"><i class="glyphicon glyphicon-user"></i> View Student Details</button>

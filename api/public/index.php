@@ -965,6 +965,7 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 						 ELSE
 							(SELECT array_agg(fee_item) 
 								 FROM hog.payment_inv_items 
+								 INNER JOIN hog.invoices on payment_inv_items.inv_id  = invoices.inv_id and canceled = false
 								 INNER JOIN hog.invoice_line_items using (inv_item_id)
 								 INNER JOIN hog.student_fee_items using (student_fee_item_id)
 								 INNER JOIN hog.fee_items using (fee_item_id) 
@@ -1106,6 +1107,7 @@ $app->get('/getTotalsForTerm', function () {
 							SELECT total_due, total_paid,balance
 							FROM hog.invoice_balances
 							WHERE due_date between (select start_date from hog.current_term) and (select start_date - interval '1 day' from hog.next_term)
+							AND cancled = false
 
 							UNION
 							SELECT 0 as total_due, amount as total_paid,0 as balance
@@ -1159,6 +1161,7 @@ $app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true
 							WHERE invoice_balances.due_date < now()
 							AND date_part('year', due_date) = :year
 							AND students.active = :status
+							AND cancled = false
 							GROUP BY students.student_id, class_name, class_id, class_cat_id");
 		$sth->execute( array(':year' => $year, ':status' => $status) ); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1298,9 +1301,89 @@ $app->post('/addPayment/', function () use($app) {
 
 });
 
+$app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
+    // Get all payment details
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+       $db = getDB();
+	
+		// get payment data
+       $sth = $db->prepare("SELECT payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
+									payments.student_id, replacement_payment, reversed, reversed_date,
+									payments.inv_id
+							FROM hog.payments							
+							WHERE payment_id = :paymentId
+	   ");
+		$sth->execute( array(':paymentId' => $paymentId) ); 
+        $results1 = $sth->fetch(PDO::FETCH_OBJ);
+		
+		// get what the payment was applied to
+		$sth2 = $db->prepare("SELECT payment_inv_item_id, payment_inv_items.inv_item_id,
+									fee_item,
+									payment_inv_items.amount as line_item_amount
+							FROM hog.payment_inv_items							
+							INNER JOIN hog.invoice_line_items
+								INNER JOIN hog.student_fee_items
+									INNER JOIN hog.fee_items
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id
+								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+							ON payment_inv_items.inv_item_id = invoice_line_items.inv_item_id							
+							WHERE payment_id = :paymentId
+	   ");
+		$sth2->execute( array(':paymentId' => $paymentId) ); 
+        $results2 = $sth2->fetchAll(PDO::FETCH_OBJ);
+		
+		// get the invoice details that payment was applied to
+		$sth3 = $db->prepare("SELECT invoice_balances.inv_id,								
+								inv_date,								
+								balance,
+								due_date,
+								inv_item_id,
+								fee_item,
+								invoice_line_items.amount as line_item_amount
+							FROM hog.invoice_balances
+							INNER JOIN hog.invoice_line_items
+								INNER JOIN hog.student_fee_items
+									INNER JOIN hog.fee_items
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id
+								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+							ON invoice_balances.inv_id = invoice_line_items.inv_id
+							INNER JOIN hog.payments ON invoice_balances.inv_id = payments.inv_id
+							WHERE payment_id = :paymentId
+							ORDER BY due_date, fee_item");
+		$sth3->execute( array(':paymentId' => $paymentId) ); 
+        $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);
+		
+		$results = new Stdclass();
+		$results->payment = $results1;
+		$results->paymentItems = $results2;
+		$results->invoice = $results3;
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Invoices  ****************** //
-$app->get('/getInvoices/:startDate/:endDate(/:status)', function ($startDate, $endDate, $status = true) {
+$app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($startDate, $endDate, $canceled = false, $status = true) {
     // Get all students balances
 	
 	$app = \Slim\Slim::getInstance();
@@ -1325,8 +1408,9 @@ $app->get('/getInvoices/:startDate/:endDate(/:status)', function ($startDate, $e
 								ON students.current_class = classes.class_id
 							ON invoice_balances.student_id = students.student_id
 							WHERE due_date between :startDate and :endDate
-							AND students.active = :status");
-		$sth->execute( array(':startDate' => $startDate, ':endDate' => $endDate, ':status' => $status) ); 
+							AND students.active = :status
+							AND invoice_balances.canceled = :canceled");
+		$sth->execute( array(':startDate' => $startDate, ':endDate' => $endDate, ':status' => $status, ':canceled' => $canceled) ); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
         if($results) {
@@ -1357,72 +1441,96 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
     {
         $db = getDB();
 		$params = array();
-		$termStatment = (  $term == 'current'  ? 'hog.current_term' : 'hog.next_term' );
-		$query = "SELECT *
-							FROM (
-								SELECT
+		$termStatement = (  $term == 'current'  ? 'hog.current_term' : 'hog.next_term' );
+		$nextTermStatement = (  $term == 'current'  ? 'hog.next_term' : 'hog.term_after_next' );
+		$query = "SELECT * FROM (
+						SELECT
+							student_id,  student_fee_item_id, student_name, fee_item, 
+							coalesce((CASE 
+								WHEN payment_method = 'Installments' THEN
+									round(yearly_amount/num_payments,2)
+								ELSE
+									round(yearly_amount,2)				
+							END),0) AS invoice_amount,
+							
+							CASE
+								 WHEN payment_method = 'Installments' THEN
+								case when num_payments_this_term > 1 THEN
+									generate_series(term_start_date, term_start_date + ((payment_interval*(num_payments_this_term-1)) || payment_interval2)::interval, (payment_interval::text || payment_interval2)::interval)::date
+								else
+									term_start_date
+								end 
+								 ELSE
+								year_start_date								
+							END as due_date,
+							
+							coalesce(round((select sum(amount)  
+								from hog.invoices 
+								inner join hog.invoice_line_items ON invoices.inv_id = invoice_line_items.inv_id 
+								where invoices.canceled = false 
+								and student_fee_item_id = q2.student_fee_item_id 
+								and due_date between term_start_date AND start_next_term
+							)/num_payments_this_term,2) ,0) as total_amount_invoiced,
+							num_payments_this_term
+							
+						FROM (
+							SELECT
 								student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,
-								fee_item, student_fee_item_id, payment_method, frequency,
-								CASE WHEN payment_method = 'Annually' AND total_invoices_created = 0 THEN
-										-- if fee item is by term, times by 3
-										-- else full sum
-										CASE WHEN frequency = 'per term' THEN round(amount*3,2) ELSE round(amount,2) END
-									WHEN payment_method = 'Per Term' AND total_invoices_created_this_term = 0 THEN
-										-- if fee item is billed by term, whole sum
-										-- if fee item is billed once or annually, divide by 3
-										CASE WHEN frequency = 'per term' THEN round(amount,2) ELSE round(amount/3,2) END
-									WHEN payment_method = 'Per Month' AND total_invoices_created_this_term < 4 THEN
-										-- if fee item is billed by term, divide by 4
-										-- if fee item is billed once or annually, divide by 12
-										CASE WHEN frequency = 'per term' THEN round(amount/4,2) ELSE round(amount/12,2) END
-									WHEN payment_method = 'Installments' AND total_invoices_created < num_payments THEN
-										-- if fee item is by term, times by 3
-										-- else full sum
-										CASE WHEN frequency = 'per term' THEN round( (amount*3)/num_payments ,2) ELSE round(amount/num_payments,2) END
-								END AS amount,
-								CASE WHEN payment_method = 'Per Month' THEN
-									generate_series(term_start_date, term_end_date + interval '1 mon', interval '1' month)::date    
-								     WHEN payment_method = 'Annually' THEN
-									year_start_date
-								     WHEN payment_method = 'Installments' THEN
-									generate_series(year_start_date, year_start_date + payment_interval, (payment_interval::text || 'days')::interval)::date    
-								     ELSE
-									year_start_date
-								
-								END as due_date
-								FROM (
-									SELECT 
-									students.student_id, first_name, middle_name, last_name, fee_item, student_fee_item_id, student_fee_items.payment_method,frequency,amount,installment_option_id,num_payments, payment_interval,
-									(select count(inv_id) from hog.invoices inner join hog.invoice_line_items using (inv_id) where invoices.canceled = false and student_fee_item_id = student_fee_items.student_fee_item_id) as total_invoices_created,
-									(select count(inv_id) from hog.invoices inner join hog.invoice_line_items using (inv_id) where invoices.canceled = false and student_fee_item_id = student_fee_items.student_fee_item_id and due_date between (select start_date from $termStatment) and (select end_date from $termStatment)) as total_invoices_created_this_term,
-									(select start_date from $termStatment) as term_start_date,
-									(select end_date from $termStatment) as term_end_date,
-									CASE WHEN date_part('month',now()) > 9 THEN 
-										( select min(start_date) from hog.terms where date_part('year',start_date) = date_part('year', now() + interval '1 year') )
-									ELSE 
-										( select min(start_date) from hog.terms where date_part('year',start_date) = date_part('year', now()) )
-									END as year_start_date
-									FROM hog.students
-									LEFT JOIN hog.invoices 
-									ON students.student_id = invoices.student_id AND invoices.canceled = false AND due_date between (select start_date from $termStatment) and (select end_date from $termStatment)
-									INNER JOIN hog.student_fee_items
-										INNER JOIN hog.fee_items
-										ON student_fee_items.fee_item_id = fee_items.fee_item_id	
-									ON students.student_id = student_fee_items.student_id AND student_Fee_items.active = true
-									LEFT JOIN hog.installment_options ON students.installment_option_id = installment_options.installment_id
-									WHERE students.active = true
-									ORDER BY students.student_id
-								) q
-							) q2
-							WHERE amount > 0							
-							";
+								fee_item, student_fee_item_id, payment_method, frequency,yearly_amount,num_payments,term_start_date,
+								payment_interval,year_start_date,term_end_date,start_next_term,payment_interval2,
+								CASE 
+									 WHEN payment_method = 'Installments' THEN
+									-- are there any installments due this term
+									(SELECT count(*) FROM (
+										SELECT
+										generate_series(year_start_date, year_start_date + ((payment_interval*(num_payments-1)) || payment_interval2)::interval, (payment_interval::text || payment_interval2)::interval)::date  as due_date
+										FROM (
+											SELECT payment_interval,payment_interval2,num_payments
+											FROM hog.students
+											INNER JOIN hog.installment_options 
+											ON installment_option_id = installment_options.installment_id
+											WHERE student_id = q.student_id
+										) q
+									)q2
+									WHERE due_date BETWEEN term_start_date and date_trunc('month',start_next_term) )
+									 ELSE
+									-- otherwise we are paying annually, this is due in the first month of the start of first term
+									CASE WHEN date_part('month',year_start_date) = date_part('month',now()) THEN 
+										1 
+									ELSE 0 END
+								END::integer AS num_payments_this_term
+							FROM (
+								SELECT 
+									students.student_id, first_name, middle_name, last_name, 
+									fee_item, student_fee_items.student_fee_item_id, payment_interval,payment_interval2,
+									student_fee_items.payment_method, frequency, num_payments,
+									round( CASE WHEN frequency = 'per term' THEN student_fee_items.amount*3 ELSE student_fee_items.amount END, 2) as yearly_amount,
+									(select start_date from $termStatement) as term_start_date,
+									(select end_date from $termStatement) as term_end_date,
+									(select start_date from $nextTermStatement) as start_next_term,
+									( select min(start_date) from hog.terms where date_part('year',start_date) = date_part('year', (select start_date from $termStatement)) ) as year_start_date
+								FROM hog.students									
+								INNER JOIN hog.student_fee_items
+									INNER JOIN hog.fee_items
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id										
+								ON students.student_id = student_fee_items.student_id AND student_Fee_items.active = true
+								LEFT JOIN hog.installment_options ON students.installment_option_id = installment_options.installment_id
+								WHERE students.active = true
+								ORDER BY students.student_id
+							) q
+							
+						) q2
+						WHERE q2.num_payments_this_term > 0
+					) q3
+					WHERE total_amount_invoiced < invoice_amount
+				";
 		if( $studentId !== null )
 		{
 			$query .= "AND student_id = :studentId ";
 			$params = array('studentId' => $studentId);
 		}
 
-		$query .= " ORDER BY student_id, fee_item";
+		$query .= " ORDER BY student_id, due_date, fee_item";
 		
         $sth = $db->prepare($query);
 		$sth->execute( $params ); 
@@ -1531,7 +1639,6 @@ $app->get('/getInvoiceDetails/:inv_id', function ($invId) {
 								ON students.current_class = classes.class_id
 							ON invoices.student_id = students.student_id
 							WHERE invoices.inv_id = :invId
-							AND canceled = false
 							ORDER BY fee_item
 							) q");
 		$sth->execute( array(':invId' => $invId) ); 
@@ -1556,15 +1663,16 @@ $app->get('/getInvoiceDetails/:inv_id', function ($invId) {
 
 });
 
-$app->put('/updateInvoice', function() use($app){
+$app->put('/updateInvoice/', function() use($app){
 	 // Update invoice	
 	$allPostVars = json_decode($app->request()->getBody(),true);
-	$invId = 	 ( isset($lineItem['inv_id']) ? $feeItem['inv_id']: null);
-	$invDate = 	 ( isset($lineItem['inv_date']) ? $feeItem['inv_date']: null);
-	$totalAmt =  ( isset($lineItem['total_amount']) ? $feeItem['total_amount']: null);
-	$dueDate = 	 ( isset($lineItem['due_date']) ? $feeItem['due_date']: null);
-	$userId = 	 ( isset($lineItem['user_id']) ? $feeItem['user_id']: null);
-	$lineItems = ( isset($lineItem['line_items']) ? $feeItem['line_items']: null);
+	var_dump($allPostVars);
+	$invId = 	 ( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
+	$invDate = 	 ( isset($allPostVars['inv_date']) ? $allPostVars['inv_date']: null);
+	$totalAmt =  ( isset($allPostVars['total_amount']) ? $allPostVars['total_amount']: null);
+	$dueDate = 	 ( isset($allPostVars['due_date']) ? $allPostVars['due_date']: null);
+	$userId = 	 ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$lineItems = ( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
 	
 	try 
     {
@@ -1579,14 +1687,14 @@ $app->put('/updateInvoice', function() use($app){
 										WHERE inv_id = :invId");
 		
 		// prepare the possible statements
-		$itemsUpdate = $db->prepare("UPDATE hog.invoice_line_items
+		$itemUpdate = $db->prepare("UPDATE hog.invoice_line_items
 									SET amount = :amount,
 										modified_date = now(),
 										modified_by = :userID
 									WHERE inv_item_id = :invItemId");
 		
-		$itemInsert = $db->prepare("INSERT INTO hog.invoice_line_items(student_id, inv_id, student_fee_item_id, amount, created_by) 
-									VALUES(:studentID,:invId,:studentFeeItemID,:amount,:userId);"); 
+		$itemInsert = $db->prepare("INSERT INTO hog.invoice_line_items(inv_id, student_fee_item_id, amount, created_by) 
+									VALUES(:invId,:studentFeeItemID,:amount,:userId);"); 
 		
 
 		$deleteLine = $db->prepare("DELETE FROM hog.invoice_line_items
@@ -1604,7 +1712,8 @@ $app->put('/updateInvoice', function() use($app){
 		
 		if( count($lineItems) > 0 ) 
 		{		
-			// get what is already set of this student
+		
+			// get what is already set of this invoice
 			$query = $db->prepare("SELECT inv_item_id FROM hog.invoice_line_items WHERE inv_id = :invId");
 			$query->execute( array('invId' => $invId) );
 			$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);
@@ -1623,6 +1732,7 @@ $app->put('/updateInvoice', function() use($app){
 					// need to update all terms, current and future of this year
 					// leaving previous terms as they were
 					$itemUpdate->execute(array(':amount' => $amount, 
+												':invItemId' => $invItemId,
 												':userID' => $userId ));
 				}
 				else
@@ -1634,7 +1744,7 @@ $app->put('/updateInvoice', function() use($app){
 					$itemInsert->execute( array(
 						':invId' => $invId,
 						':studentFeeItemID' => $studentFeeItemID,
-						':amount' => $feeItem['amount'],
+						':amount' => $amount,
 						':userId' => $userId)
 					);
 					
@@ -1650,7 +1760,7 @@ $app->put('/updateInvoice', function() use($app){
 				// if found, do not delete
 				foreach( $lineItems as $lineItem )
 				{
-					if( $lineItem['inv_item_id'] == $currentLineItem->inv_item_id )
+					if( !isset($lineItem['inv_item_id']) || $lineItem['inv_item_id'] == $currentLineItem->inv_item_id )
 					{
 						$deleteMe = false;
 					}
@@ -1658,7 +1768,7 @@ $app->put('/updateInvoice', function() use($app){
 				
 				if( $deleteMe )
 				{
-					$deleteLine->execute(array(':invId' => $invId));
+					$deleteLine->execute(array(':invItemId' => $currentLineItem->inv_item_id));
 				}
 			}
 
@@ -1680,6 +1790,75 @@ $app->put('/updateInvoice', function() use($app){
     }
 
 });
+
+$app->put('/cancelInvoice/', function () use($app) {
+	// update invoice to cancelled
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$invId = ( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
+	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	try 
+    {
+        $db = getDB();
+		
+		$updateInvoice = $db->prepare("UPDATE hog.invoices	
+										SET canceled = true,
+											modified_date = now(),
+											modified_by= :userId
+										WHERE inv_id = :invId");
+		
+	
+		$updateInvoice->execute( array(':invId' => $invId,
+						':userId' => $userId
+		) );	
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+		$db->rollBack();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+});
+
+$app->put('/reactivateInvoice/', function() use($app) {
+	// update invoice to cancelled
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$invId = ( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
+	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	try 
+    {
+        $db = getDB();
+		
+		$updateInvoice = $db->prepare("UPDATE hog.invoices	
+										SET canceled = false,
+											modified_date = now(),
+											modified_by= :userId
+										WHERE inv_id = :invId");		
+	
+		$updateInvoice->execute( array(':invId' => $invId,
+						':userId' => $userId
+		) );	
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+		$db->rollBack();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+});
+
+
 
 // ************** Fee Items  ****************** //
 $app->get('/getFeeItems(/:status)', function ($status = true) {
@@ -1763,7 +1942,7 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
 
 });
 
-$app->get('/getStudentDetails(/:studentId)', function ($studentId) {
+$app->get('/getStudentDetails/:studentId', function ($studentId) {
     //Show all students
 	
 	$app = \Slim\Slim::getInstance();
@@ -1841,7 +2020,7 @@ $app->get('/getStudentDetails(/:studentId)', function ($studentId) {
 
 });
 
-$app->get('/getStudentBalance(/:studentId)', function ($studentId) {
+$app->get('/getStudentBalance/:studentId', function ($studentId) {
     // Return students next payment
 	
 	$app = \Slim\Slim::getInstance();
@@ -1879,18 +2058,16 @@ $app->get('/getStudentBalance(/:studentId)', function ($studentId) {
 		{
 		
 			$sth2 = $db->prepare("SELECT 
-									(SELECT due_date FROM hog.invoice_balances WHERE student_id = :studentID AND due_date > now()::date) AS next_due_date,
-									(SELECT balance from hog.invoice_balances WHERE student_id = :studentID AND due_date > now()::date) AS next_amount,
+									(SELECT due_date FROM hog.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false) AS next_due_date,
+									(SELECT balance from hog.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false) AS next_amount,
 									(
 										SELECT sum(diff) FROM (
-										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from hog.payment_inv_items where payment_id = p.payment_id ),0)) as diff
-										FROM hog.payments as p
-										LEFT JOIN hog.payment_inv_items 
-										ON p.payment_id = payment_inv_items.payment_id
-										WHERE student_id = :studentID
-										AND reversed is false
-										AND replacement_payment is false
-									) AS q
+											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from hog.payment_inv_items inner join hog.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
+											FROM hog.payments as p	
+											WHERE student_id = :studentID
+											AND reversed is false
+											AND replacement_payment is false
+										) AS q
 									) AS unapplied_payments");
 			$sth2->execute( array(':studentID' => $studentId)); 
 			$details = $sth2->fetch(PDO::FETCH_OBJ);
@@ -1912,7 +2089,8 @@ $app->get('/getStudentBalance(/:studentId)', function ($studentId) {
 			$balanceQry = $db->prepare("SELECT sum(total_due) as total_due, sum(total_paid) as total_paid, sum(balance) as balance
 										FROM hog.invoice_balances
 									    WHERE student_id = :studentID
-										AND due_date < now()::date");
+										AND due_date < now()::date
+										AND canceled = false");
 			$balanceQry->execute( array(':studentID' => $studentId)); 
 			$balance = $balanceQry->fetch(PDO::FETCH_OBJ);
 			//var_dump($balance);
@@ -1947,7 +2125,7 @@ $app->get('/getStudentBalance(/:studentId)', function ($studentId) {
 
 });
 
-$app->get('/getStudentInvoices(/:studentId)', function ($studentId) {
+$app->get('/getStudentInvoices/:studentId', function ($studentId) {
     // Return students invoices
 	
 	$app = \Slim\Slim::getInstance();
@@ -1957,8 +2135,8 @@ $app->get('/getStudentInvoices(/:studentId)', function ($studentId) {
         $db = getDB();
 		
 		// get fee items
-		$sth = $db->prepare("SELECT * FROM hog.invoice_balances WHERE student_id = :studentID ORDER BY inv_date");
-		$sth->execute( array(':studentID' => $studentId));
+		$sth = $db->prepare("SELECT * FROM hog.invoice_balances WHERE student_id = :studentId ORDER BY inv_date");
+		$sth->execute( array(':studentId' => $studentId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
  
@@ -2015,6 +2193,7 @@ $app->get('/getOpenInvoices/:studentId', function ($studentId) {
 							ON invoice_balances.student_id = students.student_id
 							WHERE students.student_id = :studentId
 							AND balance < 0
+							AND canceled = false
 							ORDER BY due_date, fee_item");
 		$sth->execute( array(':studentId' => $studentId) ); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -2114,7 +2293,7 @@ $app->get('/getReplaceableFeeItems/:studentId', function ($studentId) {
 
 });
 
-$app->get('/getStudentPayments(/:studentId)', function ($studentId) {
+$app->get('/getStudentPayments/:studentId', function ($studentId) {
     // Return students payments
 	
 	$app = \Slim\Slim::getInstance();
@@ -2128,19 +2307,27 @@ $app->get('/getStudentPayments(/:studentId)', function ($studentId) {
 								payment_date,
 								payment_method,
 								amount,
-								(SELECT array_agg(fee_item) 
-								 FROM hog.payment_inv_items 
-								 INNER JOIN hog.invoice_line_items using (inv_item_id)
-								 INNER JOIN hog.student_fee_items using (student_fee_item_id)
-								 INNER JOIN hog.fee_items using (fee_item_id) 
-								 WHERE payment_id = payments.payment_id
-								 ) as applied_to,
+								CASE WHEN replacement_payment = true THEN
+								 (SELECT array_agg(fee_item || ' Replacement') 
+										 FROM hog.payment_replacement_items 
+										 INNER JOIN hog.student_fee_items using (student_fee_item_id)
+										 INNER JOIN hog.fee_items using (fee_item_id) 
+										 WHERE payment_id = payments.payment_id
+										 )
+								 ELSE
+									(SELECT array_agg(fee_item) 
+										 FROM hog.payment_inv_items 
+										 INNER JOIN hog.invoices on payment_inv_items.inv_id  = invoices.inv_id and canceled = false
+										 INNER JOIN hog.invoice_line_items using (inv_item_id)
+										 INNER JOIN hog.student_fee_items using (student_fee_item_id)
+										 INNER JOIN hog.fee_items using (fee_item_id) 
+										 WHERE payment_id = payments.payment_id
+										 )
+								 END as applied_to,
 								  (
 									SELECT sum(diff) FROM (
-										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from hog.payment_inv_items where payment_id = p.payment_id ),0)) as diff
+										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from hog.payment_inv_items inner join hog.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
 										FROM hog.payments as p
-										LEFT JOIN hog.payment_inv_items 
-										ON p.payment_id = payment_inv_items.payment_id
 										WHERE p.payment_id = payments.payment_id
 										AND reversed is false
 										AND replacement_payment is false

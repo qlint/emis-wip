@@ -58,12 +58,42 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	
 	$scope.cancelInvoice = function()
 	{
-		var dlg = $dialog.confirm('Cancel Invoice', 'Are you sure you want to <strong>cancel</strong> this invoice?', {size:'sm'});
+		var dlg = $dialogs.confirm('Cancel Invoice', 'Are you sure you want to mark this invoice as <strong>canceled</strong>?', {size:'sm'});
 		dlg.result.then(function(btn){
-			apiService.cancelInvoice($scope.invoice.inv_id, function(response, status){
-				// close window, update invoices
+			var data = {
+				user_id: $scope.currentUser.user_id,
+				inv_id:$scope.invoice.inv_id
+			};
+			apiService.cancelInvoice(data,  function(response){
+				var result = angular.fromJson(response);
 				
-			},apiError);			 
+				if( result.response == 'success')
+				{
+					$scope.invoice.canceled = true;
+				}
+				
+			}, apiError);	
+		});
+	}
+	
+	$scope.reactivateInvoice = function()
+	{
+		var dlg = $dialogs.confirm('Activate Invoice', 'Are you sure you want to mark this invoice as <strong>active</strong>?', {size:'sm'});
+		dlg.result.then(function(btn){
+			var data = {
+				user_id: $scope.currentUser.user_id,
+				inv_id:$scope.invoice.inv_id
+			};
+		
+			apiService.reactivateInvoice(data,  function(response){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success')
+				{
+					$scope.invoice.canceled = false;
+				}
+				
+			}, apiError);		 
 		});
 	}
 	
@@ -136,9 +166,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		
 		
 		var lineItems = [];
+		console.log($scope.invoiceLineItems);
 		angular.forEach($scope.invoiceLineItems, function(item,key){		
 			lineItems.push({
 				student_fee_item_id: item.student_fee_item_id,
+				inv_item_id: item.inv_item_id,
 				amount: item.amount
 			});
 		});

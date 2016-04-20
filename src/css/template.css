@@ -342,6 +342,11 @@ table.dataTable tbody tr.alert-info td,
 .alert-info {
   background-color: #d9edf7 !important; }
 
+table.dataTable tbody tr.canceled td {
+  text-decoration: line-through;
+  background-color: #ccc !important;
+  color: #aaa !important; }
+
 table.clickable tr {
   cursor: pointer; }
 

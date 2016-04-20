@@ -72,7 +72,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 					lineItems = [];
 				}
 				
-				total = total + parseInt(item.amount_to_invoice);
+				total = total + parseFloat(item.invoice_amount);
 				feeItems.push(item.fee_item);
 				lineItems.push(item);
 				
@@ -140,7 +140,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			angular.forEach(invoices.line_items, function(item,key2){
 				lineItems.push({
 					student_fee_item_id: item.student_fee_item_id,
-					amount: item.amount_to_invoice
+					amount: item.invoice_amount
 				});
 			});
 				

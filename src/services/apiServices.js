@@ -136,8 +136,23 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/createInvoice/", successFunction, errorFunction, params);
 	};
 	
+	this.updateInvoice = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateInvoice/", successFunction, errorFunction, params);
+	};
+	
+	this.cancelInvoice = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/cancelInvoice/", successFunction, errorFunction, params);
+	};
+	this.reactivateInvoice = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/reactivateInvoice/", successFunction, errorFunction, params);
+	};
+	
 	this.addPayment = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addPayment/", successFunction, errorFunction, params);
+	};
+	
+	this.getPaymentDetails = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getPaymentDetails/" + param, successFunction, errorFunction, params);
 	};
 	
 	this.getReplaceableFeeItems = function (param, successFunction, errorFunction, params) {          

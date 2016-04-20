@@ -154,7 +154,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		if( tab == 'Fees' )
 		{
 			// go get fee data
-			$scope.loading = true;			
+			$scope.loading = true;		
+			$scope.currentFeeTab = "Fee Summary";
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 		}
 		else if( tab == 'Exams' )
@@ -278,8 +279,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.student.class_id = $scope.student.current_class.class_id;
 		$scope.student.class_name = $scope.student.current_class.class_name;
 		$scope.student.class_cat_id = $scope.student.current_class.class_cat_id;
-		$scope.feeItems = filterFeeItems($scope.allFeeItems);	
-		$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);	
+		if( $scope.allFeeItems !== undefined )
+		{
+			$scope.feeItems = filterFeeItems($scope.allFeeItems);	
+			$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);	
+		}
 	});
 	
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){
@@ -445,6 +449,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		else if( tab == 'Invoices' )
 		{
 			$scope.loading = true;			
+			// TO DO: ability to send invoice canceled status
 			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
 		}
 		else if( tab == 'Payments Received' )
@@ -473,7 +478,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.fees = [];
 				$scope.nofeeSummary = true;
 			}
-			setTimeout(initFeesDataGrid,50);
+			
+			if( $scope.currentFeeTab == 'Fee Summary' )	setTimeout(initFeesDataGrid,50);
 		}
 	}
 	
@@ -484,9 +490,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				
 		if( result.response == 'success') 
 		{
-			$scope.invoices = angular.copy(result.data);
+			$scope.invoices = ( result.nodata ? {} : angular.copy(result.data) );		
 			
-			setTimeout(initInvoicesDataGrid,10);
+			if( $scope.currentFeeTab == 'Invoices' )	setTimeout(initInvoicesDataGrid,10);
 		}
 	}
 	
@@ -509,6 +515,35 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	}
 	
+	$scope.viewInvoice = function(item)
+	{
+		item.student_name = $scope.student.student_name;		
+		
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceDetails.html','invoiceDetailsCtrl',item,{size: 'md',backdrop:'static'});
+		dlg.result.then(function(invoice){
+			// update invoices
+			if( $scope.dataGrid !== undefined )
+			{
+				$scope.dataGrid.destroy();
+				$scope.dataGrid = undefined;
+			}
+			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
+			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
+			
+		},function(){
+			// update invoices
+			if( $scope.dataGrid !== undefined )
+			{
+				$scope.dataGrid.destroy();
+				$scope.dataGrid = undefined;
+			}
+			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
+			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
+		});
+	
+	}
+	
 	var loadPayments = function(response,status)
 	{
 		$scope.loading = false;		
@@ -516,7 +551,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				
 		if( result.response == 'success') 
 		{
-			var payments = angular.copy(result.data);
+			var payments = ( result.nodata ? [] : angular.copy(result.data) );
 			
 			$scope.payments = payments.map(function(item){
 				item.replacement = ( item.replacement_payment ? 'Yes' : 'No');
@@ -524,7 +559,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				return item;
 			});
 			
-			setTimeout(initPaymentsDataGrid,10);
+			if( $scope.currentFeeTab == 'Payments Received' )	setTimeout(initPaymentsDataGrid,10);
 		}
 	}
 	
@@ -583,15 +618,29 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.viewPayment = function(payment)
 	{
 		$rootScope.modalLoading = true;
-		apiService.getPaymentDetails(payment.payment_id, function(response){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentForm.html','paymentFormCtrl',payment,{size: 'md',backdrop:'static'});
+		dlg.result.then(function(payment){
+			// update invoices
+			if( $scope.dataGrid !== undefined )
 			{
-				var payment = angular.copy(result.data);
-				$scope.openModal('fees', 'viewPayment', 'lg',payment);
+				$scope.dataGrid.destroy();
+				$scope.dataGrid = undefined;
 			}
+			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
+			apiService.getStudentPayments($scope.student.student_id, loadInvoices, apiError);
+			
+		},function(){
+			// update invoices
+			if( $scope.dataGrid !== undefined )
+			{
+				$scope.dataGrid.destroy();
+				$scope.dataGrid = undefined;
+			}
+			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
+			apiService.getStudentPayments($scope.student.student_id, loadInvoices, apiError);
 		});
+		
 	}
 	
 	var formatFeeItems = function(feeItems)
@@ -613,10 +662,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var setSelectedFeeItems = function(feeItems)
 	{
-		console.log(feeItems);
+		//console.log(feeItems);
 		return feeItems.filter(function(item){
 			return $scope.student.fee_items.filter(function(a){
-				console.log(a.fee_item_id + ' ' + item.fee_item_id );
+				//console.log(a.fee_item_id + ' ' + item.fee_item_id );
 				if( a.fee_item_id == item.fee_item_id && a.active )
 				{
 					item.amount = a.amount;
