@@ -315,7 +315,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	$scope.adjustPayment = function()
 	{
-		$scope.openModal('fees', 'adjustPaymentForm', 'lg',{});
+		$scope.openModal('fees', 'editPaymentForm', 'lg',{});
 	}
 	
 	$scope.viewStudent = function(student)

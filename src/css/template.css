@@ -32,6 +32,15 @@ body {
 #body-content {
   height: 98%; }
 
+.nopad {
+  padding: 0; }
+
+.nopad-left {
+  padding-left: 0; }
+
+.nopad-right {
+  padding-right: 0; }
+
 /********************** Branding Styles ******************************/
 .navbar-brand {
   padding: 5px;
@@ -49,6 +58,8 @@ body {
   padding: 18px 25px; }
   .login a {
     color: #fff; }
+  .login .input-group {
+    margin-bottom: 5px; }
 
 .poweredby-branding {
   background-color: #30603C;
@@ -433,11 +444,9 @@ table.clickable tr {
       .modal-content .subtab-content .tab-header label {
         line-height: 24px;
         margin-right: 10px; }
-  .modal-content .input-group {
-    /*margin-bottom:5px;*/ }
   .modal-content .modalForm .form-group {
     margin-bottom: 5px; }
-  .modal-content .modalForm input[type=text], .modal-content .modalForm select {
+  .modal-content .modalForm input[type=text], .modal-content .modalForm select, .modal-content .modalForm input[type=number] {
     height: 26px;
     padding: 3px; }
   .modal-content .modalForm .form-control-static {
@@ -450,6 +459,9 @@ table.clickable tr {
   .modal-content .modalForm .checkbox-inline, .modal-content .modalForm .radio-inline {
     padding-top: 0 !important;
     line-height: 20px; }
+  .modal-content .modalForm .sm-inline {
+    width: 40px;
+    display: inline-block; }
   .modal-content .modal-tabs.main-tabs {
     margin: -15px;
     background: #eee; }

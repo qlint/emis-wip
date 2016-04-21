@@ -683,7 +683,13 @@
 											ng-checked="optFeeItemSelection.indexOf(item) > -1"
 											ng-click="toggleFeeItem(item,'optional')"
 										  > {{item.fee_item}}
-										</label>										
+										</label>	
+
+										<div ng-if="item.fee_item == 'Transport'">
+											<select ng-show="showTransport" name="transport_route" class="form-control" ng-options="route.route for route in transportRoutes" ng-model="student.transport_route">
+												<option value="">-- select a route --<option>
+											</select>
+										</div>										
 									</td>
 									<td width="70">
 										<input type="text" name="fee_item_amount[]" ng-model="item.amount" class="form-control" placeholder="{{item.default_amount}}">

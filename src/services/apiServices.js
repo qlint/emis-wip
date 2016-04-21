@@ -12,6 +12,31 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getDepartments", successFunction, errorFunction, params);
 	};
 	
+	this.setDeptStatus = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/setDeptStatus/", successFunction, errorFunction, params);
+	};
+	
+	this.addDept = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addDepartment/", successFunction, errorFunction, params);
+	};
+	
+	this.updateDept = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateDepartment/", successFunction, errorFunction, params);
+	};
+	
+	this.updateSettings = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateSettings/", successFunction, errorFunction, params);
+	};
+	
+	this.getSettings = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getSettings", successFunction, errorFunction, params);
+	};
+	
+	this.getGrading = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getGrading", successFunction, errorFunction, params);
+	};
+	
+	
 	this.getCountries = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getCountries", successFunction, errorFunction, params);
 	};
@@ -28,16 +53,56 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getFeeItems", successFunction, errorFunction);
 	};
 	
-	this.getTerms = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getTerms", successFunction, errorFunction, params);
+	this.getTansportRoutes = function (request, successFunction, errorFunction) {  
+		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getTansportRoutes", successFunction, errorFunction);
 	};
+	
+	this.getTerms = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getTerms/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.addTerm = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addTerm/", successFunction, errorFunction, params);
+	};
+	
+	this.updateTerm = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateTerm/", successFunction, errorFunction, params);
+	};	
 	
 	this.getCurrentTerm = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getCurrentTerm", successFunction, errorFunction, params);
 	};
 	
+	this.getSubjects = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getSubjects/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.addSubject = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addSubject/", successFunction, errorFunction, params);
+	};
+	
+	this.updateSubject = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateSubject/", successFunction, errorFunction, params);
+	};
+	
+	this.setSubjectStatus = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/setSubjectStatus/", successFunction, errorFunction, params);
+	};
+	
+	this.getAllTeachers = function (param, successFunction, errorFunction) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllTeachers/" + param, successFunction, errorFunction);
+	};
+	
 	this.getExamTypes = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGetWithData(request, "http://api.eduweb.localhost/getExamTypes", successFunction, errorFunction, params);
+	};
+	
+	this.getClasses = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getClasses/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getClassExams = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getClassExams/" + param, successFunction, errorFunction, params);
 	};
 	
 	this.getAllStudents = function (param, successFunction, errorFunction) {          
@@ -163,24 +228,44 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentFeeItems/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.updatePayment = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updatePayment/", successFunction, errorFunction, params);
+	};
+	
+	this.reversePayment = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/reversePayment/", successFunction, errorFunction, params);
+	};
+	this.reactivatePayment = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/reactivatePayment/", successFunction, errorFunction, params);
+	};
 	
 	this.getAllEmployees = function (param, successFunction, errorFunction) {  
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllEmployees/" + param, successFunction, errorFunction);
 	};
 	
-	
-	
-	
-	
-	this.postUserRequest = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost(request, "http://41.72.203.166/cargoview_dev/user_mngmt_api", successFunction, errorFunction, params);
+	this.addFeeItem = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addFeeItem/", successFunction, errorFunction, params);
 	};
-
 	
+	this.updateFeeItem = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateFeeItem/", successFunction, errorFunction, params);
+	};
+	
+	this.setFeeItemStatus = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/setFeeItemStatus/", successFunction, errorFunction, params);
+	};
+	
+	this.updateRoutes = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateRoutes/", successFunction, errorFunction, params);
+	};
+	
+
+
+	/*
 	this.doJSONPRequest = function (request, successFunction, errorFunction, params) {        
 		ajaxService.JSONPGet(request, "http://41.72.203.166/v4_dev/live_tracking?api_action=" + request.api_action + "&callback=JSON_CALLBACK", successFunction, errorFunction, params);
 	};
-		
+	*/
 
 		
 	return this;

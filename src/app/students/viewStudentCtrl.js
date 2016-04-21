@@ -73,7 +73,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			return sum;
 		}, []);
 		
-		
+		// get transport routes
+		apiService.getTansportRoutes({}, function(response){
+			var result = angular.fromJson(response);
+			
+			if( result.response == 'success')
+			{
+				$scope.transportRoutes = result.data;
+			}
+			
+		}, function(){});
 		
 		
 	}
@@ -157,6 +166,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.loading = true;		
 			$scope.currentFeeTab = "Fee Summary";
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
+			
+			
 		}
 		else if( tab == 'Exams' )
 		{
@@ -439,6 +450,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 	});
 	
+	$scope.$watch('student.transport_route', function(newVal, oldVal){
+		if( newVal == oldVal) return;
+		console.log(newVal);
+		// use the amount and put it into the input box
+		angular.forEach($scope.optFeeItemSelection, function(feeItem,key){
+			if( feeItem.fee_item == 'Transport') feeItem.amount = newVal.amount;
+		});
+	});
+	
 	$scope.getFeeTabContent = function(tab)
 	{
 		$scope.currentFeeTab = tab;
@@ -619,7 +639,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		$rootScope.modalLoading = true;
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentForm.html','paymentFormCtrl',payment,{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentDetails.html','paymentDetailsCtrl',payment,{size: 'md',backdrop:'static'});
 		dlg.result.then(function(payment){
 			// update invoices
 			if( $scope.dataGrid !== undefined )
@@ -736,6 +756,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// clear out fields
 			//item.amount = undefined;
 			//item.payment_method = undefined;
+			if( item.fee_item == 'Transport' ) $scope.showTransport = false;
 		}
 
 		// is newly selected
@@ -762,7 +783,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 			selectionObj.push(item);
 			$scope.studentForm.$setDirty();
-			
+			if( item.fee_item == 'Transport' ) $scope.showTransport = true;
 		}
 	};
 	

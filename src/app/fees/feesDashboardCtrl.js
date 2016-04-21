@@ -218,15 +218,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	$scope.viewPayment = function(item)
 	{
-		$rootScope.modalLoading = true;
-		apiService.getPaymentDetails(item.payment_id, function(response){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
-			{
-				$scope.openModal('fees', 'paymentForm', 'lg', result.data);
-			}
-		});
+		console.log(item);
+		$scope.openModal('fees', 'paymentDetails', 'lg', item);
 	}
 	
 	$scope.viewStudent = function(student)
@@ -234,6 +227,16 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		$scope.openModal('students', 'viewStudent', 'lg',student);
 	}	
 	
+	
+	$scope.addPayment = function()
+	{
+		$scope.openModal('fees', 'paymentForm', 'lg',{});
+	}
+	
+	$scope.adjustPayment = function()
+	{
+		$scope.openModal('fees', 'paymentDetails', 'lg',{});
+	}
 	
 	var apiError = function (response, status) 
 	{

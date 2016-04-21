@@ -80,6 +80,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'view': true,
 							'add': true,
 							'edit': true,
+							'delete': true
 						},						
 						'fee_structure': {
 							'view': true,

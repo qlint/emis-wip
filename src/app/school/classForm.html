@@ -1,0 +1,99 @@
+<form name="classForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(classForm)">		
+	<div class="modal-header dialog-header-form">
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Class</h4>
+			</div>
+			<div class="modal-body clearfix">
+
+					<div ng-show="error" class="alert alert-danger">
+						{{errMsg}}
+					</div>
+					<!-- class category -->
+					<div class="form-group" ng-class="{ 'has-error' : classForm.class_cat.$invalid && (classForm.class_cat.$touched || classForm.$submitted) }">		
+						<label for="class_cat" class="col-sm-3 control-label">Class Category</label>
+						<div class="col-sm-5">
+							<select name="class_cat" class="form-control" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats"  ng-model="theClass.class_cat_id" required>
+								<option value="">--select class category--</option>
+							</select>							
+							<p ng-show="classForm.class_cat.$invalid && (classForm.class_cat.$touched || classForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Category is required.</p>
+						</div>	
+						<div class="col-sm-4">
+							<button type="button" class="btn btn-sm btn-link" ng-click="addClassCat()"><i class="glyphicon glyphicon-plus"></i> Add class category</button>					
+						</div>	
+					</div>
+					<!-- class name -->
+					<div class="form-group" ng-class="{ 'has-error' : classForm.class_name.$invalid && (classForm.class_name.$touched || classForm.$submitted) }">
+						<label for="class_name" class="col-sm-3 control-label">Class Name</label>
+						<div class="col-sm-9">
+							<input type="text" name="class_name" ng-model="theClass.class_name" class="form-control" required >
+							<p ng-show="classForm.class_name.$invalid && (classForm.class_name.$touched || classForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Name is required.</p>
+						</div>
+					</div>
+					<!-- teacher -->
+					<div class="form-group">		
+						<label for="teacher_id" class="col-sm-3 control-label">Teacher</label>
+						<div class="col-sm-9">
+							<select name="teacher_id" class="form-control" ng-options="teacher.teacher_id as teacher.teacher_name for teacher in teachers"  ng-model="theClass.teacher_id" required>
+								<option value="">--select teacher--</option>
+							</select>						
+						</div>	
+					</div>
+					
+					<div ng-show="subjects!==undefined">
+						<div class="pull-right">
+							<button type="button" class="btn btn-sm btn-link text-success" ng-click="addSubject()"><i class="glyphicon glyphicon-plus"></i> Add Subject</button>
+							<button type="button" class="btn btn-sm btn-link text-success" ng-click="addExamType()"><i class="glyphicon glyphicon-plus"></i> Add Exam Type</button>
+						</div>
+						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
+							<thead>
+								<tr>
+									<th>
+										<input type="checkbox" name="apply_to_all" ng-model="subject.apply_to_all" ng-value="true"  >
+										Subject
+									</th>
+									<th class="center" ng-repeat="exam in examTypes">
+										<input type="checkbox" name="apply_to_all_subjects" ng-model="exam.apply_to_all" ng-value="true"  >
+										{{exam.exam_type}}
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="item in subjects track by $index">
+									<td>
+										<label class="checkbox-inline">
+										  <input
+											type="checkbox"
+											name="subjects[]"
+											value="{{item.subject_id}}"
+											ng-checked="subjectSelection.indexOf(item) > -1"
+											ng-click="toggleSubjects(item)"
+										  > {{item.subject_name}}
+										</label>									
+									</td>
+									<td class="center" ng-repeat="exam in examTypes">
+										
+										  <input
+											type="checkbox"
+											name="exams[]"
+											value="{{exam.exam_type_id}}"
+											ng-checked="subjectExamSelection[item].indexOf(exam) > -1"
+											ng-click="toggleSubjectExam(item,exam)"
+										  > 
+											
+										<input type="text" name="" class="form-control sm-inline" ng-model="item.exams[exam.exam_type_id].grade_weight" />
+									</td>
+									
+								</tr>
+							</tbody>
+						</table>
+					</div>
+			</div>
+			<div class="modal-footer">
+				<div class="pull-left">
+					<button type="button" class="btn btn-sm btn-danger" ng-click="deleteClass()" ng-show="edit && theClass.active">Remove Class</button>
+					<button type="button" class="btn btn-sm btn-success" ng-click="activateClass()" ng-show="edit && !theClass.active">Re-activate Class</button>
+				</div>
+				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+				<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>
+				<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>
+			</div>
+</form>

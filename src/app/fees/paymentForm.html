@@ -82,47 +82,8 @@
 					</div>	
 				</div>
 				
-				<!-- applied to -->
-				<div class="form-group" ng-show="payment.replacement_payment==false && edit">	
-	
-					<label class="col-sm-3 control-label">Applied To</label>
-					<div class="col-sm-9">
-						<p class="form-control-static">Invoie #: {{selectedInvoice.inv_id}} Ksh Due: {{selectedInvoice.due_date}}</p>
-					</div>
-					<div class="col-sm-12" >
-						<table class="display dataTable" cellspacing="0" width="100%">
-							<thead>
-								<tr>
-									<th class="center"><input type="checkbox" name="apply_to_all" ng-model="payment.apply_to_all" ng-value="true"  ></th>
-									<th>Fee Item</th>
-									<th>Balance</th>
-									<th>Paying</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr ng-repeat="feeitem in selectedInvoice.fee_items ">
-									<td class="center">
-									 <input
-											type="checkbox"
-											name="selected_invoices[]"
-											value="{{item.inv_item_id}}"
-											ng-checked="feeItemsSelection.indexOf(feeitem) > -1"
-											ng-click="toggleFeeItems(feeitem)"
-										  >
-									</td>
-									<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
-									<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance}}</td>
-									<td>
-										<input type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance}}">
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-				
 				<!-- apply to -->
-				<div class="form-group" ng-show="payment.replacement_payment==false && !edit">	
+				<div class="form-group" ng-show="payment.replacement_payment==false">	
 	
 					<label class="col-sm-3 control-label">Apply To</label>
 					<div class="col-sm-9">

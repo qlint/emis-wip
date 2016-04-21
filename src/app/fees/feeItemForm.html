@@ -1,0 +1,125 @@
+<form name="feeItemForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(feeItemForm)">		
+	<div class="modal-header dialog-header-form">
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Fee Item</h4>
+			</div>
+			<div class="modal-body cleafix">
+
+					<div ng-show="error" class="alert alert-danger">
+						{{errMsg}}
+					</div>
+					<!-- item name -->
+					<div class="form-group" ng-class="{ 'has-error' : feeItemForm.fee_item.$invalid && (feeItemForm.fee_item.$touched || feeItemForm.$submitted) }">
+						<label for="fee_item" class="col-sm-3 control-label">Item Name</label>
+						<div class="col-sm-9">
+							<input type="text" name="fee_item" ng-model="item.fee_item" class="form-control" required >
+							<p ng-show="feeItemForm.fee_item.$invalid && (feeItemForm.fee_item.$touched || feeItemForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Fee Item Name is required.</p>
+						</div>
+					</div>
+					<!-- amount -->
+					<div ng-if="!isTransport" class="form-group" ng-class="{ 'has-error' : feeItemForm.default_amount.$invalid && (feeItemForm.default_amount.$touched || feeItemForm.$submitted) }">		
+						<label for="default_amount" class="col-sm-3 control-label">Default Amount</label>
+						<div class="col-sm-5">
+							<input type="number" name="default_amount" ng-model="item.default_amount" class="form-control" required >	
+							<p ng-show="feeItemForm.default_amount.$invalid && (feeItemForm.default_amount.$touched || feeItemForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Default amount is required.</p>
+						</div>	
+					</div>
+					<!-- frequency -->
+					<div class="form-group" ng-class="{ 'has-error' : feeItemForm.frequency.$invalid && (feeItemForm.frequency.$touched || feeItemForm.$submitted) }">		
+						<label for="frequency" class="col-sm-3 control-label">Frequency</label>
+						<div class="col-sm-5">
+							<select name="frequency" ng-model="item.frequency" class="form-control" required>
+								<option value="">--select frequency--</option>
+								<option value="{{freq}}" ng-repeat="freq in frequencies">{{freq}}</option>
+							</select>
+							<p ng-show="feeItemForm.frequency.$invalid && (feeItemForm.frequency.$touched || feeItemForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Frequency is required.</p>
+						</div>	
+					</div>
+					<!-- new student only -->
+					<div class="form-group">		
+						<label for="new_student_only" class="col-sm-3 control-label">New students only?</label>
+						<div class="col-sm-9">
+							<label class="radio-inline">
+							  <input type="radio" name="new_student_only" ng-model="item.new_student_only" ng-value="true"> Yes
+							</label>
+							<label class="radio-inline">
+							  <input type="radio" name="new_student_only" ng-model="item.new_student_only" ng-value="false"> No
+							</label>
+						</div>	
+					</div>	
+					<!-- optional item -->
+					<div class="form-group">		
+						<label for="optional" class="col-sm-3 control-label">Optional?</label>
+						<div class="col-sm-9">
+							<label class="radio-inline">
+							  <input type="radio" name="optional" ng-model="item.optional" ng-value="true"> Yes
+							</label>
+							<label class="radio-inline">
+							  <input type="radio" name="optional" ng-model="item.optional" ng-value="false"> No
+							</label>
+						</div>	
+					</div>	
+					<!-- replaceable item -->
+					<div class="form-group">		
+						<label for="replaceable" class="col-sm-3 control-label">Replaceable?</label>
+						<div class="col-sm-9">
+							<label class="radio-inline">
+							  <input type="radio" name="replaceable" ng-model="item.replaceable" ng-value="true"> Yes
+							</label>
+							<label class="radio-inline">
+							  <input type="radio" name="replaceable" ng-model="item.replaceable" ng-value="false"> No
+							</label>
+						</div>	
+					</div>	
+					<!-- class cat restrictions -->
+					<div ng-if="!isTransport" class="form-group">		
+						<label for="replaceable" class="col-sm-3 control-label">Restrict this item to:</label>
+						<div class="col-sm-9">
+							  <label class="col-sm-6 nopad-left" ng-repeat="classCat in classCats">
+								  <input
+									type="checkbox"
+									name="class_cat[]"
+									value="{{classCat.class_cat_id}}"
+									ng-checked="classCatSelection.indexOf(classCat.class_cat_id) > -1"
+									ng-click="toggleClassCat(classCat.class_cat_id)"
+								  > {{classCat.class_cat_name}}
+							</label>							
+						</div>	
+					</div>	
+			
+					<div ng-if="isTransport">
+						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
+							<thead>
+								<tr>
+									<th></th>
+									<th>Route Name</th>
+									<th>Amount</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="route in transportRoutes track by $index">
+									<td>
+										<span class="glyphicon glyphicon-trash" ng-click="removeRoute($index)"></span>
+									</td>
+									<td>
+										<span ng-show="route.transport_id!==undefined">{{route.route}}</span>
+										<input ng-show="route.transport_id===undefined" type="text" class="form-control" ng-model="route.route" />
+									</td>
+									<td>
+										<input type="number" class="form-control" ng-model="route.amount" >
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<button type="button" class="btn btn-xs btn-success" ng-click="addRoute()"><i class="glyhpicon glyphicon-plus"></i> Add Route</button>
+					</div>
+			</div>
+			<div class="modal-footer">
+				<div class="pull-left">
+					<button type="button" class="btn btn-sm btn-danger" ng-click="deleteFeeItem()" ng-show="edit && item.active">Remove Fee Item</button>
+					<button type="button" class="btn btn-sm btn-success" ng-click="activateFeeItem()" ng-show="edit && !item.active">Re-activate Fee Item</button>
+				</div>
+				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+				<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>
+				<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>
+			</div>
+</form>

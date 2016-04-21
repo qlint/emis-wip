@@ -51,7 +51,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		// get terms
 		if( $rootScope.terms === undefined )
 		{
-			apiService.getTerms({}, function(response){
+			var year = moment().format('YYYY');
+			apiService.getTerms(year, function(response){
 				var result = angular.fromJson(response);				
 				if( result.response == 'success')
 				{ 
@@ -366,7 +367,12 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	$scope.viewPayment = function(item)
 	{
-		$scope.openModal('fees', 'paymentForm', 'lg',item);
+		$scope.openModal('fees', 'paymentDetails', 'lg',item);
+	}
+	
+	$scope.adjustPayment = function()
+	{
+		$scope.openModal('fees', 'paymentDetails', 'lg',{});
 	}
 	
 	$scope.$on('refreshPayments', function(event, args) {

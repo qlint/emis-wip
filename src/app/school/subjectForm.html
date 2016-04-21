@@ -1,0 +1,50 @@
+<form name="subjectForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(subjectForm)">		
+	<div class="modal-header dialog-header-form">
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Subject</h4>
+			</div>
+			<div class="modal-body cleafix">
+
+					<div ng-show="error" class="alert alert-danger">
+						{{errMsg}}
+					</div>
+					<!-- class category -->
+					<div class="form-group" ng-class="{ 'has-error' : subjectForm.class_cat.$invalid && (subjectForm.class_cat.$touched || subjectForm.$submitted) }">		
+						<label for="class_cat" class="col-sm-3 control-label">Class Category</label>
+						<div class="col-sm-5">
+							<select name="class_cat" class="form-control" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats"  ng-model="subject.class_cat_id" required>
+								<option value="">--select class category--</option>
+							</select>							
+							<p ng-show="subjectForm.class_cat.$invalid && (subjectForm.class_cat.$touched || subjectForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Category is required.</p>
+						</div>	
+						<div class="col-sm-4">
+							<button type="button" class="btn btn-sm btn-link" ng-click="addClassCat()"><i class="glyphicon glyphicon-plus"></i> Add class category</button>					
+						</div>	
+					</div>
+					<!-- subject name -->
+					<div class="form-group" ng-class="{ 'has-error' : subjectForm.subject_name.$invalid && (subjectForm.subject_name.$touched || subjectForm.$submitted) }">
+						<label for="subject_name" class="col-sm-3 control-label">Subject Name</label>
+						<div class="col-sm-9">
+							<input type="text" name="subject_name" ng-model="subject.subject_name" class="form-control" required >
+							<p ng-show="subjectForm.subject_name.$invalid && (subjectForm.subject_name.$touched || subjectForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Subject Name is required.</p>
+						</div>
+					</div>
+					<!-- teacher -->
+					<div class="form-group">		
+						<label for="teacher_id" class="col-sm-3 control-label">Teacher</label>
+						<div class="col-sm-9">
+							<select name="teacher_id" class="form-control" ng-options="teacher.teacher_id as teacher.teacher_name for teacher in teachers"  ng-model="subject.teacher_id" required>
+								<option value="">--select teacher--</option>
+							</select>						
+						</div>	
+					</div>
+			</div>
+			<div class="modal-footer">
+				<div class="pull-left">
+					<button type="button" class="btn btn-sm btn-danger" ng-click="deleteSubject()" ng-show="edit && subject.active">Remove Subject</button>
+					<button type="button" class="btn btn-sm btn-success" ng-click="activateSubject()" ng-show="edit && !subject.active">Re-activate Subject</button>
+				</div>
+				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+				<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>
+				<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>
+			</div>
+</form>

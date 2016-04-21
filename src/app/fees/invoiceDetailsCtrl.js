@@ -70,6 +70,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				if( result.response == 'success')
 				{
 					$scope.invoice.canceled = true;
+					$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice canceled.', 'clear' : true});
 				}
 				
 			}, apiError);	
@@ -91,6 +92,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				if( result.response == 'success')
 				{
 					$scope.invoice.canceled = false;
+					$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice activated.', 'clear' : true});
 				}
 				
 			}, apiError);		 

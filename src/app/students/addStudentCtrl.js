@@ -67,6 +67,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			
 		}, function(){});
 		
+		// get transport routes
+		apiService.getTansportRoutes({}, function(response){
+			var result = angular.fromJson(response);
+			
+			if( result.response == 'success')
+			{
+				$scope.transportRoutes = result.data;
+			}
+			
+		}, function(){});
+		
 		
 	}
 	$scope.initializeController();
@@ -129,6 +140,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);			
 	});
 	
+	$scope.$watch('student.transport_route', function(newVal, oldVal){
+		if( newVal == oldVal) return;
+		console.log(newVal);
+		// use the amount and put it into the input box
+		angular.forEach($scope.optFeeItemSelection, function(feeItem,key){
+			if( feeItem.fee_item == 'Transport') feeItem.amount = newVal.amount;
+		});
+	});
+	
 	var filterFeeItems = function(feesArray)
 	{
 		var feeItems = [];
@@ -170,6 +190,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// clear out fields
 			item.amount = undefined;
 			item.payment_method = undefined;
+			if( item.fee_item == 'Transport' ) $scope.showTransport = false;
 		}
 
 		// is newly selected
@@ -178,9 +199,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// set value and payment method
 			item.amount = item.default_amount;
 			item.payment_method = $scope.student.payment_method;
-		
-			selectionObj.push(item);
 			
+			selectionObj.push(item);
+			if( item.fee_item == 'Transport' ) $scope.showTransport = true;
 			
 		}
 	};

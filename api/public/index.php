@@ -79,6 +79,85 @@ $app->post('/login/', function () use($app){
 });
 
 
+// ************** Settings  ****************** //
+$app->get('/getSettings/', function () {
+    //Show settings
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT name, value FROM hog.settings");
+		$sth->execute();
+		$settings = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($settings) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $settings ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateSettings/', function () use($app) {
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$name = ( isset($allPostVars['name']) ? $allPostVars['name']: null);
+	$value = ( isset($allPostVars['value']) ? $allPostVars['value']: null);
+	$append = ( isset($allPostVars['append']) ? $allPostVars['append']: null);
+	try 
+    {
+        $db = getDB();
+		// check if setting exists
+		
+		$query = $db->prepare("SELECT * FROM hog.settings WHERE name = :name");
+		$query->execute( array(':name' => $name ) );
+		$results = $query->fetch(PDO::FETCH_OBJ);
+		
+		if( $results )
+		{
+			// update, append new value to end if append is true
+			if( $append) $value = $results->value . ',' . $value;
+			$sth = $db->prepare("UPDATE hog.settings
+				SET value = :value
+				WHERE name = :name");
+	 
+			$sth->execute( array(':name' => $name, ':value' => $value ) );	
+		}
+		else
+		{
+			// add
+			$sth = $db->prepare("INSERT hog.settings(name, value)
+								VALUES(:name,:value)");
+	 
+			$sth->execute( array(':name' => $name, ':value' => $value ) );	
+		}
+			
+        
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+});
+
 // ************** Classes  ****************** //
 $app->get('/getAllClasses(/:status)', function ($status = true) {
     //Show all classes
@@ -102,7 +181,10 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
@@ -112,7 +194,7 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
 
 });
 
-$app->get('/getClasses/:classCatid(/:status)', function ($id, $status=true) {
+$app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $status=true) {
     //Show classes for specific class category
 	
 	$app = \Slim\Slim::getInstance();
@@ -120,30 +202,101 @@ $app->get('/getClasses/:classCatid(/:status)', function ($id, $status=true) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT class_id, class_name, class_cat_id, teacher_id, active
+		$params = array(':status' => $status);
+		$query = "SELECT class_id, class_name, classes.class_cat_id, teacher_id, classes.active, class_cat_name,
+					classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
+					(select array_agg(subject_name) from hog.class_subjects inner join hog.subjects using (subject_id) where class_subjects.class_id = classes.class_id) as subjects
             FROM hog.classes
-            WHERE class_cat_id = :id
-			AND active = :status
-			ORDER BY class_id");
-        $sth->execute( array(':id' => $id, ':status' => $status) );
+			INNER JOIN hog.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+			LEFT JOIN hog.employees ON classes.teacher_id = employees.emp_id
+            WHERE classes.active = :status
+			";
+			
+		if( $classCatid !== null )
+		{
+			$query .= "AND classes.class_cat_id = :classCatid";
+			$params[':classCatid'] = $classCatid;
+		}
+		
+        $sth = $db->prepare($query);
+        $sth->execute( $params );
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
         if($results) {
+		
+			foreach( $results as $result)
+			{
+				$result->subjects = pg_array_parse($result->subjects);
+			}
+			
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+             $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+			$app->response()->setStatus(404);
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));        
     }
 
 });
+
+$app->get('/getClassExams/class_id', function ($classId) {
+    //Show classes exams
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+
+        $sth = $db->prepare("SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, 
+								subject_name, class_subject_exams.exam_type_id, exam_type, grade_weight
+							FROM hog.class_subjects 
+							INNER JOIN hog.class_subject_exams
+								INNER JOIN hog.exam_types
+								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+							ON class_subjects.class_subject_id = class_subject_exams.class_subject_id
+							INNER JOIN hog.subjects
+							ON class_subjects.subject_id = subjects.subject_id
+							WHERE class_id = :classId
+							");
+        $sth->execute( array(':classId' => $classId) );
+ 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+		
+			foreach( $results as $result)
+			{
+				$result->subjects = pg_array_parse($result->subjects);
+			}
+			
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+             $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+			$app->response()->setStatus(404);
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));        
+    }
+
+});
+
 
 $app->post('/addClass/', function () use($app) {
     // Add class
@@ -231,7 +384,10 @@ $app->get('/getClassCats/', function () {
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
@@ -338,7 +494,7 @@ $app->get('/getDepartments(/:status)', function ($status=true) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT dept_id, dept_name, active
+        $sth = $db->prepare("SELECT dept_id, dept_name, active, category
             FROM hog.departments
             WHERE active = :status
 			ORDER BY dept_id");
@@ -352,11 +508,14 @@ $app->get('/getDepartments(/:status)', function ($status=true) {
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
-        $app->response()->setStatus(404);
+        $app->response()->setStatus(200);
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
@@ -365,17 +524,19 @@ $app->get('/getDepartments(/:status)', function ($status=true) {
 $app->post('/addDepartment/', function () use($app) {
     // Add department
 	
-	$allPostVars = $app->request->post();
-	$deptName = $allPostVars['dept_name'];
-	$userId = $allPostVars['user_id'];
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$deptName =	( isset($allPostVars['dept_name']) ? $allPostVars['dept_name']: null);
+	$category =	( isset($allPostVars['category']) ? $allPostVars['category']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO hog.departments(dept_name, created_by) 
-            VALUES(:deptName, :userId)");
+        $sth = $db->prepare("INSERT INTO hog.departments(dept_name, category, created_by) 
+            VALUES(:deptName, :category, :userId)");
  
-        $sth->execute( array(':deptName' => $deptName, ':userId' => $userId ) );
+        $sth->execute( array(':deptName' => $deptName, ':category' => $category, ':userId' => $userId ) );
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -393,20 +554,22 @@ $app->post('/addDepartment/', function () use($app) {
 $app->put('/updateDepartment/', function () use($app) {
     // Update department
 	
-	$allPostVars = $app->request->post();
-	$deptId = $allPostVars['dept_id'];
-	$deptName = $allPostVars['dept_name'];
-	$active = $allPostVars['active'];
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$deptId =	( isset($allPostVars['dept_id']) ? $allPostVars['dept_id']: null);
+	$deptName =	( isset($allPostVars['dept_name']) ? $allPostVars['dept_name']: null);
+	$category =	( isset($allPostVars['category']) ? $allPostVars['category']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
     try 
     {
         $db = getDB();
         $sth = $db->prepare("UPDATE hog.departments
 			SET dept_name = :deptName,
-				active = :active
+				category = :category,
+				active = true
             WHERE dept_id = :deptId");
  
-        $sth->execute( array(':deptName' => $deptName, ':deptId' => $deptId, ':active' => $active ) );
+        $sth->execute( array(':deptName' => $deptName, ':deptId' => $deptId, ':category' => $category ) );
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -417,6 +580,76 @@ $app->put('/updateDepartment/', function () use($app) {
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/setDeptStatus/', function () use($app) {
+    // Update department status
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$deptId =	( isset($allPostVars['dept_id']) ? $allPostVars['dept_id']: null);
+	$status =		( isset($allPostVars['status']) ? $allPostVars['status']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE hog.departments
+							SET active = :status,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE dept_id = :deptId
+							"); 
+        $sth->execute( array(':deptId' => $deptId, 
+							 ':status' => $status, 
+							 ':userId' => $userId
+					) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+// ************** Grading  ****************** //
+$app->get('/getGrading/', function () {
+    //Show grading
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT *
+            FROM hog.grading
+			ORDER BY grade");
+        $sth->execute();
+ 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+         $app->response()->setStatus(200);
+         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
 });
@@ -446,7 +679,10 @@ $app->get('/getAllEmployees(/:status)', function ($status=true) {
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
@@ -478,7 +714,10 @@ $app->get('/getEmployee/:id', function () {
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
@@ -642,6 +881,44 @@ $app->put('/updateEmployee/', function () use($app) {
 
 });
 
+$app->get('/getAllTeachers(/:status)', function ($status=true) {
+    //Show all teachers
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT emp_id, emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
+									middle_name, last_name, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
+									initials, dob, country, active, telephone, email, joined_date,
+									job_title, qualifications, experience, additional_info, emp_image
+							 FROM hog.employees 
+							 WHERE emp_cat_id = 1
+							 AND active = :status 							 
+							 ORDER BY first_name, middle_name, last_name");
+        $sth->execute( array(':status' => $status)); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Employee Categories  ****************** //
 $app->get('/getEmployeeCats/', function () {
@@ -663,7 +940,10 @@ $app->get('/getEmployeeCats/', function () {
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
@@ -729,8 +1009,7 @@ $app->put('/updateEmployeeCat/', function () use($app) {
 
 
 // ************** Terms  ****************** //
-
-$app->get('/getTerms(/:year)', function ($year = null) {
+$app->get('/getTerms/(:year)', function ($year = null) {
     //Show all terms for given year (or this year if null)
 	
 	$app = \Slim\Slim::getInstance();
@@ -740,16 +1019,16 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 		$db = getDB();
 		if( $year == null )
 		{
-			$query = $db->prepare("SELECT term_id, term_name || ' ' || date_part('year',start_date) as term_year_name, start_date, end_date,
+			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name, start_date, end_date,
 										  case when term_id = (select term_id from hog.current_term) then true else false end as current_term
 										FROM hog.terms
-										WHERE date_part('year',start_date) <= date_part('year',now())
+										--WHERE date_part('year',start_date) <= date_part('year',now())
 										ORDER BY date_part('year',start_date), term_name");
 			$query->execute();	
 		}
 		else
 		{
-			$query = $db->prepare("SELECT term_id, term_name || ' ' || date_part('year',start_date) as term_year_name,
+			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name,start_date, end_date,
 										  case when term_id = (select term_id from hog.current_term) then true else false end as current_term
 										FROM hog.terms
 										WHERE date_part('year',start_date) = :year
@@ -765,7 +1044,10 @@ $app->get('/getTerms(/:year)', function ($year = null) {
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
@@ -794,8 +1076,226 @@ $app->get('/getCurrentTerm', function () {
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addTerm/', function () use($app) {
+    // Add term
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$termName =		( isset($allPostVars['term_name']) ? $allPostVars['term_name']: null);
+	$startDate =	( isset($allPostVars['start_date']) ? $allPostVars['start_date']: null);
+	$endDate =		( isset($allPostVars['end_date']) ? $allPostVars['end_date']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("INSERT INTO hog.terms(term_name, start_date, end_date, created_by) 
+            VALUES(:termName, :startDate, :endDate, :userId)");
+ 
+        $sth->execute( array(':termName' => $termName, ':startDate' => $startDate, ':endDate' => $endDate, ':userId' => $userId ) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateTerm/', function () use($app) {
+    // Update term
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$termId =		( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
+	$termName =		( isset($allPostVars['term_name']) ? $allPostVars['term_name']: null);
+	$startDate =	( isset($allPostVars['start_date']) ? $allPostVars['start_date']: null);
+	$endDate =		( isset($allPostVars['end_date']) ? $allPostVars['end_date']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE hog.terms
+			SET term_name = :termName,
+				start_date = :startDate,
+				end_date = :endDate
+            WHERE term_id = :termId");
+ 
+        $sth->execute( array(':termName' => $termName, ':startDate' => $startDate, ':endDate' => $endDate, ':termId' => $termId ) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+
+// ************** Subjects  ****************** //
+$app->get('/getSubjects/(:classCatId)', function ($classCatId = null) {
+    //Show subjects
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+		$db = getDB();
+		$params = array();
+		$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
+						teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active
+					FROM hog.subjects
+					LEFT JOIN hog.employees ON subjects.teacher_id = employees.emp_id
+					INNER JOIN hog.class_cats ON subjects.class_cat_id = class_cats.class_cat_id
+				";
+				
+		if( $classCatId !== null )
+		{
+			$query .= "WHERE subjects.class_cat_id = :classCatId ";
+			$params = array(':classCatId' => $classCatId);
+		}
+		
+		$query .= "ORDER BY class_cat_name, subject_name";
+		$sth = $db->prepare($query);
+		$sth->execute($params);			
+		
+ 
+        $results = $sth->fetchAll(PDO::FETCH_ASSOC);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addSubject/', function () use($app) {
+    // Add subject
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$subjectName =	( isset($allPostVars['subject_name']) ? $allPostVars['subject_name']: null);
+	$classCatId =	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$teacherId =	( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("INSERT INTO hog.subjects(subject_name, class_cat_id, teacher_id, created_by) 
+            VALUES(:subjectName, :classCatId, :teacherId, :userId)");
+ 
+        $sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId ) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateSubject/', function () use($app) {
+    // Update subject
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$subjectId =	( isset($allPostVars['subject_id']) ? $allPostVars['subject_id']: null);
+	$subjectName =	( isset($allPostVars['subject_name']) ? $allPostVars['subject_name']: null);
+	$classCatId =	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$teacherId =	( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE hog.subjects
+			SET subject_name = :subjectName,
+				class_cat_id = :classCatId,
+				teacher_id = :teacherId
+            WHERE subject_id = :subjectId");
+ 
+        $sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':subjectId' => $subjectId ) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/setSubjectStatus/', function () use($app) {
+    // Update subject status
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$subjectId =( isset($allPostVars['subject_id']) ? $allPostVars['subject_id']: null);
+	$status =	( isset($allPostVars['status']) ? $allPostVars['status']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE hog.subjects
+							SET active = :status,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE subject_id = :subjectId
+							"); 
+        $sth->execute( array(':subjectId' => $subjectId, 
+							 ':status' => $status, 
+							 ':userId' => $userId
+					) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
  
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
@@ -890,7 +1390,10 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
@@ -932,7 +1435,10 @@ $app->get('/getExamMarks/:class/:year/:term/:type', function ($class,$year,$term
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
@@ -1107,7 +1613,7 @@ $app->get('/getTotalsForTerm', function () {
 							SELECT total_due, total_paid,balance
 							FROM hog.invoice_balances
 							WHERE due_date between (select start_date from hog.current_term) and (select start_date - interval '1 day' from hog.next_term)
-							AND cancled = false
+							AND canceled = false
 
 							UNION
 							SELECT 0 as total_due, amount as total_paid,0 as balance
@@ -1330,15 +1836,26 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 									INNER JOIN hog.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
-							ON payment_inv_items.inv_item_id = invoice_line_items.inv_item_id							
-							WHERE payment_id = :paymentId
-	   ");
+							ON payment_inv_items.inv_item_id = invoice_line_items.inv_item_id			
+							WHERE payment_id = :paymentId								
+							UNION
+							SELECT payment_replace_item_id, payment_replacement_items.student_fee_item_id,
+									fee_item,
+									payment_replacement_items.amount as line_item_amount
+							FROM hog.payment_replacement_items							
+							INNER JOIN hog.student_fee_items
+								INNER JOIN hog.fee_items
+								ON student_fee_items.fee_item_id = fee_items.fee_item_id
+							ON payment_replacement_items.student_fee_item_id = student_fee_items.student_fee_item_id						
+							WHERE payment_id = :paymentId							
+							");
 		$sth2->execute( array(':paymentId' => $paymentId) ); 
         $results2 = $sth2->fetchAll(PDO::FETCH_OBJ);
 		
 		// get the invoice details that payment was applied to
 		$sth3 = $db->prepare("SELECT invoice_balances.inv_id,								
-								inv_date,								
+								inv_date,	
+								total_due,								
 								balance,
 								due_date,
 								inv_item_id,
@@ -1355,7 +1872,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 							WHERE payment_id = :paymentId
 							ORDER BY due_date, fee_item");
 		$sth3->execute( array(':paymentId' => $paymentId) ); 
-        $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);
+        $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);	
 		
 		$results = new Stdclass();
 		$results->payment = $results1;
@@ -1380,6 +1897,313 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
     }
 
 });
+
+$app->put('/updatePayment/', function() use($app){
+	 // Update payment	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$paymentId = 			( isset($allPostVars['payment_id']) ? $allPostVars['payment_id']: null);
+	$userId = 				( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$studentId = 			( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+	$paymentDate = 			( isset($allPostVars['payment_date']) ? $allPostVars['payment_date']: null);
+	$amount = 				( isset($allPostVars['amount']) ? $allPostVars['amount']: null);
+	$paymentMethod = 		( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
+	$slipChequeNo = 		( isset($allPostVars['slip_cheque_no']) ? $allPostVars['slip_cheque_no']: null);
+	$replacementPayment = 	( isset($allPostVars['replacement_payment']) ? $allPostVars['replacement_payment']: null);
+	$invId = 				( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
+	$lineItems =			( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
+	$replacementItems =		( isset($allPostVars['replacement_items']) ? $allPostVars['replacement_items']: null);
+	
+	try 
+    {
+        $db = getDB();
+		
+		$updatePayment = $db->prepare("UPDATE hog.payments
+										SET payment_date = :paymentDate,
+											amount = :amount,
+											payment_method = :paymentMethod,
+											slip_cheque_no = :slipChequeNo,
+											replacement_payment = :replacementPayment,
+											inv_id = :invId,
+											modified_date = now(),
+											modified_by = :userId
+										WHERE payment_id = :paymentId");
+		
+		
+		// prepare the possible statements
+		if( count($lineItems) > 0 ) 
+		{
+			$itemUpdate = $db->prepare("UPDATE hog.payment_inv_items
+										SET amount = :amount,
+											modified_date = now(),
+											modified_by = :userID
+										WHERE payment_inv_item_id = :paymentInvItemId");
+			
+			$itemInsert = $db->prepare("INSERT INTO hog.payment_inv_items(payment_id, inv_id, inv_item_id, amount, created_by)
+										VALUES(:paymentId, :invId, :invItemId, :amount, :userId)");
+			
+
+			$deleteLine = $db->prepare("DELETE FROM hog.payment_inv_items WHERE payment_inv_item_id = :paymentInvItemId");
+		}
+		else
+		{
+			$deleteAllLines = $db->prepare("DELETE FROM hog.payment_inv_items WHERE payment_id = :paymentId");
+		}
+		
+		if( count($replacementItems) > 0 ) 
+		{
+			$replaceItemUpdate = $db->prepare("UPDATE hog.payment_replacement_items
+										SET amount = :amount,
+											modified_date = now(),
+											modified_by = :userID
+										WHERE payment_replace_item_id = :paymentReplaceItemId");
+			
+			$replaceItemInsert = $db->prepare("INSERT INTO hog.payment_replacement_items(payment_id, student_fee_item_id, amount, created_by)
+										VALUES(:paymentId, :studentFeeItemId, :amount, :userId)");	
+			
+
+			$replaceDeleteLine = $db->prepare("DELETE FROM hog.payment_replacement_items WHERE payment_replace_item_id = :paymentReplaceItemId");
+		}
+		else
+		{
+			$deleteReplaceLines = $db->prepare("DELETE FROM hog.payment_replacement_items WHERE payment_id = :paymentId");
+		}
+		
+		// get what is already set of this payment
+		$query = $db->prepare("SELECT payment_replace_item_id FROM hog.payment_replacement_items WHERE payment_id = :paymentId");
+		$query->execute( array('paymentId' => $paymentId) );
+		$currentReplaceItems = $query->fetchAll(PDO::FETCH_OBJ);
+		
+		// get what is already set of this payment
+		$query = $db->prepare("SELECT payment_inv_item_id FROM hog.payment_inv_items WHERE payment_id = :paymentId");
+		$query->execute( array('paymentId' => $paymentId) );
+		$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);	
+		
+		$db->beginTransaction();
+	
+		$updatePayment->execute( array(':paymentId' => $paymentId,
+						':paymentDate' => $paymentDate,
+						':amount' => $amount,
+						':paymentMethod' => $paymentMethod,
+						':slipChequeNo' => $slipChequeNo,
+						':replacementPayment' => $replacementPayment,
+						':invId' => $invId,
+						':userId' => $userId
+		) );	
+		
+		if( count($lineItems) > 0 ) 
+		{		
+	
+			// loop through and add or update
+			foreach( $lineItems as $lineItem )
+			{
+				$amount = 			( isset($lineItem['amount']) ? $lineItem['amount']: null);
+				$paymentInvItemId = ( isset($lineItem['payment_inv_item_id']) ? $lineItem['payment_inv_item_id']: null);				
+				$invItemId = 		( isset($lineItem['inv_item_id']) ? $lineItem['inv_item_id']: null);
+				
+				// this item exists, update it, else insert
+				if( $paymentInvItemId !== null && !empty($paymentInvItemId) )
+				{
+					// need to update all terms, current and future of this year
+					// leaving previous terms as they were
+					$itemUpdate->execute(array(':amount' => $amount, 
+												':paymentInvItemId' => $paymentInvItemId,
+												':userID' => $userId ));
+				}
+				else
+				{
+					// check if was previously added, if so, reactivate
+					// else fee items is new, add it
+					// needs to be added once term term if per term fee item
+
+					$itemInsert->execute( array(
+						':paymentId' => $paymentId,
+						':invId' => $invId,
+						':invItemId' => $invItemId,
+						':amount' => $amount,
+						':userId' => $userId)
+					);
+					
+				}
+			}	
+			
+		
+			// look for items to remove
+			// compare to what was passed in			
+			foreach( $currentLineItems as $currentLineItem )
+			{	
+				$deleteMe = true;
+				// if found, do not delete
+				foreach( $lineItems as $lineItem )
+				{
+					if( isset($lineItem['payment_inv_item_id']) && $lineItem['payment_inv_item_id'] == $currentLineItem->payment_inv_item_id )
+					{
+						$deleteMe = false;
+					}
+				}
+				
+				if( $deleteMe )
+				{
+					$deleteLine->execute(array(':paymentInvItemId' => $currentLineItem->payment_inv_item_id));
+				}
+			}
+
+		}
+		else
+		{
+			$deleteAllLines->execute(array('paymentId' => $paymentId));
+		}
+		
+		if( count($replacementItems) > 0 ) 
+		{					
+			
+			// loop through and add or update
+			foreach( $replacementItems as $replacementItem )
+			{
+				$amount = 				( isset($replacementItem['amount']) ? $replacementItem['amount']: null);
+				$paymentReplaceItemId = ( isset($replacementItem['payment_replace_item_id']) ? $replacementItem['payment_replace_item_id']: null);				
+				$studentFeeItemId = 	( isset($replacementItem['student_fee_item_id']) ? $replacementItem['student_fee_item_id']: null);
+				
+				// this item exists, update it, else insert
+				if( $paymentReplaceItemId !== null && !empty($paymentReplaceItemId) )
+				{
+					// need to update all terms, current and future of this year
+					// leaving previous terms as they were
+					$replaceItemUpdate->execute(array(':amount' => $amount, 
+												':paymentReplaceItemId' => $paymentReplaceItemId,
+												':userID' => $userId ));
+				}
+				else
+				{
+					// check if was previously added, if so, reactivate
+					// else fee items is new, add it
+					// needs to be added once term term if per term fee item
+
+					$replaceItemInsert->execute( array(
+						':paymentId' => $paymentId,
+						':studentFeeItemId' => $studentFeeItemId,
+						':amount' => $amount,
+						':userId' => $userId)
+					);
+					
+				}
+			}	
+			
+		
+			// look for items to remove
+			// compare to what was passed in			
+			foreach( $currentReplaceItems as $currentReplaceItem )
+			{	
+				$deleteMe = true;
+
+				// if found, do not delete
+				foreach( $replacementItems as $replacementItem )
+				{
+					if( isset($replacementItem['payment_replace_item_id']) && $replacementItem['payment_replace_item_id'] == $currentReplaceItem->payment_replace_item_id )
+					{
+						$deleteMe = false;
+					}
+				}
+
+				if( $deleteMe )
+				{
+					$replaceDeleteLine->execute(array(':paymentReplaceItemId' => $currentReplaceItem->payment_replace_item_id));
+				}
+			}
+
+		}
+		else
+		{
+			$deleteReplaceLines->execute(array('paymentId' => $paymentId));
+		}
+		
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+		$db->rollBack();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/reversePayment/', function () use($app) {
+	// update payment to reversed
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$paymentId = ( isset($allPostVars['payment_id']) ? $allPostVars['payment_id']: null);
+	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	try 
+    {
+        $db = getDB();
+		
+		$updatePayment = $db->prepare("UPDATE hog.payments	
+										SET reversed = true,
+											reversed_date = now(),
+											reversed_by = :userId,
+											modified_date = now(),
+											modified_by = :userId
+										WHERE payment_id = :paymentId");
+		
+	
+		$updatePayment->execute( array(':paymentId' => $paymentId,
+						':userId' => $userId
+		) );	
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+		$db->rollBack();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+});
+
+$app->put('/reactivatePayment/', function() use($app) {
+	// update payment to not reversed
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$paymentId = ( isset($allPostVars['payment_id']) ? $allPostVars['payment_id']: null);
+	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	try 
+    {
+        $db = getDB();
+		
+		$updatePayment = $db->prepare("UPDATE hog.payments	
+										SET reversed = false,
+											reversed_date = null,
+											reversed_by = null,
+											modified_date = now(),
+											modified_by= :userId
+										WHERE payment_id = :paymentId");		
+	
+		$updatePayment->execute( array(':paymentId' => $paymentId,
+						':userId' => $userId
+		) );	
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+		$db->rollBack();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+});
+
 
 
 // ************** Invoices  ****************** //
@@ -1687,19 +2511,30 @@ $app->put('/updateInvoice/', function() use($app){
 										WHERE inv_id = :invId");
 		
 		// prepare the possible statements
-		$itemUpdate = $db->prepare("UPDATE hog.invoice_line_items
-									SET amount = :amount,
-										modified_date = now(),
-										modified_by = :userID
-									WHERE inv_item_id = :invItemId");
-		
-		$itemInsert = $db->prepare("INSERT INTO hog.invoice_line_items(inv_id, student_fee_item_id, amount, created_by) 
-									VALUES(:invId,:studentFeeItemID,:amount,:userId);"); 
-		
+		if( count($lineItems) > 0 )
+		{
+			$itemUpdate = $db->prepare("UPDATE hog.invoice_line_items
+										SET amount = :amount,
+											modified_date = now(),
+											modified_by = :userID
+										WHERE inv_item_id = :invItemId");
+			
+			$itemInsert = $db->prepare("INSERT INTO hog.invoice_line_items(inv_id, student_fee_item_id, amount, created_by) 
+										VALUES(:invId,:studentFeeItemID,:amount,:userId);"); 
+			
 
-		$deleteLine = $db->prepare("DELETE FROM hog.invoice_line_items
-									WHERE inv_item_id = :invItemId");
+			$deleteLine = $db->prepare("DELETE FROM hog.invoice_line_items WHERE inv_item_id = :invItemId");
+		}
+		else
+		{
+			$deleteAllLine = $db->prepare("DELETE FROM hog.invoice_line_items WHERE inv_id = :invId");
+		}
 		
+		// get what is already set of this invoice
+		$query = $db->prepare("SELECT inv_item_id FROM hog.invoice_line_items WHERE inv_id = :invId");
+		$query->execute( array('invId' => $invId) );
+		$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);
+			
 		
 		$db->beginTransaction();
 	
@@ -1712,13 +2547,7 @@ $app->put('/updateInvoice/', function() use($app){
 		
 		if( count($lineItems) > 0 ) 
 		{		
-		
-			// get what is already set of this invoice
-			$query = $db->prepare("SELECT inv_item_id FROM hog.invoice_line_items WHERE inv_id = :invId");
-			$query->execute( array('invId' => $invId) );
-			$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);
-			
-			
+	
 			// loop through and add or update
 			foreach( $lineItems as $lineItem )
 			{
@@ -1760,7 +2589,7 @@ $app->put('/updateInvoice/', function() use($app){
 				// if found, do not delete
 				foreach( $lineItems as $lineItem )
 				{
-					if( !isset($lineItem['inv_item_id']) || $lineItem['inv_item_id'] == $currentLineItem->inv_item_id )
+					if(  isset($lineItem['inv_item_id']) && $lineItem['inv_item_id'] == $currentLineItem->inv_item_id )
 					{
 						$deleteMe = false;
 					}
@@ -1772,6 +2601,10 @@ $app->put('/updateInvoice/', function() use($app){
 				}
 			}
 
+		}
+		else
+		{
+			$deleteAllLine->execute(array('invId' => $invId));
 		}
 		
 		$db->commit();
@@ -1880,7 +2713,11 @@ $app->get('/getFeeItems(/:status)', function ($status = true) {
 		$results = new stdClass();
 		$results->required_items = $requiredItems;
 		
-		$sth = $db->prepare("SELECT fee_item_id, fee_item, default_amount, frequency, active, class_cats_restriction, optional, new_student_only
+		$sth = $db->prepare("SELECT fee_item_id, fee_item, default_amount,
+								CASE WHEN fee_item = 'Transport' THEN
+									(select min(to_char(amount, '999,999,999.99')) || '-' || max(to_char(amount, '999,999,999.99')) from hog.transport_routes where active is true)
+								END as range, 
+								frequency, active, class_cats_restriction, optional, new_student_only, replaceable
 							FROM hog.fee_items 
 							WHERE active = :status
 							AND optional is true
@@ -1896,7 +2733,10 @@ $app->get('/getFeeItems(/:status)', function ($status = true) {
             echo json_encode(array('response' => 'success', 'data' => $results ));
             $db = null;
         } else {
-            throw new PDOException('No records found.');
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
         }
  
     } catch(PDOException $e) {
@@ -1905,6 +2745,267 @@ $app->get('/getFeeItems(/:status)', function ($status = true) {
     }
 
 });
+
+$app->get('/getTansportRoutes(/:status)', function ($status = true) {
+    //Show transport routes
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT transport_id, route, amount
+							FROM hog.transport_routes 
+							WHERE active = :status
+							ORDER BY route");
+        $sth->execute( array(':status' => $status) ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+		
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addFeeItem/', function () use($app) {
+    // Add fee item
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$feeItem =		( isset($allPostVars['fee_item']) ? $allPostVars['fee_item']: null);
+	$defaultAmount =( isset($allPostVars['default_amount']) ? $allPostVars['default_amount']: null);
+	$frequency =	( isset($allPostVars['frequency']) ? $allPostVars['frequency']: null);
+	$classCats =	( isset($allPostVars['class_cats_restriction']) ? $allPostVars['class_cats_restriction']: null);
+	$optional =		( isset($allPostVars['optional']) ? $allPostVars['optional']: 'f');
+	$newStudent =	( isset($allPostVars['new_student_only']) ? $allPostVars['new_student_only']: 'f');
+	$replaceable =	( isset($allPostVars['replaceable']) ? $allPostVars['replaceable']: 'f');
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+	// convert $classCats to postgresql array
+	$classCatsStr = '{' . implode(',',$classCats) . '}';
+	
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("INSERT INTO hog.fee_items(fee_item, default_amount, frequency, class_cats_restriction, optional, new_student_only, replaceable, created_by) 
+							 VALUES(:feeItem, :defaultAmount, :frequency, :classCats, :optional, :newStudent, :replaceable, :userId)"); 
+        $sth->execute( array(':feeItem' => $feeItem, 
+							 ':defaultAmount' => $defaultAmount,
+							 ':frequency' => $frequency,
+							 ':classCats' => $classCatsStr,
+							 ':optional' => $optional,
+							 ':newStudent' => $newStudent,
+							 ':replaceable' => $replaceable,
+							 ':userId' => $userId
+					) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateFeeItem/', function () use($app) {
+    // Update fee item
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$feeItemId =	( isset($allPostVars['fee_item_id']) ? $allPostVars['fee_item_id']: null);
+	$feeItem =		( isset($allPostVars['fee_item']) ? $allPostVars['fee_item']: null);
+	$defaultAmount =( isset($allPostVars['default_amount']) ? $allPostVars['default_amount']: null);
+	$frequency =	( isset($allPostVars['frequency']) ? $allPostVars['frequency']: null);
+	$classCats =	( isset($allPostVars['class_cats_restriction']) ? $allPostVars['class_cats_restriction']: null);
+	$optional =		( isset($allPostVars['optional']) ? $allPostVars['optional']: 'f');
+	$newStudent =	( isset($allPostVars['new_student_only']) ? $allPostVars['new_student_only']: 'f');
+	$replaceable =	( isset($allPostVars['replaceable']) ? $allPostVars['replaceable']: 'f');
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE hog.fee_items
+							SET fee_item = :feeItem,
+								default_amount = :defaultAmount,
+								frequency = :frequency, 
+								class_cats_restriction = :classCats, 
+								optional = :optional, 
+								new_student_only = :newStudent, 
+								replaceable = :replaceable, 
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE fee_item_id = :feeItemId
+							"); 
+        $sth->execute( array(':feeItemId' => $feeItemId, 
+							 ':feeItem' => $feeItem, 
+							 ':defaultAmount' => $defaultAmount,
+							 ':frequency' => $frequency,
+							 ':classCats' => $classCats,
+							 ':optional' => $optional,
+							 ':newStudent' => $newStudent,
+							 ':replaceable' => $replaceable,
+							 ':userId' => $userId
+					) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/setFeeItemStatus/', function () use($app) {
+    // Update fee item status
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$feeItemId =	( isset($allPostVars['fee_item_id']) ? $allPostVars['fee_item_id']: null);
+	$status =		( isset($allPostVars['status']) ? $allPostVars['status']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE hog.fee_items
+							SET active = :status,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE fee_item_id = :feeItemId
+							"); 
+        $sth->execute( array(':feeItemId' => $feeItemId, 
+							 ':status' => $status, 
+							 ':userId' => $userId
+					) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateRoutes/', function () use($app) {
+    // Update routes
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$routes =	( isset($allPostVars['routes']) ? $allPostVars['routes']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try 
+    {
+        $db = getDB();
+        $updateRoute = $db->prepare("UPDATE hog.transport_routes
+							SET amount = :amount,
+								active = true,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE transport_id = :transportId
+							"); 
+		
+		$insertRoute = $db->prepare("INSERT INTO hog.transport_routes(route,amount,created_by)
+										VALUES(:route, :amount, :userId)");
+		
+		$inactivateRoute = $db->prepare("UPDATE hog.transport_routes
+							SET active = false,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE transport_id = :transportId
+							"); 
+							
+		// pull out existing routes
+	    
+	    $query = $db->prepare("SELECT transport_id FROM hog.transport_routes WHERE active is true");
+		$query->execute();
+		$currentRoutes = $query->fetchAll(PDO::FETCH_OBJ);
+						
+		$db->beginTransaction();
+		foreach($routes as $route)
+		{
+			$transportId =	( isset($route['transport_id']) ? $route['transport_id']: null);
+			$routeName =	( isset($route['route']) ? $route['route']: null);
+			$amount =		( isset($route['amount']) ? $route['amount']: null);
+			
+			if( $transportId !== null )			
+			{
+				$updateRoute->execute( array(':transportId' => $transportId, 
+							 ':amount' => $amount,
+							 ':userId' => $userId
+					) );
+			}
+			else
+			{
+				$insertRoute->execute( array(':route' => $routeName, 
+							 ':amount' => $amount,
+							 ':userId' => $userId
+					) );
+			}
+		}
+       
+	    // set active to false for any not passed in
+		foreach( $currentRoutes as $currentRoute )
+		{	
+			$deleteMe = true;
+			// if found, do not delete
+			foreach( $routes as $route )
+			{
+				if( isset($route['transport_id']) && $route['transport_id'] == $currentRoute->transport_id )
+				{
+					$deleteMe = false;
+				}
+			}
+			
+			if( $deleteMe )
+			{
+				$inactivateRoute->execute(array(':transportId' => $currentRoute->transport_id, ':userId' => $userId));
+			}
+		}
+		
+		$db->commit();
+		
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 
 // ************** Students  ****************** //
@@ -2840,6 +3941,14 @@ $app->put('/updateStudent/', function () use($app) {
 			);
 		
 		}
+		
+		
+		// get what is already set of this student
+		$query = $db->prepare("SELECT fee_item_id FROM hog.student_fee_items WHERE student_id = :studentID");
+		$query->execute( array('studentID' => $studentId) );
+		$currentFeeItems = $query->fetchAll(PDO::FETCH_OBJ);
+		
+		
 				
 		$db->beginTransaction();
 	
@@ -2906,11 +4015,6 @@ $app->put('/updateStudent/', function () use($app) {
 						':studentId' => $studentId)
 			);
 					
-			
-			// get what is already set of this student
-			$query = $db->prepare("SELECT fee_item_id FROM hog.student_fee_items WHERE student_id = :studentID");
-			$query->execute( array('studentID' => $studentId) );
-			$currentFeeItems = $query->fetchAll(PDO::FETCH_OBJ);
 			
 			if( count($feeItems) > 0 )
 			{
@@ -3009,14 +4113,14 @@ $app->put('/updateStudent/', function () use($app) {
 				// if found, do not delete
 				foreach( $feeItems as $feeItem )
 				{
-					if( $feeItem['fee_item_id'] == $currentFeeItem->fee_item_id )
+					if( isset($feeItem['fee_item_id']) && $feeItem['fee_item_id'] == $currentFeeItem->fee_item_id )
 					{
 						$deleteMe = false;
 					}
 				}
 				foreach( $optFeeItems as $optFeeItem )
 				{
-					if( $optFeeItem['fee_item_id'] == $currentFeeItem->fee_item_id )
+					if( isset($optFeeItem['fee_item_id']) &&  $optFeeItem['fee_item_id'] == $currentFeeItem->fee_item_id )
 					{
 						$deleteMe = false;
 					}

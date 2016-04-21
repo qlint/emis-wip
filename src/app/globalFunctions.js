@@ -207,6 +207,26 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
         $rootScope.$broadcast('refreshPayments', args);
     });
 	
+	$rootScope.$on('feeItemAdded', function(event, args) {
+        $rootScope.$broadcast('refreshItems', args);
+    });
+	
+	$rootScope.$on('deptAdded', function(event, args) {
+        $rootScope.$broadcast('refreshDepartments', args);
+    });
+	
+	$rootScope.$on('termAdded', function(event, args) {
+        $rootScope.$broadcast('refreshDates', args);
+    });
+	
+	$rootScope.$on('subjectAdded', function(event, args) {
+        $rootScope.$broadcast('refreshSubjects', args);
+    });
+	$rootScope.$on('classAdded', function(event, args) {
+        $rootScope.$broadcast('refreshClasses', args);
+    });
+	
+	
 	$rootScope.getClassCats = function()
 	{
 		// get class categories

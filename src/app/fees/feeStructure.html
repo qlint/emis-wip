@@ -1,0 +1,62 @@
+<div ng-controller="feeStructureCtrl">	
+	
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+		
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+		
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+					<div class="btn add-btn" title="Make Payment" ng-show="permissions.fees.fee_structure.add" ng-click="addFeeItem()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Fee Item</span></a></div>
+					<div class="btn" title="Export" ng-click="exportItems()"><a class="clickable"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
+				</div>				
+			</div>
+			
+			<div class="clearfix">
+				<h1 id="pageTitle">Fee Structure</h1>
+			</div>			
+			
+		</div>
+		
+		<div class="full-height datagrid main-datagrid" ng-class="{tableLoading: loading}">
+			
+			<table id="resultsTable" class="display clickable" cellspacing="0" width="100%">
+				<thead>
+					<tr>
+						<th></th>
+						<th>Item Name</th>
+						<th>Default Fee ({{currency}})</th>
+						<th>Frequency</th>
+						<th>Class Categories</th>
+						<th>New Student Only</th>
+					</tr>
+				</thead>	
+				<tbody>
+					<tr ng-repeat="item in items track by $index">
+						<td></td>
+						<td id="{{item.fee_item_id}}" class="fee_item_id" ng-click="viewFeeItem(item)">{{item.fee_item}}</td>
+						<td ng-click="viewFeeItem(item)">{{item.default_amount}}</td>
+						<td ng-click="viewFeeItem(item)">{{item.frequency}}</td>
+						<td ng-click="viewFeeItem(item)">{{item.class_categories|arrayToList}}</td>
+						<td ng-click="viewFeeItem(item)">{{item.new_student}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>	
+	</div>
+</div>
+
+
+

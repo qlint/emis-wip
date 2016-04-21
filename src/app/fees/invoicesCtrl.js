@@ -51,7 +51,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		// get terms
 		if( $rootScope.terms === undefined )
 		{
-			apiService.getTerms({}, function(response){
+			var year = moment().format('YYYY');
+			apiService.getTerms(year, function(response){
 				var result = angular.fromJson(response);				
 				if( result.response == 'success')
 				{ 

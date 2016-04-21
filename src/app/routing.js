@@ -81,5 +81,55 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
+	.state('fees/fee_structure', {
+      url: "/fees/fee_structure",
+	  templateUrl: 'app/fees/feeStructure.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('school/departments', {
+      url: "/school/departments",
+	  templateUrl: 'app/school/departments.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('school/classes', {
+      url: "/school/classes",
+	  templateUrl: 'app/school/classes.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('school/subjects', {
+      url: "/school/subjects",
+	  templateUrl: 'app/school/subjects.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('school/grading', {
+      url: "/school/grading",
+	  templateUrl: 'app/school/grading.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('school/school_dates', {
+      url: "/school/school_dates",
+	  templateUrl: 'app/school/dates.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('school/school_settings', {
+      url: "/school/school_settings",
+	  templateUrl: 'app/school/settings.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	
 	;
 }]);
