@@ -24,6 +24,10 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateDepartment/", successFunction, errorFunction, params);
 	};
 	
+	this.updateSetting = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateSetting/", successFunction, errorFunction, params);
+	};
+	
 	this.updateSettings = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateSettings/", successFunction, errorFunction, params);
 	};

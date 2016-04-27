@@ -298,9 +298,19 @@ h1{
     z-index: 9999;
 }
 /********************** Dashboard Styles ******************************/
-.dashboard .dashboard-panel{
+.dashboard .dashboard-panel,
+.school_settings .dashboard-panel{
 	background-color:#eee;
 	margin-bottom:10px;
+}
+
+.school_settings .dashboard-panel{
+	.form-group{
+		margin-bottom:3px;
+	}
+	.pic-container{
+		margin-top:50%;
+	}
 }
 .dashboard-panel{
 	margin:0 -10px;
@@ -340,6 +350,9 @@ h1{
 		height: 24px;
 		padding: 3px;
 	}
+	input[type=file] {
+		border:none!important;
+	}
 	
 	.input-group{
 		margin-bottom:5px;
@@ -355,6 +368,17 @@ h1{
 	}
 	
 	
+}
+.school_settings {
+	.dashboard-panel-header{
+		border-bottom:1px solid $mid-gray;
+	}
+	.dashboard-panel-body{
+		background-color:#eee;
+	}
+	.dashboard-panel-footer{
+		margin:0;
+	}
 }
 .dataTables_wrapper.no-footer .dataTables_scrollBody{
 	border-bottom:none;
@@ -1114,6 +1138,10 @@ table.clickable{
 	.hasSubNav .main-datagrid,
 	{
 		padding-top:131px
+	}
+	.school_settings .hasSubNav .main-datagrid,
+	{
+		padding-top:90px
 	}
 	
 	table.dataTable tbody th, table.dataTable tbody td{

@@ -88,7 +88,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 			//adjustPositions();
 		}, 1000);
 		
-		
+		console.log( $rootScope.currentUser);
 		
 		
 	});
@@ -229,6 +229,17 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 	
 	$rootScope.$on('examMarksAdded', function(event, args) {
         $rootScope.$broadcast('refreshExamMarks', args);
+    });
+	
+	$rootScope.$on('setSettings', function(event, args) {
+
+        $rootScope.currentUser.settings = angular.copy(args);
+
+		// update the session variable
+		var sessionData = JSON.parse($window.sessionStorage["userInfo"]);
+		sessionData.settings = args;
+		$window.sessionStorage["userInfo"] = JSON.stringify(sessionData);
+
     });
 	
 	

@@ -108,11 +108,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 				var result = angular.fromJson( response );
 				if( result.response == 'success' )
 				{
-					$rootScope.currentUser.settings = result.data.reduce(function ( total, current ) { 
+					var settings = result.data.reduce(function ( total, current ) { 
 						total[ current.name ] = current.value;
 						return total;
 					}, {});
-					console.log($rootScope.currentUser.settings);
+					console.log(settings);
+					
+					$rootScope.$emit('setSettings', settings);
+					
 				}		
 				
 			},apiError);
@@ -141,7 +144,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 				value: $scope.category.name,
 				append: true
 			}
-			apiService.updateSettings(postData, createCompleted, apiError);
+			apiService.updateSetting(postData, createCompleted, apiError);
 			
 			
 		}; // end save
