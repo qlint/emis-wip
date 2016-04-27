@@ -138,7 +138,7 @@ $app->put('/updateSettings/', function () use($app) {
 		else
 		{
 			// add
-			$sth = $db->prepare("INSERT app.settings(name, value)
+			$sth = $db->prepare("INSERT INTO app.settings(name, value)
 								VALUES(:name,:value)");
 	 
 			$sth->execute( array(':name' => $name, ':value' => $value ) );	
@@ -645,20 +645,42 @@ $app->get('/getClassCats/', function () {
 $app->post('/addClassCat/', function () use($app) {
     // Add class category
 	
-	$allPostVars = $app->request->post();
-	$classCatName = $allPostVars['class_cat_name'];
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$classCatName = ( isset($allPostVars['class_cat_name']) ? $allPostVars['class_cat_name']: null);
 
     try 
     {
+	
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.class_cats(class_cat_name) 
-            VALUES(:classCatName)");
-        $sth->execute( array(':classCatName' => $classCatName) );
- 
-		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
+			
+        $sth = $db->prepare("INSERT INTO app.class_cats(class_cat_name) VALUES(:classCatName)");
+		
+		$sth2 = $db->prepare("SELECT currval('app.class_cats_class_cat_id_seq') as class_cat_id");	
+	
+		$db->beginTransaction();
+		$sth->execute( array(':classCatName' => $classCatName) );
+		$sth2->execute();
+		$classCatId = $sth2->fetch(PDO::FETCH_OBJ);
+		$db->commit();
+		
+		$result = new stdClass();
+		$result->class_cat_id = $classCatId->class_cat_id;
+		$result->class_cat_name = $classCatName;
+	
+		if( $classCatId )
+		{ 
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array("response" => "success", "data" => $result));
+			$db = null;
+		}
+		else
+		{
+			$app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $e->getMessage() ));
+            $db = null;
+		}
  
  
     } catch(PDOException $e) {
@@ -2076,7 +2098,7 @@ $app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true
 							AND date_part('year', due_date) = :year
 							AND students.active = :status
 							AND canceled = false
-							GROUP BY students.student_id, class_name, class_id, class_cat_id");
+							GROUP BY students.student_id, class_name, class_id, class_cat_id, first_name, middle_name, last_name");
 		$sth->execute( array(':year' => $year, ':status' => $status) ); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
@@ -3249,6 +3271,10 @@ $app->put('/updateFeeItem/', function () use($app) {
 	$replaceable =	( isset($allPostVars['replaceable']) ? $allPostVars['replaceable']: 'f');
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
+	// convert $classCats to postgresql array
+	$classCatsStr = '{' . implode(',',$classCats) . '}';
+	
+	
     try 
     {
         $db = getDB();
@@ -3256,7 +3282,7 @@ $app->put('/updateFeeItem/', function () use($app) {
 							SET fee_item = :feeItem,
 								default_amount = :defaultAmount,
 								frequency = :frequency, 
-								class_cats_restriction = :classCats, 
+								class_cats_restriction = :classCatsStr, 
 								optional = :optional, 
 								new_student_only = :newStudent, 
 								replaceable = :replaceable, 
@@ -3268,7 +3294,7 @@ $app->put('/updateFeeItem/', function () use($app) {
 							 ':feeItem' => $feeItem, 
 							 ':defaultAmount' => $defaultAmount,
 							 ':frequency' => $frequency,
-							 ':classCats' => $classCats,
+							 ':classCatsStr' => $classCatsStr,
 							 ':optional' => $optional,
 							 ':newStudent' => $newStudent,
 							 ':replaceable' => $replaceable,

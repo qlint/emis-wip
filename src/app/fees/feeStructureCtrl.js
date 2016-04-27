@@ -90,6 +90,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 				} ],
 				paging: false,
 				destroy:true,				
+				order:[1,'asc'],
 				filter: true,
 				info: false,
 				sorting:[],

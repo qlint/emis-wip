@@ -224,7 +224,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		// show small dialog with add form
 		var dlg = $dialogs.create('addClassCategory.html','addClassCategoryCtrl',{},{size: 'sm',backdrop:'static'});
 		dlg.result.then(function(category){
-			
+			if( $rootScope.classCats === undefined ) $rootScope.classCats = [];
 			$rootScope.classCats.push(category);
 					
 		},function(){

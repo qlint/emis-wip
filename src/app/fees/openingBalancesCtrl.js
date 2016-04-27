@@ -73,7 +73,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			{	
 				if(result.nodata !== undefined )
 				{
-					$scope.students = {};
+					$scope.students = [];
 					$timeout(initDataGrid,10);
 				}
 				else

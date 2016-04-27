@@ -38,10 +38,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 					
 					if( result.response == 'success')
 					{
-						$scope.transportRoutes = result.data.map(function(item){
-							item.amount = parseFloat(item.amount);
-							return item;
-						});
+						if( result.nodata !== undefined) 
+						{
+							$scope.transportRoutes = [];
+						}
+						else
+						{
+							$scope.transportRoutes = result.data.map(function(item){
+								item.amount = parseFloat(item.amount);
+								return item;
+							});
+						}
 					}
 					
 				}, function(){});

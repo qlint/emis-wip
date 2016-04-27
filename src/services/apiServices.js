@@ -83,6 +83,10 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addSubject/", successFunction, errorFunction, params);
 	};
 	
+	this.addClassCat = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addClassCat/", successFunction, errorFunction, params);
+	};
+	
 	this.updateSubject = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPut(request, "http://api.eduweb.localhost/updateSubject/", successFunction, errorFunction, params);
 	};

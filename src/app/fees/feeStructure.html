@@ -47,7 +47,7 @@
 					<tr ng-repeat="item in items track by $index">
 						<td></td>
 						<td id="{{item.fee_item_id}}" class="fee_item_id" ng-click="viewFeeItem(item)">{{item.fee_item}}</td>
-						<td ng-click="viewFeeItem(item)">{{item.default_amount}}</td>
+						<td ng-click="viewFeeItem(item)" data-order="{{item.default_amount_raw}}">{{item.default_amount}}</td>
 						<td ng-click="viewFeeItem(item)">{{item.frequency}}</td>
 						<td ng-click="viewFeeItem(item)">{{item.class_categories|arrayToList}}</td>
 						<td ng-click="viewFeeItem(item)">{{item.new_student}}</td>

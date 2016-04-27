@@ -124,7 +124,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		
 		$scope.save = function()
 		{
-			apiService.updateSettings($scope.classCat.class_cat_name, createCompleted, apiError);
+			var data = {
+				class_cat_name : $scope.classCat.class_cat_name
+			}
+			apiService.addClassCat(data, createCompleted, apiError);
 		}; // end save
 		
 		
@@ -133,7 +136,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			var result = angular.fromJson( response );
 			if( result.response == 'success' )
 			{
-				$uibModalInstance.close($scope.classCat.class_cat_name);
+				$uibModalInstance.close(result.data);
 			}
 			else
 			{

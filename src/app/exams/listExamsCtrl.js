@@ -32,9 +32,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				if( result.response == 'success') 
 				{
 					$rootScope.allClasses = result.data;
-					$scope.classes = $rootScope.allClasses;
+					$scope.classes = $rootScope.allClasses || [];
 					$scope.filters.class = $scope.classes[0];
-					$scope.filters.class_id = $scope.classes[0].class_id;
+					$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
 					deferred.resolve();
 				}
 				else
@@ -119,7 +119,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 		// need to wait for three data pieces, then run this
 		$q.all(requests).then(function () {
-			$scope.getStudentExams();
+			if( $scope.filters.class_id !== null ) $scope.getStudentExams();
 		});	
 		
 	}

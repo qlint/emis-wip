@@ -89,12 +89,17 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						},
 					},
 					'school':{
-						'departments': {
+						'school_settings': {
 							'view': true,
 							'add': true,
 							'edit': true,
 						},
-						'classes': {
+						'school_dates': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},						
+						'grading': {
 							'view': true,
 							'add': true,
 							'edit': true,
@@ -104,21 +109,17 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true,
 						},
-						'grading': {
+						'departments': {
 							'view': true,
 							'add': true,
 							'edit': true,
 						},
-						'school_dates': {
+						'classes': {
 							'view': true,
 							'add': true,
 							'edit': true,
-						},
-						'school_settings': {
-							'view': true,
-							'add': true,
-							'edit': true,
-						},
+						}				
+
 					},
 					'exams':{
 						'view': true,
