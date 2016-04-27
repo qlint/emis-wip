@@ -249,7 +249,7 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $st
 
 });
 
-$app->get('/getClassExams/:class_id', function ($classId) {
+$app->get('/getClassExams/:class_id(/:exam_type_id)', function ($classId, $examTypeId = null) {
     //Show classes exams
 	
 	$app = \Slim\Slim::getInstance();
@@ -257,8 +257,7 @@ $app->get('/getClassExams/:class_id', function ($classId) {
     try 
     {
         $db = getDB();
-
-        $sth = $db->prepare("SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, 
+		$query = "SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, 
 								subject_name, class_subject_exams.exam_type_id, exam_type, grade_weight
 							FROM app.class_subjects 
 							INNER JOIN app.class_subject_exams
@@ -268,8 +267,16 @@ $app->get('/getClassExams/:class_id', function ($classId) {
 							INNER JOIN app.subjects
 							ON class_subjects.subject_id = subjects.subject_id
 							WHERE class_id = :classId
-							");
-        $sth->execute( array(':classId' => $classId) );
+							";
+		$params = array(':classId' => $classId);
+		if( $examTypeId !== null )
+		{
+			$query .= "AND class_subject_exams.exam_type_id = :examTypeId";
+			$params[':examTypeId'] = $examTypeId; 
+		}
+		
+        $sth = $db->prepare($query);
+        $sth->execute( $params  );
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
@@ -1736,28 +1743,31 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$term
     //Get all student exam marks
 	
 	$app = \Slim\Slim::getInstance();
- 
+	
     try 
     {
-        $db = getDB();
-		
-		$sth1 = $db->prepare("select app.colpivot('_exam_marks', 'select student_id, student_name, 
-																		(select sum(mark) from app.student_exam_marks where student_id = q.student_id) as sum, 
-																		(select sum(grade_weight) from app.student_exam_marks where student_id = q.student_id) as total, 
-																		subject_name, mark, grade_weight
-																		from app.student_exam_marks q 
-																	where class_id = $classId
-																	and exam_type_id = $examTypeId 
-																	and (term_id = $termId or term_id is null)',
-								array['student_id','student_name','sum','total'], array['subject_name','grade_weight'], '#.mark', null);");
-		$sth2 = $db->prepare("select * from _exam_marks order by student_id;");
-		
-		$db->beginTransaction();
-		$sth1->execute(); 
-		$sth2->execute();
-		$results = $sth2->fetchAll(PDO::FETCH_OBJ);
-		$db->commit();
-        
+		// need to make sure class, term and type are integers
+		if( is_numeric($classId) && is_numeric($termId) && is_numeric($examTypeId) )
+		{
+			$db = getDB();
+			
+			$sth1 = $db->prepare("select app.colpivot('_exam_marks', 'select student_id, student_name, 
+																			(select sum(mark) from app.student_exam_marks where student_id = q.student_id) as sum, 
+																			(select sum(grade_weight) from app.student_exam_marks where student_id = q.student_id) as total, 
+																			subject_name, mark, grade_weight
+																			from app.student_exam_marks q 
+																		where class_id = $classId
+																		and exam_type_id = $examTypeId 
+																		and (term_id = $termId or term_id is null)',
+									array['student_id','student_name','sum','total'], array['subject_name','grade_weight'], '#.mark', null);");
+			$sth2 = $db->prepare("select * from _exam_marks order by student_id;");
+			
+			$db->beginTransaction();
+			$sth1->execute(); 
+			$sth2->execute();
+			$results = $sth2->fetchAll(PDO::FETCH_OBJ);
+			$db->commit();
+		}			
 		
         if($results) {
             $app->response->setStatus(200);
@@ -1773,7 +1783,8 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$term
  
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+        //echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		 echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
     }
 
 });
@@ -1790,8 +1801,18 @@ $app->post('/addExamMarks/', function () use($app) {
     {
         $db = getDB();
 		
-		$sth = $db->prepare("INSERT INTO app.exam_marks(student_id, class_sub_exam_id, term_id, mark, created_by) 
+		$getExam = $db->prepare("SELECT exam_id FROM app.exam_marks WHERE student_id = :studentId AND class_sub_exam_id = :classSubExamId AND term_id = :termId");
+		
+		$addMark = $db->prepare("INSERT INTO app.exam_marks(student_id, class_sub_exam_id, term_id, mark, created_by) 
 								VALUES(:studentId, :classSubExamId, :termId, :mark, :userId)"); 
+		
+		$updateMark = $db->prepare("UPDATE app.exam_marks
+									SET mark = :mark,
+										modified_date = now(),
+										modified_by = :userId
+									WHERE exam_id = :examId"); 
+									
+		$deleteMark = $db->prepare("DELETE FROM app.exam_marks WHERE exam_id = :examId");
 		
 		$db->beginTransaction();
 		
@@ -1802,9 +1823,20 @@ $app->post('/addExamMarks/', function () use($app) {
 				$studentId = ( isset($mark['student_id']) ? $mark['student_id']: null);				
 				$classSubExamId = ( isset($mark['class_sub_exam_id']) ? $mark['class_sub_exam_id']: null);
 				$termId = ( isset($mark['term_id']) ? $mark['term_id']: null);
-				$mark = ( isset($mark['mark']) ? $mark['mark']: null);
+				$mark = ( isset($mark['mark']) && !empty($mark['mark']) ? $mark['mark']: null);
 				
-				$sth->execute( array(':studentId' => $studentId, ':classSubExamId' => $classSubExamId, ':termId' => $termId, ':mark' => $mark, ':userId' => $userId ) );
+
+				$currentExamMarks = $getExam->execute(array(':studentId' => $studentId, ':classSubExamId' => $classSubExamId, ':termId' => $termId ));
+				$examId = $getExam->fetch(PDO::FETCH_OBJ);
+				
+				if( $examId )
+				{
+					$updateMark->execute( array(':mark' => $mark, ':examId' => $examId->exam_id, ':userId' => $userId  ) );
+				}
+				else
+				{
+					$addMark->execute( array(':studentId' => $studentId, ':classSubExamId' => $classSubExamId, ':termId' => $termId, ':mark' => $mark, ':userId' => $userId ) );
+				}
 			}
 		}
 		

@@ -298,6 +298,10 @@ h1{
     z-index: 9999;
 }
 /********************** Dashboard Styles ******************************/
+.dashboard .dashboard-panel{
+	background-color:#eee;
+	margin-bottom:10px;
+}
 .dashboard-panel{
 	margin:0 -10px;
 	padding:5px;
@@ -596,7 +600,7 @@ table.clickable{
 		background: #eee;
 		margin-top: -15px;
 		padding-top: 15px;
-		margint-bottom:10px;
+		margin-bottom:10px;
 	}
 	.modal-tabs.main-tabs{
 		margin: 0 -14px;
@@ -720,6 +724,10 @@ table.clickable{
 			margin-top:12px;
 		}
 	}	
+	
+	.header .modalDataFilter{
+		padding:0 25px;
+	}
 	
 	.invoice-status{
 		margin-top: -16px;

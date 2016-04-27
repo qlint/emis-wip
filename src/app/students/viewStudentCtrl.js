@@ -174,6 +174,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// get data for filters
 			$scope.loading = true;	
 			
+			$scope.filters.class = $scope.student.current_class;
 			$scope.filters.class_cat_id = $scope.student.class_cat_id; // set the students current class category as default
 	
 			// filter the classes based on class category
@@ -797,10 +798,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	});
 	
+	$scope.$watch('filters.class',function(newVal,oldVal){
+		if( newVal == oldVal ) return;
+		
+		$scope.filters.class_id = newVal.class_id;
+
+		apiService.getExamTypes(newVal.class_cat_id, function(response){
+			var result = angular.fromJson(response);				
+			if( result.response == 'success'){ $scope.examTypes = result.data;}			
+		}, apiError);
+	});
+		
 	$scope.getExams = function()
 	{
 		// /:student_id/:class/:term/:type
-		//console.log($scope.dataGrid);
 		$scope.examMarks = {};
 		$scope.marksNotFound = false;
 		
@@ -878,6 +889,34 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.marksNotFound = true;
 			$scope.errMsg = result.data;
 		}
+	}
+	
+	$scope.addExamMarks = function()
+	{
+		var data = {
+			student_id : $scope.student.student_id,
+			classes: $scope.classes,
+			terms: $scope.terms,
+			examTypes: $scope.examTypes,
+			filters: $scope.filters
+		}
+
+		var dlg = $dialogs.create('addStudentExamMarks.html','addStudentExamMarksCtrl',data,{size: 'md',backdrop:'static'});
+		dlg.result.then(function(examMarks){
+			$scope.getExams();
+		},function(){
+			
+		});
+	}
+	
+	$scope.importExamMarks = function()
+	{
+		$rootScope.wipNotice();
+	}
+	
+	$scope.exportData = function()
+	{
+		$rootScope.wipNotice();
 	}
 	
 	/************************************* Update Function ***********************************************/
@@ -1475,6 +1514,189 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				'<button ng-show="!edit" type="button" class="btn btn-primary" ng-click="save()">Save</button>' +
 			'</div>'
 		);
-}]);
+}])
+.controller('addStudentExamMarksCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
+		
+		//-- Variables --//
+		console.log(data);
+		$scope.student_id = data.student_id;
+		$scope.filters = data.filters;
+		$scope.classes = data.classes;
+		$scope.terms = data.terms;
+		$scope.examTypes = data.examTypes;
+		
+		//-- Methods --//
+		$scope.cancel = function(){
+			$uibModalInstance.dismiss('Canceled');
+		}; // end cancel
+		
+		$scope.$watch('filters.class',function(newVal,oldVal){
+			if( newVal == oldVal ) return;
+			
+			$scope.filters.class_id = newVal.class_id;
+
+			apiService.getExamTypes(newVal.class_cat_id, function(response){
+				var result = angular.fromJson(response);				
+				if( result.response == 'success'){ $scope.examTypes = result.data;}			
+			}, apiError);
+		});
+		
+		$scope.getStudentExams = function()
+		{
+			// /:student_id/:class/:term/:type
+			$scope.examMarks = {};
+			$scope.marksNotFound = false;
+			$scope.currentFilters = angular.copy($scope.filters);
+			
+			var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id;
+			apiService.getClassExams(request, function(response){
+				$scope.loading = false;
+				var result = angular.fromJson( response );
+				if( result.response == 'success' )
+				{
+					var subjects = result.data;
+					
+					// populate any already entered exam marks
+					var request = $scope.student_id + '/' + $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+					apiService.getStudentExamMarks(request, function(response){
+						$scope.loading = false;
+						var result = angular.fromJson( response );
+						if( result.response == 'success' )
+						{
+							$scope.marks = result.data;
+							
+							$scope.subjects = subjects.map(function(item){
+								var mark = $scope.marks.filter(function(item2){
+									if( item2.subject_name == item.subject_name ) return item2;
+								})[0];
+								item.mark = mark.mark;
+								return item;
+							});
+							console.log($scope.subjects );
+						}
+					}, apiError);
+					
+				}
+			}, apiError);
+
+			
+		}
+		
+		$scope.save = function()
+		{
+			var examMarks = [];
+			angular.forEach($scope.subjects, function(item,key){
+				examMarks.push({
+					student_id : $scope.student_id,
+					class_sub_exam_id: item.class_sub_exam_id,
+					term_id: $scope.currentFilters.term_id,
+					mark: item.mark
+				});
+			});
+			
+			var data = {
+				user_id: $rootScope.currentUser.user_id,
+				exam_marks: examMarks
+			}
+			console.log(data);
+			apiService.addExamMarks(data,createCompleted,apiError);				
+			
+		}; // end save
+		
+		var createCompleted = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				// loop through results and add medical_id to each condition				
+				$uibModalInstance.close($scope.subjects);
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		}
+		
+		var apiError = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+		
+		$scope.hitEnter = function(evt){
+			if( angular.equals(evt.keyCode,13) )
+				$scope.save();
+		};
+		
+		var apiError = function (response, status) 
+		{
+			var result = angular.fromJson( response );
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+	
+	
+	}) // end controller(addCargoCtrl)
+.run(['$templateCache',function($templateCache){
+  		$templateCache.put('addStudentExamMarks.html',
+			'<div class="modal-header dialog-header-form">'+
+				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Exam Marks</h4>' +
+			'</div>' +
+			'<div class="modal-body cleafix">' +
+				'<ng-form name="cargoDialog" class="form-horizontal modalForm" novalidate role="form">' +									
+					'<div ng-show="error" class="alert alert-danger">' +
+						'{{errMsg}}'+
+					'</div>' +
+					'<div class="row header">' +		
+						'<div class="modalDataFilter col-sm-12 clearfix">	' +
+							'<!-- Class -->' +
+							'<div class="form-group">' +
+								'<label for="class">Class</label>' +
+								'<select class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">' +
+									'<option value="">--select class--</option>' +
+								'</select>' +
+							'</div>	' +
+							'<!-- Term -->' +
+							'<div class="form-group">' +
+								'<label for="term">Term</label>	' +
+								'<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id">' +
+									'<option value="">--select term--</option>' +
+								'</select>' +
+							'</div>' +
+							'<!-- Exam -->' +
+							'<div class="form-group">' +
+								'<label for="term">Exam</label>' +
+								'<select id="term" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" >' +
+									'<option value="">-- select exam --</option>' +		
+								'</select>' +
+							'</div>' +
+							'<!-- search btn -->' +
+							'<div class="form-group submit-btn">' +
+								'<input type="button" class="btn btn-sm btn-info" ng-click="getStudentExams()" value="Load" />' +
+								'<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>' +
+							'</div>	' +
+							'<hr>' +
+						'</div>' +
+					'</div>' +
+					'<div class="row">' +
+						'<div class="col-sm-6" ng-repeat="item in subjects track by $index">' +
+							'<label class="col-sm-6">{{item.subject_name}}</label>' +
+							'<div class="input-group col-sm-6">' +
+								'<input type="text" class="form-control" ng-model="item.mark" >' +
+								'<div class="input-group-addon"> / {{item.grade_weight}}</div>' +
+							'</div>' +
+						'</div>' +
+					'</div>' +							
+				'</ng-form>' +
+			'</div>'+
+			'<div class="modal-footer">' +
+				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
+				'<button type="button" class="btn btn-primary" ng-click="save()">Save</button>' +
+			'</div>'
+		);
+}])
+;
 
 

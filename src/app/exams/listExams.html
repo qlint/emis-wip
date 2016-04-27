@@ -34,7 +34,7 @@
 					<div class="form-group">
 						<label for="class">Class</label>	
 						<select name="class" id="class" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
-							<option value="">All Classes</option>
+							<option value="">--select class--</option>
 						</select>
 					</div>		
 
@@ -50,7 +50,7 @@
 					<div class="form-group">
 						<label for="term">Exam</label>	
 						<select id="term" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" >
-							<option value="">All Exams</option>				
+							<option value="">-- select exam --</option>				
 						</select>
 					</div>	
 					
@@ -68,29 +68,39 @@
 			
 		</div>
 		
-		<div class="full-height datagrid main-datagrid" ng-class="{tableLoading: loading}">
+		
+		
+		<div class="full-height datagrid main-datagrid" ng-class="{tableLoading: loading}" >
 			<p ng-show="marksNotFound" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
 			
-			<table ng-show="!marksNotFound" id="resultsTable" class="display dataTable clickable" cellspacing="0" width="100%">
-				<thead>
-					<tr>
-						<th></th>
-						<th>Student</th>
-						<th>Position</th>
-						<th class="center" ng-repeat="col in tableHeader">{{col.title}}</th>
-					</tr>
-				</thead>	
-				<tbody>
-					<tr ng-repeat="item in examMarks track by $index">
-						<td></td>
-						<td ng-click="editExamMarks(item)" id="{{item.student_id}}">{{item.student_name}}</td>
-						<td ng-click="editExamMarks(item)" class="center">{{$index+1}}</td>
-						<td ng-click="editExamMarks(item)" class="center" ng-repeat="col in tableHeader" ng-bind="displayMark($parent.$index, col.key)"></td>
-					</tr>
-				</tbody>
-			</table>
+			<div class="tab-content clearfix" ng-include="getReport"></div>
+			
+			<script type="text/ng-template" id="examsTable">
+				<table ng-show="!marksNotFound" id="resultsTable" class="display dataTable clickable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Student</th>
+							<th>Total</th>
+							<th>Position</th>
+							<th class="center" ng-repeat="col in tableHeader">{{col.title}}</th>
+						</tr>
+					</thead>	
+					<tbody>
+						<tr ng-repeat="item in examMarks track by $index">
+							<td></td>
+							<td id="{{item.student_id}}">{{item.student_name}}</td>
+							<td id="{{item.student_id}}">{{item.sum}}</td>
+							<td class="center">{{$index+1}}</td>
+							<td class="center" ng-repeat="col in tableHeader" ng-bind="displayMark($parent.$index, col.key)"></td>
+						</tr>
+					</tbody>
+				</table>
+			</script>
+			
+			
 		</div>
 		
 	</div>

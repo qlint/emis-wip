@@ -20,7 +20,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	setTimeout(initializeController,1);
 	
 	
-	$scope.$watch('filter.class',function(newVal,oldVal){
+	$scope.$watch('filters.class',function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 		
 		$scope.filters.class_id = newVal.class_id;
@@ -183,7 +183,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		if ( !form.$invalid ) 
 		{
-			console.log($scope.examMarks);
 			var examMarks = [];
 			angular.forEach($scope.examMarks, function(item,index){
 				
@@ -192,9 +191,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				angular.forEach(item, function(value,key){
 					
 					if( ignoreCols.indexOf(key) === -1 )
-					{
-						console.log(key);
-						
+					{						
 						exam = $scope.classSubjectExams.filter(function(a){
 							if( "'" + a.subject_name + "', '" + a.grade_weight + "'" == key ) return a;
 						})[0];
@@ -211,8 +208,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					}
 					
 				});
-				
-				
 				
 			});
 			

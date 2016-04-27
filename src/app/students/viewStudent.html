@@ -10,7 +10,7 @@
 			</p>
 				 			
 			<div class="row">
-				<div class="col-sm-12">
+				<div class="col-sm-12 clearfix">
 					<div class="modal-tabs main-tabs">					
 						<ul class="nav nav-tabs">
 							<li ng-class="{active: currentTab==item}" ng-repeat="item in tabs"><a class="clickable" ng-click="getTabContent(item)">{{item}}</a></li>
@@ -708,8 +708,9 @@
 				</div>
 			</script>
 			
-			<script type="text/ng-template" id="Exams">
+			<script type="text/ng-template" id="Exams">				
 				<h2>Exams</h2>
+				<button type="button" class="pull-right btn btn-link" ng-click="addExamMarks()"><i class="glyphicon glyphicon-plus-sign"></i> Add Exam Marks</button>
 				
 				<!-- search form -->
 				<div class="modalDataFilter clearfix">	
@@ -723,7 +724,7 @@
 					<!-- class select -->
 					<div class="form-group">
 						<label for="class">Class</label>	
-						<select class="form-control" ng-options="item.class_id as item.class_name for item in classes" ng-model="filters.class_id" ignore-dirty>
+						<select class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" ignore-dirty>
 							<option value="">--select class--</option>
 						</select>	
 					</div>		
@@ -753,6 +754,7 @@
 				</div>
 				<!-- // end search form -->
 				
+				
 				<p ng-show="marksNotFound" class="error alert alert-danger">
 					{{errMsg}}
 				</p>
@@ -760,14 +762,12 @@
 				<table ng-show="!marksNotFound" id="resultsTable2" class="display dataTable clickable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
-							<th></th>
 							<th>Exam</th>
 							<th class="center" ng-repeat="item in examMarks.subjects">{{item}}</th>
 						</tr>
 					</thead>	
 					<tbody>
 						<tr ng-repeat="item in examMarks.types track by $index">
-							<td></td>
 							<td id="{{item.exam_id}}">{{item.exam_type}}</td>
 							<td class="center" ng-repeat="mark in item.marks track by $index">{{mark}}</td>
 						</tr>

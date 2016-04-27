@@ -258,6 +258,16 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		$scope.openModal('students', 'viewStudent', 'lg',student);
 	}
 	
+	$scope.importStudents = function()
+	{
+		$rootScope.wipNotice();
+	}
+	
+	$scope.exportData = function()
+	{
+		$rootScope.wipNotice();
+	}
+	
 	$scope.$on('refreshStudents', function(event, args) {
 
 		$scope.loading = true;

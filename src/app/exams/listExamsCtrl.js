@@ -13,7 +13,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	var isFiltered = false;	
 	$rootScope.modalLoading = false;
 	$scope.alert = {};
-	
+	$scope.refreshing = false;
+	$scope.getReport = "examsTable";
 	
 	var initializeController = function () 
 	{
@@ -32,6 +33,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				{
 					$rootScope.allClasses = result.data;
 					$scope.classes = $rootScope.allClasses;
+					$scope.filters.class = $scope.classes[0];
 					$scope.filters.class_id = $scope.classes[0].class_id;
 					deferred.resolve();
 				}
@@ -45,6 +47,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		else
 		{
 			$scope.classes = $rootScope.allClasses;
+			$scope.filters.class = $scope.classes[0];
 			$scope.filters.class_id = $scope.classes[0].class_id;
 			deferred.resolve();
 		}
@@ -136,14 +139,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.getStudentExams = function()
 	{
 		$scope.examMarks = {};
+		$scope.tableHeader = [];
 		$scope.marksNotFound = false;
+		$scope.getReport = "";
 		
-		if( $scope.dataGrid !== undefined )
-		{
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;
-		}
-
 		var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
 		apiService.getAllStudentExamMarks(request, loadMarks, apiError);
 	}
@@ -157,7 +156,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			if( result.nodata )
 			{
 				$scope.marksNotFound = true;
-				$scope.errMsg = "There are currently no exam marks entered for this search criteria.";
+				$scope.errMsg = ( result.nodata == 'No students found' ? "There are currently no students and/or subjects set for the selected class." : "There are currently no exam marks entered for this search criteria.");				
 			}
 			else
 			{
@@ -176,11 +175,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						});
 					}
 				});
-
+				console.log($scope.tableHeader);
 				console.log($scope.examMarks);
-				
-				
-				$timeout(initDataGrid,10);
+
+				$scope.getReport = "examsTable";
+				$timeout(initDataGrid,100);
 			}
 		}
 		else
@@ -197,6 +196,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	
 	var initDataGrid = function() 
 	{
+		if( $scope.dataGrid !== undefined )
+		{
+			$scope.dataGrid.destroy();
+			$('.fixedHeader-floating').remove();
+		}
+		
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {
@@ -211,7 +216,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				} ],
 				paging: false,
 				destroy:true,
-				order: [2,'asc'],
+				order: [3,'asc'],
 				filter: true,
 				info: false,
 				sorting:[],
@@ -310,9 +315,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.openModal('exams', 'addExamMarks', 'lg', data);
 	}
 	
-	$scope.editExamMarks = function(student)
+	$scope.importExamMarks = function()
 	{
-		$scope.openModal('exams', 'editExamMarks', 'lg',student);
+		$rootScope.wipNotice();
+	}
+	
+	$scope.exportData = function()
+	{
+		$rootScope.wipNotice();
 	}
 	
 	$scope.$on('refreshExamMarks', function(event, args) {
@@ -339,6 +349,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.refresh = function () 
 	{
 		$scope.loading = true;
+		$scope.refreshing = true;
 		$rootScope.loading = true;
 		$scope.getStudentExams();
 	}
