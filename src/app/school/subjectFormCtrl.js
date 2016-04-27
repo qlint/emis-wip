@@ -3,9 +3,10 @@
 angular.module('eduwebApp').
 controller('subjectFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
-
-	$scope.edit = ( data !== undefined ? true : false );
+	
 	$scope.subject = ( data !== undefined ? data : {} );
+	$scope.edit = (  data !== undefined && data.subject_id !== undefined ? true : false );
+	
 	console.log(data);
 	
 	$scope.initializeController = function()
@@ -24,7 +25,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	$scope.save = function(form)
 	{
-		console.log(form);
+		
 		if ( !form.$invalid ) 
 		{
 			var data = $scope.subject;

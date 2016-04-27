@@ -50,7 +50,7 @@ $app->post('/login/', function () use($app){
     {
         $db = getDB();
         $sth = $db->prepare("SELECT user_id, username, active, first_name, middle_name, last_name, email, user_type
-								FROM hog.users WHERE username= :username AND password = :password AND active is true");
+								FROM app.users WHERE username= :username AND password = :password AND active is true");
         $sth->execute( array(':username' => $username, ':password' => $pwd) );
  
         $result = $sth->fetch(PDO::FETCH_OBJ);
@@ -60,7 +60,7 @@ $app->post('/login/', function () use($app){
             $app->response()->headers->set('Content-Type', 'application/json');
 			
 			// grad the users settings and add to result
-			$sth2 = $db->prepare("SELECT name, value FROM hog.settings");
+			$sth2 = $db->prepare("SELECT name, value FROM app.settings");
 			$sth2->execute();
 			$settings = $sth2->fetchAll(PDO::FETCH_OBJ);
 			$result->settings = $settings;			
@@ -88,7 +88,7 @@ $app->get('/getSettings/', function () {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT name, value FROM hog.settings");
+        $sth = $db->prepare("SELECT name, value FROM app.settings");
 		$sth->execute();
 		$settings = $sth->fetchAll(PDO::FETCH_OBJ);
  
@@ -121,7 +121,7 @@ $app->put('/updateSettings/', function () use($app) {
         $db = getDB();
 		// check if setting exists
 		
-		$query = $db->prepare("SELECT * FROM hog.settings WHERE name = :name");
+		$query = $db->prepare("SELECT * FROM app.settings WHERE name = :name");
 		$query->execute( array(':name' => $name ) );
 		$results = $query->fetch(PDO::FETCH_OBJ);
 		
@@ -129,7 +129,7 @@ $app->put('/updateSettings/', function () use($app) {
 		{
 			// update, append new value to end if append is true
 			if( $append) $value = $results->value . ',' . $value;
-			$sth = $db->prepare("UPDATE hog.settings
+			$sth = $db->prepare("UPDATE app.settings
 				SET value = :value
 				WHERE name = :name");
 	 
@@ -138,7 +138,7 @@ $app->put('/updateSettings/', function () use($app) {
 		else
 		{
 			// add
-			$sth = $db->prepare("INSERT hog.settings(name, value)
+			$sth = $db->prepare("INSERT app.settings(name, value)
 								VALUES(:name,:value)");
 	 
 			$sth->execute( array(':name' => $name, ':value' => $value ) );	
@@ -158,6 +158,7 @@ $app->put('/updateSettings/', function () use($app) {
     }
 });
 
+
 // ************** Classes  ****************** //
 $app->get('/getAllClasses(/:status)', function ($status = true) {
     //Show all classes
@@ -168,7 +169,7 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
     {
         $db = getDB();
         $sth = $db->prepare("SELECT class_id, class_name, class_cat_id, teacher_id, active
-            FROM hog.classes
+            FROM app.classes
             WHERE active = :status
 			ORDER BY class_cat_id, class_id"); 
        $sth->execute( array(':status' => $status ) );
@@ -205,10 +206,10 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $st
 		$params = array(':status' => $status);
 		$query = "SELECT class_id, class_name, classes.class_cat_id, teacher_id, classes.active, class_cat_name,
 					classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
-					(select array_agg(subject_name) from hog.class_subjects inner join hog.subjects using (subject_id) where class_subjects.class_id = classes.class_id) as subjects
-            FROM hog.classes
-			INNER JOIN hog.class_cats ON classes.class_cat_id = class_cats.class_cat_id
-			LEFT JOIN hog.employees ON classes.teacher_id = employees.emp_id
+					(select array_agg(distinct subject_name) from app.class_subjects inner join app.subjects using (subject_id) where class_subjects.class_id = classes.class_id) as subjects
+            FROM app.classes
+			INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+			LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
             WHERE classes.active = :status
 			";
 			
@@ -248,7 +249,7 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $st
 
 });
 
-$app->get('/getClassExams/class_id', function ($classId) {
+$app->get('/getClassExams/:class_id', function ($classId) {
     //Show classes exams
 	
 	$app = \Slim\Slim::getInstance();
@@ -259,12 +260,12 @@ $app->get('/getClassExams/class_id', function ($classId) {
 
         $sth = $db->prepare("SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, 
 								subject_name, class_subject_exams.exam_type_id, exam_type, grade_weight
-							FROM hog.class_subjects 
-							INNER JOIN hog.class_subject_exams
-								INNER JOIN hog.exam_types
+							FROM app.class_subjects 
+							INNER JOIN app.class_subject_exams
+								INNER JOIN app.exam_types
 								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 							ON class_subjects.class_subject_id = class_subject_exams.class_subject_id
-							INNER JOIN hog.subjects
+							INNER JOIN app.subjects
 							ON class_subjects.subject_id = subjects.subject_id
 							WHERE class_id = :classId
 							");
@@ -272,13 +273,7 @@ $app->get('/getClassExams/class_id', function ($classId) {
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
-        if($results) {
-		
-			foreach( $results as $result)
-			{
-				$result->subjects = pg_array_parse($result->subjects);
-			}
-			
+        if($results) {		
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));
@@ -297,23 +292,58 @@ $app->get('/getClassExams/class_id', function ($classId) {
 
 });
 
-
 $app->post('/addClass/', function () use($app) {
     // Add class
 	
-	$allPostVars = $app->request->post();
-	$className = $allPostVars['class_name'];
-	$classCatId = $allPostVars['class_cat_id'];
-	$teacherId = $allPostVars['teacher_id'];
-	$userId = $allPostVars['user_id'];
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$className = 	( isset($allPostVars['class_name']) ? $allPostVars['class_name']: null);
+	$classCatId = 	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$teacherId = 	( isset($allPostVars['teacher_id']) ? $allPostVars['v']: null);
+	$subjects =  	( isset($allPostVars['subjects']) ? $allPostVars['subjects']: null);	
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO hog.classes(class_name, class_cat_id, teacher_id, created_by) 
+        $sth = $db->prepare("INSERT INTO app.classes(class_name, class_cat_id, teacher_id, created_by) 
             VALUES(:className, :classCatId, :teacherId, :userId)");
- 
-        $sth->execute( array(':className' => $className, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId ) );
+ 		
+		if( count($subjects) > 0 )
+		{
+			$sth2 = $db->prepare("INSERT INTO app.class_subjects(class_id, subject_id, created_by)
+									VALUES(currval('app.classes_class_id_seq'), :subjectId, :userId)");
+			
+			$sth3 = $db->prepare("INSERT INTO app.class_subject_exams(class_subject_id, exam_type_id, grade_weight, created_by)
+									VALUES(currval('app.class_subjects_class_subject_id_seq'), :examTypeId, :gradeWeight, :userId)");
+		}
+		
+		$db->beginTransaction();
+		
+		$sth->execute( array(':className' => $className, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId ) );
+		
+		if( count($subjects) > 0 )
+		{
+			foreach( $subjects as $subject )
+			{
+				$subjectId = ( isset($subject['subject_id']) ? $subject['subject_id']: null);
+				$sth2->execute( array(':subjectId' => $subjectId, ':userId' => $userId ) );
+				
+				if( count($subject['exams']) > 0 )
+				{
+					foreach( $subject['exams'] as $exam )
+					{
+						$examTypeId = ( isset($exam['exam_type_id']) ? $exam['exam_type_id']: null);
+						$gradeWeight = ( isset($exam['grade_weight']) ? $exam['grade_weight']: null);
+						
+						$sth3->execute( array(':examTypeId' => $examTypeId, ':gradeWeight' => $gradeWeight, ':userId' => $userId ) );
+
+					}
+				}
+				
+			}
+		}
+		
+		$db->commit();
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -331,24 +361,232 @@ $app->post('/addClass/', function () use($app) {
 $app->put('/updateClass/', function () use($app) {
     // Update class
 	
-	$allPostVars = $app->request->post();
-	$classId = $allPostVars['class_id'];
-	$className = $allPostVars['class_name'];
-	$classCatId = $allPostVars['class_cat_id'];
-	$teacherId = $allPostVars['teacher_id'];
-	$active = $allPostVars['active'];
-	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$classId = 		( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+	$className = 	( isset($allPostVars['class_name']) ? $allPostVars['class_name']: null);
+	$classCatId = 	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$teacherId = 	( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
+	$subjects =  	( isset($allPostVars['subjects']) ? $allPostVars['subjects']: null);	
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.classes
+        $updateClass = $db->prepare("UPDATE app.classes
 			SET class_name = :className,
 				class_cat_id = :classCatId,
 				teacher_id = :teacherId,
-				active = :active
+				active = true,
+				modified_date = now(),
+				modified_by = :userId
             WHERE class_id = :classId");
+			
+		
+		if( count($subjects) > 0 )
+		{
+			$insertSubject =  $db->prepare("INSERT INTO app.class_subjects(class_id,subject_id,created_by)
+							VALUES(:classId,:subjectId,:userId)");
+		
+			$inactivateSubject =  $db->prepare("UPDATE app.class_subjects 
+								SET active = false,
+									modified_date =  now(),
+									modified_by = :userId
+								WHERE class_subject_id = :classSubjectId");
+		
+			$updateExam =  $db->prepare("UPDATE app.class_subject_exams 
+							SET grade_weight = :gradeWeight,
+								modified_date =  now(),
+								modified_by = :userId
+							WHERE class_sub_exam_id = :classSubExamId");
+			
+			$insertNewSubjectExam =  $db->prepare("INSERT INTO app.class_subject_exams(class_subject_id, exam_type_id, grade_weight, created_by)
+							VALUES(currval('app.class_subjects_class_subject_id_seq'), :examTypeId, :gradeWeight, :userId)");
+							
+			$insertExam =  $db->prepare("INSERT INTO app.class_subject_exams(class_subject_id, exam_type_id, grade_weight, created_by)
+							VALUES(:classSubjectId, :examTypeId, :gradeWeight, :userId)");
+			
+			$inactivateExam = $db->prepare( "UPDATE app.class_subject_exams 
+								SET active = false,
+									modified_date =  now(),
+									modified_by = :userId
+								WHERE class_sub_exam_id = :classSubExamId");
+			
+			$inactivateAllSubjectExams = $db->prepare( "UPDATE app.class_subject_exams 
+								SET active = false,
+									modified_date =  now(),
+									modified_by = :userId
+								WHERE class_subject_id = :classSubjectId");
+			
+								
+		}
+		
+		// pull out existing class subjects	    
+	    $query = $db->prepare("SELECT class_subject_id FROM app.class_subjects WHERE class_id = :classId");
+		$query->execute( array(':classId' => $classId ) );
+		$currentSubjects = $query->fetchAll(PDO::FETCH_OBJ);
+		
+		// pull out existing class subject exams  
+	    $query = $db->prepare("SELECT class_sub_exam_id FROM app.class_subject_exams INNER JOIN app.class_subjects USING (class_subject_id) WHERE class_id = :classId");
+		$query->execute( array(':classId' => $classId ) );
+		$currentSubjectExams = $query->fetchAll(PDO::FETCH_OBJ);
+					
+		$db->beginTransaction();
+		
+        $updateClass->execute( array(':className' => $className, 
+									 ':classCatId' => $classCatId, 
+									 ':teacherId' => $teacherId, 
+									 ':userId' => $userId,
+									 ':classId' => $classId) );
+		
+		if( count($subjects) > 0 )
+		{
+			foreach($subjects as $subject)
+			{
+				$classSubjectId = ( isset($subject['class_subject_id']) ? $subject['class_subject_id']: null);
+				$subjectId = ( isset($subject['subject_id']) ? $subject['subject_id']: null);
+				$exams =	( isset($subject['exams']) ? $subject['exams']: null);
+
+				if( $classSubjectId === null )
+				{
+					$insertSubject->execute( array(':classId' => $classId,
+												':subjectId' => $subjectId, 					 
+												':userId' => $userId
+					) );
+				}
+				
+				// check exams?
+				if( count($exams) > 0 )
+				{
+					foreach($exams as $exam)
+					{
+						$examTypeId =		( isset($exam['exam_type_id']) ? $exam['exam_type_id']: null);
+						$gradeWeight =		( isset($exam['grade_weight']) ? $exam['grade_weight']: null);
+						$classSubExamId =	( isset($exam['class_sub_exam_id']) ? $exam['class_sub_exam_id']: null);
+						$classSubjectId =	( isset($exam['class_subject_id']) ? $exam['class_subject_id']: null);
+						
+						if( $classSubExamId !== null )			
+						{
+							$updateExam->execute(array(':gradeWeight' => $gradeWeight, ':classSubExamId' => $classSubExamId, ':userId' => $userId));
+						}
+						else
+						{
+							// if no class subject id, then subject was new, use new seq value
+							if( $classSubjectId === null )			
+							{
+								$insertNewSubjectExam->execute( array(':examTypeId' => $examTypeId,		
+															':gradeWeight' => $gradeWeight,
+															':userId' => $userId
+								) );
+							}
+							else
+							{
+								$insertExam->execute( array(':classSubjectId' => $classSubjectId, 	
+															':examTypeId' => $examTypeId,		
+															':gradeWeight' => $gradeWeight,
+															':userId' => $userId
+								) );
+							}
+						}
+					}
+					
+					// set active to false for any not passed in
+					
+					foreach( $currentSubjectExams as $currentSubjectExam )
+					{	
+						$deleteMe = true;
+						// if found, do not delete
+						foreach( $exams as $exam )
+						{
+							if( isset($exam['class_sub_exam_id']) && $exam['class_sub_exam_id'] == $currentSubjectExam->class_sub_exam_id )
+							{
+								$deleteMe = false;
+							}
+						}
+						
+						if( $deleteMe )
+						{
+							$inactivateExam->execute(array(':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));								
+						}
+					}
+					
+				}
+				
+			}
+		   
+			// set active to false for any not passed in
+			
+			foreach( $currentSubjects as $currentSubject )
+			{	
+				$deleteMe = true;
+				// if found, do not delete
+				foreach( $subjects as $subject )
+				{
+					if( isset($subject['class_subject_id']) && $subject['class_subject_id'] == $currentSubject->class_subject_id )
+					{
+						$deleteMe = false;
+					}
+				}
+				
+				if( $deleteMe )
+				{
+					$inactivateSubject->execute(array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId));
+					
+					// if subject was marked inactive, mark exams inactive as well
+					$inactivateAllSubjectExams->execute( array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId) );
+					
+				}
+			}
+			
+			
+		}
+		else
+		{
+			// no subjects, remove any associated with class
+			// if subject was marked inactive, mark exams inactive as well
+			foreach( $currentSubjects as $currentSubject )
+			{	
+				$inactivateSubject->execute( array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId) );
+				$inactivateAllSubjectExams->execute( array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId) ); 
+			}
+
+		}
+		
+		$db->commit();
  
-        $sth->execute( array(':className' => $className, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':active' => $active ) );
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/setClassStatus/', function () use($app) {
+    // Update class status
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$classId =	( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+	$status =	( isset($allPostVars['status']) ? $allPostVars['status']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE app.classes
+							SET active = :status,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE class_id = :classId
+							"); 
+        $sth->execute( array(':classId' => $classId, 
+							 ':status' => $status, 
+							 ':userId' => $userId
+					) );
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -373,7 +611,7 @@ $app->get('/getClassCats/', function () {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT class_cat_id, class_cat_name FROM hog.class_cats ORDER BY class_cat_id");
+        $sth = $db->prepare("SELECT class_cat_id, class_cat_name FROM app.class_cats ORDER BY class_cat_id");
         $sth->execute();
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -406,7 +644,7 @@ $app->post('/addClassCat/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO hog.class_cats(class_cat_name) 
+        $sth = $db->prepare("INSERT INTO app.class_cats(class_cat_name) 
             VALUES(:classCatName)");
         $sth->execute( array(':classCatName' => $classCatName) );
  
@@ -433,7 +671,7 @@ $app->put('/updateClassCat/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.class_cats
+        $sth = $db->prepare("UPDATE app.class_cats
 			SET class_cat_name = :classCatName
             WHERE class_cat_id = :classCatId"); 
         $sth->execute( array(':classCatName' => $classCatName, ':classCatId' => $classCatId) );
@@ -461,7 +699,7 @@ $app->get('/getCountries/', function () {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT countries_name FROM hog.countries ORDER BY countries_name");
+        $sth = $db->prepare("SELECT countries_name FROM app.countries ORDER BY countries_name");
         $sth->execute(); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
@@ -495,7 +733,7 @@ $app->get('/getDepartments(/:status)', function ($status=true) {
     {
         $db = getDB();
         $sth = $db->prepare("SELECT dept_id, dept_name, active, category
-            FROM hog.departments
+            FROM app.departments
             WHERE active = :status
 			ORDER BY dept_id");
         $sth->execute( array(':status' => $status ) );
@@ -533,7 +771,7 @@ $app->post('/addDepartment/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO hog.departments(dept_name, category, created_by) 
+        $sth = $db->prepare("INSERT INTO app.departments(dept_name, category, created_by) 
             VALUES(:deptName, :category, :userId)");
  
         $sth->execute( array(':deptName' => $deptName, ':category' => $category, ':userId' => $userId ) );
@@ -563,7 +801,7 @@ $app->put('/updateDepartment/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.departments
+        $sth = $db->prepare("UPDATE app.departments
 			SET dept_name = :deptName,
 				category = :category,
 				active = true
@@ -595,7 +833,7 @@ $app->put('/setDeptStatus/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.departments
+        $sth = $db->prepare("UPDATE app.departments
 							SET active = :status,
 								modified_date = now(),
 								modified_by = :userId 
@@ -619,6 +857,7 @@ $app->put('/setDeptStatus/', function () use($app) {
 
 });
 
+
 // ************** Grading  ****************** //
 $app->get('/getGrading/', function () {
     //Show grading
@@ -629,7 +868,7 @@ $app->get('/getGrading/', function () {
     {
         $db = getDB();
         $sth = $db->prepare("SELECT *
-            FROM hog.grading
+            FROM app.grading
 			ORDER BY grade");
         $sth->execute();
  
@@ -667,7 +906,7 @@ $app->get('/getAllEmployees(/:status)', function ($status=true) {
         $sth = $db->prepare("SELECT emp_id, emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
 									middle_name, last_name, initials, dob, country, active, telephone, email, joined_date,
 									job_title, qualifications, experience, additional_info, emp_image
-							 FROM hog.employees 
+							 FROM app.employees 
 							 WHERE active = :status 
 							 ORDER BY first_name, middle_name, last_name");
         $sth->execute( array(':status' => $status)); 
@@ -703,7 +942,7 @@ $app->get('/getEmployee/:id', function () {
         $sth = $db->prepare("SELECT  emp_id, emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
 									middle_name, last_name, initials, dob, country, active, telephone, email, joined_date,
 									job_title, qualifications, experience, additional_info, emp_image
-							 FROM hog.employee 
+							 FROM app.employee 
 							 WHERE emp_id = :id");
         $sth->execute( array(':id' => $id)); 
         $results = $sth->fetch(PDO::FETCH_OBJ);
@@ -756,7 +995,7 @@ $app->post('/addEmployee/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO hog.employees(emp_cat_id, dept_id, emp_number, id_number, gender, first_name, middle_name, last_name, initials, dob, country, active, telephone, email, joined_date, job_title, qualifications, experience, additional_info, created_by, emp_image) 
+        $sth = $db->prepare("INSERT INTO app.employees(emp_cat_id, dept_id, emp_number, id_number, gender, first_name, middle_name, last_name, initials, dob, country, active, telephone, email, joined_date, job_title, qualifications, experience, additional_info, created_by, emp_image) 
             VALUES(:empCatId,:deptId,:empNumber,:idNumber,:gender,:firstName,:middleName,:lastName,:initials,:dob,:country,:active,:telephone,:email,:joinedDate,:jobTitle,:qualifications,:experience,:additionalInfo,:createdBy,:empImage)"); 
         $sth->execute( array(':empCatId' => $empCatId,
 							':deptId' => $deptId,
@@ -823,7 +1062,7 @@ $app->put('/updateEmployee/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.employees
+        $sth = $db->prepare("UPDATE app.employees
 			SET emp_cat_id = :empCatId,
 				dept_id = :deptId,
 				emp_number = :empNumber,
@@ -893,7 +1132,7 @@ $app->get('/getAllTeachers(/:status)', function ($status=true) {
 									middle_name, last_name, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
 									initials, dob, country, active, telephone, email, joined_date,
 									job_title, qualifications, experience, additional_info, emp_image
-							 FROM hog.employees 
+							 FROM app.employees 
 							 WHERE emp_cat_id = 1
 							 AND active = :status 							 
 							 ORDER BY first_name, middle_name, last_name");
@@ -929,7 +1168,7 @@ $app->get('/getEmployeeCats/', function () {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT emp_cat_id, emp_cat_name FROM hog.employee_cats ORDER BY emp_cat_id");
+        $sth = $db->prepare("SELECT emp_cat_id, emp_cat_name FROM app.employee_cats ORDER BY emp_cat_id");
         $sth->execute();
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -962,7 +1201,7 @@ $app->post('/addEmployeeCat/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO hog.employee_cats(emp_cat_name) 
+        $sth = $db->prepare("INSERT INTO app.employee_cats(emp_cat_name) 
             VALUES(:empCatName)"); 
         $sth->execute( array(':empCatName' => $empCatName) );
  
@@ -989,7 +1228,7 @@ $app->put('/updateEmployeeCat/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.employee_cats
+        $sth = $db->prepare("UPDATE app.employee_cats
 			SET emp_cat_name = :empCatName
             WHERE emp_cat_id = :empCatId"); 
         $sth->execute( array(':empCatName' => $empCatName, ':empCatId' => $empCatId) );
@@ -1009,7 +1248,7 @@ $app->put('/updateEmployeeCat/', function () use($app) {
 
 
 // ************** Terms  ****************** //
-$app->get('/getTerms/(:year)', function ($year = null) {
+$app->get('/getTerms(/:year)', function ($year = null) {
     //Show all terms for given year (or this year if null)
 	
 	$app = \Slim\Slim::getInstance();
@@ -1020,8 +1259,8 @@ $app->get('/getTerms/(:year)', function ($year = null) {
 		if( $year == null )
 		{
 			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name, start_date, end_date,
-										  case when term_id = (select term_id from hog.current_term) then true else false end as current_term
-										FROM hog.terms
+										  case when term_id = (select term_id from app.current_term) then true else false end as current_term
+										FROM app.terms
 										--WHERE date_part('year',start_date) <= date_part('year',now())
 										ORDER BY date_part('year',start_date), term_name");
 			$query->execute();	
@@ -1029,8 +1268,8 @@ $app->get('/getTerms/(:year)', function ($year = null) {
 		else
 		{
 			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name,start_date, end_date,
-										  case when term_id = (select term_id from hog.current_term) then true else false end as current_term
-										FROM hog.terms
+										  case when term_id = (select term_id from app.current_term) then true else false end as current_term
+										FROM app.terms
 										WHERE date_part('year',start_date) = :year
 										ORDER BY date_part('year',start_date), term_name");
 			$query->execute(array(':year' => $year));			
@@ -1066,7 +1305,7 @@ $app->get('/getCurrentTerm', function () {
     {
 		$db = getDB();
 	
-		$query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year FROM hog.current_term");
+		$query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.current_term");
 		$query->execute();			
         $results = $query->fetch(PDO::FETCH_ASSOC);
  
@@ -1102,7 +1341,7 @@ $app->post('/addTerm/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO hog.terms(term_name, start_date, end_date, created_by) 
+        $sth = $db->prepare("INSERT INTO app.terms(term_name, start_date, end_date, created_by) 
             VALUES(:termName, :startDate, :endDate, :userId)");
  
         $sth->execute( array(':termName' => $termName, ':startDate' => $startDate, ':endDate' => $endDate, ':userId' => $userId ) );
@@ -1133,7 +1372,7 @@ $app->put('/updateTerm/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.terms
+        $sth = $db->prepare("UPDATE app.terms
 			SET term_name = :termName,
 				start_date = :startDate,
 				end_date = :endDate
@@ -1167,9 +1406,9 @@ $app->get('/getSubjects/(:classCatId)', function ($classCatId = null) {
 		$params = array();
 		$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 						teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active
-					FROM hog.subjects
-					LEFT JOIN hog.employees ON subjects.teacher_id = employees.emp_id
-					INNER JOIN hog.class_cats ON subjects.class_cat_id = class_cats.class_cat_id
+					FROM app.subjects
+					LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
+					INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id
 				";
 				
 		if( $classCatId !== null )
@@ -1217,7 +1456,7 @@ $app->post('/addSubject/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO hog.subjects(subject_name, class_cat_id, teacher_id, created_by) 
+        $sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by) 
             VALUES(:subjectName, :classCatId, :teacherId, :userId)");
  
         $sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId ) );
@@ -1248,7 +1487,7 @@ $app->put('/updateSubject/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.subjects
+        $sth = $db->prepare("UPDATE app.subjects
 			SET subject_name = :subjectName,
 				class_cat_id = :classCatId,
 				teacher_id = :teacherId
@@ -1280,7 +1519,7 @@ $app->put('/setSubjectStatus/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.subjects
+        $sth = $db->prepare("UPDATE app.subjects
 							SET active = :status,
 								modified_date = now(),
 								modified_by = :userId 
@@ -1305,8 +1544,8 @@ $app->put('/setSubjectStatus/', function () use($app) {
 });
 
 
-// ************** Exam Marks  ****************** //
-$app->get('/getExamTypes/', function () {
+// ************** Exams  ****************** //
+$app->get('/getExamTypes(/:class_cat_id)', function ($classCatId = null) {
 
     // Get all exam types
 	
@@ -1315,8 +1554,16 @@ $app->get('/getExamTypes/', function () {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT * FROM hog.exam_types ORDER BY exam_type_id");
-        $sth->execute(); 
+		if( $classCatId == null )
+		{
+			$sth = $db->prepare("SELECT * FROM app.exam_types WHERE class_cat_id is null ORDER BY exam_type_id");
+			$sth->execute(); 
+		}
+		else
+		{
+			$sth = $db->prepare("SELECT * FROM app.exam_types WHERE class_cat_id is null OR class_cat_id = :classCatId ORDER BY exam_type_id");
+			$sth->execute(array(':classCatId' => $classCatId)); 
+		}
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
         if($results) {
@@ -1338,6 +1585,43 @@ $app->get('/getExamTypes/', function () {
 
 });
 
+$app->post('/addExamType/', function () use($app) {
+    // Add exam type
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$examType =		( isset($allPostVars['exam_type']) ? $allPostVars['exam_type']: null);
+	$classCatId =	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+    try 
+    {
+        $db = getDB();
+		
+		$db->beginTransaction();
+		
+        $sth = $db->prepare("INSERT INTO app.exam_types(exam_type, class_cat_id,  created_by) 
+								VALUES(:examType, :classCatId, :userId)"); 
+        $sth->execute( array(':examType' => $examType, ':classCatId' => $classCatId, ':userId' => $userId ) );
+ 
+		$sth2 = $db->prepare("SELECT * FROM app.exam_types WHERE exam_type_id = currval('app.exam_types_exam_type_id_seq')");
+		$sth2->execute();
+		$results = $sth2->fetch(PDO::FETCH_OBJ);
+		
+		$db->commit();
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "data" => $results));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($studentId,$classId,$termId,$examTypeId=null) {
     //Get student exam marks
 	
@@ -1348,14 +1632,14 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
         $db = getDB();
 		
 		$query = "SELECT subject_name, mark, grade_weight, exam_type
-							FROM hog.exam_marks 
-							INNER JOIN hog.students USING (student_id)
-							INNER JOIN hog.terms USING (term_id)
-							INNER JOIN hog.class_subject_exams 
-								INNER JOIN hog.exam_types
+							FROM app.exam_marks 
+							INNER JOIN app.students USING (student_id)
+							INNER JOIN app.terms USING (term_id)
+							INNER JOIN app.class_subject_exams 
+								INNER JOIN app.exam_types
 								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-								INNER JOIN hog.class_subjects 
-									INNER JOIN hog.subjects
+								INNER JOIN app.class_subjects 
+									INNER JOIN app.subjects
 									ON class_subjects.subject_id = subjects.subject_id
 								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 							ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
@@ -1412,12 +1696,12 @@ $app->get('/getExamMarks/:class/:year/:term/:type', function ($class,$year,$term
     {
         $db = getDB();
         $sth = $db->prepare("SELECT first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name, subject_name, mark
-							FROM hog.exam_marks 
-							INNER JOIN hog.students USING (student_id)
-							INNER JOIN hog.terms USING (term_id)
-							INNER JOIN hog.class_subject_exams 
-								INNER JOIN hog.class_subjects 
-									INNER JOIN hog.subjects
+							FROM app.exam_marks 
+							INNER JOIN app.students USING (student_id)
+							INNER JOIN app.terms USING (term_id)
+							INNER JOIN app.class_subject_exams 
+								INNER JOIN app.class_subjects 
+									INNER JOIN app.subjects
 									ON class_subjects.subject_id = subjects.subject_id
 								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 							ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
@@ -1448,6 +1732,98 @@ $app->get('/getExamMarks/:class/:year/:term/:type', function ($class,$year,$term
 
 });
 
+$app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$termId,$examTypeId) {
+    //Get all student exam marks
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		
+		$sth1 = $db->prepare("select app.colpivot('_exam_marks', 'select student_id, student_name, 
+																		(select sum(mark) from app.student_exam_marks where student_id = q.student_id) as sum, 
+																		(select sum(grade_weight) from app.student_exam_marks where student_id = q.student_id) as total, 
+																		subject_name, mark, grade_weight
+																		from app.student_exam_marks q 
+																	where class_id = $classId
+																	and exam_type_id = $examTypeId 
+																	and (term_id = $termId or term_id is null)',
+								array['student_id','student_name','sum','total'], array['subject_name','grade_weight'], '#.mark', null);");
+		$sth2 = $db->prepare("select * from _exam_marks order by student_id;");
+		
+		$db->beginTransaction();
+		$sth1->execute(); 
+		$sth2->execute();
+		$results = $sth2->fetchAll(PDO::FETCH_OBJ);
+		$db->commit();
+        
+		
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addExamMarks/', function () use($app) {
+    // Add exam type
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$examMarks =	( isset($allPostVars['exam_marks']) ? $allPostVars['exam_marks']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+    try 
+    {
+        $db = getDB();
+		
+		$sth = $db->prepare("INSERT INTO app.exam_marks(student_id, class_sub_exam_id, term_id, mark, created_by) 
+								VALUES(:studentId, :classSubExamId, :termId, :mark, :userId)"); 
+		
+		$db->beginTransaction();
+		
+		if( count($examMarks) > 0 )
+		{
+			foreach($examMarks as $mark)
+			{
+				$studentId = ( isset($mark['student_id']) ? $mark['student_id']: null);				
+				$classSubExamId = ( isset($mark['class_sub_exam_id']) ? $mark['class_sub_exam_id']: null);
+				$termId = ( isset($mark['term_id']) ? $mark['term_id']: null);
+				$mark = ( isset($mark['mark']) ? $mark['mark']: null);
+				
+				$sth->execute( array(':studentId' => $studentId, ':classSubExamId' => $classSubExamId, ':termId' => $termId, ':mark' => $mark, ':userId' => $userId ) );
+			}
+		}
+		
+		
+		
+		$db->commit();
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Payments  ****************** //
 $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStatus/)', function ($startDate,$endDate, $paymentStatus = false, $studentStatus = null) {
@@ -1463,25 +1839,25 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 						 amount, payment_date, payments.payment_method,
 						 CASE WHEN replacement_payment = true THEN
 						 (SELECT array_agg(fee_item || ' Replacement') 
-								 FROM hog.payment_replacement_items 
-								 INNER JOIN hog.student_fee_items using (student_fee_item_id)
-								 INNER JOIN hog.fee_items using (fee_item_id) 
+								 FROM app.payment_replacement_items 
+								 INNER JOIN app.student_fee_items using (student_fee_item_id)
+								 INNER JOIN app.fee_items using (fee_item_id) 
 								 WHERE payment_id = payments.payment_id
 								 )
 						 ELSE
 							(SELECT array_agg(fee_item) 
-								 FROM hog.payment_inv_items 
-								 INNER JOIN hog.invoices on payment_inv_items.inv_id  = invoices.inv_id and canceled = false
-								 INNER JOIN hog.invoice_line_items using (inv_item_id)
-								 INNER JOIN hog.student_fee_items using (student_fee_item_id)
-								 INNER JOIN hog.fee_items using (fee_item_id) 
+								 FROM app.payment_inv_items 
+								 INNER JOIN app.invoices on payment_inv_items.inv_id  = invoices.inv_id and canceled = false
+								 INNER JOIN app.invoice_line_items using (inv_item_id)
+								 INNER JOIN app.student_fee_items using (student_fee_item_id)
+								 INNER JOIN app.fee_items using (fee_item_id) 
 								 WHERE payment_id = payments.payment_id
 								 )
 						 END as applied_to,
 						 class_name, class_id, class_cat_id, students.active as status, replacement_payment
-					FROM hog.payments
-					INNER JOIN hog.students ON payments.student_id = students.student_id
-					INNER JOIN hog.classes ON students.current_class = classes.class_id
+					FROM app.payments
+					INNER JOIN app.students ON payments.student_id = students.student_id
+					INNER JOIN app.classes ON students.current_class = classes.class_id
 					WHERE payment_date between :startDate and :endDate
 					AND reversed = :reversed
 							";
@@ -1533,8 +1909,8 @@ $app->get('/getPaymentsDue(/:startDate/:endDate)', function ($startDate=null,$en
        $sth = $db->prepare("SELECT student_id,  
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 									total_due as amount, total_paid, balance,  due_date
-							FROM hog.invoice_balances
-							INNER JOIN hog.students using (student_id)
+							FROM app.invoice_balances
+							INNER JOIN app.students using (student_id)
 							WHERE date_trunc('month',due_date) = date_trunc('month', now())
 							AND balance < 0");
 		$sth->execute(); 
@@ -1570,8 +1946,8 @@ $app->get('/getPaymentsPastDue', function () {
        $sth = $db->prepare("SELECT student_id,  
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 									balance,  due_date
-							FROM hog.invoice_balances
-							INNER JOIN hog.students using (student_id)
+							FROM app.invoice_balances
+							INNER JOIN app.students using (student_id)
 							WHERE due_date < now() - interval '1 mon' 
 							AND balance < 0 ");
 		$sth->execute(); 
@@ -1611,14 +1987,14 @@ $app->get('/getTotalsForTerm', function () {
 							sum(balance) as total_balance
 						FROM (
 							SELECT total_due, total_paid,balance
-							FROM hog.invoice_balances
-							WHERE due_date between (select start_date from hog.current_term) and (select start_date - interval '1 day' from hog.next_term)
+							FROM app.invoice_balances
+							WHERE due_date between (select start_date from app.current_term) and (select start_date - interval '1 day' from app.next_term)
 							AND canceled = false
 
 							UNION
 							SELECT 0 as total_due, amount as total_paid,0 as balance
-							FROM hog.payments
-							WHERE payment_date between (select start_date from hog.current_term) and (select start_date - interval '1 day' from hog.next_term)
+							FROM app.payments
+							WHERE payment_date between (select start_date from app.current_term) and (select start_date - interval '1 day' from app.next_term)
 							AND replacement_payment is true
 
 						) q");
@@ -1657,17 +2033,17 @@ $app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true
 								first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 								class_name, class_id, class_cat_id,
 								sum(total_due) as total_due, sum(total_paid) as total_paid, sum(balance) as balance,
-								(SELECT to_char(amount, '999,999,999.99') || ' - ' || to_char(payment_date,'Mon DD, YYYY')  FROM hog.payments WHERE student_id = students.student_id ORDER BY payment_date desc LIMIT 1 ) as last_payment,
-								(SELECT to_char(total_due, '999,999,999.99') || ' - ' || to_char(due_date,'Mon DD, YYYY')   FROM hog.invoice_balances WHERE student_id = students.student_id AND due_date > now() ORDER BY due_date asc LIMIT 1 ) as next_payment
-							FROM hog.invoice_balances
-							INNER JOIN hog.students
-								INNER JOIN hog.classes
+								(SELECT to_char(amount, '999,999,999.99') || ' - ' || to_char(payment_date,'Mon DD, YYYY')  FROM app.payments WHERE student_id = students.student_id ORDER BY payment_date desc LIMIT 1 ) as last_payment,
+								(SELECT to_char(total_due, '999,999,999.99') || ' - ' || to_char(due_date,'Mon DD, YYYY')   FROM app.invoice_balances WHERE student_id = students.student_id AND due_date > now() ORDER BY due_date asc LIMIT 1 ) as next_payment
+							FROM app.invoice_balances
+							INNER JOIN app.students
+								INNER JOIN app.classes
 								ON students.current_class = classes.class_id
 							ON invoice_balances.student_id = students.student_id
 							WHERE invoice_balances.due_date < now()
 							AND date_part('year', due_date) = :year
 							AND students.active = :status
-							AND cancled = false
+							AND canceled = false
 							GROUP BY students.student_id, class_name, class_id, class_cat_id");
 		$sth->execute( array(':year' => $year, ':status' => $status) ); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1699,7 +2075,7 @@ $app->get('/getInstallmentOptions/', function () {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT installment_id, payment_plan_name FROM hog.installment_options ORDER BY payment_plan_name");
+        $sth = $db->prepare("SELECT installment_id, payment_plan_name FROM app.installment_options ORDER BY payment_plan_name");
         $sth->execute(); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
@@ -1740,17 +2116,17 @@ $app->post('/addPayment/', function () use($app) {
     try 
     {
         $db = getDB();
-        $payment = $db->prepare("INSERT INTO hog.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, inv_id, created_by) 
+        $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, inv_id, created_by) 
 									VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :invId, :userId)");
 		if( count($lineItems) > 0 )
 		{	
-			$paymentItems = $db->prepare("INSERT INTO hog.payment_inv_items(payment_id, inv_id, inv_item_id, amount, created_by)
-									VALUES(currval('hog.payments_payment_id_seq'), :invId, :invItemId, :amount, :userId)");
+			$paymentItems = $db->prepare("INSERT INTO app.payment_inv_items(payment_id, inv_id, inv_item_id, amount, created_by)
+									VALUES(currval('app.payments_payment_id_seq'), :invId, :invItemId, :amount, :userId)");
 		}
 		if( count($replacementItems) > 0 )
 		{
-			$replaceItems = $db->prepare("INSERT INTO hog.payment_replacement_items(payment_id, student_fee_item_id, amount, created_by)
-									VALUES(currval('hog.payments_payment_id_seq'), :studenFeeItemId, :amount, :userId)");							
+			$replaceItems = $db->prepare("INSERT INTO app.payment_replacement_items(payment_id, student_fee_item_id, amount, created_by)
+									VALUES(currval('app.payments_payment_id_seq'), :studenFeeItemId, :amount, :userId)");							
 		}
  
 		$db->beginTransaction();	
@@ -1820,7 +2196,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
        $sth = $db->prepare("SELECT payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
 									payments.student_id, replacement_payment, reversed, reversed_date,
 									payments.inv_id
-							FROM hog.payments							
+							FROM app.payments							
 							WHERE payment_id = :paymentId
 	   ");
 		$sth->execute( array(':paymentId' => $paymentId) ); 
@@ -1830,10 +2206,10 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 		$sth2 = $db->prepare("SELECT payment_inv_item_id, payment_inv_items.inv_item_id,
 									fee_item,
 									payment_inv_items.amount as line_item_amount
-							FROM hog.payment_inv_items							
-							INNER JOIN hog.invoice_line_items
-								INNER JOIN hog.student_fee_items
-									INNER JOIN hog.fee_items
+							FROM app.payment_inv_items							
+							INNER JOIN app.invoice_line_items
+								INNER JOIN app.student_fee_items
+									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
 							ON payment_inv_items.inv_item_id = invoice_line_items.inv_item_id			
@@ -1842,9 +2218,9 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 							SELECT payment_replace_item_id, payment_replacement_items.student_fee_item_id,
 									fee_item,
 									payment_replacement_items.amount as line_item_amount
-							FROM hog.payment_replacement_items							
-							INNER JOIN hog.student_fee_items
-								INNER JOIN hog.fee_items
+							FROM app.payment_replacement_items							
+							INNER JOIN app.student_fee_items
+								INNER JOIN app.fee_items
 								ON student_fee_items.fee_item_id = fee_items.fee_item_id
 							ON payment_replacement_items.student_fee_item_id = student_fee_items.student_fee_item_id						
 							WHERE payment_id = :paymentId							
@@ -1861,14 +2237,14 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 								inv_item_id,
 								fee_item,
 								invoice_line_items.amount as line_item_amount
-							FROM hog.invoice_balances
-							INNER JOIN hog.invoice_line_items
-								INNER JOIN hog.student_fee_items
-									INNER JOIN hog.fee_items
+							FROM app.invoice_balances
+							INNER JOIN app.invoice_line_items
+								INNER JOIN app.student_fee_items
+									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
 							ON invoice_balances.inv_id = invoice_line_items.inv_id
-							INNER JOIN hog.payments ON invoice_balances.inv_id = payments.inv_id
+							INNER JOIN app.payments ON invoice_balances.inv_id = payments.inv_id
 							WHERE payment_id = :paymentId
 							ORDER BY due_date, fee_item");
 		$sth3->execute( array(':paymentId' => $paymentId) ); 
@@ -1917,7 +2293,7 @@ $app->put('/updatePayment/', function() use($app){
     {
         $db = getDB();
 		
-		$updatePayment = $db->prepare("UPDATE hog.payments
+		$updatePayment = $db->prepare("UPDATE app.payments
 										SET payment_date = :paymentDate,
 											amount = :amount,
 											payment_method = :paymentMethod,
@@ -1932,49 +2308,49 @@ $app->put('/updatePayment/', function() use($app){
 		// prepare the possible statements
 		if( count($lineItems) > 0 ) 
 		{
-			$itemUpdate = $db->prepare("UPDATE hog.payment_inv_items
+			$itemUpdate = $db->prepare("UPDATE app.payment_inv_items
 										SET amount = :amount,
 											modified_date = now(),
 											modified_by = :userID
 										WHERE payment_inv_item_id = :paymentInvItemId");
 			
-			$itemInsert = $db->prepare("INSERT INTO hog.payment_inv_items(payment_id, inv_id, inv_item_id, amount, created_by)
+			$itemInsert = $db->prepare("INSERT INTO app.payment_inv_items(payment_id, inv_id, inv_item_id, amount, created_by)
 										VALUES(:paymentId, :invId, :invItemId, :amount, :userId)");
 			
 
-			$deleteLine = $db->prepare("DELETE FROM hog.payment_inv_items WHERE payment_inv_item_id = :paymentInvItemId");
+			$deleteLine = $db->prepare("DELETE FROM app.payment_inv_items WHERE payment_inv_item_id = :paymentInvItemId");
 		}
 		else
 		{
-			$deleteAllLines = $db->prepare("DELETE FROM hog.payment_inv_items WHERE payment_id = :paymentId");
+			$deleteAllLines = $db->prepare("DELETE FROM app.payment_inv_items WHERE payment_id = :paymentId");
 		}
 		
 		if( count($replacementItems) > 0 ) 
 		{
-			$replaceItemUpdate = $db->prepare("UPDATE hog.payment_replacement_items
+			$replaceItemUpdate = $db->prepare("UPDATE app.payment_replacement_items
 										SET amount = :amount,
 											modified_date = now(),
 											modified_by = :userID
 										WHERE payment_replace_item_id = :paymentReplaceItemId");
 			
-			$replaceItemInsert = $db->prepare("INSERT INTO hog.payment_replacement_items(payment_id, student_fee_item_id, amount, created_by)
+			$replaceItemInsert = $db->prepare("INSERT INTO app.payment_replacement_items(payment_id, student_fee_item_id, amount, created_by)
 										VALUES(:paymentId, :studentFeeItemId, :amount, :userId)");	
 			
 
-			$replaceDeleteLine = $db->prepare("DELETE FROM hog.payment_replacement_items WHERE payment_replace_item_id = :paymentReplaceItemId");
+			$replaceDeleteLine = $db->prepare("DELETE FROM app.payment_replacement_items WHERE payment_replace_item_id = :paymentReplaceItemId");
 		}
 		else
 		{
-			$deleteReplaceLines = $db->prepare("DELETE FROM hog.payment_replacement_items WHERE payment_id = :paymentId");
+			$deleteReplaceLines = $db->prepare("DELETE FROM app.payment_replacement_items WHERE payment_id = :paymentId");
 		}
 		
 		// get what is already set of this payment
-		$query = $db->prepare("SELECT payment_replace_item_id FROM hog.payment_replacement_items WHERE payment_id = :paymentId");
+		$query = $db->prepare("SELECT payment_replace_item_id FROM app.payment_replacement_items WHERE payment_id = :paymentId");
 		$query->execute( array('paymentId' => $paymentId) );
 		$currentReplaceItems = $query->fetchAll(PDO::FETCH_OBJ);
 		
 		// get what is already set of this payment
-		$query = $db->prepare("SELECT payment_inv_item_id FROM hog.payment_inv_items WHERE payment_id = :paymentId");
+		$query = $db->prepare("SELECT payment_inv_item_id FROM app.payment_inv_items WHERE payment_id = :paymentId");
 		$query->execute( array('paymentId' => $paymentId) );
 		$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);	
 		
@@ -2142,7 +2518,7 @@ $app->put('/reversePayment/', function () use($app) {
     {
         $db = getDB();
 		
-		$updatePayment = $db->prepare("UPDATE hog.payments	
+		$updatePayment = $db->prepare("UPDATE app.payments	
 										SET reversed = true,
 											reversed_date = now(),
 											reversed_by = :userId,
@@ -2178,7 +2554,7 @@ $app->put('/reactivatePayment/', function() use($app) {
     {
         $db = getDB();
 		
-		$updatePayment = $db->prepare("UPDATE hog.payments	
+		$updatePayment = $db->prepare("UPDATE app.payments	
 										SET reversed = false,
 											reversed_date = null,
 											reversed_by = null,
@@ -2226,9 +2602,9 @@ $app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($sta
 								balance,
 								due_date,
 								case when now()::date > due_date and balance < 0 then now()::date - due_date end as days_overdue
-							FROM hog.invoice_balances
-							INNER JOIN hog.students
-								INNER JOIN hog.classes
+							FROM app.invoice_balances
+							INNER JOIN app.students
+								INNER JOIN app.classes
 								ON students.current_class = classes.class_id
 							ON invoice_balances.student_id = students.student_id
 							WHERE due_date between :startDate and :endDate
@@ -2265,8 +2641,8 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
     {
         $db = getDB();
 		$params = array();
-		$termStatement = (  $term == 'current'  ? 'hog.current_term' : 'hog.next_term' );
-		$nextTermStatement = (  $term == 'current'  ? 'hog.next_term' : 'hog.term_after_next' );
+		$termStatement = (  $term == 'current'  ? 'app.current_term' : 'app.next_term' );
+		$nextTermStatement = (  $term == 'current'  ? 'app.next_term' : 'app.term_after_next' );
 		$query = "SELECT * FROM (
 						SELECT
 							student_id,  student_fee_item_id, student_name, fee_item, 
@@ -2289,8 +2665,8 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 							END as due_date,
 							
 							coalesce(round((select sum(amount)  
-								from hog.invoices 
-								inner join hog.invoice_line_items ON invoices.inv_id = invoice_line_items.inv_id 
+								from app.invoices 
+								inner join app.invoice_line_items ON invoices.inv_id = invoice_line_items.inv_id 
 								where invoices.canceled = false 
 								and student_fee_item_id = q2.student_fee_item_id 
 								and due_date between term_start_date AND start_next_term
@@ -2310,8 +2686,8 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 										generate_series(year_start_date, year_start_date + ((payment_interval*(num_payments-1)) || payment_interval2)::interval, (payment_interval::text || payment_interval2)::interval)::date  as due_date
 										FROM (
 											SELECT payment_interval,payment_interval2,num_payments
-											FROM hog.students
-											INNER JOIN hog.installment_options 
+											FROM app.students
+											INNER JOIN app.installment_options 
 											ON installment_option_id = installment_options.installment_id
 											WHERE student_id = q.student_id
 										) q
@@ -2332,13 +2708,13 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 									(select start_date from $termStatement) as term_start_date,
 									(select end_date from $termStatement) as term_end_date,
 									(select start_date from $nextTermStatement) as start_next_term,
-									( select min(start_date) from hog.terms where date_part('year',start_date) = date_part('year', (select start_date from $termStatement)) ) as year_start_date
-								FROM hog.students									
-								INNER JOIN hog.student_fee_items
-									INNER JOIN hog.fee_items
+									( select min(start_date) from app.terms where date_part('year',start_date) = date_part('year', (select start_date from $termStatement)) ) as year_start_date
+								FROM app.students									
+								INNER JOIN app.student_fee_items
+									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id										
 								ON students.student_id = student_fee_items.student_id AND student_Fee_items.active = true
-								LEFT JOIN hog.installment_options ON students.installment_option_id = installment_options.installment_id
+								LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
 								WHERE students.active = true
 								ORDER BY students.student_id
 							) q
@@ -2389,11 +2765,11 @@ $app->post('/createInvoice/', function () use($app) {
     try 
     {
         $db = getDB();
-        $invoiceQry = $db->prepare("INSERT INTO hog.invoices(student_id, inv_date, total_amount, due_date, created_by) 
+        $invoiceQry = $db->prepare("INSERT INTO app.invoices(student_id, inv_date, total_amount, due_date, created_by) 
 									VALUES(:studentId, :invDate, :totalAmt, :dueDate, :userId)");
 			
-		$lineItems = $db->prepare("INSERT INTO hog.invoice_line_items(inv_id, student_fee_item_id, amount, created_by)
-									VALUES(currval('hog.invoices_inv_id_seq'), :studentFeeItemId, :amount, :userId)");
+		$lineItems = $db->prepare("INSERT INTO app.invoice_line_items(inv_id, student_fee_item_id, amount, created_by)
+									VALUES(currval('app.invoices_inv_id_seq'), :studentFeeItemId, :amount, :userId)");
  
  
 		$db->beginTransaction();	
@@ -2444,22 +2820,22 @@ $app->get('/getInvoiceDetails/:inv_id', function ($invId) {
 								inv_date,
 								invoice_line_items.amount,
 								coalesce((select sum(payment_inv_items.amount) 
-										from hog.payment_inv_items 
-										inner join hog.payments on payment_inv_items.payment_id = payments.payment_id
+										from app.payment_inv_items 
+										inner join app.payments on payment_inv_items.payment_id = payments.payment_id
 										where payment_inv_items.inv_item_id = invoice_line_items.inv_item_id 
 										AND reversed = false),0) as total_paid,
 								due_date,
 								inv_item_id,
 								fee_item
-							FROM hog.invoices
-							INNER JOIN hog.invoice_line_items
-								INNER JOIN hog.student_fee_items
-									INNER JOIN hog.fee_items
+							FROM app.invoices
+							INNER JOIN app.invoice_line_items
+								INNER JOIN app.student_fee_items
+									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
 							ON invoices.inv_id = invoice_line_items.inv_id
-							INNER JOIN hog.students
-								INNER JOIN hog.classes
+							INNER JOIN app.students
+								INNER JOIN app.classes
 								ON students.current_class = classes.class_id
 							ON invoices.student_id = students.student_id
 							WHERE invoices.inv_id = :invId
@@ -2502,7 +2878,7 @@ $app->put('/updateInvoice/', function() use($app){
     {
         $db = getDB();
 		
-		$updateInvoice = $db->prepare("UPDATE hog.invoices	
+		$updateInvoice = $db->prepare("UPDATE app.invoices	
 										SET inv_date = :invDate,
 											total_amount = :totalAmt,
 											due_date = :dueDate,
@@ -2513,25 +2889,25 @@ $app->put('/updateInvoice/', function() use($app){
 		// prepare the possible statements
 		if( count($lineItems) > 0 )
 		{
-			$itemUpdate = $db->prepare("UPDATE hog.invoice_line_items
+			$itemUpdate = $db->prepare("UPDATE app.invoice_line_items
 										SET amount = :amount,
 											modified_date = now(),
 											modified_by = :userID
 										WHERE inv_item_id = :invItemId");
 			
-			$itemInsert = $db->prepare("INSERT INTO hog.invoice_line_items(inv_id, student_fee_item_id, amount, created_by) 
+			$itemInsert = $db->prepare("INSERT INTO app.invoice_line_items(inv_id, student_fee_item_id, amount, created_by) 
 										VALUES(:invId,:studentFeeItemID,:amount,:userId);"); 
 			
 
-			$deleteLine = $db->prepare("DELETE FROM hog.invoice_line_items WHERE inv_item_id = :invItemId");
+			$deleteLine = $db->prepare("DELETE FROM app.invoice_line_items WHERE inv_item_id = :invItemId");
 		}
 		else
 		{
-			$deleteAllLine = $db->prepare("DELETE FROM hog.invoice_line_items WHERE inv_id = :invId");
+			$deleteAllLine = $db->prepare("DELETE FROM app.invoice_line_items WHERE inv_id = :invId");
 		}
 		
 		// get what is already set of this invoice
-		$query = $db->prepare("SELECT inv_item_id FROM hog.invoice_line_items WHERE inv_id = :invId");
+		$query = $db->prepare("SELECT inv_item_id FROM app.invoice_line_items WHERE inv_id = :invId");
 		$query->execute( array('invId' => $invId) );
 		$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);
 			
@@ -2633,7 +3009,7 @@ $app->put('/cancelInvoice/', function () use($app) {
     {
         $db = getDB();
 		
-		$updateInvoice = $db->prepare("UPDATE hog.invoices	
+		$updateInvoice = $db->prepare("UPDATE app.invoices	
 										SET canceled = true,
 											modified_date = now(),
 											modified_by= :userId
@@ -2667,7 +3043,7 @@ $app->put('/reactivateInvoice/', function() use($app) {
     {
         $db = getDB();
 		
-		$updateInvoice = $db->prepare("UPDATE hog.invoices	
+		$updateInvoice = $db->prepare("UPDATE app.invoices	
 										SET canceled = false,
 											modified_date = now(),
 											modified_by= :userId
@@ -2703,7 +3079,7 @@ $app->get('/getFeeItems(/:status)', function ($status = true) {
     {
         $db = getDB();
         $sth = $db->prepare("SELECT fee_item_id, fee_item, default_amount, frequency, active, class_cats_restriction, optional, new_student_only, replaceable
-							FROM hog.fee_items 
+							FROM app.fee_items 
 							WHERE active = :status
 							AND optional is false
 							ORDER BY fee_item_id");
@@ -2715,10 +3091,10 @@ $app->get('/getFeeItems(/:status)', function ($status = true) {
 		
 		$sth = $db->prepare("SELECT fee_item_id, fee_item, default_amount,
 								CASE WHEN fee_item = 'Transport' THEN
-									(select min(to_char(amount, '999,999,999.99')) || '-' || max(to_char(amount, '999,999,999.99')) from hog.transport_routes where active is true)
+									(select min(to_char(amount, '999,999,999.99')) || '-' || max(to_char(amount, '999,999,999.99')) from app.transport_routes where active is true)
 								END as range, 
 								frequency, active, class_cats_restriction, optional, new_student_only, replaceable
-							FROM hog.fee_items 
+							FROM app.fee_items 
 							WHERE active = :status
 							AND optional is true
 							ORDER BY fee_item_id");
@@ -2755,7 +3131,7 @@ $app->get('/getTansportRoutes(/:status)', function ($status = true) {
     {
         $db = getDB();
         $sth = $db->prepare("SELECT transport_id, route, amount
-							FROM hog.transport_routes 
+							FROM app.transport_routes 
 							WHERE active = :status
 							ORDER BY route");
         $sth->execute( array(':status' => $status) ); 
@@ -2802,7 +3178,7 @@ $app->post('/addFeeItem/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO hog.fee_items(fee_item, default_amount, frequency, class_cats_restriction, optional, new_student_only, replaceable, created_by) 
+        $sth = $db->prepare("INSERT INTO app.fee_items(fee_item, default_amount, frequency, class_cats_restriction, optional, new_student_only, replaceable, created_by) 
 							 VALUES(:feeItem, :defaultAmount, :frequency, :classCats, :optional, :newStudent, :replaceable, :userId)"); 
         $sth->execute( array(':feeItem' => $feeItem, 
 							 ':defaultAmount' => $defaultAmount,
@@ -2844,7 +3220,7 @@ $app->put('/updateFeeItem/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.fee_items
+        $sth = $db->prepare("UPDATE app.fee_items
 							SET fee_item = :feeItem,
 								default_amount = :defaultAmount,
 								frequency = :frequency, 
@@ -2891,7 +3267,7 @@ $app->put('/setFeeItemStatus/', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE hog.fee_items
+        $sth = $db->prepare("UPDATE app.fee_items
 							SET active = :status,
 								modified_date = now(),
 								modified_by = :userId 
@@ -2925,7 +3301,7 @@ $app->put('/updateRoutes/', function () use($app) {
     try 
     {
         $db = getDB();
-        $updateRoute = $db->prepare("UPDATE hog.transport_routes
+        $updateRoute = $db->prepare("UPDATE app.transport_routes
 							SET amount = :amount,
 								active = true,
 								modified_date = now(),
@@ -2933,19 +3309,18 @@ $app->put('/updateRoutes/', function () use($app) {
 							WHERE transport_id = :transportId
 							"); 
 		
-		$insertRoute = $db->prepare("INSERT INTO hog.transport_routes(route,amount,created_by)
+		$insertRoute = $db->prepare("INSERT INTO app.transport_routes(route,amount,created_by)
 										VALUES(:route, :amount, :userId)");
 		
-		$inactivateRoute = $db->prepare("UPDATE hog.transport_routes
+		$inactivateRoute = $db->prepare("UPDATE app.transport_routes
 							SET active = false,
 								modified_date = now(),
 								modified_by = :userId 
 							WHERE transport_id = :transportId
 							"); 
 							
-		// pull out existing routes
-	    
-	    $query = $db->prepare("SELECT transport_id FROM hog.transport_routes WHERE active is true");
+		// pull out existing routes	    
+	    $query = $db->prepare("SELECT transport_id FROM app.transport_routes WHERE active is true");
 		$query->execute();
 		$currentRoutes = $query->fetchAll(PDO::FETCH_OBJ);
 						
@@ -3018,7 +3393,7 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
     {
         $db = getDB();
         $sth = $db->prepare("SELECT *
-							 FROM hog.students 
+							 FROM app.students 
 							 WHERE active = :status 
 							 ORDER BY first_name, middle_name, last_name");
         $sth->execute( array(':status' => $status)); 
@@ -3052,8 +3427,8 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
     {
         $db = getDB();
         $sth = $db->prepare("SELECT *, payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' days apart)' as payment_plan_name
-							 FROM hog.students 
-							 LEFT JOIN hog.installment_options ON students.installment_option_id = installment_options.installment_id
+							 FROM app.students 
+							 LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
 							 WHERE student_id = :studentID 
 							 ORDER BY first_name, middle_name, last_name");
         $sth->execute( array(':studentID' => $studentId)); 
@@ -3063,7 +3438,7 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
 			
 			// get parents
 			$sth2 = $db->prepare("SELECT *
-							 FROM hog.student_guardians 
+							 FROM app.student_guardians 
 							 WHERE student_id = :studentID
 							 AND active = true
 							 ORDER BY relationship, last_name, first_name, middle_name");
@@ -3074,7 +3449,7 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
 						
 			// get medical history
 			$sth3 = $db->prepare("SELECT medical_id, illness_condition, age, comments, creation_date as date_medical_added
-							 FROM hog.student_medical_history 
+							 FROM app.student_medical_history 
 							 WHERE student_id = :studentID
 							 ORDER BY creation_date");
 			$sth3->execute( array(':studentID' => $studentId));
@@ -3089,13 +3464,13 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
 									fee_item, amount, 
 									payment_method,
 									(select sum(payment_inv_items.amount) 
-										from hog.payment_inv_items 
-										inner join hog.invoice_line_items 
+										from app.payment_inv_items 
+										inner join app.invoice_line_items 
 										on payment_inv_items.inv_item_id = invoice_line_items.inv_item_id 
 										where invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id) as payment_made,
 									student_fee_items.active
-								FROM hog.student_fee_items 
-								INNER JOIN hog.fee_items on student_fee_items.fee_item_id = fee_items.fee_item_id
+								FROM app.student_fee_items 
+								INNER JOIN app.fee_items on student_fee_items.fee_item_id = fee_items.fee_item_id
 								WHERE student_id = :studentID
 								ORDER BY student_fee_items.creation_date");
 			$sth4->execute( array(':studentID' => $studentId));
@@ -3137,13 +3512,13 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 									sum(invoice_line_items.amount) AS total_due, 
 									COALESCE(sum(payment_inv_items.amount), 0) AS total_paid, 
 									COALESCE(sum(payment_inv_items.amount), 0) - sum(invoice_line_items.amount) AS balance        
-							FROM hog.invoices
-							INNER JOIN hog.invoice_line_items 
-								INNER JOIN hog.student_fee_items
-									INNER JOIN hog.fee_items
+							FROM app.invoices
+							INNER JOIN app.invoice_line_items 
+								INNER JOIN app.student_fee_items
+									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id AND student_fee_items.active = true
-								LEFT JOIN hog.payment_inv_items
+								LEFT JOIN app.payment_inv_items
 								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id
 							ON invoices.inv_id = invoice_line_items.inv_id
 							WHERE invoices.student_id = :studentID
@@ -3159,12 +3534,12 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 		{
 		
 			$sth2 = $db->prepare("SELECT 
-									(SELECT due_date FROM hog.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false) AS next_due_date,
-									(SELECT balance from hog.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false) AS next_amount,
+									(SELECT due_date FROM app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false) AS next_due_date,
+									(SELECT balance from app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false) AS next_amount,
 									(
 										SELECT sum(diff) FROM (
-											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from hog.payment_inv_items inner join hog.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
-											FROM hog.payments as p	
+											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
+											FROM app.payments as p	
 											WHERE student_id = :studentID
 											AND reversed is false
 											AND replacement_payment is false
@@ -3188,7 +3563,7 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 			}
 			
 			$balanceQry = $db->prepare("SELECT sum(total_due) as total_due, sum(total_paid) as total_paid, sum(balance) as balance
-										FROM hog.invoice_balances
+										FROM app.invoice_balances
 									    WHERE student_id = :studentID
 										AND due_date < now()::date
 										AND canceled = false");
@@ -3236,7 +3611,7 @@ $app->get('/getStudentInvoices/:studentId', function ($studentId) {
         $db = getDB();
 		
 		// get fee items
-		$sth = $db->prepare("SELECT * FROM hog.invoice_balances WHERE student_id = :studentId ORDER BY inv_date");
+		$sth = $db->prepare("SELECT * FROM app.invoice_balances WHERE student_id = :studentId ORDER BY inv_date");
 		$sth->execute( array(':studentId' => $studentId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
@@ -3281,15 +3656,15 @@ $app->get('/getOpenInvoices/:studentId', function ($studentId) {
 								inv_item_id,
 								fee_item,
 								invoice_line_items.amount as line_item_amount
-							FROM hog.invoice_balances
-							INNER JOIN hog.invoice_line_items
-								INNER JOIN hog.student_fee_items
-									INNER JOIN hog.fee_items
+							FROM app.invoice_balances
+							INNER JOIN app.invoice_line_items
+								INNER JOIN app.student_fee_items
+									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
 							ON invoice_balances.inv_id = invoice_line_items.inv_id
-							INNER JOIN hog.students
-								INNER JOIN hog.classes
+							INNER JOIN app.students
+								INNER JOIN app.classes
 								ON students.current_class = classes.class_id
 							ON invoice_balances.student_id = students.student_id
 							WHERE students.student_id = :studentId
@@ -3330,8 +3705,8 @@ $app->get('/getStudentFeeItems/:studentId', function ($studentId) {
 									CASE WHEN frequency = 'per term' THEN 3 
 									     ELSE 1
 									END as frequency
-							FROM hog.student_fee_items
-							INNER JOIN hog.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+							FROM app.student_fee_items
+							INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
 							WHERE student_id = :studentId
 							AND student_fee_items.active = true
 							ORDER BY fee_item");
@@ -3366,8 +3741,8 @@ $app->get('/getReplaceableFeeItems/:studentId', function ($studentId) {
     {
         $db = getDB();
        $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount
-							FROM hog.student_fee_items
-							INNER JOIN hog.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+							FROM app.student_fee_items
+							INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
 							WHERE student_id = :studentId
 							AND student_fee_items.active = true
 							AND replaceable = true
@@ -3410,32 +3785,32 @@ $app->get('/getStudentPayments/:studentId', function ($studentId) {
 								amount,
 								CASE WHEN replacement_payment = true THEN
 								 (SELECT array_agg(fee_item || ' Replacement') 
-										 FROM hog.payment_replacement_items 
-										 INNER JOIN hog.student_fee_items using (student_fee_item_id)
-										 INNER JOIN hog.fee_items using (fee_item_id) 
+										 FROM app.payment_replacement_items 
+										 INNER JOIN app.student_fee_items using (student_fee_item_id)
+										 INNER JOIN app.fee_items using (fee_item_id) 
 										 WHERE payment_id = payments.payment_id
 										 )
 								 ELSE
 									(SELECT array_agg(fee_item) 
-										 FROM hog.payment_inv_items 
-										 INNER JOIN hog.invoices on payment_inv_items.inv_id  = invoices.inv_id and canceled = false
-										 INNER JOIN hog.invoice_line_items using (inv_item_id)
-										 INNER JOIN hog.student_fee_items using (student_fee_item_id)
-										 INNER JOIN hog.fee_items using (fee_item_id) 
+										 FROM app.payment_inv_items 
+										 INNER JOIN app.invoices on payment_inv_items.inv_id  = invoices.inv_id and canceled = false
+										 INNER JOIN app.invoice_line_items using (inv_item_id)
+										 INNER JOIN app.student_fee_items using (student_fee_item_id)
+										 INNER JOIN app.fee_items using (fee_item_id) 
 										 WHERE payment_id = payments.payment_id
 										 )
 								 END as applied_to,
 								  (
 									SELECT sum(diff) FROM (
-										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from hog.payment_inv_items inner join hog.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
-										FROM hog.payments as p
+										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
+										FROM app.payments as p
 										WHERE p.payment_id = payments.payment_id
 										AND reversed is false
 										AND replacement_payment is false
 									) AS q
 								) AS unapplied_amount,
 								 reversed, reversed_date, replacement_payment
-								FROM hog.payments						
+								FROM app.payments						
 								WHERE student_id = :studentID");
 		$sth->execute( array(':studentID' => $studentId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -3551,7 +3926,7 @@ $app->post('/addStudent/', function () use($app) {
     {
         $db = getDB();
 				
-        $studentInsert = $db->prepare("INSERT INTO hog.students(admission_number, gender, first_name, middle_name, last_name, dob, student_category, nationality,
+        $studentInsert = $db->prepare("INSERT INTO app.students(admission_number, gender, first_name, middle_name, last_name, dob, student_category, nationality,
 																student_image, current_class, payment_method, active, created_by, admission_date, marial_status_parents, 
 																adopted, adopted_age, marital_separation_age, adoption_aware, comments, medical_conditions, hospitalized,
 																hospitalized_description, current_medical_treatment, current_medical_treatment_description,
@@ -3562,37 +3937,37 @@ $app->post('/addStudent/', function () use($app) {
 					:hospitalizedDesc, :currentMedicalTreatment, :currentMedicalTreatmentDesc, :otherMedicalConditions, :otherMedicalConditionsDesc, 
 					:emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption);"); 
 					
-		$studentClassInsert = $db->prepare("INSERT INTO hog.student_class_history(student_id,class_id,created_by)
-											VALUES(currval('hog.students_student_id_seq'),:currentClass,:createdBy);");
+		$studentClassInsert = $db->prepare("INSERT INTO app.student_class_history(student_id,class_id,created_by)
+											VALUES(currval('app.students_student_id_seq'),:currentClass,:createdBy);");
         
 		if( $fatherFirstName !== null )
 		{
 			// add primary contact
-			$fatherInsert = $db->prepare("INSERT INTO hog.student_guardians(student_id, first_name, middle_name, last_name, title, id_number, address, telephone, email, 
+			$fatherInsert = $db->prepare("INSERT INTO app.student_guardians(student_id, first_name, middle_name, last_name, title, id_number, address, telephone, email, 
 																			relationship, marital_status, occupation, employer, employer_address, work_email, work_phone, created_by)
-				VALUES(currval('hog.students_student_id_seq'), :fatherFirstName, :fatherMiddleName, :fatherLastName, :fatherTitle, :fatherIdNumber, :fatherAddress, 
+				VALUES(currval('app.students_student_id_seq'), :fatherFirstName, :fatherMiddleName, :fatherLastName, :fatherTitle, :fatherIdNumber, :fatherAddress, 
 						:fatherTelephone, :fatherEmail, :fatherRelationship, :fatherMaritalStatus, :fatherOccupation, :fatherEmployer, :fatherEmployerAddress, :fatherWorkEmail, 
 						:fatherWorkPhone, :createdBy);");
 		}
 		if( $motherFirstName !== null )
 		{
 			// add secondary contact
-			$motherInsert = $db->prepare("INSERT INTO hog.student_guardians(student_id, first_name, middle_name, last_name, title, id_number, address, telephone, email, 
+			$motherInsert = $db->prepare("INSERT INTO app.student_guardians(student_id, first_name, middle_name, last_name, title, id_number, address, telephone, email, 
 																			relationship, marital_status, occupation, employer, employer_address, work_email, work_phone, created_by)
-				VALUES(currval('hog.students_student_id_seq'), :motherFirstName, :motherMiddleName, :motherLastName, :motherTitle, :motherIdNumber, :motherAddress, 
+				VALUES(currval('app.students_student_id_seq'), :motherFirstName, :motherMiddleName, :motherLastName, :motherTitle, :motherIdNumber, :motherAddress, 
 					:motherTelephone, :motherEmail, :motherRelationship, :motherMaritalStatus, :motherOccupation, :motherEmployer, :motherEmployerAddress, :motherWorkEmail, 
 					:motherWorkPhone, :createdBy);");
 		}
 		if( count($medicalConditions) > 0 )
 		{
-			$conditionInsert = $db->prepare("INSERT INTO hog.student_medical_history(student_id, illness_condition, age, comments, created_by) 
-            VALUES(currval('hog.students_student_id_seq'),?,?,?,?);"); 
+			$conditionInsert = $db->prepare("INSERT INTO app.student_medical_history(student_id, illness_condition, age, comments, created_by) 
+            VALUES(currval('app.students_student_id_seq'),?,?,?,?);"); 
         
 		}
 		if( count($feeItems) > 0 || count($optFeeItems) > 0 )
 		{
-			$feesInsert = $db->prepare("INSERT INTO hog.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
-										VALUES(currval('hog.students_student_id_seq'),?,?,?,?);"); 
+			$feesInsert = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
+										VALUES(currval('app.students_student_id_seq'),?,?,?,?);"); 
 		}		
 		
 		$db->beginTransaction();	
@@ -3831,7 +4206,7 @@ $app->put('/updateStudent/', function () use($app) {
 		if( $updateDetails )
 		{
 			$studentUpdate = $db->prepare(
-				"UPDATE hog.students
+				"UPDATE app.students
 					SET gender = :gender,
 						first_name = :firstName, 
 						middle_name = :middleName, 
@@ -3851,10 +4226,10 @@ $app->put('/updateStudent/', function () use($app) {
 			// if they changed the class, make entry into class history table
 			if( $updateClass )
 			{		
-				$classInsert1 = $db->prepare("UPDATE hog.student_class_history SET end_date = now() WHERE student_id = :studentId AND class_id = :previousClass;");
+				$classInsert1 = $db->prepare("UPDATE app.student_class_history SET end_date = now() WHERE student_id = :studentId AND class_id = :previousClass;");
 
 				$classInsert2 = $db->prepare("
-					INSERT INTO hog.student_class_history(student_id,class_id,created_by)
+					INSERT INTO app.student_class_history(student_id,class_id,created_by)
 					VALUES(:studentId,:currentClass,:createdBy);"
 				);
 			}
@@ -3864,7 +4239,7 @@ $app->put('/updateStudent/', function () use($app) {
 		else if( $updateFamily )
 		{
 			$studentFamilyUpdate = $db->prepare(
-				"UPDATE hog.students
+				"UPDATE app.students
 					SET marial_status_parents = :marialStatusParents,
 						adopted = :adopted, 
 						adopted_age = :adoptedAge, 
@@ -3883,7 +4258,7 @@ $app->put('/updateStudent/', function () use($app) {
 		else if( $updateMedical )
 		{
 			$studentMedicalUpdate = $db->prepare(
-				"UPDATE hog.students
+				"UPDATE app.students
 					SET medical_conditions = :hasMedicalConditions,
 						hospitalized = :hospitalized, 
 						hospitalized_description = :hospitalizedDesc, 
@@ -3901,7 +4276,7 @@ $app->put('/updateStudent/', function () use($app) {
 		{
 			
 			$studentUpdate = $db->prepare(
-				"UPDATE hog.students
+				"UPDATE app.students
 					SET payment_method = :paymentMethod,
 						installment_option_id = :installmentOption,
 						active = true,
@@ -3911,7 +4286,7 @@ $app->put('/updateStudent/', function () use($app) {
 			);
 			
 			// prepare the possible statements
-			$feesUpdate = $db->prepare("UPDATE hog.student_fee_items
+			$feesUpdate = $db->prepare("UPDATE app.student_fee_items
 										SET amount = :amount,
 											payment_method = :paymentMethod,
 											active = true,
@@ -3920,11 +4295,11 @@ $app->put('/updateStudent/', function () use($app) {
 										WHERE student_id = :studentID
 										AND fee_item_id = :feeItemId");
 			
-			$feesInsert = $db->prepare("INSERT INTO hog.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
+			$feesInsert = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
 										VALUES(:studentID,:feeItemID,:amount,:paymentMethod,:userId);"); 
 			
 
-			$inactivate = $db->prepare("UPDATE hog.student_fee_items
+			$inactivate = $db->prepare("UPDATE app.student_fee_items
 										SET active = false,
 											modified_date = now(),
 											modified_by = :userId
@@ -3932,7 +4307,7 @@ $app->put('/updateStudent/', function () use($app) {
 										AND fee_item_id = :feeItemId"
 			);
 			
-			$reactivate = $db->prepare("UPDATE hog.student_fee_items
+			$reactivate = $db->prepare("UPDATE app.student_fee_items
 										SET active = true,
 											modified_date = now(),
 											modified_by = :userId
@@ -3944,7 +4319,7 @@ $app->put('/updateStudent/', function () use($app) {
 		
 		
 		// get what is already set of this student
-		$query = $db->prepare("SELECT fee_item_id FROM hog.student_fee_items WHERE student_id = :studentID");
+		$query = $db->prepare("SELECT fee_item_id FROM app.student_fee_items WHERE student_id = :studentID");
 		$query->execute( array('studentID' => $studentId) );
 		$currentFeeItems = $query->fetchAll(PDO::FETCH_OBJ);
 		
@@ -4182,13 +4557,13 @@ $app->post('/addGuardian/', function () use($app) {
     {
         $db = getDB();
 
-		$insert = $db->prepare("INSERT INTO hog.student_guardians(student_id, first_name, middle_name, last_name, title, id_number, address, telephone, email, 
+		$insert = $db->prepare("INSERT INTO app.student_guardians(student_id, first_name, middle_name, last_name, title, id_number, address, telephone, email, 
 										    relationship, marital_status, occupation, employer, employer_address, work_email, work_phone, created_by)
 								VALUES(:studentID, :FirstName, :MiddleName, :LastName, :Title, :IdNumber, :Address, 
 										:Telephone, :Email, :Relationship, :MaritalStatus, :Occupation, :Employer, :EmployerAddress, :WorkEmail, 
 										:WorkPhone, :createdBy);");		
 										
-		$query = $db->prepare("SELECT currval('hog.student_guardians_guardian_id_seq')");
+		$query = $db->prepare("SELECT currval('app.student_guardians_guardian_id_seq')");
 
 		$db->beginTransaction();
 		$insert->execute( array(':studentID' => $studentId,
@@ -4259,7 +4634,7 @@ $app->put('/updateGuardian/', function () use($app) {
     {
         $db = getDB();
 
-		$sth = $db->prepare("UPDATE hog.student_guardians
+		$sth = $db->prepare("UPDATE app.student_guardians
 								SET first_name = :FirstName, 
 									middle_name = :MiddleName, 
 									last_name =:LastName, 
@@ -4322,7 +4697,7 @@ $app->delete('/deleteGuardian/:guardian_id', function ($guardianId) {
     {
         $db = getDB();
 
-		$sth = $db->prepare("DELETE FROM hog.student_guardians WHERE guardian_id = :guardianId");		
+		$sth = $db->prepare("DELETE FROM app.student_guardians WHERE guardian_id = :guardianId");		
 										
 		$sth->execute( array(':guardianId' => $guardianId) );
  
@@ -4354,10 +4729,10 @@ $app->post('/addMedicalConditions/', function () use($app) {
     {
         $db = getDB();
 
-		$studentUpdate = $db->prepare("UPDATE hog.students SET medical_conditions = true WHERE student_id = :studentId");
-		$conditionInsert = $db->prepare("INSERT INTO hog.student_medical_history(student_id, illness_condition, age, comments, created_by) 
+		$studentUpdate = $db->prepare("UPDATE app.students SET medical_conditions = true WHERE student_id = :studentId");
+		$conditionInsert = $db->prepare("INSERT INTO app.student_medical_history(student_id, illness_condition, age, comments, created_by) 
 		VALUES(?,?,?,?,?);"); 
-		$query = $db->prepare("SELECT currval('hog.student_medical_history_medical_id_seq') as medical_id, now() as date_medical_added");
+		$query = $db->prepare("SELECT currval('app.student_medical_history_medical_id_seq') as medical_id, now() as date_medical_added");
 		
 		
         $results = array();
@@ -4410,7 +4785,7 @@ $app->put('/updateMedicalConditions/', function () use($app) {
     {
         $db = getDB();
 
-		$sth = $db->prepare("UPDATE hog.student_medical_history
+		$sth = $db->prepare("UPDATE app.student_medical_history
 								SET illness_condition = :illnessCondition, 
 									age = :age, 
 									comments =:comments, 
@@ -4449,7 +4824,7 @@ $app->delete('/deleteMedicalCondition/:medical_id', function ($medicalId) {
     {
         $db = getDB();
 
-		$sth = $db->prepare("DELETE FROM hog.student_medical_history WHERE medical_id = :medicalId");		
+		$sth = $db->prepare("DELETE FROM app.student_medical_history WHERE medical_id = :medicalId");		
 										
 		$sth->execute( array(':medicalId' => $medicalId) );
  
@@ -4515,11 +4890,12 @@ function insertFeeItem($feeData, $feesInsert)
 	
 }
 */
+
 function getCurrentTerms()
 {
 	$db = getDB();
 	$termQuery = $db->prepare("SELECT term_id
-								FROM hog.terms
+								FROM app.terms
 								WHERE date_part('year',start_date) = date_part('year', now())");
 	$termQuery->execute();
 	$terms = $termQuery->fetchAll(PDO::FETCH_ASSOC);

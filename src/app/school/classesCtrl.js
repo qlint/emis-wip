@@ -123,12 +123,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	
 	$scope.addClass = function()
 	{
-		$scope.openModal('school', 'classForm', 'md');
+		$scope.openModal('school', 'classForm', 'lg');
 	}
 	
 	$scope.viewClass = function(item)
 	{
-		$scope.openModal('school', 'classForm', 'md',item);
+		$scope.openModal('school', 'classForm', 'lg',item);
 	}
 	
 	$scope.exportItems = function()
@@ -166,7 +166,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid) $scope.dataGrid.destroy();
+		if($scope.dataGrid){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.destroy();
+		}
 		$rootScope.isModal = false;
     });
 

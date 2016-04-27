@@ -9,8 +9,8 @@
 					</div>
 					<!-- class category -->
 					<div class="form-group" ng-class="{ 'has-error' : classForm.class_cat.$invalid && (classForm.class_cat.$touched || classForm.$submitted) }">		
-						<label for="class_cat" class="col-sm-3 control-label">Class Category</label>
-						<div class="col-sm-5">
+						<label for="class_cat" class="col-sm-2 control-label">Class Category</label>
+						<div class="col-sm-3">
 							<select name="class_cat" class="form-control" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats"  ng-model="theClass.class_cat_id" required>
 								<option value="">--select class category--</option>
 							</select>							
@@ -22,22 +22,22 @@
 					</div>
 					<!-- class name -->
 					<div class="form-group" ng-class="{ 'has-error' : classForm.class_name.$invalid && (classForm.class_name.$touched || classForm.$submitted) }">
-						<label for="class_name" class="col-sm-3 control-label">Class Name</label>
-						<div class="col-sm-9">
+						<label for="class_name" class="col-sm-2 control-label">Class Name</label>
+						<div class="col-sm-5">
 							<input type="text" name="class_name" ng-model="theClass.class_name" class="form-control" required >
 							<p ng-show="classForm.class_name.$invalid && (classForm.class_name.$touched || classForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Name is required.</p>
 						</div>
 					</div>
 					<!-- teacher -->
 					<div class="form-group">		
-						<label for="teacher_id" class="col-sm-3 control-label">Teacher</label>
-						<div class="col-sm-9">
-							<select name="teacher_id" class="form-control" ng-options="teacher.teacher_id as teacher.teacher_name for teacher in teachers"  ng-model="theClass.teacher_id" required>
+						<label for="teacher_id" class="col-sm-2 control-label">Teacher</label>
+						<div class="col-sm-5">
+							<select name="teacher_id" class="form-control" ng-options="teacher.teacher_id as teacher.teacher_name for teacher in teachers"  ng-model="theClass.teacher_id">
 								<option value="">--select teacher--</option>
 							</select>						
 						</div>	
 					</div>
-					
+
 					<div ng-show="subjects!==undefined">
 						<div class="pull-right">
 							<button type="button" class="btn btn-sm btn-link text-success" ng-click="addSubject()"><i class="glyphicon glyphicon-plus"></i> Add Subject</button>
@@ -47,12 +47,16 @@
 							<thead>
 								<tr>
 									<th>
-										<input type="checkbox" name="apply_to_all" ng-model="subject.apply_to_all" ng-value="true"  >
-										Subject
+										<label class="checkbox-inline">
+											<input type="checkbox" name="apply_to_all" ng-model="subject.apply_to_all" ng-value="true"  >
+											Subject
+										</label>
 									</th>
-									<th class="center" ng-repeat="exam in examTypes">
-										<input type="checkbox" name="apply_to_all_subjects" ng-model="exam.apply_to_all" ng-value="true"  >
-										{{exam.exam_type}}
+									<th class="center" ng-repeat="exam in examTypes track by $index">
+										<label class="checkbox-inline">
+											<input type="checkbox" name="apply_to_all_subjects" ng-model="apply_to_all_subjects[$index]" ng-click="toggleAllExams(exam.exam_type_id,$index)" ng-value="true"  >
+											{{exam.exam_type}}
+										</label>
 									</th>
 								</tr>
 							</thead>
@@ -64,22 +68,22 @@
 											type="checkbox"
 											name="subjects[]"
 											value="{{item.subject_id}}"
-											ng-checked="subjectSelection.indexOf(item) > -1"
-											ng-click="toggleSubjects(item)"
+											ng-checked="subjectSelection.indexOf(item.subject_id) > -1"
+											ng-click="toggleSubjects(item.subject_id)"
 										  > {{item.subject_name}}
 										</label>									
 									</td>
-									<td class="center" ng-repeat="exam in examTypes">
+									<td class="center" ng-repeat="exam in examTypes track by $index">
 										
 										  <input
 											type="checkbox"
 											name="exams[]"
 											value="{{exam.exam_type_id}}"
-											ng-checked="subjectExamSelection[item].indexOf(exam) > -1"
-											ng-click="toggleSubjectExam(item,exam)"
+											ng-checked="subjectExamSelection[item.subject_id].indexOf(exam.exam_type_id) > -1"
+											ng-click="toggleSubjectExam(item.subject_id,exam.exam_type_id)"
 										  > 
 											
-										<input type="text" name="" class="form-control sm-inline" ng-model="item.exams[exam.exam_type_id].grade_weight" />
+										<input type="text" name="" class="form-control sm-inline" ng-model="gradeWeight[item.subject_id + '-' + exam.exam_type_id].grade_weight" />
 									</td>
 									
 								</tr>

@@ -1,0 +1,68 @@
+<form name="examForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(examForm)">		
+	<div class="modal-header dialog-header-form">
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Exam Marks</h4>
+			</div>
+			<div class="modal-body clearfix">
+
+				<!-- search form -->
+				<div class="modalDataFilter clearfix">	
+					<!-- class select -->
+					<div class="form-group">
+						<label for="class">Class</label>	
+						<select class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
+							<option value="">--select class--</option>
+						</select>	
+					</div>		
+
+					<!-- term select -->
+					<div class="form-group">
+						<label for="term">Term</label>	
+						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id">
+							<option value="">--select term--</option>
+						</select>	
+					</div>	
+					
+					<!-- exam select -->
+					<div class="form-group">
+						<label for="term">Exam</label>	
+						<select id="term" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" >
+							<option value="">All Exams</option>				
+						</select>
+					</div>	
+					
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="button" class="btn btn-sm btn-info" ng-click="getExams()" value="Load" />
+						<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
+					</div>					
+				</div>
+				<!-- // end search form -->
+				
+				<p ng-show="marksNotFound" class="error alert alert-danger">
+					{{errMsg}}
+				</p>
+				
+				<table ng-show="!marksNotFound" id="resultsTable2" class="display dataTable clickable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Student</th>
+							<th class="center" ng-repeat="col in tableHeader">{{col.title}}</th>
+						</tr>
+					</thead>	
+					<tbody>
+						<tr ng-repeat="item in examMarks track by $index">
+							<td></td>
+							<td id="{{item.student_id}}">{{item.student_name}}</td>
+							<td class="center" ng-repeat="col in tableHeader">
+								<input type="text" ng-model="examMarks[$parent.$index][col.key]" class="form-control">
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+				<button type="submit" class="btn btn-primary">Save</button>
+			</div>
+</form>

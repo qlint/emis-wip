@@ -48,7 +48,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		apiService.getAllStudents(status, function(response){
 			var result = angular.fromJson(response);
 			
-			// store these as they do not change often
+			
 			if( result.response == 'success')
 			{
 				if( result.nodata ) var formatedResults = [];
@@ -287,7 +287,10 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid) $scope.dataGrid.destroy();
+		if($scope.dataGrid){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.destroy();
+		}
 		$rootScope.isModal = false;
     });
 	

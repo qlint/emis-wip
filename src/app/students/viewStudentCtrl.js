@@ -188,7 +188,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// get terms
 			if( $rootScope.terms === undefined )
 			{
-				apiService.getTerms({}, setTerms, function(){});
+				apiService.getTerms(undefined, setTerms, function(){});
 			}
 			else
 			{
@@ -205,7 +205,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			
 			if( $rootScope.examTypes === undefined )
 			{
-				apiService.getExamTypes({}, function(response){
+				apiService.getExamTypes(undefined, function(response){
 					var result = angular.fromJson(response);				
 					if( result.response == 'success'){ $scope.examTypes = result.data;	$rootScope.examTypes = result.data;}			
 				}, function(){});
@@ -821,59 +821,57 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
-			$scope.rawExamMarks = result.data;
-			
-			$scope.examMarks = {};
-			
-			// get unique exam subjects
-			$scope.examMarks.subjects = result.data.reduce(function(sum,item){
-				if( sum.indexOf(item.subject_name + ' / ' + item.grade_weight) === -1 ) sum.push(item.subject_name + ' / ' + item.grade_weight);
-				return sum;
-			}, []);
-			//console.log($scope.examMarks.subjects);
-			
-			// group the marks by exam types
-			$scope.examMarks.types = [];
-			var lastExamType = '';
-			var marks = [];
-			var i = 0;
-			angular.forEach(result.data, function(item,key){
+			if( result.nodata )
+			{
+				$scope.marksNotFound = true;
+				$scope.errMsg = "There are currently no exam marks entered for this search criteria.";
+			}
+			else
+			{
+				$scope.rawExamMarks = result.data;
 				
-				if( item.exam_type != lastExamType )
-				{
-					// changing to new exam type, store the complied marks array
-					if( i > 0 ) $scope.examMarks.types[(i-1)].marks = marks;
+				$scope.examMarks = {};
+				
+				// get unique exam subjects
+				$scope.examMarks.subjects = result.data.reduce(function(sum,item){
+					if( sum.indexOf(item.subject_name + ' / ' + item.grade_weight) === -1 ) sum.push(item.subject_name + ' / ' + item.grade_weight);
+					return sum;
+				}, []);
+				//console.log($scope.examMarks.subjects);
+				
+				// group the marks by exam types
+				$scope.examMarks.types = [];
+				var lastExamType = '';
+				var marks = [];
+				var i = 0;
+				angular.forEach(result.data, function(item,key){
 					
-					$scope.examMarks.types.push(
-						{
-							exam_type: item.exam_type,
-							marks: []
-						}
-					);
-					
-					// init marks array for this exam type
-					marks = [];
-					i++;
+					if( item.exam_type != lastExamType )
+					{
+						// changing to new exam type, store the complied marks array
+						if( i > 0 ) $scope.examMarks.types[(i-1)].marks = marks;
+						
+						$scope.examMarks.types.push(
+							{
+								exam_type: item.exam_type,
+								marks: []
+							}
+						);
+						
+						// init marks array for this exam type
+						marks = [];
+						i++;
 
-				}
-				marks.push(item.mark);
+					}
+					marks.push(item.mark);
+					
+					lastExamType = item.exam_type;
+					
+					
+				});
+				$scope.examMarks.types[(i-1)].marks = marks;
 				
-				lastExamType = item.exam_type;
-				
-				
-			});
-			$scope.examMarks.types[(i-1)].marks = marks;
-			
-			/*
-			setTimeout(function(){
-				var settings = {
-					sortOrder: [1,'desc'],
-					noResultsTxt: "No exam marks found."
-				}
-				initDataGrid(settings);
-				
-			},100);
-			*/
+			}
 		}
 		else
 		{

@@ -133,7 +133,9 @@ h1 {
   margin: 0 0 5px 0; }
 
 .content-fixed-header {
-  height: 30px; }
+  height: 30px;
+  background-color: #fff;
+  width: 100%; }
 
 #body-content .content-fixed-header {
   padding: 0 5px; }
@@ -444,7 +446,10 @@ table.clickable tr {
       .modal-content .subtab-content .tab-header label {
         line-height: 24px;
         margin-right: 10px; }
-  .modal-content .modalForm .form-group {
+  .modal-content #loginbox .input-group {
+    margin-bottom: 5px; }
+  .modal-content .modalForm .form-group,
+  .modal-content .modalForm .input-group {
     margin-bottom: 5px; }
   .modal-content .modalForm input[type=text], .modal-content .modalForm select, .modal-content .modalForm input[type=number] {
     height: 26px;

@@ -245,6 +245,8 @@ h1{
 }
 .content-fixed-header{
 	height:30px;
+	background-color:#fff;
+	width:100%;
 }
 #body-content{
 
@@ -637,10 +639,15 @@ table.clickable{
 		}
 	}
 	
-	
-	
+	#loginbox{
+		.input-group{
+			margin-bottom:5px;
+		}
+	}
+		
 	.modalForm{
-		.form-group{
+		.form-group,
+		.input-group{
 			margin-bottom:5px;
 		}
 		input[type=text], select, input[type=number]{

@@ -82,7 +82,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		var headerHeight = $('.navbar-fixed-top').height();
 		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
 		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 13 );
+		var offset = ( $rootScope.isSmallScreen ? 22 : 41 );
 		new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
 				header: true,
 				headerOffset: (headerHeight + searchHeight) + offset
@@ -165,7 +165,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid) $scope.dataGrid.destroy();
+		if($scope.dataGrid){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.destroy();
+		}
 		$rootScope.isModal = false;
     });
 

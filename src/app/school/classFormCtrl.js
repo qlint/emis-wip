@@ -4,37 +4,90 @@ angular.module('eduwebApp').
 controller('classFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
-	$scope.edit = ( data !== undefined ? true : false );
+	
 	$scope.theClass = ( data !== undefined ? data : {} );
 	console.log(data);
 	
-	$scope.initializeController = function()
+	$scope.edit = ( $scope.theClass.class_id !== undefined ? true : false );
+	
+	$scope.subjectSelection = [];
+	$scope.subjectExamSelection = {};
+	$scope.apply_to_all_subjects = [];
+	$scope.gradeWeight = {};
+	
+	
+	var getSubjects = function(classCatId)
+	{
+		apiService.getSubjects(classCatId,function(response){
+			var result = angular.fromJson(response);
+			if( result.response == 'success') $scope.subjects = ( result.nodata? [] : result.data );
+		}, apiError);
+	}
+	
+	var getClassDetails = function(classId)
+	{
+		apiService.getClassExams(classId,function(response){
+			var result = angular.fromJson(response);
+			if( result.response == 'success')
+			{
+				// build the subject and exams array
+				$scope.classDetails = ( result.nodata ? [] : angular.copy(result.data) );	;
+				console.log($scope.classDetails);			
+				angular.forEach($scope.classDetails , function(item,key){
+					if( $scope.subjectSelection.indexOf(item.subject_id) === -1 ) $scope.subjectSelection.push(item.subject_id);
+				
+					if( $scope.subjectExamSelection[item.subject_id] === undefined) $scope.subjectExamSelection[item.subject_id] = [];
+					$scope.subjectExamSelection[item.subject_id].push(item.exam_type_id);
+					
+					if( $scope.gradeWeight[ item.subject_id + '-' + item.exam_type_id ] === undefined ) $scope.gradeWeight[item.subject_id + '-' + item.exam_type_id ] = {};
+					$scope.gradeWeight[item.subject_id + '-' + item.exam_type_id ].grade_weight = item.grade_weight;
+					
+				});
+				console.log($scope.subjectExamSelection);
+				console.log($scope.gradeWeight);								
+				
+				getSubjects($scope.theClass.class_cat_id);
+			
+				apiService.getExamTypes($scope.theClass.class_cat_id, function(response){
+					var result = angular.fromJson(response);				
+					if( result.response == 'success'){ $scope.examTypes = result.data;}			
+				}, apiError);
+				
+			}
+		}, apiError);
+	}
+	
+	
+	var initializeController = function()
 	{
 		apiService.getAllTeachers(true,function(response){
 			var result = angular.fromJson(response);
 			if( result.response == 'success') $scope.teachers = result.data;
-		},apiError);
-		
-		apiService.getExamTypes({}, function(response){
-			var result = angular.fromJson(response);				
-			if( result.response == 'success'){ $scope.examTypes = result.data;}			
-		}, apiError);
+		},apiError);	
+
+		if( $scope.edit )
+		{
+			console.log('here');
+			getClassDetails($scope.theClass.class_id);
+		}
 		
 	}
-	$scope.initializeController();
+	setTimeout(initializeController,1);
 	
 	
 	$scope.$watch('theClass.class_cat_id',function(newVal,oldVal){
 		if( newVal == oldVal ) return;
+		console.log('here');
+		getSubjects(newVal);
 		
-		apiService.getSubjects(newVal,function(response){
-			var result = angular.fromJson(response);
-			if( result.response == 'success') $scope.subjects = result.data;
+		apiService.getExamTypes(newVal, function(response){
+			var result = angular.fromJson(response);				
+			if( result.response == 'success'){ $scope.examTypes = result.data;}			
 		}, apiError);
 		
 		
 	});
-	
+		
 	$scope.cancel = function()
 	{
 		$uibModalInstance.dismiss('canceled');  
@@ -42,25 +95,76 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	$scope.save = function(form)
 	{
-		console.log(form);
+
 		if ( !form.$invalid ) 
 		{
 			var data = $scope.theClass;
 			data.user_id = $rootScope.currentUser.user_id;
+			data.subjects = [];
+			
+			
 			console.log(data);
 			
 			if( $scope.edit )
 			{
+				console.log($scope.subjectSelection);
+				angular.forEach( $scope.subjectSelection, function(subject_id,key){
+					
+					var examsArray = [];
+					angular.forEach($scope.subjectExamSelection[subject_id], function(exam_type_id,key2){
+					
+						// get ids
+						console.log(subject_id);
+						console.log(exam_type_id);
+						if( $scope.classDetails !== undefined ) {
+							var ids = $scope.classDetails.filter(function(item){
+								if( item.subject_id == subject_id && item.exam_type_id == exam_type_id ) return item;
+							})[0];
+							console.log(ids);
+						}
+					
+						examsArray.push({
+							exam_type_id: exam_type_id,
+							class_subject_id: (ids !== undefined ? ids.class_subject_id : undefined),
+							class_sub_exam_id: (ids !== undefined ? ids.class_sub_exam_id : undefined),
+							grade_weight: ( $scope.gradeWeight[subject_id + '-' + exam_type_id] !== undefined ? $scope.gradeWeight[subject_id + '-' + exam_type_id].grade_weight : 0)
+						});
+					});
+					
+					data.subjects.push({
+						subject_id: subject_id,
+						exams: examsArray
+					});
+					
+				});
 				apiService.updateClass(data,createCompleted,apiError);
 			}
 			else
 			{
+				console.log($scope.subjectSelection);
+				angular.forEach( $scope.subjectSelection, function(subject_id,key){
+					
+					var examsArray = [];
+					angular.forEach($scope.subjectExamSelection[subject_id], function(exam_type_id,key2){				
+						examsArray.push({
+							exam_type_id: exam_type_id,
+							grade_weight: ( $scope.gradeWeight[subject_id + '-' + exam_type_id] !== undefined ? $scope.gradeWeight[subject_id + '-' + exam_type_id].grade_weight : 0)
+						});
+					});
+					
+					data.subjects.push({
+						subject_id: subject_id,
+						exams: examsArray
+					});
+					
+				});
 				apiService.addClass(data,createCompleted,apiError);
 			}
 			
 			
 		}
 	}
+	
 	var createCompleted = function ( response, status, params ) 
 	{
 
@@ -132,10 +236,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	{		
 		// show small dialog with add form
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/school/subjectForm.html','subjectFormCtrl',{},{size: 'sm',backdrop:'static'});
+		var dlg = $dialogs.create('http://' + domain + '/app/school/subjectForm.html','subjectFormCtrl',{class_cat_id:$scope.theClass.class_cat_id},{size: 'md',backdrop:'static'});
 		dlg.result.then(function(subject){
 			
-			$rootScope.subjects.push(subject);
+			getSubjects($scope.theClass.class_cat_id);
 					
 		},function(){
 			
@@ -145,19 +249,98 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.addExamType = function()
 	{		
 		// show small dialog with add form
-		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',{},{size: 'sm',backdrop:'static'});
+		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',{class_cat_id:$scope.theClass.class_cat_id},{size: 'sm',backdrop:'static'});
 		dlg.result.then(function(examType){
 			
-			$rootScope.examTypes.push(examType);
+			$scope.examTypes.push(examType);
 					
 		},function(){
 			
 		});
 	}
 	
+	$scope.toggleSubjects = function(subject_id)
+	{
+		var id = $scope.subjectSelection.indexOf(subject_id);
+
+		// is currently selected
+		if (id > -1) {
+			$scope.subjectSelection.splice(id, 1);
+			$scope.subjectExamSelection[subject_id] = undefined;
+		}
+
+		// is newly selected
+		else {
+			$scope.subjectSelection.push(subject_id);
+			$scope.subjectExamSelection[subject_id] = [];
+			console.log()
+		}
+	}
+	
+	$scope.toggleSubjectExam = function(subject_id,exam_type_id)
+	{
+		if( $scope.subjectExamSelection[subject_id] === undefined ) $scope.subjectExamSelection[subject_id] = []; 
+		var id = $scope.subjectExamSelection[subject_id].indexOf(exam_type_id);
+
+		// is currently selected
+		if (id > -1) {
+			$scope.subjectExamSelection[subject_id].splice(id, 1);
+		}
+
+		// is newly selected
+		else {
+			$scope.subjectExamSelection[subject_id].push(exam_type_id);
+		}
+		
+		console.log($scope.subjectExamSelection);
+	}
+	
+	$scope.$watch('subject.apply_to_all', function(newVal,oldVal){
+		if( newVal == oldVal ) return;
+		
+		if( newVal )
+		{
+			angular.forEach($scope.subjects, function(item,key){
+				$scope.subjectSelection.push(item.subject_id);
+				$scope.subjectExamSelection[item.subject_id] = [];
+			});
+		}
+		else
+		{
+			angular.forEach($scope.subjects, function(item,key){
+				$scope.subjectSelection = [];
+				$scope.subjectExamSelection[item.subject_id] = undefined;
+			});
+		}
+		
+	});
+	
+	$scope.toggleAllExams = function(exam_type_id,index)
+	{
+		var off = ( $scope.apply_to_all_subjects[index] === true ? true : false );
+		if( off )
+		{
+			angular.forEach($scope.subjects, function(item,key){
+				if( $scope.subjectExamSelection[item.subject_id] === undefined ) $scope.subjectExamSelection[item.subject_id] = [];
+				$scope.subjectExamSelection[item.subject_id].push(exam_type_id);
+			});
+		}
+		else
+		{
+			angular.forEach($scope.subjects, function(item,key){
+				var id = $scope.subjectExamSelection[item.subject_id].indexOf(exam_type_id);
+				$scope.subjectExamSelection[item.subject_id].splice(id, 1);
+			});
+		}
+		
+	};
+	
 	
 } ])
-.controller('addExamType',function($scope,$rootScope,$uibModalInstance,apiService){		
+.controller('addExamTypeCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){		
+		
+		$scope.examType = {};
+		$scope.examType.class_cat_id = data.class_cat_id;
 		
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');
@@ -165,7 +348,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		
 		$scope.save = function()
 		{
-			apiService.addExamType($scope.exam_type, createCompleted, apiError);
+			$scope.examType.user_id = $rootScope.currentUser.user_id;
+			apiService.addExamType($scope.examType, createCompleted, apiError);
 		}; // end save
 		
 		
@@ -201,7 +385,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	}) // end controller
 .run(['$templateCache',function($templateCache){
-  		$templateCache.put('addExamTypeCtrl.html',
+  		$templateCache.put('addExamType.html',
 			'<div class="modal-header dialog-header-form">'+
 				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Exam Type</h4>' +
 			'</div>' +
@@ -214,8 +398,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 					'<div class="form-group" ng-class="{ \'has-error\' : catDialog.exam_type.$invalid && (catDialog.exam_type.$touched || catDialog.$submitted) }">' +
 						'<label for="exam_type" class="col-sm-3 control-label">Class Category Name</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="name" ng-model="exam_type" class="form-control"  >' +
+							'<input type="text" name="name" ng-model="examType.exam_type" class="form-control"  >' +
 							'<p ng-show="catDialog.exam_type.$invalid && (catDialog.exam_type.$touched || catDialog.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Exan Type is required.</p>' +
+						'</div>' +
+					'</div>' +
+					'<!-- class category -->' +
+					'<div class="form-group">' +
+						'<label for="class_cat" class="col-sm-3 control-label">Class Category</label>' +
+						'<div class="col-sm-9">' +
+							'<select name="class_cat" class="form-control" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats"  ng-model="examType.class_cat_id" required>' +
+								'<option value="">--select class category--</option>' +
+							'</select>' +
 						'</div>' +
 					'</div>' +
 				'</ng-form>' +

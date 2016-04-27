@@ -222,8 +222,13 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 	$rootScope.$on('subjectAdded', function(event, args) {
         $rootScope.$broadcast('refreshSubjects', args);
     });
+	
 	$rootScope.$on('classAdded', function(event, args) {
         $rootScope.$broadcast('refreshClasses', args);
+    });
+	
+	$rootScope.$on('examMarksAdded', function(event, args) {
+        $rootScope.$broadcast('refreshExamMarks', args);
     });
 	
 	

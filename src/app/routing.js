@@ -130,6 +130,12 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
-	
+	.state('exams', {
+      url: "/exams",
+	  templateUrl: 'app/exams/listExams.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
 	;
 }]);
