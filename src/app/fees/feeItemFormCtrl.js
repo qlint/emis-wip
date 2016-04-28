@@ -26,7 +26,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		{
 			// set class categories
 			$scope.item.default_amount = parseFloat(data.default_amount_raw);
-			$scope.classCatSelection = data.class_cats_restriction;
+			$scope.classCatSelection = data.class_cats_restriction || [];
 			console.log($scope.classCatSelection);
 			$scope.isTransport = ( data.fee_item == 'Transport' ? true : false );
 			
@@ -85,6 +85,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		console.log(form);
 		if ( !form.$invalid ) 
 		{
+			console.log($scope.classCatSelection);
 			var data = $scope.item;			
 			data.new_student_only = ( data.new_student_only ? 't' : 'f' );
 			data.optional = ( data.optional ? 't' : 'f' );
@@ -128,6 +129,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			
 		}
 	}
+	
 	var createCompleted = function ( response, status, params ) 
 	{
 

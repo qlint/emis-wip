@@ -41,6 +41,9 @@ body {
 .nopad-right {
   padding-right: 0; }
 
+a {
+  cursor: pointer; }
+
 /********************** Branding Styles ******************************/
 .navbar-brand {
   padding: 5px;
@@ -470,7 +473,7 @@ table.clickable tr {
   .modal-content .modalForm .form-group,
   .modal-content .modalForm .input-group {
     margin-bottom: 5px; }
-  .modal-content .modalForm input[type=text], .modal-content .modalForm select, .modal-content .modalForm input[type=number] {
+  .modal-content .modalForm input[type=text], .modal-content .modalForm select, .modal-content .modalForm input[type=number], .modal-content .modalForm input[type=email] {
     height: 26px;
     padding: 3px; }
   .modal-content .modalForm .form-control-static {

@@ -55,7 +55,7 @@
 									<th class="center" ng-repeat="exam in examTypes track by $index">
 										<label class="checkbox-inline">
 											<input type="checkbox" name="apply_to_all_subjects" ng-model="apply_to_all_subjects[$index]" ng-click="toggleAllExams(exam.exam_type_id,$index)" ng-value="true"  >
-											{{exam.exam_type}}
+											{{exam.exam_type}} Out Of
 										</label>
 									</th>
 								</tr>

@@ -27,7 +27,7 @@
 			<div class="col-sm-6">
 				<div class="dashboard-panel">					
 					<div class="dashboard-panel-header">
-						<h2>Student Details</h2>
+						<h2>School Details</h2>
 					</div>
 					<div class="dashboard-panel-body row">
 						<div class="col-sm-8">							
@@ -36,7 +36,7 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.school_name.$invalid && (schoolForm.school_name.$touched || schoolForm.$submitted) }">		
 								<label for="school_name" class="col-sm-4 control-label nopad-right">School Name</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="school_name" ng-model="settings['School Name']" required>						
+									<input type="text" class="form-control" name="school_name" ng-model="settings['School Name']" required />						
 									<p ng-show="schoolForm.school_name.$invalid && (schoolForm.school_name.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> School Name is required.</p>
 								</div>	
 							</div>
@@ -45,7 +45,7 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.school_type.$invalid && (schoolForm.school_type.$touched || schoolForm.$submitted) }">		
 								<label for="school_type" class="col-sm-4 control-label nopad-right">School Type</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="school_type" ng-model="settings['School Type']" required>						
+									<input type="text" class="form-control" name="school_type" ng-model="settings['School Type']" required />						
 									<p ng-show="schoolForm.school_type.$invalid && (schoolForm.school_type.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> School Type is required.</p>
 								</div>	
 							</div>
@@ -54,8 +54,8 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.curriculum.$invalid && (schoolForm.curriculum.$touched || schoolForm.$submitted) }">		
 								<label for="curriculum" class="col-sm-4 control-label nopad-right">Curriculum</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="curriculum" ng-model="settings['Curriculum']" required>						
-									<p ng-show="schoolForm.curriculum.$invalid && (schoolForm.curriculum.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> School Type is required.</p>
+									<input type="text" class="form-control" name="curriculum" ng-model="settings['Curriculum']" required />						
+									<p ng-show="schoolForm.curriculum.$invalid && (schoolForm.curriculum.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> School Curriculum is required.</p>
 								</div>	
 							</div>
 							
@@ -63,18 +63,18 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.address_1.$invalid && (schoolForm.address_1.$touched || schoolForm.$submitted) }">		
 								<label for="address_1" class="col-sm-4 control-label nopad-right">Address</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="address_1" ng-model="settings['Address 1']" required>						
+									<input type="text" class="form-control" name="address_1" ng-model="settings['Address 1']" required />						
 									<p ng-show="schoolForm.address_1.$invalid && (schoolForm.address_1.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> School Type is required.</p>
 								</div>	
 							</div>
 							<div class="form-group">									
 								<div class="col-sm-8 col-sm-offset-4">
-									<input type="text" class="form-control" name="address_1" ng-model="settings['Address 2']" required>						
+									<input type="text" class="form-control" name="address_1" ng-model="settings['Address 2']" />						
 								</div>	
 							</div>
 							<div class="form-group">									
 								<div class="col-sm-8 col-sm-offset-4">
-									<input type="text" class="form-control" name="country" ng-model="settings['Country']" required>						
+									<input type="text" class="form-control" name="country" ng-model="settings['Country']" />						
 								</div>	
 							</div>
 							
@@ -82,7 +82,7 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.phone_number.$invalid && (schoolForm.phone_number.$touched || schoolForm.$submitted) }">		
 								<label for="phone_number" class="col-sm-4 control-label nopad-right">Phone Number</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="phone_number" ng-model="settings['Phone Number']" required>						
+									<input type="text" class="form-control" name="phone_number" ng-model="settings['Phone Number']" required numeric-only />						
 									<p ng-show="schoolForm.phone_number.$invalid && (schoolForm.phone_number.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Phone Number is required.</p>
 								</div>	
 							</div>
@@ -91,8 +91,10 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.email_address.$invalid && (schoolForm.email_address.$touched || schoolForm.$submitted) }">		
 								<label for="email_address" class="col-sm-4 control-label nopad-right">Email Address</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="email_address" ng-model="settings['Email Address']" required>						
-									<p ng-show="schoolForm.email_address.$invalid && (schoolForm.email_address.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email Address is required.</p>
+									<input type="email" class="form-control" name="email_address" ng-model="settings['Email Address']" required />						
+									<p ng-show="schoolForm.email_address.$error.required && (schoolForm.email_address.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email Address is required.</p>
+									<p ng-show="schoolForm.email_address.$error.email&& (schoolForm.email_address.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email Address is invalid.</p>
+									
 								</div>	
 							</div>
 							
@@ -100,8 +102,8 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted) }">		
 								<label for="email_from" class="col-sm-4 control-label nopad-right">Email From</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="email_from" ng-model="settings['Email From']" required>						
-									<p ng-show="schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email Address is required.</p>
+									<input type="text" class="form-control" name="email_from" ng-model="settings['Email From']">						
+									<p ng-show="schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email From is required.</p>
 								</div>	
 							</div>
 							

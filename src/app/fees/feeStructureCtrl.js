@@ -34,7 +34,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 				{
 					$scope.items = $scope.items.map(function(item){
 						// format the class restrictions into any array
-						if( item.class_cats_restriction !== null )
+						if( item.class_cats_restriction !== null && item.class_cats_restriction != '{}' )
 						{
 							var classCatsRestriction = (item.class_cats_restriction).slice(1, -1);
 							item.class_cats_restriction = classCatsRestriction.split(',');
@@ -51,6 +51,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 						else
 						{
 							item.class_categories = 'All';
+							item.class_cats_restriction = [];
 						}
 						item.new_student = ( item.new_student_only ? 'Yes':'-');
 						

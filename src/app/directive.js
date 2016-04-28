@@ -65,6 +65,25 @@ angular.module('eduwebApp')
     }
   }
 }])
+.directive('numericOnly', function(){
+    return {
+        require: 'ngModel',
+        link: function(scope, element, attrs, modelCtrl) {
+
+            modelCtrl.$parsers.push(function (inputValue) {
+                var transformedInput = inputValue ? inputValue.replace(/[^\d.-]/g,'') : null;
+
+                if (transformedInput!=inputValue) {
+                    modelCtrl.$setViewValue(transformedInput);
+					modelCtrl.$commitViewValue();
+                    modelCtrl.$render();
+                }
+
+                return transformedInput;
+            });
+        }
+    };
+})
 .directive('ngEnter', function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {

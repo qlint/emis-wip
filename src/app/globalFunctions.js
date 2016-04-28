@@ -190,7 +190,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 			
 			return item;
 		});
-		console.log(formatedResults);
+
 		return formatedResults;
 	}
 	

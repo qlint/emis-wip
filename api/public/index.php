@@ -3281,7 +3281,7 @@ $app->post('/addFeeItem/', function () use($app) {
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
 	// convert $classCats to postgresql array
-	$classCatsStr = '{' . implode(',',$classCats) . '}';
+	if( is_array($classCats) ) 	$classCatsStr = '{' . implode(',',$classCats) . '}';
 	
 
     try 
@@ -3327,7 +3327,7 @@ $app->put('/updateFeeItem/', function () use($app) {
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
 	// convert $classCats to postgresql array
-	$classCatsStr = '{' . implode(',',$classCats) . '}';
+	if( is_array($classCats) ) 	$classCatsStr = '{' . implode(',',$classCats) . '}';
 	
 	
     try 
@@ -4080,7 +4080,7 @@ $app->post('/addStudent/', function () use($app) {
 		if( count($feeItems) > 0 || count($optFeeItems) > 0 )
 		{
 			$feesInsert = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
-										VALUES(currval('app.students_student_id_seq'),?,?,?,?);"); 
+										VALUES(currval('app.students_student_id_seq'),:feeItemID,:amount,:paymentMethod,:userId);"); 
 		}		
 		
 		$db->beginTransaction();	
@@ -4162,7 +4162,7 @@ $app->post('/addStudent/', function () use($app) {
 							':createdBy' => $createdBy
 			) );
 		}
-		
+				
 		if( count($medicalConditions) > 0 )
 		{
         
@@ -4178,21 +4178,9 @@ $app->post('/addStudent/', function () use($app) {
 		
 		if( count($feeItems) > 0 )
 		{
-        
 			foreach( $feeItems as $feeItem )
 			{
-				// if the fee item has a frequency of per term, need to enter once per term
-				// if frequency is yearly, enter first term
-				//if once, leave term null
-				/*
-				$feeData = new stdClass();
-				$feeData->studentId = $studentId;
-				$feeData->userId = $createdBy;
-				$feeData->feeItem = $feeItems[$i];
-				insertFeeItem($feeData, $feesInsert);
-				*/
 				$feesInsert->execute( array(
-					':studentID' => $studentId,
 					':feeItemID' => $feeItem['fee_item_id'],
 					':amount' => $feeItem['amount'],
 					':paymentMethod' => $feeItem['payment_method'],
@@ -4200,24 +4188,13 @@ $app->post('/addStudent/', function () use($app) {
 				);
 			}
 		}
-		
+
 		if( count($optFeeItems) > 0 )
 		{
         
 			foreach( $optFeeItems as $optFeeItem )
 			{
-				// if the fee item has a frequency of per term, need to enter once per term
-				// if frequency is yearly, enter first term
-				//if once, leave term null
-				/*
-				$feeData = new stdClass();
-				$feeData->studentId = $studentId;
-				$feeData->userId = $createdBy;
-				$feeData->feeItem = $optFeeItems[$i];
-				insertFeeItem($feeData, $feesInsert);
-				*/
 				$feesInsert->execute( array(
-					':studentID' => $studentId,
 					':feeItemID' => $optFeeItem['fee_item_id'],
 					':amount' => $optFeeItem['amount'],
 					':paymentMethod' => $optFeeItem['payment_method'],
