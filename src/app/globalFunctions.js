@@ -165,7 +165,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 	{
 		// make adjustments to student data
 		var formatedResults = data.map(function(item){
-			item.student_name = item.first_name + ' ' + item.middle_name + ' ' + item.last_name;
+			item.student_name = item.first_name + ' ' + ( item.middle_name || '' ) + ' ' + item.last_name;
 			var theClass = $rootScope.allClasses.filter(function(a){ 
 				return a.class_id == item.current_class;
 			})[0];
@@ -176,7 +176,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 			if( item.guardians)
 			{
 				item.guardians = item.guardians.map(function(parent){
-					parent.parent_full_name = parent.first_name + ' ' + parent.middle_name + ' ' + parent.last_name;
+					parent.parent_full_name = parent.first_name + ' ' + ( parent.middle_name || '') + ' ' + parent.last_name;
 					return parent;
 				});
 			}

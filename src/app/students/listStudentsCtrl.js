@@ -83,6 +83,11 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	var initDataGrid = function() 
 	{
+		if( $scope.dataGrid !== undefined ){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.destroy();
+		}
+		
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {
@@ -129,7 +134,6 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
 		
@@ -222,7 +226,10 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	var filterStudents = function()
 	{
-		$scope.dataGrid.destroy();
+		if( $scope.dataGrid !== undefined ){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.destroy();
+		}
 		
 		// filter by class category
 		// allStudents holds current students, formerStudents, the former...

@@ -1,147 +1,158 @@
-<form name="studentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+<form name="studentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(studentForm)">		
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 			<h4 class="modal-title">Add Student</h4>
 		</div>
 		<div class="modal-body">
-	
-			<p ng-show="error" class="error alert alert-danger">
-				{{errMsg}}
-			</p>
-				 			
-			<div class="row">
-				<div class="col-sm-9">
+					 			
+			<div class="row clearfix">
+				<div class="col-sm-12 clearfix">
 					<div class="modal-tabs main-tabs">					
 						<ul class="nav nav-tabs">
-							<li ng-class="{active: currentTab==item}" ng-repeat="item in tabs"><a class="clickable" ng-click="getTabContent(item)">{{item}}</a></li>
+							<li ng-class="{active: currentTab==item}" ng-repeat="item in tabs"><a class="clickable" ng-click="getTabContent(item, studentForm)">{{item}} <span class="error-indicator" ng-show="hasErrors(item)" ng-bind="getErrorCount(item)"></span></a></li>
 						</ul>						
 					</div>
 				</div>
 			</div>
-			
+						
 			<div class="tab-content clearfix" ng-include="currentTab"></div>
 			
 			<script type="text/ng-template" id="Student Details">
 				
 				<h2>Student Details</h2>
+				
+				<div ng-show="formError" class="error alert alert-danger">
+					{{errMsg}}
+					<ul>
+					  <li ng-repeat="item in formErrors track by $index"> <strong>{{ key }}</strong> errors
+						<ul>
+						  <li ng-repeat="e in errors">{{ e.$name }} has an error: <strong>{{ key }}</strong>.</li>
+						</ul>
+					  </li>
+					</ul>
+				</div>
+				<!--<ng-form name="studentForm">-->
 				<div class="row">
 					<div class="col-sm-6">
 						
 						<!-- new student? -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.new_student.$invalid && (studentForm.new_student.$touched || studentForm.$submitted) }">					
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.new_student.$dirty ) && studentForm.new_student.$invalid && studentForm.new_student.$error.required }">					
 							<label for="new_student"  class="col-sm-4 control-label">Is this a new student?</label>
 							<div class="col-sm-8">
 								<label class="radio-inline">
-								  <input type="radio" name="new_student" ng-model="student.new_student" value="true"> Yes
+								  <input type="radio" name="new_student" ng-model="student.new_student" value="true" required> Yes
 								</label>
 								<label class="radio-inline">
-								  <input type="radio" name="new_student" ng-model="student.new_student" value="false"> No
+								  <input type="radio" name="new_student" ng-model="student.new_student" value="false" required> No
 								</label>
-								<p ng-show="studentForm.new_student.$invalid && (studentForm.new_student.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> New Student selection is required.</p>
+								<p ng-show="(studentForm.$submitted || studentForm.new_student.$dirty ) && studentForm.new_student.$invalid && studentForm.new_student.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> New Student selection is required.</p>
 							</div>
 						</div>	
 						
-						
 						<!-- admission date -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.admission_date.$invalid && (studentForm.admission_date.$touched || studentForm.$submitted) }">
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.admission_date.$dirty ) && studentForm.admission_date.$invalid && studentForm.admission_date.$error.required }">
 							<label for="admission_date" class="col-sm-4 control-label">Admission Date</label>
 							<div class="col-sm-8">
 								<div class="input-group">
-									<input type="text" name="dob" date-range-picker id="admission_date" class="form-control date-picker input-sm" ng-model="student.admission_date" options="{singleDatePicker: true,autoApply: true}" />
+									<input type="text" name="dob" date-range-picker id="admission_date" class="form-control date-picker input-sm" ng-model="student.admission_date" options="{singleDatePicker: true,autoApply: true}"  required>
 									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 								</div>
-								<p ng-show="studentForm.admission_date.$invalid && (studentForm.admission_date.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Admission Number is required.</p>
+								<p ng-show="(studentForm.$submitted || studentForm.admission_date.$dirty ) && studentForm.admission_date.$invalid && studentForm.admission_date.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Admission Number is required.</p>
 							</div>
 						</div>
 						
 						<!-- admission number -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.admission_number.$invalid && (studentForm.admission_number.$touched || studentForm.$submitted) }">
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.admission_number.$dirty ) && studentForm.admission_number.$invalid && studentForm.admission_number.$error.required }">
 							<label for="admission_number" class="col-sm-4 control-label">Admission Number</label>
 							<div class="col-sm-8">
-								<input type="text" name="admission_number" ng-model="student.admission_number" class="form-control"  >	
-								<p ng-show="studentForm.admission_number.$invalid && (studentForm.admission_number.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Admission Number is required.</p>
+								<input type="text" name="admission_number" ng-model="student.admission_number" class="form-control" required >	
+								<p ng-show="(studentForm.$submitted || studentForm.admission_number.$dirty ) && studentForm.admission_number.$invalid && studentForm.admission_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Admission Number is required.</p>
 							</div>
 						</div>
+						
 						<!-- current class -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.current_class.$invalid && (studentForm.current_class.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.current_class.$dirty ) && studentForm.current_class.$invalid && studentForm.current_class.$error.required }">		
 							<label for="current_class" class="col-sm-4 control-label">Class Entry</label>
 							<div class="col-sm-8">
-								<select class="form-control" ng-options="class.class_name for class in allClasses" ng-model="student.current_class">
+								<select name="current_class" class="form-control" ng-options="class.class_name for class in allClasses" ng-model="student.current_class" required>
 									<option value="">--select class--</option>
-							    </select>
-   
-								
-								<p ng-show="studentForm.current_class.$invalid && (studentForm.current_class.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Current Class is required.</p>
+							    </select>								
+								<p ng-show="(studentForm.$submitted || studentForm.current_class.$dirty ) && studentForm.current_class.$invalid && studentForm.current_class.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Current Class is required.</p>
 							</div>	
 						</div>
 						
 						<!-- last name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.last_name.$invalid && (studentForm.last_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.last_name.$dirty ) && studentForm.last_name.$invalid && studentForm.last_name.$error.required }">		
 							<label for="last_name" class="col-sm-4 control-label">Last Name</label>
 							<div class="col-sm-8">
-								<input type="text" name="last_name" ng-model="student.last_name" class="form-control"  >	
-								<p ng-show="studentForm.last_name.$invalid && (studentForm.last_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Last Name is required.</p>
+								<input type="text" name="last_name" ng-model="student.last_name" class="form-control" required >	
+								<p ng-show="(studentForm.$submitted || studentForm.last_name.$dirty ) && studentForm.last_name.$invalid && studentForm.last_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Last Name is required.</p>
 							</div>	
 						</div>
+						
 						<!-- first name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.first_name.$invalid && (studentForm.first_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.first_name.$dirty ) && studentForm.first_name.$invalid && studentForm.first_name.$error.required }">		
 							<label for="first_name" class="col-sm-4 control-label">First Name</label>
 							<div class="col-sm-8">
-								<input type="text" name="first_name" ng-model="student.first_name" class="form-control"  >	
-								<p ng-show="studentForm.first_name.$invalid && (studentForm.first_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>
+								<input type="text" name="first_name" ng-model="student.first_name" class="form-control" required >	
+								<p ng-show="(studentForm.$submitted || studentForm.first_name.$dirty ) && studentForm.first_name.$invalid && studentForm.first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>
 							</div>	
 						</div>
+						
 						<!-- middle name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.middle_name.$invalid && (studentForm.middle_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group">		
 							<label for="middle_name" class="col-sm-4 control-label">Middle Name(s)</label>
 							<div class="col-sm-8">
 								<input type="text" name="middle_name" ng-model="student.middle_name" class="form-control"  >	
-								<p ng-show="studentForm.middle_name.$invalid && (studentForm.middle_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Middle Name is required.</p>
 							</div>	
 						</div>
 						
 						<!-- dob -->
-						<div class="form-group"  ng-class="{ 'has-error' : studentForm.dob.$invalid && (studentForm.dob.$touched || studentForm.$submitted) }">		
+						<div class="form-group"  ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.dob.$dirty ) && studentForm.dob.$invalid && studentForm.dob.$error.required }">		
 							<label for="dob" class="col-sm-4 control-label">Date of Birth</label>
 							<div class="col-sm-8">
-								<input type="text" name="dob" id="dob" class="form-control input-sm" ng-model="student.dob" placeholder="DD/MM/YYYY" />
-								<p ng-show="studentForm.dob.$invalid && (studentForm.dob.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Date of Birth is required.</p>
+								<input type="text" name="dob" id="dob" class="form-control input-sm" ng-model="student.dob" placeholder="DD/MM/YYYY" required>
+								<p ng-show="(studentForm.$submitted || studentForm.dob.$dirty ) && studentForm.dob.$invalid && studentForm.dob.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Date of Birth is required.</p>
 							</div>	
 						</div>
+						
 						<!-- gender -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.gender.$invalid && (studentForm.gender.$touched || studentForm.$submitted) }">					
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.gender.$dirty ) && studentForm.gender.$invalid && studentForm.gender.$error.required }">					
 							<label for="gender"  class="col-sm-4 control-label">Gender</label>
 							<div class="col-sm-8">
 								<label class="radio-inline">
-								  <input type="radio" name="gender" ng-model="student.gender" value="M"> M
+								  <input type="radio" name="gender" ng-model="student.gender" value="M" required> M
 								</label>
 								<label class="radio-inline">
-								  <input type="radio" name="gender" ng-model="student.gender" value="F"> F
+								  <input type="radio" name="gender" ng-model="student.gender" value="F" required> F
 								</label>
-								<p ng-show="studentForm.gender.$invalid && (studentForm.gender.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Gender is required.</p>
+								<p ng-show="(studentForm.$submitted || studentForm.gender.$dirty ) && studentForm.gender.$invalid && studentForm.gender.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Gender is required.</p>
 							</div>
 						</div>	
+						
 						<!-- student cat -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.student_category.$invalid && (studentForm.student_category.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.student_category.$dirty ) && studentForm.student_category.$invalid && studentForm.student_category.$error.required }">		
 							<label for="student_category" class="col-sm-4 control-label">Student Category</label>
 							<div class="col-sm-8">
-								<select name="student_category" ng-model="student.student_category" class="form-control">
+								<select name="student_category" ng-model="student.student_category" class="form-control" required>
 									<option value="{{item}}" ng-repeat="item in studentCats">{{item}}</option>
 								</select>
-								<p ng-show="studentForm.student_category.$invalid && (studentForm.student_category.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Student Category is required.</p>
+								<p ng-show="(studentForm.$submitted || studentForm.student_category.$dirty ) && studentForm.student_category.$invalid && studentForm.student_category.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Student Category is required.</p>
 							</div>	
 						</div>
+						
 						<!-- nationality -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.nationality.$invalid && (studentForm.nationality.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.nationality.$dirty ) && studentForm.nationality.$invalid && studentForm.nationality.$error.required }">		
 							<label for="nationality" class="col-sm-4 control-label">Nationality</label>
 							<div class="col-sm-8">
-								<select name="nationality" ng-model="student.nationality" class="form-control">
+								<select name="nationality" ng-model="student.nationality" class="form-control" required>
 									<option value="">--select Country--</option>
 									<option value="{{item.countries_name}}" ng-repeat="item in countries">{{item.countries_name}}</option>
 								</select>
-								<p ng-show="studentForm.nationality.$invalid && (studentForm.nationality.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Nationality is required.</p>
+								<p ng-show="(studentForm.$submitted || studentForm.nationality.$dirty ) && studentForm.nationality.$invalid && studentForm.nationality.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Nationality is required.</p>
 							</div>	
 						</div>
+						
 						<!-- picture -->
 						<div class="form-group">					
 							<label for="student-image" class="col-sm-4 control-label">Student Image</label>
@@ -151,16 +162,16 @@
 						</div>
 						
 						<!-- status -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.status.$invalid && (studentForm.status.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.status.$dirty ) && studentForm.status.$invalid && studentForm.status.$error.required }">		
 							<label for="status" class="col-sm-4 control-label">Status</label>
 							<div class="col-sm-8">
 								<label class="radio-inline">
-								  <input type="radio" name="status" ng-model="student.status" value="true"> Active
+								  <input type="radio" name="status" ng-model="student.status" value="true" required> Active
 								</label>
 								<label class="radio-inline">
-								  <input type="radio" name="status" ng-model="student.status" value="false"> In-active
+								  <input type="radio" name="status" ng-model="student.status" value="false" required> In-active
 								</label>
-								<p ng-show="studentForm.status.$invalid && (studentForm.status.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Status is required.</p>
+								<p ng-show="(studentForm.$submitted || studentForm.status.$dirty ) && studentForm.status.$invalid && studentForm.status.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Status is required.</p>
 							</div>	
 						</div>		
 					</div>
@@ -168,14 +179,13 @@
 						<h3>Family History</h3>
 						
 						<!-- Marital Status of Parents -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.parents_marital_status.$invalid && (studentForm.parents_marital_status.$touched || studentForm.$submitted) }">
+						<div class="form-group">
 							<label for="parents_marital_status" class="col-sm-5 control-label">Marital Status of Parents</label>
 							<div class="col-sm-7">
 								<select name="parents_marital_status" ng-model="student.marial_status_parents" class="form-control">
 									<option value="">--select one--</option>
 									<option value="{{item}}" ng-repeat="item in maritalStatuses">{{item}}</option>
 								</select>
-								<p ng-show="studentForm.parents_marital_status.$invalid && (studentForm.parents_marital_status.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Parent's Marital Status is required.</p>
 							</div>	
 						</div>
 						
@@ -188,7 +198,7 @@
 						</div>
 						
 						<!-- adopted -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.adopted.$invalid && (studentForm.adopted.$touched || studentForm.$submitted) }">					
+						<div class="form-group">					
 							<label for="adopted"  class="col-sm-5 control-label">Adopted?</label>
 							<div class="col-sm-7">
 								<label class="radio-inline">
@@ -197,7 +207,6 @@
 								<label class="radio-inline">
 								  <input type="radio" name="adopted" ng-model="student.adopted" value="false"> No
 								</label>
-								<p ng-show="studentForm.adopted.$invalid && (studentForm.adopted.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Adoption selection is required.</p>
 							</div>
 						</div>	
 						
@@ -224,27 +233,29 @@
 						
 						<h3>Emergency Contact</h3>
 						<!-- emergency contact name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.emergency_name.$invalid && (studentForm.emergency_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.emergency_name.$dirty ) && studentForm.emergency_name.$invalid && studentForm.emergency_name.$error.required }">		
 							<label for="emergency_name" class="col-sm-4 control-label">Contact Name</label>
 							<div class="col-sm-8">
-								<input type="text" name="emergency_name" ng-model="student.emergency_name" class="form-control"  >	
-								<p ng-show="studentForm.emergency_name.$invalid && (studentForm.emergency_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Name is required.</p>
+								<input type="text" name="emergency_name" ng-model="student.emergency_name" class="form-control" required >	
+								<p ng-show="(studentForm.$submitted || studentForm.emergency_name.$dirty ) && studentForm.emergency_name.$invalid && studentForm.emergency_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Name is required.</p>
 							</div>	
 						</div>
+						
 						<!-- emergency relationship -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.emergency_relationship.$invalid && (studentForm.emergency_relationship.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.emergency_relationship.$dirty ) && studentForm.emergency_relationship.$invalid && studentForm.emergency_relationship.$error.required }">		
 							<label for="emergency_relationship" class="col-sm-4 control-label">Contact Relationship</label>
 							<div class="col-sm-8">
-								<input type="text" name="emergency_relationship" ng-model="student.emergency_relationship" class="form-control"  >	
-								<p ng-show="studentForm.emergency_relationship.$invalid && (studentForm.emergency_relationship.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Relationship is required.</p>
+								<input type="text" name="emergency_relationship" ng-model="student.emergency_relationship" class="form-control" required >	
+								<p ng-show="(studentForm.$submitted || studentForm.emergency_relationship.$dirty ) && studentForm.emergency_relationship.$invalid && studentForm.emergency_relationship.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Relationship is required.</p>
 							</div>	
 						</div>
+						
 						<!-- emergency telephone -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.emergency_telephone.$invalid && (studentForm.emergency_telephone.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.emergency_telephone.$dirty ) && studentForm.emergency_telephone.$invalid && studentForm.emergency_telephone.$error.required }">		
 							<label for="emergency_telephone" class="col-sm-4 control-label">Contact Telephone</label>
 							<div class="col-sm-8">
-								<input type="text" name="emergency_telephone" ng-model="student.emergency_telephone" class="form-control"  >	
-								<p ng-show="studentForm.emergency_telephone.$invalid && (studentForm.emergency_telephone.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Telephone is required.</p>
+								<input type="text" name="emergency_telephone" ng-model="student.emergency_telephone" class="form-control" required numeric-only>	
+								<p ng-show="(studentForm.$submitted || studentForm.emergency_telephone.$dirty ) && studentForm.emergency_telephone.$invalid && studentForm.emergency_telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Telephone is required.</p>
 							</div>	
 						</div>
 						
@@ -259,81 +270,98 @@
 						
 					</div>
 				</div>
-				
+				<!--</ng-form>-->
 			</script>
 			
 			<script type="text/ng-template" id="Parents">
 				<h2>Parents/Guardians</h2>
+				<div ng-show="formError" class="error alert alert-danger">
+					{{errMsg}}
+					<ul>
+					  <li ng-repeat="item in formErrors track by $index"> <strong>{{ key }}</strong> errors
+						<ul>
+						  <li ng-repeat="e in errors">{{ e.$name }} has an error: <strong>{{ key }}</strong>.</li>
+						</ul>
+					  </li>
+					</ul>
+				</div>
+				<!--<ng-form name="studentForm">-->
 				<div class="row">
 					<div class="col-sm-6">
 						<h3>Father/Guardian</h3>
+						
 						<!-- last name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.father_last_name.$invalid && (studentForm.father_last_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.father_last_name.$dirty ) && studentForm.father_last_name.$invalid && studentForm.father_last_name.$error.required }">		
 							<label for="father_last_name" class="col-sm-3 control-label">Last Name</label>
 							<div class="col-sm-9">
-								<input type="text" name="father_last_name" ng-model="student.guardian.father.last_name" class="form-control"  >	
-								<p ng-show="studentForm.father_last_name.$invalid && (studentForm.father_last_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Last Name is required.</p>
+								<input type="text" name="father_last_name" ng-model="student.guardian.father.last_name" class="form-control" ng-required="student.guardian.mother.last_name===undefined" >	
+								<p ng-show="(studentForm.$submitted || studentForm.father_last_name.$dirty ) && studentForm.father_last_name.$invalid && studentForm.father_last_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Last Name is required.</p>
 							</div>	
 						</div>
+						
 						<!-- first name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.father_first_name.$invalid && (studentForm.father_first_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.father_first_name.$dirty ) && studentForm.father_first_name.$invalid && studentForm.father_first_name.$error.required }">		
 							<label for="father_first_name" class="col-sm-3 control-label">First Name</label>
 							<div class="col-sm-9">
-								<input type="text" name="father_first_name" ng-model="student.guardian.father.first_name" class="form-control"  >	
-								<p ng-show="studentForm.father_first_name.$invalid && (studentForm.father_first_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's First Name is required.</p>
+								<input type="text" name="father_first_name" ng-model="student.guardian.father.first_name" class="form-control"  ng-required="student.guardian.mother.first_name===undefined">	
+								<p ng-show="(studentForm.$submitted || studentForm.father_first_name.$dirty ) && studentForm.father_first_name.$invalid && studentForm.father_first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's First Name is required.</p>
 							</div>	
 						</div>
+						
 						<!-- middle name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.father_middle_name.$invalid && (studentForm.father_middle_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group">		
 							<label for="father_middle_name" class="col-sm-3 control-label">Middle Name</label>
 							<div class="col-sm-9">
 								<input type="text" name="father_middle_name" ng-model="student.guardian.father.middle_name" class="form-control"  >	
-								<p ng-show="studentForm.father_middle_name.$invalid && (studentForm.father_middle_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Middle Name is required.</p>
 							</div>	
 						</div>
+						
 						<!-- name title -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.father_title.$invalid && (studentForm.father_title.$touched || studentForm.$submitted) }">		
+						<div class="form-group">		
 							<label for="father_title" class="col-sm-3 control-label">Title</label>
 							<div class="col-sm-9">
 								<select name="father_title" ng-model="student.guardian.father.title" class="form-control">
 									<option value="{{title}}" ng-repeat="title in titles">{{title}}</option>
 								</select>
-								<p ng-show="studentForm.father_title.$invalid && (studentForm.father_title.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Title is required.</p>
 							</div>	
 						</div>						
+						
 						<!-- id number -->
-						<div class="form-group"> <!-- ng-class="{ 'has-error' : studentForm.father_id_number.$invalid && (studentForm.father_id_number.$touched || studentForm.$submitted) }">-->
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.father_id_number.$dirty ) && studentForm.father_id_number.$invalid && studentForm.father_id_number.$error.required }">
 							<label for="father_id_number" class="col-sm-3 control-label">ID Number</label>
 							<div class="col-sm-9">
-								<input type="text" name="father_id_number" ng-model="student.guardian.father.id_number" class="form-control"  >	
-								<!--p ng-show="studentForm.father_id_number.$invalid && (studentForm.father_id_number.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's ID Number is required.</p-->
+								<input type="text" name="father_id_number" ng-model="student.guardian.father.id_number" class="form-control" ng-required="student.guardian.mother.id_number===undefined" numeric-only>	
+								<p ng-show="(studentForm.$submitted || studentForm.father_id_number.$dirty ) && studentForm.father_id_number.$invalid && studentForm.father_id_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's ID Number is required.</p>
 							</div>
 						</div>
+						
 						<!-- address -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.father_address.$invalid && (studentForm.father_address.$touched || studentForm.$submitted) }">
+						<div class="form-group">
 							<label for="father_address" class="col-sm-3 control-label">Address</label>
 							<div class="col-sm-9">
 								<input type="text" name="father_address" ng-model="student.guardian.father.address" class="form-control"  >	
-								<p ng-show="studentForm.father_address.$invalid && (studentForm.father_address.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's address is required.</p>
 							</div>
 						</div>
 						
 						<!-- phone number -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.father_telephone.$invalid && (studentForm.father_telephone.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.father_telephone.$dirty ) && studentForm.father_telephone.$invalid && studentForm.father_telephone.$error.required }">		
 							<label for="father_telephone" class="col-sm-3 control-label">Telephone</label>
 							<div class="col-sm-9">
-								<input type="text" name="father_telephone" ng-model="student.guardian.father.telephone" class="form-control"  >	
-								<p ng-show="studentForm.father_telephone.$invalid && (studentForm.father_telephone.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Telephone number is required.</p>
+								<input type="text" name="father_telephone" ng-model="student.guardian.father.telephone" class="form-control"  ng-required="student.guardian.mother.telephone===undefined" numeric-only>	
+								<p ng-show="(studentForm.$submitted || studentForm.father_telephone.$dirty ) && studentForm.father_telephone.$invalid && studentForm.father_telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Telephone number is required.</p>
 							</div>	
 						</div>
+						
 						<!-- email -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.father_email.$invalid && (studentForm.father_email.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.father_email.$dirty ) && studentForm.father_email.$invalid && (studentForm.father_email.$error.required || studentForm.father_email.$error.email) }">		
 							<label for="father_email" class="col-sm-3 control-label">Email</label>
 							<div class="col-sm-9">
-								<input type="text" name="father_email" ng-model="student.guardian.father.email" class="form-control"  >	
-								<p ng-show="studentForm.father_email.$invalid && (studentForm.father_email.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Email is required.</p>
+								<input type="email" name="father_email" ng-model="student.guardian.father.email" class="form-control"  ng-required="student.guardian.mother.email===undefined" >	
+								<p ng-show="(studentForm.$submitted || studentForm.father_email.$dirty ) && studentForm.father_email.$invalid && studentForm.father_email.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Email is required.</p>
+								<p ng-show="(studentForm.$submitted || studentForm.father_email.$dirty ) && studentForm.father_email.$invalid && studentForm.father_email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>
 							</div>	
 						</div>
+						
 						<!-- occupation -->
 						<div class="form-group">		
 							<label for="father_occupation" class="col-sm-3 control-label">Occupation</label>
@@ -341,6 +369,7 @@
 								<input type="text" name="father_occupation" ng-model="student.guardian.father.occupation" class="form-control"  >	
 							</div>	
 						</div>
+						
 						<!-- employer -->
 						<div class="form-group">		
 							<label for="father_employer" class="col-sm-3 control-label">Employer</label>
@@ -348,6 +377,7 @@
 								<input type="text" name="father_employer" ng-model="student.guardian.father.employer" class="form-control"  >	
 							</div>	
 						</div>
+						
 						<!-- employer address -->
 						<div class="form-group">		
 							<label for="father_employer_address" class="col-sm-3 control-label">Employer Address</label>
@@ -355,112 +385,121 @@
 								<input type="text" name="father_employer_address" ng-model="student.guardian.father.employer_address" class="form-control"  >	
 							</div>	
 						</div>
+						
 						<!-- phone number -->
 						<div class="form-group">		
 							<label for="father_work_phone" class="col-sm-3 control-label">Work Phone</label>
 							<div class="col-sm-9">
-								<input type="text" name="father_work_phone" ng-model="student.guardian.father.work_phone" class="form-control"  >	
+								<input type="text" name="father_work_phone" ng-model="student.guardian.father.work_phone" class="form-control" numeric-only >	
 							</div>	
 						</div>
+						
 						<!-- work_email -->
-						<div class="form-group">
+						<div class="form-group"ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.father_work_email.$dirty ) && studentForm.father_work_email.$invalid && (studentForm.father_work_email.$error.required || studentForm.father_work_email.$error.email) }">	
 							<label for="father_work_email" class="col-sm-3 control-label">Work Email</label>
 							<div class="col-sm-9">
-								<input type="text" name="father_work_email" ng-model="student.guardian.father.work_email" class="form-control"  >	
+								<input type="email" name="father_work_email" ng-model="student.guardian.father.work_email" class="form-control"  >	
+								<p ng-show="(studentForm.$submitted || studentForm.father_work_email.$dirty ) && studentForm.father_work_email.$invalid && studentForm.father_work_email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>
 							</div>	
 						</div>
+						
 						<!-- relationship -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.father_relationship.$invalid && (studentForm.father_relationship.$touched || studentForm.$submitted) }">		
+						<div class="form-group">		
 							<label for="father_relationship" class="col-sm-3 control-label">Relationship</label>
 							<div class="col-sm-9">
 								<select name="father_relationship" ng-model="student.guardian.father.relationship" class="form-control">
 									<option value="">--select relationship--</option>
 									<option value="{{item}}" ng-repeat="item in relationships">{{item}}</option>
 								</select>
-								<p ng-show="studentForm.father_relationship.$invalid && (studentForm.father_relationship.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Relationship is required.</p>
 							</div>	
 						</div>
+						
 						<!-- marital status -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.father_marital_status.$invalid && (studentForm.father_marital_status.$touched || studentForm.$submitted) }">		
+						<div class="form-group">		
 							<label for="father_marital_status" class="col-sm-3 control-label">Marital Status</label>
 							<div class="col-sm-9">
 								<select name="father_marital_status" ng-model="student.guardian.father.marital_status" class="form-control">
 									<option value="">--select one--</option>
 									<option value="{{item}}" ng-repeat="item in maritalStatuses">{{item}}</option>
 								</select>
-								<p ng-show="studentForm.father_marital_status.$invalid && (studentForm.father_marital_status.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Marital Status is required.</p>
 							</div>	
 						</div>
 					</div>
 					<div class="col-sm-6">
 						<h3>Mother/Guardian</h3>
+						
 						<!-- last name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_last_name.$invalid && (studentForm.mother_last_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.mother_last_name.$dirty ) && studentForm.mother_last_name.$invalid && studentForm.mother_last_name.$error.required }">		
 							<label for="mother_last_name" class="col-sm-3 control-label">Last Name</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_last_name" ng-model="student.guardian.mother.last_name" class="form-control"  >	
-								<p ng-show="studentForm.mother_last_name.$invalid && (studentForm.mother_last_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Last Name is required.</p>
+								<input type="text" name="mother_last_name" ng-model="student.guardian.mother.last_name" class="form-control" ng-required="student.guardian.father.last_name===undefined">	
+								<p ng-show="(studentForm.$submitted || studentForm.mother_last_name.$dirty ) && studentForm.mother_last_name.$invalid && studentForm.mother_last_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Last Name is required.</p>
 							</div>	
 						</div>
+						
 						<!-- first name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_first_name.$invalid && (studentForm.mother_first_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.mother_first_name.$dirty ) && studentForm.mother_first_name.$invalid && studentForm.mother_first_name.$error.required }">		
 							<label for="mother_first_name" class="col-sm-3 control-label">First Name</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_first_name" ng-model="student.guardian.mother.first_name" class="form-control"  >	
-								<p ng-show="studentForm.mother_first_name.$invalid && (studentForm.mother_first_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's First Name is required.</p>
+								<input type="text" name="mother_first_name" ng-model="student.guardian.mother.first_name" class="form-control"  ng-required="student.guardian.father.first_name===undefined">	
+								<p ng-show="(studentForm.$submitted || studentForm.mother_first_name.$dirty ) && studentForm.mother_first_name.$invalid && studentForm.mother_first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's First Name is required.</p>
 							</div>	
 						</div>
+						
 						<!-- middle name -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_middle_name.$invalid && (studentForm.mother_middle_name.$touched || studentForm.$submitted) }">		
+						<div class="form-group">		
 							<label for="mother_middle_name" class="col-sm-3 control-label">Middle Name</label>
 							<div class="col-sm-9">
 								<input type="text" name="mother_middle_name" ng-model="student.guardian.mother.middle_name" class="form-control"  >	
-								<p ng-show="studentForm.mother_middle_name.$invalid && (studentForm.mother_middle_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Middle Name is required.</p>
 							</div>	
 						</div>
+						
 						<!-- name title -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_title.$invalid && (studentForm.mother_title.$touched || studentForm.$submitted) }">		
+						<div class="form-group">		
 							<label for="mother_title" class="col-sm-3 control-label">Title</label>
 							<div class="col-sm-9">
 								<select name="mother_title" ng-model="student.guardian.mother.title" class="form-control">
 									<option value="{{title}}" ng-repeat="title in titles">{{title}}</option>
 								</select>
-								<p ng-show="studentForm.mother_title.$invalid && (studentForm.mother_title.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Title is required.</p>
 							</div>	
 						</div>						
+						
 						<!-- id number -->
-						<div class="form-group"> <!-- ng-class="{ 'has-error' : studentForm.mother_id_number.$invalid && (studentForm.mother_id_number.$touched || studentForm.$submitted) }">-->
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.mother_id_number.$dirty ) && studentForm.mother_id_number.$invalid && studentForm.mother_id_number.$error.required }">
 							<label for="mother_id_number" class="col-sm-3 control-label">ID Number</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_id_number" ng-model="student.guardian.mother.id_number" class="form-control"  >	
-								<!--p ng-show="studentForm.mother_id_number.$invalid && (studentForm.mother_id_number.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's ID Number is required.</p-->
+								<input type="text" name="mother_id_number" ng-model="student.guardian.mother.id_number" class="form-control"  ng-required="student.guardian.father.id_number===undefined" numeric-only>	
+								<p ng-show="(studentForm.$submitted || studentForm.mother_id_number.$dirty ) && studentForm.mother_id_number.$invalid && studentForm.mother_id_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's ID Number is required.</p>
 							</div>
 						</div>
+						
 						<!-- address -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_address.$invalid && (studentForm.mother_id_number.$touched || studentForm.$submitted) }">
+						<div class="form-group">
 							<label for="mother_address" class="col-sm-3 control-label">Address</label>
 							<div class="col-sm-9">
 								<input type="text" name="mother_address" ng-model="student.guardian.mother.address" class="form-control"  >	
-								<p ng-show="studentForm.mother_address.$invalid && (studentForm.mother_address.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's address is required.</p>
 							</div>
 						</div>
 						
 						<!-- phone number -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_telephone.$invalid && (studentForm.mother_telephone.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.mother_telephone.$dirty ) && studentForm.mother_telephone.$invalid && studentForm.mother_telephone.$error.required }">		
 							<label for="mother_telephone" class="col-sm-3 control-label">Telephone</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_telephone" ng-model="student.guardian.mother.telephone" class="form-control"  >	
-								<p ng-show="studentForm.mother_telephone.$invalid && (studentForm.mother_telephone.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Telephone number is required.</p>
+								<input type="text" name="mother_telephone" ng-model="student.guardian.mother.telephone" class="form-control" ng-required="student.guardian.father.telephone===undefined" numeric-only>	
+								<p ng-show="(studentForm.$submitted || studentForm.mother_telephone.$dirty ) && studentForm.mother_telephone.$invalid && studentForm.mother_telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Telephone number is required.</p>
 							</div>	
 						</div>
+						
 						<!-- email -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_email.$invalid && (studentForm.mother_email.$touched || studentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.mother_email.$dirty ) && studentForm.mother_email.$invalid && (studentForm.mother_email.$error.required || studentForm.mother_email.$error.email) }">		
 							<label for="mother_email" class="col-sm-3 control-label">Email</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_email" ng-model="student.guardian.mother.email" class="form-control"  >	
-								<p ng-show="studentForm.mother_email.$invalid && (studentForm.mother_email.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Email is required.</p>
+								<input type="email" name="mother_email" ng-model="student.guardian.mother.email" class="form-control"  ng-required="student.guardian.father.email===undefined">	
+								<p ng-show="(studentForm.$submitted || studentForm.mother_email.$dirty ) && studentForm.mother_email.$invalid && studentForm.mother_email.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Email is required.</p>
+								<p ng-show="(studentForm.$submitted || studentForm.mother_email.$dirty ) && studentForm.mother_email.$invalid && studentForm.mother_email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>
 							</div>	
 						</div>
+						
 						<!-- occupation -->
 						<div class="form-group">		
 							<label for="mother_occupation" class="col-sm-3 control-label">Occupation</label>
@@ -468,6 +507,7 @@
 								<input type="text" name="mother_occupation" ng-model="student.guardian.mother.occupation" class="form-control"  >	
 							</div>	
 						</div>
+						
 						<!-- employer -->
 						<div class="form-group">		
 							<label for="mother_employer" class="col-sm-3 control-label">Employer</label>
@@ -475,6 +515,7 @@
 								<input type="text" name="mother_employer" ng-model="student.guardian.mother.employer" class="form-control"  >	
 							</div>	
 						</div>
+						
 						<!-- employer address -->
 						<div class="form-group">		
 							<label for="mother_employer_address" class="col-sm-3 control-label">Employer Address</label>
@@ -482,44 +523,48 @@
 								<input type="text" name="mother_employer_address" ng-model="student.guardian.mother.employer_address" class="form-control"  >	
 							</div>	
 						</div>
+						
 						<!-- phone number -->
 						<div class="form-group">		
 							<label for="mother_work_phone" class="col-sm-3 control-label">Work Phone</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_work_phone" ng-model="student.guardian.mother.work_phone" class="form-control"  >	
+								<input type="text" name="mother_work_phone" ng-model="student.guardian.mother.work_phone" class="form-control" numeric-only >	
 							</div>	
 						</div>
+						
 						<!-- work_email -->
-						<div class="form-group">
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.mother_work_email.$dirty ) && studentForm.mother_work_email.$invalid && (studentForm.mother_work_email.$error.required || studentForm.mother_work_email.$error.email) }">		
 							<label for="mother_work_email" class="col-sm-3 control-label">Work Email</label>
 							<div class="col-sm-9">
-								<input type="text" name="mother_work_email" ng-model="student.guardian.mother.work_email" class="form-control"  >	
+								<input type="email" name="mother_work_email" ng-model="student.guardian.mother.work_email" class="form-control"  >	
+								<p ng-show="(studentForm.$submitted || studentForm.mother_work_email.$dirty ) && studentForm.mother_work_email.$invalid && studentForm.mother_work_email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>
 							</div>	
 						</div>
+						
 						<!-- relationship -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_relationship.$invalid && (studentForm.mother_relationship.$touched || studentForm.$submitted) }">		
+						<div class="form-group">		
 							<label for="mother_relationship" class="col-sm-3 control-label">Relationship</label>
 							<div class="col-sm-9">
 								<select name="mother_relationship" ng-model="student.guardian.mother.relationship" class="form-control">
 									<option value="">--select relationship--</option>
 									<option value="{{item}}" ng-repeat="item in relationships">{{item}}</option>
 								</select>
-								<p ng-show="studentForm.mother_relationship.$invalid && (studentForm.mother_relationship.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Relationship is required.</p>
 							</div>	
 						</div>
+						
 						<!-- marital status -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.mother_marital_status.$invalid && (studentForm.mother_marital_status.$touched || studentForm.$submitted) }">		
+						<div class="form-group">		
 							<label for="mother_marital_status" class="col-sm-3 control-label">Marital Status</label>
 							<div class="col-sm-9">
 								<select name="mother_marital_status" ng-model="student.guardian.mother.marital_status" class="form-control">
 									<option value="">--select one--</option>
 									<option value="{{item}}" ng-repeat="item in maritalStatuses">{{item}}</option>
 								</select>
-								<p ng-show="studentForm.mother_marital_status.$invalid && (studentForm.mother_marital_status.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mother's Marital Status is required.</p>
 							</div>	
 						</div>
 					</div>
 				</div>
+				<!--</ng-form>-->
 			</script>
 			
 			<script type="text/ng-template" id="Medical History">
@@ -619,6 +664,9 @@
 			
 			<script type="text/ng-template" id="Fee Items">
 				<h2>Fee Items</h2>
+				<div ng-show="formError" class="error alert alert-danger">
+					{{errMsg}}
+				</div>
 				<div class="alert alert-info">
 					<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					<i class="pull-left glyphicon glyphicon-info-sign"></i> Check off the fee items that apply to this student. Make any necessary adjustments to the amounts.
@@ -626,24 +674,25 @@
 
 				<div class="row">
 					<!-- preferred payment method -->
-					<div class="form-group" ng-class="{ 'has-error' : studentForm.payment_method.$invalid && (studentForm.payment_method.$touched || studentForm.$submitted) }">		
+					<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.payment_method.$dirty ) && studentForm.payment_method.$invalid && studentForm.payment_method.$error.required }">		
 						<label for="payment_method" class="col-sm-3 control-label">Preferred Payment Method</label>
 						<div class="col-sm-3">
-							<select name="payment_method" ng-model="student.payment_method" class="form-control">
+							<select name="payment_method" ng-model="student.payment_method" class="form-control" required>
 								<option value="">--select payment option--</option>
 								<option value="{{item}}" ng-repeat="item in paymentOptions">{{item}}</option>
 							</select>
-							<p ng-show="studentForm.payment_method.$invalid && (studentForm.payment_method.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
+							<p ng-show="(studentForm.$submitted || studentForm.payment_method.$dirty ) && studentForm.payment_method.$invalid && studentForm.payment_method.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
 						</div>	
 					</div>	
 					<!-- installment plan -->
-					<div class="form-group" ng-show="student.payment_method=='Installments'">		
+					<div class="form-group" ng-show="student.payment_method=='Installments'"  ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.installment_option.$dirty ) && studentForm.installment_option.$invalid && studentForm.installment_option.$error.required }">			
 						<label for="installment_option" class="col-sm-3 control-label">Installment Option</label>
 						<div class="col-sm-3">
-							<select name="installment_option" ng-model="student.installment_option" class="form-control">
+							<select name="installment_option" ng-model="student.installment_option" class="form-control" ng-required="student.payment_method=='Installments'">
 								<option value="">--select installment option--</option>
 								<option value="{{item.installment_id}}" ng-repeat="item in installmentOptions">{{item.payment_plan_name}}</option>
 							</select>
+							<p ng-show="(studentForm.$submitted || studentForm.installment_option.$dirty ) && studentForm.installment_option.$invalid && studentForm.installment_option.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
 						</div>	
 					</div>	
 				</div>
@@ -739,8 +788,8 @@
 		<div class="modal-footer">
 			<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
 			
-			<button type="button" class="btn btn-default" ng-click="getStep('prev')" ng-show="!firstStep">Back</button>
-			<button type="button" class="btn btn-info" ng-click="getStep('next')" ng-show="!lastStep">Next</button>
+			<button type="button" class="btn btn-default" ng-click="getStep('prev',studentForm)" ng-show="!firstStep">Back</button>
+			<button type="button" class="btn btn-info" ng-click="getStep('next',studentForm)" ng-show="!lastStep">Next</button>
 			
 			<button type="submit" class="btn btn-success" ng-show="lastStep">
 				<span ng-hide="saving">Save</span>

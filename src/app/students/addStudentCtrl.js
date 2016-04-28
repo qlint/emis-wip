@@ -1,13 +1,15 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('addStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', 'data',
-function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, data){
+controller('addStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', 'data','$parse',
+function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, data, $parse){
 	
 	$scope.tabs = ['Student Details','Parents','Medical History','Fee Items'];
+	$scope.formNames = ['studentDetails','parentGuardians','medicalHistory','feeItems'];
 	$scope.currentTab = 'Student Details';
 	$scope.currentStep = 0;
 	$scope.firstStep = true;
+	$scope.forms = {};
 	
 	$scope.student = {};
 	var start_date = moment().format('YYYY-MM-DD HH:MM');
@@ -15,11 +17,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.student.student_category = 'Regular';
 	$scope.student.nationality = 'Kenya';
 	$scope.student.status = 'true';
+	$scope.student.other_medical_conditions = 'false';
+	$scope.student.hospitalized = 'false';
+	$scope.student.current_medical_treatment = 'false';
 	$scope.showSeparationAge = false;	
 	
 	$scope.feeItemSelection = [];
 	$scope.optFeeItemSelection = [];
 	$scope.conditionSelection = [];
+	$scope.formError = false;
+	
+	var detailsSection = ['new_student', 'admission_number', 'current_class', 'last_name', 'first_name', 'dob', 'gender', 'emergency_name', 'emergency_relationship', 'emergency_telephone'];
+	var guardianSection = ['father_last_name','father_first_name','father_id_number','father_telephone','father_email', 'mother_last_name','mother_first_name','mother_id_number','mother_telephone','mother_email'];
+	var feesSection = ['payment_method','installment_option'];
+	$scope.submitted = false;
 	
 	$scope.initializeController = function()
 	{
@@ -87,7 +98,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		// convert the classCatsRestriction to array for future filtering
 		return feeItems.map(function(item){
 			// format the class restrictions into any array
-			if( item.class_cats_restriction !== null )
+			if( item.class_cats_restriction !== null && item.class_cats_restriction != '{}' )
 			{
 				var classCatsRestriction = (item.class_cats_restriction).slice(1, -1);
 				item.class_cats_restriction = classCatsRestriction.split(',');
@@ -99,21 +110,43 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	}
 	
+	$scope.getStep = function(direction, theForm)
+	{
+		// validate current form first
+		//var theForm = $parse('forms.' + $scope.currentForm)($scope);
+		console.log(theForm);
+		if( theForm.$pristine )
+		{
+			goTo(direction, theForm); 
+		}
+		else
+		{
+			theForm.$setDirty();
+			theForm.$setSubmitted();
+			if( !theForm.$invalid ) goTo(direction, theForm); 
+		}
+		
+	}
 	
-	$scope.getStep = function(direction)
+	var goTo = function(direction, theForm)
 	{
 		$scope.currentStep = (direction == 'next' ? ($scope.currentStep+1): ($scope.currentStep-1));
-		$scope.getTabContent($scope.tabs[$scope.currentStep]);
+		$scope.getTabContent($scope.tabs[$scope.currentStep],theForm);
 	}
 
-	$scope.getTabContent = function(tab)
+	$scope.getTabContent = function(tab, theForm)
 	{
+		// store the form for future use
+		$scope.forms[$scope.currentTab] = angular.copy(theForm);
+		if( $scope.submitted  ) countErrors();
+		
 		$scope.currentTab = tab;
 		$scope.currentStep = $scope.tabs.indexOf(tab);
+		$scope.currentForm = $scope.formNames[$scope.currentStep]; 
 		$scope.lastStep = false;
 		$scope.firstStep = false;
 		if( $scope.currentTab == $scope.tabs[0] ) $scope.firstStep = true;
-		else if( $scope.currentTab == $scope.tabs[ $scope.tabs.length - 1 ] ) $scope.lastStep = true;
+		else if( $scope.currentTab == $scope.tabs[ $scope.tabs.length - 1 ] ) $scope.lastStep = true;;	
 	}
 	
 	$scope.cancel = function()
@@ -170,7 +203,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		if( $scope.student.current_class !== undefined )
 		{
 			feeItems = feeItems.filter(function(item){
-				if( item.class_cats_restriction === null ) return item;
+				if( item.class_cats_restriction === null || item.class_cats_restriction == '{}' ) return item;
 				else if( item.class_cats_restriction.indexOf(($scope.student.current_class.class_cat_id).toString()) > -1 ) return item;
 			});
 		}
@@ -222,25 +255,97 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	};
 	
-	$scope.save = function()
+	$scope.hasErrors = function(tab)
 	{
-	
-		if( uploader.queue[0] !== undefined ){
-			$scope.student.student_image = uploader.queue[0].file.name;
+		switch(tab){
+			case 'Student Details':
+				return ($scope.detailsErrors > 0 ? true : false)
+				break;
+			case 'Parents':
+				return ($scope.guardianErrors > 0 ? true : false)
+				break;
+			case 'Medical History':
+				return ($scope.medicalErrors > 0 ? true : false)
+				break;
+			case 'Fee Items':
+				return ($scope.feeErrors > 0 ? true : false)
+				break;
 		}
+	}
+	
+	$scope.getErrorCount = function(tab)
+	{
+		switch(tab){
+			case 'Student Details':
+				return $scope.detailsErrors;
+				break;
+			case 'Parents':
+				return $scope.guardianErrors;
+				break;
+			case 'Medical History':
+				return $scope.medicalErrors;
+				break;
+			case 'Fee Items':
+				return $scope.feeErrors;
+				break;
+		}
+	}
+	
+	$scope.save = function(theForm)
+	{	
+		$scope.forms[$scope.currentTab] = angular.copy(theForm);
+		$scope.submitted = true;
 		
-		$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
+		if( !theForm.$invalid)
+		{
+			if( uploader.queue[0] !== undefined ){
+				$scope.student.student_image = uploader.queue[0].file.name;
+			}
+			
+			$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
 
-		var postData = angular.copy($scope.student);
-		postData.admission_date = $scope.student.admission_date.startDate;
-		postData.current_class = $scope.student.current_class.class_id;		
-		postData.medicalConditions = $scope.conditionSelection;
-		postData.feeItems = $scope.feeItemSelection;
-		postData.optFeeItems = $scope.optFeeItemSelection;
-		postData.user_id = $rootScope.currentUser.user_id;
-		console.log(postData);
-		
-		apiService.postStudent(postData, createCompleted, createError);
+			var postData = angular.copy($scope.student);
+			postData.admission_date = $scope.student.admission_date.startDate;
+			postData.current_class = $scope.student.current_class.class_id;		
+			postData.medicalConditions = $scope.conditionSelection;
+			postData.feeItems = $scope.feeItemSelection;
+			postData.optFeeItems = $scope.optFeeItemSelection;
+			postData.user_id = $rootScope.currentUser.user_id;
+			console.log(postData);
+			
+			apiService.postStudent(postData, createCompleted, createError);
+		}
+		else
+		{
+			$scope.formError = true;
+			$scope.errMsg = "There were errors found in the form.";
+			console.log(theForm);			
+			countErrors();
+		}
+	}
+	
+	
+	var countErrors = function()
+	{		
+		$scope.detailsErrors = 0;
+		$scope.guardianErrors = 0;
+		$scope.feeErrors = 0;
+		$scope.formErrorList = [];
+		console.log($scope.forms);
+		angular.forEach( $scope.forms, function(myForm, tab){
+			
+			 for (var key in myForm.$error) 
+			 {
+				for (var index = 0; index < myForm.$error[key].length; index++) 
+				{
+					$scope.formErrorList.push(myForm.$error[key][index].$name + ' is required.');
+
+					if( detailsSection.indexOf(myForm.$error[key][index].$name) > -1 ) $scope.detailsErrors++;
+					else if( guardianSection.indexOf(myForm.$error[key][index].$name) > -1 ) $scope.guardianErrors++;
+					else if( feesSection.indexOf(myForm.$error[key][index].$name) > -1 ) $scope.feeErrors++;
+				}
+			}						
+		});
 	}
 	
 	var createCompleted = function ( response, status ) 
@@ -255,7 +360,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 		else
 		{
-			$scope.error = true;
+			$scope.formError = true;
 			$scope.errMsg = result.data;
 			//$rootScope.$emit('jobError', {'msg' : result.data });
 		}
@@ -264,7 +369,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	var createError = function () 
 	{
 		var result = angular.fromJson( response );
-		$scope.error = true;
+		$scope.formError = true;
 		$scope.errMsg = result.data;
 	}
 	

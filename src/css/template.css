@@ -386,6 +386,20 @@ table.clickable tr {
   cursor: pointer; }
 
 /********************** Modal Styles ******************************/
+.error-indicator {
+  background-color: #A94442;
+  color: white;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  padding: 3px;
+  text-align: center;
+  width: 16px;
+  display: block;
+  float: right;
+  font-size: 8px;
+  margin: -1px -5px 0 5px; }
+
 .loading-screen {
   z-index: 1040; }
   .loading-screen .msg {
