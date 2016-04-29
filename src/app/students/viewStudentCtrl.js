@@ -11,7 +11,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.currentFeeTab = $scope.feeTabs[0];
 	$scope.hasChanges = false;
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
-	
+	var originalData;
 	$scope.filters = {};
 	
 	$scope.edit = ($rootScope.permissions.students.edit ? true : false );
@@ -39,7 +39,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				student[0].current_class = currentClass[0];
 
 				$scope.student = student[0];
-				var originalData = angular.copy($scope.student);
+				originalData = angular.copy($scope.student);
 				
 				getFeeItems();
 			}
@@ -669,7 +669,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		// convert the classCatsRestriction to array for future filtering
 		return feeItems.map(function(item){
 			// format the class restrictions into any array
-			if( item.class_cats_restriction !== null )
+			if( item.class_cats_restriction !== null && item.class_cats_restriction != '{}' )
 			{
 				var classCatsRestriction = (item.class_cats_restriction).slice(1, -1);
 				item.class_cats_restriction = classCatsRestriction.split(',');
@@ -723,7 +723,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		if( $scope.student.current_class !== undefined )
 		{
 			feeItems = feeItems.filter(function(item){
-				if( item.class_cats_restriction === null ) return item;
+				if( item.class_cats_restriction === null || item.class_cats_restriction == '{}' ) return item;
 				else if( item.class_cats_restriction.indexOf(($scope.student.current_class.class_cat_id).toString()) > -1 ) return item;
 			});
 		}

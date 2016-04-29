@@ -1935,7 +1935,7 @@ $app->post('/addExamMarks/', function () use($app) {
 
 
 // ************** Payments  ****************** //
-$app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStatus/)', function ($startDate,$endDate, $paymentStatus = false, $studentStatus = null) {
+$app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStatus)', function ($startDate,$endDate, $paymentStatus = false, $studentStatus = null) {
     // Get all payment received for given date range
 	
 	$app = \Slim\Slim::getInstance();
@@ -2756,7 +2756,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 						SELECT
 							student_id,  student_fee_item_id, student_name, fee_item, 
 							coalesce((CASE 
-								WHEN payment_method = 'Installments' THEN
+								WHEN frequency = 'per term' and payment_method = 'Installments' THEN
 									round(yearly_amount/num_payments,2)
 								ELSE
 									round(yearly_amount,2)				
@@ -2788,7 +2788,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 								fee_item, student_fee_item_id, payment_method, frequency,yearly_amount,num_payments,term_start_date,
 								payment_interval,year_start_date,term_end_date,start_next_term,payment_interval2,
 								CASE 
-									 WHEN payment_method = 'Installments' THEN
+									 WHEN frequency = 'per term' and payment_method = 'Installments' THEN
 									-- are there any installments due this term
 									(SELECT count(*) FROM (
 										SELECT
@@ -2804,7 +2804,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 									WHERE due_date BETWEEN term_start_date and date_trunc('month',start_next_term) )
 									 ELSE
 									-- otherwise we are paying annually, this is due in the first month of the start of first term
-									CASE WHEN date_part('month',year_start_date) = date_part('month',now()) THEN 
+									CASE WHEN date_part('month',year_start_date) = date_part('month',term_start_date) THEN 
 										1 
 									ELSE 0 END
 								END::integer AS num_payments_this_term
@@ -2812,7 +2812,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 								SELECT 
 									students.student_id, first_name, middle_name, last_name, 
 									fee_item, student_fee_items.student_fee_item_id, payment_interval,payment_interval2,
-									student_fee_items.payment_method, frequency, num_payments,
+									student_fee_items.payment_method, frequency, coalesce(num_payments,1) as num_payments,
 									round( CASE WHEN frequency = 'per term' THEN student_fee_items.amount*3 ELSE student_fee_items.amount END, 2) as yearly_amount,
 									(select start_date from $termStatement) as term_start_date,
 									(select end_date from $termStatement) as term_end_date,
