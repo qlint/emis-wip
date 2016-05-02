@@ -375,6 +375,115 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		$scope.openModal('fees', 'paymentDetails', 'lg',{});
 	}
 	
+	$scope.getReceipt = function(payment)
+	{
+		// get the student and fee items
+		apiService.getStudentDetails(payment.student_id, function(response){
+			var result = angular.fromJson(response);
+			
+			if( result.response == 'success')
+			{
+				var student = $rootScope.formatStudentData([result.data]);
+				
+				// set current class to full class object
+				var currentClass = $rootScope.allClasses.filter(function(item){
+					if( item.class_id == student[0].class_id ) return item;
+				});
+				
+				student[0].current_class = currentClass[0];
+
+				$scope.student = student[0];
+				
+				// get fee items
+				apiService.getFeeItems({}, function(response){
+					var result = angular.fromJson(response);
+					
+					if( result.response == 'success')
+					{
+					
+						// set the required fee items
+						// format returned fee items for our needs
+						$scope.feeItems = formatFeeItems(result.data.required_items);
+						
+						// remove any items that do not apply to this students class category
+						$scope.feeItems = filterFeeItems($scope.feeItems);		
+						
+						
+						// repeat for optional fees
+						// convert the classCatsRestriction to array for future filtering
+						$scope.optFeeItems = formatFeeItems(result.data.optional_items);
+
+						// remove any items that do not apply to this students class category
+						$scope.optFeeItems = filterFeeItems($scope.optFeeItems);				
+												
+						
+						// now, get receipt
+						var data = {
+							student: $scope.student,
+							payment: payment,
+							feeItems: $scope.feeItems.concat($scope.optFeeItems)
+						}
+						
+						$scope.openModal('fees', 'receipt', 'md',data);
+						
+					}
+					
+				}, function(){});
+			}
+		});
+		
+		
+	}
+	
+	
+	var formatFeeItems = function(feeItems)
+	{
+		// convert the classCatsRestriction to array for future filtering
+		return feeItems.map(function(item){
+			// format the class restrictions into any array
+			if( item.class_cats_restriction !== null && item.class_cats_restriction != '{}' )
+			{
+				var classCatsRestriction = (item.class_cats_restriction).slice(1, -1);
+				item.class_cats_restriction = classCatsRestriction.split(',');
+			}
+			item.amount = undefined;
+			item.payment_method = undefined;
+			
+			return item;
+		});
+	}
+	
+	var filterFeeItems = function(feesArray)
+	{
+		//console.log($scope.student.new_student);
+		var feeItems = [];
+
+		if( $scope.student.new_student )
+		{
+			// all fees apply to new students
+			feeItems = feesArray;
+		}
+		else
+		{
+			// remove new student fees
+			feeItems = feesArray.filter(function(item){
+				if( !item.new_student_only ) return item;
+			});
+		}
+		
+		// now filter by selected class
+		console.log( $scope.student);
+		if( $scope.student.current_class !== undefined )
+		{
+			feeItems = feeItems.filter(function(item){
+				if( item.class_cats_restriction === null || item.class_cats_restriction == '{}' ) return item;
+				else if( item.class_cats_restriction.indexOf(($scope.student.current_class.class_cat_id).toString()) > -1 ) return item;
+			});
+		}
+
+		return feeItems;
+	}
+	
 	$scope.$on('refreshPayments', function(event, args) {
 
 		$scope.loading = true;
