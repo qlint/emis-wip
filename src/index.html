@@ -27,7 +27,7 @@
 	<script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
 	
 </head>
-<body class="{{activeSection}} {{activeSubSection}} {{activeSubSubSection}}" ng-class="{printing: isPrinting, hasPageOptions: pageOptions.length>0, mobile: isSmallScreen}" ng-controller="ParentController" ng-cloak>
+<body class="{{activeSection}} {{activeSubSection}} {{activeSubSubSection}}" ng-class="{printing: isPrinting, printModal: isPrintModal, printReceipt: isPrintReceipt, mobile: isSmallScreen}" ng-controller="ParentController" ng-cloak>
 
 <div id="page-wrap" adjust-for-small-screen>
 	<a name="top"></a>
@@ -150,6 +150,8 @@
 	<script type="text/javascript" src="app/fees/paymentDetailsCtrl.js"></script>	
 	<script type="text/javascript" src="app/fees/feeStructureCtrl.js"></script>	
 	<script type="text/javascript" src="app/fees/feeItemFormCtrl.js"></script>	
+	<script type="text/javascript" src="app/fees/receiptCtrl.js"></script>
+	<script type="text/javascript" src="app/fees/printReceiptCtrl.js"></script>
 	<script type="text/javascript" src="app/school/departmentsCtrl.js"></script>	
 	<script type="text/javascript" src="app/school/departmentFormCtrl.js"></script>	
 	<script type="text/javascript" src="app/school/gradingCtrl.js"></script>	
@@ -161,8 +163,7 @@
 	<script type="text/javascript" src="app/school/classFormCtrl.js"></script>
 	<script type="text/javascript" src="app/school/schoolSettingsCtrl.js"></script>
 	<script type="text/javascript" src="app/exams/listExamsCtrl.js"></script>
-	<script type="text/javascript" src="app/exams/addExamMarksCtrl.js"></script>
-	
+	<script type="text/javascript" src="app/exams/addExamMarksCtrl.js"></script>	
 	<script type="text/javascript" src="app/login.js"></script>
 	
 	<!--SERVICES -->

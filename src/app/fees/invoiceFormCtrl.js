@@ -232,10 +232,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			angular.forEach($scope.invoices, function(items,key){			
 				lineItems = [];
 				angular.forEach(items, function(item,key2){
-					lineItems.push({
-						student_fee_item_id: item.student_fee_item_id,
-						amount: item.amount
-					});
+					if( item !== null ) 
+					{
+						lineItems.push({
+							student_fee_item_id: item.student_fee_item_id,
+							amount: item.amount
+						});
+					}
 				});
 				
 				data.invoices.push( {
@@ -250,11 +253,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		else
 		{
 			console.log($scope.invoiceLineItems);
-			angular.forEach($scope.invoiceLineItems, function(item,key){				
-				lineItems.push({
-					student_fee_item_id: item.student_fee_item_id,
-					amount: item.amount
-				});		
+			angular.forEach($scope.invoiceLineItems, function(item,key){	
+				if( item !== null )
+				{
+					lineItems.push({
+						student_fee_item_id: item.student_fee_item_id,
+						amount: item.amount
+					});	
+				}					
 			});
 			
 			data.invoices.push( {

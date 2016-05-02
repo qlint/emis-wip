@@ -138,10 +138,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		angular.forEach($scope.results, function(invoices,key){
 			lineItems = [];
 			angular.forEach(invoices.line_items, function(item,key2){
-				lineItems.push({
-					student_fee_item_id: item.student_fee_item_id,
-					amount: item.invoice_amount
-				});
+				if( item !== null ){
+					lineItems.push({
+						student_fee_item_id: item.student_fee_item_id,
+						amount: item.invoice_amount
+					});
+				}
 			});
 				
 			data.invoices.push( {

@@ -3922,7 +3922,7 @@ $app->get('/getStudentPayments/:studentId', function ($studentId) {
 										AND replacement_payment is false
 									) AS q
 								) AS unapplied_amount,
-								 reversed, reversed_date, replacement_payment
+								 reversed, reversed_date, replacement_payment, slip_cheque_no
 								FROM app.payments						
 								WHERE student_id = :studentID");
 		$sth->execute( array(':studentID' => $studentId));

@@ -41,6 +41,10 @@ body {
 .nopad-right {
   padding-right: 0; }
 
+.lesspad {
+  padding-left: 5px;
+  padding-right: 5px; }
+
 a {
   cursor: pointer; }
 
@@ -574,6 +578,56 @@ table.clickable tr {
     font-size: 100px;
     padding: 25px 0; }
 
+.receipt-header {
+  text-align: right;
+  margin-bottom: 20px; }
+  .receipt-header h2 {
+    color: #fff;
+    background: #000;
+    display: inline;
+    padding: 3px 5px;
+    text-transform: uppercase; }
+  .receipt-header h1 {
+    text-transform: uppercase; }
+  .receipt-header .receipt-school-address {
+    margin-bottom: 10px; }
+    .receipt-header .receipt-school-address p {
+      margin-bottom: 0; }
+
+.receipt {
+  margin-bottom: 50px; }
+  .receipt p.form-control-static {
+    border-bottom: 1px dotted #bbb;
+    padding: 0 3px 0 3px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    font-size: 18px;
+    margin-bottom: 5px;
+    text-align: left;
+    margin-top: 1px;
+    line-height: 10px; }
+  .receipt table {
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+    margin-bottom: 10px;
+    margin-top: 5px; }
+    .receipt table td {
+      border-right: 3px double #aaa; }
+    .receipt table th {
+      background-color: #fff !important;
+      color: #000 !important;
+      font-weight: bold;
+      border-bottom: 3px double #aaa !important;
+      border-top: 3px double #aaa !important;
+      border-right: 3px double #aaa; }
+    .receipt table tr td:last-child,
+    .receipt table tr th:last-child {
+      border-right: none; }
+    .receipt table tfoot td {
+      padding: 2px 18px 2px 2px;
+      border-top: 2px solid #000 !important;
+      font-weight: bold; }
+
 /*
  * Max-Width 768 Styling
  * --------------------------------------------------
@@ -805,5 +859,19 @@ table.clickable tr {
  * Min-Width 1024 Styling
  * --------------------------------------------------
  */
+@page {
+  size: A4;
+  margin: 0 !important; }
+@media print {
+  html, body {
+    height: auto; }
+
+  #mainContainer {
+    top: 0; }
+
+  .navbar-fixed-top,
+  .modal-header,
+  .modal-footer {
+    display: none; } }
 
 /*# sourceMappingURL=template.css.map */

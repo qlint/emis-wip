@@ -1,0 +1,126 @@
+<form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+		<div class="modal-header dialog-header-form">
+			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+			<h4 class="modal-title">Receipt for Payment</h4>
+		</div>
+		<div class="modal-body receipt">
+	
+			<p ng-show="error" class="error alert alert-danger">
+				{{errMsg}}
+			</p>
+			
+			<div class="row">
+				<div class="col-xs-2">
+					<img src="{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" /> 
+				</div>
+				<div class="col-xs-10 receipt-header">
+					<h2 class="receipt-title">Receipt</h2>
+					<h1 class="receipt-school-name">{{currentUser.settings['School Name']}}</h1>
+					<div class="receipt-school-address">
+						<p>{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
+						<p>Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
+						<p>Email: {{currentUser.settings['Email Address Receipt']}}</p>
+					</div>
+					<div class="row">
+						<div class="col-xs-8 nopad">
+							<label class="pull-right">Date:</label>
+						</div>
+						<div class="col-xs-4">
+							<p class="form-control-static">{{payment.payment_date|date}}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-2 nopad">
+					<label class="pull-right">Received From:</label>
+				</div>
+				<div class="col-xs-10">
+					<p class="form-control-static"></p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-2 nopad-right">
+					<label>Admission No:</label>
+				</div>
+				<div class="col-xs-3 lesspad">
+					<p class="form-control-static">{{student.admission_number}}</p>
+				</div>
+				<div class="col-xs-1 nopad">
+					<label>Class:</label>
+				</div>
+				<div class="col-xs-3 lesspad">
+					<p class="form-control-static">{{student.class_name}}</p>
+				</div>
+				<div class="col-xs-1 nopad">
+					<label>Term:</label>
+				</div>
+				<div class="col-xs-2 nopad-left">
+					<p class="form-control-static"></p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-3 nopad-right">
+					<label>The sum of Kshs:</label>
+				</div>
+				<div class="col-xs-9">
+					<p class="form-control-static">{{payment.amount|numeric}}</p>
+				</div>
+			</div>
+			<div class="">
+				<table class="display dataTable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th class="center">Being Payment of</th>
+							<th class="center">Kshs</th>
+							<th class="center">Cts</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in feeItems">
+							<td>{{item.fee_item}}</td>
+							<td class="center">{{paymentItems[item.fee_item].ksh|number}}</td>
+							<td class="center">{{paymentItems[item.fee_item].cts}}</td>
+						</tr>
+						<tr>
+							<td>Other</td>
+							<td class="center"></td>
+							<td class="center"></td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td>
+								No:
+								<div class="pull-right">TOTAL KSHS</div>
+							</td>
+							<td class="center">{{totalAmtKsh|number}}</td>
+							<td class="center">{{totalAmtCts}}</td>
+						</tr>
+					</tfoot>
+				</table>
+				
+				<div class="row">
+					<div class="col-xs-4 nopad-right">
+						<label>Cash/Deposit Slip/Cheque No:</label>
+					</div>
+					<div class="col-xs-8 nopad-left">
+						<p class="form-control-static">{{payment.slip_cheque_no}}</p>
+					</div>
+				</div>
+			
+				<div class="row">
+					<div class="col-xs-3 nopad-right">
+						<label>Official Stamp:</label>
+					</div>
+
+				</div>
+
+			</div>
+			
+		</div>
+		<div class="modal-footer">				
+			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>			
+			<button type="button" class="btn btn-success" ng-click="print()">Print</button>			
+		</div>
+</form>

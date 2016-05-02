@@ -142,7 +142,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			
 			dlg.result.then(function(btn){
 				 // save the form
-				 save(tab);
+				 $scope.save($scope.studentForm, tab);
 				 
 			},function(btn){
 				// revert the changes and move on
@@ -631,9 +631,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	}
 	
-	$scope.getReceipt = function()
+	$scope.getReceipt = function(payment)
 	{
-		$rootScope.wipNotice();
+		var data = {
+			student: $scope.student,
+			payment: payment,
+			feeItems: $scope.feeItems.concat($scope.optFeeItems)
+		}
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/receipt.html','receiptCtrl',data,{size: 'md',backdrop:'static'});
 	}
 	
 	$scope.viewPayment = function(payment)
@@ -920,92 +926,95 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	}
 	
 	/************************************* Update Function ***********************************************/
-	$scope.save = function(tab)
+	$scope.save = function(theForm, tab)
 	{
-		// going to only send data that is on the current tab		
-		if( $scope.currentTab == 'Details' )
+		if( !theForm.$invalid )
 		{
-			if( uploader.queue[0] !== undefined )
+			// going to only send data that is on the current tab		
+			if( $scope.currentTab == 'Details' )
 			{
-				// need a unique filename
-				uploader.queue[0].file.name = $scope.student.student_id + "_" + uploader.queue[0].file.name;
-				uploader.uploadAll();
-			}
-			
-			//postData.feeItems = $scope.feeItemSelection;
-			
-			var postData = {
-				student_id : $scope.student.student_id,
-				user_id : $rootScope.currentUser.user_id,
-				details : {
-					student_category : $scope.student.student_category,
-					first_name : $scope.student.first_name,
-					middle_name : $scope.student.middle_name,
-					last_name : $scope.student.last_name,
-					gender : $scope.student.gender,
-					dob: $scope.student.dob,
-					nationality : $scope.student.nationality,
-					current_class : $scope.student.class_id,
-					update_class : ( originalData.class_id != $scope.student.class_id ? true : false),
-					previous_class :  originalData.class_id,
-					student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null),
-					active : ( $scope.student.active ? 't' : 'f' ),
-					new_student : ( $scope.student.new_student ? 't' : 'f' ),
+				if( uploader.queue[0] !== undefined )
+				{
+					// need a unique filename
+					uploader.queue[0].file.name = $scope.student.student_id + "_" + uploader.queue[0].file.name;
+					uploader.uploadAll();
+				}
+				
+				//postData.feeItems = $scope.feeItemSelection;
+				
+				var postData = {
+					student_id : $scope.student.student_id,
+					user_id : $rootScope.currentUser.user_id,
+					details : {
+						student_category : $scope.student.student_category,
+						first_name : $scope.student.first_name,
+						middle_name : $scope.student.middle_name,
+						last_name : $scope.student.last_name,
+						gender : $scope.student.gender,
+						dob: $scope.student.dob,
+						nationality : $scope.student.nationality,
+						current_class : $scope.student.class_id,
+						update_class : ( originalData.class_id != $scope.student.class_id ? true : false),
+						previous_class :  originalData.class_id,
+						student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null),
+						active : ( $scope.student.active ? 't' : 'f' ),
+						new_student : ( $scope.student.new_student ? 't' : 'f' ),
+					}
 				}
 			}
-		}
-		else if ( $scope.currentTab == 'Family' )
-		{
-			var postData = {
-				student_id : $scope.student.student_id,
-				user_id : $rootScope.currentUser.user_id,
-				family : {
-					marial_status_parents : $scope.student.marial_status_parents,
-					adopted : ( $scope.student.adopted ? 't' : 'f' ),
-					adopted_age : $scope.student.adopted_age,
-					marital_separation_age : $scope.student.marital_separation_age,
-					adoption_aware : ( $scope.student.adoption_aware ? 't' : 'f'),
-					emergency_name: $scope.student.emergency_name,
-					emergency_relationship : $scope.student.emergency_relationship,
-					emergency_telephone : $scope.student.emergency_telephone,
-					pick_up_drop_off_individual : $scope.student.pick_up_drop_off_individual
+			else if ( $scope.currentTab == 'Family' )
+			{
+				var postData = {
+					student_id : $scope.student.student_id,
+					user_id : $rootScope.currentUser.user_id,
+					family : {
+						marial_status_parents : $scope.student.marial_status_parents,
+						adopted : ( $scope.student.adopted ? 't' : 'f' ),
+						adopted_age : $scope.student.adopted_age,
+						marital_separation_age : $scope.student.marital_separation_age,
+						adoption_aware : ( $scope.student.adoption_aware ? 't' : 'f'),
+						emergency_name: $scope.student.emergency_name,
+						emergency_relationship : $scope.student.emergency_relationship,
+						emergency_telephone : $scope.student.emergency_telephone,
+						pick_up_drop_off_individual : $scope.student.pick_up_drop_off_individual
+					}
 				}
 			}
-		}
-		else if ( $scope.currentTab == 'Medical History' )
-		{
+			else if ( $scope.currentTab == 'Medical History' )
+			{
 
-			var postData = {
-				student_id : $scope.student.student_id,
-				user_id : $rootScope.currentUser.user_id,
-				medical : {
-					has_medical_conditions : ($scope.student.has_medical_conditions || $scope.student.other_medical_conditions ? 't' : 'f' ),
-					hospitalized: ( $scope.student.hospitalized ? 't' : 'f' ),
-					hospitalized_description: ( $scope.student.hospitalized ? $scope.student.hospitalized_description : null),
-					current_medical_treatment: ( $scope.student.current_medical_treatment ? 't' : 'f' ),
-					current_medical_treatment_description: ( $scope.student.current_medical_treatment ? $scope.student.current_medical_treatment_description : null),
-					other_medical_conditions: ($scope.student.other_medical_conditions ? 't' : 'f'),
-					other_medical_conditions_description: ($scope.student.other_medical_conditions ? $scope.student.other_medical_conditions_description : null)
+				var postData = {
+					student_id : $scope.student.student_id,
+					user_id : $rootScope.currentUser.user_id,
+					medical : {
+						has_medical_conditions : ($scope.student.has_medical_conditions || $scope.student.other_medical_conditions ? 't' : 'f' ),
+						hospitalized: ( $scope.student.hospitalized ? 't' : 'f' ),
+						hospitalized_description: ( $scope.student.hospitalized ? $scope.student.hospitalized_description : null),
+						current_medical_treatment: ( $scope.student.current_medical_treatment ? 't' : 'f' ),
+						current_medical_treatment_description: ( $scope.student.current_medical_treatment ? $scope.student.current_medical_treatment_description : null),
+						other_medical_conditions: ($scope.student.other_medical_conditions ? 't' : 'f'),
+						other_medical_conditions_description: ($scope.student.other_medical_conditions ? $scope.student.other_medical_conditions_description : null)
+					}
+				}
+
+			}
+			else if( $scope.currentTab == 'Fees' )
+			{
+
+				var postData = {
+					student_id : $scope.student.student_id,
+					user_id : $rootScope.currentUser.user_id,
+					fees : {
+						payment_method : $scope.student.payment_method,
+						installment_option: $scope.student.installment_option_id,
+						feeItems : $scope.feeItemSelection,
+						optFeeItems : $scope.optFeeItemSelection
+					}
 				}
 			}
-
+			console.log(postData);
+			apiService.updateStudent(postData, createCompleted, apiError, {tab:tab});
 		}
-		else if( $scope.currentTab == 'Fees' )
-		{
-
-			var postData = {
-				student_id : $scope.student.student_id,
-				user_id : $rootScope.currentUser.user_id,
-				fees : {
-					payment_method : $scope.student.payment_method,
-					installment_option: $scope.student.installment_option_id,
-					feeItems : $scope.feeItemSelection,
-					optFeeItems : $scope.optFeeItemSelection
-				}
-			}
-		}
-		console.log(postData);
-		apiService.updateStudent(postData, createCompleted, apiError, {tab:tab});
 	}
 	
 	var createCompleted = function ( response, status, params ) 
@@ -1078,17 +1087,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$uibModalInstance.dismiss('Canceled');
 		}; // end cancel
 		
-		$scope.save = function()
+		$scope.save = function(theForm)
 		{
-			//console.log($scope.guardian);
-			var postData = {
-				student_id: data.student_id,
-				guardian: $scope.guardian,
-				user_id: $rootScope.currentUser.user_id
+			if( !theForm.$invalid )
+			{
+				if( $scope.edit ) 
+				{
+					$scope.update();
+				}
+				else{
+					//console.log($scope.guardian);
+					var postData = {
+						student_id: data.student_id,
+						guardian: $scope.guardian,
+						user_id: $rootScope.currentUser.user_id
+					}
+					apiService.postGuardian(postData, createCompleted, apiError);
+				}
 			}
-			apiService.postGuardian(postData, createCompleted, apiError);
-			
-			
 		}; // end save
 		
 		$scope.update = function()
@@ -1128,91 +1144,89 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
-		
+		/*
 		$scope.hitEnter = function(evt){
 			if( angular.equals(evt.keyCode,13) )
 				$scope.save();
 		};
-		
+		*/
 
 	
 	
 	}) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('addParent.html',
+			'<form name="parentForm" class="form-horizontal modalForm" novalidate role="form" ng-submit="save(parentForm)">' +
 			'<div class="modal-header dialog-header-form">'+
 				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Parent/Guardian</h4>' +
 			'</div>' +
-			'<div class="modal-body cleafix">' +
-				'<ng-form name="cargoDialog" class="form-horizontal modalForm" novalidate role="form">' +
+			'<div class="modal-body cleafix">' +				
 					'<div ng-show="error" class="alert alert-danger">' +
 						'{{errMsg}}'+
 					'</div>' +
 					'<!-- last name -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : studentForm.last_name.$invalid && (studentForm.last_name.$touched || studentForm.$submitted) }">' +
+					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.last_name.$dirty ) && parentForm.last_name.$invalid && parentForm.last_name.$error.required }">' +
 						'<label for="last_name" class="col-sm-3 control-label">Last Name</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="last_name" ng-model="guardian.last_name" class="form-control"  >' +
-							'<p ng-show="studentForm.last_name.$invalid && (studentForm.last_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Last Name is required.</p>' +
+							'<input type="text" name="last_name" ng-model="guardian.last_name" class="form-control" required />' +
+							'<p ng-show="(parentForm.$submitted || parentForm.last_name.$dirty ) && parentForm.last_name.$invalid && parentForm.last_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Last Name is required.</p>' +
 						'</div>' +
 					'</div>' +
 					'<!-- first name -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : studentForm.first_name.$invalid && (studentForm.first_name.$touched || studentForm.$submitted) }">		' +
+					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.first_name.$dirty ) && parentForm.first_name.$invalid && parentForm.first_name.$error.required }">' +
 						'<label for="first_name" class="col-sm-3 control-label">First Name</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="first_name" ng-model="guardian.first_name" class="form-control"  >	' +
-							'<p ng-show="studentForm.first_name.$invalid && (studentForm.first_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>' +
+							'<input type="text" name="first_name" ng-model="guardian.first_name" class="form-control" required />' +
+							'<p ng-show="(parentForm.$submitted || parentForm.first_name.$dirty ) && parentForm.first_name.$invalid && parentForm.first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>' +
 						'</div>	' +
 					'</div>' +
 					'<!-- middle name -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : studentForm.middle_name.$invalid && (studentForm.middle_name.$touched || studentForm.$submitted) }">	' +	
+					'<div class="form-group">' +	
 						'<label for="middle_name" class="col-sm-3 control-label">Middle Name</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="middle_name" ng-model="guardian.middle_name" class="form-control"  >	' +
-							'<p ng-show="studentForm.middle_name.$invalid && (studentForm.middle_name.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Middle Name is required.</p>' +
+							'<input type="text" name="middle_name" ng-model="guardian.middle_name" class="form-control" />	' +
 						'</div>	' +
 					'</div>' +
 					'<!-- name title -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : studentForm.title.$invalid && (studentForm.title.$touched || studentForm.$submitted) }">	' +	
+					'<div class="form-group" >' +	
 						'<label for="title" class="col-sm-3 control-label">Title</label>' +
 						'<div class="col-sm-9">' +
 							'<select name="title" ng-model="guardian.title" class="form-control">' +
 								'<option value="{{title}}" ng-repeat="title in titles">{{title}}</option>' +
 							'</select>' +
-							'<p ng-show="studentForm.title.$invalid && (studentForm.title.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Title is required.</p>' +
 						'</div>	' +
 					'</div>	' +
 					'<!-- id number -->' +
-					'<div class="form-group"> <!-- ng-class="{ \'has-error\' : studentForm.id_number.$invalid && (studentForm.id_number.$touched || studentForm.$submitted) }">-->' +
+					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.id_number.$dirty ) && parentForm.id_number.$invalid && parentForm.id_number.$error.required }">' +
 						'<label for="id_number" class="col-sm-3 control-label">ID Number</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="id_number" ng-model="guardian.id_number" class="form-control"  >	' +
-							'<!--p ng-show="studentForm.id_number.$invalid && (studentForm.id_number.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> ID Number is required.</p-->' +
+							'<input type="text" name="id_number" ng-model="guardian.id_number" class="form-control" required numeric-only />	' +
+							'<p ng-show="(parentForm.$submitted || parentForm.id_number.$dirty ) && parentForm.id_number.$invalid && parentForm.id_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> ID Number is required.</p>' +
 						'</div>' +
 					'</div>' +
 					'<!-- address -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : studentForm.address.$invalid && (studentForm.address.$touched || studentForm.$submitted) }">' +
+					'<div class="form-group">' +
 						'<label for="address" class="col-sm-3 control-label">Address</label>' +
 						'<div class="col-sm-9">' +
 							'<input type="text" name="address" ng-model="guardian.address" class="form-control"  >	' +
-							'<p ng-show="studentForm.address.$invalid && (studentForm.address.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Address is required.</p>' +
 						'</div>' +
 					'</div>' +
 					
 					'<!-- phone number -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : studentForm.telephone.$invalid && (studentForm.telephone.$touched || studentForm.$submitted) }">	' +	
+					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.telephone.$dirty ) && parentForm.telephone.$invalid && parentForm.telephone.$error.required }">' +
 						'<label for="telephone" class="col-sm-3 control-label">Telephone</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="telephone" ng-model="guardian.telephone" class="form-control"  >	' +
-							'<p ng-show="studentForm.telephone.$invalid && (studentForm.telephone.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Telephone number is required.</p>' +
+							'<input type="text" name="telephone" ng-model="guardian.telephone" class="form-control" required numeric-only />	' +
+							'<p ng-show="(parentForm.$submitted || parentForm.telephone.$dirty ) && parentForm.telephone.$invalid && parentForm.telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Telephone number is required.</p>' +
 						'</div>	' +
 					'</div>' +
 					'<!-- email -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : studentForm.email.$invalid && (studentForm.email.$touched || studentForm.$submitted) }">	' +	
+					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.required }">' +
 						'<label for="email" class="col-sm-3 control-label">Email</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="email" ng-model="guardian.email" class="form-control"  >	' +
-							'<p ng-show="studentForm.email.$invalid && (studentForm.email.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email is required.</p>' +
+							'<input type="email" name="email" ng-model="guardian.email" class="form-control" required />	' +
+							'<p ng-show="(parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email is required.</p>' +
+							'<p ng-show="(parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>' +
 						'</div>	' +
 					'</div>' +
 					'<!-- occupation -->' +
@@ -1240,45 +1254,43 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					'<div class="form-group">	' +	
 						'<label for="work_phone" class="col-sm-3 control-label">Work Phone</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="work_phone" ng-model="guardian.work_phone" class="form-control"  >	' +
+							'<input type="text" name="work_phone" ng-model="guardian.work_phone" class="form-control" numeric-only />	' +
 						'</div>	' +
 					'</div>' +
 					'<!-- work_email -->' +
-					'<div class="form-group">' +
+					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.work_email.$dirty ) && parentForm.work_email.$invalid && (parentForm.work_email.$error.required || parentForm.work_email.$error.email) }">' +
 						'<label for="work_email" class="col-sm-3 control-label">Work Email</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="work_email" ng-model="guardian.work_email" class="form-control"  >	' +
-						'</div>	' +
+							'<input type="email" name="work_email" ng-model="guardian.work_email" class="form-control"  >	' +
+							'<p ng-show="(parentForm.$submitted || parentForm.work_email.$dirty ) && parentForm.work_email.$invalid && parentForm.work_email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>' +						'</div>	' +
 					'</div>' +
 					'<!-- relationship -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : studentForm.relationship.$invalid && (studentForm.relationship.$touched || studentForm.$submitted) }">		' +
+					'<div class="form-group">		' +
 						'<label for="relationship" class="col-sm-3 control-label">Relationship</label>' +
 						'<div class="col-sm-9">' +
 							'<select name="relationship" ng-model="guardian.relationship" class="form-control">' +
 								'<option value="">--select relationship--</option>' +
 								'<option value="{{item}}" ng-repeat="item in relationships">{{item}}</option>' +
 							'</select>' +
-							'<p ng-show="studentForm.relationship.$invalid && (studentForm.relationship.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Relationship is required.</p>' +
 						'</div>	' +
 					'</div>' +
 					'<!-- marital status -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : studentForm.marital_status.$invalid && (studentForm.marital_status.$touched || studentForm.$submitted) }">		' +
+					'<div class="form-group">		' +
 						'<label for="marital_status" class="col-sm-3 control-label">Marital Status</label>' +
 						'<div class="col-sm-9">' +
 							'<select name="marital_status" ng-model="guardian.marital_status" class="form-control">' +
 								'<option value="">--select one--</option>' +
 								'<option value="{{item}}" ng-repeat="item in maritalStatuses">{{item}}</option>' +
 							'</select>' +
-							'<p ng-show="studentForm.marital_status.$invalid && (studentForm.marital_status.touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Marital Status is required.</p>' +
 						'</div>	' +
-					'</div>' +
-				'</ng-form>' +
+					'</div>' +				
 			'</div>'+
 			'<div class="modal-footer">' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
-				'<button ng-show="!edit" type="button" class="btn btn-primary" ng-click="save()">Save</button>' +
-				'<button ng-show="edit" type="button" class="btn btn-primary" ng-click="update()">Update</button>' +
-			'</div>'
+				'<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>' +
+				'<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>' +
+			'</div>' +
+			'</form>'
 		);
 }])
 .controller('addMedicalHistoryCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
