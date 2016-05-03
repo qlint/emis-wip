@@ -14,6 +14,7 @@ function($scope, $rootScope){
 		$scope.paymentItems = angular.fromJson(data.paymentItems);
 		$scope.totalAmtKsh = data.totals.totalAmtKsh;
 		$scope.totalAmtCts = data.totals.totalAmtCts;
+		$scope.balanceDue = data.totals.balanceDue;
 		
 		$scope.loading = false;
 		

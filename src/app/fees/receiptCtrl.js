@@ -29,6 +29,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			var results = ( result.nodata ? {} : result.data );
 			
 			$scope.paymentDetails = results.paymentItems;
+			var invoiceItems = results.invoice;
 			
 			$scope.paymentItems = [];
 			var totalAmt = 0;
@@ -45,6 +46,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			var amt = ( String(totalAmt).indexOf('.') > -1 ? String(totalAmt).split('.') : [totalAmt,'00']);
 			$scope.totalAmtKsh = amt[0];
 			$scope.totalAmtCts = amt[1];
+			
+			if( invoiceItems.length > 0 )
+			{
+				var invoiceTotal = invoiceItems[0].total_due;
+				$scope.balanaceDue = invoiceTotal - $scope.payment.amount;
+			}
 
 		}
 		else
@@ -62,7 +69,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			paymentItems : $scope.paymentItems,
 			totals : {
 				totalAmtKsh: $scope.totalAmtKsh,
-				totalAmtCts: $scope.totalAmtCts
+				totalAmtCts: $scope.totalAmtCts,
+				balanceDue : $scope.balanceDue
 			},
 			feeItems: $scope.feeItems
 		}
