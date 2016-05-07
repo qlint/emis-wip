@@ -17,8 +17,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;			
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();			
 		}		
 
 		apiService.getGrading({}, function(response,status,params){
@@ -27,6 +28,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			if( result.response == 'success')
 			{	
 				$scope.grades = ( result.nodata ? [] : result.data );	
+				
+				$scope.grades = $scope.grades.map(function(item){
+					item.mark_range = item.min_mark + '-' + item.max_mark;
+					return item;
+				});
 
 				$timeout(initDataGrid,10);
 			}
@@ -57,7 +63,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 				paging: false,
 				destroy:true,				
 				filter: true,
-				order:[1,'asc'],
 				info: false,
 				sorting:[],
 				initComplete: function(settings, json) {
@@ -114,22 +119,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		$scope.errMsg = result.data;
 	}
 	
-	/*
-	$scope.addDept = function()
+	$scope.addGrading = function()
 	{
-		$scope.openModal('school', 'departmentForm', 'md');
+		$scope.openModal('school', 'gradingForm', 'sm');
 	}
 	
-	$scope.viewDepartment = function(item)
+	$scope.viewGrading = function(item)
 	{
-		$scope.openModal('school', 'departmentForm', 'md',item);
+		$scope.openModal('school', 'gradingForm', 'sm',item);
 	}
-	
-	$scope.exportItems = function()
-	{
-		$rootScope.wipNotice();
-	}
-	*/
+
 
 	$scope.$on('refreshGrades', function(event, args) {
 

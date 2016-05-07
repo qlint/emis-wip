@@ -1,0 +1,257 @@
+<form name="empForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(empForm)">		
+	<div class="modal-header dialog-header-form">
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Employee</h4>
+			</div>
+			<div class="modal-body cleafix">
+
+				<div ng-show="error" class="alert alert-danger">
+					{{errMsg}}
+				</div>
+								
+				<div class="row">
+					<div class="col-sm-6">
+						<h3>Personal Details</h3>
+						
+						<!-- employee number -->						
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.emp_number.$dirty ) && empForm.emp_number.$invalid && empForm.emp_number.$error.required }">
+							<label for="emp_number" class="col-sm-4 control-label">Employee Number</label>
+							<div class="col-sm-8">
+								<input type="text" name="emp_number" ng-model="employee.emp_number" class="form-control" required >	
+								<p ng-show="(empForm.$submitted || empForm.emp_number.$dirty ) && empForm.emp_number.$invalid && empForm.emp_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Employee Number is required.</p>
+							</div>
+						</div>
+						
+						<!-- gender -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.gender.$dirty ) && empForm.gender.$invalid && empForm.gender.$error.required }">					
+							<label for="gender"  class="col-sm-4 control-label">Gender</label>
+							<div class="col-sm-8">
+								<label class="radio-inline">
+								  <input type="radio" name="gender" ng-model="employee.gender" value="M" required> M
+								</label>
+								<label class="radio-inline">
+								  <input type="radio" name="gender" ng-model="employee.gender" value="F" required> F
+								</label>
+								<p ng-show="(empForm.$submitted || empForm.gender.$dirty ) && empForm.gender.$invalid && empForm.gender.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Gender is required.</p>
+							</div>
+						</div>	
+		
+						<!-- first name -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.first_name.$dirty ) && empForm.first_name.$invalid && empForm.first_name.$error.required }">		
+							<label for="first_name" class="col-sm-4 control-label">First Name</label>
+							<div class="col-sm-8">
+								<input type="text" name="first_name" ng-model="employee.first_name" class="form-control" required >	
+								<p ng-show="(empForm.$submitted || empForm.first_name.$dirty ) && empForm.first_name.$invalid && empForm.first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>
+							</div>	
+						</div>
+						
+						<!-- middle name -->
+						<div class="form-group">		
+							<label for="middle_name" class="col-sm-4 control-label">Middle Name(s)</label>
+							<div class="col-sm-8">
+								<input type="text" name="middle_name" ng-model="employee.middle_name" class="form-control"  >	
+							</div>	
+						</div>
+						
+						<!-- last name -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.last_name.$dirty ) && empForm.last_name.$invalid && empForm.last_name.$error.required }">		
+							<label for="last_name" class="col-sm-4 control-label">Last Name</label>
+							<div class="col-sm-8">
+								<input type="text" name="last_name" ng-model="employee.last_name" class="form-control" required >	
+								<p ng-show="(empForm.$submitted || empForm.last_name.$dirty ) && empForm.last_name.$invalid && empForm.last_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Last Name is required.</p>
+							</div>	
+						</div>
+						
+						<!-- initials -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.initials.$dirty ) && empForm.initials.$invalid && empForm.initials.$error.required }">		
+							<label for="initials" class="col-sm-4 control-label">Initials</label>
+							<div class="col-sm-3">
+								<input type="text" name="initials" ng-model="employee.initials" class="form-control" required >	
+								<p ng-show="(empForm.$submitted || empForm.initials.$dirty ) && empForm.initials.$invalid && empForm.initials.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Initials is required.</p>
+							</div>	
+						</div>						
+											
+						<!-- dob -->
+						<div class="form-group"  ng-class="{ 'has-error' : (empForm.$submitted || empForm.dob.$dirty ) && empForm.dob.$invalid && empForm.dob.$error.required }">		
+							<label for="dob" class="col-sm-4 control-label">Date of Birth</label>
+							<div class="col-sm-4">
+								<input type="text" name="dob" id="dob" class="form-control input-sm" ng-model="employee.dob" placeholder="DD/MM/YYYY" required>
+								<p ng-show="(empForm.$submitted || empForm.dob.$dirty ) && empForm.dob.$invalid && empForm.dob.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Date of Birth is required.</p>
+							</div>	
+						</div>						
+								
+						<!-- id number-->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.id_number.$dirty ) && empForm.id_number.$invalid && empForm.id_number.$error.required }">		
+							<label for="id_number" class="col-sm-4 control-label">ID Number</label>
+							<div class="col-sm-8">
+								<input type="text" name="id_number" id="id_number" class="form-control input-sm" ng-model="employee.id_number" required>
+								<p ng-show="(empForm.$submitted || empForm.id_number.$dirty ) && empForm.id_number.$invalid && empForm.id_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> ID Number is required.</p>
+							</div>
+						</div>
+						
+						<!-- country -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.country.$dirty ) && empForm.country.$invalid && empForm.country.$error.required }">		
+							<label for="country" class="col-sm-4 control-label">Country</label>
+							<div class="col-sm-8">
+								<select name="country" ng-model="employee.country" class="form-control" required>
+									<option value="">--select Country--</option>
+									<option value="{{item.countries_name}}" ng-repeat="item in countries">{{item.countries_name}}</option>
+								</select>
+								<p ng-show="(empForm.$submitted || empForm.country.$dirty ) && empForm.country.$invalid && empForm.country.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Country is required.</p>
+							</div>	
+						</div>
+						
+						<!-- picture -->
+						<div class="form-group">					
+							<label for="emp_image" class="col-sm-4 control-label">Employee's Picture</label>
+							<div class="col-sm-8">
+								<input type="file" nv-file-select="" uploader="uploader" />						
+							</div>	
+						</div>
+						
+						<!-- status -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.status.$dirty ) && empForm.status.$invalid && empForm.status.$error.required }">		
+							<label for="status" class="col-sm-4 control-label">Status</label>
+							<div class="col-sm-8">
+								<label class="radio-inline">
+								  <input type="radio" name="status" ng-model="employee.status" value="true" required> Active
+								</label>
+								<label class="radio-inline">
+								  <input type="radio" name="status" ng-model="employee.status" value="false" required> In-active
+								</label>
+								<p ng-show="(empForm.$submitted || empForm.status.$dirty ) && empForm.status.$invalid && empForm.status.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Status is required.</p>
+							</div>	
+						</div>		
+					
+						<h3>Contact Details</h3>
+						
+						<!-- phone number-->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.telephone.$dirty ) && empForm.telephone.$invalid && empForm.telephone.$error.required }">		
+							<label for="telephone" class="col-sm-4 control-label">Phone Number</label>
+							<div class="col-sm-4">
+								<input type="text" name="telephone" id="telephone" class="form-control input-sm" ng-model="employee.telephone" required numeric-only>
+								<p ng-show="(empForm.$submitted || empForm.telephone.$dirty ) && empForm.telephone.$invalid && empForm.telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Phone Number is required.</p>
+							</div>
+						</div>
+						
+						<!-- email -->
+						<div class="form-group"  ng-class="{ 'has-error' : (empForm.$submitted || empForm.email.$dirty ) && empForm.email.$invalid && (empForm.email.$error.required || empForm.email.$error.email) }">		
+							<label for="email" class="col-sm-4 control-label">Email</label>
+							<div class="col-sm-8">
+								<input type="email" name="email" id="email" class="form-control input-sm" ng-model="employee.email" required>
+								<p ng-show="(empForm.$submitted || empForm.email.$dirty ) && empForm.email.$invalid && empForm.email.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email is required.</p>
+								<p ng-show="(empForm.$submitted || empForm.email.$dirty ) && empForm.email.$invalid && empForm.email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>
+							</div>	
+						</div>
+						
+						<!-- next of kin name-->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.next_of_kin_name.$dirty ) && empForm.next_of_kin_name.$invalid && empForm.next_of_kin_name.$error.required }">		
+							<label for="next_of_kin_name" class="col-sm-4 control-label">Next of Kin Name</label>
+							<div class="col-sm-8">
+								<input type="text" name="next_of_kin_name" id="next_of_kin_name" class="form-control input-sm" ng-model="employee.next_of_kin_name" required>
+								<p ng-show="(empForm.$submitted || empForm.next_of_kin_name.$dirty ) && empForm.next_of_kin_name.$invalid && empForm.next_of_kin_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Next of Kin Name is required.</p>
+							</div>
+						</div>
+						
+						<!-- phone number-->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.next_of_kin_telephone.$dirty ) && empForm.next_of_kin_telephone.$invalid && empForm.next_of_kin_telephone.$error.required }">		
+							<label for="next_of_kin_telephone" class="col-sm-4 control-label">Next of Kin Phone Number</label>
+							<div class="col-sm-4">
+								<input type="text" name="next_of_kin_telephone" id="next_of_kin_telephone" class="form-control input-sm" ng-model="employee.next_of_kin_telephone" required numeric-only>
+								<p ng-show="(empForm.$submitted || empForm.next_of_kin_telephone.$dirty ) && empForm.next_of_kin_telephone.$invalid && empForm.next_of_kin_telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Next of Kin Phone Number is required.</p>
+							</div>
+						</div>
+						
+						<!-- email -->
+						<div class="form-group"  ng-class="{ 'has-error' : (empForm.$submitted || empForm.next_of_kin_email.$dirty ) && empForm.next_of_kin_email.$invalid && (empForm.next_of_kin_email.$error.required || empForm.next_of_kin_email.$error.next_of_kin_email) }">		
+							<label for="next_of_kin_email" class="col-sm-4 control-label">Next of Kin Email</label>
+							<div class="col-sm-8">
+								<input type="next_of_kin_email" name="next_of_kin_email" id="next_of_kin_email" class="form-control input-sm" ng-model="employee.next_of_kin_email" required>
+								<p ng-show="(empForm.$submitted || empForm.next_of_kin_email.$dirty ) && empForm.next_of_kin_email.$invalid && empForm.next_of_kin_email.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Next of Kin email is required.</p>
+								<p ng-show="(empForm.$submitted || empForm.next_of_kin_email.$dirty ) && empForm.next_of_kin_email.$invalid && empForm.next_of_kin_email.$error.next_of_kin_email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email.</p>
+							</div>	
+						</div>
+						
+						
+					</div>
+					<div class="col-sm-6">
+						<h3>Employee Details</h3>
+						
+						<!-- Category -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.emp_cat.$dirty ) && empForm.emp_cat.$invalid && empForm.emp_cat.$error.required }">
+							<label for="emp_cat" class="col-sm-4 control-label">Category</label>
+							<div class="col-sm-8">
+								<select name="emp_cat"  ng-options="item.emp_cat_name for item in empCats" ng-model="employee.emp_cat" class="form-control" required>
+									<option value="">--select one--</option>
+								</select>
+								<p ng-show="(empForm.$submitted || empForm.emp_cat.$dirty ) && empForm.emp_cat.$invalid && empForm.emp_cat.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Category is required.</p>
+							</div>
+						</div>
+						
+						<!-- Department -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.dept_id.$dirty ) && empForm.dept_id.$invalid && empForm.dept_id.$error.required }">
+							<label for="dept_id" class="col-sm-4 control-label">Department</label>
+							<div class="col-sm-8">
+								<select name="dept_id" ng-model="employee.dept_id" class="form-control" required>
+									<option value="">--select one--</option>
+									<option value="{{item.dept_id}}" ng-repeat="item in departments">{{item.dept_name}}</option>
+								</select>
+								<p ng-show="(empForm.$submitted || empForm.dept_id.$dirty ) && empForm.dept_id.$invalid && empForm.dept_id.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Department is required.</p>
+							</div>	
+						</div>
+						
+						<!-- Joining date -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.joined_date.$dirty ) && empForm.joined_date.$invalid && empForm.joined_date.$error.required }">
+							<label for="joined_date" class="col-sm-4 control-label">Joining Date</label>
+							<div class="col-sm-4">
+								<div class="input-group">
+									<input type="text" name="joined_date" date-range-picker id="joined_date" class="form-control date-picker input-sm" ng-model="employee.joined_date" options="{singleDatePicker: true,autoApply: true}"  required>
+									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+								</div>
+								<p ng-show="(empForm.$submitted || empForm.joined_date.$dirty ) && empForm.joined_date.$invalid && empForm.joined_date.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Joining Date is required.</p>
+							</div>
+						</div>
+						
+						<!-- job title -->
+						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.job_title.$dirty ) && empForm.job_title.$invalid && empForm.job_title.$error.required }">		
+							<label for="job_title" class="col-sm-4 control-label">Job Title</label>
+							<div class="col-sm-8">
+								<input type="text" name="job_title" id="job_title" class="form-control input-sm" ng-model="employee.job_title" required>
+								<p ng-show="(empForm.$submitted || empForm.job_title.$dirty ) && empForm.job_title.$invalid && empForm.job_title.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Job title is required.</p>
+							</div>
+						</div>
+						
+						<!-- qualifications -->
+						<div class="form-group">		
+							<label for="qualifications" class="col-sm-4 control-label">Qualifications</label>
+							<div class="col-sm-8">
+								<input type="text" name="qualifications" id="qualifications" class="form-control input-sm" ng-model="employee.qualifications">
+							</div>
+						</div>
+						
+						<!-- experience -->
+						<div class="form-group">		
+							<label for="experience" class="col-sm-4 control-label">Experience</label>
+							<div class="col-sm-8">
+								<input type="text" name="experience" id="experience" class="form-control input-sm" ng-model="employee.experience">
+							</div>
+						</div>
+						
+						<!-- additional info -->
+						<div class="form-group">		
+							<label for="additional_info" class="col-sm-4 control-label">Additional Info</label>
+							<div class="col-sm-8">
+								<textarea name="additional_info" id="additional_info" class="form-control input-sm" ng-model="employee.additional_info" rows="7"></textarea>
+							</div>
+						</div>
+						
+						
+					</div>
+				</div>
+				
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+				<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>
+				<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>
+			</div>
+</form>

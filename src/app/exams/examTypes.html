@@ -1,4 +1,4 @@
-<div ng-controller="gradingCtrl">	
+<div ng-controller="examTypesCtrl">	
 	
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 		
@@ -19,12 +19,12 @@
 			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
-					<div class="btn add-btn" title="Add Grading Level" ng-show="permissions.school.grading.add" ng-click="addGrading()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Grading Level</span></a></div>
+					<div class="btn add-btn" title="Add Exam Type" ng-show="permissions.exams.exam_types.add" ng-click="addExamType()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Exam Type</span></a></div>
 				</div>				
 			</div>
 			
 			<div class="clearfix">
-				<h1 id="pageTitle">Grading</h1>
+				<h1 id="pageTitle">Exam Types</h1>
 			</div>			
 			
 		</div>
@@ -35,15 +35,17 @@
 				<thead>
 					<tr>
 						<th></th>
-						<th>Grade</th>
-						<th>Grade Marks Range</th>
+						<th></th>
+						<th>Exam Type</th>
+						<th>Class Category</th>
 					</tr>
 				</thead>	
 				<tbody>
-					<tr ng-repeat="item in grades track by $index">
+					<tr ng-repeat="item in examTypes track by $index">
 						<td></td>
-						<td ng-click="viewGrading(item)" id="{{item.grade_id}}" class="grade_id">{{item.grade}}</td>
-						<td ng-click="viewGrading(item)">{{item.mark_range}}</td>
+						<td class="center"><span class="glyphicon glyphicon-trash text-danger" ng-show="item.associations==0" ng-click="deleteExamType(item)"></span></td>
+						<td id="{{item.exam_type_id}}" class="exam_type_id">{{item.exam_type}}</td>
+						<td>{{item.class_cat_name}}</td>
 					</tr>
 				</tbody>
 			</table>

@@ -1,37 +1,33 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('departmentsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter',
-function($scope, $rootScope, apiService, $timeout, $window, $filter){
+controller('examTypesCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter','dialogs',
+function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 
 
 	$scope.alert = {};
 
 	var initializeController = function () 
 	{
-		getDepartments();
+		getExamTypes();
 	}
 	$timeout(initializeController,1);
 
-	var getDepartments = function()
+	var getExamTypes = function()
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();			
+			$scope.dataGrid.destroy();
+			$scope.dataGrid = undefined;			
 		}		
 
-		apiService.getDepts({}, function(response,status,params){
+		apiService.getExamTypes(undefined, function(response,status,params){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
 			{	
-				$scope.departments = ( result.nodata ? [] : result.data );	
+				$scope.examTypes = ( result.nodata ? [] : result.data );	
 
-				// update the rootScope variable
-				$rootScope.allDepts = $scope.departments;
-				
 				$timeout(initDataGrid,10);
 			}
 			else
@@ -73,7 +69,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 						search: "Search Results<br>",
 						searchPlaceholder: "Filter",
 						lengthMenu: "Display _MENU_",
-						emptyTable: "No departments found."
+						emptyTable: "No grading entries found."
 				},
 			} );
 			
@@ -118,24 +114,44 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		$scope.errMsg = result.data;
 	}
 	
-	
-	$scope.addDept = function()
+	$scope.addExamType = function()
 	{
-		$scope.openModal('school', 'departmentForm', 'md');
+		//$scope.openModal('exam', 'examTypeForm', 'md');
+		// show small dialog with add form
+		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',{},{size: 'sm',backdrop:'static'});
+		dlg.result.then(function(examType){
+			
+			getExamTypes();
+					
+		},function(){
+			
+		});
 	}
 	
-	$scope.viewDepartment = function(item)
+	$scope.deleteExamType = function(item)
 	{
-		$scope.openModal('school', 'departmentForm', 'md',item);
+		var dlg = $dialogs.confirm('Delete Exam Type','You are deleting exam type <strong>' + item.exam_type + '</strong>, this <strong>can not be undone</strong>, do you wish to continue?', {size:'sm'});
+		dlg.result.then(function(btn){
+			
+			apiService.deleteExamType(item.exam_type_id, function(response, status){
+				var result = angular.fromJson(response);
+			
+				if( result.response == 'success')
+				{	
+					getExamTypes();
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, apiError);
+		});
 	}
-	
-	$scope.exportItems = function()
-	{
-		$rootScope.wipNotice();
-	}
-	
 
-	$scope.$on('refreshDepartments', function(event, args) {
+
+	$scope.$on('refreshExamTypes', function(event, args) {
 
 		$scope.loading = true;
 		$rootScope.loading = true;
@@ -160,7 +176,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	{
 		$scope.loading = true;
 		$rootScope.loading = true;
-		getDepartments();
+		getExamTypes();
 	}
 	
 	$scope.$on('$destroy', function() {

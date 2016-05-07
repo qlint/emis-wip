@@ -72,7 +72,7 @@ $app->post('/login/', function () use($app){
         }
  
     } catch(PDOException $e) {
-        $app->response()->setStatus(404);
+        $app->response()->setStatus(200);
 		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
@@ -773,6 +773,45 @@ $app->put('/updateClassCat/', function () use($app) {
 
 });
 
+$app->get('/getClassCatsSummary/', function () {
+    //Show all class categories
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT class_cat_id, class_cat_name,
+							(select count(*) 
+								from app.students 
+								inner join app.classes 
+								on students.current_class = classes.class_id 
+								where class_cat_id = class_cats.class_cat_id) as num_students
+							FROM app.class_cats 
+							ORDER BY class_cat_id");
+        $sth->execute();
+ 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Countries  ****************** //
 $app->get('/getCountries/', function () {
@@ -941,9 +980,47 @@ $app->put('/setDeptStatus/', function () use($app) {
 
 });
 
+$app->get('/getDeptSummary/', function () {
+    //Show all class categories
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT dept_id, dept_name, active, category,
+									(select count(*) 
+								from app.employees 
+								where dept_id = departments.dept_id) as num_staff
+								FROM app.departments
+								WHERE active is true
+								ORDER BY dept_id");
+        $sth->execute();
+ 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Grading  ****************** //
-$app->get('/getGrading/', function () {
+$app->get('/getGrading', function () {
     //Show grading
 	
 	$app = \Slim\Slim::getInstance();
@@ -953,7 +1030,7 @@ $app->get('/getGrading/', function () {
         $db = getDB();
         $sth = $db->prepare("SELECT *
             FROM app.grading
-			ORDER BY grade");
+			ORDER BY max_mark desc");
         $sth->execute();
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -977,6 +1054,69 @@ $app->get('/getGrading/', function () {
 
 });
 
+$app->post('/addGrading/', function () use($app) {
+    // Add grading
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$grade =	( isset($allPostVars['grade']) ? $allPostVars['grade']: null);
+	$markMin =	( isset($allPostVars['min_mark']) ? $allPostVars['min_mark']: null);
+	$markMax =	( isset($allPostVars['max_mark']) ? $allPostVars['max_mark']: null);
+	
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("INSERT INTO app.grading(grade, min_mark, max_mark) 
+            VALUES(:grade, :markMin, :markMax)");
+ 
+        $sth->execute( array(':grade' => $grade, ':markMin' => $markMin, ':markMax' => $markMax ) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateGrading/', function () use($app) {
+    // Update grading
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$gradeId =	( isset($allPostVars['grade_id']) ? $allPostVars['grade_id']: null);
+	$grade =	( isset($allPostVars['grade']) ? $allPostVars['grade']: null);
+	$markMin =	( isset($allPostVars['min_mark']) ? $allPostVars['min_mark']: null);
+	$markMax =	( isset($allPostVars['max_mark']) ? $allPostVars['max_mark']: null);
+	
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE app.grading
+			SET grade = :grade,
+				min_mark = :markMin,
+				max_mark = :markMax
+            WHERE grade_id = :gradeId");
+ 
+        $sth->execute( array(':grade' => $grade, ':markMin' => $markMin, ':markMax' => $markMax, ':gradeId' => $gradeId ) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Employees  ****************** //
 $app->get('/getAllEmployees(/:status)', function ($status=true) {
@@ -987,11 +1127,15 @@ $app->get('/getAllEmployees(/:status)', function ($status=true) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT emp_id, emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
-									middle_name, last_name, initials, dob, country, active, telephone, email, joined_date,
-									job_title, qualifications, experience, additional_info, emp_image
-							 FROM app.employees 
-							 WHERE active = :status 
+        $sth = $db->prepare("SELECT emp_id, employees.emp_cat_id, employees.dept_id, emp_number, id_number, gender, first_name,
+									middle_name, last_name, initials, dob, country, employees.active, telephone, email, joined_date,
+									job_title, qualifications, experience, additional_info, emp_image,
+									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as employee_name,
+									emp_cat_name, dept_name
+							 FROM app.employees
+							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id
+							 INNER JOIN app.departments ON employees.dept_id = departments.dept_id
+							 WHERE employees.active = :status 
 							 ORDER BY first_name, middle_name, last_name");
         $sth->execute( array(':status' => $status)); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1053,34 +1197,43 @@ $app->get('/getEmployee/:id', function () {
 $app->post('/addEmployee/', function () use($app) {
     // Add employee
 	
-	$allPostVars = $app->request->post();
-	$empCatId = $allPostVars['emp_cat_id'];
-	$deptId = $allPostVars['dept_id'];
-	$empNumber = $allPostVars['emp_number'];
-	$idNumber = $allPostVars['id_number'];
-	$gender = $allPostVars['gender'];
-	$firstName = $allPostVars['first_name'];
-	$middleName = $allPostVars['middle_name'];
-	$lastName = $allPostVars['last_name'];
-	$initials = $allPostVars['initials'];
-	$dob = $allPostVars['dob'];
-	$country = $allPostVars['country'];
-	$active = $allPostVars['active'];
-	$telephone = $allPostVars['telephone'];
-	$email = $allPostVars['email'];
-	$joinedDate = $allPostVars['joined_date'];
-	$jobTitle = $allPostVars['job_title'];
-	$qualifications = $allPostVars['qualifications'];
-	$experience = $allPostVars['experience'];
-	$additionalInfo = $allPostVars['additional_info'];
-	$createdBy = $allPostVars['user_id'];
-	$empImage = $allPostVars['emp_image'];
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$empCatId =			( isset($allPostVars['emp_cat_id']) ? $allPostVars['emp_cat_id']: null);
+	$deptId =			( isset($allPostVars['dept_id']) ? $allPostVars['dept_id']: null);
+	$empNumber =		( isset($allPostVars['emp_number']) ? $allPostVars['emp_number']: null);
+	$idNumber =			( isset($allPostVars['id_number']) ? $allPostVars['id_number']: null);
+	$gender =			( isset($allPostVars['gender']) ? $allPostVars['gender']: null);
+	$firstName =		( isset($allPostVars['first_name']) ? $allPostVars['first_name']: null);
+	$middleName =		( isset($allPostVars['middle_name']) ? $allPostVars['middle_name']: null);
+	$lastName =			( isset($allPostVars['last_name']) ? $allPostVars['last_name']: null);
+	$initials =			( isset($allPostVars['initials']) ? $allPostVars['initials']: null);
+	$dob =				( isset($allPostVars['dob']) ? $allPostVars['dob']: null);
+	$country =			( isset($allPostVars['country']) ? $allPostVars['country']: null);
+	$active =			( isset($allPostVars['active']) ? $allPostVars['active']: 'f');
+	$telephone =		( isset($allPostVars['telephone']) ? $allPostVars['telephone']: null);
+	$email =			( isset($allPostVars['email']) ? $allPostVars['email']: null);
+	$joinedDate =		( isset($allPostVars['joined_date']) ? $allPostVars['joined_date']: null);
+	$jobTitle =			( isset($allPostVars['job_title']) ? $allPostVars['job_title']: null);
+	$qualifications =	( isset($allPostVars['qualifications']) ? $allPostVars['qualifications']: null);
+	$experience =		( isset($allPostVars['experience']) ? $allPostVars['experience']: null);
+	$additionalInfo =	( isset($allPostVars['additional_info']) ? $allPostVars['additional_info']: null);
+	$empImage =			( isset($allPostVars['emp_image']) ? $allPostVars['emp_image']: null);
+	$createdBy =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$nokName =			( isset($allPostVars['next_of_kin_name']) ? $allPostVars['next_of_kin_name']: null);
+	$nokTelephone =		( isset($allPostVars['next_of_kin_telephone']) ? $allPostVars['next_of_kin_telephone']: null);
+	$nokEmail =			( isset($allPostVars['next_of_kin_email']) ? $allPostVars['next_of_kin_email']: null);
+
 
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.employees(emp_cat_id, dept_id, emp_number, id_number, gender, first_name, middle_name, last_name, initials, dob, country, active, telephone, email, joined_date, job_title, qualifications, experience, additional_info, created_by, emp_image) 
-            VALUES(:empCatId,:deptId,:empNumber,:idNumber,:gender,:firstName,:middleName,:lastName,:initials,:dob,:country,:active,:telephone,:email,:joinedDate,:jobTitle,:qualifications,:experience,:additionalInfo,:createdBy,:empImage)"); 
+        $sth = $db->prepare("INSERT INTO app.employees(emp_cat_id, dept_id, emp_number, id_number, gender, first_name, middle_name, last_name, initials, dob, 
+										country, active, telephone, email, joined_date, job_title, qualifications, experience, additional_info, created_by, emp_image,
+										next_of_kin_name, next_of_kin_telephone, next_of_kin_email) 
+							VALUES(:empCatId,:deptId,:empNumber,:idNumber,:gender,:firstName,:middleName,:lastName,:initials,:dob,
+										:country,:active,:telephone,:email,:joinedDate,:jobTitle,:qualifications,:experience,:additionalInfo,:createdBy,:empImage,
+										:nokName, :nokTelephone, :nokEmail)"); 
         $sth->execute( array(':empCatId' => $empCatId,
 							':deptId' => $deptId,
 							':empNumber' => $empNumber,
@@ -1101,7 +1254,10 @@ $app->post('/addEmployee/', function () use($app) {
 							':experience' => $experience,
 							':additionalInfo' => $additionalInfo,
 							':createdBy' => $createdBy,
-							':empImage' => $empImage
+							':empImage' => $empImage,
+							':nokName' => $nokName,
+							':nokTelephone' => $nokTelephone,
+							':nokEmail' => $nokEmail
 		) );
  
 		$app->response->setStatus(200);
@@ -1120,76 +1276,122 @@ $app->post('/addEmployee/', function () use($app) {
 $app->put('/updateEmployee/', function () use($app) {
     // Update employee
 	
-	$allPostVars = $app->request->post();
-	$empId = $allPostVars['emp_id'];
-	$empCatId = $allPostVars['emp_cat_id'];
-	$deptId = $allPostVars['dept_id'];
-	$empNumber = $allPostVars['emp_number'];
-	$idNumber = $allPostVars['id_number'];
-	$gender = $allPostVars['gender'];
-	$firstName = $allPostVars['first_name'];
-	$middleName = $allPostVars['middle_name'];
-	$lastName = $allPostVars['last_name'];
-	$initials = $allPostVars['initials'];
-	$dob = $allPostVars['dob'];
-	$country = $allPostVars['country'];
-	$active = $allPostVars['active'];
-	$telephone = $allPostVars['telephone'];
-	$email = $allPostVars['email'];
-	$joinedDate = $allPostVars['joined_date'];
-	$jobTitle = $allPostVars['job_title'];
-	$qualifications = $allPostVars['qualifications'];
-	$experience = $allPostVars['experience'];
-	$additionalInfo = $allPostVars['additional_info'];
-	$empImage = $allPostVars['emp_image'];
+	$allPostVars = json_decode($app->request()->getBody(),true);
 	
+	$empId =			( isset($allPostVars['emp_id']) ? $allPostVars['emp_id']: null);
+	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+	
+	$updatePersonal = false;
+	$updateEmployee = false;
+	
+	if( isset($allPostVars['personal']) )
+	{		
+		$idNumber =			( isset($allPostVars['personal']['id_number']) ? $allPostVars['personal']['id_number']: null);
+		$gender =			( isset($allPostVars['personal']['gender']) ? $allPostVars['personal']['gender']: null);
+		$firstName =		( isset($allPostVars['personal']['first_name']) ? $allPostVars['personal']['first_name']: null);
+		$middleName =		( isset($allPostVars['personal']['middle_name']) ? $allPostVars['personal']['middle_name']: null);
+		$lastName =			( isset($allPostVars['personal']['last_name']) ? $allPostVars['personal']['last_name']: null);
+		$initials =			( isset($allPostVars['personal']['initials']) ? $allPostVars['personal']['initials']: null);
+		$dob =				( isset($allPostVars['personal']['dob']) ? $allPostVars['personal']['dob']: null);
+		$country =			( isset($allPostVars['personal']['country']) ? $allPostVars['personal']['country']: null);
+		$active =			( isset($allPostVars['personal']['active']) ? $allPostVars['personal']['active']: 'f');
+		$telephone =		( isset($allPostVars['personal']['telephone']) ? $allPostVars['personal']['telephone']: null);
+		$email =			( isset($allPostVars['personal']['email']) ? $allPostVars['personal']['email']: null);
+		$empImage =			( isset($allPostVars['personal']['emp_image']) ? $allPostVars['personal']['emp_image']: null);
+		$nokName =			( isset($allPostVars['personal']['next_of_kin_name']) ? $allPostVars['personal']['next_of_kin_name']: null);
+		$nokTelephone =		( isset($allPostVars['personal']['next_of_kin_telephone']) ? $allPostVars['personal']['next_of_kin_telephone']: null);
+		$nokEmail =			( isset($allPostVars['personal']['next_of_kin_email']) ? $allPostVars['personal']['next_of_kin_email']: null);
+		$updatePersonal = true;
+	}
+	if( isset($allPostVars['employee']) )
+	{
+		$empNumber =		( isset($allPostVars['employee']['emp_number']) ? $allPostVars['employee']['emp_number']: null);
+		$empCatId =			( isset($allPostVars['employee']['emp_cat_id']) ? $allPostVars['employee']['emp_cat_id']: null);
+		$deptId =			( isset($allPostVars['employee']['dept_id']) ? $allPostVars['employee']['dept_id']: null);
+		$joinedDate =		( isset($allPostVars['employee']['joined_date']) ? $allPostVars['employee']['joined_date']: null);
+		$jobTitle =			( isset($allPostVars['employee']['job_title']) ? $allPostVars['employee']['job_title']: null);
+		$qualifications =	( isset($allPostVars['employee']['qualifications']) ? $allPostVars['employee']['qualifications']: null);
+		$experience =		( isset($allPostVars['employee']['experience']) ? $allPostVars['employee']['experience']: null);
+		$additionalInfo =	( isset($allPostVars['employee']['additional_info']) ? $allPostVars['employee']['additional_info']: null);
+		$updateEmployee = true;
+	}
+	
+
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE app.employees
-			SET emp_cat_id = :empCatId,
-				dept_id = :deptId,
-				emp_number = :empNumber,
-				id_number = :idNumber,
-				gender = :gender,
-				first_name = :firstName,
-				middle_name = :middleName,
-				last_name = :lastName,
-				initials = :initials,
-				dob = :dob,
-				country = :country,
-				active = :active,
-				telephone = :telephone,
-				email = :email,
-				joined_date = :joinedDate,
-				qualifications = :qualifications,
-				experience = :experience,
-				additional_info = :additionalInfo,
-				emp_image = :empImage
-            WHERE emp_id = :empId");
- 
-        $sth->execute( array(':empId' => $empId,
-							':empCatId' => $empCatId,
-							':deptId' => $deptId,
-							':empNumber' => $empNumber,
-							':idNumber' => $idNumber,
-							':gender' => $gender,
-							':firstName' => $firstName,
-							':middleName' => $middleName,
-							':lastName' => $lastName,
-							':initials' => $initials,
-							':dob' => $dob,
-							':country' => $country,
-							':active' => $active,
-							':telephone' => $telephone,
-							':email' => $email,
-							':joinedDate' => $joinedDate,
-							':jobTitle' => $jobTitle,
-							':qualifications' => $qualifications,
-							':experience' => $experience,
-							':additionalInfo' => $additionalInfo,
-							':empImage' => $empImage
-		) );
+			
+		if( $updatePersonal )
+		{
+			$sth = $db->prepare("UPDATE app.employees
+				SET id_number = :idNumber,
+					gender = :gender,
+					first_name = :firstName,
+					middle_name = :middleName,
+					last_name = :lastName,
+					initials = :initials,
+					dob = :dob,
+					country = :country,
+					active = :active,
+					telephone = :telephone,
+					email = :email,
+					emp_image = :empImage,
+					next_of_kin_name = :nokName,
+					next_of_kin_telephone = :nokTelephone,
+					next_of_kin_email = :nokEmail,
+					modified_date = now(),
+					modified_by = :userId
+				WHERE emp_id = :empId");
+				
+				$sth->execute( array(':empId' => $empId,
+								':idNumber' => $idNumber,
+								':gender' => $gender,
+								':firstName' => $firstName,
+								':middleName' => $middleName,
+								':lastName' => $lastName,
+								':initials' => $initials,
+								':dob' => $dob,
+								':country' => $country,
+								':active' => $active,
+								':telephone' => $telephone,
+								':email' => $email,
+								':empImage' => $empImage,
+								':nokName' => $nokName,
+								':nokTelephone' => $nokTelephone,
+								':nokEmail' => $nokEmail,
+								':userId' => $userId
+			) );
+		}
+		if( $updateEmployee )
+		{
+			$sth = $db->prepare("UPDATE app.employees
+				SET emp_cat_id = :empCatId,
+					dept_id = :deptId,
+					emp_number = :empNumber,
+					joined_date = :joinedDate,
+					job_title = :jobTitle,
+					qualifications = :qualifications,
+					experience = :experience,
+					additional_info = :additionalInfo,
+					modified_date = now(),
+					modified_by = :userId
+				WHERE emp_id = :empId");
+				
+				$sth->execute( array(':empId' => $empId,
+								':empCatId' => $empCatId,
+								':deptId' => $deptId,
+								':empNumber' => $empNumber,
+								':joinedDate' => $joinedDate,
+								':jobTitle' => $jobTitle,
+								':qualifications' => $qualifications,
+								':experience' => $experience,
+								':additionalInfo' => $additionalInfo,
+								':userId' => $userId
+			) );
+		}
+		
+		
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -1224,6 +1426,48 @@ $app->get('/getAllTeachers(/:status)', function ($status=true) {
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
         if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getEmployeeDetails/:empId', function ($empId) {
+    // Get employee details
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT employees.*,
+									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as employee_name,
+									emp_cat_name, dept_name,
+									(select array_agg(class_name) from app.classes where teacher_id = employees.emp_id) as classes,
+									(select array_agg(subject_name) from app.subjects where teacher_id = employees.emp_id) as subjects
+							 FROM app.employees 
+							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id
+							 INNER JOIN app.departments ON employees.dept_id = departments.dept_id
+							 WHERE emp_id = :empId");
+        $sth->execute( array(':empId' => $empId)); 
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+ 
+        if($results) {
+			$results->classes = pg_array_parse($results->classes);
+			$results->subjects = pg_array_parse($results->subjects);
+			
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));
@@ -1343,7 +1587,7 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 		if( $year == null )
 		{
 			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name, start_date, end_date,
-										  case when term_id = (select term_id from app.current_term) then true else false end as current_term
+										  case when term_id = (select term_id from app.current_term) then true else false end as current_term, date_part('year',start_date) as year
 										FROM app.terms
 										--WHERE date_part('year',start_date) <= date_part('year',now())
 										ORDER BY date_part('year',start_date), term_name");
@@ -1352,7 +1596,8 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 		else
 		{
 			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name,start_date, end_date,
-										  case when term_id = (select term_id from app.current_term) then true else false end as current_term
+										  case when term_id = (select term_id from app.current_term) then true else false end as current_term,
+										  date_part('year',start_date) as year
 										FROM app.terms
 										WHERE date_part('year',start_date) = :year
 										ORDER BY date_part('year',start_date), term_name");
@@ -1390,6 +1635,38 @@ $app->get('/getCurrentTerm', function () {
 		$db = getDB();
 	
 		$query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.current_term");
+		$query->execute();			
+        $results = $query->fetch(PDO::FETCH_ASSOC);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getNextTerm', function () {
+    //Get next term
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+		$db = getDB();
+	
+		$query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.next_term");
 		$query->execute();			
         $results = $query->fetch(PDO::FETCH_ASSOC);
  
@@ -1640,12 +1917,24 @@ $app->get('/getExamTypes(/:class_cat_id)', function ($classCatId = null) {
         $db = getDB();
 		if( $classCatId == null )
 		{
-			$sth = $db->prepare("SELECT * FROM app.exam_types WHERE class_cat_id is null ORDER BY exam_type_id");
+			$sth = $db->prepare("SELECT exam_type_id, exam_type, exam_types.class_cat_id, class_cat_name,
+										(select count(*) from app.class_subject_exams where exam_type_id = exam_types.exam_type_id) as associations
+								FROM app.exam_types 
+								LEFT JOIN app.class_cats
+								ON exam_types.class_cat_id = class_cats.class_cat_id
+								--WHERE exam_types.class_cat_id is null 
+								ORDER BY exam_type_id");
 			$sth->execute(); 
 		}
 		else
 		{
-			$sth = $db->prepare("SELECT * FROM app.exam_types WHERE class_cat_id is null OR class_cat_id = :classCatId ORDER BY exam_type_id");
+			$sth = $db->prepare("SELECT exam_type_id, exam_type, exam_types.class_cat_id, class_cat_name
+								FROM app.exam_types 
+								LEFT JOIN app.class_cats
+								ON exam_types.class_cat_id = class_cats.class_cat_id
+								WHERE exam_types.class_cat_id is null 
+								OR exam_types.class_cat_id = :classCatId 
+								ORDER BY exam_type_id");
 			$sth->execute(array(':classCatId' => $classCatId)); 
 		}
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1706,6 +1995,33 @@ $app->post('/addExamType/', function () use($app) {
 
 });
 
+$app->delete('/deleteExamType/:exam_type_id', function ($examTypeId) {
+    // delete exam type
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("DELETE FROM app.exam_types WHERE exam_type_id = :examTypeId");		
+										
+		$sth->execute( array(':examTypeId' => $examTypeId) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		echo $e->getMessage();
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($studentId,$classId,$termId,$examTypeId=null) {
     //Get student exam marks
 	
@@ -1715,40 +2031,44 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
     {
         $db = getDB();
 		
-		$query = "SELECT subject_name, mark, grade_weight, exam_type
-							FROM app.exam_marks 
-							INNER JOIN app.students USING (student_id)
-							INNER JOIN app.terms USING (term_id)
-							INNER JOIN app.class_subject_exams 
-								INNER JOIN app.exam_types
-								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-								INNER JOIN app.class_subjects 
-									INNER JOIN app.subjects
-									ON class_subjects.subject_id = subjects.subject_id
-								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-							ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-							WHERE student_id = :studentId
-							AND class_subjects.class_id = :classId
-							AND term_id = :termId
-							";
+		// get exam marks by exam type
 		$queryArray = array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId);
-		
+		$query = "SELECT subject_name, mark, grade_weight, exam_type, rank, grade
+					FROM (
+						SELECT class_id
+							  ,subject_name      
+							  ,exam_type
+							  ,student_id
+							  ,mark          
+							  ,grade_weight
+							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
+							  ,dense_rank() over w as rank
+						FROM app.exam_marks
+						INNER JOIN app.class_subject_exams 
+						INNER JOIN app.exam_types
+						ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects 
+							INNER JOIN app.subjects
+							ON class_subjects.subject_id = subjects.subject_id
+						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						WHERE class_subjects.class_id = :classId
+						AND term_id = :termId
+						";
+						
 		if( $examTypeId !== null )
 		{
-			$query .= "AND class_subject_exams.exam_type_id = :examTypeId
-								ORDER BY exam_types.exam_type_id, class_subjects.subject_id";
+			$query .= "AND class_subject_exams.exam_type_id = :examTypeId ";
 								
 			$queryArray[':examTypeId'] = $examTypeId; 
 		}
-		else
-		{
-			$query .= "ORDER BY exam_types.exam_type_id, class_subjects.subject_id";
-		}
-
+		
+		$query .= "WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY  exam_types.exam_type_id, class_subjects.subject_id, mark desc)
+				 ) q
+				 where student_id = :studentId";
 		
 		$sth = $db->prepare($query);
 		$sth->execute( $queryArray ); 
-		
         
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
@@ -1771,8 +2091,9 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 
 });
 
+/*
 $app->get('/getExamMarks/:class/:year/:term/:type', function ($class,$year,$term,$type) {
-    //Show exam marks
+    //Show exam marks for all students
 	
 	$app = \Slim\Slim::getInstance();
  
@@ -1815,7 +2136,7 @@ $app->get('/getExamMarks/:class/:year/:term/:type', function ($class,$year,$term
     }
 
 });
-
+*/
 $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$termId,$examTypeId) {
     //Get all student exam marks
 	
@@ -1934,6 +2255,348 @@ $app->post('/addExamMarks/', function () use($app) {
 });
 
 
+// ************** Report Cards  ****************** //
+$app->get('/getAllStudentReportCards/:student_id', function ($studentId) {
+    //Get student report cards
+	
+	$app = \Slim\Slim::getInstance();
+	
+    try 
+    {
+		// need to make sure class, term and type are integers
+		if( is_numeric($studentId) )
+		{
+			$db = getDB();
+			
+			$sth1 = $db->prepare("select app.colpivot('_report_cards', 'SELECT report_cards.student_id, report_cards.class_id, class_name, term_name, report_data
+									FROM app.report_cards
+									INNER JOIN app.students ON report_cards.student_id = students.student_id
+									INNER JOIN app.classes ON report_cards.class_id = classes.class_id
+									INNER JOIN app.terms ON report_cards.term_id = terms.term_id
+									WHERE report_cards.student_id = $studentId',
+									array['student_id','class_name'], array['term_name'], '#.report_data', null);");
+			$sth2 = $db->prepare("select * from _report_cards order by student_id;");
+			
+			$db->beginTransaction();
+			$sth1->execute(); 
+			$sth2->execute();
+			$results = $sth2->fetchAll(PDO::FETCH_OBJ);
+			$db->commit();
+		}			
+		
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        //echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		 echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
+    }
+
+});
+
+$app->get('/getStudentReportCards/:student_id', function ($studentId) {
+    //Get student report cards
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		
+		$sth = $db->prepare("SELECT report_cards.student_id, report_cards.class_id, class_name, term_name, date_part('year', start_date) as year, report_data
+					FROM app.report_cards
+					INNER JOIN app.students ON report_cards.student_id = students.student_id
+					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
+					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
+					WHERE report_cards.student_id = :studentId
+					ORDER BY report_card_id");
+		$sth->execute( array(':studentId' => $studentId) ); 
+		
+        
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($studentId, $classId, $termId) {
+    //Get student report card
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("SELECT report_cards.student_id, class_name, term_name, report_cards.term_id, date_part('year', start_date) as year, report_data
+					FROM app.report_cards
+					INNER JOIN app.students ON report_cards.student_id = students.student_id
+					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
+					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
+					WHERE report_cards.student_id = :studentId
+					AND report_cards.class_id = :classId
+					AND report_cards.term_id = :termId");
+		$sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) );         
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+				
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($studentId,$classId,$termId) {
+    //Get student exam marks
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		
+		// get exam marks by exam type
+		$sth = $db->prepare("SELECT subject_name, mark, grade_weight, exam_type, rank, grade
+					FROM (
+						SELECT class_id
+							  ,subject_name      
+							  ,exam_type
+							  ,student_id
+							  ,mark          
+							  ,grade_weight
+							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
+							  ,dense_rank() over w as rank
+						FROM app.exam_marks
+						INNER JOIN app.class_subject_exams 
+						INNER JOIN app.exam_types
+						ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects 
+							INNER JOIN app.subjects
+							ON class_subjects.subject_id = subjects.subject_id
+						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						WHERE class_subjects.class_id = :classId
+						AND term_id = :termId
+						WINDOW w AS (PARTITION BY class_subjects.subject_id, class_subject_exams.exam_type_id ORDER BY   class_subjects.subject_id, exam_types.exam_type_id, mark desc)
+				 ) q
+				 where student_id = :studentId");
+		$sth->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
+		$details = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+
+		// get overall marks per subjects
+		$sth2 = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, rank, percentage, 
+									(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade
+							FROM (
+								SELECT class_id
+									  ,subject_name      
+									  ,student_id
+									  ,sum(mark) as total_mark    
+									  ,sum(grade_weight) as total_grade_weight
+									  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
+									  ,dense_rank() over w as rank
+								FROM app.exam_marks
+								INNER JOIN app.class_subject_exams 
+								INNER JOIN app.exam_types
+								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+								INNER JOIN app.class_subjects 
+									INNER JOIN app.subjects
+									ON class_subjects.subject_id = subjects.subject_id
+								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+								WHERE class_subjects.class_id = :classId
+								AND term_id = :termId
+								GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id
+								WINDOW w AS (PARTITION BY class_subjects.subject_id ORDER BY class_subjects.subject_id, sum(mark) desc)								
+							 ) q
+							 where student_id = :studentId");
+		$sth2->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
+		$subjectOverall = $sth2->fetchAll(PDO::FETCH_OBJ);
+		
+		// get overall position
+		$sth3 = $db->prepare("SELECT total_mark, total_grade_weight, rank, percentage, 
+									(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
+									position_out_of
+								FROM (
+									SELECT    
+										  student_id
+										  ,sum(mark) as total_mark    
+										  ,sum(grade_weight) as total_grade_weight
+										  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
+										  ,dense_rank() over w as rank
+										  ,(select count(*) from app.students where active is true and current_class = 4) as position_out_of
+									FROM app.exam_marks
+									INNER JOIN app.class_subject_exams 
+									INNER JOIN app.exam_types
+									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+									INNER JOIN app.class_subjects 
+										INNER JOIN app.subjects
+										ON class_subjects.subject_id = subjects.subject_id
+									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+									WHERE class_subjects.class_id = :classId
+									AND term_id = :termId
+									GROUP BY exam_marks.student_id
+									WINDOW w AS (ORDER BY sum(mark) desc)									
+								 ) q
+								 where student_id = :studentId");
+		$sth3->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
+		$overall = $sth3->fetch(PDO::FETCH_OBJ);
+		
+		// get overall position last term
+		$sth4 = $db->prepare("SELECT total_mark, total_grade_weight, rank, percentage, 
+									(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
+									position_out_of
+								FROM (
+									SELECT    
+										  student_id
+										  ,sum(mark) as total_mark    
+										  ,sum(grade_weight) as total_grade_weight
+										  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
+										  ,dense_rank() over w as rank
+										  ,(select count(*) from app.students where active is true and current_class = 4) as position_out_of
+									FROM app.exam_marks
+									INNER JOIN app.class_subject_exams 
+									INNER JOIN app.exam_types
+									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+									INNER JOIN app.class_subjects 
+										INNER JOIN app.subjects
+										ON class_subjects.subject_id = subjects.subject_id
+									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+									WHERE class_subjects.class_id = :classId
+									AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+									GROUP BY exam_marks.student_id
+									WINDOW w AS (ORDER BY sum(mark) desc)									
+								 ) q
+								 where student_id = :studentId");
+		$sth4->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
+		$overallLastTerm = $sth4->fetch(PDO::FETCH_OBJ);
+		
+		$results =  new stdClass();
+		$results->details = $details;
+		$results->subjectOverall = $subjectOverall;
+		$results->overall = $overall;
+		$results->overallLastTerm = $overallLastTerm;
+        
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addReportCard/', function () use($app) {
+    // Add exam type
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$studentId =	( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+	$termId =		( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
+	$classId =		( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$reportData =	( isset($allPostVars['report_data']) ? $allPostVars['report_data']: null);
+	
+    try 
+    {
+        $db = getDB();
+		
+		$getReport = $db->prepare("SELECT report_card_id FROM app.report_cards WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId");
+		
+		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by) 
+								VALUES(:studentId, :classId, :termId, :reportData, :userId)"); 
+		
+		$updateReport = $db->prepare("UPDATE app.report_cards
+									SET report_data = :reportData,
+										modified_date = now(),
+										modified_by = :userId
+									WHERE report_card_id = :reportCardId"); 
+									
+		
+		$db->beginTransaction();
+		
+		$getReport->execute( array(':studentId' => $studentId, ':classId' => $classId,':termId' => $termId ) );
+		$reportCardId = $getReport->fetch(PDO::FETCH_OBJ);
+		
+		if( $reportCardId )
+		{
+			$updateReport->execute( array(':reportData' => $reportData, ':userId' => $userId, ':reportCardId' => $reportCardId->report_card_id ) );
+		}
+		else
+		{
+			$addReport->execute( array(':studentId' => $studentId, 
+											':classId' => $classId,
+											':termId' => $termId, 
+											':reportData' => $reportData, 
+											':userId' => $userId
+											) );
+		}
+		
+		$db->commit();
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+
 // ************** Payments  ****************** //
 $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStatus)', function ($startDate,$endDate, $paymentStatus = false, $studentStatus = null) {
     // Get all payment received for given date range
@@ -1963,7 +2626,16 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 								 WHERE payment_id = payments.payment_id
 								 )
 						 END as applied_to,
-						 class_name, class_id, class_cat_id, students.active as status, replacement_payment
+						 class_name, class_id, class_cat_id, students.active as status, replacement_payment, reversed,
+						 (
+									SELECT sum(diff) FROM (
+										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
+										FROM app.payments as p
+										WHERE p.payment_id = payments.payment_id
+										AND reversed is false
+										AND replacement_payment is false
+									) AS q
+								) AS unapplied_amount
 					FROM app.payments
 					INNER JOIN app.students ON payments.student_id = students.student_id
 					INNER JOIN app.classes ON students.current_class = classes.class_id
@@ -3954,6 +4626,50 @@ $app->get('/getStudentPayments/:studentId', function ($studentId) {
     }
 
 });
+
+$app->get('/getStudentClassess/:studentId', function ($studentId) {
+    // Get all students classes, present and past
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+       $sth = $db->prepare("SELECT 1 as ord, student_id, class_id, class_name,
+								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 1') then true else false end as term_1,
+								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 2') then true else false end as term_2,
+								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
+							FROM app.students
+							INNER JOIN app.classes ON students.current_class = classes.class_id
+							WHERE student_id = :studentId
+							UNION
+							SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
+							FROM app.student_class_history
+							INNER JOIN app.classes ON student_class_history.class_id = classes.class_id
+							WHERE student_id = :studentId
+							ORDER BY ord");
+		$sth->execute( array(':studentId' => $studentId) ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 $app->post('/addStudent/', function () use($app) {
     // Add student	

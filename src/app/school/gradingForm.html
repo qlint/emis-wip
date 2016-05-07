@@ -1,0 +1,42 @@
+<form name="gradingForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(gradingForm)">		
+	<div class="modal-header dialog-header-form">
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> {{ (edit ? 'Edit' : 'Add' ) }} Grading Level</h4>
+			</div>
+			<div class="modal-body cleafix">
+
+					<div ng-show="error" class="alert alert-danger">
+						{{errMsg}}
+					</div>
+					<!-- grade -->
+					<div class="form-group" ng-class="{ 'has-error' : gradingForm.grade.$invalid && (gradingForm.grade.$touched || gradingForm.$submitted) }">		
+						<label for="grade" class="col-sm-4 nopad-right control-label">Grade</label>
+						<div class="col-sm-3">
+							<input type="text" name="grade" ng-model="grading.grade" class="form-control" required >						
+							<p ng-show="gradingForm.grade.$invalid && (gradingForm.grade.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Grade is required.</p>
+						</div>	
+					</div>
+					<!-- grade mark min -->
+					<div class="form-group" ng-class="{ 'has-error' : gradingForm.min_mark.$invalid && (gradingForm.min_mark.$touched || gradingForm.$submitted) }">
+						<label for="min_mark" class="col-sm-4 nopad-right control-label">Marks Range</label>
+						<div class="col-sm-3 nopad-right">
+							<input type="text" name="min_mark" ng-model="grading.min_mark" class="form-control" required numeric_only>
+							<span class="help-block">Min. mark</span>							
+							<p ng-show="gradingForm.min_mark.$invalid && (gradingForm.min_mark.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Min Mark is required.</p>
+						</div>
+						<div class="col-sm-1">
+							<p class="form-control-static">-</p>
+						</div>
+						<div class="col-sm-3 nopad-left">
+							<input type="text" name="max_mark" ng-model="grading.max_mark" class="form-control" required numeric_only >		
+							<span class="help-block">Max. mark</span>							
+							<p ng-show="gradingForm.max_mark.$invalid && (gradingForm.max_mark.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Max Mark is required.</p>
+						</div>
+					</div>
+
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+				<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>
+				<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>
+			</div>
+</form>

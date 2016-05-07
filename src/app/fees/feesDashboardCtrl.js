@@ -56,7 +56,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			if( result.data  instanceof Array )
 			{
 				$scope.paymentsReceivedTotal = result.data.reduce(function(sum,item){
-					console.log(parseFloat(item.amount));
+					//console.log(parseFloat(item.amount));
 					return sum = (sum + parseFloat(item.amount));
 				},0);
 			}
@@ -218,7 +218,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	$scope.viewPayment = function(item)
 	{
-		console.log(item);
+		//console.log(item);
 		$scope.openModal('fees', 'paymentDetails', 'lg', item);
 	}
 	

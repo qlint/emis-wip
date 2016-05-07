@@ -7,7 +7,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.subject = ( data !== undefined ? data : {} );
 	$scope.edit = (  data !== undefined && data.subject_id !== undefined ? true : false );
 	
-	console.log(data);
+	//console.log(data);
 	
 	$scope.initializeController = function()
 	{
@@ -30,7 +30,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		{
 			var data = $scope.subject;
 			data.user_id = $rootScope.currentUser.user_id;
-			console.log(data);
+			//console.log(data);
 			
 			if( $scope.edit )
 			{

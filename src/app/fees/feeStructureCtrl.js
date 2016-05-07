@@ -18,8 +18,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;			
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();			
 		}		
 
 		apiService.getFeeItems({}, function(response,status,params){
@@ -28,7 +29,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			if( result.response == 'success')
 			{	
 				$scope.items = ( result.nodata ? [] : result.data.required_items.concat(result.data.optional_items));	
-				console.log($scope.items);
+				//console.log($scope.items);
 				
 				if( $scope.items.length > 0 )
 				{
@@ -62,7 +63,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 						return item;
 					});
 				}
-				console.log($scope.items);
+				//console.log($scope.items);
 				$timeout(initDataGrid,10);
 			}
 			else

@@ -1,4 +1,4 @@
-<div  ng-controller="listStaffCtrl" ng-init="initializeController()">	
+<div ng-controller="listStaffCtrl" >	
 	
 	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 		
@@ -20,7 +20,7 @@
 			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
-					<div class="btn add-btn" title="Add Student" ng-show="permissions.students.add" ng-click="addStudent()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Staff</span></a></div>
+					<div class="btn add-btn" title="Add Employee" ng-show="permissions.staff.add" ng-click="addEmployee()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Staff</span></a></div>
 					<!--div class="btn" title="Print" ng-hide="isSmallScreen" ng-click="printablePage()"><a class="print-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div-->
 					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
 				</div>			
@@ -38,9 +38,8 @@
 					<!-- category select -->
 					<div class="form-group">
 						<label for="category">Category</label>
-						<select class="form-control" id="category" name="class_cat_id" ng-model="filters.emp_cat_id">
+						<select class="form-control" id="category" name="emp_cat_id" ng-options="item.emp_cat_name for item in empCats" ng-model="filters.emp_cat">
 							<option value="">All Employee Categories</option>
-							<option value="{{cat.emp_cat_id}}" ng-repeat="cat in empCats">{{cat.emp_cat_name}}</option>
 						</select>
 					</div>
 					<!-- class select -->
@@ -54,7 +53,7 @@
 					
 					<!-- search btn -->
 					<div class="form-group submit-btn">
-						<input type="submit" class="btn btn-sm btn-info" ng-click="filterResults(reportSearchForm)" value="Load" />					
+						<input type="submit" class="btn btn-sm btn-info" ng-click="filter()" value="Load" />					
 						<img src="assets/spinner.gif" ng-show="loading" />
 						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
 					</div>
@@ -79,9 +78,9 @@
 				<tbody>
 					<tr ng-repeat="item in employees track by $index">
 						<td></td>
-						<td id="{{item.emp_id}}" class="emp_id" ng-click="viewStaff(item)">{{item.employee_name}}</td>
-						<td ng-click="viewStaff(item)">{{item.emp_category}}</td>
-						<td ng-click="viewStaff(item)">{{item.dept_name}}</td>
+						<td id="{{item.emp_id}}" class="emp_id" ng-click="viewEmployee(item)">{{item.employee_name}}</td>
+						<td ng-click="viewEmployee(item)">{{item.emp_cat_name}}</td>
+						<td ng-click="viewEmployee(item)">{{item.dept_name}}</td>
 					</tr>
 				</tbody>
 			</table>

@@ -5,7 +5,7 @@ controller('invoiceDetailsCtrl', ['$scope', '$rootScope', '$uibModalInstance', '
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $parse){
 	
 	$scope.invoice = data;
-	console.log($scope.invoice);
+	//console.log($scope.invoice);
 	$scope.date = {startDate: $scope.invoice.inv_date};
 	$scope.due_date = {startDate: $scope.invoice.due_date};
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
@@ -20,7 +20,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	if( $scope.invoice.balance == 0 && $scope.invoice.total_paid > 0 ) $scope.edit = false;
 	
 	$scope.$watch('invoice.newItem',function(newVal,oldVal){
-		console.log(newVal);
+	//	console.log(newVal);
 		if( newVal == oldVal ) return;
 		
 		var index = $scope.invoiceLineItems.length - 1;
@@ -168,7 +168,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		
 		
 		var lineItems = [];
-		console.log($scope.invoiceLineItems);
+		//console.log($scope.invoiceLineItems);
 		angular.forEach($scope.invoiceLineItems, function(item,key){		
 			lineItems.push({
 				student_fee_item_id: item.student_fee_item_id,
@@ -186,7 +186,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			line_items: lineItems
 		};
 		
-		console.log(data);
+		//console.log(data);
 		
 		apiService.updateInvoice(data,createCompleted,apiError);
 		

@@ -58,9 +58,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
-			//$scope.students = {};
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;			
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();			
 		}		
 		
 		var year = angular.copy($scope.filters.year);
@@ -172,7 +172,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			console.log(filterFormWidth);
+			//console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+40);
 		}
 		
@@ -181,13 +181,13 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				console.log('here');
+				//console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				console.log(filterFormWidth);
+				//console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
@@ -288,18 +288,18 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		var filteredResults = ( $scope.filters.status == 'false' ? $scope.formerStudents : $scope.allStudents);
 		
 		
-		if( $scope.filters.class_cat_id !== undefined && $scope.filters.class_cat_id !== ''  )
+		if( $scope.filters.class_cat_id !== undefined && $scope.filters.class_cat_id !== null && $scope.filters.class_cat_id !== ''  )
 		{
 			filteredResults = filteredResults.reduce(function(sum, item) {
-			  if( item.class_cat_id == $scope.filters.class_cat_id) sum.push(item);
+			  if( item.class_cat_id.toString() == $scope.filters.class_cat_id.toString()  ) sum.push(item);
 			  return sum;
 			}, []);
 		}
 		
-		if( $scope.filters.class_id !== undefined && $scope.filters.class_id !== ''  )
+		if( $scope.filters.class_id !== undefined && $scope.filters.class_id !== null  && $scope.filters.class_id !== ''  )
 		{
 			filteredResults = filteredResults.reduce(function(sum, item) {
-			  if( item.class_id == $scope.filters.class_id) sum.push(item);
+			  if( item.class_id.toString() == $scope.filters.class_id.toString()  ) sum.push(item);
 			  return sum;
 			}, []);
 		}

@@ -176,12 +176,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			
 			$scope.filters.class = $scope.student.current_class;
 			$scope.filters.class_cat_id = $scope.student.class_cat_id; // set the students current class category as default
+			$scope.filters.class_id = $scope.student.class_id; 
 	
 			// filter the classes based on class category
 			$scope.classes = $rootScope.allClasses.filter( function(item){
 				if( item.class_cat_id == $scope.filters.class_cat_id )
 				{			
-					$scope.filters.class_id = $scope.student.class_id; // set the students current class as default
 					return item;
 				}
 			});			
@@ -213,7 +213,43 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			else $scope.examTypes = $rootScope.examTypes;
 			
+		}
+		else if( tab == 'Report Cards' )
+		{
+			// get data for filters
+			$scope.loading = true;	
 			
+			console.log($scope.student);
+			$scope.filters.class = $scope.student.current_class;
+			$scope.filters.class_cat_id = $scope.student.class_cat_id; // set the students current class category as default
+			$scope.filters.class_id = $scope.student.class_id; 
+			
+			// filter the classes based on class category
+			$scope.classes = $rootScope.allClasses.filter( function(item){
+				if( item.class_cat_id == $scope.filters.class_cat_id )
+				{			
+					return item;
+				}
+			});	
+			
+			// get terms
+			if( $rootScope.terms === undefined )
+			{
+				apiService.getTerms(undefined, setTerms, function(){});
+			}
+			else
+			{
+				$scope.terms = $rootScope.terms;
+				var currentTerm = $scope.terms.filter(function(item){
+					if( item.current_term ) return item;
+				})[0];
+				$scope.filters.term_id = currentTerm.term_id;
+			}
+			
+			
+
+			$scope.getStudentReportCards();			
+
 			
 		}
 		$scope.currentTab = tab;
@@ -453,7 +489,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.$watch('student.transport_route', function(newVal, oldVal){
 		if( newVal == oldVal) return;
-		console.log(newVal);
+		//console.log(newVal);
 		// use the amount and put it into the input box
 		angular.forEach($scope.optFeeItemSelection, function(feeItem,key){
 			if( feeItem.fee_item == 'Transport') feeItem.amount = newVal.amount;
@@ -725,7 +761,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 		
 		// now filter by selected class
-		console.log( $scope.student);
+		//console.log( $scope.student);
 		if( $scope.student.current_class !== undefined )
 		{
 			feeItems = feeItems.filter(function(item){
@@ -925,6 +961,129 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$rootScope.wipNotice();
 	}
 	
+	/************************************* Report Card Functions ***********************************************/
+	$scope.getStudentReportCards = function()
+	{		
+		if( $scope.dataGrid !== undefined )
+		{
+			$scope.dataGrid.destroy();
+			$scope.dataGrid = undefined;
+		}
+		$scope.reportsNotFound = false;
+		apiService.getStudentReportCards($scope.student.student_id, loadReportCards, apiError);
+	}
+	
+	var loadReportCards = function(response,status)
+	{
+		$scope.loading = false;
+		var result = angular.fromJson( response );
+		if( result.response == 'success' )
+		{
+			if( result.nodata )
+			{
+				$scope.reportsNotFound = true;
+				$scope.errMsg = "There are currently no report cards entered for this student.";
+			}
+			else
+			{
+				
+				$scope.rawReportCards = result.data;
+					
+				$scope.reportCards = {};
+				
+				// get unique terms
+				$scope.reportCards.terms = $scope.rawReportCards.reduce(function(sum,item){
+					if( sum.indexOf(item.term_name) === -1 ) sum.push(item.term_name);
+					return sum;
+				}, []);
+				
+				
+				// group the reports by class
+				$scope.reportCards.classes = [];
+				var lastClass = '';
+				var lastTerm = '';
+				var reports = {};
+				var i = 0;
+				angular.forEach($scope.rawReportCards, function(item,key){
+					
+					if( item.class_name != lastClass )
+					{
+						// changing to new class, store the report
+						if( i > 0 ) $scope.reportCards.classes[(i-1)].reports = reports;
+						
+						$scope.reportCards.classes.push(
+							{
+								class_name: item.class_name,
+								class_id: item.class_id,
+								term_id: item.term_id,
+								year: item.year
+							}
+						);
+						
+						reports = {};
+						i++;
+
+					}
+					reports[item.term_name] = item.report_data;
+					
+					lastClass = item.class_name;
+					lastTerm = item.term_name;
+					
+				});
+				$scope.reportCards.classes[(i-1)].reports = reports;
+				console.log($scope.reportCards);
+			}
+			
+		}
+		else
+		{
+			$scope.reportsNotFound = true;
+			$scope.errMsg = result.data;
+		}
+	}
+	
+	$scope.addReportCard = function()
+	{
+		var data = {
+			student : $scope.student,
+			classes: $rootScope.allClasses,
+			terms: $scope.terms,
+			filters: $scope.filters,
+			adding: true
+		}
+
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/exams/reportCard.html','reportCardCtrl',data,{size: 'lg',backdrop:'static'});
+		dlg.result.then(function(examMarks){
+			$scope.getStudentReportCards();
+		},function(){
+			
+		});
+	}
+	
+	$scope.getReportCard = function(item, term_name, reportData)
+	{
+		var data = {
+			student : $scope.student,
+			class_name : item.class_name,
+			class_id : item.class_id,
+			term_id: item.term_id,
+			term_name : term_name,
+			year: item.year,
+			reportData: reportData,
+			adding: false
+		}
+
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/exams/reportCard.html','reportCardCtrl',data,{size: 'lg',backdrop:'static'});
+		dlg.result.then(function(examMarks){
+			$scope.getStudentReportCards();
+		},function(){
+			
+		});
+	}
+	
+	
 	/************************************* Update Function ***********************************************/
 	$scope.save = function(theForm, tab)
 	{
@@ -1012,7 +1171,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					}
 				}
 			}
-			console.log(postData);
+			//console.log(postData);
 			apiService.updateStudent(postData, createCompleted, apiError, {tab:tab});
 		}
 	}
@@ -1530,7 +1689,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 .controller('addStudentExamMarksCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		//-- Variables --//
-		console.log(data);
+		//console.log(data);
 		$scope.student_id = data.student_id;
 		$scope.filters = data.filters;
 		$scope.classes = data.classes;
@@ -1575,16 +1734,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						var result = angular.fromJson( response );
 						if( result.response == 'success' )
 						{
-							$scope.marks = result.data;
+							$scope.marks = (result.nodata ? [] : result.data);
 							
-							$scope.subjects = subjects.map(function(item){
-								var mark = $scope.marks.filter(function(item2){
-									if( item2.subject_name == item.subject_name ) return item2;
-								})[0];
-								item.mark = mark.mark;
-								return item;
-							});
-							console.log($scope.subjects );
+							if( $scope.marks.length > 0 )
+							{
+								$scope.subjects = subjects.map(function(item){
+									var mark = $scope.marks.filter(function(item2){
+										if( item2.subject_name == item.subject_name ) return item2;
+									})[0];
+
+									item.mark = mark.mark;
+									return item;
+								});
+							}
+							else
+							{
+								$scope.subjects = subjects;
+							}
+							
 						}
 					}, apiError);
 					
@@ -1610,7 +1777,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				user_id: $rootScope.currentUser.user_id,
 				exam_marks: examMarks
 			}
-			console.log(data);
+			//console.log(data);
 			apiService.addExamMarks(data,createCompleted,apiError);				
 			
 		}; // end save
@@ -1696,7 +1863,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						'<div class="col-sm-6" ng-repeat="item in subjects track by $index">' +
 							'<label class="col-sm-6">{{item.subject_name}}</label>' +
 							'<div class="input-group col-sm-6">' +
-								'<input type="text" class="form-control" ng-model="item.mark" >' +
+								'<input type="text" class="form-control" ng-model="item.mark" numeric-only />' +
 								'<div class="input-group-addon"> / {{item.grade_weight}}</div>' +
 							'</div>' +
 						'</div>' +

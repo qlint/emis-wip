@@ -787,7 +787,30 @@
 			
 			<script type="text/ng-template" id="Report Cards">
 				<h2>Report Cards</h2>
-				<p>This is a work in progress...</p>
+				<button type="button" class="pull-right btn btn-link" ng-click="addReportCard()"><i class="glyphicon glyphicon-plus-sign"></i> Generate Report Card</button>
+				
+				<p ng-show="reportsNotFound" class="error alert alert-danger">
+					{{errMsg}}
+				</p>
+				
+				<table id="resultsTable2" class="display dataTable clickable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th>Class</th>
+							<th class="center" ng-repeat="item in reportCards.terms">{{item}}</th>
+						</tr>
+					</thead>	
+					<tbody>
+						<tr ng-repeat="item in reportCards.classes track by $index">
+							<td width="75">{{item.class_name}} ({{item.year}})</td>
+							<td class="center" ng-repeat="term in reportCards.terms track by $index">
+								<span ng-show="item.reports[term]" ng-click="getReportCard(item, term, item.reports[term])" class="glyphicon glyphicon-file icon-lg"></span>
+								<span ng-show="!item.reports[term]" >-</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				
 			</script>
 			
 			<script type="text/ng-template" id="News">

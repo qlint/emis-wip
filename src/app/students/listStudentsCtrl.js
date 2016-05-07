@@ -1,11 +1,16 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('listStudentsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window',
-function($scope, $rootScope, apiService, $timeout, $window){
+controller('listStudentsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$state',
+function($scope, $rootScope, apiService, $timeout, $window, $state){
 
+	var initialLoad = true;
 	$scope.filters = {};
 	$scope.filters.status = 'true';
+	$scope.filters.class_cat_id = ( $state.params.filter !== '' ? $state.params.filter : null );
+	$scope.filterClassCat = ( $state.params.filter !== '' ? true : false );
+	//console.log($state.params.filter);
+	//console.log($scope.filtering);
 	$scope.students = [];
 	$scope.filterShowing = false;
 	$scope.toolsShowing = false;
@@ -28,7 +33,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				{
 					$rootScope.allClasses = result.data;
 					$scope.classes = $rootScope.allClasses;
-					getStudents('true',false);
+					getStudents('true',false );
 				}
 				
 			}, function(){});
@@ -51,6 +56,14 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			
 			if( result.response == 'success')
 			{
+				
+				if( $scope.dataGrid !== undefined )
+				{
+					$('.fixedHeader-floating').remove();
+					$scope.dataGrid.clear();
+					$scope.dataGrid.destroy();
+				}
+				
 				if( result.nodata ) var formatedResults = [];
 				else {
 					// make adjustments to student data
@@ -66,6 +79,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				{
 					$scope.allStudents = formatedResults;
 					$scope.students = formatedResults;
+					
+					if( $scope.filterClassCat ) filterStudents();
 					$timeout(initDataGrid,10);
 				}
 				
@@ -78,16 +93,10 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			
 		}, function(){});
 	}
-	
-	
-	
+		
 	var initDataGrid = function() 
 	{
-		if( $scope.dataGrid !== undefined ){
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.destroy();
-		}
-		
+
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {
@@ -131,28 +140,39 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		
 		
 		// position search box
+		setSearchBoxPosition();
+		
+		if( initialLoad ) setResizeEvent();
+		
+		
+	}
+	
+	var setSearchBoxPosition = function()
+	{
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
 			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
-		
-		$window.addEventListener('resize', function() {
+	}
+	
+	var setResizeEvent = function()
+	{
+		 initialLoad = false;
+
+		 $window.addEventListener('resize', function() {
 			
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
-		
 	}
 	
 	$scope.$watch('filters.class_cat_id', function(newVal,oldVal){
@@ -166,6 +186,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				if( item.class_cat_id == newVal ) sum.push(item);
 				return sum;
 			}, []);
+			$timeout(setSearchBoxPosition,10);
+			
 		}
 	});
 		
@@ -234,19 +256,19 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		// filter by class category
 		// allStudents holds current students, formerStudents, the former...
 		var filteredResults = ( $scope.filters.status == 'false' ? $scope.formerStudents : $scope.allStudents);
-		
-		if( $scope.filters.class_cat_id !== undefined && $scope.filters.class_cat_id !== ''  )
+		console.log(filteredResults);
+		if( $scope.filters.class_cat_id !== undefined && $scope.filters.class_cat_id !== null && $scope.filters.class_cat_id !== ''  )
 		{
 			filteredResults = filteredResults.reduce(function(sum, item) {
-			  if( item.class_cat_id == $scope.filters.class_cat_id) sum.push(item);
+			  if( item.class_cat_id.toString() == $scope.filters.class_cat_id.toString() ) sum.push(item);
 			  return sum;
 			}, []);
 		}
-		
-		if( $scope.filters.class_id !== undefined && $scope.filters.class_id !== ''  )
+		console.log($scope.filters);
+		if( $scope.filters.class_id !== undefined && $scope.filters.class_id !== null && $scope.filters.class_id !== ''  )
 		{
 			filteredResults = filteredResults.reduce(function(sum, item) {
-			  if( item.class_id == $scope.filters.class_id) sum.push(item);
+			  if( item.class_id.toString() == $scope.filters.class_id.toString() ) sum.push(item);
 			  return sum;
 			}, []);
 		}

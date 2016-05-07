@@ -4,7 +4,7 @@ angular.module('eduwebApp').
 controller('receiptCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, data){
 
-	console.log(data);
+	//console.log(data);
 	$scope.payment = data.payment;
 	$scope.student = data.student;
 	$scope.feeItems = data.feeItems;

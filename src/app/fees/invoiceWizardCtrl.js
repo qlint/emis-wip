@@ -88,7 +88,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				line_items: lineItems,
 				total_amount: total
 			});
-			console.log($scope.results);
+			//console.log($scope.results);
 			
 			
 			// group results by due date	
@@ -100,7 +100,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			}, {});
 			
 			
-			console.log($scope.invoices);
+			//console.log($scope.invoices);
 			$scope.activeMonth = Object.keys($scope.invoices)[0];			
 			
 			$scope.invoiceTotal = {};
@@ -110,7 +110,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 					return sum = (parseInt(sum) + parseInt(item.total_amount));
 				},0);				
 			});
-			console.log($scope.invoiceTotal);
+			//console.log($scope.invoiceTotal);
 			
 		}
 		else
@@ -155,7 +155,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			});
 			
 		});
-		console.log(data);
+		//console.log(data);
 		
 		apiService.createInvoice(data,createCompleted,apiError);
 		

@@ -1,0 +1,221 @@
+<form name="reportForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+		<div class="modal-header dialog-header-form">
+			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+			<h4 class="modal-title">Report Card for {{student.student_name}} - {{term.term_name}}</h4>
+		</div>
+		<div class="modal-body progress-report">
+	
+			<p ng-show="error" class="error alert alert-danger">
+				{{errMsg}}
+			</p>
+			
+			<!-- search form -->
+			<div ng-hide="isPrinting || !adding" class="row header">
+			<div class="modalDataFilter clearfix">	
+				<!-- class select -->
+				<div class="form-group">
+					<label for="class">Class</label>	
+					<select class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
+						<option value="">--select class--</option>
+					</select>	
+				</div>		
+
+				<!-- term select -->
+				<div class="form-group">
+					<label for="term">Term</label>	
+					<select class="form-control" ng-options="item.term_year_name for item in terms track by item.term_id" ng-model="filters.term">
+						<option value="">--select term--</option>
+					</select>	
+				</div>		
+				
+				<!-- search btn -->
+				<div class="form-group submit-btn">
+					<input type="button" class="btn btn-sm btn-info" ng-click="getProgressReport()" value="Load" />
+					<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
+				</div>					
+			</div>
+			</div>
+			<!-- // end search form -->
+			
+			<div ng-show="showReportCard">
+				<div class="row progress-report-header">
+					<div class="col-xs-2">
+						<img src="{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" /> 
+					</div>
+					<div class="col-xs-8">					
+						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
+						<div class="school-address">
+							<p>{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
+							<p>Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
+							<p>Email: {{currentUser.settings['Email Address Report Card']}}</p>
+						</div>
+						<h2 class="report-card-title">Progress Report</h2>
+					</div>
+				</div>
+				<div class="progress-report-student">
+				<!-- name and adm number -->	
+				<div class="row">
+					<div class="col-xs-1 nopad-right">
+						<label class="">Name:</label>
+					</div>
+					<div class="col-xs-5 lesspad">
+						<p class="form-control-static">{{student.student_name}}</p>
+					</div>
+					<div class="col-xs-1 nopad-right">
+						<label>Adm No:</label>
+					</div>
+					<div class="col-xs-5 lesspad">
+						<p class="form-control-static">{{student.admission_number}}</p>
+					</div>
+				</div>
+				<!-- class, term and year -->
+				<div class="row">
+					<div class="col-xs-1 nopad-right">
+						<label>Class:</label>
+					</div>
+					<div class="col-xs-3 lesspad">
+						<p class="form-control-static">{{report.class_name}}</p>
+					</div>
+					<div class="col-xs-1 nopad-right">
+						<label>Term:</label>
+					</div>
+					<div class="col-xs-3 lesspad">
+						<p class="form-control-static">{{report.term}}</p>
+					</div>
+					<div class="col-xs-1 nopad-right">
+						<label>Year:</label>
+					</div>
+					<div class="col-xs-3 lesspad">
+						<p class="form-control-static">{{report.year}}</p>
+					</div>
+				</div>
+				<!-- position, out of, pos last term, out of -->
+				<div class="row">
+					<div class="col-xs-1 nopad-right">
+						<label>Position:</label>
+					</div>
+					<div class="col-xs-1 lesspad">
+						<p class="form-control-static">{{overall.rank}}</p>
+					</div>
+					<div class="col-xs-1 nopad-right">
+						<label>Out Of:</label>
+					</div>
+					<div class="col-xs-1 lesspad">
+						<p class="form-control-static">{{overall.position_out_of}}</p>
+					</div>
+					<div class="col-xs-2 nopad-right">
+						<label>Pos Last Term:</label>
+					</div>
+					<div class="col-xs-2 lesspad">
+						<p class="form-control-static">{{overallLastTerm.rank}}</p>
+					</div>
+					<div class="col-xs-1 nopad-right">
+						<label>Out Of:</label>
+					</div>
+					<div class="col-xs-3 lesspad">
+						<p class="form-control-static">{{overallLastTerm.position_out_of}}</p>
+					</div>
+				</div>
+				</div>
+				<table class="display dataTable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th rowspan="3" class="center">Subject</th>
+							<th class="center" colspan="{{examTypes.length*3}}">Marks</th>
+							<th rowspan="2" colspan="2" class="center">Overall</th>
+							<th rowspan="3" class="center">Position</th>
+							<th class="center" rowspan="3">Remarks</th>
+							<th class="center" rowspan="3">Teacher Int.</th>
+						</tr>
+						<tr>
+							<th class="center" colspan="3" ng-repeat="item in examTypes">{{item}}</th>
+						</tr>
+						<tr>
+							<th class="center" ng-repeat-start="item in examTypes">Mark</th>
+							<th class="center">Out Of</th>
+							<th class="center" ng-repeat-end="">Grade</th>
+							<th class="center">Avg</th>
+							<th class="center">Grade</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in reportData.subjects track by $index">
+							<td>{{item.subject_name}}</td>
+							<td class="center" ng-repeat-start="examType in examTypes">{{item.marks[examType].mark}}</td>
+							<td class="center">{{item.marks[examType].grade_weight}}</td>
+							<td class="center" ng-repeat-end="">{{item.marks[examType].grade}}</td>
+							<td class="center">{{item.overall_mark}}%</td>
+							<td class="center">{{item.overall_grade}}</td>
+							<td class="center">{{item.position}}</td>
+							<td>
+								<span ng-show="isPrinting">{{item.remarks}}</span>
+								<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
+							</td>
+							<td>{{item.initials}}</td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<th class="center">Total</th>
+							<th class="center" ng-repeat-start="examType in examTypes">{{totals[examType].total_mark}}</th>
+							<th class="center">{{totals[examType].total_grade_weight}}</th>
+							<th class="center" ng-repeat-end=""></th>
+							<th class="center">{{total_overall_mark}}%</th>
+							<th colspan="4" class="center"></th>
+						</tr>
+					</tfoot>
+				</table>
+				
+				
+				<div class="progress-report-remarks">
+					<h3>Remarks</h3>
+					<table width="100%">
+						<tr>
+							<td colspan="2">
+								<label>Non examinable (sports/responsibility/clubs)</label>
+								<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
+								<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
+							</td>
+						</tr>
+						<tr>
+							<td width="50%">
+								<label>Class teacher comments:</label>
+								<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
+								<p ng-show="isPrinting" class="form-control-static">{{comments.teacher_comments}}</p>
+							</td>
+							<td>
+								<label>Sign:</label>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<label>Principle comments:</label>
+								<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
+								<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>	
+							</td>
+							<td>
+								<label>Sign:</label>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<label>Next Term Begins:</label>	
+								<p class="form-control-static">{{nextTermStartDate}}</p>	
+							</td>
+						</tr>
+					</table>
+				</div>
+				
+				<div ng-show="saved" class="alert alert-success">
+					Report card has been saved! Click the 'Print' button below.
+				</div>
+				
+			</div>
+		</div>
+		<div class="modal-footer">				
+			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>			
+			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint"><i class="glyphicon glyphicon-print"></i> Print</button>		
+			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint">Save</button>		
+			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint&&modified">Update</button>				
+		</div>
+</form>

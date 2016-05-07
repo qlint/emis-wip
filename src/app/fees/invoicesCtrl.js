@@ -1,11 +1,13 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('invoicesCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window',
-function($scope, $rootScope, apiService, $timeout, $window){
+controller('invoicesCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$state',
+function($scope, $rootScope, apiService, $timeout, $window, $state){
 
 	$scope.filters = {};
 	$scope.filters.status = 'true';
+	$scope.filters.balance_status = ( $state.params.balance_status !== '' ? $state.params.balance_status : null );
+	$scope.filterBalStatus = ( $state.params.balance_status !== '' ? true : false );
 	$scope.invoices = [];
 	$scope.filterShowing = false;
 	$scope.toolsShowing = false;
@@ -68,7 +70,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			setTermRanges($scope.terms );
 		}
 		
-		getInvoices('true',false);
+		getInvoices('true',$scope.filterBalStatus);
 
 	}
 	$timeout(initializeController,1);
@@ -86,8 +88,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;			
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();			
 		}		
 		// TO DO: ability to change the invoice canceled status from false to true
 		var filters = angular.copy($scope.filters);
@@ -200,7 +203,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			console.log(filterFormWidth);
+			//console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+50);
 		}
 		
@@ -209,13 +212,13 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				console.log('here');
+				//console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				console.log(filterFormWidth);
+				//console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
@@ -314,23 +317,23 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		
 		// filter by class category		
 		
-		if( filters.class_cat_id !== undefined && filters.class_cat_id !== ''  )
+		if( filters.class_cat_id !== undefined && filters.class_cat_id !== null && filters.class_cat_id !== ''  )
 		{
 			data = data.reduce(function(sum, item) {
-			  if( item.class_cat_id == filters.class_cat_id) sum.push(item);
+			  if( item.class_cat_id.toString() == filters.class_cat_id.toString()  ) sum.push(item);
 			  return sum;
 			}, []);
 		}
 		
-		if( filters.class_id !== undefined && filters.class_id !== ''  )
+		if( filters.class_id !== undefined && filters.class_id !== null && filters.class_id !== ''  )
 		{
 			data = data.reduce(function(sum, item) {
-			  if( item.class_id == filters.class_id) sum.push(item);
+			  if( item.class_id.toString()  == filters.class_id.toString()  ) sum.push(item);
 			  return sum;
 			}, []);
 		}
 		
-		if( filters.balance_status !== undefined && filters.balance_status !== '' )
+		if( filters.balance_status !== undefined && filters.balance_status !== null && filters.balance_status !== '' )
 		{
 			switch (filters.balance_status)
 			{

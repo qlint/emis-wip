@@ -60,7 +60,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 				}
 				
 			}
-			console.log($rootScope.loggedIn);
+			//console.log($rootScope.loggedIn);
 		}
 	
 	 });
@@ -88,7 +88,7 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 			//adjustPositions();
 		}, 1000);
 		
-		console.log( $rootScope.currentUser);
+		//console.log( $rootScope.currentUser);
 		
 		
 	});
@@ -231,6 +231,18 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
         $rootScope.$broadcast('refreshExamMarks', args);
     });
 	
+	$rootScope.$on('gradingAdded', function(event, args) {
+        $rootScope.$broadcast('refreshGrades', args);
+    });
+	
+	$rootScope.$on('employeeAdded', function(event, args) {
+        $rootScope.$broadcast('refreshStaff', args);
+    });
+	
+	$rootScope.$on('reportCardAdded', function(event, args) {
+        $rootScope.$broadcast('refreshReportCards', args);
+    });
+	
 	$rootScope.$on('setSettings', function(event, args) {
 
         $rootScope.currentUser.settings = angular.copy(args);
@@ -279,13 +291,13 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 	$rootScope.getDepts = function()
 	{
 		// get departments
-		if( $rootScope.departments === undefined )
+		if( $rootScope.allDepts === undefined )
 		{
 			apiService.getDepts({}, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often
-				if( result.response == 'success') $rootScope.departments = result.data;
+				if( result.response == 'success') $rootScope.allDepts = result.data;
 				return result.data;
 				
 			}, function(){});

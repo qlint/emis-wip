@@ -17,8 +17,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;			
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();				
 		}		
 		
 		var params = (class_cat_id != '' ? class_cat_id + '/true' : "");
@@ -28,6 +29,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			if( result.response == 'success')
 			{	
 				$scope.classes = ( result.nodata ? [] : result.data );	
+				
+				$rootScope.allClasses = $scope.classes
+				
 				$timeout(initDataGrid,10);
 			}
 			else

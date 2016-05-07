@@ -69,7 +69,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.$watch('payment.apply_to_all', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 		
-		console.log(newVal);
+		//console.log(newVal);
 		
 		if( newVal )
 		{
@@ -174,7 +174,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				balance: currentItem.balance,
 				fee_items: feeItems,
 			});
-			console.log(invoices);
+			//console.log(invoices);
 			return invoices;
 	}
 	
@@ -250,7 +250,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			sum = sum + parseFloat(item.amount);
 			return sum;
 		},0);
-		console.log(totalFeeItems);
+		//console.log(totalFeeItems);
 		
 		
 		if( $scope.payment.replacement_payment !== true )
@@ -332,7 +332,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		
 		
 		
-		console.log(data);
+		//console.log(data);
 		
 		apiService.addPayment(data,createCompleted,apiError);
 		

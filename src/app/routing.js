@@ -40,14 +40,14 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
       }
     })
 	.state('students', {
-      url: "/students",
+      url: "/students/:filter",
 	  templateUrl: 'app/students/listStudents.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
 	.state('staff', {
-      url: "/staff",
+      url: "/staff/:category/:dept",
 	  templateUrl: 'app/staff/listStaff.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
@@ -68,7 +68,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
       }
     })
 	.state('fees/invoices', {
-      url: "/fees/invoices",
+      url: "/fees/invoices/:balance_status",
 	  templateUrl: 'app/fees/invoices.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
@@ -138,9 +138,31 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
-	.state('exams', {
+	.state('exams/exams', {
       url: "/exams",
 	  templateUrl: 'app/exams/listExams.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('exams/exam_types', {
+      url: "/exams/exam_types",
+	  templateUrl: 'app/exams/examTypes.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('exams/report_cards', {
+      url: "/exams/report_cards",
+	  templateUrl: 'app/exams/listReportCards.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('exams/report_card/print', {
+      url: "/exams/report_card/print",
+	  templateUrl: 'app/exams/reportCard.html',
+	  controller: 'printReportCardCtrl',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }

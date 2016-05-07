@@ -107,6 +107,9 @@
 							<th>Payment Method</th>
 							<th class="center">Amount ({{currency}})</th>
 							<th>Applied To</th>
+							<th class="center">Amount Unapplied</th>
+							<th class="center">Replacement?</th>
+							<th class="center">Reversed?</th>
 						</tr>
 					</thead>	
 					<tbody>
@@ -119,6 +122,9 @@
 							<td ng-click="viewPayment(item)">{{item.payment_method}}</td>
 							<td ng-click="viewPayment(item)" class="center">{{item.amount|currency:""}}</td>
 							<td ng-click="viewPayment(item)">{{item.applied_to|arrayToList}}</td>
+							<td ng-click="viewPayment(item)" class="center" ng-class="{'alert-danger': item.unapplied_amount>0}">{{item.unapplied_amount|currency:""}}</td>
+							<td ng-click="viewPayment(item)" class="center">{{item.replacement}}</td>
+							<td ng-click="viewPayment(item)" class="center">{{item.reverse}}</td>
 						</tr>
 					</tbody>
 				</table>

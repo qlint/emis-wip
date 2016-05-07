@@ -1,47 +1,52 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('listStaffCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window',
-function($scope, $rootScope, apiService, $timeout, $window){
+controller('listStaffCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$state',
+function($scope, $rootScope, apiService, $timeout, $window, $state){
 
+	var initialLoad = true;
 	$scope.employees = [];
 	
-	$scope.initializeController = function () 
-	{
-		// get staff
-		$timeout(
-			getStaff()			
-		, 100);
-	}
+	$scope.filters = {};
+	$scope.filters.status = 'true';
+	$scope.filters.emp_cat_id = ( $state.params.category !== '' ? $state.params.category : null );
+	$scope.filterEmpCat = ( $state.params.category !== '' ? true : false );
+	$scope.filters.dept_id = ( $state.params.dept !== '' ? $state.params.dept : null );
+	$scope.filterDept = ( $state.params.dept !== '' ? true : false );
+	$scope.alert = {};
 	
 	var getStaff = function()
 	{
-		apiService.getAllEmployees({}, function(response){
+		apiService.getAllEmployees(true, function(response){
 			var result = angular.fromJson(response);
 			
 			// store these as they do not change often
 			if( result.response == 'success')
 			{
-				console.log(result.data);
-				// need to format the employee name
-				$scope.employees = result.data.map(function(item){
-					item.employee_name = item.first_name + ' ' + item.middle_name + ' ' + item.last_name;
-					// set department name
-					var theDept = $rootScope.departments.filter(function(a){ 
-						return a.dept_id == item.dept_id;
-					})[0];
-					item.dept_name = (theClass ? theDept.dept_name : '');
-					
-					// set employee category name					
-					var theCat = $rootScope.empCats.filter(function(a){ 
-						return a.emp_cat_id == item.emp_cat_id;
-					})[0];
-					item.emp_cat_name = (theClass ? theCat.emp_cat_name : '');
-					
-					return item;
-				});
-
-				$timeout(initDataGrid,10);
+				
+				if( $scope.dataGrid !== undefined )
+				{
+					$('.fixedHeader-floating').remove();
+					$scope.dataGrid.clear();
+					$scope.dataGrid.destroy();
+				}
+		
+		
+				//console.log(result.data);
+				$scope.allEmployees = (result.nondata !== undefined ? [] : result.data);	
+				$scope.employees = $scope.allEmployees ;
+				
+				// if filters set, filter results
+				if( $scope.currentFilters !== undefined || $scope.filterEmpCat || $scope.filterDept  )
+				{
+					filterResults();
+				}
+				else
+				{
+					$timeout(initDataGrid,10);
+				}
+				
+				
 			}
 			else
 			{
@@ -53,8 +58,33 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		}, function(){});
 	}
 	
-	var initDataGrid = function() 
+	var initializeController = function () 
 	{
+		// get staff
+		$scope.departments = $rootScope.allDepts;
+		//console.log($scope.departments );
+		getStaff()			
+	}
+	$timeout(initializeController,1000);
+	
+	$scope.$watch('filters.emp_cat', function(newVal,oldVal){
+		if (oldVal == newVal) return;
+		//console.log(newVal);
+		if( newVal === undefined || newVal === null || newVal == '' ) 	$scope.departments = $rootScope.allDepts;
+		else
+		{	
+			// filter dept to only show those belonging to the selected category
+			$scope.departments = $rootScope.allDepts.reduce(function(sum,item){
+				if( item.category == newVal.emp_cat_name ) sum.push(item);
+				return sum;
+			}, []);
+			$scope.filters.emp_cat_id = newVal.emp_cat_id;
+			$timeout(setSearchBoxPosition,10);
+		}
+	});
+	
+	var initDataGrid = function() 
+	{		
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {
@@ -97,33 +127,121 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		
 		
 		// position search box
+		setSearchBoxPosition();
+		
+		if( initialLoad ) setResizeEvent();
+		
+	}
+	
+	var setSearchBoxPosition = function()
+	{
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
-		
-		$window.addEventListener('resize', function() {
+	}
+	
+	var setResizeEvent = function()
+	{
+		 initialLoad = false;
+
+		 $window.addEventListener('resize', function() {
 			
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
-		
 	}
 	
+	$scope.filter = function()
+	{
+		$scope.currentFilters = angular.copy($scope.filters);
+		filterResults();
+	}
 	
+	var filterResults = function()
+	{
+		if( $scope.dataGrid !== undefined ){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.destroy();
+		}
+		
+		// filter by emp category
+		var filteredResults = $scope.allEmployees;
+		
+		//console.log($scope.filters);
+		
+		if( $scope.filters.emp_cat_id !== undefined && $scope.filters.emp_cat_id !== null && $scope.filters.emp_cat_id != ''  )
+		{
+			filteredResults = filteredResults.reduce(function(sum, item) {
+			  if( item.emp_cat_id.toString() == $scope.filters.emp_cat_id.toString() ) sum.push(item);
+			  return sum;
+			}, []);
+		}
+		//console.log(filteredResults);
+		
+		if( $scope.filters.dept_id !== undefined && $scope.filters.dept_id !== null && $scope.filters.dept_id != '' )
+		{
+			filteredResults = filteredResults.reduce(function(sum, item) {
+			  if( item.dept_id.toString() == $scope.filters.dept_id.toString() ) sum.push(item);
+			  return sum;
+			}, []);
+		}
+		
+		$scope.employees = filteredResults;
+		$timeout(initDataGrid,1);
+	}
 	
+	$scope.addEmployee = function()
+	{
+		$scope.openModal('staff', 'addEmployee', 'lg');
+	}
+	
+	$scope.viewEmployee = function(item)
+	{
+		$scope.openModal('staff', 'viewEmployee', 'lg', item);
+	}
+	
+	$scope.exportData = function()
+	{
+		$rootScope.wipNotice();
+	}
+	
+	$scope.$on('refreshStaff', function(event, args) {
+
+		$scope.loading = true;
+		$rootScope.loading = true;
+		
+		if( args !== undefined )
+		{
+			$scope.updated = true;
+			$scope.notificationMsg = args.msg;
+		}
+		$scope.refresh();
+		
+		// wait a bit, then turn off the alert
+		$timeout(function() { $scope.alert.expired = true;  }, 2000);
+		$timeout(function() { 
+			$scope.updated = false;
+			$scope.notificationMsg = ''; 
+			$scope.alert.expired = false;
+		}, 3000);
+	});
+	
+	$scope.refresh = function () 
+	{
+		$scope.loading = true;
+		$rootScope.loading = true;
+		getStaff();
+	}
 	
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid) $scope.dataGrid.destroy();

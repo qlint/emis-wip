@@ -237,6 +237,26 @@ h1 {
 .dataTables_wrapper.no-footer .dataTables_scrollBody {
   border-bottom: none; }
 
+.dashboard .well {
+  background: #fff;
+  text-align: center;
+  border: none;
+  padding: 10px 0;
+  min-height: 118px; }
+  .dashboard .well h2 {
+    font-size: 14px !important; }
+
+.text-lg {
+  font-size: 40px; }
+  .text-lg a:hover {
+    text-decoration: none; }
+
+.text-xs {
+  font-size: 10px; }
+
+.icon-lg {
+  font-size: 20px; }
+
 /********************** Form Element Styles ******************************/
 ::-webkit-input-placeholder,
 .placeholder-text {
@@ -628,6 +648,81 @@ table.clickable tr {
       border-top: 2px solid #000 !important;
       font-weight: bold; }
 
+.progress-report-header {
+  text-align: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee; }
+  .progress-report-header div {
+    text-align: center; }
+  .progress-report-header h2 {
+    text-transform: uppercase;
+    text-align: center;
+    font-size: 20px;
+    margin: 0 0 10px 0;
+    padding: 5px; }
+  .progress-report-header h1 {
+    text-transform: uppercase; }
+  .progress-report-header .school-address {
+    margin-bottom: 10px;
+    font-size: 11px;
+    color: #777; }
+    .progress-report-header .school-address p {
+      margin-bottom: 0; }
+
+.progress-report p.form-control-static {
+  border-bottom: 1px dotted #bbb;
+  padding: 0 3px 0 3px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  font-size: 18px;
+  margin-bottom: 10px;
+  text-align: left;
+  margin-top: 1px;
+  line-height: 10px; }
+.progress-report table {
+  border-top: 1px solid #777;
+  border-bottom: 1px solid #777;
+  margin-bottom: 10px;
+  margin-top: 5px; }
+  .progress-report table th, .progress-report table td {
+    padding: 1px 0 !important;
+    font-size: 11px;
+    border-left: 1px solid #aaa; }
+  .progress-report table th {
+    background-color: #fff !important;
+    color: #000 !important;
+    font-weight: bold;
+    border-bottom: 1px solid #aaa !important; }
+  .progress-report table tr td:first-child,
+  .progress-report table tr:first-child th:first-child {
+    border-left: none; }
+  .progress-report table tfoot td {
+    border-top: 1px solid #000 !important;
+    font-weight: bold; }
+  .progress-report table input {
+    height: 20px !important;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0; }
+.progress-report .progress-report-remarks table {
+  border: none; }
+  .progress-report .progress-report-remarks table tr td {
+    padding: 5px !important;
+    border-left: 1px solid #ddd !important;
+    border-bottom: 1px solid #ddd !important;
+    vertical-align: top; }
+  .progress-report .progress-report-remarks table tr td:first-child {
+    border-left: none !important; }
+  .progress-report .progress-report-remarks table tr:last-child td {
+    border-left: none !important;
+    border-bottom: none !important; }
+.progress-report .progress-report-remarks p.form-control-static {
+  border-bottom: none;
+  height: auto;
+  min-height: auto;
+  font-size: 10pt;
+  line-height: 14pt; }
+
 /*
  * Max-Width 768 Styling
  * --------------------------------------------------
@@ -859,9 +954,12 @@ table.clickable tr {
  * Min-Width 1024 Styling
  * --------------------------------------------------
  */
+/*
 @page {
   size: A4;
-  margin: 0 !important; }
+  margin: 0!important;
+}
+*/
 @media print {
   html, body {
     height: auto; }
@@ -872,6 +970,55 @@ table.clickable tr {
   .navbar-fixed-top,
   .modal-header,
   .modal-footer {
-    display: none; } }
+    display: none; }
+
+  .progress-report img {
+    height: 60px; }
+  .progress-report .progress-report-header {
+    margin-bottom: 5px; }
+    .progress-report .progress-report-header h1 {
+      font-size: 12pt; }
+    .progress-report .progress-report-header h2 {
+      margin-bottom: 5px;
+      font-size: 10pt; }
+    .progress-report .progress-report-header .school-address {
+      font-size: 7pt;
+      margin-bottom: 0; }
+  .progress-report .progress-report-student label {
+    font-size: 7pt; }
+  .progress-report .progress-report-student p.form-control-static {
+    font-size: 8pt;
+    height: auto !important;
+    min-height: 12px !important;
+    margin-bottom: 4px;
+    margin-top: 3px; }
+  .progress-report table {
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+    margin-bottom: 5px;
+    margin-top: 5px; }
+    .progress-report table th, .progress-report table td {
+      font-size: 8pt !important;
+      border-left: 1px solid #aaa;
+      padding-left: 3px; }
+    .progress-report table th {
+      border-bottom: 1px solid #aaa !important; }
+  .progress-report .progress-report-remarks h3 {
+    font-size: 12pt;
+    margin: 5px 0; }
+  .progress-report .progress-report-remarks table td {
+    vertical-align: top;
+    border-bottom: 1px solid #eee;
+    border-right: 1px solid #eee; }
+  .progress-report .progress-report-remarks table tr td:last-child {
+    border-right: none; }
+  .progress-report .progress-report-remarks label {
+    font-size: 8pt; }
+  .progress-report .progress-report-remarks p.form-control-static {
+    font-size: 7pt;
+    line-height: 10pt;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: auto !important; } }
 
 /*# sourceMappingURL=template.css.map */

@@ -122,10 +122,22 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 					},
 					'exams':{
-						'view': true,
-						'add': true,
-						'edit': true,
-						'import': true
+						'exams': {
+							'view': true,
+							'add': true,
+							'edit': true,
+							'import': true
+						},
+						'exam_types': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+						'report_cards': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},						
 					},
 					'news':{
 						'view': true,

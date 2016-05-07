@@ -114,7 +114,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		// validate current form first
 		//var theForm = $parse('forms.' + $scope.currentForm)($scope);
-		console.log(theForm);
+		//console.log(theForm);
 		if( theForm.$pristine )
 		{
 			goTo(direction, theForm); 
@@ -175,7 +175,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.$watch('student.transport_route', function(newVal, oldVal){
 		if( newVal == oldVal) return;
-		console.log(newVal);
+		//console.log(newVal);
 		// use the amount and put it into the input box
 		angular.forEach($scope.optFeeItemSelection, function(feeItem,key){
 			if( feeItem.fee_item == 'Transport') feeItem.amount = newVal.amount;
@@ -311,7 +311,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			postData.feeItems = $scope.feeItemSelection;
 			postData.optFeeItems = $scope.optFeeItemSelection;
 			postData.user_id = $rootScope.currentUser.user_id;
-			console.log(postData);
+			//console.log(postData);
 			
 			apiService.postStudent(postData, createCompleted, createError);
 		}
@@ -319,7 +319,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		{
 			$scope.formError = true;
 			$scope.errMsg = "There were errors found in the form.";
-			console.log(theForm);			
+			//console.log(theForm);			
 			countErrors();
 		}
 	}
@@ -331,7 +331,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.guardianErrors = 0;
 		$scope.feeErrors = 0;
 		$scope.formErrorList = [];
-		console.log($scope.forms);
+		//console.log($scope.forms);
 		angular.forEach( $scope.forms, function(myForm, tab){
 			
 			 for (var key in myForm.$error) 

@@ -7,7 +7,7 @@ function($scope, $rootScope){
 	var initializeController = function()
 	{
 		var data = window.printCriteria;
-		console.log(data);
+		//console.log(data);
 		$scope.student = angular.fromJson(data.student);		
 		$scope.payment = angular.fromJson(data.payment);		
 		$scope.feeItems = angular.fromJson(data.feeItems);	

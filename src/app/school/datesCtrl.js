@@ -26,8 +26,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;			
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();			
 		}		
 
 		apiService.getTerms(year, function(response,status,params){

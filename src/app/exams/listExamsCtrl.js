@@ -4,6 +4,7 @@ angular.module('eduwebApp').
 controller('listExamsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse',
 function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
+	var initialLoad = true;
 	$scope.filters = {};
 	$scope.filters.status = 'true';
 	$scope.students = [];
@@ -127,13 +128,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 	$scope.$watch('filters.class',function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		console.log(newVal);
+		//console.log(newVal);
 		$scope.filters.class_id = newVal.class_id;
 
 		apiService.getExamTypes(newVal.class_cat_id, function(response){
 			var result = angular.fromJson(response);				
-			if( result.response == 'success'){ $scope.examTypes = result.data;}			
+			if( result.response == 'success'){ 
+				$scope.examTypes = result.data;
+				$timeout(setSearchBoxPosition,10);
+			}			
 		}, apiError);
+		
+		
 	});
 	
 	$scope.getStudentExams = function()
@@ -160,6 +166,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			}
 			else
 			{
+				
+				if( $scope.dataGrid !== undefined )
+				{
+					$('.fixedHeader-floating').remove();
+					$scope.dataGrid.clear();
+					$scope.dataGrid.destroy();
+				}
+				
 				$scope.examMarks = result.data;
 				
 				$scope.tableHeader = [];
@@ -167,6 +181,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				angular.forEach($scope.examMarks[0], function(value,key){
 					if( ignoreCols.indexOf(key) === -1 )
 					{
+						// keys read like 'C.R.E', '40', remove the ' and replace , with /
 						var colRow = key.replace(/, /g , " / ").replace(/["']/g, "");
 						
 						$scope.tableHeader.push({
@@ -175,8 +190,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						});
 					}
 				});
-				console.log($scope.tableHeader);
-				console.log($scope.examMarks);
 
 				$scope.getReport = "examsTable";
 				$timeout(initDataGrid,100);
@@ -196,11 +209,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	
 	var initDataGrid = function() 
 	{
-		if( $scope.dataGrid !== undefined )
-		{
-			$scope.dataGrid.destroy();
-			$('.fixedHeader-floating').remove();
-		}
 		
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
@@ -245,30 +253,40 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		
 		
 		// position search box
+		setSearchBoxPosition();
+		
+		if( initialLoad ) setResizeEvent();
+		
+	}
+	
+	var setSearchBoxPosition = function()
+	{
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
-		
-		$window.addEventListener('resize', function() {
+	}
+	
+	var setResizeEvent = function()
+	{
+		 initialLoad = false;
+
+		 $window.addEventListener('resize', function() {
 			
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
-		
 	}
+	
 			
 	$scope.toggleFilter = function()
 	{

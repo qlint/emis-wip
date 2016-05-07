@@ -9,8 +9,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 
 	var initializeController = function () 
 	{
-		var deptCats = $rootScope.currentUser.settings['Department Categories'];
-		$scope.deptCats = deptCats.split(',');
+		//var deptCats = $rootScope.currentUser.settings['Department Categories'];
+		//$scope.deptCats = deptCats.split(',');
 
 		setSettings();
 		
@@ -134,7 +134,28 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	
 	$scope.removeClassCat = function(item)
 	{
-		$rootScope.wipNotice();
+		// have to check if this category has classes
+		// if no classes, delete, and delete any associated exam types and subjects
+		// if has classes, check if associated with any students
+		// if not, delete, else, can not delete, mark inactive
+		var dlg = $dialogs.confirm('Delete Class Category','You are deleting exam type <strong>' + item.exam_type + '</strong>, this <strong>can not be undone</strong>, do you wish to continue?', {size:'sm'});
+		dlg.result.then(function(btn){
+			
+			apiService.deleteExamType(item.exam_type_id, function(response, status){
+				var result = angular.fromJson(response);
+			
+				if( result.response == 'success')
+				{	
+					getExamTypes();
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, apiError);
+		});
 	}		
 
 	var apiError = function (response, status) 

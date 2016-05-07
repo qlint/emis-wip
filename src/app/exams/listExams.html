@@ -1,6 +1,6 @@
 <div ng-controller="listExamsCtrl">	
 	
-	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 		
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
@@ -11,11 +11,15 @@
 		</div>
 		
 		<div class="fixed content-fixed-header">
-			
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
 			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
-					<div class="btn add-btn" title="Add Exam Marks" ng-show="permissions.exams.add" ng-click="addExamMarks()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Exam Marks</span></a></div>
+					<div class="btn add-btn" title="Add Exam Marks" ng-show="permissions.exams.exams.add" ng-click="addExamMarks()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Exam Marks</span></a></div>
 					<div class="btn" title="Import" ng-click="importExamMarks()"><a class="export-btn"><span class="glyphicon glyphicon-upload"></span> <span class="tool-text">Import Exam Marks</span></a></div>
 					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
 				</div>			
@@ -75,10 +79,10 @@
 				{{errMsg}}
 			</p>
 			
-			<div class="tab-content clearfix" ng-include="getReport"></div>
+			<div ng-include="getReport"></div>
 			
 			<script type="text/ng-template" id="examsTable">
-				<table ng-show="!marksNotFound" id="resultsTable" class="display dataTable clickable" cellspacing="0" width="100%">
+				<table id="resultsTable" class="display dataTable clickable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
 							<th></th>

@@ -73,7 +73,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			if( result.nodata )
 			{
 				$scope.marksNotFound = true;
-				$scope.errMsg = "There are currently no exam marks entered for this search criteria.";
+				$scope.errMsg = "The selected class does not have subjects and exams set up. This must be complete before exam marks can be entered.";
 			}
 			else
 			{
@@ -94,7 +94,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					}
 				});
 
-				console.log($scope.examMarks);
+				//console.log($scope.examMarks);
 				
 				
 				$timeout(initDataGrid,10);
@@ -155,7 +155,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			console.log(filterFormWidth);
+			//console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
 		
@@ -164,19 +164,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				console.log('here');
+				//console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				console.log(filterFormWidth);
+				//console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
 		
 	}
-	
 	
 	$scope.save = function(form)
 	{
@@ -215,7 +214,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				user_id: $rootScope.currentUser.user_id,
 				exam_marks: examMarks
 			}
-			console.log(data);
+			//console.log(data);
 			apiService.addExamMarks(data,createCompleted,apiError);			
 		}
 	}

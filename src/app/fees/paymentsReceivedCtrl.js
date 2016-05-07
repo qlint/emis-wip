@@ -86,8 +86,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;			
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();			
 		}		
 		
 		var filters = angular.copy($scope.filters);
@@ -109,7 +110,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 					lastQueriedDateRange = params.filters.date;
 					
 					var payments = result.data;			
-					console.log(params.filters);
+					
 					if( params.filters.payment_status == 'true' )
 					{
 						$scope.reversedPayments = payments;
@@ -119,7 +120,13 @@ function($scope, $rootScope, apiService, $timeout, $window){
 					{
 						$scope.allPayments = payments;
 						$scope.payments = ( filtering ? filterResults(payments,params.filters): payments);						
-					}		
+					}	
+
+					$scope.payments = payments.map(function(item){
+						item.replacement = ( item.replacement_payment ? 'Yes' : 'No');
+						item.reverse = ( item.reversed ? 'Yes' : 'No');
+						return item;
+					});					
 					
 					$timeout(initDataGrid,10);
 				}
@@ -204,7 +211,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			console.log(filterFormWidth);
+			//console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+50);
 		}
 		
@@ -213,13 +220,13 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				console.log('here');
+				//console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				console.log(filterFormWidth);
+				//console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
@@ -298,8 +305,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		else
 		{
 			// otherwise we have all we need, just filter it down 
-			console.log( $scope.reversedPayments);
-			console.log( $scope.allPayments);
+			//console.log( $scope.reversedPayments);
+			//console.log( $scope.allPayments);
 			$scope.payments = filterResults(( $scope.filters.payment_status == 'true' ? $scope.reversedPayments : $scope.allPayments), $scope.filters);
 			$timeout(initDataGrid,1);
 		}
@@ -315,28 +322,28 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		}
 		
 		// filter by class category				
-		if( filters.class_cat_id !== undefined && filters.class_cat_id !== ''  )
+		if( filters.class_cat_id !== undefined && filters.class_cat_id !== null && filters.class_cat_id !== ''  )
 		{
 			data = data.reduce(function(sum, item) {
-			  if( item.class_cat_id == filters.class_cat_id) sum.push(item);
+			  if( item.class_cat_id.toString() == filters.class_cat_id.toString() ) sum.push(item);
 			  return sum;
 			}, []);
 		}
 		
 		// filter by class
-		if( filters.class_id !== undefined && filters.class_id !== ''  )
+		if( filters.class_id !== undefined && filters.class_id !== null && filters.class_id !== ''  )
 		{
 			data = data.reduce(function(sum, item) {
-			  if( item.class_id == filters.class_id) sum.push(item);
+			  if( item.class_id.toString() == filters.class_id.toString() ) sum.push(item);
 			  return sum;
 			}, []);
 		}
 		
 		// filter by status
-		if( filters.status !== undefined && filters.status !== '' )
+		if( filters.status !== undefined && filters.status !== null && filters.status !== '' )
 		{
 			data = data.reduce(function(sum, item) {
-			  if( item.status.toString() == filters.status ) sum.push(item);
+			  if( item.status.toString() == filters.status.toString() ) sum.push(item);
 			  return sum;
 			}, []);
 		}
@@ -472,7 +479,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		}
 		
 		// now filter by selected class
-		console.log( $scope.student);
+		//console.log( $scope.student);
 		if( $scope.student.current_class !== undefined )
 		{
 			feeItems = feeItems.filter(function(item){
