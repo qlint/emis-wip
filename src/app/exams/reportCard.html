@@ -12,6 +12,25 @@
 			<!-- search form -->
 			<div ng-hide="isPrinting || !adding" class="row header">
 			<div class="modalDataFilter clearfix">	
+				
+				<!-- student -->		
+				<div class="form-group" ng-class="{ 'has-error' : reportForm.student.$invalid && (!reportForm.student.$pristine || reportForm.$submitted) }">					
+					<label for="student">Student</label>
+					<div ng-show="!showSelect"><p class="form-control-static">{{student.student_name}}</p></div>
+					<div ng-show="showSelect">
+						<ui-select ng-model="thestudent.selected" theme="select2" class="form-control" name="student" required> 
+						  <ui-select-match placeholder="Select or search a student...">
+							<span>{{$select.selected.student_name}}</span>
+							<button type="button" class="clear text-danger" ng-click="clearSelect('thestudent',$event)"><span class="glyphicon glyphicon-remove"></span></button>	  
+						  </ui-select-match>
+						  <ui-select-choices repeat="item in students | filter: $select.search">
+							<span ng-bind-html="item.student_name | highlight: $select.search"></span>
+						  </ui-select-choices>
+						</ui-select>
+						<p ng-show="reportForm.student.$invalid && (!reportForm.student.$pristine || reportForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a student.</p>
+					</div>
+				</div>
+				
 				<!-- class select -->
 				<div class="form-group">
 					<label for="class">Class</label>	
@@ -215,7 +234,7 @@
 		<div class="modal-footer">				
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>			
 			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint"><i class="glyphicon glyphicon-print"></i> Print</button>		
-			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint">Save</button>		
-			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint&&modified">Update</button>				
+			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint&&adding">Save</button>		
+			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint&&!adding&&modified">Update</button>				
 		</div>
 </form>

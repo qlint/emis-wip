@@ -1,16 +1,18 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('reportCardCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$timeout','$window',
-function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window){
+controller('reportCardCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$timeout','$window','$parse',
+function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window, $parse){
 
 	$rootScope.isPrinting = false;
-	$scope.student = data.student;
+	$scope.student = data.student || undefined;
+	$scope.showSelect = ( $scope.student === undefined ? true : false );
 	$scope.classes = data.classes || [];
 	$scope.terms = data.terms || [];
 	$scope.filters = data.filters || [];
 	$scope.adding = data.adding;
-
+	$scope.thestudent = {};
+	$scope.examTypes = {};
 	
 	$scope.canPrint = false;
 	
@@ -23,7 +25,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		
 		if( data.reportData !== undefined )
 		{
-			console.log('here');
 			// passing in a report to view, load it
 			
 			$scope.reportData = angular.fromJson(data.reportData);
@@ -69,23 +70,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			
 		}, function(){});
 		
-		/*
-		// get grading
-		apiService.getGrading({}, function(response,status,params){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
-			{	
-				$scope.gradeLevels = ( result.nodata ? [] : result.data );
-			}
-			else
-			{
-				$scope.error = true;
-				$scope.errMsg = result.data;
-			}
-			
-		}, apiError);
-		*/
+		
+		if( $scope.student === undefined )
+		{
+			apiService.getAllStudents(true, function(response){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success')
+				{
+					$scope.students = ( result.nodata ? {} : $rootScope.formatStudentData(result.data) );				
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, function(){});
+		}
 	
 		
 	}
@@ -97,6 +99,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.filters.term_id = newVal.term_id;
 	});
 	
+	$scope.$watch('thestudent.selected', function(newVal,oldVal){
+		if( newVal == oldVal ) return;
+		
+		$scope.student = $scope.thestudent.selected;
+	});
+	
+	$scope.clearSelect = function(item, $event) 
+	{
+		$event.stopPropagation(); 
+
+		var item = $parse(item + ".selected");
+			item.assign($scope, undefined);
+	};
 	
 	$scope.getProgressReport = function()
 	{

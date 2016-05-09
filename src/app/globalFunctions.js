@@ -243,6 +243,10 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
         $rootScope.$broadcast('refreshReportCards', args);
     });
 	
+	$rootScope.$on('reportCardAdded', function(event, args) {
+        $rootScope.$broadcast('refreshReportCards', args);
+    });
+	
 	$rootScope.$on('setSettings', function(event, args) {
 
         $rootScope.currentUser.settings = angular.copy(args);

@@ -593,6 +593,21 @@ table.clickable{
 	}
 }
 
+.td-form-control-add-on{
+	input{
+		float:left;
+		width:50%;
+	}
+	.input-group-addon{
+	    float: left;
+		width: 32px;
+		padding: 5px!important;
+		margin-left: -3px;
+		font-size: 11px;
+		line-height: 14px;
+	}
+}
+
 /********************** Modal Styles ******************************/
 .error-indicator{
 	background-color: #A94442;
@@ -1469,9 +1484,6 @@ table.clickable{
 				border-bottom:1px solid #aaa !important
 			}
 		}
-
-		
-		
 		
 		.progress-report-remarks{
 			h3{

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('listExamsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse',
+controller('listReportCardsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse',
 function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 	var initialLoad = true;
@@ -15,15 +15,23 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$rootScope.modalLoading = false;
 	$scope.alert = {};
 	$scope.refreshing = false;
-	$scope.getReport = "examsTable";
+	$scope.getReport = "reportTable";
 	
 	var initializeController = function () 
 	{
-		// get classes
-		var requests = [];
+		// get terms
+		var year = moment().format('YYYY');
+		apiService.getTerms(year, function(response){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success') 
+				{
+					$scope.terms = result.data;
+				}
+				
+			}, apiError);
 		
-		var deferred = $q.defer();
-		requests.push(deferred.promise);
+		// get classes
 		if( $rootScope.allClasses === undefined )
 		{
 			apiService.getAllClasses({}, function(response){
@@ -36,188 +44,121 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					$scope.classes = $rootScope.allClasses || [];
 					$scope.filters.class = $scope.classes[0];
 					$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
-					deferred.resolve();
-				}
-				else
-				{
-					deferred.reject();
+					$scope.getStudentReportCards();
 				}
 				
-			}, function(){deferred.reject();});
+			}, apiError);
 		}
 		else
 		{
 			$scope.classes = $rootScope.allClasses;
 			$scope.filters.class = $scope.classes[0];
 			$scope.filters.class_id = $scope.classes[0].class_id;
-			deferred.resolve();
-		}
-		
-		// get terms
-		var deferred2 = $q.defer();
-		requests.push(deferred2.promise);
-		if( $rootScope.terms === undefined )
-		{
-			apiService.getTerms(undefined, function(response,status)
-			{
-				var result = angular.fromJson(response);				
-				if( result.response == 'success')
-				{ 
-					$scope.terms = result.data;	
-					$rootScope.terms = result.data;
-					
-					var currentTerm = $scope.terms.filter(function(item){
-						if( item.current_term ) return item;
-					})[0];
-					$scope.filters.term_id = currentTerm.term_id;
-					deferred2.resolve();
-				}
-				else
-				{
-					deferred2.reject();
-				}
-				
-			}, function(){deferred2.reject();});
-		}
-		else
-		{
-			$scope.terms = $rootScope.terms;
-			var currentTerm = $scope.terms.filter(function(item){
-				if( item.current_term ) return item;
-			})[0];
-			$scope.filters.term_id = currentTerm.term_id;
-			deferred2.resolve();
-		}
-		
-		
-		// get exam types		
-		var deferred3 = $q.defer();
-		requests.push(deferred3.promise);
-		if( $rootScope.examTypes === undefined )
-		{
-			apiService.getExamTypes(undefined, function(response){
-				var result = angular.fromJson(response);				
-				if( result.response == 'success')
-				{ 
-					$scope.examTypes = result.data;	
-					$rootScope.examTypes = result.data;
-					$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
-					deferred3.resolve();
-				}
-				else
-				{
-					deferred3.reject();
-				}
-				
-			}, function(){deferred3.reject();});
-		}
-		else
-		{
-			$scope.examTypes = $rootScope.examTypes;
-			$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
-			deferred3.resolve();
+			$scope.getStudentReportCards();
 		}
 
-		// need to wait for three data pieces, then run this
-		$q.all(requests).then(function () {
-			if( $scope.filters.class_id !== null ) $scope.getStudentExams();
-		});	
 		
 	}
 	$timeout(initializeController,1);
 
-	$scope.$watch('filters.class',function(newVal,oldVal){
-		if( newVal == oldVal ) return;
-		//console.log(newVal);
-		$scope.filters.class_id = newVal.class_id;
-
-		apiService.getExamTypes(newVal.class_cat_id, function(response){
-			var result = angular.fromJson(response);				
-			if( result.response == 'success'){ 
-				$scope.examTypes = result.data;
-				$timeout(setSearchBoxPosition,10);
-			}			
-		}, apiError);
-		
-		
-	});
 	
-	$scope.getStudentExams = function()
+	$scope.getStudentReportCards = function()
 	{
-		$scope.examMarks = {};
+		$scope.reportCards = {};
 		$scope.tableHeader = [];
-		$scope.marksNotFound = false;
+		$scope.reportsNotFound = false;
 		$scope.getReport = "";
 		
-		var request = $scope.filters.class_id + '/' + $scope.filters.term_id;
-		if( $scope.filters.exam_type_id !== null ) request += '/' + $scope.filters.exam_type_id;
-		apiService.getAllStudentExamMarks(request, loadMarks, apiError);
+		var request = $scope.filters.class.class_id;
+		apiService.getAllStudentReportCards(request, loadReportCards, apiError);
 	}
 	
-	var loadMarks = function(response,status)
+	var loadReportCards = function(response,status)
 	{
 		$scope.loading = false;
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
-		{			
+		{
 			if( result.nodata )
 			{
-				$scope.marksNotFound = true;
-				$scope.errMsg = "There are currently no exam marks entered for this search criteria.";				
+				$scope.reportsNotFound = true;
+				$scope.errMsg = "There are currently no report cards entered for this class.";
 			}
 			else
 			{
 				
-				if( $scope.dataGrid !== undefined )
-				{
-					$('.fixedHeader-floating').remove();
-					$scope.dataGrid.clear();
-					$scope.dataGrid.destroy();
-				}
+				$scope.rawReportCards = result.data;
+					
+				$scope.reportCards = {};				
 				
-				$scope.examMarks = result.data;
-				
-				$scope.tableHeader = [];
-				var ignoreCols = ['student_id','student_name','rank','exam_type'];
-				angular.forEach($scope.examMarks[0], function(value,key){
-					if( ignoreCols.indexOf(key) === -1 )
+				// group the reports by student
+				$scope.reportCards.students = [];
+				var lastStudent = '';
+				var reports = {};
+				var i = 0;
+				angular.forEach($scope.rawReportCards, function(item,key){
+					
+					if( item.student_id != lastStudent )
 					{
-						// keys read like 'C.R.E', '40', remove the ' and replace , with /
-						var colRow = key.replace(/, /g , " / ").replace(/["']/g, "");
+						// changing to new student, store the report
+						if( i > 0 ) $scope.reportCards.students[(i-1)].reports = reports;
 						
-						$scope.tableHeader.push({
-							title: colRow,
-							key: key
-						});
-					}
-				});
-				
-				// total up marks
-				angular.forEach($scope.examMarks, function(item){
-					var total = 0;
-					angular.forEach(item, function(value,key){
-						if( ignoreCols.indexOf(key) === -1 )
-						{
-							total += value;
-						}
-					});
-					item.total = total;
-				});
+						$scope.reportCards.students.push(
+							{
+								student_name: item.student_name,
+								student_id: item.student_id,
+								class_id: item.class_id,
+								class_name: item.class_name,
+								term_id: item.term_id,
+								year: item.year,
+								admission_number: item.admission_number
+							}
+						);
+						
+						reports = {};
+						i++;
 
-				$scope.getReport = "examsTable";
+					}
+					reports[item.term_name] = item.report_data;
+					
+					lastStudent = item.student_id;
+					
+				});
+				$scope.reportCards.students[(i-1)].reports = reports;
+				console.log($scope.reportCards);
+				
+				$scope.getReport = "reportTable";
 				$timeout(initDataGrid,100);
 			}
+			
 		}
 		else
 		{
-			$scope.marksNotFound = true;
+			$scope.reportsNotFound = true;
 			$scope.errMsg = result.data;
 		}
 	}
 	
-	$scope.displayMark = function(index, key)
+	$scope.getReportCard = function(item, term_name, reportData)
 	{
-		return $parse("examMarks[" + index + "][\"" + key + "\"]" )($scope) || '-' ;
+		var student = {
+			student_id :item.student_id,
+			student_name : item.student_name,
+			admission_number: item.admission_number
+		}
+		var data = {
+			student : student,
+			class_name : item.class_name,
+			class_id : item.class_id,
+			term_id: item.term_id,
+			term_name : term_name,
+			year: item.year,
+			reportData: reportData,
+			adding: false
+		}
+		console.log(data);
+		$scope.openModal('exams', 'reportCard', 'lg', data);
+		
 	}
 	
 	var initDataGrid = function() 
@@ -237,7 +178,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				} ],
 				paging: false,
 				destroy:true,
-				order: [2,'asc'],
+				order: [1,'asc'],
 				filter: true,
 				info: false,
 				sorting:[],
@@ -250,7 +191,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						search: "Search Results<br>",
 						searchPlaceholder: "Filter",
 						lengthMenu: "Display _MENU_",
-						emptyTable: "No students found."
+						emptyTable: "No report cards found."
 				},
 			} );
 			
@@ -300,7 +241,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}, false);
 	}
 	
-			
 	$scope.toggleFilter = function()
 	{
 		$scope.filterShowing = !$scope.filterShowing;
@@ -335,28 +275,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 	}
 	
-	$scope.addExamMarks = function()
+	$scope.addReportCard = function()
 	{
 		var data = {
-			classes: $scope.classes,
+			classes: $rootScope.allClasses,
 			terms: $scope.terms,
-			examTypes: $scope.examTypes,
-			filters: $scope.filters
+			filters: $scope.filters,
+			adding: true
 		}
-		$scope.openModal('exams', 'addExamMarks', 'lg', data);
+		$scope.openModal('exams', 'reportCard', 'lg', data);
 	}
 	
-	$scope.importExamMarks = function()
-	{
-		$rootScope.wipNotice();
-	}
+
 	
-	$scope.exportData = function()
-	{
-		$rootScope.wipNotice();
-	}
-	
-	$scope.$on('refreshExamMarks', function(event, args) {
+	$scope.$on('refreshReportCards', function(event, args) {
 
 		$scope.loading = true;
 		$rootScope.loading = true;
@@ -382,7 +314,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.loading = true;
 		$scope.refreshing = true;
 		$rootScope.loading = true;
-		$scope.getStudentExams();
+		$scope.getStudentReportCards();
 	}
 	
 	var apiError = function (response, status) 

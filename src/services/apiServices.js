@@ -216,6 +216,32 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addExamType/", successFunction, errorFunction, params);
 	};
 	
+	this.getClassExamMarks = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getClassExamMarks/" + param, successFunction, errorFunction, params);
+	};
+	
+	
+	/*********** report cards ***********/
+	
+	this.getAllStudentReportCards = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllStudentReportCards/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getStudentReportCards = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentReportCards/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getStudentReportCard = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentReportCard/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getExamMarksforReportCard = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet("http://api.eduweb.localhost/getExamMarksforReportCard/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.addReportCard = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addReportCard/", successFunction, errorFunction, params);
+	};
 	
 	/*********** students ***********/
 	this.getAllStudents = function (param, successFunction, errorFunction) {          
@@ -245,6 +271,8 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 	this.getAllStudentExamMarks = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllStudentExamMarks/" + param, successFunction, errorFunction, params);
 	};
+	
+	
 	
 	this.postStudent = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addStudent/", successFunction, errorFunction, params);
@@ -282,25 +310,7 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentClassess/" + param, successFunction, errorFunction, params);
 	};
 	
-	this.getAllStudentReportCards = function (param, successFunction, errorFunction, params) {          
-		ajaxService.AjaxGet("http://api.eduweb.localhost/getAllStudentReportCards/" + param, successFunction, errorFunction, params);
-	};
 	
-	this.getStudentReportCards = function (param, successFunction, errorFunction, params) {          
-		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentReportCards/" + param, successFunction, errorFunction, params);
-	};
-	
-	this.getStudentReportCard = function (param, successFunction, errorFunction, params) {          
-		ajaxService.AjaxGet("http://api.eduweb.localhost/getStudentReportCard/" + param, successFunction, errorFunction, params);
-	};
-	
-	this.getExamMarksforReportCard = function (param, successFunction, errorFunction, params) {          
-		ajaxService.AjaxGet("http://api.eduweb.localhost/getExamMarksforReportCard/" + param, successFunction, errorFunction, params);
-	};
-	
-	this.addReportCard = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, "http://api.eduweb.localhost/addReportCard/", successFunction, errorFunction, params);
-	};
 	
 	/*********** payments ***********/
 	this.getPaymentsReceived = function (param, successFunction, errorFunction, params) {          

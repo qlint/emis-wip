@@ -13,7 +13,7 @@
 				<div class="col-sm-6">
 					<!-- student -->		
 					<div class="form-group" ng-class="{ 'has-error' : invoiceForm.student.$invalid && (!invoiceForm.student.$pristine || invoiceForm.$submitted) }">					
-						<label for="student" class="col-sm-3 control-label">Student</label>
+						<label for="student" class="col-sm-3 control-label nopad">Student</label>
 						<div class="col-sm-9" ng-show="!showSelect"><p class="form-control-static">{{selectedStudent.student_name}}</p></div>
 						<div class="col-sm-9" ng-show="showSelect">
 							<ui-select ng-model="student.selected" theme="select2" class="form-control" name="student" required> 
@@ -31,8 +31,8 @@
 					
 					<!-- date -->
 					<div class="form-group" ng-class="{ 'has-error' : paymentForm.payment_date.$invalid && (paymentForm.payment_date.$touched || paymentForm.$submitted) }">
-						<label for="payment_date" class="col-sm-3 control-label">Date</label>
-						<div class="col-sm-3">
+						<label for="payment_date" class="col-sm-3 control-label nopad">Date</label>
+						<div class="col-sm-4">
 							<div class="input-group">
 								<input type="text" name="payment_date" date-range-picker id="payment_date" class="form-control date-picker input-sm" ng-model="payment.payment_date" options="{singleDatePicker: true,autoApply: true}" />
 								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
@@ -43,8 +43,8 @@
 					
 					<!-- amount -->
 					<div class="form-group" ng-class="{ 'has-error' : paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted) }">		
-						<label for="amount" class="col-sm-3 control-label">Amount</label>
-						<div class="col-sm-3">
+						<label for="amount" class="col-sm-3 control-label nopad">Amount</label>
+						<div class="col-sm-4">
 							<div class="input-group">
 								<input type="text" name="amount" ng-model="payment.amount" class="form-control"  >	
 								<div class="input-group-addon">{{currency}}</div>
@@ -55,7 +55,7 @@
 					
 					<!-- payment method -->
 					<div class="form-group" ng-class="{ 'has-error' : paymentForm.payment_method.$invalid && (paymentForm.payment_method.$touched || paymentForm.$submitted) }">
-						<label for="payment_method" class="col-sm-3 control-label">Payment Method</label>
+						<label for="payment_method" class="col-sm-3 control-label nopad">Payment Method</label>
 						<div class="col-sm-8">
 							<select name="payment_method" ng-model="payment.payment_method" class="form-control">
 								<option value="">--select payment method--</option>
@@ -67,7 +67,7 @@
 					
 					<!-- slip/cheque no -->
 					<div class="form-group">		
-						<label for="slip_cheque_no" class="col-sm-3 control-label">Slip/Cheque No.</label>
+						<label for="slip_cheque_no" class="col-sm-3 control-label nopad">Slip/Cheque No.</label>
 						<div class="col-sm-5">
 							<input type="text" name="slip_cheque_no" ng-model="payment.slip_cheque_no" class="form-control"  >	
 						</div>	
@@ -76,7 +76,7 @@
 					<!-- replacement? -->
 					<div class="form-group">		
 						<label class="col-sm-3 control-label"></label>
-						<div class="col-sm-5">
+						<div class="col-sm-9">
 							<label class="checkbox-inline">
 							<input type="checkbox" name="replacement_payment" ng-model="payment.replacement_payment" ng-value="true"  > This is a replacement payment
 							</label>
@@ -86,7 +86,7 @@
 					<!-- apply to -->
 					<div class="form-group" ng-show="payment.replacement_payment==false">	
 		
-						<label class="col-sm-3 control-label">Apply To</label>
+						<label class="col-sm-3 control-label nopad">Apply To</label>
 						<div class="col-sm-9">
 						
 							<p ng-show="invoices.length==0">This student do not have any open invoices.</p>

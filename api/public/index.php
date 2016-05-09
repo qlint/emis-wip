@@ -2091,31 +2091,37 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 
 });
 
-/*
-$app->get('/getExamMarks/:class/:year/:term/:type', function ($class,$year,$term,$type) {
-    //Show exam marks for all students
+$app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id', function ($classId,$termId,$examTypeId) {
+    //Show exam marks for all students in class
 	
 	$app = \Slim\Slim::getInstance();
  
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name, subject_name, mark
-							FROM app.exam_marks 
-							INNER JOIN app.students USING (student_id)
-							INNER JOIN app.terms USING (term_id)
-							INNER JOIN app.class_subject_exams 
-								INNER JOIN app.class_subjects 
-									INNER JOIN app.subjects
-									ON class_subjects.subject_id = subjects.subject_id
-								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-							ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-							WHERE class_id = :class
-							AND term_id = :term
-							AND date_part('year', terms.start_date) = :year
-							AND exam_type = :type
-							ORDER BY student_name");
-        $sth->execute( array(':class' => $class, ':year' => $year, ':term' => $term, ':type' => $type)); 
+        $sth = $db->prepare("SELECT q.student_id, student_name, subject_name, q.class_sub_exam_id, mark, exam_marks.term_id, grade_weight
+							FROM (
+								SELECT  students.student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name, 
+									subject_name, class_subject_exams.class_sub_exam_id, grade_weight
+								FROM app.students 
+								INNER JOIN app.classes 
+									INNER JOIN app.class_subjects 
+										INNER JOIN app.subjects
+										ON class_subjects.subject_id = subjects.subject_id
+										INNER JOIN app.class_subject_exams
+																	
+										ON class_subjects.class_subject_id = class_subject_exams.class_subject_id		
+									ON classes.class_id = class_subjects.class_id									
+								ON students.current_class = classes.class_id							
+								WHERE current_class = :classId
+								AND exam_type_id = :examTypeId							
+							) q
+							LEFT JOIN app.exam_marks 
+								INNER JOIN app.terms 
+								ON exam_marks.term_id = terms.term_id															
+							ON q.class_sub_exam_id = exam_marks.class_sub_exam_id AND exam_marks.term_id = :termId AND exam_marks.student_id = q.student_id
+							ORDER BY student_name, subject_name");
+        $sth->execute( array(':classId' => $classId, ':termId' => $termId, ':examTypeId' => $examTypeId)); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
         if($results) {
@@ -2136,8 +2142,8 @@ $app->get('/getExamMarks/:class/:year/:term/:type', function ($class,$year,$term
     }
 
 });
-*/
-$app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$termId,$examTypeId) {
+
+$app->get('/getAllStudentExamMarks/:class/:term(/:type)', function ($classId,$termId,$examTypeId=null) {
     //Get all student exam marks
 	
 	$app = \Slim\Slim::getInstance();
@@ -2145,11 +2151,11 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$term
     try 
     {
 		// need to make sure class, term and type are integers
-		if( is_numeric($classId) && is_numeric($termId) && is_numeric($examTypeId) )
+		if( is_numeric($classId) && is_numeric($termId) )
 		{
 			$db = getDB();
 			
-			$sth1 = $db->prepare("select app.colpivot('_exam_marks', 'SELECT first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name
+			$query = "select app.colpivot('_exam_marks', 'SELECT first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name
 							 ,class_id
 							  ,subject_name      
 							  ,exam_type
@@ -2167,12 +2173,20 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$term
 						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 						INNER JOIN app.students ON exam_marks.student_id = students.student_id
 						WHERE class_subjects.class_id = $classId
-						AND term_id = $termId
-						AND class_subject_exams.exam_type_id = $examTypeId
-						WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY class_subjects.subject_id, mark desc)
+						AND term_id = $termId						
+						";
+				
+			if( $examTypeId !== null && is_numeric($examTypeId) )
+			{
+				$query .= " AND class_subject_exams.exam_type_id = $examTypeId
+				";
+			}
+			
+			$query .= " WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY class_subjects.subject_id, mark desc)
 						',
-				array['student_id','student_name','exam_type'], array['subject_name','grade_weight'], '#.mark', null);");
-			$sth2 = $db->prepare("select *,
+				array['student_id','student_name','exam_type'], array['subject_name','grade_weight'], '#.mark', null);";
+			
+			$query2 = "select *,
 									(
 										SELECT rank FROM (
 											SELECT student_id, dense_rank() over w as rank
@@ -2187,13 +2201,22 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$term
 											ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 											WHERE class_subjects.class_id = $classId
 											AND term_id = $termId
-											AND class_subject_exams.exam_type_id = $examTypeId
-											GROUP BY exam_marks.student_id
-											WINDOW w AS (ORDER BY sum(mark) desc)	
+											";
+			if( $examTypeId !== null && is_numeric($examTypeId) )
+			{
+				$query2 .= " AND class_subject_exams.exam_type_id = $examTypeId
+				";
+			}								
+											
+			$query2 .= "							GROUP BY exam_marks.student_id
+											WINDOW w AS (ORDER BY coalesce(sum(mark),0) desc)	
 										) q
 										WHERE student_id = _exam_marks.student_id
 									) as rank
-									from _exam_marks order by rank;");
+									from _exam_marks order by exam_type, rank;";
+
+			$sth1 = $db->prepare($query);
+			$sth2 = $db->prepare($query2);
 			
 			$db->beginTransaction();
 			$sth1->execute(); 
@@ -2291,33 +2314,29 @@ $app->post('/addExamMarks/', function () use($app) {
 
 
 // ************** Report Cards  ****************** //
-$app->get('/getAllStudentReportCards/:student_id', function ($studentId) {
-    //Get student report cards
+$app->get('/getAllStudentReportCards/:class_id', function ($classId) {
+    //Get report cards for class
 	
 	$app = \Slim\Slim::getInstance();
 	
     try 
     {
-		// need to make sure class, term and type are integers
-		if( is_numeric($studentId) )
-		{
-			$db = getDB();
-			
-			$sth1 = $db->prepare("select app.colpivot('_report_cards', 'SELECT report_cards.student_id, report_cards.class_id, class_name, term_name, report_data
-									FROM app.report_cards
-									INNER JOIN app.students ON report_cards.student_id = students.student_id
-									INNER JOIN app.classes ON report_cards.class_id = classes.class_id
-									INNER JOIN app.terms ON report_cards.term_id = terms.term_id
-									WHERE report_cards.student_id = $studentId',
-									array['student_id','class_name'], array['term_name'], '#.report_data', null);");
-			$sth2 = $db->prepare("select * from _report_cards order by student_id;");
-			
-			$db->beginTransaction();
-			$sth1->execute(); 
-			$sth2->execute();
-			$results = $sth2->fetchAll(PDO::FETCH_OBJ);
-			$db->commit();
-		}			
+
+		$db = getDB();
+		
+		$sth = $db->prepare("SELECT report_cards.student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name, admission_number,
+									report_cards.class_id, class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data				
+							FROM app.report_cards
+							INNER JOIN app.students ON report_cards.student_id = students.student_id
+							INNER JOIN app.classes ON report_cards.class_id = classes.class_id
+							INNER JOIN app.terms ON report_cards.term_id = terms.term_id
+							WHERE report_cards.class_id = :classId
+							ORDER BY student_id");
+		
+		$sth->execute( array($classId) ); 
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+					
 		
         if($results) {
             $app->response->setStatus(200);

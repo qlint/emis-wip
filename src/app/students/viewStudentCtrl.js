@@ -680,15 +680,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.viewPayment = function(payment)
 	{
+		payment.student_id = $scope.student.student_id;
+		payment.student_name = $scope.student.student_name;
 		$rootScope.modalLoading = true;
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentDetails.html','paymentDetailsCtrl',payment,{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentDetails.html','paymentDetailsCtrl',payment,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(payment){
 			// update invoices
 			if( $scope.dataGrid !== undefined )
 			{
 				$scope.dataGrid.destroy();
-				$scope.dataGrid = undefined;
 			}
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 			apiService.getStudentPayments($scope.student.student_id, loadInvoices, apiError);
@@ -1729,52 +1730,55 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}, apiError);
 		});
 		
-		$scope.getStudentExams = function()
+		$scope.getStudentExams = function( theForm )
 		{
+			console.log(theForm);
+			if( !theForm.$invalid )
+			{
 			// /:student_id/:class/:term/:type
-			$scope.examMarks = {};
-			$scope.marksNotFound = false;
-			$scope.currentFilters = angular.copy($scope.filters);
-			
-			var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id;
-			apiService.getClassExams(request, function(response){
-				$scope.loading = false;
-				var result = angular.fromJson( response );
-				if( result.response == 'success' )
-				{
-					var subjects = result.data;
-					
-					// populate any already entered exam marks
-					var request = $scope.student_id + '/' + $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
-					apiService.getStudentExamMarks(request, function(response){
-						$scope.loading = false;
-						var result = angular.fromJson( response );
-						if( result.response == 'success' )
-						{
-							$scope.marks = (result.nodata ? [] : result.data);
-							
-							if( $scope.marks.length > 0 )
+				$scope.examMarks = {};
+				$scope.marksNotFound = false;
+				$scope.currentFilters = angular.copy($scope.filters);
+				
+				var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id;
+				apiService.getClassExams(request, function(response){
+					$scope.loading = false;
+					var result = angular.fromJson( response );
+					if( result.response == 'success' )
+					{
+						var subjects = result.data;
+						
+						// populate any already entered exam marks
+						var request = $scope.student_id + '/' + $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+						apiService.getStudentExamMarks(request, function(response){
+							$scope.loading = false;
+							var result = angular.fromJson( response );
+							if( result.response == 'success' )
 							{
-								$scope.subjects = subjects.map(function(item){
-									var mark = $scope.marks.filter(function(item2){
-										if( item2.subject_name == item.subject_name ) return item2;
-									})[0];
+								$scope.marks = (result.nodata ? [] : result.data);
+								
+								if( $scope.marks.length > 0 )
+								{
+									$scope.subjects = subjects.map(function(item){
+										var mark = $scope.marks.filter(function(item2){
+											if( item2.subject_name == item.subject_name ) return item2;
+										})[0];
 
-									item.mark = mark.mark;
-									return item;
-								});
+										item.mark = mark.mark;
+										return item;
+									});
+								}
+								else
+								{
+									$scope.subjects = subjects;
+								}
+								
 							}
-							else
-							{
-								$scope.subjects = subjects;
-							}
-							
-						}
-					}, apiError);
-					
-				}
-			}, apiError);
-
+						}, apiError);
+						
+					}
+				}, apiError);
+			}
 			
 		}
 		
@@ -1841,7 +1845,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Exam Marks</h4>' +
 			'</div>' +
 			'<div class="modal-body cleafix">' +
-				'<ng-form name="cargoDialog" class="form-horizontal modalForm" novalidate role="form">' +									
+				'<form name="examForm" class="form-horizontal modalForm" novalidate role="form">' +									
 					'<div ng-show="error" class="alert alert-danger">' +
 						'{{errMsg}}'+
 					'</div>' +
@@ -1850,27 +1854,30 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 							'<!-- Class -->' +
 							'<div class="form-group">' +
 								'<label for="class">Class</label>' +
-								'<select class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">' +
+								'<select name="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" required>' +
 									'<option value="">--select class--</option>' +
 								'</select>' +
+								'<p ng-show="examForm.class_id.$invalid && (examForm.class_id.$touched || examForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class is required.</p>' +
 							'</div>	' +
 							'<!-- Term -->' +
 							'<div class="form-group">' +
 								'<label for="term">Term</label>	' +
-								'<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id">' +
+								'<select name="term_id" class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" required>' +
 									'<option value="">--select term--</option>' +
 								'</select>' +
+								'<p ng-show="examForm.term_id.$invalid && (examForm.term_id.$touched || examForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Term is required.</p>' +
 							'</div>' +
 							'<!-- Exam -->' +
 							'<div class="form-group">' +
-								'<label for="term">Exam</label>' +
-								'<select id="term" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" >' +
+								'<label for="exam_type">Exam</label>' +
+								'<select name="exam_type" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" required>' +
 									'<option value="">-- select exam --</option>' +		
 								'</select>' +
+								'<p ng-show="examForm.exam_type.$invalid && (examForm.exam_type.$touched || examForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Exam Type is required.</p>' +
 							'</div>' +
 							'<!-- search btn -->' +
 							'<div class="form-group submit-btn">' +
-								'<input type="button" class="btn btn-sm btn-info" ng-click="getStudentExams()" value="Load" />' +
+								'<input type="submit" class="btn btn-sm btn-info" ng-click="getStudentExams(examForm)" value="Load" />' +
 								'<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>' +
 							'</div>	' +
 							'<hr>' +
@@ -1885,7 +1892,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 							'</div>' +
 						'</div>' +
 					'</div>' +							
-				'</ng-form>' +
+				'</form>' +
 			'</div>'+
 			'<div class="modal-footer">' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +

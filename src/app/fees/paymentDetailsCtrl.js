@@ -11,11 +11,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	
 	$scope.student = {};
 	$scope.payment = {};	
+	$scope.selectedPayment = data || undefined;
 
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	$scope.invoiceSelection = [];
 	$scope.feeItemsSelection = [];
 	$scope.feeItemsSelection2 = [];
+	
+	console.log(data);
 	
 	var initializeController = function()
 	{
@@ -24,10 +27,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		
 		// if a student was passed, get their open invoices in case use was to apply to another invoice
 		// also get the details on the payment selected
-		if( data.payment_id  !== undefined )
+		if( $scope.selectedPayment.payment_id  !== undefined )
 		{
 			// get payment details
-			apiService.getPaymentDetails(data.payment_id, loadPaymentDetails, apiError);
+			$scope.student_name = angular.copy($scope.selectedPayment.student_name);
+			$scope.student_id = angular.copy($scope.selectedPayment.student_id);
+			apiService.getPaymentDetails($scope.selectedPayment.payment_id, loadPaymentDetails, apiError);
+			apiService.getStudentBalance($scope.student_id, loadFeeBalance, apiError);
 		}
 		else
 		{		
@@ -68,7 +74,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		if( newVal == oldVal ) return;
 		
 		$scope.selectedStudent = $scope.student.selected;
-		apiService.getStudentPayments($scope.selectedStudent.student_id, loadPayments, apiError);
+		$scope.student_name = angular.copy($scope.student.selected.student_name);
+		$scope.student_id = angular.copy($scope.student.selected.student_id);
+		
+		apiService.getStudentPayments($scope.student_id, loadPayments, apiError);
 		$scope.selectedPayment = undefined;
 	});
 	
@@ -91,8 +100,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		if( newVal == oldVal ) return;
 		
 		$scope.selectedPayment = $scope.payment.selected;
-		apiService.getPaymentDetails($scope.selectedPayment.payment_id, loadPaymentDetails, apiError);
-		apiService.getOpenInvoices($scope.selectedStudent.student_id, loadInvoices, apiError);		
+		apiService.getPaymentDetails($scope.selectedPayment.payment_id, loadPaymentDetails, apiError);	
+		apiService.getStudentBalance($scope.student_id, loadFeeBalance, apiError);
 	});
 	
 	var loadPaymentDetails = function(response, status)
@@ -104,10 +113,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			var results = ( result.nodata ? {} : result.data );
 			
 			$scope.selectedPayment = results.payment;
-			$scope.selectedInvoice = ( results.invoice.length > 0 ? formateInvoices(results.invoice)[0] : undefined);
+			$scope.selectedInvoice = ( results.invoice.length > 0 ? formatInvoices(results.invoice)[0] : undefined);
 			//console.log($scope.selectedInvoice);	
 
-			apiService.getOpenInvoices($scope.selectedPayment.student_id, loadInvoices, apiError);
+			apiService.getOpenInvoices($scope.student_id, loadInvoices, apiError);
 			
 			// if there is an associated invoice, set the line items
 			if( $scope.selectedInvoice !== undefined )
@@ -132,7 +141,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			// if its a replacement payment, set the selected replacement items
 			if( $scope.selectedPayment.replacement_payment )
 			{
-				apiService.getReplaceableFeeItems($scope.selectedPayment.student_id,function(response,status){		
+				apiService.getReplaceableFeeItems($scope.student_id,function(response,status){		
 					var result = angular.fromJson(response);							
 					if( result.response == 'success')
 					{
@@ -171,12 +180,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				
 		if( result.response == 'success') 
 		{
-			$scope.invoices = ( result.nodata ? [] : formateInvoices(angular.copy(result.data)));	
+			$scope.invoices = ( result.nodata ? [] : formatInvoices(angular.copy(result.data)));	
 			//setTimeout(initInvoicesDataGrid,10);
 		}
 	}
 	
-	var formateInvoices = function(invoiceData)
+	var formatInvoices = function(invoiceData)
 	{
 		
 			var currentInvoice = {};
@@ -225,13 +234,86 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			return invoices;
 	}
 	
+	var loadFeeBalance = function(response,status)
+	{
+		$scope.loading = false;		
+		var result = angular.fromJson(response);
+		
+		if( $scope.dataGrid !== undefined )
+		{
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();
+		}
+				
+		if( result.response == 'success') 
+		{
+			if( result.nodata === undefined )
+			{
+				$scope.feeSummary = angular.copy(result.data.fee_summary);
+				$scope.fees = angular.copy(result.data.fees);
+				$scope.nofeeSummary = false;
+			}
+			else
+			{
+				$scope.feeSummary = [];
+				$scope.fees = [];
+				$scope.nofeeSummary = true;
+			}
+			
+			setTimeout(initFeesDataGrid,50);
+		}
+	}
+	
+	var initFeesDataGrid = function() 
+	{
+		var settings = {
+			sortOrder: [4,'asc'],
+			noResultsTxt: "This student has not been invoiced."
+		}
+		initDataGrid(settings);
+	}
+	
+	var initDataGrid = function(settings)
+	{
+	
+		var tableElement = $('#resultsTable3');
+		$scope.dataGrid = tableElement.DataTable( {
+				responsive: {
+					details: {
+						type: 'column'
+					}
+				},
+				columnDefs: [ {
+					className: 'control',
+					orderable: false,
+					targets:   0
+				} ],
+				paging: false,
+				destroy:true,
+				order: settings.sortOrder,
+				filter: false,
+				info: false,
+				sorting:[],
+				scrollY:'200px',
+				initComplete: function(settings, json) {
+					$scope.loading = false;
+					$rootScope.loading = false;
+					$scope.$apply();
+				},
+				language: {
+					lengthMenu: "Display _MENU_",
+					emptyTable: settings.noResultsTxt
+				},
+			} );
+	}
+	
 	$scope.changeInvoice = function(status)
 	{
 		$scope.changingInvoice = status;
 		if( !status )	$scope.selectedNewInvoice = undefined;
 	}
 	
-	$scope.unapplyPayment = function()
+	$scope.unapplyInvoice = function()
 	{
 		// remove the invoice from payment
 		$scope.selectedPayment.inv_id = undefined;
@@ -244,19 +326,39 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		
 		//console.log(newVal);
 		
-		if( newVal )
+		if( $scope.selectedNewInvoice )
 		{
-			angular.forEach($scope.selectedInvoice.fee_items, function(feeitem,key){
-				feeitem.amount = feeitem.balance;
-				$scope.feeItemsSelection.push(feeitem);
-			});
+			if( newVal )
+			{
+				angular.forEach($scope.selectedNewInvoice.fee_items, function(feeitem,key){
+					feeitem.amount = feeitem.balance;
+					$scope.feeItemsSelection.push(feeitem);
+				});
+			}
+			else
+			{
+				angular.forEach($scope.selectedNewInvoice.fee_items, function(feeitem,key){
+					feeitem.amount = undefined;
+					$scope.feeItemsSelection = [];
+				});
+			}
 		}
 		else
 		{
-			angular.forEach($scope.selectedInvoice.fee_items, function(feeitem,key){
-				feeitem.amount = undefined;
-				$scope.feeItemsSelection = [];
-			});
+			if( newVal )
+			{
+				angular.forEach($scope.selectedInvoice.fee_items, function(feeitem,key){
+					feeitem.amount = feeitem.balance;
+					$scope.feeItemsSelection.push(feeitem);
+				});
+			}
+			else
+			{
+				angular.forEach($scope.selectedInvoice.fee_items, function(feeitem,key){
+					feeitem.amount = undefined;
+					$scope.feeItemsSelection = [];
+				});
+			}
 		}
 		
 	});
@@ -286,31 +388,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		$scope.errMsg = result.data;
 	}
 	
-	$scope.$watch('payment.invoice', function(newVal,oldVal){
+	$scope.$watch('selectedPayment.invoice', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 		
 		$scope.selectedNewInvoice = newVal;
 	});
-	/*
-	$scope.showDetails = [];
-	$scope.toggleInvoices = function(item,index) 
-	{
 	
-		var id = $scope.invoiceSelection.indexOf(item);
-
-		// is currently selected
-		if (id > -1) {
-			$scope.invoiceSelection.splice(id, 1);
-			$scope.showDetails[index] = 'false';
-		}
-
-		// is newly selected
-		else {
-			$scope.invoiceSelection.push(item);
-			$scope.showDetails[index] = 'true';
-		}
-	};
-	*/
 	$scope.toggleFeeItems = function(feeitem) 
 	{
 		var id = $scope.feeItemsSelection.indexOf(feeitem);
@@ -400,7 +483,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			var data = {
 				user_id: $scope.currentUser.user_id,
 				payment_id : $scope.selectedPayment.payment_id,
-				student_id : $scope.selectedPayment.student_id,
+				student_id : $scope.student_id,
 				payment_date : moment($scope.selectedPayment.payment_date.startDate).format('YYYY-MM-DD'),
 				amount: $scope.selectedPayment.amount,
 				payment_method : $scope.selectedPayment.payment_method,
@@ -423,7 +506,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			var data = {
 				user_id: $scope.currentUser.user_id,
 				payment_id : $scope.selectedPayment.payment_id,
-				student_id : $scope.selectedPayment.student_id,
+				student_id : $scope.student_id,
 				payment_date : moment($scope.selectedPayment.payment_date.startDate).format('YYYY-MM-DD'),
 				amount: $scope.selectedPayment.amount,
 				payment_method : $scope.selectedPayment.payment_method,

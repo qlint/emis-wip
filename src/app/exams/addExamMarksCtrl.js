@@ -49,19 +49,34 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$uibModalInstance.dismiss('canceled');  
 	}; // end cancel
 	
-	$scope.getStudentExams = function()
+	$scope.getStudentExams = function(theForm)
 	{
-		$scope.examMarks = {};
-		$scope.marksNotFound = false;
-		
-		if( $scope.dataGrid !== undefined )
+		theForm.$submitted = true;
+		if( !theForm.$invalid )
 		{
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;
-		}
-
-		var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
-		apiService.getAllStudentExamMarks(request, loadMarks, apiError);
+			$scope.examMarks = {};
+			$scope.marksNotFound = false;
+			
+			if( $scope.dataGrid !== undefined )
+			{
+				$scope.dataGrid.destroy();
+				$scope.dataGrid = undefined;
+			}
+			
+			var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id;
+			apiService.getClassExams(request, function(response){
+				$scope.loading = false;
+				var result = angular.fromJson( response );
+				if( result.response == 'success' )
+				{
+					$scope.subjects = result.data;
+					
+					var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+					apiService.getClassExamMarks(request, loadMarks, apiError);
+		
+				}
+			}, apiError)
+		}	
 	}
 	
 	var loadMarks = function(response,status)
@@ -73,31 +88,55 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			if( result.nodata )
 			{
 				$scope.marksNotFound = true;
-				$scope.errMsg = "The selected class does not have subjects and exams set up. This must be complete before exam marks can be entered.";
+				$scope.errMsg = "There are no students in the selected classes.";
 			}
 			else
 			{
-				$scope.examMarks = result.data;
+				$scope.students = result.data;
 				$scope.currentFilters = angular.copy($scope.filters);
 				
-				$scope.tableHeader = [];
-				
-				angular.forEach($scope.examMarks[0], function(value,key){
-					if( ignoreCols.indexOf(key) === -1 )
+				// loop through exam marks and build into
+				// one object per student, with
+				$scope.examMarks = [];
+				var lastStudent = '';
+				var marks = {};
+				var i = 0;
+				angular.forEach($scope.students, function(item,key){
+					if( item.student_id != lastStudent )
 					{
-						var colRow = key.replace(/, /g , " / ").replace(/["']/g, "");
+						// changing to new student, store the report
+						if( i > 0 ) $scope.examMarks[(i-1)].marks = marks;
 						
-						$scope.tableHeader.push({
-							title: colRow,
-							key: key
-						});
-					}
-				});
+						$scope.examMarks.push(
+							{
+								student_name: item.student_name,
+								student_id: item.student_id,								
+								marks : {}
+							}
+						);
+						
+						marks = {};
+						i++;
 
-				//console.log($scope.examMarks);
+					}
+					
+					var thesubject = $scope.subjects.filter(function(subject){
+						if ( subject.subject_name == item.subject_name ) return subject;
+					})[0];
+					console.log(thesubject);
+					
+					marks[thesubject.subject_name] = {
+						mark: item.mark,
+						class_sub_exam_id: item.class_sub_exam_id,
+						grade_weight: item.grade_weight
+					};
+					
+					lastStudent = item.student_id;
+					
+				});
+				$scope.examMarks[(i-1)].marks = marks;
+				console.log($scope.examMarks);
 				
-				
-				$timeout(initDataGrid,10);
 			}
 		}
 		else
@@ -182,39 +221,28 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		if ( !form.$invalid ) 
 		{
+		
 			var examMarks = [];
 			angular.forEach($scope.examMarks, function(item,index){
 				
 				var exam = undefined;
 				// need to get class_sub_exam_id
-				angular.forEach(item, function(value,key){
-					
-					if( ignoreCols.indexOf(key) === -1 )
-					{						
-						exam = $scope.classSubjectExams.filter(function(a){
-							if( "'" + a.subject_name + "', '" + a.grade_weight + "'" == key ) return a;
-						})[0];
-					
-						if( exam !== undefined )
-						{
-							examMarks.push({
-								student_id : item.student_id,
-								class_sub_exam_id: exam.class_sub_exam_id,
-								term_id: $scope.currentFilters.term_id,
-								mark: value
-							});
-						}
-					}
-					
+				angular.forEach(item.marks, function(mark,key){
+					examMarks.push({
+						student_id : item.student_id,
+						class_sub_exam_id: mark.class_sub_exam_id,
+						term_id: $scope.currentFilters.term_id,
+						mark: mark.mark
+					});
 				});
-				
 			});
+			
 			
 			var data = {
 				user_id: $rootScope.currentUser.user_id,
 				exam_marks: examMarks
 			}
-			//console.log(data);
+			console.log(data);
 			apiService.addExamMarks(data,createCompleted,apiError);			
 		}
 	}
