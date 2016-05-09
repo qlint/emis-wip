@@ -1,11 +1,12 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('paymentFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$filter',
-function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $filter){
+controller('paymentFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$filter','$parse',
+function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $filter, $parse){
 
 	$scope.student = {};
 	$scope.selectedStudent = ( data.selectedStudent !== undefined ? data.selectedStudent : undefined);
+	$scope.showSelect =  ( data.selectedStudent !== undefined ? false : true );
 	$scope.student.selected = $scope.selectedStudent;
 	$scope.payment = {};
 	$scope.payment.payment_date = {startDate: moment().format('YYYY-MM-DD')};
@@ -40,6 +41,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		else
 		{
 			apiService.getOpenInvoices($scope.selectedStudent.student_id, loadInvoices, apiError);
+			apiService.getStudentBalance($scope.selectedStudent.student_id, loadFeeBalance, apiError);
 		}
 		
 	}
@@ -64,6 +66,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		// grab what should be invoice for next term
 		$scope.selectedStudent = $scope.student.selected;
 		apiService.getOpenInvoices($scope.student.selected.student_id, loadInvoices, apiError);
+		apiService.getStudentBalance($scope.student.selected.student_id, loadFeeBalance, apiError);
 	});
 	
 	$scope.$watch('payment.apply_to_all', function(newVal,oldVal){
@@ -126,12 +129,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				
 		if( result.response == 'success') 
 		{
-			$scope.invoices = formateInvoices(angular.copy(result.data));
+			$scope.invoices = formatInvoices(angular.copy(result.data));
 			//setTimeout(initInvoicesDataGrid,10);
 		}
 	}
 	
-	var formateInvoices = function(invoiceData)
+	var formatInvoices = function(invoiceData)
 	{
 		
 			var currentInvoice = {};
@@ -177,6 +180,80 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			//console.log(invoices);
 			return invoices;
 	}
+	
+	var loadFeeBalance = function(response,status)
+	{
+		$scope.loading = false;		
+		var result = angular.fromJson(response);
+		
+		if( $scope.dataGrid !== undefined )
+		{
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();
+		}
+				
+		if( result.response == 'success') 
+		{
+			if( result.nodata === undefined )
+			{
+				$scope.feeSummary = angular.copy(result.data.fee_summary);
+				$scope.fees = angular.copy(result.data.fees);
+				$scope.nofeeSummary = false;
+			}
+			else
+			{
+				$scope.feeSummary = [];
+				$scope.fees = [];
+				$scope.nofeeSummary = true;
+			}
+			
+			setTimeout(initFeesDataGrid,50);
+		}
+	}
+	
+	var initFeesDataGrid = function() 
+	{
+		var settings = {
+			sortOrder: [4,'asc'],
+			noResultsTxt: "This student has not been invoiced."
+		}
+		initDataGrid(settings);
+	}
+	
+	var initDataGrid = function(settings)
+	{
+	
+		var tableElement = $('#resultsTable2');
+		$scope.dataGrid = tableElement.DataTable( {
+				responsive: {
+					details: {
+						type: 'column'
+					}
+				},
+				columnDefs: [ {
+					className: 'control',
+					orderable: false,
+					targets:   0
+				} ],
+				paging: false,
+				destroy:true,
+				order: settings.sortOrder,
+				filter: false,
+				info: false,
+				sorting:[],
+				scrollY:'200px',
+				initComplete: function(settings, json) {
+					$scope.loading = false;
+					$rootScope.loading = false;
+					$scope.$apply();
+				},
+				language: {
+					lengthMenu: "Display _MENU_",
+					emptyTable: settings.noResultsTxt
+				},
+			} );
+	}
+	
 	
 	var apiError = function (response, status) 
 	{

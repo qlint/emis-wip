@@ -87,8 +87,8 @@
 						<tr>
 							<th></th>
 							<th>Student</th>
-							<th>Total</th>
 							<th>Position</th>
+							<th>Total</th>							
 							<th class="center" ng-repeat="col in tableHeader">{{col.title}}</th>
 						</tr>
 					</thead>	
@@ -96,8 +96,8 @@
 						<tr ng-repeat="item in examMarks track by $index">
 							<td></td>
 							<td id="{{item.student_id}}">{{item.student_name}}</td>
-							<td id="{{item.student_id}}">{{item.sum}}</td>
-							<td class="center">{{$index+1}}</td>
+							<td class="center">{{item.rank}}</td>
+							<td class="center">{{item.total}}</td>							
 							<td class="center" ng-repeat="col in tableHeader" ng-bind="displayMark($parent.$index, col.key)"></td>
 						</tr>
 					</tbody>

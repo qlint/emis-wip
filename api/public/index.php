@@ -2149,16 +2149,51 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$term
 		{
 			$db = getDB();
 			
-			$sth1 = $db->prepare("select app.colpivot('_exam_marks', 'select student_id, student_name, 
-																			(select sum(mark) from app.student_exam_marks where student_id = q.student_id) as sum, 
-																			(select sum(grade_weight) from app.student_exam_marks where student_id = q.student_id) as total, 
-																			subject_name, mark, grade_weight
-																			from app.student_exam_marks q 
-																		where class_id = $classId
-																		and exam_type_id = $examTypeId 
-																		and (term_id = $termId or term_id is null)',
-									array['student_id','student_name','sum','total'], array['subject_name','grade_weight'], '#.mark', null);");
-			$sth2 = $db->prepare("select * from _exam_marks order by student_id;");
+			$sth1 = $db->prepare("select app.colpivot('_exam_marks', 'SELECT first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name
+							 ,class_id
+							  ,subject_name      
+							  ,exam_type
+							  ,exam_marks.student_id
+							  ,mark          
+							  ,grade_weight
+						FROM app.exam_marks
+						INNER JOIN app.class_subject_exams 
+						INNER JOIN app.exam_types
+						ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects 
+							INNER JOIN app.subjects
+							ON class_subjects.subject_id = subjects.subject_id
+						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+						WHERE class_subjects.class_id = $classId
+						AND term_id = $termId
+						AND class_subject_exams.exam_type_id = $examTypeId
+						WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY class_subjects.subject_id, mark desc)
+						',
+				array['student_id','student_name','exam_type'], array['subject_name','grade_weight'], '#.mark', null);");
+			$sth2 = $db->prepare("select *,
+									(
+										SELECT rank FROM (
+											SELECT student_id, dense_rank() over w as rank
+											FROM app.exam_marks
+											INNER JOIN app.class_subject_exams 
+											INNER JOIN app.exam_types
+											ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+											INNER JOIN app.class_subjects 
+												INNER JOIN app.subjects
+												ON class_subjects.subject_id = subjects.subject_id
+											ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+											ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+											WHERE class_subjects.class_id = $classId
+											AND term_id = $termId
+											AND class_subject_exams.exam_type_id = $examTypeId
+											GROUP BY exam_marks.student_id
+											WINDOW w AS (ORDER BY sum(mark) desc)	
+										) q
+										WHERE student_id = _exam_marks.student_id
+									) as rank
+									from _exam_marks order by rank;");
 			
 			$db->beginTransaction();
 			$sth1->execute(); 
@@ -2462,7 +2497,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 										  ,sum(grade_weight) as total_grade_weight
 										  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
 										  ,dense_rank() over w as rank
-										  ,(select count(*) from app.students where active is true and current_class = 4) as position_out_of
+										  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
 									FROM app.exam_marks
 									INNER JOIN app.class_subject_exams 
 									INNER JOIN app.exam_types
@@ -2492,7 +2527,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 										  ,sum(grade_weight) as total_grade_weight
 										  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
 										  ,dense_rank() over w as rank
-										  ,(select count(*) from app.students where active is true and current_class = 4) as position_out_of
+										  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
 									FROM app.exam_marks
 									INNER JOIN app.class_subject_exams 
 									INNER JOIN app.exam_types
@@ -3429,7 +3464,11 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 							student_id,  student_fee_item_id, student_name, fee_item, 
 							coalesce((CASE 
 								WHEN frequency = 'per term' and payment_method = 'Installments' THEN
-									round(yearly_amount/num_payments,2)
+									case when payment_plan_name = 'Per Month' then
+										round(yearly_amount/9,2)
+									else
+										round(yearly_amount/num_payments,2)
+									end
 								ELSE
 									round(yearly_amount,2)				
 							END),0) AS invoice_amount,
@@ -3457,7 +3496,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 						FROM (
 							SELECT
 								student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,
-								fee_item, student_fee_item_id, payment_method, frequency,yearly_amount,num_payments,term_start_date,
+								fee_item, student_fee_item_id, payment_method, frequency,yearly_amount,num_payments,term_start_date,payment_plan_name,
 								payment_interval,year_start_date,term_end_date,start_next_term,payment_interval2,
 								CASE 
 									 WHEN frequency = 'per term' and payment_method = 'Installments' THEN
@@ -3473,18 +3512,22 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 											WHERE student_id = q.student_id
 										) q
 									)q2
-									WHERE due_date BETWEEN term_start_date and date_trunc('month',start_next_term) )
+									WHERE due_date BETWEEN term_start_date and date_trunc('month',start_next_term - interval '1 mon') )
 									 ELSE
-									-- otherwise we are paying annually, this is due in the first month of the start of first term
-									CASE WHEN date_part('month',year_start_date) = date_part('month',term_start_date) THEN 
-										1 
-									ELSE 0 END
+									-- otherwise we are paying annually, this is due in the first invoice
+									CASE WHEN (
+										SELECT count(*) 
+										FROM app.invoice_line_items
+										INNER JOIN app.invoices ON invoice_line_items.inv_id = invoices.inv_id
+										WHERE canceled = false
+										AND student_fee_item_id = q.student_fee_item_id
+									) = 0 THEN 1 ELSE 0 END
 								END::integer AS num_payments_this_term
 							FROM (
 								SELECT 
 									students.student_id, first_name, middle_name, last_name, 
 									fee_item, student_fee_items.student_fee_item_id, payment_interval,payment_interval2,
-									student_fee_items.payment_method, frequency, coalesce(num_payments,1) as num_payments,
+									student_fee_items.payment_method, frequency, coalesce(num_payments,1) as num_payments,payment_plan_name,
 									round( CASE WHEN frequency = 'per term' THEN student_fee_items.amount*3 ELSE student_fee_items.amount END, 2) as yearly_amount,
 									(select start_date from $termStatement) as term_start_date,
 									(select end_date from $termStatement) as term_end_date,
@@ -4319,8 +4362,8 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 		{
 		
 			$sth2 = $db->prepare("SELECT 
-									(SELECT due_date FROM app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false) AS next_due_date,
-									(SELECT balance from app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false) AS next_amount,
+									(SELECT due_date FROM app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
+									(SELECT balance from app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
 									(
 										SELECT sum(diff) FROM (
 											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
@@ -4669,7 +4712,6 @@ $app->get('/getStudentClassess/:studentId', function ($studentId) {
     }
 
 });
-
 
 $app->post('/addStudent/', function () use($app) {
     // Add student	

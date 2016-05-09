@@ -177,7 +177,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				$scope.examMarks = result.data;
 				
 				$scope.tableHeader = [];
-				var ignoreCols = ['student_id','student_name','sum','total'];
+				var ignoreCols = ['student_id','student_name','rank','exam_type'];
 				angular.forEach($scope.examMarks[0], function(value,key){
 					if( ignoreCols.indexOf(key) === -1 )
 					{
@@ -189,6 +189,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							key: key
 						});
 					}
+				});
+				
+				// total up marks
+				angular.forEach($scope.examMarks, function(item){
+					var total = 0;
+					angular.forEach(item, function(value,key){
+						if( ignoreCols.indexOf(key) === -1 )
+						{
+							total += value;
+						}
+					});
+					item.total = total;
 				});
 
 				$scope.getReport = "examsTable";

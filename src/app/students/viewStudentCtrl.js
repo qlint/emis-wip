@@ -623,7 +623,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	var initFeesDataGrid = function() 
 	{
 		var settings = {
-			sortOrder: [5,'desc'],
+			sortOrder: [5,'asc'],
 			noResultsTxt: "This student has not been invoiced."
 		}
 		initDataGrid(settings);
@@ -651,7 +651,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		// open dialog
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentForm.html','paymentFormCtrl',{selectedStudent:$scope.student},{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentForm.html','paymentFormCtrl',{selectedStudent:$scope.student},{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(payment){
 			// update payments
 			if( $scope.dataGrid !== undefined )
@@ -830,6 +830,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	};
 	
+	$scope.addFeeItem = function()
+	{
+		// open dialog
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/feeItemForm.html','feeItemFormCtrl',undefined,{size: 'md',backdrop:'static'});
+		dlg.result.then(function(){
+			// update fee items
+			getFeeItems();
+		},function(){
+				
+		});
+		
+	
+	}
 	/************************************* Exam Functions ***********************************************/
 	$scope.$watch('filters.class_cat_id', function(newVal, oldVal){
 		if( newVal == oldVal) return;
@@ -887,7 +901,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				
 				// get unique exam subjects
 				$scope.examMarks.subjects = result.data.reduce(function(sum,item){
-					if( sum.indexOf(item.subject_name + ' / ' + item.grade_weight) === -1 ) sum.push(item.subject_name + ' / ' + item.grade_weight);
+					if( sum.indexOf(item.subject_name) === -1 ) sum.push(item.subject_name);
 					return sum;
 				}, []);
 				//console.log($scope.examMarks.subjects);
@@ -916,7 +930,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						i++;
 
 					}
-					marks.push(item.mark);
+					marks.push({
+						mark:item.mark,
+						grade_weight: item.grade_weight
+					});
 					
 					lastExamType = item.exam_type;
 					

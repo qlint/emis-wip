@@ -559,7 +559,7 @@
 							<td>{{item.payment_method}}</td>
 							<td class="center">{{item.total_due|currency:""}}</td>
 							<td class="center">{{item.total_paid|currency:""}}</td>
-							<td class="center">{{item.balance|numeric}}</td>
+							<td class="center" data-order="{{item.balance}}">{{item.balance|numeric}}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -778,7 +778,7 @@
 					<tbody>
 						<tr ng-repeat="item in examMarks.types track by $index">
 							<td id="{{item.exam_id}}">{{item.exam_type}}</td>
-							<td class="center" ng-repeat="mark in item.marks track by $index">{{mark}}</td>
+							<td class="center" ng-repeat="mark in item.marks track by $index">{{mark.mark}}<span class="text-muted">/{{mark.grade_weight}}</span></td>
 						</tr>
 					</tbody>
 				</table>
