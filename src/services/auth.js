@@ -17,7 +17,7 @@ function($http, $rootScope, $window, Session, AUTH_EVENTS, ajaxService) {
 		success(loginData.data);
 		***************************/
 	
-	    ajaxService.AjaxPost(user, "http://api.eduweb.localhost/login", 
+	    ajaxService.AjaxPost(user, "http://api.eduweb.co.ke/login", 
 			function(loginData){
 				
 				if( loginData.response == 'success' )
