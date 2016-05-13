@@ -102,7 +102,8 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 	}
 
 } ])
-.controller('updatePwdCtrl',function($scope,$uibModalInstance,data,$timeout,apiService){
+.controller('updatePwdCtrl',[ '$scope','$uibModalInstance','data','$timeout','apiService',
+ function($scope,$uibModalInstance,data,$timeout,apiService){
 		//-- Variables --//
 		$scope.user = data.user
 		$scope.user.old_pwd = $scope.user.user_pwd;
@@ -154,7 +155,7 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 				$scope.updatePwd();
 		};
 			
-	}) // end controller(addCargoCtrl)
+	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('updatePwd.html','<div class="modal-header modal-warning dialog-header-form">' +
 		'<h4 class="modal-title"><span class="fa fa-exclamation-triangle"></span> Password is Expired</h4>' +

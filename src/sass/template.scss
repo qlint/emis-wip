@@ -153,6 +153,11 @@ a{
 		margin-right: 10px;
 	}
 }
+
+.center-block{
+	float:none;
+}
+
 .login {
     padding: 18px 25px;
 	
@@ -310,6 +315,7 @@ h1{
 .school_settings .dashboard-panel{
 	background-color:#eee;
 	margin-bottom:10px;
+	position:relative;
 }
 
 .school_settings .dashboard-panel{
@@ -330,8 +336,7 @@ h1{
 		h2{
 			font-size:14px;
 			margin:0;
-		}
-	
+		}	
 		.totalSum{
 			font-size:14px;
 			line-height:26px;
@@ -348,10 +353,8 @@ h1{
 	.dashboard-panel-footer{
 		margin:0 -10px;
 	}
-	
-	
-	
-	input{
+
+	input, select{
 		font-size: 14px;
 		line-height: 1.42857143;
 		border: 1px solid #ccc;
@@ -377,12 +380,74 @@ h1{
 	
 	
 }
+.full-height{
+	height:98%;
+}
+.loading-indicator{
+	color:#bbb;
+	display:block;
+	margin:10px auto;
+}
+
+.section-label{
+    position: absolute;
+    right: 0px;
+    background: #EEEEEE;
+    padding: 10px 15px;
+    /* border: 3px double #ddd; */
+    /* border-right: none; */
+    color: $bright-green;
+    top: 0px;
+    @include rounded(10px);
+	z-index:9999;
+}
+
+.dashboard,
 .school_settings {
 	.dashboard-panel-header{
-		border-bottom:1px solid $mid-gray;
+		//border-bottom:1px solid $mid-gray;
 	}
 	.dashboard-panel-body{
-		background-color:#eee;
+	//	background-color:#eee;
+		
+		h2{
+			font-size:14px;
+			margin:5px 2px;
+			color:#777;
+			font-style:italic;
+		}
+		h3{
+			font-size:12px;
+			margin:0 2px 0 0;
+			background:$mid-green;
+			color:#fff;
+			padding:5px;
+		}
+		ul{
+			list-style:none;
+			margin:0;
+			padding:5px;
+			
+			li{
+				padding:3px 0;
+				border-bottom:1px solid #eee;
+				
+				ul{
+					padding-left:25px;
+			
+				}
+				
+			}
+			
+			
+		}
+		
+		ul.stripped{
+			li:nth-child(even){
+				background-color:rgba(238, 238, 238, 0.38);
+			}		
+		}
+		
 	}
 	.dashboard-panel-footer{
 		margin:0;
@@ -393,25 +458,35 @@ h1{
 }
 
 .dashboard .well{
-	background: #fff;
+//	background: #fff;
     text-align: center;
     border: none;
+	border-left:1px solid #eee;
 	padding: 10px 0;
-	min-height:118px;
+	min-height:141px;
+//	@include rounded(10px);
+    margin-top: 10px;
+    margin-bottom: 5px;
 	
 	h2{
 		font-size:14px!important;
 	}
-	
-	
 }
-
+.text-xlg{
+	font-size:60px;
+}
 .text-lg{
 	font-size:40px;
 	
 	a:hover{
 		text-decoration:none;
 	}
+}
+.text-md{
+	font-size:30px;
+}
+.text-sm{
+	font-size:20px;
 }
 .text-xs{
 	font-size:10px;

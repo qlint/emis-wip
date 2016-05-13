@@ -307,6 +307,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			var postData = angular.copy($scope.student);
 			postData.admission_date = $scope.student.admission_date.startDate;
 			postData.current_class = $scope.student.current_class.class_id;		
+			postData.new_student = (  $scope.student.new_student ? 't' : 'f' );
 			postData.medicalConditions = $scope.conditionSelection;
 			postData.feeItems = $scope.feeItemSelection;
 			postData.optFeeItems = $scope.optFeeItemSelection;

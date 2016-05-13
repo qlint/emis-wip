@@ -183,20 +183,23 @@ $app->put('/updateSettings/', function () use($app) {
 			$value = ( isset($setting['value']) ? $setting['value']: null);
 			$append = ( isset($setting['append']) ? $setting['append']: null);
 			
-			$query->execute( array(':name' => $name ) );
-			
-			$results = $query->fetch(PDO::FETCH_OBJ);
-			
-			if( $results )
+			if( $value !== null )
 			{
-				// update, append new value to end if append is true
-				if( $append ) $value = $results->value . ',' . $value;		 
-				$update->execute( array(':name' => $name, ':value' => $value ) );	
-			}
-			else
-			{
-				// add
-		 		$insert->execute( array(':name' => $name, ':value' => $value ) );	
+				$query->execute( array(':name' => $name ) );
+			
+				$results = $query->fetch(PDO::FETCH_OBJ);
+				
+				if( $results )
+				{
+					// update, append new value to end if append is true
+					if( $append ) $value = $results->value . ',' . $value;		 
+					$update->execute( array(':name' => $name, ':value' => $value ) );	
+				}
+				else
+				{
+					// add
+					$insert->execute( array(':name' => $name, ':value' => $value ) );	
+				}
 			}
 		}
 		
@@ -226,7 +229,7 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
         $sth = $db->prepare("SELECT class_id, class_name, class_cat_id, teacher_id, active
             FROM app.classes
             WHERE active = :status
-			ORDER BY class_cat_id, class_id"); 
+			ORDER BY sort_order"); 
        $sth->execute( array(':status' => $status ) );
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -273,6 +276,8 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $st
 			$query .= "AND classes.class_cat_id = :classCatid";
 			$params[':classCatid'] = $classCatid;
 		}
+		
+		$query .= " ORDER BY sort_order";
 		
         $sth = $db->prepare($query);
         $sth->execute( $params );
@@ -329,6 +334,7 @@ $app->get('/getClassExams/:class_id(/:exam_type_id)', function ($classId, $examT
 			$query .= "AND class_subject_exams.exam_type_id = :examTypeId";
 			$params[':examTypeId'] = $examTypeId; 
 		}
+		$query .= " ORDER BY exam_types.sort_order";
 		
         $sth = $db->prepare($query);
         $sth->execute( $params  );
@@ -1778,7 +1784,7 @@ $app->get('/getSubjects/(:classCatId)', function ($classCatId = null) {
 			$params = array(':classCatId' => $classCatId);
 		}
 		
-		$query .= "ORDER BY class_cat_name, subject_name";
+		$query .= "ORDER BY class_cat_name, sort_order, subject_name";
 		$sth = $db->prepare($query);
 		$sth->execute($params);			
 		
@@ -1923,7 +1929,7 @@ $app->get('/getExamTypes(/:class_cat_id)', function ($classCatId = null) {
 								LEFT JOIN app.class_cats
 								ON exam_types.class_cat_id = class_cats.class_cat_id
 								--WHERE exam_types.class_cat_id is null 
-								ORDER BY exam_type_id");
+								ORDER BY sort_order");
 			$sth->execute(); 
 		}
 		else
@@ -1934,7 +1940,7 @@ $app->get('/getExamTypes(/:class_cat_id)', function ($classCatId = null) {
 								ON exam_types.class_cat_id = class_cats.class_cat_id
 								WHERE exam_types.class_cat_id is null 
 								OR exam_types.class_cat_id = :classCatId 
-								ORDER BY exam_type_id");
+								ORDER BY sort_order");
 			$sth->execute(array(':classCatId' => $classCatId)); 
 		}
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -2042,7 +2048,8 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 							  ,mark          
 							  ,grade_weight
 							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
-							  ,dense_rank() over w as rank
+							  ,dense_rank() over w as rank,
+							  subjects.sort_order
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types
@@ -2065,7 +2072,8 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 		
 		$query .= "WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY  exam_types.exam_type_id, class_subjects.subject_id, mark desc)
 				 ) q
-				 where student_id = :studentId";
+				 where student_id = :studentId
+				 ORDER BY sort_order";
 		
 		$sth = $db->prepare($query);
 		$sth->execute( $queryArray ); 
@@ -2099,10 +2107,10 @@ $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id', function ($clas
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT q.student_id, student_name, subject_name, q.class_sub_exam_id, mark, exam_marks.term_id, grade_weight
+        $sth = $db->prepare("SELECT q.student_id, student_name, subject_name, q.class_sub_exam_id, mark, exam_marks.term_id, grade_weight, sort_order
 							FROM (
 								SELECT  students.student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name, 
-									subject_name, class_subject_exams.class_sub_exam_id, grade_weight
+									subject_name, class_subject_exams.class_sub_exam_id, grade_weight, subjects.sort_order
 								FROM app.students 
 								INNER JOIN app.classes 
 									INNER JOIN app.class_subjects 
@@ -2120,7 +2128,7 @@ $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id', function ($clas
 								INNER JOIN app.terms 
 								ON exam_marks.term_id = terms.term_id															
 							ON q.class_sub_exam_id = exam_marks.class_sub_exam_id AND exam_marks.term_id = :termId AND exam_marks.student_id = q.student_id
-							ORDER BY student_name, subject_name");
+							ORDER BY student_name, sort_order, subject_name");
         $sth->execute( array(':classId' => $classId, ':termId' => $termId, ':examTypeId' => $examTypeId)); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
@@ -2308,6 +2316,88 @@ $app->post('/addExamMarks/', function () use($app) {
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getTopStudents(/:class_id)', function ($classId=null) {
+    //Get all top 3 students for each class, or requested class
+	
+	$app = \Slim\Slim::getInstance();
+	
+    try 
+    {
+		
+		$db = getDB();
+		$queryParams = array();
+		$query = "SELECT student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name, class_id, class_name,
+							total_mark, total_grade_weight, rank, percentage, 
+								(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
+								position_out_of
+							FROM (
+								SELECT    
+									 exam_marks.student_id
+									  ,first_name
+									  ,middle_name
+									  ,last_name
+									  ,class_subjects.class_id
+									  ,class_name
+									  ,sum(mark) as total_mark    
+									  ,sum(grade_weight) as total_grade_weight
+									  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
+									  ,dense_rank() over w as rank
+									  ,(select count(*) from app.students where active is true and current_class = students.current_class) as position_out_of
+								FROM app.exam_marks
+								INNER JOIN app.students
+								ON exam_marks.student_id = students.student_id
+								INNER JOIN app.class_subject_exams 
+									INNER JOIN app.exam_types
+									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+									INNER JOIN app.class_subjects 
+										INNER JOIN app.subjects
+										ON class_subjects.subject_id = subjects.subject_id
+										INNER JOIN app.classes
+										ON class_subjects.class_id = classes.class_id
+									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+								WHERE term_id = (select term_id from app.current_term)
+					";
+			
+		if( $classId !== null  )
+		{
+			$query .= " AND class_subjects.class_id = :classId ";
+			$queryParams = array(':classId' => $classId );
+		}
+		
+		$query .= " GROUP BY exam_marks.student_id, first_name, middle_name, last_name, class_subjects.class_id, class_name
+								WINDOW w AS (PARTITION BY class_subjects.class_id ORDER BY class_subjects.class_id desc, coalesce(sum(mark),0) desc)								
+							 ) q
+							 WHERE rank < 4";
+		
+		//echo $query;
+
+		$sth = $db->prepare($query);
+		$sth->execute($queryParams); 
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+					
+		
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        //echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		 echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
     }
 
 });
@@ -2529,7 +2619,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 									WHERE class_subjects.class_id = :classId
 									AND term_id = :termId
 									GROUP BY exam_marks.student_id
-									WINDOW w AS (ORDER BY sum(mark) desc)									
+									WINDOW w AS (ORDER BY coalesce(sum(mark),0) desc)									
 								 ) q
 								 where student_id = :studentId");
 		$sth3->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
@@ -2559,7 +2649,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 									WHERE class_subjects.class_id = :classId
 									AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 									GROUP BY exam_marks.student_id
-									WINDOW w AS (ORDER BY sum(mark) desc)									
+									WINDOW w AS (ORDER BY coalesce(sum(mark),0) desc)									
 								 ) q
 								 where student_id = :studentId");
 		$sth4->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
@@ -3519,28 +3609,55 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 								payment_interval,year_start_date,term_end_date,start_next_term,payment_interval2,
 								CASE 
 									 WHEN frequency = 'per term' and payment_method = 'Installments' THEN
-									-- are there any installments due this term
-									(SELECT count(*) FROM (
-										SELECT
-										generate_series(year_start_date, year_start_date + ((payment_interval*(num_payments-1)) || payment_interval2)::interval, (payment_interval::text || payment_interval2)::interval)::date  as due_date
-										FROM (
-											SELECT payment_interval,payment_interval2,num_payments
-											FROM app.students
-											INNER JOIN app.installment_options 
-											ON installment_option_id = installment_options.installment_id
-											WHERE student_id = q.student_id
-										) q
-									)q2
-									WHERE due_date BETWEEN term_start_date and date_trunc('month',start_next_term - interval '1 mon') )
+										CASE WHEN payment_plan_name = '50/50 Installment' THEN
+											-- if 50/50 and not paid in first term, invoice
+											CASE WHEN (
+												SELECT count(*) 
+												FROM app.invoice_line_items
+												INNER JOIN app.invoices ON invoice_line_items.inv_id = invoices.inv_id
+												WHERE canceled = false
+												AND student_fee_item_id = q.student_fee_item_id
+											) = 0 THEN 
+												(SELECT count(*) FROM (
+													SELECT
+													generate_series(term_start_date, term_start_date + ((payment_interval*(num_payments-1)) || payment_interval2)::interval, (payment_interval::text || payment_interval2)::interval)::date  as due_date
+													FROM (
+														SELECT payment_interval,payment_interval2,num_payments
+														FROM app.students
+														INNER JOIN app.installment_options 
+														ON installment_option_id = installment_options.installment_id
+														WHERE student_id = q.student_id
+													) q
+												   )q2
+												   WHERE due_date BETWEEN term_start_date and date_trunc('month',start_next_term - interval '1 mon') 
+												)
+
+											 ELSE 0 END
+										ELSE
+											-- are there any installments due this term
+											(SELECT count(*) FROM (
+												SELECT
+												generate_series(year_start_date, year_start_date + ((payment_interval*(num_payments-1)) || payment_interval2)::interval, (payment_interval::text || payment_interval2)::interval)::date  as due_date
+												FROM (
+														SELECT payment_interval,payment_interval2,num_payments
+														FROM app.students
+														INNER JOIN app.installment_options 
+														ON installment_option_id = installment_options.installment_id
+														WHERE student_id = q.student_id
+													) q
+												)q2
+												WHERE due_date BETWEEN term_start_date and date_trunc('month',start_next_term - interval '1 mon') 
+											)
+										END
 									 ELSE
-									-- otherwise we are paying annually, this is due in the first invoice
-									CASE WHEN (
-										SELECT count(*) 
-										FROM app.invoice_line_items
-										INNER JOIN app.invoices ON invoice_line_items.inv_id = invoices.inv_id
-										WHERE canceled = false
-										AND student_fee_item_id = q.student_fee_item_id
-									) = 0 THEN 1 ELSE 0 END
+										-- otherwise we are paying annually, this is due in the first invoice
+										CASE WHEN (
+											SELECT count(*) 
+											FROM app.invoice_line_items
+											INNER JOIN app.invoices ON invoice_line_items.inv_id = invoices.inv_id
+											WHERE canceled = false
+											AND student_fee_item_id = q.student_fee_item_id
+										) = 0 THEN 1 ELSE 0 END
 								END::integer AS num_payments_this_term
 							FROM (
 								SELECT 
@@ -4748,6 +4865,7 @@ $app->post('/addStudent/', function () use($app) {
 	$studentImg = 					( isset($allPostVars['student_image']) ? $allPostVars['student_image']: null);
 	$paymentMethod = 				( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
 	$active = 						( isset($allPostVars['active']) ? $allPostVars['active']: true);
+	$newStudent = 		( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: true);
 	$admissionDate = 				( isset($allPostVars['admission_date']) ? $allPostVars['admission_date']: null);
 	$marialStatusParents = 			( isset($allPostVars['marial_status_parents']) ? $allPostVars['marial_status_parents']: null);
 	$adopted = 						( isset($allPostVars['adopted']) ? $allPostVars['adopted']: 'f');
@@ -4821,11 +4939,11 @@ $app->post('/addStudent/', function () use($app) {
 																adopted, adopted_age, marital_separation_age, adoption_aware, comments, medical_conditions, hospitalized,
 																hospitalized_description, current_medical_treatment, current_medical_treatment_description,
 																other_medical_conditions, other_medical_conditions_description, 
-																emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual, installment_option_id) 
+																emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual, installment_option_id, new_student) 
             VALUES(:admissionNumber,:gender,:firstName,:middleName,:lastName,:dob,:studentCat,:nationality,:studentImg, :currentClass, :paymentMethod, :active, :createdBy, 
 					:admissionDate, :marialStatusParents, :adopted, :adoptedAge, :maritalSeparationAge, :adoptionAware, :comments, :hasMedicalConditions, :hospitalized,
 					:hospitalizedDesc, :currentMedicalTreatment, :currentMedicalTreatmentDesc, :otherMedicalConditions, :otherMedicalConditionsDesc, 
-					:emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption);"); 
+					:emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent);"); 
 					
 		$studentClassInsert = $db->prepare("INSERT INTO app.student_class_history(student_id,class_id,created_by)
 											VALUES(currval('app.students_student_id_seq'),:currentClass,:createdBy);");
@@ -4893,7 +5011,8 @@ $app->post('/addStudent/', function () use($app) {
 							':emergencyRelation' => $emergencyRelation, 
 							':emergencyPhone' => $emergencyPhone,
 							':pickUpIndividual' => $pickUpIndividual,
-							':installmentOption' => $installmentOption
+							':installmentOption' => $installmentOption,
+							':newStudent' => $newStudent
 		) );
 		
 		$studentClassInsert->execute(array(':currentClass' => $currentClass,':createdBy' => $createdBy));

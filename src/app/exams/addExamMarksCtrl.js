@@ -69,11 +69,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				var result = angular.fromJson( response );
 				if( result.response == 'success' )
 				{
-					$scope.subjects = result.data;
-					
-					var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
-					apiService.getClassExamMarks(request, loadMarks, apiError);
-		
+					if( result.nodata !== undefined)
+					{
+						$scope.marksNotFound = true;
+						$scope.errMsg = "The selected exam is not set up for this class.";
+					}
+					else
+					{
+						$scope.subjects = result.data;
+						
+						var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+						apiService.getClassExamMarks(request, loadMarks, apiError);
+					}
 				}
 			}, apiError)
 		}	

@@ -19,12 +19,16 @@
 
 			<div class="clearfix">
 				<h1 id="pageTitle">School Settings</h1>
-			</div>			
+			</div>	
 			
 		</div>
 		
 		<div class="full-height main-datagrid">
+			
 			<div class="col-sm-6">
+				<div ng-show="initialSetup" class="alert alert-success text-sm">
+					Welcome! To get started lets set up your school settings. Start by entering your school name and details below.
+				</div>
 				<div class="dashboard-panel">					
 					<div class="dashboard-panel-header">
 						<h2>School Details</h2>
@@ -45,8 +49,21 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.school_type.$invalid && (schoolForm.school_type.$touched || schoolForm.$submitted) }">		
 								<label for="school_type" class="col-sm-4 control-label nopad-right">School Type</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="school_type" ng-model="settings['School Type']" required />						
+									<select name="school_type" class="form-control" ng-options="item for item in schoolTypes"  ng-model="settings['School Type']" >
+										<option value="">--select school type--</option>
+									</select>					
 									<p ng-show="schoolForm.school_type.$invalid && (schoolForm.school_type.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> School Type is required.</p>
+								</div>	
+							</div>
+							
+							<!-- school level -->
+							<div class="form-group" ng-class="{ 'has-error' : schoolForm.school_level.$invalid && (schoolForm.school_level.$touched || schoolForm.$submitted) }">		
+								<label for="school_level" class="col-sm-4 control-label nopad-right">School Level</label>
+								<div class="col-sm-8">
+									<select name="school_level" class="form-control" ng-options="item for item in schoolLevels"  ng-model="settings['School Level']" >
+										<option value="">--select school level--</option>
+									</select>					
+									<p ng-show="schoolForm.school_level.$invalid && (schoolForm.school_level.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> School Type is required.</p>
 								</div>	
 							</div>
 							
@@ -54,7 +71,9 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.curriculum.$invalid && (schoolForm.curriculum.$touched || schoolForm.$submitted) }">		
 								<label for="curriculum" class="col-sm-4 control-label nopad-right">Curriculum</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="curriculum" ng-model="settings['Curriculum']" required />						
+									<select name="curriculum" class="form-control" ng-options="item for item in curriculums"  ng-model="settings['Curriculum']" required>
+										<option value="">--select curriculum--</option>
+									</select>					
 									<p ng-show="schoolForm.curriculum.$invalid && (schoolForm.curriculum.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> School Curriculum is required.</p>
 								</div>	
 							</div>
@@ -63,7 +82,7 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.address_1.$invalid && (schoolForm.address_1.$touched || schoolForm.$submitted) }">		
 								<label for="address_1" class="col-sm-4 control-label nopad-right">Address</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="address_1" ng-model="settings['Address 1']" required />						
+									<input type="text" class="form-control" name="address_1" ng-model="settings['Address 1']"  />						
 									<p ng-show="schoolForm.address_1.$invalid && (schoolForm.address_1.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> School Type is required.</p>
 								</div>	
 							</div>
@@ -82,7 +101,7 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.phone_number.$invalid && (schoolForm.phone_number.$touched || schoolForm.$submitted) }">		
 								<label for="phone_number" class="col-sm-4 control-label nopad-right">Phone Number</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="phone_number" ng-model="settings['Phone Number']" required numeric-only />						
+									<input type="text" class="form-control" name="phone_number" ng-model="settings['Phone Number']"  numeric-only />						
 									<p ng-show="schoolForm.phone_number.$invalid && (schoolForm.phone_number.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Phone Number is required.</p>
 								</div>	
 							</div>
@@ -91,7 +110,7 @@
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.email_address.$invalid && (schoolForm.email_address.$touched || schoolForm.$submitted) }">		
 								<label for="email_address" class="col-sm-4 control-label nopad-right">Email Address</label>
 								<div class="col-sm-8">
-									<input type="email" class="form-control" name="email_address" ng-model="settings['Email Address']" required />						
+									<input type="email" class="form-control" name="email_address" ng-model="settings['Email Address']"  />						
 									<p ng-show="schoolForm.email_address.$error.required && (schoolForm.email_address.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email Address is required.</p>
 									<p ng-show="schoolForm.email_address.$error.email&& (schoolForm.email_address.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email Address is invalid.</p>
 									
@@ -103,6 +122,17 @@
 								<label for="email_from" class="col-sm-4 control-label nopad-right">Email From</label>
 								<div class="col-sm-8">
 									<input type="text" class="form-control" name="email_from" ng-model="settings['Email From']">						
+									<p ng-show="schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email From is required.</p>
+								</div>	
+							</div>
+							
+							<!-- currency -->
+							<div class="form-group" ng-class="{ 'has-error' : schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted) }">		
+								<label for="currency" class="col-sm-4 control-label nopad-right">Currency</label>
+								<div class="col-sm-8">
+									<select name="currency" class="form-control" ng-options="item for item in currencies"  ng-model="settings['Currency']" required>
+										<option value="">--select currency--</option>
+									</select>				
 									<p ng-show="schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email From is required.</p>
 								</div>	
 							</div>

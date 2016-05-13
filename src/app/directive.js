@@ -1,5 +1,6 @@
 angular.module('eduwebApp')
-.directive('adjustForSmallScreen', function($window, $rootScope, $timeout) {
+.directive('adjustForSmallScreen', [ '$window', '$rootScope', '$timeout', 
+function($window, $rootScope, $timeout) {
     return function (scope, element, attrs) {
 		setTimeout( 
 			function () {
@@ -54,7 +55,7 @@ angular.module('eduwebApp')
 		,100);
 
     }
-})
+}])
 .directive('ignoreDirty', [function() {
     return {
     restrict: 'A',
@@ -65,7 +66,7 @@ angular.module('eduwebApp')
     }
   }
 }])
-.directive('numericOnly', function(){
+.directive('numericOnly', [function(){
     return {
         require: 'ngModel',
         link: function(scope, element, attrs, modelCtrl) {
@@ -83,8 +84,8 @@ angular.module('eduwebApp')
             });
         }
     };
-})
-.directive('ngEnter', function () {
+}])
+.directive('ngEnter', [function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
             if(event.which === 13) {
@@ -96,8 +97,8 @@ angular.module('eduwebApp')
             }
         });
     };
-})
-.directive('mytabset', function () {
+}])
+.directive('mytabset', [function () {
   return {
     restrict: 'E',
     replace: true,
@@ -229,8 +230,8 @@ angular.module('eduwebApp')
 		'</div>' +
       '</div>'
   };
-})
-.directive('mytab', function () {
+}])
+.directive('mytab', [function () {
   return {
     restrict: 'E',
     replace: true,
@@ -260,8 +261,8 @@ angular.module('eduwebApp')
         '<a href="" ng-click="select()">{{ title }}</a>' +
       '</li>'
   };
-})
-.directive('slideToggle', function() {
+}])
+.directive('slideToggle', [function() {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -283,7 +284,7 @@ angular.module('eduwebApp')
             });
         }
     }
-})
+}])
 .directive('compile', ['$compile', function ($compile) {
   return function(scope, element, attrs) {
     scope.$watch(
@@ -296,7 +297,7 @@ angular.module('eduwebApp')
       }
    )};
 }])
-.directive('focusMe', function($timeout) {
+.directive('focusMe', ['$timeout', function($timeout) {
   return {
     scope: { trigger: '@focusMe' },
     link: function(scope, element) {
@@ -309,4 +310,4 @@ angular.module('eduwebApp')
       });
     }
   };
-});;
+}]);

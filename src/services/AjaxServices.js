@@ -1,4 +1,4 @@
-﻿angular.module('eduwebApp').service('ajaxService', function ($http,$rootScope) {
+﻿angular.module('eduwebApp').service('ajaxService', ['$http','$rootScope', function ($http,$rootScope) {
 
         // setting timeout of 1 second to simulate a busy server.
 		
@@ -104,6 +104,6 @@
 
 	
 		return this;
-});
+}]);
 
 

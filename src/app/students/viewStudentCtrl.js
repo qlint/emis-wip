@@ -166,8 +166,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.loading = true;		
 			$scope.currentFeeTab = "Fee Summary";
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
-			
-			
 		}
 		else if( tab == 'Exams' )
 		{
@@ -1244,7 +1242,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     });
 	
 } ])
-.controller('addParentCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
+.controller('addParentCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){
 		//-- Variables --//
 		$scope.guardian =  data.guardian || {};
 		$scope.edit = ( data.action == 'edit' ? true : false );
@@ -1330,7 +1329,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	
 	
-	}) // end controller(addCargoCtrl)
+	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('addParent.html',
 			'<form name="parentForm" class="form-horizontal modalForm" novalidate role="form" ng-submit="save(parentForm)">' +
@@ -1470,7 +1469,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			'</form>'
 		);
 }])
-.controller('addMedicalHistoryCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
+.controller('addMedicalHistoryCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		//-- Variables --//
 		
@@ -1568,7 +1568,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 	};
 	
-	}) // end controller(addCargoCtrl)
+	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('addMedicalHistory.html',
 			'<div class="modal-header dialog-header-form">'+
@@ -1617,7 +1617,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			'</div>'
 		);
 }])
-.controller('updateMedicalConditionCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
+.controller('updateMedicalConditionCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		//-- Variables --//
 		
@@ -1671,7 +1672,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		};
 		
 	
-	}) // end controller(addCargoCtrl)
+	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('updateMedicalCondition.html',
 			'<div class="modal-header dialog-header-form">'+
@@ -1704,7 +1705,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			'</div>'
 		);
 }])
-.controller('addStudentExamMarksCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
+.controller('addStudentExamMarksCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		//-- Variables --//
 		//console.log(data);
@@ -1732,7 +1734,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 		$scope.getStudentExams = function( theForm )
 		{
-			console.log(theForm);
+
 			if( !theForm.$invalid )
 			{
 			// /:student_id/:class/:term/:type
@@ -1746,35 +1748,43 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					var result = angular.fromJson( response );
 					if( result.response == 'success' )
 					{
-						var subjects = result.data;
-						
-						// populate any already entered exam marks
-						var request = $scope.student_id + '/' + $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
-						apiService.getStudentExamMarks(request, function(response){
-							$scope.loading = false;
-							var result = angular.fromJson( response );
-							if( result.response == 'success' )
-							{
-								$scope.marks = (result.nodata ? [] : result.data);
-								
-								if( $scope.marks.length > 0 )
+						if( result.nodata !== undefined )
+						{
+							$scope.examNotFound = true;
+						}
+						else
+						{
+							var subjects = result.data;
+							
+							// populate any already entered exam marks
+							var request = $scope.student_id + '/' + $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+							apiService.getStudentExamMarks(request, function(response){
+								$scope.loading = false;
+								var result = angular.fromJson( response );
+								if( result.response == 'success' )
 								{
-									$scope.subjects = subjects.map(function(item){
-										var mark = $scope.marks.filter(function(item2){
-											if( item2.subject_name == item.subject_name ) return item2;
-										})[0];
+									$scope.marks = (result.nodata ? [] : result.data);
+									
+									if( $scope.marks.length > 0 )
+									{
+										$scope.subjects = subjects.map(function(item){
+											var mark = $scope.marks.filter(function(item2){
+												if( item2.subject_name == item.subject_name ) return item2;
+											})[0];
 
-										item.mark = mark.mark;
-										return item;
-									});
+											item.mark = (mark !== undefined ? mark.mark : undefined);
+											return item;
+										});
+									}
+									else
+									{
+										$scope.subjects = subjects;
+									}
+									
 								}
-								else
-								{
-									$scope.subjects = subjects;
-								}
-								
-							}
-						}, apiError);
+							}, apiError);
+						}
+						
 						
 					}
 				}, apiError);
@@ -1838,7 +1848,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	
 	
-	}) // end controller(addCargoCtrl)
+	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('addStudentExamMarks.html',
 			'<div class="modal-header dialog-header-form">'+
@@ -1883,6 +1893,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 							'<hr>' +
 						'</div>' +
 					'</div>' +
+					'<p ng-show="examNotFound" class="error alert alert-danger">' +
+						'The selected exam has not been set up for this class.' +
+					'</p>' +
 					'<div class="row">' +
 						'<div class="col-sm-6" ng-repeat="item in subjects track by $index">' +
 							'<label class="col-sm-6">{{item.subject_name}}</label>' +

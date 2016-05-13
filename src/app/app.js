@@ -20,15 +20,17 @@ var eduwebApp = angular.module('eduwebApp', ['ui.router', 'ui.bootstrap', 'dialo
 	updatePwd: 'update-pwd'
 })
 /* Adding the auth interceptor here, to check every $http request*/
-.config(function ($httpProvider) {
+.config(['$httpProvider', '$compileProvider', function ($httpProvider, $compileProvider) {
+	 $compileProvider.debugInfoEnabled(false);
+	 
   $httpProvider.interceptors.push([
     '$injector',
     function ($injector) {
       return $injector.get('AuthInterceptor');
     }
   ]);
-})
-eduwebApp.filter('numeric', function($filter) {
+}])
+eduwebApp.filter('numeric', [ '$filter', function($filter) {
     return function (value) {
         if (value < 0) {
 			value =  Math.abs(value);
@@ -41,26 +43,26 @@ eduwebApp.filter('numeric', function($filter) {
 			return value;
 		}
     };
-});
-eduwebApp.filter('titlecase', function() {
+}]);
+eduwebApp.filter('titlecase', [function() {
     return function(s) {
         s = ( s === undefined || s === null ) ? '' : s;
         return s.toString().toLowerCase().replace( /\b([a-z])/g, function(ch) {
             return ch.toUpperCase();
         });
     };
-})
+}])
 
-eduwebApp.filter('arrayToList', function(){
+eduwebApp.filter('arrayToList', [function(){
 	return function(arr) {
 		if( arr instanceof Array ) return arr.join(', ');
 		else return arr;
 	}
-});
+}]);
 
-eduwebApp.filter('makePositive', function() {
+eduwebApp.filter('makePositive', [function() {
     return function(num) { return Math.abs(num); }
-});
+}]);
 
 
 

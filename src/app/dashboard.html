@@ -10,63 +10,99 @@
 						
 			<div class="col-sm-3">
 				<div class="dashboard-panel">					
-					<div class="row dashboard-panel-header">
-						<div class="col-xs-12">
-							<h2>Student Module</h2>
-							<ul>
-								<li ng-repeat="item in classCats"><a ui-sref="students({ filter: item.class_cat_id })">{{item.class_cat_name}} ({{item.num_students}})</a></li>
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-child text-lg section-label"></span>
+						<h2>Student Module</h2>
+						
+					</div>
+					<div class="row dashboard-panel-body">	
+						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						<ul class="stripped">
+							<li ng-repeat="item in classCats"><a ui-sref="students({ filter: item.class_cat_id })">{{item.class_cat_name}} ({{item.num_students}})</a></li>
+						</ul>
+					</div>
+				</div>
+				<div class="dashboard-panel">					
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-users text-md section-label"></span>
+						<h2>Staff Module</h2>
+						
+					</div>
+					<div class="row dashboard-panel-body">	
+						<div class="loading-indicator" ng-show="staffLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						<ul>
+							<li ng-repeat="item in empCats">
+								<a ui-sref="staff({ category: item.emp_cat_id })">{{item.emp_cat_name}}</a>
+									<ul class="stripped">
+										<li ng-repeat="dept in deptCats | filter: {category : item.emp_cat_name}">
+											<a ui-sref="staff({ category: item.emp_cat_id, dept:dept.dept_id })">{{dept.dept_name}} ({{dept.num_staff}})</a>													
+										</li>
+									</ul>
+							</li>
+						</ul>
+					</div>
+				</div>
+				
+			</div>
+			
+			<div class="col-sm-4">
+				<div class="dashboard-panel">					
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-pencil text-md section-label"></span>
+						<h2>Exams Module</h2>
+					</div>
+					<div class="row dashboard-panel-body">	
+						<h2>Top Three Students Per Class</h2>
+						<div class="loading-indicator" ng-show="examsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						<div class="col-sm-6 nopad" ng-repeat="item in classes">
+							<h3>{{item.class_name}}</h3>
+							<ul class="stripped">
+								<li ng-repeat="student in item.students">{{student.student_name}} ({{student.total_mark}})</li>
 							</ul>
 						</div>
 					</div>
 				</div>
 			</div>
 			
-			<div class="col-sm-3">
+			<div class="col-sm-5">
 				<div class="dashboard-panel">					
-					<div class="row dashboard-panel-header">
-						<div class="col-xs-12">
-							<h2>Staff Module</h2>
-							<ul>
-								<li ng-repeat="item in empCats">
-									<a ui-sref="staff({ category: item.emp_cat_id })">{{item.emp_cat_name}}</a>
-										<ul>
-											<li ng-repeat="dept in deptCats | filter: {category : item.emp_cat_name}">
-												<a ui-sref="staff({ category: item.emp_cat_id, dept:dept.dept_id })">{{dept.dept_name}} ({{dept.num_staff}})</a>													
-											</li>
-										</ul>
-								</li>
-							</ul>
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-calculator text-md section-label"></span>
+						<h2>Fees Module</h2>						
+					</div>
+					<div class="row dashboard-panel-body">	
+						<div class="col-sm-4 lesspad">
+							<div class="well">
+								<h2 class="text-success"># Payments Received</h2>
+								<div class="loading-indicator" ng-show="fees1Loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+								<p class="text-lg"><a ui-sref="fees/payments_received" class="text-success">{{numPaymentsReceived}}</a></p>
+								<p class="text-xs" ng-show="currentTermTitle!==undefined">For {{currentTermTitle}}</p>
+							</div>
+						</div>
+						<div class="col-sm-4 lesspad">
+							<div class="well">
+								<h2 class="text-warning"># Payments Due</h2>
+								<div class="loading-indicator" ng-show="fees2Loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+								<p class="text-lg"><a ui-sref="fees/invoices({ balance_status: 'Due This Month' })" class="text-warning">{{numPaymentsDue}}</a></p>
+								<p class="text-xs">Due this month</p>
+							</div>
+						</div>
+						<div class="col-sm-4 lesspad">
+							<div class="well">
+								<h2 class="text-danger"># Payments Past Due</h2>
+								<div class="loading-indicator" ng-show="fees3Loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+								<p class="text-lg"><a ui-sref="fees/invoices({ balance_status: 'Past Due' })" class="text-danger">{{numPaymentsPastDue}}</a></p>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-			
-			<div class="col-sm-6">
 				<div class="dashboard-panel">					
-					<div class="row dashboard-panel-header">
-						<div class="col-xs-12">
-							<h2>Fees Module</h2>
-							<div class="col-sm-4 lesspad">
-								<div class="well">
-									<h2 class="text-success"># Payments Received</h2>
-									<p class="text-lg"><a ui-sref="fees/payments_received" class="text-success">{{numPaymentsReceived}}</a></p>
-									<p class="text-xs">For {{currentTermTitle}}</p>
-								</div>
-							</div>
-							<div class="col-sm-4 lesspad">
-								<div class="well">
-									<h2 class="text-warning"># Payments Due</h2>
-									<p class="text-lg"><a ui-sref="fees/invoices({ balance_status: 'Due This Month' })" class="text-warning">{{numPaymentsDue}}</a></p>
-									<p class="text-xs">Due this month</p>
-								</div>
-							</div>
-							<div class="col-sm-4 lesspad">
-								<div class="well">
-									<h2 class="text-danger"># Payments Past Due</h2>
-									<p class="text-lg"><a ui-sref="fees/invoices({ balance_status: 'Past Due' })" class="text-danger">{{numPaymentsPastDue}}</a></p>
-								</div>
-							</div>
-						</div>
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-newspaper-o text-md section-label"></span>
+						<h2>Latest News</h2>
+					</div>
+					<div class="row dashboard-panel-body">	
+						<p>Coming soon...</p>
 					</div>
 				</div>
 			</div>
@@ -74,25 +110,11 @@
 		</div>
 		<div class="row">
 			<div class="col-sm-6">
-				<div class="dashboard-panel">					
-					<div class="row dashboard-panel-header">
-						<div class="col-xs-12">
-							<h2>Exams Module</h2>
-							<p>Coming soon...</p>
-						</div>
-					</div>
-				</div>
+				
 			</div>
 			
 			<div class="col-sm-6">
-				<div class="dashboard-panel">					
-					<div class="row dashboard-panel-header">
-						<div class="col-xs-12">
-							<h2>Latest News</h2>
-							<p>Coming soon...</p>
-						</div>
-					</div>
-				</div>
+				
 			</div>
 		</div>
 	</div>

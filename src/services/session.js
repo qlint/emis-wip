@@ -6,7 +6,7 @@
  * refreshed the user is reinitialized through $window.sessionStorage at the
  * login.js file.
  */
-angular.module('eduwebApp').service('Session', function($rootScope, USER_ROLES) {
+angular.module('eduwebApp').service('Session', [ '$rootScope', 'USER_ROLES', function($rootScope, USER_ROLES) {
 
 	this.create = function(user) {
 		this.user = user;
@@ -17,4 +17,4 @@ angular.module('eduwebApp').service('Session', function($rootScope, USER_ROLES) 
 		this.userRole = null;
 	};
 	return this;
-});
+}]);

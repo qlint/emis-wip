@@ -1,7 +1,8 @@
 /**
  * Contains functions that are added to the root AngularJs scope.
  */
-angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiService, dialogs) {
+angular.module('eduwebApp').run(['$rootScope', '$state', '$window', '$timeout', 'Session', 'Auth', 'AUTH_EVENTS', 'apiService', 'dialogs', 
+function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiService, dialogs) {
 	
 	//before each state change, check if the user is logged in
 	//and authorized to move onto the next state
@@ -355,4 +356,4 @@ angular.module('eduwebApp').run(function($rootScope, $state, $window, $timeout, 
 			}, function(){});
 		}
 	}
-});
+}]);

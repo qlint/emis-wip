@@ -11,8 +11,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.initializeController = function()
 	{
 	
-		var categories = $rootScope.currentUser.settings['Department Categories'];
-		$scope.categories = categories.split(',');	
+		//var categories = $rootScope.currentUser.settings['Department Categories'];
+		//$scope.categories = categories.split(',');	
 		
 	}
 	$scope.initializeController();
@@ -128,7 +128,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	
 } ])
-.controller('addCategoryCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
+.controller('addCategoryCtrl',[ '$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.category = {};
 		
@@ -180,7 +181,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	
 	
-	}) // end controller(addCargoCtrl)
+	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('addCategory.html',
 			'<div class="modal-header dialog-header-form">'+

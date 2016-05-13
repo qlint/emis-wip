@@ -25,7 +25,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				getPaymentsReceived($scope.currentTerm.start_date, end_date);
 				
 			}
-		},function(){});
+		},apiError);
 		
 		// get payments due this month
 		var start_date = moment().startOf('month').format('YYYY-MM-DD');

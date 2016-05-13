@@ -1,23 +1,13 @@
 <!doctype html>
-<html ng-app="eduwebApp">
+<html ng-app="eduwebApp" ng-strict-di>
 <head>
 
 <title>Eduweb MIS</title>
 	
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
 
-	<!-- Bootstrap core CSS -->
-    <link type="text/css" href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">	
-	<link type="text/css" href="components/datatables/datatables.min.css" rel="stylesheet">
-	<link type="text/css" href="bower_components/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet">
-	<link type="text/css" href="bower_components/angular-dialog-service/dist/dialogs.css" rel="stylesheet">
-	<link rel="stylesheet" href="components/font-awesome-4.5.0/css/font-awesome.min.css">
-
-	
-	<link type="text/css" href="bower_components/ui-select/dist/select2.css" rel="stylesheet">
-    <link type="text/css" href="bower_components/ui-select/dist/select2-bootstrap.css" rel="stylesheet"-->
-	<link type="text/css" href="bower_components/ui-select/dist/select.min.css" rel="stylesheet">
-	
+	<!-- Dependencies CSS -->
+    <link type="text/css" href="min/css/dependencies.min.css" rel="stylesheet">	
 
     <!-- Custom styles for this template -->
     <link href="css/template.css" rel="stylesheet">
@@ -70,7 +60,7 @@
 					</div>
 				</div>
 				<div ng-show="!loggedIn" class="login pull-right">
-					<a class="clickable" ng-click="showLogin()"><i class="glyphicon glyphicon-user"></i> Log In</a>
+					<!--a class="clickable" ng-click="showLogin()"><i class="glyphicon glyphicon-user"></i> Log In</a-->
 				</div>
 				
 				<!-- Collect the nav links, forms, and other content for toggling -->	
@@ -110,74 +100,9 @@
 	</div><!-- /.page-wrap-->
 	
 	
-	<script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="components/datatables/datatables.min.js"></script>	
-	<script type="text/javascript" src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
-	<script type="text/javascript" src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
-	<script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
-	<script type="text/javascript" src="bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
-	<script type="text/javascript" src="bower_components/angular-daterangepicker/js/angular-daterangepicker.min.js"></script>
-	<script type="text/javascript" src="bower_components/angular-dialog-service/dist/dialogs.min.js"></script>	
-	<script type="text/javascript" src="components/filesaver.min.js"></script>	
-	<script type="text/javascript" src="bower_components/ui-select/dist/select.min.js"></script>
-	<script type="text/javascript" src="bower_components/angular-file-upload/dist/angular-file-upload.min.js"></script>
-  
-	<script type="text/javascript" src="app/app.js"></script>
-	<script type="text/javascript" src="app/routing.js"></script>	
-
-	<!--FACTORY -->
-	<script type="text/javascript" src="services/authInterceptor.js"></script>
+	<script type="text/javascript" src="min/dependencies.min.js"></script>
+	<script type="text/javascript" src="min/app.min.js"></script>
 	
-	<!--DIRECTIVES-->
-	<script type="text/javascript" src="app/directive.js"></script>
-
-	<!--CONTROLLERS -->	
-	<script type="text/javascript" src="app/globalFunctions.js"></script>
-	<script type="text/javascript" src="app/parentController.js"></script>
-	<script type="text/javascript" src="app/dashboardCtrl.js"></script>
-	<script type="text/javascript" src="app/students/listStudentsCtrl.js"></script>	
-	<script type="text/javascript" src="app/students/addStudentCtrl.js"></script>	
-	<script type="text/javascript" src="app/students/viewStudentCtrl.js"></script>	
-	<script type="text/javascript" src="app/staff/listStaffCtrl.js"></script>	
-	<script type="text/javascript" src="app/staff/addEmployeeCtrl.js"></script>	
-	<script type="text/javascript" src="app/staff/viewEmployeeCtrl.js"></script>
-	<script type="text/javascript" src="app/fees/paymentFormCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/feesDashboardCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/openingBalancesCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/invoicesCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/invoiceFormCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/invoiceWizardCtrl.js"></script>
-	<script type="text/javascript" src="app/fees/invoiceDetailsCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/paymentsReceivedCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/paymentDetailsCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/feeStructureCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/feeItemFormCtrl.js"></script>	
-	<script type="text/javascript" src="app/fees/receiptCtrl.js"></script>
-	<script type="text/javascript" src="app/fees/printReceiptCtrl.js"></script>
-	<script type="text/javascript" src="app/school/departmentsCtrl.js"></script>	
-	<script type="text/javascript" src="app/school/departmentFormCtrl.js"></script>	
-	<script type="text/javascript" src="app/school/gradingCtrl.js"></script>	
-	<script type="text/javascript" src="app/school/datesCtrl.js"></script>	
-	<script type="text/javascript" src="app/school/datesFormCtrl.js"></script>	
-	<script type="text/javascript" src="app/school/subjectsCtrl.js"></script>	
-	<script type="text/javascript" src="app/school/subjectFormCtrl.js"></script>
-	<script type="text/javascript" src="app/school/classesCtrl.js"></script>	
-	<script type="text/javascript" src="app/school/classFormCtrl.js"></script>
-	<script type="text/javascript" src="app/school/schoolSettingsCtrl.js"></script>
-	<script type="text/javascript" src="app/school/gradingFormCtrl.js"></script>
-	<script type="text/javascript" src="app/exams/listExamsCtrl.js"></script>
-	<script type="text/javascript" src="app/exams/addExamMarksCtrl.js"></script>	
-	<script type="text/javascript" src="app/exams/examTypesCtrl.js"></script>	
-	<script type="text/javascript" src="app/exams/reportCardCtrl.js"></script>	
-	<script type="text/javascript" src="app/exams/printReportCardCtrl.js"></script>	
-	<script type="text/javascript" src="app/exams/listReportCardsCtrl.js"></script>	
-	<script type="text/javascript" src="app/login.js"></script>
-	
-	<!--SERVICES -->
-	<script type="text/javascript" src="services/auth.js"></script>
-	<script type="text/javascript" src="services/session.js"></script>
-	<script type="text/javascript" src="services/AjaxServices.js"></script>
-	<script type="text/javascript" src="services/apiServices.js"></script>
 	
 </body>
 </html>

@@ -61,6 +61,9 @@ a {
     float: left;
     margin-right: 10px; }
 
+.center-block {
+  float: none; }
+
 .login {
   padding: 18px 25px; }
   .login a {
@@ -181,7 +184,8 @@ h1 {
 .dashboard .dashboard-panel,
 .school_settings .dashboard-panel {
   background-color: #eee;
-  margin-bottom: 10px; }
+  margin-bottom: 10px;
+  position: relative; }
 
 .school_settings .dashboard-panel .form-group {
   margin-bottom: 3px; }
@@ -209,7 +213,7 @@ h1 {
     border-radius: 7px; }
   .dashboard-panel .dashboard-panel-footer {
     margin: 0 -10px; }
-  .dashboard-panel input {
+  .dashboard-panel input, .dashboard-panel select {
     font-size: 14px;
     line-height: 1.42857143;
     border: 1px solid #ccc;
@@ -227,10 +231,57 @@ h1 {
     float: none;
     text-align: left; }
 
-.school_settings .dashboard-panel-header {
-  border-bottom: 1px solid #DDDDDD; }
-.school_settings .dashboard-panel-body {
-  background-color: #eee; }
+.full-height {
+  height: 98%; }
+
+.loading-indicator {
+  color: #bbb;
+  display: block;
+  margin: 10px auto; }
+
+.section-label {
+  position: absolute;
+  right: 0px;
+  background: #EEEEEE;
+  padding: 10px 15px;
+  /* border: 3px double #ddd; */
+  /* border-right: none; */
+  color: #009e0f;
+  top: 0px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  z-index: 9999; }
+
+.dashboard .dashboard-panel-body h2,
+.school_settings .dashboard-panel-body h2 {
+  font-size: 14px;
+  margin: 5px 2px;
+  color: #777;
+  font-style: italic; }
+.dashboard .dashboard-panel-body h3,
+.school_settings .dashboard-panel-body h3 {
+  font-size: 12px;
+  margin: 0 2px 0 0;
+  background: #30603C;
+  color: #fff;
+  padding: 5px; }
+.dashboard .dashboard-panel-body ul,
+.school_settings .dashboard-panel-body ul {
+  list-style: none;
+  margin: 0;
+  padding: 5px; }
+  .dashboard .dashboard-panel-body ul li,
+  .school_settings .dashboard-panel-body ul li {
+    padding: 3px 0;
+    border-bottom: 1px solid #eee; }
+    .dashboard .dashboard-panel-body ul li ul,
+    .school_settings .dashboard-panel-body ul li ul {
+      padding-left: 25px; }
+.dashboard .dashboard-panel-body ul.stripped li:nth-child(even),
+.school_settings .dashboard-panel-body ul.stripped li:nth-child(even) {
+  background-color: rgba(238, 238, 238, 0.38); }
+.dashboard .dashboard-panel-footer,
 .school_settings .dashboard-panel-footer {
   margin: 0; }
 
@@ -238,18 +289,29 @@ h1 {
   border-bottom: none; }
 
 .dashboard .well {
-  background: #fff;
   text-align: center;
   border: none;
+  border-left: 1px solid #eee;
   padding: 10px 0;
-  min-height: 118px; }
+  min-height: 141px;
+  margin-top: 10px;
+  margin-bottom: 5px; }
   .dashboard .well h2 {
     font-size: 14px !important; }
+
+.text-xlg {
+  font-size: 60px; }
 
 .text-lg {
   font-size: 40px; }
   .text-lg a:hover {
     text-decoration: none; }
+
+.text-md {
+  font-size: 30px; }
+
+.text-sm {
+  font-size: 20px; }
 
 .text-xs {
   font-size: 10px; }

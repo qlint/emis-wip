@@ -11,6 +11,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	{
 		//var deptCats = $rootScope.currentUser.settings['Department Categories'];
 		//$scope.deptCats = deptCats.split(',');
+		
+		$scope.schoolTypes = ['Private School','Public School'];
+		$scope.curriculums = ['8-4-4'];
+		$scope.currencies = ['Ksh'];
+		$scope.schoolLevels = ['Primary','Secondary'];
+		
+		
+		if( $rootScope.currentUser.settings['School Name'] === undefined ) $scope.initialSetup = true;
 
 		setSettings();
 		
@@ -49,6 +57,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'School Name' : angular.copy($rootScope.currentUser.settings['School Name']),
 			'School Type' : angular.copy($rootScope.currentUser.settings['School Type']	),
 			'logo' : angular.copy($rootScope.currentUser.settings['logo']	),
+			'Currency' : angular.copy($rootScope.currentUser.settings['Currency']	),
 		}
 	}
 	
@@ -106,6 +115,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
+			$scope.initialSetup = true;
 			getSettings();
 			$scope.schoolForm.$setPristine();
 			$scope.saving = false;

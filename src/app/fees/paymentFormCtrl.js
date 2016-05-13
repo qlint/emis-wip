@@ -146,7 +146,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				if( key > 0 && currentInvoice != item.inv_id )
 				{
 					// store row
-					$scope.invoices.push({
+					invoices.push({
 						inv_id: currentItem.inv_id,
 						inv_date: currentItem.inv_date,
 						due_date: currentItem.due_date,
@@ -177,7 +177,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				balance: currentItem.balance,
 				fee_items: feeItems,
 			});
-			//console.log(invoices);
+			console.log(invoices);
 			return invoices;
 	}
 	
@@ -252,8 +252,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					emptyTable: settings.noResultsTxt
 				},
 			} );
-	}
-	
+	}	
 	
 	var apiError = function (response, status) 
 	{

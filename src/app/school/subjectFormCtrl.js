@@ -114,7 +114,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	
 } ])
-.controller('addClassCategoryCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){
+.controller('addClassCategoryCtrl',[ '$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.classCat = {};
 		
@@ -161,7 +162,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	
 	
-	}) // end controller(addCargoCtrl)
+	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('addClassCategory.html',
 			'<div class="modal-header dialog-header-form">'+

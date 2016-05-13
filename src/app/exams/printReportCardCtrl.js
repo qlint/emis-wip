@@ -19,6 +19,7 @@ function($scope, $rootScope){
 		$scope.totals = angular.fromJson(data.totals);
 		$scope.comments = angular.fromJson(data.comments);
 		$scope.nextTermStartDate = data.nextTermStartDate;
+		$scope.total_overall_mark = data.total_overall_mark;
 		
 		$scope.loading = false;
 		

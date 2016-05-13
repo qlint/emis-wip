@@ -1,4 +1,4 @@
-angular.module('eduwebApp').service('apiService', function($rootScope, ajaxService) {
+angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService', function($rootScope, ajaxService) {
 		
 	/*********** class categories ***********/
 	this.getClassCats = function (request, successFunction, errorFunction, params) {          
@@ -220,6 +220,10 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 		ajaxService.AjaxGet("http://api.eduweb.localhost/getClassExamMarks/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getTopStudents = function (param, successFunction, errorFunction, params) {          
+		if( param === undefined ) ajaxService.AjaxGet("http://api.eduweb.localhost/getTopStudents", successFunction, errorFunction, params);
+		else  ajaxService.AjaxGet("http://api.eduweb.localhost/getTopStudents/" + param, successFunction, errorFunction, params);
+	};
 	
 	/*********** report cards ***********/
 	
@@ -387,5 +391,5 @@ angular.module('eduwebApp').service('apiService', function($rootScope, ajaxServi
 	
 
 	return this;
-});
+}]);
 

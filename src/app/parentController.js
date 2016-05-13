@@ -169,28 +169,12 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				var navItem = {};
 				var subnavItem = {};
 				angular.forEach( permission, function(permission2, subSectionName){
-				/*
-					if( permission2.options )
-					{
-						if( i == 0 ) navItem = {id: sectionName + "/" + subSectionName + "/" + permission2.options[0].name, label: $filter('titlecase')(sectionName.split("_").join(" ")), section: sectionName, subnav: [], icon: icons[sectionName]};
-					
-						navItem.subnav.push({id: sectionName + "/" + subSectionName + "/" + permission2.options[0].name, label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName, options:[]});
-						angular.forEach( permission2.options, function(option){
-							navItem.subnav[i].options.push({id: sectionName + "/" + subSectionName + "/" + option.name, label: $filter('titlecase')((option.name).split("_").join(" ")), filters: option.filters});	
-						});
-					}
-					else
-					{
-				*/
-						if( i == 0 ) navItem = {id: sectionName + "/" + subSectionName, label: $filter('titlecase')(sectionName.split("_").join(" ")), section: sectionName, subnav: []}; //, icon: icons[sectionName]};
-					
-						navItem.subnav.push({id: sectionName + "/" + subSectionName, label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName}); //, filters:permission2.filters});
-				/*	
-					}
-				*/
+					if( i == 0 ) navItem = {id: sectionName + "/" + subSectionName, label: $filter('titlecase')(sectionName.split("_").join(" ")), section: sectionName, subnav: []}; //, icon: icons[sectionName]};
+				
+					navItem.subnav.push({id: sectionName + "/" + subSectionName, label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName}); //, filters:permission2.filters});
+
 					i++;
 
-					
 				});
 
 				$scope.navItems.push(navItem);
@@ -213,7 +197,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 		section = section.split('/');
 		var page = section[0];
 		var params = section[1];
-		//var options = section[2];
 
 		angular.forEach( $rootScope.navItems, function( item, key) {
 			var section = item.section;
@@ -222,37 +205,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				$rootScope.mainSubNavItems = item.subnav;
 			}
 		});
-		//console.log($scope.navItems);
-		//console.log($scope.mainSubNavItems);
-		/*
-		if( params !== undefined )
-		{
-			angular.forEach( $rootScope.mainSubNavItems, function( item, key) {
-				var subSection = item.subSection;
-
-				if( subSection.toUpperCase() == params.toUpperCase() )
-				{
-					//console.log(item);
-					if( item.filters )
-					{
-						$rootScope.pageFilters = item.filters;
-					}
-					else if( item.options )
-					{
-						$rootScope.pageOptions = item.options;
-						
-						angular.forEach( $rootScope.pageOptions, function( item, key) {
-							if( item.id == $rootScope.currentPage )
-							{
-								$rootScope.pageFilters = item.filters;
-							}
-						});
-						if( $rootScope.pageFilters === undefined ) $rootScope.pageFilters = $rootScope.pageOptions[0].filters;
-					}
-				}
-			});
-		}
-		*/
 		
 	}
 	

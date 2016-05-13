@@ -41,6 +41,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.currentFilters.class.class_id = data.class_id;
 	
 			$scope.setReportCardData();
+			
+			//TO DO: check if there has been any changes to the students exams that relate to this report card
+			// if so, display message with instructions on how to update the report card
 		}
 		else
 		{
@@ -329,7 +332,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			reportData: $scope.reportData,
 			totals: $scope.totals,
 			comments: $scope.comments,
-			nextTermStartDate: $scope.nextTermStartDate
+			nextTermStartDate: $scope.nextTermStartDate,
+			total_overall_mark: $scope.total_overall_mark
 		}
 
 		var domain = window.location.host;

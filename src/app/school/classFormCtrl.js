@@ -337,7 +337,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	
 } ])
-.controller('addExamTypeCtrl',function($scope,$rootScope,$uibModalInstance,apiService,data){		
+.controller('addExamTypeCtrl', ['$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){		
 		
 		$scope.examType = {};
 		$scope.examType.class_cat_id = data.class_cat_id;
@@ -383,7 +384,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	
 	
-	}) // end controller
+	}]) // end controller
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('addExamType.html',
 			'<div class="modal-header dialog-header-form">'+
