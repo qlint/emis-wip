@@ -11,7 +11,7 @@
 					<div class="form-group" ng-class="{ 'has-error' : deptForm.category.$invalid && (deptForm.category.$touched || deptForm.$submitted) }">		
 						<label for="category" class="col-sm-3 control-label">Category</label>
 						<div class="col-sm-5">
-							<select name="category" class="form-control" ng-options="cat as cat for cat in categories"  ng-model="department.category" required>
+							<select name="category" class="form-control" ng-options="cat.emp_cat_name as cat.emp_cat_name for cat in categories"  ng-model="department.category" required>
 								<option value="">--select category--</option>
 							</select>								
 							<p ng-show="deptForm.category.$invalid && (deptForm.category.$touched || deptForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Category is required.</p>
