@@ -431,7 +431,9 @@ CREATE TABLE departments (
     creation_date timestamp without time zone DEFAULT now() NOT NULL,
     created_by integer,
     active boolean DEFAULT true NOT NULL,
-    category character varying
+    category character varying,
+    modified_date timestamp without time zone,
+    modified_by integer
 );
 
 
