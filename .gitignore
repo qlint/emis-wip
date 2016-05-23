@@ -1,4 +1,5 @@
 api/vendor/*
+api/public/web.config
 .sass-cache
 node_modules
 package.json

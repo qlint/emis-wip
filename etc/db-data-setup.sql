@@ -28,7 +28,7 @@ INSERT INTO settings VALUES ('Guardian Relationships', 'Father,Mother,Guardian,S
 INSERT INTO settings VALUES ('Student Categories', 'Regular,Scholership,Fully Sponsored');
 INSERT INTO settings VALUES ('Medical Conditions', 'Allergies,Asthma,Convulsions,Diabetes,Disability,Ear Problems,Epilepsy,Eye Problems,Extreme Tiredness,Fainting Spells,Frequent Headaches,Memory Problems,Meningitis,Sleeping Problems,Other');
 INSERT INTO settings VALUES ('Titles', 'Mr,Mrs,Ms,Dr');
-INSERT INTO settings VALUES ('Initial Year', date_part('year',now());
+INSERT INTO settings VALUES ('Initial Year', date_part('year',now()));
 INSERT INTO settings VALUES ('Payment Methods', 'Cash,Cheque,Bank Transfer');
 INSERT INTO settings VALUES ('Term Start Month', '1');
 INSERT INTO settings VALUES ('Payment Options', 'Annually,Installments');
@@ -38,12 +38,16 @@ INSERT INTO settings VALUES ('Frequencies', 'per term,yearly,once');
 -- installment options
 INSERT INTO installment_options VALUES (1, 'Per Term', true, 3, 4, 'month');
 INSERT INTO installment_options VALUES (2, 'Per Month', true, 12, 1, 'month');
+SELECT setval('app.installment_options_installment_id_seq', 2, true);
+
 
 
 -- exam types
 INSERT INTO exam_types VALUES (1, 'Opener', NULL, '2016-04-22 13:40:43.116', NULL, NULL, NULL, 1);
 INSERT INTO exam_types VALUES (2, 'Mid Term', NULL, '2016-04-22 13:40:43.116', NULL, NULL, NULL, 2);
 INSERT INTO exam_types VALUES (3, 'End Term', NULL, '2016-04-22 13:40:43.116', NULL, NULL, NULL, 3);
+SELECT setval('app.exam_types_exam_type_id_seq', 3, true);
+
 
 
 -- class cats
@@ -53,10 +57,14 @@ INSERT INTO class_cats (class_cat_id, class_cat_name) VALUES (3, 'Preunit Class'
 INSERT INTO class_cats (class_cat_id, class_cat_name) VALUES (4, 'Lower Primary');
 INSERT INTO class_cats (class_cat_id, class_cat_name) VALUES (5, 'Mid Primary');
 INSERT INTO class_cats (class_cat_id, class_cat_name) VALUES (6, 'Upper Primary');
+SELECT setval('app.class_cats_class_cat_id_seq', 6, true);
+
 
 -- employee cats
 INSERT INTO employee_cats VALUES (1, 'Teaching');
 INSERT INTO employee_cats VALUES (2, 'Non-teaching');
+SELECT setval('app.employee_cats_emp_cat_id_seq', 2, true);
+
 
 -- countries
 INSERT INTO countries VALUES (1, 'Afghanistan', 'AF', 'AFG', 1);
@@ -297,4 +305,6 @@ INSERT INTO countries VALUES (236, 'Yugoslavia', 'YU', 'YUG', 1);
 INSERT INTO countries VALUES (237, 'Zaire', 'ZR', 'ZAR', 1);
 INSERT INTO countries VALUES (238, 'Zambia', 'ZM', 'ZMB', 1);
 INSERT INTO countries VALUES (239, 'Zimbabwe', 'ZW', 'ZWE', 1);
+SELECT setval('app.countries_countries_id_seq', 239, true);
+
 
