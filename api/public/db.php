@@ -5,7 +5,7 @@ function getDB() {
 	$subDomain = getSubDomain();
 
 	$dbhost="localhost";
-	$dbport="5434";
+	$dbport="5432";
 	$dbuser="postgres";
 	$dbpass="postgres";
 	$dbname="eduweb_mis";
