@@ -56,6 +56,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Phone Number' : angular.copy($rootScope.currentUser.settings['Phone Number']),
 			'School Name' : angular.copy($rootScope.currentUser.settings['School Name']),
 			'School Type' : angular.copy($rootScope.currentUser.settings['School Type']	),
+			'School Level' : angular.copy($rootScope.currentUser.settings['School Level']	),
 			'logo' : angular.copy($rootScope.currentUser.settings['logo']	),
 			'Currency' : angular.copy($rootScope.currentUser.settings['Currency']	),
 		}
@@ -115,7 +116,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
-			$scope.initialSetup = true;
+			$scope.initialSetup = false;
 			getSettings();
 			$scope.schoolForm.$setPristine();
 			$scope.saving = false;

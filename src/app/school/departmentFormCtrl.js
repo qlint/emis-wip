@@ -12,7 +12,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	{
 	
 		//var categories = $rootScope.currentUser.settings['Department Categories'];
-		//$scope.categories = categories.split(',');	
+		$scope.categories = $rootScope.empCats;
 		
 	}
 	$scope.initializeController();
