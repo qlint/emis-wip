@@ -114,10 +114,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	
 } ])
-.controller('addClassCategoryCtrl',[ '$scope','$rootScope','$uibModalInstance','apiService','data',
-function($scope,$rootScope,$uibModalInstance,apiService,data){
+.controller('addClassCategoryCtrl',[ '$scope','$rootScope','$uibModalInstance','apiService','dialogs','data',
+function($scope,$rootScope,$uibModalInstance,apiService,$dialogs,data){
 		
-		$scope.classCat = {};
+		$scope.edit = (data.item !== undefined ? true : false);
+		$scope.classCat = data.item || {};
 		
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');
@@ -125,10 +126,26 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.save = function()
 		{
-			var data = {
-				class_cat_name : $scope.classCat.class_cat_name
+			if( $scope.edit )
+			{
+				var dlg = $dialogs.confirm('Update Class Category','Are you sure you want to update this class category? It will also update all students that are associated with this category.', {size:'sm'});
+				dlg.result.then(function(btn){
+					var data = {
+						class_cat_id : $scope.classCat.class_cat_id,
+						class_cat_name : $scope.classCat.class_cat_name,
+						user_id: $rootScope.currentUser.user_id
+					}
+					apiService.updateClassCat(data, createCompleted, apiError);
+				});
 			}
-			apiService.addClassCat(data, createCompleted, apiError);
+			else
+			{
+				var data = {
+					class_cat_name : $scope.classCat.class_cat_name,
+					user_id: $rootScope.currentUser.user_id
+				}
+				apiService.addClassCat(data, createCompleted, apiError);
+			}
 		}; // end save
 		
 		
@@ -166,7 +183,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('addClassCategory.html',
 			'<div class="modal-header dialog-header-form">'+
-				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Class Category</h4>' +
+				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> {{ (edit ? \'Update\' : \'Add\') }} Class Category</h4>' +
 			'</div>' +
 			'<div class="modal-body cleafix">' +
 				'<ng-form name="catDialog" class="form-horizontal modalForm" novalidate role="form">' +
@@ -177,7 +194,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					'<div class="form-group" ng-class="{ \'has-error\' : catDialog.class_cat_name.$invalid && (catDialog.class_cat_name.$touched || catDialog.$submitted) }">' +
 						'<label for="class_cat_name" class="col-sm-3 control-label">Class Category Name</label>' +
 						'<div class="col-sm-9">' +
-							'<input type="text" name="name" ng-model="classCat.class_cat_name" class="form-control"  >' +
+							'<input type="text" name="class_cat_name" ng-model="classCat.class_cat_name" class="form-control" required >' +
 							'<p ng-show="catDialog.class_cat_name.$invalid && (catDialog.class_cat_name.$touched || catDialog.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Category Name is required.</p>' +
 						'</div>' +
 					'</div>' +
@@ -185,7 +202,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			'</div>'+
 			'<div class="modal-footer">' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
-				'<button type="button" class="btn btn-primary" ng-click="save()">Save</button>' +
+				'<button type="button" class="btn btn-primary" ng-click="save()">{{ (edit ? \'Update\' : \'Save\') }}</button>' +
 			'</div>'
 		);
 }]);

@@ -249,7 +249,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.addExamType = function()
 	{		
 		// show small dialog with add form
-		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',{class_cat_id:$scope.theClass.class_cat_id},{size: 'sm',backdrop:'static'});
+		
+				
+		var data = {
+			class_cat_id:$scope.theClass.class_cat_id
+		}
+		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',data,{size: 'sm',backdrop:'static'});
 		dlg.result.then(function(examType){
 			
 			$scope.examTypes.push(examType);
@@ -342,6 +347,17 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.examType = {};
 		$scope.examType.class_cat_id = data.class_cat_id;
+		
+		if ( $rootScope.currentUser.user_type == 'TEACHER' )
+		{
+			apiService.getClassCats($rootScope.currentUser.emp_id, function(response){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success') $scope.classCats = result.data;
+				
+			}, apiError);
+		}
+		else $scope.classCats = $rootScope.classCats;
 		
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');

@@ -147,7 +147,52 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 					
 				};
 				break;
-			
+			case "TEACHER":
+				$rootScope.permissions = {
+					'dashboard':{
+						'view': true,
+					},
+					'students':{
+						'view': true
+					},
+					'school':{
+						'classes': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						}				
+
+					},
+					'exams':{
+						'exams': {
+							'view': true,
+							'add': true,
+							'edit': true,
+							'import': true
+						},
+						'exam_types': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+						'report_cards': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},						
+					},
+					'news':{
+						'view': true,
+						'add': true,
+						'edit': true,
+					},
+					'class_blog':{
+						'view': true,
+						'add': true,
+						'edit': true,
+					}
+				};
+				break;
 			default:
 				$rootScope.permissions = {
 					dashboard:{

@@ -17,7 +17,7 @@
 				<div class="btn-group toolbar">
 					<div class="btn add-btn" title="Add Student" ng-show="permissions.students.add" ng-click="addStudent()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Student</span></a></div>
 					<!--div class="btn" title="Print" ng-hide="isSmallScreen" ng-click="printablePage()"><a class="print-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div-->
-					<div class="btn" title="Import" ng-click="importStudents()"><a class="export-btn"><span class="glyphicon glyphicon-upload"></span> <span class="tool-text">Import Students</span></a></div>
+					<div class="btn" title="Import" ng-show="permissions.students.import" ng-click="importStudents()"><a class="export-btn"><span class="glyphicon glyphicon-upload"></span> <span class="tool-text">Import Students</span></a></div>
 					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
 				</div>			
 			</div>
@@ -34,9 +34,8 @@
 					<!-- category select -->
 					<div class="form-group">
 						<label for="category">Category</label>
-						<select class="form-control" id="category" name="class_cat_id" ng-model="filters.class_cat_id">
+						<select class="form-control" id="category" name="class_cat_id" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats" ng-model="filters.class_cat_id">
 							<option value="">All Class Categories</option>
-							<option value="{{cat.class_cat_id}}" ng-repeat="cat in classCats">{{cat.class_cat_name}}</option>
 						</select>
 					</div>
 					<!-- class select -->

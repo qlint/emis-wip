@@ -22,27 +22,69 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var initializeController = function () 
 	{
-		// get classes
-		if( $rootScope.allClasses === undefined )
+		// if user is a teacher, we only want to give them class categories and classes that they are associated with
+		if ( $rootScope.currentUser.user_type == 'TEACHER' )
 		{
-			apiService.getAllClasses({}, function(response){
+			apiService.getClassCats($rootScope.currentUser.emp_id, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often
-				if( result.response == 'success') 
-				{
-					$rootScope.allClasses = result.data;
-					$scope.classes = $rootScope.allClasses;
-					getStudents('true',false );
+				if( result.response == 'success')
+				{				
+					$rootScope.classCats = result.data;
+					
+					// get classes
+					if( $rootScope.allClasses === undefined )
+					{
+						apiService.getAllClasses({}, function(response){
+							var result = angular.fromJson(response);
+							
+							// store these as they do not change often
+							if( result.response == 'success') 
+							{
+								$rootScope.allClasses = result.data;
+								$scope.classes = $rootScope.allClasses;
+								getStudents('true',false );
+								if( $rootScope.classCats.length == 1 ) $scope.filters.class_cat_id = $rootScope.classCats[0].class_cat_id;
+							}
+							
+						}, apiError);
+					}
+					else
+					{
+						$scope.classes = $rootScope.allClasses;
+						getStudents('true',false);
+						if( $rootScope.classCats.length == 1 ) $scope.filters.class_cat_id = $rootScope.classCats[0].class_cat_id;
+					}
 				}
 				
-			}, function(){});
+			}, apiError);
 		}
 		else
 		{
-			$scope.classes = $rootScope.allClasses;
-			getStudents('true',false);
+			// get classes
+			if( $rootScope.allClasses === undefined )
+			{
+				apiService.getAllClasses({}, function(response){
+					var result = angular.fromJson(response);
+					
+					// store these as they do not change often
+					if( result.response == 'success') 
+					{
+						$rootScope.allClasses = result.data;
+						$scope.classes = $rootScope.allClasses;
+						getStudents('true',false );
+					}
+					
+				}, apiError);
+			}
+			else
+			{
+				$scope.classes = $rootScope.allClasses;
+				getStudents('true',false);
+			}
 		}
+		
 		
 
 	}
@@ -50,49 +92,68 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var getStudents = function(status, filtering)
 	{
-		apiService.getAllStudents(status, function(response){
-			var result = angular.fromJson(response);
+		if ( $rootScope.currentUser.user_type == 'TEACHER' )
+		{
+			var params = $rootScope.currentUser.emp_id + '/' + status;
+			apiService.getTeacherStudents(params, loadStudents, apiError, {filtering:filtering});
+		}
+		else
+		{
+			apiService.getAllStudents(status, loadStudents, apiError, {filtering:filtering});
+		}
+		
+	}
+	
+	var loadStudents = function(response,status, params)
+	{
+		var result = angular.fromJson(response);			
+		
+		if( result.response == 'success')
+		{
 			
-			
-			if( result.response == 'success')
+			if( $scope.dataGrid !== undefined )
 			{
+				$('.fixedHeader-floating').remove();
+				$scope.dataGrid.clear();
+				$scope.dataGrid.destroy();
+			}
+			
+			if( result.nodata ) var formatedResults = [];
+			else {
+				// make adjustments to student data
+				var formatedResults = $rootScope.formatStudentData(result.data);
+			}
 				
-				if( $scope.dataGrid !== undefined )
-				{
-					$('.fixedHeader-floating').remove();
-					$scope.dataGrid.clear();
-					$scope.dataGrid.destroy();
-				}
-				
-				if( result.nodata ) var formatedResults = [];
-				else {
-					// make adjustments to student data
-					var formatedResults = $rootScope.formatStudentData(result.data);
-				}
-					
-				if( filtering )
-				{
-					$scope.formerStudents = formatedResults
-					filterStudents();
-				}
-				else
-				{
-					$scope.allStudents = formatedResults;
-					$scope.students = formatedResults;
-					
-					if( $scope.filterClassCat ) filterStudents();
-					$timeout(initDataGrid,10);
-				}
-				
+			if( params.filtering )
+			{
+				$scope.formerStudents = formatedResults
+				filterStudents();
 			}
 			else
 			{
-				$scope.error = true;
-				$scope.errMsg = result.data;
+				$scope.allStudents = formatedResults;
+				$scope.students = formatedResults;
+				
+				if( $scope.filterClassCat ) filterStudents();
+				$timeout(initDataGrid,10);
 			}
 			
-		}, function(){});
+		}
+		else
+		{
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
 	}
+	
+	var apiError = function (response, status) 
+	{
+		var result = angular.fromJson( response );
+		$scope.error = true;
+		$scope.errMsg = result.data;
+	}
+	
+	
 		
 	var initDataGrid = function() 
 	{

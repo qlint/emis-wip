@@ -28,7 +28,7 @@
 				<h1 id="pageTitle">Classes</h1>
 			</div>		
 
-<!-- search form -->
+			<!-- search form -->
 			<div class="dataFilterForm">	
 				<h4 ng-show="!isSmallScreen">Filters</h4>
 				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
@@ -36,9 +36,8 @@
 					<!-- category select -->
 					<div class="form-group">
 						<label for="category">Category</label>
-						<select class="form-control" id="category" name="class_cat_id" ng-model="filters.class_cat_id">
+						<select class="form-control" id="category" name="class_cat_id" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats" ng-model="filters.class_cat_id">
 							<option value="">All Class Categories</option>
-							<option value="{{cat.class_cat_id}}" ng-repeat="cat in classCats">{{cat.class_cat_name}}</option>
 						</select>
 					</div>
 

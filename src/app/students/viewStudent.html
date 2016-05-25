@@ -203,7 +203,7 @@
 				
 				<div class="section-container">
 					<h2 class="pull-left">Parents/Guardians</h2>
-					<button type="button" class="pull-right btn btn-link" ng-click="addGuardian()"><i class="glyphicon glyphicon-plus-sign"></i> Add Parent/Guardian</button>
+					<button type="button" class="pull-right btn btn-link" ng-click="addGuardian()" ng-show="permissions.students.edit"><i class="glyphicon glyphicon-plus-sign"></i> Add Parent/Guardian</button>
 					<table class="display dataTable">
 						<thead>
 							<tr>
@@ -220,7 +220,7 @@
 								<td colspan="5">This student does not have any parents/guardians entered.</td>
 							</tr>
 							<tr ng-if="student.guardians.length>0" ng-repeat="item in student.guardians track by $index" ng-class-odd="'odd'" ng-class-even="'even'">
-								<td><span ng-click="deleteGuardian(item,$index)" class="glyphicon glyphicon-trash text-danger"></span></td>
+								<td><span ng-click="deleteGuardian(item,$index)" class="glyphicon glyphicon-trash text-danger"  ng-show="permissions.students.edit"></span></td>
 								<td ng-click="editGuardian(item)">{{item.parent_full_name}}</td>
 								<td ng-click="editGuardian(item)">{{item.relationship}}</td>
 								<td ng-click="editGuardian(item)">{{item.telephone}}</td>
@@ -347,7 +347,7 @@
 			<script type="text/ng-template" id="Medical History">
 				<div class="section-container">
 					<h2 class="pull-left">Medical Illness/Conditions</h2>
-					<button type="button" class="pull-right btn btn-link" ng-click="addMedicalHistory()"><i class="glyphicon glyphicon-plus-sign"></i> Add Illness/Condition</button>
+					<button type="button" class="pull-right btn btn-link" ng-click="addMedicalHistory()" ng-show="permissions.students.edit"><i class="glyphicon glyphicon-plus-sign"></i> Add Illness/Condition</button>
 					<table class="display dataTable">
 						<thead>
 							<tr>
@@ -363,7 +363,7 @@
 								<td colspan="5">This student does not have any reported medical illness/conditions.</td>
 							</tr>
 							<tr ng-if="student.medical_history.length>0" ng-repeat="item in student.medical_history track by $index" ng-class-odd="'odd'" ng-class-even="'even'" >
-								<td><span ng-click="deleteMedical(item,$index)" class="glyphicon glyphicon-trash text-danger"></span></td>
+								<td><span ng-click="deleteMedical(item,$index)" class="glyphicon glyphicon-trash text-danger" ng-show="permissions.students.edit"></span></td>
 								<td ng-click="editMedical(item)">{{item.illness_condition}}</td>
 								<td ng-click="editMedical(item)">{{item.age}}</td>
 								<td ng-click="editMedical(item)">{{item.comments}}</td>
@@ -696,7 +696,7 @@
 
 										<div ng-if="item.fee_item == 'Transport'">
 											<select ng-show="showTransport" name="transport_route" class="form-control" ng-options="route.route for route in transportRoutes" ng-model="student.transport_route">
-												<option value="">-- select a route --<option>
+												<option value="">-- select a route --</option>
 											</select>
 										</div>										
 									</td>

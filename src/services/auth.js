@@ -17,7 +17,10 @@ function($http, $rootScope, $window, Session, AUTH_EVENTS, ajaxService) {
 		success(loginData.data);
 		***************************/
 	
-	    ajaxService.AjaxPost(user, "http://api.eduweb.co.ke/login", 
+		var domain = window.location.host;
+		var path = ( domain.indexOf('eduweb.co.ke') > -1  ? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost');
+	
+	    ajaxService.AjaxPost(user, path + "/login", 
 			function(loginData){
 				
 				if( loginData.response == 'success' )

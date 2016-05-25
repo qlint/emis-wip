@@ -171,19 +171,21 @@
 			<div class="col-sm-6">
 				<div class="dashboard-panel">					
 					<div class="dashboard-panel-header">
-						<button type="button" class="btn btn-sm btn-link pull-right" ng-click="addDeptCat()"><span class="glyphicon glyphicon-plus"></span> Add Category</button>
+						<button type="button" class="btn btn-sm btn-link pull-right" ng-click="addEmpCat()"><span class="glyphicon glyphicon-plus"></span> Add Category</button>
 						<h2>Employee Categories</h2>						
 					</div>
 					<div class="dashboard-panel-body row">						
-						<table class="display dataTable" cellspacing="0" width="100%">
+						<table class="display clickable dataTable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
+									<th></th>
 									<th>Category</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr ng-repeat="cat in empCats">
-									<td><span class="glyphicon glyphicon-trash" ng-click="removeDeptCat(item)"></span> {{cat.emp_cat_name}}</td>
+									<td class="center"><span class="glyphicon glyphicon-trash text-danger" ng-click="removeEmpCat(cat)"></span></td>
+									<td width="90%" ng-click="editEmpCat(cat)">{{cat.emp_cat_name}}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -196,15 +198,17 @@
 						<h2>Class Categories</h2>
 					</div>
 					<div class="dashboard-panel-body row">
-						<table class="display dataTable" cellspacing="0" width="100%">
+						<table class="display clickable dataTable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
+									<th></th>
 									<th>Category</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr ng-repeat="cat in classCats">
-									<td><span class="glyphicon glyphicon-trash" ng-click="removeClassCat(item)"></span> {{cat.class_cat_name}}</td>
+									<td class="center"><span class="glyphicon glyphicon-trash text-danger" ng-click="removeClassCat(cat)"></span></td>
+									<td width="90%" ng-click="editClassCat(cat)">{{cat.class_cat_name}}</td>
 								</tr>
 							</tbody>
 						</table>

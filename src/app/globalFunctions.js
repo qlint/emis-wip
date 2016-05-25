@@ -265,7 +265,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		// get class categories
 		if( $rootScope.classCats === undefined )
 		{
-			apiService.getClassCats({}, function(response){
+			apiService.getClassCats(undefined, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often

@@ -73,28 +73,39 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			
 		}, function(){});
 		
-		
+		// if no student was passed in, get list of students for select dropdown
 		if( $scope.student === undefined )
 		{
-			apiService.getAllStudents(true, function(response){
-				var result = angular.fromJson(response);
-				
-				if( result.response == 'success')
-				{
-					$scope.students = ( result.nodata ? {} : $rootScope.formatStudentData(result.data) );				
-				}
-				else
-				{
-					$scope.error = true;
-					$scope.errMsg = result.data;
-				}
-				
-			}, function(){});
+			if ( $rootScope.currentUser.user_type == 'TEACHER' )
+			{
+				var params = $rootScope.currentUser.emp_id + '/' + true;
+				apiService.getTeacherStudents(params, loadStudents, apiError);
+			}
+			else
+			{
+				apiService.getAllStudents(true, loadStudents, apiError);
+			}
 		}
 	
 		
 	}
 	$timeout(initializeController,1);
+	
+	var loadStudents = function(response)
+	{
+		var result = angular.fromJson(response);
+		
+		if( result.response == 'success')
+		{
+			$scope.students = ( result.nodata ? {} : $rootScope.formatStudentData(result.data) );				
+		}
+		else
+		{
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+		
+	}
 	
 	$scope.$watch('filters.term',function(newVal,oldVal){
 		if( newVal == oldVal ) return;

@@ -5,7 +5,7 @@ controller('viewStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'api
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, data){
 	
 	$rootScope.modalLoading = false;
-	$scope.tabs = ['Details','Family','Medical History','Fees','Exams','Report Cards','News'];
+	$scope.tabs = ( $rootScope.currentUser.user_type == 'TEACHER' ? ['Details','Family','Medical History','Exams','Report Cards','News'] : ['Details','Family','Medical History','Fees','Exams','Report Cards','News'] );
 	$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
 	$scope.currentTab = $scope.tabs[0];
 	$scope.currentFeeTab = $scope.feeTabs[0];
@@ -1062,7 +1062,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		var data = {
 			student : $scope.student,
-			classes: $rootScope.allClasses,
+			classes: $scope.classes,
 			terms: $scope.terms,
 			filters: $scope.filters,
 			adding: true

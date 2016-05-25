@@ -49,8 +49,13 @@ $app->post('/login/', function () use($app){
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT user_id, username, active, first_name, middle_name, last_name, email, user_type
-								FROM app.users WHERE username= :username AND password = :password AND active is true");
+        $sth = $db->prepare("SELECT user_id, username, users.active, users.first_name, users.middle_name, users.last_name, users.email, 
+									user_type, emp_id, emp_cat_id, dept_id
+								FROM app.users 
+								LEFT JOIN app.employees ON users.user_id = employees.login_id
+								WHERE username= :username 
+								AND password = :password 
+								AND users.active is true");
         $sth->execute( array(':username' => $username, ':password' => $pwd) );
  
         $result = $sth->fetch(PDO::FETCH_OBJ);
@@ -59,7 +64,7 @@ $app->post('/login/', function () use($app){
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
 			
-			// grad the users settings and add to result
+			// get the users settings and add to result
 			$sth2 = $db->prepare("SELECT name, value FROM app.settings");
 			$sth2->execute();
 			$settings = $sth2->fetchAll(PDO::FETCH_OBJ);
@@ -309,6 +314,50 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $st
 
 });
 
+
+$app->get('/getTeacherClasses/:teacher_id', function ($teacherId) {
+    //Show classes for specific teacher
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		$sth = $db->prepare("SELECT class_id, class_name, classes.class_cat_id, teacher_id, classes.active, class_cat_name,
+					classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
+					(select array_agg(distinct subject_name) from app.class_subjects inner join app.subjects using (subject_id) where class_subjects.class_id = classes.class_id) as subjects
+					FROM app.classes
+					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+					LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
+					WHERE teacher_id = :teacherId
+					ORDER BY sort_order"); 
+		
+        $sth->execute( array(':teacherId' => $teacherId));
+ 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {		
+			foreach( $results as $result)
+			{
+				$result->subjects = pg_array_parse($result->subjects);
+			}
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+             $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+			$app->response()->setStatus(404);
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));        
+    }
+
+});
 $app->get('/getClassExams/:class_id(/:exam_type_id)', function ($classId, $examTypeId = null) {
     //Show classes exams
 	
@@ -671,7 +720,7 @@ $app->put('/setClassStatus/', function () use($app) {
 
 
 // ************** Class Categories  ****************** //
-$app->get('/getClassCats/', function () {
+$app->get('/getClassCats(/:teacher_id)', function ($teacherId=null) {
     //Show all class categories
 	
 	$app = \Slim\Slim::getInstance();
@@ -679,9 +728,24 @@ $app->get('/getClassCats/', function () {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT class_cat_id, class_cat_name FROM app.class_cats ORDER BY class_cat_id");
-        $sth->execute();
- 
+		if( $teacherId !== null )
+		{
+			$sth = $db->prepare("SELECT class_cats.class_cat_id, class_cat_name 
+								FROM app.class_cats 
+								INNER JOIN app.classes ON class_cats.class_cat_id = classes.class_cat_id AND teacher_id = :teacherId
+								WHERE class_cats.active is true 
+								ORDER BY class_cats.class_cat_id");
+			$sth->execute(array(':teacherId' => $teacherId));
+		}
+		else
+		{
+			$sth = $db->prepare("SELECT class_cat_id, class_cat_name 
+								FROM app.class_cats 
+								WHERE active is true 
+								ORDER BY class_cat_id");
+			$sth->execute();
+		}
+		
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
         if($results) {
@@ -708,22 +772,23 @@ $app->post('/addClassCat/', function () use($app) {
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	$classCatName = ( isset($allPostVars['class_cat_name']) ? $allPostVars['class_cat_name']: null);
-
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
     try 
     {
-	
         $db = getDB();
+        $sth1 = $db->prepare("INSERT INTO app.class_cats(class_cat_name,created_by) 
+            VALUES(:classCatName,:userId)"); 
 			
-        $sth = $db->prepare("INSERT INTO app.class_cats(class_cat_name) VALUES(:classCatName)");
-		
 		$sth2 = $db->prepare("SELECT currval('app.class_cats_class_cat_id_seq') as class_cat_id");	
-	
+		
 		$db->beginTransaction();
-		$sth->execute( array(':classCatName' => $classCatName) );
+		$sth1->execute( array(':classCatName' => $classCatName, ':userId' => $userId) );
 		$sth2->execute();
 		$classCatId = $sth2->fetch(PDO::FETCH_OBJ);
-		$db->commit();
-		
+		$db->commit();		
+        
+ 
 		$result = new stdClass();
 		$result->class_cat_id = $classCatId->class_cat_id;
 		$result->class_cat_name = $classCatName;
@@ -744,6 +809,7 @@ $app->post('/addClassCat/', function () use($app) {
 		}
  
  
+ 
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
@@ -751,20 +817,63 @@ $app->post('/addClassCat/', function () use($app) {
 
 });
 
+
 $app->put('/updateClassCat/', function () use($app) {
-    // Update class category
+    // Update class cat
 	
-	$allPostVars = $app->request->post();
-	$classCatName = $allPostVars['class_cat_name'];
-	$classCatId = $allPostVars['class_cat_id'];
-	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$classCatId = ( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$classCatName = ( isset($allPostVars['class_cat_name']) ? $allPostVars['class_cat_name']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
     try 
     {
         $db = getDB();
         $sth = $db->prepare("UPDATE app.class_cats
-			SET class_cat_name = :classCatName
-            WHERE class_cat_id = :classCatId"); 
-        $sth->execute( array(':classCatName' => $classCatName, ':classCatId' => $classCatId) );
+							SET class_cat_name = :classCatName,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE class_cat_id = :classCatId
+							"); 
+        $sth->execute( array(':classCatId' => $classCatId, 
+							 ':classCatName' => $classCatName, 
+							 ':userId' => $userId
+					) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/setClassCatStatus/', function () use($app) {
+    // Update class cat status
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$classCatId = ( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$status =	( isset($allPostVars['status']) ? $allPostVars['status']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE app.class_cats
+							SET active = :status,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE class_cat_id = :classCatId
+							"); 
+        $sth->execute( array(':classCatId' => $classCatId, 
+							 ':status' => $status, 
+							 ':userId' => $userId
+					) );
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -794,6 +903,7 @@ $app->get('/getClassCatsSummary/', function () {
 								on students.current_class = classes.class_id 
 								where class_cat_id = class_cats.class_cat_id) as num_students
 							FROM app.class_cats 
+							WHERE active is true
 							ORDER BY class_cat_id");
         $sth->execute();
  
@@ -1420,7 +1530,7 @@ $app->get('/getAllTeachers(/:status)', function ($status=true) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT emp_id, emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
+        $sth = $db->prepare("SELECT emp_id as teacher_id, emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
 									middle_name, last_name, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
 									initials, dob, country, active, telephone, email, joined_date,
 									job_title, qualifications, experience, additional_info, emp_image
@@ -1502,7 +1612,7 @@ $app->get('/getEmployeeCats/', function () {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT emp_cat_id, emp_cat_name FROM app.employee_cats ORDER BY emp_cat_id");
+        $sth = $db->prepare("SELECT emp_cat_id, emp_cat_name FROM app.employee_cats WHERE active is true ORDER BY emp_cat_id");
         $sth->execute();
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1529,16 +1639,71 @@ $app->get('/getEmployeeCats/', function () {
 $app->post('/addEmployeeCat/', function () use($app) {
     // Add employee category
 	
-	$allPostVars = $app->request->post();
-	$empCatName = $allPostVars['emp_cat_name'];
-
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$empCatName = ( isset($allPostVars['emp_cat_name']) ? $allPostVars['emp_cat_name']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
     try 
     {
-        $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.employee_cats(emp_cat_name) 
-            VALUES(:empCatName)"); 
-        $sth->execute( array(':empCatName' => $empCatName) );
+       $db = getDB();
+        $sth1 = $db->prepare("INSERT INTO app.employee_cats(emp_cat_name,created_by) 
+            VALUES(:empCatName,:userId)"); 
+			
+		$sth2 = $db->prepare("SELECT currval('app.employee_cats_emp_cat_id_seq') as emp_cat_id");	
+		
+		$db->beginTransaction();
+		$sth1->execute( array(':empCatName' => $empCatName, ':userId' => $userId) );
+		$sth2->execute();
+		$empCatId = $sth2->fetch(PDO::FETCH_OBJ);
+		$db->commit();		
+        
  
+		$result = new stdClass();
+		$result->emp_cat_id = $empCatId->emp_cat_id;
+		$result->emp_cat_name = $empCatName;
+	
+		if( $empCatId )
+		{ 
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array("response" => "success", "data" => $result));
+			$db = null;
+		}
+		else
+		{
+			$app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $e->getMessage() ));
+            $db = null;
+		}
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateEmployeeCat/', function () use($app) {
+    // Update employee category
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$empCatId = ( isset($allPostVars['emp_cat_id']) ? $allPostVars['emp_cat_id']: null);
+	$empCatName = ( isset($allPostVars['emp_cat_name']) ? $allPostVars['emp_cat_name']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+    try 
+    {
+       $db = getDB();
+       $sth = $db->prepare("UPDATE app.employee_cats
+								SET emp_cat_name = :empCatName,
+									modified_date = now(),
+									modified_by = :userId
+								WHERE emp_cat_id = :empCatId"); 
+			
+		$sth->execute( array(':empCatId' => $empCatId, ':empCatName' => $empCatName, ':userId' => $userId) );	
+        
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
         echo json_encode(array("response" => "success", "code" => 1));
@@ -1552,20 +1717,27 @@ $app->post('/addEmployeeCat/', function () use($app) {
 
 });
 
-$app->put('/updateEmployeeCat/', function () use($app) {
-    // Update employee category
+$app->put('/setEmployeeCatStatus/', function () use($app) {
+    // Update employee cat status
 	
-	$allPostVars = $app->request->post();
-	$empCatName = $allPostVars['emp_cat_name'];
-	$empCatId = $allPostVars['emp_cat_id'];
-	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$empCatId = ( isset($allPostVars['emp_cat_id']) ? $allPostVars['emp_cat_id']: null);
+	$status =	( isset($allPostVars['status']) ? $allPostVars['status']: null);
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
     try 
     {
         $db = getDB();
         $sth = $db->prepare("UPDATE app.employee_cats
-			SET emp_cat_name = :empCatName
-            WHERE emp_cat_id = :empCatId"); 
-        $sth->execute( array(':empCatName' => $empCatName, ':empCatId' => $empCatId) );
+							SET active = :status,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE emp_cat_id = :empCatId
+							"); 
+        $sth->execute( array(':empCatId' => $empCatId, 
+							 ':status' => $status, 
+							 ':userId' => $userId
+					) );
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -4356,13 +4528,14 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT *
+		
+		$sth = $db->prepare("SELECT *
 							 FROM app.students 
 							 WHERE active = :status 
 							 ORDER BY first_name, middle_name, last_name");
-        $sth->execute( array(':status' => $status)); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
- 
+		$sth->execute( array(':status' => $status)); 
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
         if($results) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -4381,6 +4554,43 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
     }
 
 });
+
+$app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $status=true) {
+    //Show teacher students
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		
+		$sth = $db->prepare("SELECT *
+							 FROM app.students 
+							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.teacher_id = :teacherId
+							 WHERE students.active = :status 
+							 ORDER BY first_name, middle_name, last_name");
+		$sth->execute( array(':status' => $status, ':teacherId' => $teacherId)); 
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 $app->get('/getStudentDetails/:studentId', function ($studentId) {
     //Show all students

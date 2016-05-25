@@ -16,7 +16,7 @@
 				<!-- student -->		
 				<div class="form-group" ng-class="{ 'has-error' : reportForm.student.$invalid && (!reportForm.student.$pristine || reportForm.$submitted) }">					
 					<label for="student">Student</label>
-					<div ng-show="!showSelect"><p class="form-control-static">{{student.student_name}}</p></div>
+					<div ng-show="!showSelect"><p class="">{{student.student_name}}</p></div>
 					<div ng-show="showSelect">
 						<ui-select ng-model="thestudent.selected" theme="select2" class="form-control" name="student" required> 
 						  <ui-select-match placeholder="Select or search a student...">

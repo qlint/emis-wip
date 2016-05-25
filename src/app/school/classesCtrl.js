@@ -9,6 +9,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
 	var initializeController = function () 
 	{
+		if ( $rootScope.currentUser.user_type == 'TEACHER' )
+		{
+			apiService.getClassCats($rootScope.currentUser.emp_id, function(response){
+				var result = angular.fromJson(response);
+				
+				// store these as they do not change often
+				if( result.response == 'success') $rootScope.classCats = result.data;
+				
+			}, apiError);
+		}
+		
 		getClasses("");
 	}
 	$timeout(initializeController,1);
@@ -22,25 +33,52 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			$scope.dataGrid.destroy();				
 		}		
 		
-		var params = (class_cat_id != '' ? class_cat_id + '/true' : "");
-		apiService.getClasses(class_cat_id, function(response,status,params){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
-			{	
-				$scope.classes = ( result.nodata ? [] : result.data );	
+		if ( $rootScope.currentUser.user_type == 'TEACHER' )
+		{
+			apiService.getTeacherClasses($rootScope.currentUser.emp_id, function(response,status){
+				var result = angular.fromJson(response);
 				
-				$rootScope.allClasses = $scope.classes
+				if( result.response == 'success')
+				{	
+					$scope.classes = ( result.nodata ? [] : result.data );	
+					
+					$rootScope.allClasses = $scope.classes
+					
+					$timeout(initDataGrid,10);
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
 				
-				$timeout(initDataGrid,10);
-			}
-			else
-			{
-				$scope.error = true;
-				$scope.errMsg = result.data;
-			}
-			
-		}, apiError);
+			}, apiError);
+
+		}
+		else
+		{
+			var params = (class_cat_id != '' ? class_cat_id + '/true' : "");
+			apiService.getClasses(params, function(response,status){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success')
+				{	
+					$scope.classes = ( result.nodata ? [] : result.data );	
+					
+					$rootScope.allClasses = $scope.classes
+					
+					$timeout(initDataGrid,10);
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, apiError);
+		}
+		
+		
 	}
 	
 	$scope.loadFilter = function()

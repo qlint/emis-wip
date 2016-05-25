@@ -9,7 +9,7 @@
 		<div class="row">
 						
 			<div class="col-sm-3">
-				<div class="dashboard-panel">					
+				<div class="dashboard-panel" ng-show="permissions.students.view">					
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-child text-lg section-label"></span>
 						<h2>Student Module</h2>
@@ -22,7 +22,7 @@
 						</ul>
 					</div>
 				</div>
-				<div class="dashboard-panel">					
+				<div class="dashboard-panel" ng-show="permissions.staff.view">					
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-users text-md section-label"></span>
 						<h2>Staff Module</h2>
@@ -46,7 +46,7 @@
 			</div>
 			
 			<div class="col-sm-4">
-				<div class="dashboard-panel">					
+				<div class="dashboard-panel" ng-show="permissions.exams.exams.view">					
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-pencil text-md section-label"></span>
 						<h2>Exams Module</h2>
@@ -65,7 +65,7 @@
 			</div>
 			
 			<div class="col-sm-5">
-				<div class="dashboard-panel">					
+				<div class="dashboard-panel" ng-show="permissions.fees.dashboard.view">					
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-calculator text-md section-label"></span>
 						<h2>Fees Module</h2>						
@@ -96,7 +96,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="dashboard-panel">					
+				<div class="dashboard-panel" ng-show="permissions.news.view">					
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-newspaper-o text-md section-label"></span>
 						<h2>Latest News</h2>

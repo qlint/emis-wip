@@ -34,20 +34,41 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		// get classes
 		if( $rootScope.allClasses === undefined )
 		{
-			apiService.getAllClasses({}, function(response){
-				var result = angular.fromJson(response);
-				
-				// store these as they do not change often
-				if( result.response == 'success') 
-				{
-					$rootScope.allClasses = result.data;
-					$scope.classes = $rootScope.allClasses || [];
-					$scope.filters.class = $scope.classes[0];
-					$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
-					$scope.getStudentReportCards();
-				}
-				
-			}, apiError);
+			if ( $rootScope.currentUser.user_type == 'TEACHER' )
+			{
+				apiService.getTeacherClasses($rootScope.currentUser.emp_id, function(response){
+					var result = angular.fromJson(response);
+					
+					// store these as they do not change often
+					if( result.response == 'success') 
+					{
+						$rootScope.allClasses = result.data;
+						$scope.classes = $rootScope.allClasses || [];
+						$scope.filters.class = $scope.classes[0];
+						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
+						$scope.getStudentReportCards();
+					}
+					
+				}, apiError);
+
+			}
+			else
+			{
+				apiService.getAllClasses({}, function(response){
+					var result = angular.fromJson(response);
+					
+					// store these as they do not change often
+					if( result.response == 'success') 
+					{
+						$rootScope.allClasses = result.data;
+						$scope.classes = $rootScope.allClasses || [];
+						$scope.filters.class = $scope.classes[0];
+						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
+						$scope.getStudentReportCards();
+					}
+					
+				}, apiError);
+			}
 		}
 		else
 		{

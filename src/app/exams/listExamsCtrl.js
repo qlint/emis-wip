@@ -24,26 +24,51 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		
 		var deferred = $q.defer();
 		requests.push(deferred.promise);
+		
 		if( $rootScope.allClasses === undefined )
 		{
-			apiService.getAllClasses({}, function(response){
-				var result = angular.fromJson(response);
-				
-				// store these as they do not change often
-				if( result.response == 'success') 
-				{
-					$rootScope.allClasses = result.data;
-					$scope.classes = $rootScope.allClasses || [];
-					$scope.filters.class = $scope.classes[0];
-					$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
-					deferred.resolve();
-				}
-				else
-				{
-					deferred.reject();
-				}
-				
-			}, function(){deferred.reject();});
+			if ( $rootScope.currentUser.user_type == 'TEACHER' )
+			{
+				apiService.getTeacherClasses($rootScope.currentUser.emp_id, function(response){
+					var result = angular.fromJson(response);
+					
+					// store these as they do not change often
+					if( result.response == 'success') 
+					{
+						$rootScope.allClasses = result.data;
+						$scope.classes = $rootScope.allClasses || [];
+						$scope.filters.class = $scope.classes[0];
+						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
+						deferred.resolve();
+					}
+					else
+					{
+						deferred.reject();
+					}
+					
+				}, function(){deferred.reject();});
+			}
+			else
+			{
+				apiService.getAllClasses({}, function(response){
+					var result = angular.fromJson(response);
+					
+					// store these as they do not change often
+					if( result.response == 'success') 
+					{
+						$rootScope.allClasses = result.data;
+						$scope.classes = $rootScope.allClasses || [];
+						$scope.filters.class = $scope.classes[0];
+						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
+						deferred.resolve();
+					}
+					else
+					{
+						deferred.reject();
+					}
+					
+				}, function(){deferred.reject();});
+			}
 		}
 		else
 		{
@@ -52,6 +77,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.filters.class_id = $scope.classes[0].class_id;
 			deferred.resolve();
 		}
+
 		
 		// get terms
 		var deferred2 = $q.defer();

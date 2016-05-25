@@ -53,11 +53,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 					className: 'control',
 					orderable: false,
 					targets:   0
-				} ],
+				},
+				{
+					targets:1,
+					orderable:false
+				}				
+				],
 				paging: false,
 				destroy:true,				
 				filter: true,
-				order:[1,'asc'],
+				order:[2,'asc'],
 				info: false,
 				sorting:[],
 				initComplete: function(settings, json) {
@@ -117,7 +122,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 	$scope.addExamType = function()
 	{
 		//$scope.openModal('exam', 'examTypeForm', 'md');
-		// show small dialog with add form
+		// show small dialog with add form		
 		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',{},{size: 'sm',backdrop:'static'});
 		dlg.result.then(function(examType){
 			
@@ -149,7 +154,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 			}, apiError);
 		});
 	}
-
 
 	$scope.$on('refreshExamTypes', function(event, args) {
 
