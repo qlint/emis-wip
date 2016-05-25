@@ -21,9 +21,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.optFeeItemSelection = [];
 	$scope.conditionSelection = [];
 	
+	$scope.student = {};
+	$scope.student.admission_date = {startDate:null};
+	
 	$scope.initializeController = function()
 	{
-	
+		
 		apiService.getStudentDetails(data.student_id, function(response){
 			var result = angular.fromJson(response);
 			
@@ -39,6 +42,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				student[0].current_class = currentClass[0];
 
 				$scope.student = student[0];
+				//var date = {startDate: $scope.student.admission_date};
+				//$scope.student.admission_date = date;
+				//console.log($scope.student.admission_date);
 				originalData = angular.copy($scope.student);
 				
 				getFeeItems();
@@ -333,6 +339,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	});
 	
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){
+		// need to watch the uploaded and manually set form to dirty if changed
+		if( newVal === undefined) return;
+		$scope.studentForm.$setDirty();
+	});
+	
+	$scope.$watch('student.admission_date', function(newVal, oldVal){
 		// need to watch the uploaded and manually set form to dirty if changed
 		if( newVal === undefined) return;
 		$scope.studentForm.$setDirty();
@@ -1116,6 +1128,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				}
 				
 				//postData.feeItems = $scope.feeItemSelection;
+				console.log($scope.student.admission_date);
 				
 				var postData = {
 					student_id : $scope.student.student_id,
@@ -1133,6 +1146,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						previous_class :  originalData.class_id,
 						student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null),
 						active : ( $scope.student.active ? 't' : 'f' ),
+						admission_date: ( $scope.student.admission_date.startDate !== undefined ? $scope.student.admission_date.startDate: $scope.student.admission_date),
+						admission_number: $scope.student.admission_number,
 						new_student : ( $scope.student.new_student ? 't' : 'f' ),
 					}
 				}

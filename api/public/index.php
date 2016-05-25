@@ -314,7 +314,6 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $st
 
 });
 
-
 $app->get('/getTeacherClasses/:teacher_id', function ($teacherId) {
     //Show classes for specific teacher
 	
@@ -358,6 +357,7 @@ $app->get('/getTeacherClasses/:teacher_id', function ($teacherId) {
     }
 
 });
+
 $app->get('/getClassExams/:class_id(/:exam_type_id)', function ($classId, $examTypeId = null) {
     //Show classes exams
 	
@@ -816,7 +816,6 @@ $app->post('/addClassCat/', function () use($app) {
     }
 
 });
-
 
 $app->put('/updateClassCat/', function () use($app) {
     // Update class cat
@@ -3839,7 +3838,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 									round( CASE WHEN frequency = 'per term' THEN student_fee_items.amount*3 ELSE student_fee_items.amount END, 2) as yearly_amount,
 									(select start_date from $termStatement) as term_start_date,
 									(select end_date from $termStatement) as term_end_date,
-									(select start_date from $nextTermStatement) as start_next_term,
+									coalesce((select start_date from $nextTermStatement), (select end_date from $termStatement)) as start_next_term,
 									( select min(start_date) from app.terms where date_part('year',start_date) = date_part('year', (select start_date from $termStatement)) ) as year_start_date
 								FROM app.students									
 								INNER JOIN app.student_fee_items
@@ -4600,7 +4599,8 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT *, payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' days apart)' as payment_plan_name
+        $sth = $db->prepare("SELECT students.*, 
+								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' days apart)' as payment_plan_name
 							 FROM app.students 
 							 LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
 							 WHERE student_id = :studentID 
@@ -5335,9 +5335,6 @@ $app->put('/updateStudent/', function () use($app) {
 	$updateMedical = false;
 	$updateFees = false;
 	
-//	$admissionNumber =				( isset($allPostVars['admission_number']) ? $allPostVars['admission_number']: null);
-//	$admissionDate = 				( isset($allPostVars['admission_date']) ? $allPostVars['admission_date']: null);
-
 	$studentId = ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
 	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
@@ -5357,6 +5354,8 @@ $app->put('/updateStudent/', function () use($app) {
 		$studentImg = 		( isset($allPostVars['details']['student_image']) ? $allPostVars['details']['student_image']: null);
 		$active = 			( isset($allPostVars['details']['active']) ? $allPostVars['details']['active']: true);
 		$newStudent = 		( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: true);
+		$admissionNumber =	( isset($allPostVars['details']['admission_number']) ? $allPostVars['details']['admission_number']: null);
+		$admissionDate = 	( isset($allPostVars['details']['admission_date']) ? $allPostVars['details']['admission_date']: null);
 	}
 	
 	if( isset($allPostVars['family']) )
@@ -5414,6 +5413,8 @@ $app->put('/updateStudent/', function () use($app) {
 						current_class = :currentClass,
 						active = :active,
 						new_student = :newStudent,
+						admission_date= :admissionDate,
+						admission_number= :admissionNumber,
 						modified_date = now(),
 						modified_by = :userId
 					WHERE student_id = :studentId"
@@ -5537,6 +5538,8 @@ $app->put('/updateStudent/', function () use($app) {
 							':currentClass' => $currentClass,
 							':active' => $active,
 							':newStudent' => $newStudent,
+							':admissionDate' => $admissionDate,
+							':admissionNumber' => $admissionNumber,
 							':userId' => $userId							
 			) );
 			if( $updateClass )

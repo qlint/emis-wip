@@ -115,7 +115,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			{
 				$('.fixedHeader-floating').remove();
 				$scope.dataGrid.clear();
-				$scope.dataGrid.destroy();
+				//$scope.dataGrid.destroy();
 			}
 			
 			if( result.nodata ) var formatedResults = [];
@@ -383,6 +383,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	{
 		$scope.loading = true;
 		$rootScope.loading = true;
+		
+		if( $scope.dataGrid !== undefined )
+		{
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();
+		}
+			
 		getStudents(currentStatus,isFiltered);
 	}
 	

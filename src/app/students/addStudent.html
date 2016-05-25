@@ -54,7 +54,7 @@
 							<label for="admission_date" class="col-sm-4 control-label">Admission Date</label>
 							<div class="col-sm-8">
 								<div class="input-group">
-									<input type="text" name="dob" date-range-picker id="admission_date" class="form-control date-picker input-sm" ng-model="student.admission_date" options="{singleDatePicker: true,autoApply: true}"  required>
+									<input type="text" name="admission_date" date-range-picker id="admission_date" class="form-control date-picker input-sm" ng-model="student.admission_date" options="{singleDatePicker: true,autoApply: true}"  required>
 									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 								</div>
 								<p ng-show="(studentForm.$submitted || studentForm.admission_date.$dirty ) && studentForm.admission_date.$invalid && studentForm.admission_date.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Admission Number is required.</p>
