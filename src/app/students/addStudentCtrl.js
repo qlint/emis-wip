@@ -12,8 +12,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.forms = {};
 	
 	$scope.student = {};
+	$scope.student.guardians = [];
 	var start_date = moment().format('YYYY-MM-DD HH:MM');
-	$scope.student.admission_date = {startDate: start_date};
+	$scope.student.admission_date = start_date;
 	$scope.student.student_category = 'Regular';
 	$scope.student.nationality = 'Kenya';
 	$scope.student.status = 'true';
@@ -305,7 +306,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
 
 			var postData = angular.copy($scope.student);
-			postData.admission_date = $scope.student.admission_date.startDate;
+			postData.admission_date = moment($scope.student.admission_date).format('YYYY-MM-DD');
 			postData.current_class = $scope.student.current_class.class_id;		
 			postData.new_student = (  $scope.student.new_student ? 't' : 'f' );
 			postData.medicalConditions = $scope.conditionSelection;
@@ -367,11 +368,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 	
-	var createError = function () 
+	var createError = function (response) 
 	{
 		var result = angular.fromJson( response );
 		$scope.formError = true;
-		$scope.errMsg = result.data;
+		if( result.data.indexOf('"U_admission_number"') > -1 )
+		{
+			$scope.formErrorList = [];
+			$scope.detailsErrors = 1;
+			$scope.formErrorList.push('You have entered a duplicate Admission Number.');
+		}
+		var msg = ( result.data.indexOf('"U_admission_number"') > -1 ? 'You have entered a duplicate Admission Number.' : result.data);
+		$scope.errMsg = msg;
 	}
 	
 	var uploader = $scope.uploader = new FileUploader({
@@ -380,5 +388,68 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				'dir': 'students'
 			}]
     });
+	
+	/************************************* Guardian Function ***********************************************/
+	$scope.addGuardian = function()
+	{
+		// show small dialog with add form
+		var data = {student_id: $scope.student.student_id};
+		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'lg',backdrop:'static'});
+		dlg.result.then(function(parent){
+			
+			//console.log(parent);
+			$scope.student.guardians.push(parent);
+			
+		},function(){
+			
+		});
+	}
+	
+	$scope.editGuardian = function(item)
+	{
+		// show small dialog with edit form
+		var data = {
+			student_id: $scope.student.student_id,
+			guardian: item,
+			action: 'edit'
+		};
+		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'lg',backdrop:'static'});
+		dlg.result.then(function(guardian){
+			
+			// find guardian and update
+			angular.forEach( $scope.student.guardians, function(item,key){
+				if( item.guardian_id == guardian.guardian_id) $scope.student.guardians[key] = guardian;
+			});
+			
+		},function(){
+			
+		});
+		
+	}
+	
+	$scope.deleteGuardian = function(student_id,item,index)
+	{
+
+		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete <b>' + item.parent_full_name + '</b> as a parent/guardian of ' + $scope.student.student_name + '? <br><br><b><i>(THIS CAN NOT BE UNDONE)</i></b>',{size:'sm'});
+		dlg.result.then(function(btn){
+			apiService.deleteGuardian(student_id+'/'+item.guardian_id, function(response,status,params){
+				var result = angular.fromJson(response);
+				if( result.response == 'success')
+				{
+					// remove row
+					$scope.student.guardians.splice(params.index,1);
+				
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, apiError,{index:index});
+
+		});
+		
+	}
 	
 } ]);

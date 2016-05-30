@@ -352,6 +352,48 @@
 							<img ng-show="employee.emp_image !== null" src="/assets/employees/{{employee.emp_image}}" height="220" />
 							<span ng-show="employee.emp_image === null" class="glyphicon glyphicon-user"></span>
 						</div>
+						
+						<h3>MIS Login</h3>
+						<div class="col-sm-12">
+						
+							
+							<!-- user type -->
+							<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.user_type.$dirty ) && empForm.user_type.$invalid && userForm.user_type.$error.required }">		
+								<label for="user_type">User Type</label>	
+								<select name="user_type" class="form-control" ng-options="type for type in userTypes" ng-model="employee.user_type" >
+									<option value="">--select user type--</option>
+								</select>								
+								<p ng-show="(empForm.$submitted || empForm.user_type.$dirty ) && empForm.user_type.$invalid && empForm.user_type.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> User Type is required.</p>
+							</div>
+							<!-- username -->
+							<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.username.$dirty ) && empForm.username.$invalid && empForm.username.$error.required }">		
+								<label for="username">Username</label>
+								<p class="form-control-static" ng-show="!editUsername">{{employee.username}}</p>
+								<input type="text" name="username" ng-model="employee.username" class="form-control" ng-show="editUsername" >	
+								<p ng-show="(empForm.$submitted || empForm.username.$dirty ) && empForm.username.$invalid && empForm.username.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Username is required.</p>
+							</div>
+							
+							<!-- password -->
+							<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.password.$dirty ) && empForm.password.$invalid && empForm.password.$error.required }">		
+								<label for="password">Password</label>
+								<input type="text" name="password" ng-model="employee.password" class="form-control" >	
+								<p ng-show="(empForm.$submitted || empForm.password.$dirty ) && empForm.password.$invalid && empForm.password.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Password is required.</p>
+							</div>
+							
+							<!-- login status -->
+							<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.login_active.$dirty ) && empForm.login_active.$invalid && empForm.login_active.$error.required }">		
+								<label for="status">Login Status</label>
+								<div class="">
+									<label class="radio-inline">
+									  <input type="radio" name="login_active" ng-model="employee.login_active" ng-value="true" > Active
+									</label>
+									<label class="radio-inline">
+									  <input type="radio" name="login_active" ng-model="employee.login_active" ng-value="false" > In-active
+									</label>
+									<p ng-show="(empForm.$submitted || empForm.login_active.$dirty ) && empForm.login_active.$invalid && empForm.login_active.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Status is required.</p>
+								</div>	
+							</div>	
+						</div>
 					</div>
 				</div>	
 						

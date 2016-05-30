@@ -16,6 +16,9 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 
 	$rootScope.$on('$stateChangeStart', function (event, next, toParams) 
 	{
+		var domain = window.location.host;
+		var subdomain = domain.substr(0, domain.indexOf('.'));
+		$rootScope.clientIdentifier = ( subdomain == 'parents' ? '' : subdomain );
 		
 	    var authorizedRoles = ( next.data.authorizedRoles.length > 0 ? next.data.authorizedRoles: null);
 		var loggedIn = false;
@@ -32,12 +35,16 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			//console.log($rootScope.currentUser);
 			
 			// get class categories and classes
-			$rootScope.getClassCats();
-			$rootScope.getAllClasses();
-			$rootScope.getEmpCats();
-			$rootScope.getDepts();
-			$rootScope.getCountries();
-			$rootScope.getInstallmentOptions();
+
+			if( $rootScope.currentUser.user_type != 'PARENT' )
+			{
+				$rootScope.getClassCats();
+				$rootScope.getAllClasses();
+				$rootScope.getEmpCats();
+				$rootScope.getDepts();
+				$rootScope.getCountries();
+				$rootScope.getInstallmentOptions();
+			}
 		}
 		else
 		{
@@ -72,7 +79,6 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		$rootScope.navOpen = false;
 		
 		var section = toState.name;
-		
 
 		// if the path you are checking is a sub-section, keep the / in the current state name
 		// otherwise, strip it, as we are looking for the root name	
@@ -81,6 +87,16 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		$rootScope.activeSubSection = ( section[1] === undefined ? section[0] : section[1]);
 		$rootScope.activeSubSubSection = ( section[2] === undefined ? section[0] : section[2]);
 		if( $rootScope.activeSubSubSection  == 'print' ) $rootScope.isPrinting = true;
+		
+		// if this is a parent, last two parms in url identify the student
+		console.log(toParams);
+		if( $rootScope.currentUser.user_type == 'PARENT' ) 
+		{
+			// we are not viewing the dashboard, get the student identifier
+			if( toParams.school !== undefined ) $rootScope.activeStudent = toParams.school + '/' + toParams.student_id;
+			else $rootScope.activeStudent = undefined;
+		}
+		
 		
 		$rootScope.currentPageSection = section[0] + '/' + section[1];
 		if( $('#navigation').hasClass('in') ) $('#mainnav').trigger('click');
@@ -161,6 +177,8 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		});
 	};
 	*/
+	
+	$rootScope.userTypes = ['SYS_ADMIN','TEACHER'];		
 	
 	$rootScope.formatStudentData = function(data)
 	{
@@ -246,6 +264,10 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 	
 	$rootScope.$on('reportCardAdded', function(event, args) {
         $rootScope.$broadcast('refreshReportCards', args);
+    });
+	
+	$rootScope.$on('userAdded', function(event, args) {
+        $rootScope.$broadcast('refreshUsers', args);
     });
 	
 	$rootScope.$on('setSettings', function(event, args) {

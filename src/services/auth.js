@@ -19,18 +19,27 @@ function($http, $rootScope, $window, Session, AUTH_EVENTS, ajaxService) {
 	
 		var domain = window.location.host;
 		var path = ( domain.indexOf('eduweb.co.ke') > -1  ? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost');
-	
-	    ajaxService.AjaxPost(user, path + "/login", 
+		var subdomain = domain.substr(0, domain.indexOf('.'));
+		var apiAction = ( subdomain == 'parents' ? 'parentLogin' : 'login');
+
+		
+	    ajaxService.AjaxPost(user, path + "/" + apiAction, 
 			function(loginData){
 				
 				if( loginData.response == 'success' )
 				{
 					// success
-					
-					loginData.data.settings = loginData.data.settings.reduce(function ( total, current ) { 
-						total[ current.name ] = current.value;
-						return total;
-					}, {});
+					if( apiAction == 'login' )
+					{
+						loginData.data.settings = loginData.data.settings.reduce(function ( total, current ) { 
+							total[ current.name ] = current.value;
+							return total;
+						}, {});						
+					}
+					else
+					{
+						loginData.data.user_type = 'PARENT';
+					}
 									
 					//set the browser session, to avoid re-login on refresh
 					$window.sessionStorage["userInfo"] = JSON.stringify(loginData.data);

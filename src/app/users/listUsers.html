@@ -1,0 +1,63 @@
+<div ng-controller="listUsersCtrl" >	
+	
+	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+		
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+		
+		<div class="fixed content-fixed-header">
+		
+			<!--ul class="nav nav-pills pull-left">				
+				<li ng-class="{active: viewActive}"><a class="clickable" ng-click="getStudents(true)">Active</a></li>
+				<li ng-class="{active: !viewActive}"><a class="clickable" ng-click="getStudents(false)">Deleted</a></li>
+			</ul-->
+			
+			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+					<div class="btn add-btn" title="Add User" ng-click="addUser()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add User</span></a></div>
+					<!--div class="btn" title="Print" ng-hide="isSmallScreen" ng-click="printablePage()"><a class="print-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div-->
+					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
+				</div>			
+			</div>
+			
+			<div class="clearfix">
+				<h1 id="pageTitle">Users</h1>
+			</div>
+			
+			
+		</div>
+		
+		<div class="full-height datagrid main-datagrid" ng-class="{tableLoading: loading}">
+			<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%">
+				<thead>
+					<tr>
+						<th></th>
+						<th>Name</th>
+						<th>Username</th>
+						<th>User Type</th>
+					</tr>
+				</thead>	
+				<tbody>
+					<tr ng-repeat="item in users track by $index">
+						<td></td>
+						<td id="{{item.user_id}}" class="emp_id" ng-click="viewUser(item)">{{item.user_name}}</td>
+						<td ng-click="viewUser(item)">{{item.username}}</td>
+						<td ng-click="viewUser(item)">{{item.user_type}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		
+		
+		
+	</div>
+</div>
+
+
+

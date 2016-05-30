@@ -215,7 +215,7 @@
 				<div class="section-container">
 					<h2 class="pull-left">Parents/Guardians</h2>
 					<button type="button" class="pull-right btn btn-link" ng-click="addGuardian()" ng-show="permissions.students.edit"><i class="glyphicon glyphicon-plus-sign"></i> Add Parent/Guardian</button>
-					<table class="display dataTable">
+					<table class="display clickable dataTable">
 						<thead>
 							<tr>
 								<th></th>
@@ -231,7 +231,7 @@
 								<td colspan="5">This student does not have any parents/guardians entered.</td>
 							</tr>
 							<tr ng-if="student.guardians.length>0" ng-repeat="item in student.guardians track by $index" ng-class-odd="'odd'" ng-class-even="'even'">
-								<td><span ng-click="deleteGuardian(item,$index)" class="glyphicon glyphicon-trash text-danger"  ng-show="permissions.students.edit"></span></td>
+								<td><span ng-click="deleteGuardian(student.student_id,item,$index)" class="glyphicon glyphicon-trash text-danger"  ng-show="permissions.students.edit"></span></td>
 								<td ng-click="editGuardian(item)">{{item.parent_full_name}}</td>
 								<td ng-click="editGuardian(item)">{{item.relationship}}</td>
 								<td ng-click="editGuardian(item)">{{item.telephone}}</td>
