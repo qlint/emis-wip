@@ -775,15 +775,19 @@ table.clickable{
 }
 
 .td-form-control-add-on{
+	white-space : nowrap;
+	
 	input{
-		float:left;
-		width:50%;
+		display:inline-block;
+		width:30px;
+		font-size:12px;
 	}
 	.input-group-addon{
-	    float: left;
+	    display:inline-block;
 		width: 32px;
 		padding: 5px!important;
-		margin-left: -3px;
+		margin-left: -5px;
+		margin-top:-2px;
 		font-size: 11px;
 		line-height: 14px;
 	}
@@ -1141,6 +1145,11 @@ table.clickable{
 	text-align:center;
 	margin-bottom:20px;
 	border-bottom:1px solid #eee;
+	
+	img.brand{
+		width:100px;
+		height:auto;
+	}
 	
 	div{
 		text-align:center;

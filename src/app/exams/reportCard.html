@@ -143,8 +143,8 @@
 							<th class="center" colspan="{{examTypes.length*3}}">Marks</th>
 							<th rowspan="2" colspan="2" class="center">Overall</th>
 							<th rowspan="3" class="center">Position</th>
-							<th class="center" rowspan="3">Remarks</th>
-							<th class="center" rowspan="3">Teacher Int.</th>
+							<th class="center" rowspan="3" width="350">Remarks</th>
+							<th class="center" rowspan="3">Teacher<br>Int.</th>
 						</tr>
 						<tr>
 							<th class="center" colspan="3" ng-repeat="item in examTypes">{{item}}</th>
@@ -197,7 +197,7 @@
 							</td>
 						</tr>
 						<tr>
-							<td width="50%">
+							<td width="75%">
 								<label>Class teacher comments:</label>
 								<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
 								<p ng-show="isPrinting" class="form-control-static">{{comments.teacher_comments}}</p>

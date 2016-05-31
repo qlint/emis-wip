@@ -564,16 +564,20 @@ table.dataTable tbody tr.canceled td {
 table.clickable tr {
   cursor: pointer; }
 
-.td-form-control-add-on input {
-  float: left;
-  width: 50%; }
-.td-form-control-add-on .input-group-addon {
-  float: left;
-  width: 32px;
-  padding: 5px !important;
-  margin-left: -3px;
-  font-size: 11px;
-  line-height: 14px; }
+.td-form-control-add-on {
+  white-space: nowrap; }
+  .td-form-control-add-on input {
+    display: inline-block;
+    width: 30px;
+    font-size: 12px; }
+  .td-form-control-add-on .input-group-addon {
+    display: inline-block;
+    width: 32px;
+    padding: 5px !important;
+    margin-left: -5px;
+    margin-top: -2px;
+    font-size: 11px;
+    line-height: 14px; }
 
 /********************** Modal Styles ******************************/
 .error-indicator {
@@ -828,6 +832,9 @@ table.clickable tr {
   text-align: center;
   margin-bottom: 20px;
   border-bottom: 1px solid #eee; }
+  .progress-report-header img.brand {
+    width: 100px;
+    height: auto; }
   .progress-report-header div {
     text-align: center; }
   .progress-report-header h2 {

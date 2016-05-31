@@ -90,7 +90,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		
 		// if this is a parent, last two parms in url identify the student
 		console.log(toParams);
-		if( $rootScope.currentUser.user_type == 'PARENT' ) 
+		if( $rootScope.currentUsers && $rootScope.currentUser.user_type == 'PARENT' ) 
 		{
 			// we are not viewing the dashboard, get the student identifier
 			if( toParams.school !== undefined ) $rootScope.activeStudent = toParams.school + '/' + toParams.student_id;
@@ -377,5 +377,12 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 				
 			}, function(){});
 		}
+	}
+	
+	$rootScope.zeroPad = function(x, y)
+	{
+	   y = Math.max(y-1,0);
+	   var n = (x / Math.pow(10,y)).toFixed(y);
+	   return n.replace('.','');  
 	}
 }]);

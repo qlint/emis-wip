@@ -63,7 +63,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 				paging: false,
 				destroy:true,				
 				filter: true,
-				order:[[1,'asc'],[2,'asc']],
+				//order:[[1,'asc'],[2,'asc']],
 				info: false,
 				sorting:[],
 				initComplete: function(settings, json) {

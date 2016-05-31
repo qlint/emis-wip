@@ -575,7 +575,7 @@ $app->get('/getClassExams/:class_id(/:exam_type_id)', function ($classId, $examT
 			$query .= "AND class_subject_exams.exam_type_id = :examTypeId";
 			$params[':examTypeId'] = $examTypeId; 
 		}
-		$query .= " ORDER BY exam_types.sort_order";
+		$query .= " ORDER BY exam_types.sort_order, subjects.sort_order";
 		
         $sth = $db->prepare($query);
         $sth->execute( $params  );
@@ -2548,7 +2548,8 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 							  ,grade_weight
 							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
 							  ,dense_rank() over w as rank,
-							  subjects.sort_order
+							  subjects.sort_order,
+							  exam_types.exam_type_id
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types
@@ -2569,10 +2570,10 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 			$queryArray[':examTypeId'] = $examTypeId; 
 		}
 		
-		$query .= "WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY  exam_types.exam_type_id, class_subjects.subject_id, mark desc)
+		$query .= "WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY  exam_types.exam_type_id, subjects.sort_order)
 				 ) q
 				 where student_id = :studentId
-				 ORDER BY sort_order";
+				 ORDER BY exam_type_id, sort_order";
 		
 		$sth = $db->prepare($query);
 		$sth->execute( $queryArray ); 
@@ -3054,7 +3055,9 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 							  ,mark          
 							  ,grade_weight
 							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
-							  ,dense_rank() over w as rank
+							  ,dense_rank() over w as rank,
+							  subjects.sort_order,
+							  exam_types.exam_type_id
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types
@@ -3066,9 +3069,10 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 						WHERE class_subjects.class_id = :classId
 						AND term_id = :termId
-						WINDOW w AS (PARTITION BY class_subjects.subject_id, class_subject_exams.exam_type_id ORDER BY   class_subjects.subject_id, exam_types.exam_type_id, mark desc)
+						WINDOW w AS (PARTITION BY class_subjects.subject_id, class_subject_exams.exam_type_id ORDER BY subjects.sort_order, exam_types.exam_type_id)
 				 ) q
-				 where student_id = :studentId");
+				 where student_id = :studentId
+				 ORDER BY sort_order, exam_type_id");
 		$sth->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
 		$details = $sth->fetchAll(PDO::FETCH_OBJ);
 		
@@ -3107,26 +3111,29 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 									(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 									position_out_of
 								FROM (
-									SELECT    
-										  student_id
-										  ,sum(mark) as total_mark    
-										  ,sum(grade_weight) as total_grade_weight
-										  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
-										  ,dense_rank() over w as rank
-										  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
-									FROM app.exam_marks
-									INNER JOIN app.class_subject_exams 
-									INNER JOIN app.exam_types
-									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-									INNER JOIN app.class_subjects 
-										INNER JOIN app.subjects
-										ON class_subjects.subject_id = subjects.subject_id
-									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-									WHERE class_subjects.class_id = :classId
-									AND term_id = :termId
-									GROUP BY exam_marks.student_id
-									WINDOW w AS (ORDER BY coalesce(sum(mark),0) desc)									
+									SELECT
+										student_id, total_mark, total_grade_weight, percentage, dense_rank() over w as rank, position_out_of
+									FROM (
+										SELECT    
+											  student_id
+											  ,sum(mark) as total_mark    
+											  ,sum(grade_weight) as total_grade_weight
+											  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
+											  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+										FROM app.exam_marks
+										INNER JOIN app.class_subject_exams 
+										INNER JOIN app.exam_types
+										ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+										INNER JOIN app.class_subjects 
+											INNER JOIN app.subjects
+											ON class_subjects.subject_id = subjects.subject_id
+										ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+										ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+										WHERE class_subjects.class_id = :classId
+										AND term_id = :termId
+										GROUP BY exam_marks.student_id
+									) a
+									WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)									
 								 ) q
 								 where student_id = :studentId");
 		$sth3->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
@@ -3137,26 +3144,29 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 									(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 									position_out_of
 								FROM (
-									SELECT    
-										  student_id
-										  ,sum(mark) as total_mark    
-										  ,sum(grade_weight) as total_grade_weight
-										  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
-										  ,dense_rank() over w as rank
-										  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
-									FROM app.exam_marks
-									INNER JOIN app.class_subject_exams 
-									INNER JOIN app.exam_types
-									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-									INNER JOIN app.class_subjects 
-										INNER JOIN app.subjects
-										ON class_subjects.subject_id = subjects.subject_id
-									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-									WHERE class_subjects.class_id = :classId
-									AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
-									GROUP BY exam_marks.student_id
-									WINDOW w AS (ORDER BY coalesce(sum(mark),0) desc)									
+									SELECT
+										student_id, total_mark, total_grade_weight, percentage, dense_rank() over w as rank, position_out_of
+									FROM (
+										SELECT    
+											  student_id
+											  ,sum(mark) as total_mark    
+											  ,sum(grade_weight) as total_grade_weight
+											  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
+											  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+										FROM app.exam_marks
+										INNER JOIN app.class_subject_exams 
+										INNER JOIN app.exam_types
+										ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+										INNER JOIN app.class_subjects 
+											INNER JOIN app.subjects
+											ON class_subjects.subject_id = subjects.subject_id
+										ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+										ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+										WHERE class_subjects.class_id = :classId
+										AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+										GROUP BY exam_marks.student_id
+									) a
+									WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)									
 								 ) q
 								 where student_id = :studentId");
 		$sth4->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
@@ -3425,13 +3435,13 @@ $app->get('/getTotalsForTerm', function () {
 						FROM (
 							SELECT total_due, total_paid,balance
 							FROM app.invoice_balances
-							WHERE due_date between (select start_date from app.current_term) and (select start_date - interval '1 day' from app.next_term)
+							WHERE due_date between (select start_date from app.current_term) and coalesce((select start_date - interval '1 day' from app.next_term), (select end_date from app.current_term)) 
 							AND canceled = false
 
 							UNION
 							SELECT 0 as total_due, amount as total_paid,0 as balance
 							FROM app.payments
-							WHERE payment_date between (select start_date from app.current_term) and (select start_date - interval '1 day' from app.next_term)
+							WHERE payment_date between (select start_date from app.current_term) and coalesce((select start_date - interval '1 day' from app.next_term), (select end_date from app.current_term)) 
 							AND replacement_payment is true
 
 						) q");
@@ -4150,7 +4160,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 														WHERE student_id = q.student_id
 													) q
 												   )q2
-												   WHERE due_date BETWEEN term_start_date and date_trunc('month',start_next_term - interval '1 mon') 
+												   WHERE due_date BETWEEN term_start_date and date_trunc('month',term_end_date) 
 												)
 
 											 ELSE 0 END
@@ -4167,7 +4177,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 														WHERE student_id = q.student_id
 													) q
 												)q2
-												WHERE due_date BETWEEN term_start_date and date_trunc('month',start_next_term - interval '1 mon') 
+												WHERE due_date BETWEEN term_start_date and date_trunc('month',term_end_date) 
 											)
 										END
 									 ELSE
