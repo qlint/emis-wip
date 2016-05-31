@@ -40,6 +40,8 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 	var setCurrentUser = function(){
 		//$scope.currentUser = $rootScope.currentUser;
 		$rootScope.permissions = [];
+		$rootScope.manageUsers = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false);
+		$rootScope.isParent = ( $rootScope.currentUser.user_type == 'PARENT' ? true : false);
 
 		switch( $rootScope.currentUser.user_type ){
 			case "SYS_ADMIN":
@@ -186,13 +188,51 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						'add': true,
 						'edit': true,
 					},
-					'class_blog':{
+					'blog':{
 						'view': true,
 						'add': true,
 						'edit': true,
 					}
 				};
 				break;
+			case "PARENT":
+				$rootScope.permissions = {
+					'blog':{
+						'view': true,
+					},
+					'student_details':{
+						'view': true,
+					},
+					'fees':{
+						'fee_summary': {
+							'view': true,
+						},
+						'invoices': {
+							'view': true,
+						},
+						'payments_received': {
+							'view': true,
+						},						
+						'fee_items': {
+							'view': true,
+						},
+					},					
+					'report_cards':{
+						'exam_marks': {
+							'view': true,
+						},
+						'report_cards': {
+							'view': true,
+						},						
+					},
+					'communications':{
+						'view': true,
+						'add': true,
+					}
+					
+				};
+				break;
+			
 			default:
 				$rootScope.permissions = {
 					dashboard:{
@@ -206,50 +246,110 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 		var i = 0,
 		    j = 0;
 
-		angular.forEach( $rootScope.permissions, function(permission, sectionName){
-			// if no view permission, likely an object of arrays, dig deeper
+		if( $rootScope.isParent )
+		{
+			$scope.navItems.push({id: 'parents_dashboard', label: 'Dashboard', section: 'parents_dashboard', subnav: [], activeStudent : undefined});
 
-			if( permission.view === undefined )
-			{
+			angular.forEach( $rootScope.currentUser.students, function(item,key){
+				console.log(item.school);
 				var navItem = {};
-				var subnavItem = {};
-				angular.forEach( permission, function(permission2, subSectionName){
-					if( i == 0 ) navItem = {id: sectionName + "/" + subSectionName, label: $filter('titlecase')(sectionName.split("_").join(" ")), section: sectionName, subnav: []}; //, icon: icons[sectionName]};
+				navItem = {id: 'blog' + '({school:\'' + item.school + '\',student_id:' + item.student_id + '})', label: item.student_name, section: 'blog', subnav: [], activeStudent : item.school + '/' + item.student_id };
 				
-					navItem.subnav.push({id: sectionName + "/" + subSectionName, label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName}); //, filters:permission2.filters});
+				angular.forEach( $rootScope.permissions, function(permission, sectionName){
+				// if no view permission, likely an object of arrays, dig deeper
 
-					i++;
-
+					if( permission.view === undefined )
+					{
+						var tabs = []
+						angular.forEach( permission, function(permission2, subSectionName){
+							tabs.push({id: sectionName + '/' + subSectionName + '({school:\'' + item.school + '\',student_id:' + item.student_id + '})', label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName});
+						});
+						
+						navItem.subnav.push({id: sectionName + '({school:\'' + item.school + '\',student_id:' + item.student_id + '})', 
+											 label: $filter('titlecase')(sectionName.split("_").join(" ")), 
+											 section: sectionName, 
+											 subSection: '', 
+											 tabs: tabs});
+					}
+					else
+					{
+						if( permission.view )
+						{
+							navItem.subnav.push({id: sectionName + '({school:\'' + item.school + '\',student_id:' + item.student_id + '})', label: $filter('titlecase')(sectionName.split("_").join(" ")), section: sectionName, subSection: ''});
+						}
+					}
+					
+					i = 0;
 				});
-
-				$scope.navItems.push(navItem);
 				
-			}
-			else
-			{
-				if( permission.view )
-				{
-						$scope.navItems.push({id: sectionName, label: $filter('titlecase')(sectionName.split("_").join(" ")), section: sectionName}); //, icon: icons[sectionName]});	
-				}
-			}
-			
-			i = 0;
-		});
+				$scope.navItems.push(navItem);
+			});
+				
+		}
+		else
+		{
+			angular.forEach( $rootScope.permissions, function(permission, sectionName){
+				// if no view permission, likely an object of arrays, dig deeper
 
+				if( permission.view === undefined )
+				{
+					var navItem = {};
+					var subnavItem = {};
+					angular.forEach( permission, function(permission2, subSectionName){
+						if( i == 0 ) navItem = {id: sectionName + "/" + subSectionName, label: $filter('titlecase')(sectionName.split("_").join(" ")), section: sectionName, subnav: []}; //, icon: icons[sectionName]};
+					
+						navItem.subnav.push({id: sectionName + "/" + subSectionName, label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName}); //, filters:permission2.filters});
+
+						i++;
+
+					});
+
+					$scope.navItems.push(navItem);
+					
+				}
+				else
+				{
+					if( permission.view )
+					{
+							$scope.navItems.push({id: sectionName, label: $filter('titlecase')(sectionName.split("_").join(" ")), section: sectionName}); //, icon: icons[sectionName]});	
+					}
+				}
+				
+				i = 0;
+			});
+		}
+		console.log($scope.navItems);
+		
 		$rootScope.navItems = $scope.navItems;
 		
 		var section = $rootScope.currentPage;
 		section = section.split('/');
 		var page = section[0];
 		var params = section[1];
+		/*
+		if( $rootScope.currentUser.user_type == 'PARENT' )
+		{
+			angular.forEach( $rootScope.navItems, function( item, key) {
+				var section = item.section;
+				if( section.toUpperCase() == page.toUpperCase() )
+				{
+					$rootScope.mainSubNavItems = item.subnav;
+				}
+			});
 
-		angular.forEach( $rootScope.navItems, function( item, key) {
-			var section = item.section;
-			if( section.toUpperCase() == page.toUpperCase() )
-			{
-				$rootScope.mainSubNavItems = item.subnav;
-			}
-		});
+		}
+		else
+		{*/
+			angular.forEach( $rootScope.navItems, function( item, key) {
+				var section = item.section;
+				if( section.toUpperCase() == page.toUpperCase() )
+				{
+					$rootScope.mainSubNavItems = item.subnav;
+				}
+			});
+		//}
+		
+		console.log($rootScope.mainSubNavItems );
 		
 	}
 	

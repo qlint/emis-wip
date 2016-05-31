@@ -22,7 +22,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.conditionSelection = [];
 	
 	$scope.student = {};
-	$scope.student.admission_date = {startDate:null};
+	$scope.student.admission_date = {};
+	$scope.initLoad = true;
 	
 	$scope.initializeController = function()
 	{
@@ -42,12 +43,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				student[0].current_class = currentClass[0];
 
 				$scope.student = student[0];
-				//var date = {startDate: $scope.student.admission_date};
-				//$scope.student.admission_date = date;
-				//console.log($scope.student.admission_date);
+
 				originalData = angular.copy($scope.student);
 				
 				getFeeItems();
+				
 			}
 		});
 	
@@ -134,6 +134,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.optFeeItemSelection = setSelectedFeeItems($scope.optFeeItems);
 				
 				//console.log($scope.optFeeItemSelection);
+				
+				$scope.initLoad  = false;
 				
 			}
 			
@@ -344,12 +346,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.studentForm.$setDirty();
 	});
 	
+	
 	$scope.$watch('student.admission_date', function(newVal, oldVal){
 		// need to watch the uploaded and manually set form to dirty if changed
 		if( newVal === undefined) return;
-		$scope.studentForm.$setDirty();
+		if( !$scope.initLoad ) $scope.studentForm.$setDirty();
 	});
-
+	
 	
 	
 	/************************************* Guardian Function ***********************************************/
@@ -357,7 +360,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		// show small dialog with add form
 		var data = {student_id: $scope.student.student_id};
-		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(parent){
 			
 			//console.log(parent);
@@ -376,12 +379,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			guardian: item,
 			action: 'edit'
 		};
-		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(guardian){
 			
 			// find guardian and update
+			console.log(guardian);
 			angular.forEach( $scope.student.guardians, function(item,key){
-				if( item.guardian_id == guardian.guardian_id) $scope.student.guardians[key] = guardian;
+				if( item.guardian_id == guardian.guardian_id)
+				{
+					console.log($scope.student.guardians[key]);
+					$scope.student.guardians[key] = guardian;
+					console.log($scope.student.guardians[key]);
+				}
 			});
 			
 		},function(){
@@ -390,12 +399,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 	}
 	
-	$scope.deleteGuardian = function(item,index)
+	$scope.deleteGuardian = function(student_id,item,index)
 	{
 
-		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete <b>' + item.parent_full_name + '</b> as a parent/guardian? <br><br><b><i>(THIS CAN NOT BE UNDONE)</i></b>',{size:'sm'});
+		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete <b>' + item.parent_full_name + '</b> as a parent/guardian of ' + $scope.student.student_name + '? <br><br><b><i>(THIS CAN NOT BE UNDONE)</i></b>',{size:'sm'});
 		dlg.result.then(function(btn){
-			apiService.deleteGuardian(item.guardian_id, function(response,status,params){
+			apiService.deleteGuardian(student_id+'/'+item.guardian_id, function(response,status,params){
 				var result = angular.fromJson(response);
 				if( result.response == 'success')
 				{
@@ -623,6 +632,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.payments = payments.map(function(item){
 				item.replacement = ( item.replacement_payment ? 'Yes' : 'No');
 				item.reverse = ( item.reversed ? 'Yes' : 'No');
+				item.receipt_number = $rootScope.zeroPad(item.payment_id,5);
 				return item;
 			});
 			
@@ -630,6 +640,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 	
+	
+
 	var initFeesDataGrid = function() 
 	{
 		var settings = {
@@ -1146,7 +1158,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						previous_class :  originalData.class_id,
 						student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null),
 						active : ( $scope.student.active ? 't' : 'f' ),
-						admission_date: ( $scope.student.admission_date.startDate !== undefined ? $scope.student.admission_date.startDate: $scope.student.admission_date),
+						admission_date: moment($scope.student.admission_date).format('YYYY-MM-DD'),
 						admission_number: $scope.student.admission_number,
 						new_student : ( $scope.student.new_student ? 't' : 'f' ),
 					}
@@ -1260,7 +1272,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 .controller('addParentCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
 function($scope,$rootScope,$uibModalInstance,apiService,data){
 		//-- Variables --//
+		$scope.student_id = data.student_id || null;
 		$scope.guardian =  data.guardian || {};
+		if( $scope.guardian.login === undefined ) $scope.guardian.login = {};
+		$scope.guardian.login.login_active = 'false';
 		$scope.edit = ( data.action == 'edit' ? true : false );
 		
 		var relationships = $rootScope.currentUser.settings['Guardian Relationships'];
@@ -1271,8 +1286,133 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		var titles = $rootScope.currentUser.settings['Titles'];
 		$scope.titles = titles.split(',');
+				
+		$scope.existingGuardian = {};
+		$scope.uniqueUsername = undefined;
+		$scope.uniqueIdNumber = undefined;
 
 		//-- Methods --//
+		
+		$scope.initializeController = function()
+		{
+			if( !$scope.edit )
+			{
+				// get list of existing guardians
+				apiService.getAllGuardians(true,function(response){
+					var result = angular.fromJson( response );
+					if( result.response == 'success' ) 	$scope.guardians = (result.nodata ? [] : result.data);
+				},apiError);
+			}
+			else
+			{
+				$scope.getStudents( $scope.guardian.guardian_id );
+				$scope.checkMISLogin( $scope.guardian.id_number );
+			}
+		}
+		setTimeout( $scope.initializeController,10);
+		
+		$scope.getStudents = function( guardian_id )
+		{
+			apiService.getGuardiansChildren(guardian_id,function(response){
+				var result = angular.fromJson( response );
+				if( result.response == 'success' )
+				{
+					$scope.children = (result.nodata ? [] : result.data);
+					// filter out current student
+					$scope.children = $scope.children.filter(function(item){
+						if ( item.student_id != $scope.student_id ) return item;
+					});
+				}
+			},apiError);
+		}
+		
+		$scope.checkMISLogin = function( idNumber )
+		{
+			// this will query the eduweb_mis database for a login associated with id_number
+			apiService.getMISLogin(idNumber,function(response){
+				var result = angular.fromJson( response );
+				if( result.response == 'success' )
+				{
+					$scope.hasLogin = (result.nodata ? false : true);
+					if( $scope.hasLogin )
+					{
+						$scope.guardian.login = result.data;
+						$scope.guardian.login.login_active = String(result.data.login_active);
+						// check if this parent is already associated with this student
+						if( result.data.student_ids !== null )
+						{
+							var existingRecord = result.data.student_ids.indexOf( String($scope.student_id) );
+							/*
+							var existingRecord = result.data.student_ids.filter(function(item){
+								if( item == $scope.student_id ) return item;
+							});
+							*/
+						}
+						
+						$scope.guardian.login.exists = ( existingRecord > -1 ? true : false);
+					}
+					else
+					{
+						if( $scope.guardian.login === undefined ) $scope.guardian.login = {};
+						$scope.guardian.login.login_active = 'false';
+					}
+					console.log($scope.guardian);
+				}
+			},apiError);
+		}
+		
+		$scope.checkUsername = function( username )
+		{
+			// this will query the eduweb_mis database to check if username is unique
+			if( !$scope.hasLogin )
+			{
+				apiService.checkUsername(username,function(response){
+					var result = angular.fromJson( response );
+					if( result.response == 'success' )
+					{
+						$scope.uniqueUsername = (result.nodata ? true : false);					
+					}
+				},apiError);
+			}
+		}
+		
+		$scope.checkIdNumber = function( username )
+		{
+			// this will query the guardians table to ensure id number is unique
+			apiService.checkIdNumber(username,function(response){
+				var result = angular.fromJson( response );
+				if( result.response == 'success' )
+				{
+					$scope.uniqueIdNumber = (result.nodata ? true : false);					
+				}
+			},apiError);
+		}
+		
+		
+		$scope.$watch('existingGuardian.selected',function(newVal,oldVal){
+			if( newVal == oldVal || newVal === undefined ) return;
+			// populate form
+			var relationship = angular.copy($scope.guardian.relationship);
+			$scope.guardian = newVal;
+			$scope.guardian.relationship = relationship; // get cleared, reset it previous selection
+			$scope.getStudents( $scope.guardian.guardian_id );
+		});
+		
+		$scope.$watch('guardian.id_number',function(newVal,oldVal){
+			if( newVal == oldVal || newVal === undefined ) return;
+			// populate form
+			$scope.checkMISLogin(newVal);
+			
+			$scope.uniqueIdNumber = undefined;
+			$scope.checkIdNumber(newVal);
+		});	
+	
+		$scope.$watch('guardian.login.username',function(newVal,oldVal){
+			if( newVal == oldVal || newVal === undefined ) return;
+			// check if unique
+			$scope.uniqueUsername = undefined;
+			$scope.checkUsername(newVal);
+		});			
 		
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');
@@ -1280,7 +1420,10 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.save = function(theForm)
 		{
-			if( !theForm.$invalid )
+			console.log(theForm.$invalid);
+			console.log($scope.uniqueUsername);
+			console.log($scope.uniqueIdNumber);
+			if( !theForm.$invalid && $scope.uniqueUsername !== false && $scope.uniqueIdNumber !== false )
 			{
 				if( $scope.edit ) 
 				{
@@ -1288,12 +1431,22 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				}
 				else{
 					//console.log($scope.guardian);
-					var postData = {
-						student_id: data.student_id,
-						guardian: $scope.guardian,
-						user_id: $rootScope.currentUser.user_id
+					if( $scope.student_id )
+					{
+						var postData = {
+							student_id: $scope.student_id,
+							guardian_id: ($scope.existingGuardian.selected !== undefined ? $scope.existingGuardian.selected.guardian_id : undefined),
+							guardian: $scope.guardian,
+							user_id: $rootScope.currentUser.user_id
+						}
+						apiService.postGuardian(postData, createCompleted, apiError);
 					}
-					apiService.postGuardian(postData, createCompleted, apiError);
+					else
+					{
+						// adding a guardian for a new student, just return the data
+						$scope.guardian.parent_full_name = $scope.guardian.first_name + ' ' + ($scope.guardian.middle_name || '') + ' ' + $scope.guardian.last_name;
+						$uibModalInstance.close($scope.guardian);
+					}
 				}
 			}
 		}; // end save
@@ -1302,6 +1455,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		{
 			//console.log($scope.guardian);
 			var postData = {
+				student_id: $scope.student_id,
 				guardian: $scope.guardian,
 				user_id: $rootScope.currentUser.user_id
 			}
@@ -1310,24 +1464,22 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			
 		}; // end update
 		
-		
-		
 		var createCompleted = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			if( result.response == 'success' )
 			{
-				$scope.guardian.guardian_id = result.data;
-				$scope.guardian.parent_full_name = $scope.guardian.first_name + ' ' + $scope.guardian.middle_name + ' ' + $scope.guardian.last_name;
+				if( !$scope.edit ) $scope.guardian.guardian_id = result.data; // when adding, set guardian id returned from API
+				$scope.guardian.parent_full_name = $scope.guardian.first_name + ' ' + ($scope.guardian.middle_name || '') + ' ' + $scope.guardian.last_name;
 				$uibModalInstance.close($scope.guardian);
 			}
 			else
 			{
 				$scope.error = true;
-				$scope.errMsg = result.data;
+				var msg = ( result.data.indexOf('"U_id_number"') > -1 ? 'The ID Number you entered already exists.' : result.data);
+				$scope.errMsg = msg;
 			}
 		}
-		
 		
 		var apiError = function(response,status)
 		{
@@ -1335,151 +1487,247 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
-		/*
-		$scope.hitEnter = function(evt){
-			if( angular.equals(evt.keyCode,13) )
-				$scope.save();
-		};
-		*/
 
-	
+		$scope.clearSelect = function($event) 
+		{
+			$event.stopPropagation(); 
+			$scope.existingGuardian.selecte = undefined;
+			$scope.guardian = {};
+			$scope.childern = undefined;
+		};
+		
+		
 	
 	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('addParent.html',
 			'<form name="parentForm" class="form-horizontal modalForm" novalidate role="form" ng-submit="save(parentForm)">' +
 			'<div class="modal-header dialog-header-form">'+
-				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Parent/Guardian</h4>' +
+				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> {{(edit ? \'Update\' : \'Add\')}} Parent/Guardian</h4>' +
 			'</div>' +
 			'<div class="modal-body cleafix">' +				
 					'<div ng-show="error" class="alert alert-danger">' +
 						'{{errMsg}}'+
 					'</div>' +
-					'<!-- last name -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.last_name.$dirty ) && parentForm.last_name.$invalid && parentForm.last_name.$error.required }">' +
-						'<label for="last_name" class="col-sm-3 control-label">Last Name</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="last_name" ng-model="guardian.last_name" class="form-control" required />' +
-							'<p ng-show="(parentForm.$submitted || parentForm.last_name.$dirty ) && parentForm.last_name.$invalid && parentForm.last_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Last Name is required.</p>' +
-						'</div>' +
-					'</div>' +
-					'<!-- first name -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.first_name.$dirty ) && parentForm.first_name.$invalid && parentForm.first_name.$error.required }">' +
-						'<label for="first_name" class="col-sm-3 control-label">First Name</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="first_name" ng-model="guardian.first_name" class="form-control" required />' +
-							'<p ng-show="(parentForm.$submitted || parentForm.first_name.$dirty ) && parentForm.first_name.$invalid && parentForm.first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>' +
-						'</div>	' +
-					'</div>' +
-					'<!-- middle name -->' +
-					'<div class="form-group">' +	
-						'<label for="middle_name" class="col-sm-3 control-label">Middle Name</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="middle_name" ng-model="guardian.middle_name" class="form-control" />	' +
-						'</div>	' +
-					'</div>' +
-					'<!-- name title -->' +
-					'<div class="form-group" >' +	
-						'<label for="title" class="col-sm-3 control-label">Title</label>' +
-						'<div class="col-sm-9">' +
-							'<select name="title" ng-model="guardian.title" class="form-control">' +
-								'<option value="{{title}}" ng-repeat="title in titles">{{title}}</option>' +
-							'</select>' +
-						'</div>	' +
-					'</div>	' +
-					'<!-- id number -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.id_number.$dirty ) && parentForm.id_number.$invalid && parentForm.id_number.$error.required }">' +
-						'<label for="id_number" class="col-sm-3 control-label">ID Number</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="id_number" ng-model="guardian.id_number" class="form-control" required numeric-only />	' +
-							'<p ng-show="(parentForm.$submitted || parentForm.id_number.$dirty ) && parentForm.id_number.$invalid && parentForm.id_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> ID Number is required.</p>' +
-						'</div>' +
-					'</div>' +
-					'<!-- address -->' +
-					'<div class="form-group">' +
-						'<label for="address" class="col-sm-3 control-label">Address</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="address" ng-model="guardian.address" class="form-control"  >	' +
-						'</div>' +
-					'</div>' +
-					
-					'<!-- phone number -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.telephone.$dirty ) && parentForm.telephone.$invalid && parentForm.telephone.$error.required }">' +
-						'<label for="telephone" class="col-sm-3 control-label">Telephone</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="telephone" ng-model="guardian.telephone" class="form-control" required numeric-only />	' +
-							'<p ng-show="(parentForm.$submitted || parentForm.telephone.$dirty ) && parentForm.telephone.$invalid && parentForm.telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Telephone number is required.</p>' +
-						'</div>	' +
-					'</div>' +
-					'<!-- email -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.required }">' +
-						'<label for="email" class="col-sm-3 control-label">Email</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="email" name="email" ng-model="guardian.email" class="form-control" required />	' +
-							'<p ng-show="(parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email is required.</p>' +
-							'<p ng-show="(parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>' +
-						'</div>	' +
-					'</div>' +
-					'<!-- occupation -->' +
-					'<div class="form-group">	' +	
-						'<label for="occupation" class="col-sm-3 control-label">Occupation</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="occupation" ng-model="guardian.occupation" class="form-control"  >	' +
-						'</div>	' +
-					'</div>' +
-					'<!-- employer -->' +
-					'<div class="form-group">	' +	
-						'<label for="employer" class="col-sm-3 control-label">Employer</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="employer" ng-model="guardian.employer" class="form-control"  >	' +
-						'</div>	' +
-					'</div>' +
-					'<!-- employer address -->' +
-					'<div class="form-group">	' +	
-						'<label for="employer_address" class="col-sm-3 control-label">Employer Address</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="employer_address" ng-model="guardian.employer_address" class="form-control"  >	' +
-						'</div>	' +
-					'</div>' +
-					'<!-- phone number -->' +
-					'<div class="form-group">	' +	
-						'<label for="work_phone" class="col-sm-3 control-label">Work Phone</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="text" name="work_phone" ng-model="guardian.work_phone" class="form-control" numeric-only />	' +
-						'</div>	' +
-					'</div>' +
-					'<!-- work_email -->' +
-					'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.work_email.$dirty ) && parentForm.work_email.$invalid && (parentForm.work_email.$error.required || parentForm.work_email.$error.email) }">' +
-						'<label for="work_email" class="col-sm-3 control-label">Work Email</label>' +
-						'<div class="col-sm-9">' +
-							'<input type="email" name="work_email" ng-model="guardian.work_email" class="form-control"  >	' +
-							'<p ng-show="(parentForm.$submitted || parentForm.work_email.$dirty ) && parentForm.work_email.$invalid && parentForm.work_email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>' +						'</div>	' +
-					'</div>' +
 					'<!-- relationship -->' +
 					'<div class="form-group">		' +
-						'<label for="relationship" class="col-sm-3 control-label">Relationship</label>' +
-						'<div class="col-sm-9">' +
+						'<label for="relationship" class="col-sm-2 control-label">Relationship</label>' +
+						'<div class="col-sm-4">' +
 							'<select name="relationship" ng-model="guardian.relationship" class="form-control">' +
 								'<option value="">--select relationship--</option>' +
 								'<option value="{{item}}" ng-repeat="item in relationships">{{item}}</option>' +
 							'</select>' +
 						'</div>	' +
+					'</div>' +	
+					'<!-- existing parent -->' +
+					'<div class="form-group" ng-show="!edit">' +
+						'<label for="guardian_id" class="col-sm-2 control-label">Use Existing Parent</label>' +
+						'<div class="col-sm-6">' +
+							'<ui-select ng-model="existingGuardian.selected" theme="select2" class="form-control" name="existingGuardian" > ' +
+							  '<ui-select-match placeholder="Select or search a parent...">' +
+								'<span>{{$select.selected.parent_full_name}}</span>' +
+								'<button type="button" class="clear text-danger" ng-click="clearSelect($event)"><span class="glyphicon glyphicon-remove"></span></button>' +	  
+							 ' </ui-select-match>' +
+							  '<ui-select-choices repeat="item in guardians | filter: $select.search">' +
+								'<span ng-bind-html="item.parent_full_name | highlight: $select.search"></span>' +
+							 ' </ui-select-choices>' +
+							'</ui-select>' +
+							'<p class="help-block info-block pull-left"><i class="glyphicon glyphicon-info-sign"></i> If this student\'s parent is already entered, you can select them above. Or, leave above blank and enter a new parent below.</p>' +
+						'</div>' +
 					'</div>' +
-					'<!-- marital status -->' +
-					'<div class="form-group">		' +
-						'<label for="marital_status" class="col-sm-3 control-label">Marital Status</label>' +
-						'<div class="col-sm-9">' +
-							'<select name="marital_status" ng-model="guardian.marital_status" class="form-control">' +
-								'<option value="">--select one--</option>' +
-								'<option value="{{item}}" ng-repeat="item in maritalStatuses">{{item}}</option>' +
-							'</select>' +
+					'<div ng-show="children.length > 0 " class="alert alert-warning">' +
+						'<i class="glyphicon glyphicon-alert pull-left"></i> <strong>Any data that is changed below will also affect the following students who are also associated with this parent.</strong>' +
+						'<div ng-show="children.length>0">' +
+							'<ul>' +
+								'<li ng-repeat="child in children">{{child.student_name}}</li>' +
+							'</ul>' +
+						'</div>' +
+					'</div>' +
+					'<div class="row">' +
+					'<div class="col-sm-6">' +
+						'<h3>Personal Info</h3>' +
+						'<!-- last name -->' +
+						'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.last_name.$dirty ) && parentForm.last_name.$invalid && parentForm.last_name.$error.required }">' +
+							'<label for="last_name" class="col-sm-3 control-label">Last Name</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="text" name="last_name" ng-model="guardian.last_name" class="form-control" required />' +
+								'<p ng-show="(parentForm.$submitted || parentForm.last_name.$dirty ) && parentForm.last_name.$invalid && parentForm.last_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Last Name is required.</p>' +
+							'</div>' +
+						'</div>' +
+						'<!-- first name -->' +
+						'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.first_name.$dirty ) && parentForm.first_name.$invalid && parentForm.first_name.$error.required }">' +
+							'<label for="first_name" class="col-sm-3 control-label">First Name</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="text" name="first_name" ng-model="guardian.first_name" class="form-control" required />' +
+								'<p ng-show="(parentForm.$submitted || parentForm.first_name.$dirty ) && parentForm.first_name.$invalid && parentForm.first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>' +
+							'</div>	' +
+						'</div>' +
+						'<!-- middle name -->' +
+						'<div class="form-group">' +	
+							'<label for="middle_name" class="col-sm-3 control-label">Middle Name</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="text" name="middle_name" ng-model="guardian.middle_name" class="form-control" />	' +
+							'</div>	' +
+						'</div>' +
+						'<!-- name title -->' +
+						'<div class="form-group" >' +	
+							'<label for="title" class="col-sm-3 control-label">Title</label>' +
+							'<div class="col-sm-9">' +
+								'<select name="title" ng-model="guardian.title" class="form-control">' +
+									'<option value="{{title}}" ng-repeat="title in titles">{{title}}</option>' +
+								'</select>' +
+							'</div>	' +
 						'</div>	' +
-					'</div>' +				
+						'<!-- id number -->' +
+						'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.id_number.$dirty ) && parentForm.id_number.$invalid && parentForm.id_number.$error.required }">' +
+							'<label for="id_number" class="col-sm-3 control-label">ID Number</label>' +
+							'<div class="col-sm-4 nopad-right">' +
+								'<input type="text" name="id_number" ng-model="guardian.id_number" ng-model-options="{ debounce: 1000 }" class="form-control" required numeric-only />	' +
+								'<p ng-show="(parentForm.$submitted || parentForm.id_number.$dirty ) && parentForm.id_number.$invalid && parentForm.id_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> ID Number is required.</p>' +
+							'</div>' +
+							'<div class="col-sm-5" ng-show="uniqueIdNumber===false">' +
+								'<p class="form-control-static alert alert-danger"><i class="glyphicon glyphicon-remove pull-left"></i> Already exists.</p>' +	
+							'</div>	' +
+							'<div class="col-sm-2" ng-show="uniqueIdNumber===true">' +
+								'<p class="form-control-static alert alert-success icon-only"><i class="glyphicon glyphicon-ok"></i></p>' +	
+							'</div>	' +
+						'</div>' +
+						'<!-- address -->' +
+						'<div class="form-group">' +
+							'<label for="address" class="col-sm-3 control-label">Address</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="text" name="address" ng-model="guardian.address" class="form-control"  >	' +
+							'</div>' +
+						'</div>' +
+						
+						'<!-- phone number -->' +
+						'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.telephone.$dirty ) && parentForm.telephone.$invalid && parentForm.telephone.$error.required }">' +
+							'<label for="telephone" class="col-sm-3 control-label">Telephone</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="text" name="telephone" ng-model="guardian.telephone" class="form-control" required numeric-only />	' +
+								'<p ng-show="(parentForm.$submitted || parentForm.telephone.$dirty ) && parentForm.telephone.$invalid && parentForm.telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Telephone number is required.</p>' +
+							'</div>	' +
+						'</div>' +
+						'<!-- email -->' +
+						'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.required }">' +
+							'<label for="email" class="col-sm-3 control-label">Email</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="email" name="email" ng-model="guardian.email" class="form-control" required />	' +
+								'<p ng-show="(parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email is required.</p>' +
+								'<p ng-show="(parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>' +
+							'</div>	' +
+						'</div>' +
+						'<!-- marital status -->' +
+						'<div class="form-group">		' +
+							'<label for="marital_status" class="col-sm-3 control-label">Marital Status</label>' +
+							'<div class="col-sm-9">' +
+								'<select name="marital_status" ng-model="guardian.marital_status" class="form-control">' +
+									'<option value="">--select one--</option>' +
+									'<option value="{{item}}" ng-repeat="item in maritalStatuses">{{item}}</option>' +
+								'</select>' +
+							'</div>	' +
+						'</div>' +	
+					'</div>' +
+					'<div class="col-sm-6">' +
+						'<h3>Employment Info</h3>' +
+						'<!-- occupation -->' +
+						'<div class="form-group">	' +	
+							'<label for="occupation" class="col-sm-3 control-label">Occupation</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="text" name="occupation" ng-model="guardian.occupation" class="form-control"  >	' +
+							'</div>	' +
+						'</div>' +
+						'<!-- employer -->' +
+						'<div class="form-group">	' +	
+							'<label for="employer" class="col-sm-3 control-label">Employer</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="text" name="employer" ng-model="guardian.employer" class="form-control"  >	' +
+							'</div>	' +
+						'</div>' +
+						'<!-- employer address -->' +
+						'<div class="form-group">	' +	
+							'<label for="employer_address" class="col-sm-3 control-label">Employer Address</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="text" name="employer_address" ng-model="guardian.employer_address" class="form-control"  >	' +
+							'</div>	' +
+						'</div>' +
+						'<!-- phone number -->' +
+						'<div class="form-group">	' +	
+							'<label for="work_phone" class="col-sm-3 control-label">Work Phone</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="text" name="work_phone" ng-model="guardian.work_phone" class="form-control" numeric-only />	' +
+							'</div>	' +
+						'</div>' +
+						'<!-- work_email -->' +
+						'<div class="form-group">' +
+							'<label for="work_email" class="col-sm-3 control-label">Work Email</label>' +
+							'<div class="col-sm-9">' +
+								'<input type="email" name="work_email" ng-model="guardian.work_email" class="form-control"  >	' +
+							'</div>	' +
+						'</div>' +
+					
+						'<h3>Parent Portal Login (optional)</h3>' +
+						'<div ng-if="hasLogin">' +
+							'<!-- username -->' +
+							'<div class="form-group">' +
+								'<label for="username" class="col-sm-3 control-label">Username</label>' +
+								'<div class="col-sm-9">' +
+									'<p class="form-control-static">{{guardian.login.username}}</p>' +			
+								'</div>	' +
+							'</div>' +
+							'<!-- active -->' +
+							'<div class="form-group">' +
+								'<label for="login_active" class="col-sm-3 control-label">Login Active</label>' +
+								'<div class="col-sm-9">' +
+									'<label class="radio-inline">' +
+									  '<input type="radio" name="login_active" ng-model="guardian.login.login_active" value="true" > Active' +
+									'</label>' +
+									'<label class="radio-inline">' +
+									  '<input type="radio" name="login_active" ng-model="guardian.login.login_active" value="false" > In-active' +
+									'</label>' +			
+								'</div>	' +
+							'</div>' +
+						'</div>' +
+						'<div ng-if="!hasLogin">' +						
+							'<!-- username -->' +
+							'<div class="form-group">' +
+								'<label for="username" class="col-sm-3 control-label">Username</label>' +
+								'<div class="col-sm-4 nopad-right">' +
+									'<input type="text" name="username" ng-model="guardian.login.username" class="form-control" ng-model-options="{ debounce: 1000 }" >' +										
+								'</div>	' +
+								'<div class="col-sm-5" ng-show="uniqueUsername===false">' +
+									'<span class="alert alert-danger"><i class="glyphicon glyphicon-remove"></i> Already taken.</span>' +	
+								'</div>	' +
+								'<div class="col-sm-2" ng-show="uniqueUsername===true">' +
+									'<p class="form-control-static alert alert-success icon-only"><i class="glyphicon glyphicon-ok"></i></p>' +	
+								'</div>	' +
+							'</div>' +
+							'<!-- password -->' +
+							'<div class="form-group">' +
+								'<label for="password" class="col-sm-3 control-label">Password</label>' +
+								'<div class="col-sm-9">' +
+									'<input type="text" name="password" ng-model="guardian.login.password" class="form-control"  >' +			
+								'</div>	' +
+							'</div>' +
+							'<!-- active -->' +
+							'<div class="form-group">' +
+								'<label for="login_active" class="col-sm-3 control-label">Login Active</label>' +
+								'<div class="col-sm-9">' +
+									'<label class="radio-inline">' +
+									  '<input type="radio" name="login_active" ng-model="guardian.login.login_active" value="true" > Active' +
+									'</label>' +
+									'<label class="radio-inline">' +
+									  '<input type="radio" name="login_active" ng-model="guardian.login.login_active" value="false" > In-active' +
+									'</label>' +			
+								'</div>	' +
+							'</div>' +
+						'</div>' +
+					'</div>' +
+				'</div>' +	
 			'</div>'+
 			'<div class="modal-footer">' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
-				'<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>' +
-				'<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>' +
+				'<button type="submit" class="btn btn-primary">{{(edit ? \'Update\' : \'Save\')}} </button>' +
 			'</div>' +
 			'</form>'
 		);

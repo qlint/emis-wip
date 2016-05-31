@@ -14,15 +14,15 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addClassCat = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addClassCat/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addClassCat", successFunction, errorFunction, params);
 	};
 	
 	this.updateClassCat = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateClassCat/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateClassCat", successFunction, errorFunction, params);
 	};
 	
 	this.setClassCatStatus = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/setClassCatStatus/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/setClassCatStatus", successFunction, errorFunction, params);
 	};
 	
 	
@@ -32,15 +32,15 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addEmployeeCat = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addEmployeeCat/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addEmployeeCat", successFunction, errorFunction, params);
 	};
 	
 	this.updateEmployeeCat = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateEmployeeCat/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateEmployeeCat", successFunction, errorFunction, params);
 	};
 	
 	this.setEmployeeCatStatus = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/setEmployeeCatStatus/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/setEmployeeCatStatus", successFunction, errorFunction, params);
 	};
 	
 	/*********** departments ***********/
@@ -54,24 +54,24 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.setDeptStatus = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/setDeptStatus/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/setDeptStatus", successFunction, errorFunction, params);
 	};
 	
 	this.addDept = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addDepartment/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addDepartment", successFunction, errorFunction, params);
 	};
 	
 	this.updateDept = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateDepartment/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateDepartment", successFunction, errorFunction, params);
 	};
 	
 	/*********** settings ***********/
 	this.updateSetting = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateSetting/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateSetting", successFunction, errorFunction, params);
 	};
 	
 	this.updateSettings = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateSettings/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateSettings", successFunction, errorFunction, params);
 	};
 	
 	this.getSettings = function (request, successFunction, errorFunction, params) {          
@@ -85,11 +85,11 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addGrading = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addGrading/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addGrading", successFunction, errorFunction, params);
 	};
 	
 	this.updateGrading = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateGrading/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateGrading", successFunction, errorFunction, params);
 	};
 	
 	/*********** countries ***********/
@@ -117,15 +117,15 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addClass = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addClass/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addClass", successFunction, errorFunction, params);
 	};
 	
 	this.updateClass = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateClass/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateClass", successFunction, errorFunction, params);
 	};
 	
 	this.setClassStatus = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/setClassStatus/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/setClassStatus", successFunction, errorFunction, params);
 	};
 	
 	/*********** fee items ***********/
@@ -146,19 +146,19 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addFeeItem = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addFeeItem/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addFeeItem", successFunction, errorFunction, params);
 	};
 	
 	this.updateFeeItem = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateFeeItem/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateFeeItem", successFunction, errorFunction, params);
 	};
 	
 	this.setFeeItemStatus = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/setFeeItemStatus/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/setFeeItemStatus", successFunction, errorFunction, params);
 	};
 	
 	this.updateRoutes = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateRoutes/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateRoutes", successFunction, errorFunction, params);
 	};
 	
 	/*********** terms ***********/
@@ -169,11 +169,11 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addTerm = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addTerm/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addTerm", successFunction, errorFunction, params);
 	};
 	
 	this.updateTerm = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateTerm/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateTerm", successFunction, errorFunction, params);
 	};	
 	
 	this.getCurrentTerm = function (request, successFunction, errorFunction, params) {          
@@ -190,15 +190,15 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addSubject = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addSubject/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addSubject", successFunction, errorFunction, params);
 	};
 	
 	this.updateSubject = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateSubject/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateSubject", successFunction, errorFunction, params);
 	};
 	
 	this.setSubjectStatus = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/setSubjectStatus/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/setSubjectStatus", successFunction, errorFunction, params);
 	};
 	
 	/*********** employees ***********/	
@@ -211,7 +211,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addEmployee = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addEmployee/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addEmployee", successFunction, errorFunction, params);
 	};
 	
 	this.getEmployeeDetails = function (param, successFunction, errorFunction, params) {          
@@ -219,7 +219,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.updateEmployee = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateEmployee/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateEmployee", successFunction, errorFunction, params);
 	};
 	
 	/*********** exams ***********/
@@ -233,7 +233,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addExamMarks = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addExamMarks/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addExamMarks", successFunction, errorFunction, params);
 	};
 	
 	this.getClassExams = function (param, successFunction, errorFunction, params) {          
@@ -241,7 +241,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addExamType = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addExamType/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addExamType", successFunction, errorFunction, params);
 	};
 	
 	this.getClassExamMarks = function (param, successFunction, errorFunction, params) {          
@@ -272,7 +272,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.addReportCard = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addReportCard/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addReportCard", successFunction, errorFunction, params);
 	};
 	
 	/*********** students ***********/
@@ -307,23 +307,42 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.getAllStudentExamMarks = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getAllStudentExamMarks/" + param, successFunction, errorFunction, params);
 	};
-	
-	
-	
+		
 	this.postStudent = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addStudent/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addStudent", successFunction, errorFunction, params);
 	};
 	
 	this.updateStudent = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateStudent/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateStudent", successFunction, errorFunction, params);
 	};
 	
+	this.getAllGuardians = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getAllGuardians/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getGuardiansChildren = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getGuardiansChildren/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getMISLogin = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getMISLogin/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.checkUsername = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/checkUsername/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.checkIdNumber = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/checkIdNumber/" + param, successFunction, errorFunction, params);
+	};
+	
+	
 	this.postGuardian = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addGuardian/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addGuardian", successFunction, errorFunction, params);
 	};
 	
 	this.updateGuardian = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateGuardian/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateGuardian", successFunction, errorFunction, params);
 	};
 	
 	this.deleteGuardian = function (param, successFunction, errorFunction, params) {          
@@ -331,11 +350,11 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.postMedicalConditions = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addMedicalConditions/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addMedicalConditions", successFunction, errorFunction, params);
 	};
 	
 	this.updateMedicalConditions = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateMedicalConditions/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateMedicalConditions", successFunction, errorFunction, params);
 	};
 	
 	this.deleteMedicalCondition = function (param, successFunction, errorFunction, params) {          
@@ -370,7 +389,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};	
 	
 	this.addPayment = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/addPayment/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/addPayment", successFunction, errorFunction, params);
 	};
 	
 	this.getPaymentDetails = function (param, successFunction, errorFunction, params) {          
@@ -378,14 +397,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.updatePayment = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updatePayment/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updatePayment", successFunction, errorFunction, params);
 	};
 	
 	this.reversePayment = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/reversePayment/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/reversePayment", successFunction, errorFunction, params);
 	};
 	this.reactivatePayment = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/reactivatePayment/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/reactivatePayment", successFunction, errorFunction, params);
 	};
 	
 	/*********** invoices ***********/	
@@ -406,20 +425,45 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};	
 	
 	this.createInvoice = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPost2(request, path + "/createInvoice/", successFunction, errorFunction, params);
+		ajaxService.AjaxPost2(request, path + "/createInvoice", successFunction, errorFunction, params);
 	};
 	
 	this.updateInvoice = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/updateInvoice/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/updateInvoice", successFunction, errorFunction, params);
 	};
 	
 	this.cancelInvoice = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/cancelInvoice/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/cancelInvoic/", successFunction, errorFunction, params);
 	};
 	this.reactivateInvoice = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/reactivateInvoice/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/reactivateInvoice", successFunction, errorFunction, params);
 	};
 	
+	/*********** users ***********/	
+	this.getUsers = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getUsers/" + param, successFunction, errorFunction, params);
+	};	
+	
+	this.setUserStatus = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/setUserStatus", successFunction, errorFunction, params);
+	};
+	
+	this.addUser = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, path + "/addUser", successFunction, errorFunction, params);
+	};
+	
+	this.updateUser = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/updateUser", successFunction, errorFunction, params);
+	};
+	
+	/*********** blog ***********/	
+	this.getBlog = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getBlog/" + param, successFunction, errorFunction, params);
+	};	
+	
+	this.getHomework = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getHomework/" + param, successFunction, errorFunction, params);
+	};
 	
 
 	return this;

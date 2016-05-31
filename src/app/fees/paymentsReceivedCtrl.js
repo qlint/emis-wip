@@ -125,6 +125,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 					$scope.payments = payments.map(function(item){
 						item.replacement = ( item.replacement_payment ? 'Yes' : 'No');
 						item.reverse = ( item.reversed ? 'Yes' : 'No');
+						item.receipt_number = $rootScope.zeroPad(item.payment_id,5);
 						return item;
 					});					
 					

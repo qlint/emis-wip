@@ -166,10 +166,11 @@ h1 {
   right: 110px; }
 
 .alert {
-  padding: 7px 15px; }
+  padding: 5px 15px; }
   .alert .glyphicon {
     margin-right: 10px;
-    font-size: 16px; }
+    font-size: 16px;
+    vertical-align: text-bottom; }
   .alert button.close {
     margin-top: -3px; }
 
@@ -179,6 +180,78 @@ h1 {
   top: -21px;
   text-align: center;
   z-index: 9999; }
+
+.info-block {
+  font-weight: 700;
+  color: #009e0f; }
+
+.side-bar {
+  background: #30603C;
+  margin-top: -15px;
+  padding: 15px;
+  color: white;
+  font-size: 14px; }
+  .side-bar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0; }
+    .side-bar ul li {
+      padding: 5px 10px;
+      margin: 10px 30px 10px 0; }
+      .side-bar ul li a {
+        color: white; }
+    .side-bar ul li.active {
+      background: #fff;
+      margin-left: -15px;
+      padding-left: 25px;
+      -webkit-border-top-right-radius: 15px;
+      -moz-border-top-right-radius: 15px;
+      -ms-border-top-right-radius: 15px;
+      border-top-right-radius: 15px;
+      -webkit-border-top-left-radius: 0;
+      -moz-border-top-left-radius: 0;
+      -ms-border-top-left-radius: 0;
+      border-top-left-radius: 0;
+      -webkit-border-bottom-right-radius: 15px;
+      -moz-border-bottom-right-radius: 15px;
+      -ms-border-bottom-right-radius: 15px;
+      border-bottom-right-radius: 15px;
+      -webkit-border-bottom-left-radius: 0;
+      -moz-border-bottom-left-radius: 0;
+      -ms-border-bottom-left-radius: 0;
+      border-bottom-left-radius: 0; }
+      .side-bar ul li.active a {
+        color: #30603C; }
+      .side-bar ul li.active a:hover {
+        text-decoration: none;
+        cursor: default; }
+
+.homework-col {
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  background-color: #eee;
+  padding: 5px 10px; }
+  .homework-col .homework-body {
+    margin-left: 25px;
+    margin-right: 10px;
+    margin-bottom: 10px; }
+    .homework-col .homework-body .homework-item {
+      position: relative;
+      margin: 15px 0; }
+      .homework-col .homework-body .homework-item .date {
+        position: absolute;
+        left: -36px;
+        background: #fff;
+        padding: 7px;
+        font-size: 10px;
+        color: #777; }
+      .homework-col .homework-body .homework-item .dow {
+        margin-bottom: 5px; }
+  .homework-col .dates {
+    margin-left: 25px;
+    font-weight: 700;
+    margin-bottom: 5px; }
 
 /********************** Dashboard Styles ******************************/
 .dashboard .dashboard-panel,
@@ -318,6 +391,26 @@ h1 {
 
 .icon-lg {
   font-size: 20px; }
+
+.student-box {
+  background: #eee;
+  padding: 10px;
+  text-align: center;
+  font-size: 16px;
+  border-right: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px; }
+  .student-box a {
+    color: #000; }
+  .student-box img {
+    width: 100%;
+    height: auto; }
+  .student-box .name {
+    font-weight: 700;
+    margin-bottom: 5px;
+    margin-top: 10px; }
+  .student-box .meta {
+    font-size: 12px; }
 
 /********************** Form Element Styles ******************************/
 ::-webkit-input-placeholder,
@@ -471,16 +564,20 @@ table.dataTable tbody tr.canceled td {
 table.clickable tr {
   cursor: pointer; }
 
-.td-form-control-add-on input {
-  float: left;
-  width: 50%; }
-.td-form-control-add-on .input-group-addon {
-  float: left;
-  width: 32px;
-  padding: 5px !important;
-  margin-left: -3px;
-  font-size: 11px;
-  line-height: 14px; }
+.td-form-control-add-on {
+  white-space: nowrap; }
+  .td-form-control-add-on input {
+    display: inline-block;
+    width: 30px;
+    font-size: 12px; }
+  .td-form-control-add-on .input-group-addon {
+    display: inline-block;
+    width: 32px;
+    padding: 5px !important;
+    margin-left: -5px;
+    margin-top: -2px;
+    font-size: 11px;
+    line-height: 14px; }
 
 /********************** Modal Styles ******************************/
 .error-indicator {
@@ -591,6 +688,16 @@ table.clickable tr {
     height: 26px;
     min-height: 26px;
     padding: 7px 3px; }
+  .modal-content .modalForm .form-control-static.alert .glyphicon {
+    top: -1px;
+    left: 4px; }
+  .modal-content .modalForm .form-control-static.alert {
+    margin-bottom: 0; }
+  .modal-content .modalForm .form-control-static.icon-only {
+    padding: 3px 13px; }
+    .modal-content .modalForm .form-control-static.icon-only .glyphicon {
+      top: 1px;
+      left: 0px; }
   .modal-content .modalForm .input-group-addon {
     height: 26px;
     padding: 0 5px; }
@@ -725,6 +832,9 @@ table.clickable tr {
   text-align: center;
   margin-bottom: 20px;
   border-bottom: 1px solid #eee; }
+  .progress-report-header img.brand {
+    width: 100px;
+    height: auto; }
   .progress-report-header div {
     text-align: center; }
   .progress-report-header h2 {

@@ -1,53 +1,54 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('subjectsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter',
-function($scope, $rootScope, apiService, $timeout, $window, $filter){
+controller('listUsersCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$state',
+function($scope, $rootScope, apiService, $timeout, $window, $state){
 
-	$scope.filters= {};
+	var initialLoad = true;
+	$scope.users = [];
+
 	$scope.alert = {};
-
-	var initializeController = function () 
+	
+	var getUsers = function()
 	{
-		getSubjects("");
-	}
-	$timeout(initializeController,1);
-
-	var getSubjects = function(class_cat_id)
-	{
-		if( $scope.dataGrid !== undefined )
-		{	
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();				
-		}		
-		
-		apiService.getSubjects(class_cat_id, function(response,status,params){
+		apiService.getUsers(true, function(response){
 			var result = angular.fromJson(response);
 			
+			// store these as they do not change often
 			if( result.response == 'success')
-			{	
-				$scope.subjects = ( result.nodata ? [] : result.data );	
+			{
+				
+				if( $scope.dataGrid !== undefined )
+				{
+					$('.fixedHeader-floating').remove();
+					$scope.dataGrid.clear();
+					$scope.dataGrid.destroy();
+				}
+	
+				$scope.users = (result.nondata !== undefined ? [] : result.data);	
 				$timeout(initDataGrid,10);
+				
 			}
 			else
 			{
-				$scope.error = true;
-				$scope.errMsg = result.data;
+				//$scope.error = true;
+				//$scope.errMsg = result.data;
+				$timeout(initDataGrid,10);
 			}
 			
-		}, apiError);
+		}, function(){});
 	}
 	
-	$scope.loadFilter = function()
+	var initializeController = function () 
 	{
-		$scope.loading = true;
-		getSubjects($scope.filters.class_cat_id);		
+		// get users
+		getUsers()			
 	}
-		
+	$timeout(initializeController,1000);
+	
+	
 	var initDataGrid = function() 
-	{
-	
+	{		
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {
@@ -61,9 +62,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 					targets:   0
 				} ],
 				paging: false,
-				destroy:true,				
+				destroy:true,
+				order: [1,'asc'],
 				filter: true,
-				//order:[[1,'asc'],[2,'asc']],
 				info: false,
 				sorting:[],
 				initComplete: function(settings, json) {
@@ -74,8 +75,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 				language: {
 						search: "Search Results<br>",
 						searchPlaceholder: "Filter",
-						lengthMenu: "Display _MENU_",
-						emptyTable: "No subjects found."
+						lengthMenu: "Display _MENU_"
 				},
 			} );
 			
@@ -83,7 +83,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		var headerHeight = $('.navbar-fixed-top').height();
 		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
 		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 41 );
+		var offset = ( $rootScope.isSmallScreen ? 22 : 13 );
 		new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
 				header: true,
 				headerOffset: (headerHeight + searchHeight) + offset
@@ -91,13 +91,26 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		
 		
 		// position search box
+		setSearchBoxPosition();
+		
+		if( initialLoad ) setResizeEvent();
+		
+	}
+	
+	var setSearchBoxPosition = function()
+	{
 		if( !$rootScope.isSmallScreen )
 		{
-			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',filterFormWidth+45);
+			//var filterFormWidth = $('.dataFilterForm form').width();
+			$('#resultsTable_filter').css('left',0);
 		}
-		
-		$window.addEventListener('resize', function() {
+	}
+	
+	var setResizeEvent = function()
+	{
+		 initialLoad = false;
+
+		 $window.addEventListener('resize', function() {
 			
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
@@ -110,34 +123,25 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
-		
 	}
 	
-	var apiError = function (response, status) 
+	
+	$scope.addUser = function()
 	{
-		var result = angular.fromJson( response );
-		$scope.error = true;
-		$scope.errMsg = result.data;
+		$scope.openModal('users', 'userForm', 'md');
 	}
 	
-	
-	$scope.addSubject = function()
+	$scope.viewUser = function(item)
 	{
-		$scope.openModal('school', 'subjectForm', 'md');
+		$scope.openModal('users', 'userForm', 'md', item);
 	}
 	
-	$scope.viewSubject = function(item)
-	{
-		$scope.openModal('school', 'subjectForm', 'md',item);
-	}
-	
-	$scope.exportItems = function()
+	$scope.exportData = function()
 	{
 		$rootScope.wipNotice();
 	}
 	
-
-	$scope.$on('refreshSubjects', function(event, args) {
+	$scope.$on('refreshUsers', function(event, args) {
 
 		$scope.loading = true;
 		$rootScope.loading = true;
@@ -162,15 +166,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	{
 		$scope.loading = true;
 		$rootScope.loading = true;
-		getSubjects($scope.filters.class_cat_id || "");
+		getUsers();
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid){
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.destroy();
-		}
+		if($scope.dataGrid) $scope.dataGrid.destroy();
 		$rootScope.isModal = false;
     });
+	
 
 } ]);

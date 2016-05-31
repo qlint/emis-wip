@@ -115,7 +115,7 @@
 					<tbody>
 						<tr ng-repeat="item in payments track by $index" ng-class="{'alert-warning': item.replacement_payment}">
 							<td></td>
-							<td class="center" ng-click="getReceipt(item)"><i class="glyphicon glyphicon-file"></i></td>
+							<td class="center" ng-click="getReceipt(item)"><i class="glyphicon glyphicon-file"></i> {{item.receipt_number}}</td>
 							<td id="{{item.inv_id}}" class="inv_id" ng-click="viewStudent(item)">{{item.student_name}}</td>
 							<td ng-click="viewStudent(item)">{{item.class_name}}</td>
 							<td ng-click="viewPayment(item)" data-order="{{item.payment_date}}">{{item.payment_date|date}}</td>

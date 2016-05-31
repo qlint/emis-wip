@@ -36,7 +36,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
       url: "/dashboard",
 	  templateUrl: 'app/dashboard.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
 	.state('students', {
@@ -168,12 +168,60 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
       }
     })
 	.state('school_settings', {
-      url: "/exams",
+      url: "/school_settings",
 	  templateUrl: 'app/school/settings.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
-	
+	.state('users', {
+      url: "/users",
+	  templateUrl: 'app/users/listUsers.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('parents_dashboard', {
+      url: "/home",
+	  templateUrl: 'app/portal/dashboard.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
+      }
+    })
+	.state('blog', {
+      url: "/blog/:school/:student_id",
+	  templateUrl: 'app/portal/blog.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
+      }
+    })
+	.state('student_details', {
+      url: "/student_details/:school/:student_id",
+	  templateUrl: 'app/portal/studentDetails.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
+      }
+    })
+	.state('student_fees', {
+      url: "/fees/:school/:student_id",
+	  templateUrl: 'app/portal/studentFees.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
+      }
+    })
+	.state('student_fees/summary', {
+      url: "/fees/summary/:school/:student_id",
+	  templateUrl: 'app/portal/studentFees.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
+      }
+    })
+	.state('student_fees/invoices', {
+      url: "/fees/invoices/:school/:student_id",
+	  templateUrl: 'app/portal/studentFees.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
+      }
+    })
 	;
 }]);

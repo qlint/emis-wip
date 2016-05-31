@@ -3,19 +3,13 @@
         // setting timeout of 1 second to simulate a busy server.
 		
 		var loadingCount = 0;
+		console.log($rootScope.clientIdentifier);
 
         this.AjaxPost = function (data, route, successFunction, errorFunction, extras) {
-			/*
-			$http.post(route, data).success(function (response, status, headers, config) {
-				successFunction(response, status, extras);
-			}).error(function (response) {
-				errorFunction(response);
-			});
-			*/
 			$http({
 				method: 'POST',
 				url: route,
-				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
 				transformRequest: function(obj) {
 					var str = [];
 					for(var p in obj)
@@ -35,7 +29,7 @@
 			$http({
 				method: 'POST',
 				url: route,
-				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
 				data: data
 			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
@@ -49,7 +43,7 @@
 			$http({
 				method: 'PUT',
 				url: route,
-				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
 				data: data
 			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
@@ -60,7 +54,11 @@
         }
 		
 		this.AjaxDelete = function (route, successFunction, errorFunction, extras) {
-			$http({ method: 'DELETE', url: route}).success(function (response, status, headers, config) {
+			$http({ 
+					method: 'DELETE', 
+					url: route,
+					headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
+			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
 			}).error(function (response) {
 				errorFunction(response);
@@ -69,7 +67,11 @@
 
 		this.AjaxGet = function (route, successFunction, errorFunction, extras) {
 
-			$http({ method: 'GET', url: route}).success(function (response, status, headers, config) {
+			$http({ 
+				method: 'GET', 
+				url: route,
+				headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
+			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
 			}).error(function (response) {
 				errorFunction(response);
@@ -79,7 +81,12 @@
 
         this.AjaxGetWithData = function (data, route, successFunction, errorFunction, extras) {
 
-			$http({ method: 'GET', url: route, params: data }).success(function (response, status, headers, config) {
+			$http({ 
+				method: 'GET', 
+				url: route, 
+				headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
+				params: data 
+			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
 			}).error(function (response) {
 				errorFunction(response);

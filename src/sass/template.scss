@@ -292,11 +292,12 @@ h1{
 
 .alert{
 
-	padding:7px 15px;
+	padding:5px 15px;
 
 	.glyphicon{
 		margin-right:10px;
 		font-size:16px;
+		vertical-align: text-bottom;
 	}
 	
 	button.close{
@@ -310,6 +311,85 @@ h1{
     text-align: center;
     z-index: 9999;
 }
+.info-block{
+	font-weight:700;
+	color:$bright-green;
+}
+
+.side-bar {
+    background: $mid-green;
+    margin-top: -15px;
+    padding: 15px;
+    color: white;
+    font-size: 14px;
+	
+	ul{
+		list-style:none;
+		margin:0;
+		padding:0;
+		
+		li{
+			padding:5px 10px;
+			margin:10px 30px 10px 0;
+			
+			a{
+				color:white;
+			}
+		}
+		li.active{
+			background: #fff;
+			margin-left:-15px;
+			padding-left:25px;
+			@include border-radiuses(0, 15px, 0, 15px);
+			
+			a{
+				color: $mid-green;
+			}
+			a:hover{
+				text-decoration:none;
+				cursor:default;
+			}
+		}
+	}
+}
+
+.homework-col{
+	@include rounded(7px);
+	background-color:#eee;
+	padding: 5px 10px;
+	
+	.homework-body{
+		margin-left: 25px;
+		margin-right: 10px;
+		margin-bottom: 10px;
+		
+		.homework-item{
+			position:relative;
+			margin: 15px 0;
+			
+			.date{
+				position: absolute;
+				left: -36px;
+				background: #fff;
+				padding: 7px;
+				font-size: 10px;
+				color:#777;
+			}
+			.dow{
+				margin-bottom:5px;
+			}	
+		}
+		
+		
+	}
+	
+	.dates{
+		margin-left: 25px;
+		font-weight: 700;
+		margin-bottom: 5px;
+	}
+}
+
 /********************** Dashboard Styles ******************************/
 .dashboard .dashboard-panel,
 .school_settings .dashboard-panel{
@@ -495,6 +575,32 @@ h1{
 	font-size:20px;
 }
 
+.student-box {
+    background: #eee;
+    padding: 10px;
+    text-align: center;
+    font-size: 16px;
+	border-right: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+	
+	a{
+		color:#000;
+	}
+	
+	img{
+		width:100%;
+		height:auto;
+	}
+	.name{
+		font-weight:700;
+		margin-bottom:5px;
+		margin-top:10px;
+	}
+	.meta{
+		font-size:12px;
+	}
+}
 
 /********************** Form Element Styles ******************************/
 ::-webkit-input-placeholder,
@@ -669,15 +775,19 @@ table.clickable{
 }
 
 .td-form-control-add-on{
+	white-space : nowrap;
+	
 	input{
-		float:left;
-		width:50%;
+		display:inline-block;
+		width:30px;
+		font-size:12px;
 	}
 	.input-group-addon{
-	    float: left;
+	    display:inline-block;
 		width: 32px;
 		padding: 5px!important;
-		margin-left: -3px;
+		margin-left: -5px;
+		margin-top:-2px;
 		font-size: 11px;
 		line-height: 14px;
 	}
@@ -826,6 +936,23 @@ table.clickable{
 			min-height:26px;
 			padding: 7px 3px;
 		}
+		.form-control-static.alert{
+			.glyphicon{
+				top: -1px;
+				left: 4px;
+			}
+		}
+		.form-control-static.alert{
+			margin-bottom:0;
+		}
+		.form-control-static.icon-only{
+			padding: 3px 13px;
+			.glyphicon{
+				top: 1px;
+				left: 0px;
+			}
+		}
+		
 		.input-group-addon{
 			height:26px;
 			padding:0 5px;
@@ -1018,6 +1145,11 @@ table.clickable{
 	text-align:center;
 	margin-bottom:20px;
 	border-bottom:1px solid #eee;
+	
+	img.brand{
+		width:100px;
+		height:auto;
+	}
 	
 	div{
 		text-align:center;

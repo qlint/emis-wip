@@ -297,6 +297,26 @@ function($window, $rootScope, $timeout) {
       }
    )};
 }])
+.directive('ngUserUnique', ['apiService', function (apiService) {
+  return {
+    require: 'ngModel',
+    link: function (scope, elem, attrs, ctrl) {
+      elem.on('blur', function (evt) {
+        scope.$apply(function () {
+          var val = elem.val();		  
+		  apiService.checkUsername(val, function(response){
+				var result = angular.fromJson(response);
+				if( result.response == 'success')
+				{
+					ctrl.$setValidity('unique', data.unique);
+				}
+		  }, function(response){});
+		  
+        });		  
+      });
+    }
+  }
+}])
 .directive('focusMe', ['$timeout', function($timeout) {
   return {
     scope: { trigger: '@focusMe' },

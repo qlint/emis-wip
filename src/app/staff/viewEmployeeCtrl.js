@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('viewEmployeeCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', 'data',
-function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, data){
+controller('viewEmployeeCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', '$timeout', 'data',
+function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, $timeout, data){
 	
 	$rootScope.modalLoading = false;
 	$scope.tabs = ['Personal Info','Employee Info'];
@@ -15,6 +15,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.edit = ($rootScope.permissions.staff.edit ? true : false );
 	
+	$scope.employee = {};
+	$scope.employee.joined_date = {};
+	$scope.initLoad = true;
+	
 	$scope.initializeController = function()
 	{
 	
@@ -23,13 +27,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			
 			if( result.response == 'success')
 			{
-				$scope.employee = result.data;
-				$scope.employee.joined_date = {startDate: $scope.employee.joined_date};
+				$scope.employee = angular.copy(result.data);
+				//$scope.employee.joined_date = {startDate: $scope.employee.joined_date};
 				
 				// select emp category
 				$scope.employee.emp_cat = $rootScope.empCats.filter(function(item){
 					if ( item.emp_cat_id == $scope.employee.emp_cat_id) return item;
 				})[0];
+				
+				$scope.editUsername = ( result.data.username === null ? true : false);
+				$scope.employee.login_active = ( $scope.employee.login_active === null ? true : $scope.employee.login_active);
+				
+				$timeout(function(){
+					$scope.initLoad  = false;
+				},100);
 			}
 		});
 	
@@ -93,7 +104,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		if( newVal === undefined) return;
 		$scope.empForm.$setDirty();
 	});
-
+	
+	$scope.$watch('employee.joined_date', function(newVal, oldVal){
+		// need to watch the uploaded and manually set form to dirty if changed
+		if( newVal === undefined) return;
+		if( !$scope.initLoad ) $scope.empForm.$setDirty();
+	});
 	
 
 	/************************************* Update Function ***********************************************/
@@ -148,6 +164,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						qualifications : $scope.employee.qualifications,
 						experience : $scope.employee.experience,
 						additional_info : $scope.employee.additional_info,
+						first_name : $scope.employee.first_name,
+						middle_name : $scope.employee.middle_name,
+						last_name : $scope.employee.last_name,
+						email : $scope.employee.email,
+						username: $scope.employee.username,
+						password: $scope.employee.password,
+						user_type: $scope.employee.user_type,
+						login_active: ( $scope.employee.login_active == 'true' ? 't' : 'f'),
+						login_id: $scope.employee.login_id
 					}
 				}
 			}

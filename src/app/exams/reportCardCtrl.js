@@ -51,7 +51,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				var result = angular.fromJson(response);				
 				if( result.response == 'success')
 				{ 
-					$scope.nextTermStartDate = result.data.start_date;
+					$scope.nextTermStartDate = ( result.nodata !== undefined ? '' : result.data.start_date);
 				}
 			}, apiError);
 		}
@@ -129,6 +129,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	
 	$scope.getProgressReport = function()
 	{
+		$scope.showReportCard = false;
+		$scope.report = {};
+		$scope.overall = {};
+		$scope.overallLastTerm = {};
+		$scope.examTypes = {};
+		$scope.reportData = {};
+		
 		$scope.currentFilters = angular.copy($scope.filters);
 		$scope.report.class_name = $scope.currentFilters.class_name;
 		$scope.report.term = $scope.currentFilters.term.term_name;
@@ -250,8 +257,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						lastSubject = item.subject_name;
 						
 					});
-					$scope.reportData.subjects[(i-1)].marks = marks;
-					console.log($scope.reportData);
+					if( $scope.reportData.subjects[(i-1)] !== undefined ) $scope.reportData.subjects[(i-1)].marks = marks;
+					//console.log($scope.reportData);
 					
 					
 					// set overall

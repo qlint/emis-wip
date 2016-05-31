@@ -36,6 +36,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				return sum;
 			}, []);
 			$scope.employee.emp_cat_id = newVal.emp_cat_id;
+			
+			if( newVal.emp_cat_name == 'Teaching' ) $scope.employee.user_type = 'TEACHER';
 		}
 		
 	});
