@@ -36,9 +36,7 @@
 					<!-- category select -->
 					<div class="form-group">
 						<label for="category">Category</label>
-						<select class="form-control" id="category" name="class_cat_id" ng-model="filters.class_cat_id">
-							<option value="">All Class Categories</option>
-							<option value="{{cat.class_cat_id}}" ng-repeat="cat in classCats">{{cat.class_cat_name}}</option>
+						<select class="form-control" id="category" name="class_cat_id" ng-options="item.class_cat_id as item.class_cat_name for item in classCats" ng-model="filters.class_cat_id">
 						</select>
 					</div>
 
@@ -60,17 +58,17 @@
 			<table id="resultsTable" class="display clickable" cellspacing="0" width="100%">
 				<thead>
 					<tr>
-						<th></th>
+						<th class="center">Order</th>
 						<th>Class Category</th>
 						<th>Subject</th>
 						<th>Teacher</th>
 					</tr>
 				</thead>	
 				<tbody>
-					<tr ng-repeat="item in subjects track by $index">
-						<td></td>
-						<td id="{{item.subject_id}}" class="subject_id" ng-click="viewSubject(item)">{{item.class_cat_name}}</td>
-						<td ng-click="viewSubject(item)">{{item.subject_name}}</td>
+					<tr id="{{item.subject_id}}" ng-repeat="item in subjects track by $index">
+						<td>{{$index+1}}</td>
+						<td ng-click="viewSubject(item)">{{item.class_cat_name}}</td>
+						<td ng-click="viewSubject(item)"><span ng-show="item.parent_subject_name!==undefined">{{item.parent_subject_name + ' - '}}</span>{{item.subject_name}}</td>
 						<td ng-click="viewSubject(item)">{{item.teacher_name}}</td>
 					</tr>
 				</tbody>

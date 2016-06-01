@@ -60,6 +60,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						$scope.classes = $rootScope.allClasses || [];
 						$scope.filters.class = $scope.classes[0];
 						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
+						$scope.filters.class_cat_id = ( $scope.classes[0] ? $scope.classes[0].class_cat_id : null);
 						deferred.resolve();
 					}
 					else
@@ -75,6 +76,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.classes = $rootScope.allClasses;
 			$scope.filters.class = $scope.classes[0];
 			$scope.filters.class_id = $scope.classes[0].class_id;
+			$scope.filters.class_cat_id = $scope.classes[0].class_cat_id;
 			deferred.resolve();
 		}
 
@@ -116,39 +118,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 		
 		
-		// get exam types		
-		var deferred3 = $q.defer();
-		requests.push(deferred3.promise);
-		if( $rootScope.examTypes === undefined )
-		{
-			apiService.getExamTypes(undefined, function(response){
-				var result = angular.fromJson(response);				
-				if( result.response == 'success')
-				{ 
-					$scope.examTypes = result.data;	
-					$rootScope.examTypes = result.data;
-					$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
-					deferred3.resolve();
-				}
-				else
-				{
-					deferred3.reject();
-				}
-				
-			}, function(){deferred3.reject();});
-		}
-		else
-		{
-			$scope.examTypes = $rootScope.examTypes;
-			$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
-			deferred3.resolve();
-		}
-
+		/* taking the out, going to need user to choose exam then click load 
 		// need to wait for three data pieces, then run this
 		$q.all(requests).then(function () {
-			if( $scope.filters.class_id !== null ) $scope.getStudentExams();
+			//if( $scope.filters.class_id !== null ) $scope.getStudentExams();
 		});	
-		
+		*/
 	}
 	$timeout(initializeController,1);
 
@@ -161,6 +136,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			var result = angular.fromJson(response);				
 			if( result.response == 'success'){ 
 				$scope.examTypes = result.data;
+				$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
 				$timeout(setSearchBoxPosition,10);
 			}			
 		}, apiError);

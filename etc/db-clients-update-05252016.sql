@@ -41,4 +41,21 @@ WITH (
   OIDS=FALSE
 );
 
+
+ALTER TABLE app.subjects ADD COLUMN parent_subject_id integer;
+
+ALTER TABLE app.exam_types DROP CONSTRAINT "U_exam_type";
+ALTER TABLE app.exam_types ADD CONSTRAINT "U_exam_type_per_category" UNIQUE (exam_type, class_cat_id);
+
+ALTER TABLE app.exam_types ALTER COLUMN class_cat_id SET NOT NULL;
+ALTER TABLE app.exam_types DROP CONSTRAINT "FK_exam_type_class_cat";
+ALTER TABLE app.exam_types ADD CONSTRAINT "FK_exam_type_class_cat" FOREIGN KEY (class_cat_id)
+      REFERENCES app.class_cats (class_cat_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE app.classes ADD COLUMN report_card_type character varying;
+ALTER TABLE app.report_cards ADD COLUMN report_card_type character varying NOT NULL;
+
+
+
 COMMIT;

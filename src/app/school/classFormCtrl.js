@@ -14,6 +14,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.subjectExamSelection = {};
 	$scope.apply_to_all_subjects = [];
 	$scope.gradeWeight = {};
+	$scope.reportCardTypes = ["Standard","Kindergarten"];
 	
 	
 	var getSubjects = function(classCatId)
@@ -21,6 +22,22 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		apiService.getSubjects(classCatId,function(response){
 			var result = angular.fromJson(response);
 			if( result.response == 'success') $scope.subjects = ( result.nodata? [] : result.data );
+			
+			/* set parent subject name if set*/
+			if( $scope.subjects.length > 0 )
+			{
+				$scope.subjects = $scope.subjects.map(function(item){
+					if( item.parent_subject_id !== null )
+					{
+						var parent_subject = $scope.subjects.filter(function(item2){
+							if( item.parent_subject_id == item2.subject_id ) return item2;
+						})[0];
+						
+						item.parent_subject_name = parent_subject.subject_name;
+					}
+					return item;
+				});
+			}
 		}, apiError);
 	}
 	
@@ -389,7 +406,8 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
-			$scope.errMsg = result.data;
+			var msg = ( result.data.indexOf('"U_exam_type_per_category"') > -1 ? 'This exam type has already been entered for this class category.' : result.data);
+			$scope.errMsg = msg;
 		}
 		
 		$scope.hitEnter = function(evt){
@@ -416,16 +434,17 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 						'<label for="exam_type" class="col-sm-3 control-label">Exam Type</label>' +
 						'<div class="col-sm-9">' +
 							'<input type="text" name="name" ng-model="examType.exam_type" class="form-control"  >' +
-							'<p ng-show="catDialog.exam_type.$invalid && (catDialog.exam_type.$touched || catDialog.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Exan Type is required.</p>' +
+							'<p ng-show="catDialog.exam_type.$invalid && (catDialog.exam_type.$touched || catDialog.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Exam Type is required.</p>' +
 						'</div>' +
 					'</div>' +
 					'<!-- class category -->' +
-					'<div class="form-group">' +
+					'<div class="form-group ng-class="{ \'has-error\' : catDialog.class_cat.$invalid && (catDialog.class_cat.$touched || catDialog.$submitted) }">' +
 						'<label for="class_cat" class="col-sm-3 control-label">Class Category</label>' +
 						'<div class="col-sm-9">' +
 							'<select name="class_cat" class="form-control" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats"  ng-model="examType.class_cat_id" required>' +
 								'<option value="">--select class category--</option>' +
 							'</select>' +
+							'<p ng-show="catDialog.class_cat.$invalid && (catDialog.class_cat.$touched || catDialog.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class category is required.</p>' +
 						'</div>' +
 					'</div>' +
 				'</ng-form>' +

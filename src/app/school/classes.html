@@ -59,17 +59,17 @@
 			<table id="resultsTable" class="display clickable" cellspacing="0" width="100%">
 				<thead>
 					<tr>
-						<th></th>
-						<th>Class Category</th>
-						<th>Class Name</th>
-						<th>Teacher</th>
+						<th width="100" class="center">Order</th>
+						<th width="100">Class Category</th>
+						<th width="200">Class Name</th>
+						<th width="100">Teacher</th>
 						<th>Subjects</th>
 					</tr>
 				</thead>	
 				<tbody>
-					<tr ng-repeat="item in classes track by $index">
-						<td></td>
-						<td id="{{item.class_id}}" class="class_id" ng-click="viewClass(item)">{{item.class_cat_name}}</td>
+					<tr id="{{item.class_id}}" ng-repeat="item in classes track by $index">
+						<td>{{$index+1}}</td>
+						<td ng-click="viewClass(item)">{{item.class_cat_name}}</td>
 						<td ng-click="viewClass(item)">{{item.class_name}}</td>
 						<td ng-click="viewClass(item)">{{item.teacher_name}}</td>
 						<td ng-click="viewClass(item)">{{item.subjects|arrayToList}}</td>

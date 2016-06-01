@@ -62,7 +62,7 @@ module.exports = function(grunt) {
 			my_target: {
 			  files: {
 				'src/min/dependencies.min.js': ['src/components/bootstrap.min.js',
-												'src/components/datatables.min.js',
+												//'src/components/datatables.min.js',
 												'src/components/angular-ui-router.min.js',
 												'src/components/ui-bootstrap-tpls.min.js',
 												'src/components/moment.min.js',

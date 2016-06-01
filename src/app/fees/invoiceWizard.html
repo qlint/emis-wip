@@ -15,7 +15,7 @@
 					<label for="student">Timeframe</label>
 					<p>
 					<button type="button" class="btn btn-sm" ng-class="{'btn-success':invoice.term=='current'}" ng-click="invoice.term='current';generateInvoice()">Current Term</button>
-					<button type="button" class="btn btn-sm" ng-class="{'btn-success':invoice.term=='next'}" ng-click="invoice.term='next';generateInvoice()">Next Term</button>
+					<button ng-show="nextTermSet" type="button" class="btn btn-sm" ng-class="{'btn-success':invoice.term=='next'}" ng-click="invoice.term='next';generateInvoice()">Next Term</button>
 					</p>
 				</div>		
 			</div>

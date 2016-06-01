@@ -57,6 +57,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 		
 		// get exam types
+		apiService.getExamTypes($scope.filters.class.class_cat_id, function(response){
+			var result = angular.fromJson(response);				
+			if( result.response == 'success')
+			{ 
+				$scope.examTypes = result.data;
+				$scope.reportCardType = $scope.filters.class.report_card_type;
+			}
+			
+		}, apiError);
+		
+		
+		
+		/*
 		var params = data.class_id || $scope.filters.class.class_id;
 		apiService.getClassExams(params, function(response){
 			var result = angular.fromJson(response);				
@@ -69,9 +82,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					if( sum.indexOf(item.exam_type) === -1 ) sum.push(item.exam_type);
 					return sum;
 				}, []);
+				console.log($scope.examTypes);
 			}
 			
-		}, function(){});
+		}, apiError);
+		*/
 		
 		// if no student was passed in, get list of students for select dropdown
 		if( $scope.student === undefined )
@@ -119,6 +134,22 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.student = $scope.thestudent.selected;
 	});
 	
+	$scope.$watch('filters.class', function(newVal,oldVal){
+		if( newVal == oldVal ) return;
+		
+		// get exam types
+		console.log(newVal);
+		apiService.getExamTypes(newVal.class_cat_id, function(response){
+			var result = angular.fromJson(response);				
+			if( result.response == 'success')
+			{ 
+				$scope.examTypes = result.data;
+				$scope.reportCardType = newVal.report_card_type;
+			}
+			
+		}, apiError);
+	});
+	
 	$scope.clearSelect = function(item, $event) 
 	{
 		$event.stopPropagation(); 
@@ -133,11 +164,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.report = {};
 		$scope.overall = {};
 		$scope.overallLastTerm = {};
-		$scope.examTypes = {};
-		$scope.reportData = {};
+		//$scope.examTypes = {};
+		$scope.reportData = undefined;
 		
 		$scope.currentFilters = angular.copy($scope.filters);
-		$scope.report.class_name = $scope.currentFilters.class_name;
+		console.log($scope.currentFilters);
+		$scope.report.class_name = $scope.currentFilters.class.class_name;
 		$scope.report.term = $scope.currentFilters.term.term_name;
 		$scope.report.year = $scope.currentFilters.term.year;
 		
@@ -178,7 +210,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 	}
 	
-	$scope.setReportCardData = function(data)
+	$scope.setReportCardData = function()
 	{		
 		$scope.canPrint = true;
 		$scope.showReportCard = true;
@@ -191,6 +223,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		
 		$scope.comments = $scope.reportData.comments;
 		$scope.nextTermStartDate = $scope.reportData.nextTerm;
+		
+		$scope.reportCardType = $scope.reportData.report_card_type;
 		
 		console.log($scope.reportData);
 	}
@@ -258,7 +292,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						
 					});
 					if( $scope.reportData.subjects[(i-1)] !== undefined ) $scope.reportData.subjects[(i-1)].marks = marks;
-					//console.log($scope.reportData);
+					console.log($scope.reportData);
 					
 					
 					// set overall
@@ -351,7 +385,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			totals: $scope.totals,
 			comments: $scope.comments,
 			nextTermStartDate: $scope.nextTermStartDate,
-			total_overall_mark: $scope.total_overall_mark
+			total_overall_mark: $scope.total_overall_mark,
+			report_card_type: $scope.reportCardType
 		}
 
 		var domain = window.location.host;
@@ -380,6 +415,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			student_id: $scope.student.student_id,
 			term_id : $scope.currentFilters.term.term_id,
 			class_id : $scope.currentFilters.class.class_id,
+			report_card_type : $scope.currentFilters.class.report_card_type,
 			report_data : JSON.stringify($scope.reportData)
 		}
 		console.log(data);

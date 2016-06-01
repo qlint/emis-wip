@@ -130,7 +130,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					var thesubject = $scope.subjects.filter(function(subject){
 						if ( subject.subject_name == item.subject_name ) return subject;
 					})[0];
-					console.log(thesubject);
+					//console.log(thesubject);
 					
 					marks[thesubject.subject_name] = {
 						mark: item.mark,

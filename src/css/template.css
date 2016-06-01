@@ -796,6 +796,9 @@ table.clickable tr {
 
 .receipt {
   margin-bottom: 50px; }
+  .receipt img.brand {
+    width: 100px;
+    height: auto; }
   .receipt p.form-control-static {
     border-bottom: 1px dotted #bbb;
     padding: 0 3px 0 3px !important;

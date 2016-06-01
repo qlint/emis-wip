@@ -4,8 +4,9 @@ angular.module('eduwebApp').
 controller('subjectFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
-	$scope.subject = ( data !== undefined ? data : {} );
-	$scope.edit = (  data !== undefined && data.subject_id !== undefined ? true : false );
+	$scope.subject = ( data.subject !== undefined ? data.subject : {} );
+	$scope.allSubjects = $scope.subjects = data.subjects;
+	$scope.edit = ( data.subject.subject_id !== undefined ? true : false );
 	
 	//console.log(data);
 	
@@ -17,6 +18,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		},apiError);
 	}
 	$scope.initializeController();
+	
+	$scope.$watch('subject.class_cat_id', function(newVal, oldVal){
+		if( newVal == oldVal) return;
+		
+		// filter the subjects
+		$scope.subjects = $scope.allSubjects.filter( function(item){
+			if( item.class_cat_id == newVal ) return item;
+		});
+	});
 	
 	$scope.cancel = function()
 	{

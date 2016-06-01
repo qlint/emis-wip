@@ -6,14 +6,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 
 
 	$scope.alert = {};
+	$scope.filters = {};
 
 	var initializeController = function () 
 	{
-		getExamTypes();
+		
 	}
 	$timeout(initializeController,1);
+	
+	$rootScope.$watch('classCats', function(newVal,oldVal){
+		/* wait till the class cats are ready, then fetch subjects for first cat */
+		$scope.filters.class_cat_id = $rootScope.classCats[0].class_cat_id;
+		getExamTypes($rootScope.classCats[0].class_cat_id);
+	});
 
-	var getExamTypes = function()
+	var getExamTypes = function(class_cat_id)
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
@@ -21,7 +28,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 			$scope.dataGrid = undefined;			
 		}		
 
-		apiService.getExamTypes(undefined, function(response,status,params){
+		apiService.getExamTypes(class_cat_id, function(response,status,params){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
@@ -39,32 +46,27 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 		}, apiError);
 	}
 		
+		
+	$scope.loadFilter = function()
+	{
+		$scope.loading = true;
+		getExamTypes($scope.filters.class_cat_id);		
+	}
+	
 	var initDataGrid = function() 
 	{
 	
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				},
-				{
-					targets:1,
-					orderable:false
-				}				
+				rowReorder: true,
+				columnDefs: [
+					{ orderable: true, className: 'reorder', targets: 0 },
+					{ orderable: false, targets: '_all' }
 				],
 				paging: false,
 				destroy:true,				
 				filter: true,
-				order:[2,'asc'],
 				info: false,
-				sorting:[],
 				initComplete: function(settings, json) {
 					$scope.loading = false;
 					$rootScope.loading = false;
@@ -74,7 +76,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 						search: "Search Results<br>",
 						searchPlaceholder: "Filter",
 						lengthMenu: "Display _MENU_",
-						emptyTable: "No grading entries found."
+						emptyTable: "No exam type entries found."
 				},
 			} );
 			
@@ -89,11 +91,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 			} );
 		
 		
+		// handle reordering, update sort order and update database		
+		$scope.dataGrid.on( 'row-reordered', function ( e, diff, edit ) {
+		
+			/* need to update the sort order of all the rows */
+			updateSortOrder();
+
+		} );
+		
 		// position search box
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',0);
+			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
 		
 		$window.addEventListener('resize', function() {
@@ -112,6 +122,30 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 		
 	}
 	
+	var updateSortOrder = function()
+	{
+		/* loop through all the rows, grab the id from the row and the value in the first table cell */
+		/* build array and pass to database */
+
+		var putData = {
+			user_id: $rootScope.currentUser.user_id,
+			data: []
+		};
+		$scope.dataGrid.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+			var data = {
+				exam_type_id: this.id(),
+				sort_order: this.data()[0],
+				
+			}
+			putData.data.push(data);
+			
+		} );
+		
+		if( putData.data.length > 0 ) apiService.setExamTypeSortOrder(putData, function(){}, apiError);
+			
+		
+	}	
+	
 	var apiError = function (response, status) 
 	{
 		var result = angular.fromJson( response );
@@ -125,8 +159,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 		// show small dialog with add form		
 		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',{},{size: 'sm',backdrop:'static'});
 		dlg.result.then(function(examType){
-			
-			getExamTypes();
+			console.log(examType);
+			$scope.filters.class_cat_id = examType.class_cat_id;
+			getExamTypes($scope.filters.class_cat_id);
 					
 		},function(){
 			
@@ -143,7 +178,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 			
 				if( result.response == 'success')
 				{	
-					getExamTypes();
+					getExamTypes($scope.filters.class_cat_id);
 				}
 				else
 				{
@@ -180,7 +215,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 	{
 		$scope.loading = true;
 		$rootScope.loading = true;
-		getExamTypes();
+		getExamTypes($scope.filters.class_cat_id);
 	}
 	
 	$scope.$on('$destroy', function() {

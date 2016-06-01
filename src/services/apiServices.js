@@ -128,6 +128,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPut(request, path + "/setClassStatus", successFunction, errorFunction, params);
 	};
 	
+	this.setClassSortOrder = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/setClassSortOrder", successFunction, errorFunction, params);
+	};
+	
 	/*********** fee items ***********/
 	this.getFeeItems = function (request, successFunction, errorFunction) {  
 		ajaxService.AjaxGetWithData(request, path + "/getFeeItems", successFunction, errorFunction);
@@ -201,6 +205,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPut(request, path + "/setSubjectStatus", successFunction, errorFunction, params);
 	};
 	
+	this.setSubjectSortOrder = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/setSubjectSortOrder", successFunction, errorFunction, params);
+	};
+	
 	/*********** employees ***********/	
 	this.getAllTeachers = function (param, successFunction, errorFunction) {          
 		ajaxService.AjaxGet(path + "/getAllTeachers/" + param, successFunction, errorFunction);
@@ -251,6 +259,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.getTopStudents = function (param, successFunction, errorFunction, params) {          
 		if( param === undefined ) ajaxService.AjaxGet(path + "/getTopStudents", successFunction, errorFunction, params);
 		else  ajaxService.AjaxGet(path + "/getTopStudents/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.setExamTypeSortOrder = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/setExamTypeSortOrder", successFunction, errorFunction, params);
 	};
 	
 	/*********** report cards ***********/

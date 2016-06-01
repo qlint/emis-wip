@@ -57,7 +57,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		}
 		else
 		{
-			var params = (class_cat_id != '' ? class_cat_id + '/true' : "");
+
+			var params = (class_cat_id != '' && class_cat_id !== null ? class_cat_id + '/true' : "");
 			apiService.getClasses(params, function(response,status){
 				var result = angular.fromJson(response);
 				
@@ -92,22 +93,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
+				rowReorder: true,
+				columnDefs: [
+					{ orderable: true, className: 'reorder', targets: 0 },
+					{ orderable: false, targets: '_all' }
+				],
 				paging: false,
 				destroy:true,				
 				filter: true,
-				order:[[1,'asc'],[2,'asc']],
 				info: false,
-				sorting:[],
 				initComplete: function(settings, json) {
 					$scope.loading = false;
 					$rootScope.loading = false;
@@ -132,6 +126,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			} );
 		
 		
+		// handle reordering, update sort order and update database		
+		$scope.dataGrid.on( 'row-reordered', function ( e, diff, edit ) {
+		
+			/* need to update the sort order of all the rows */
+			updateSortOrder();
+
+		} );
+		
 		// position search box
 		if( !$rootScope.isSmallScreen )
 		{
@@ -154,6 +156,30 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		}, false);
 		
 	}
+	
+	var updateSortOrder = function()
+	{
+		/* loop through all the rows, grab the id from the row and the value in the first table cell */
+		/* build array and pass to database */
+
+		var putData = {
+			user_id: $rootScope.currentUser.user_id,
+			data: []
+		};
+		$scope.dataGrid.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+			var data = {
+				class_id: this.id(),
+				sort_order: this.data()[0],
+				
+			}
+			putData.data.push(data);
+			
+		} );
+		
+		if( putData.data.length > 0 ) apiService.setClassSortOrder(putData, function(){}, apiError);
+			
+		
+	}	
 	
 	var apiError = function (response, status) 
 	{

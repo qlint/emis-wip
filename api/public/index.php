@@ -420,7 +420,7 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT class_id, class_name, class_cat_id, teacher_id, active
+        $sth = $db->prepare("SELECT class_id, class_name, class_cat_id, teacher_id, active, report_card_type
             FROM app.classes
             WHERE active = :status
 			ORDER BY sort_order"); 
@@ -458,7 +458,7 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $st
         $db = getDB();
 		$params = array(':status' => $status);
 		$query = "SELECT class_id, class_name, classes.class_cat_id, teacher_id, classes.active, class_cat_name,
-					classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
+					classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, report_card_type,
 					(select array_agg(distinct subject_name) from app.class_subjects inner join app.subjects using (subject_id) where class_subjects.class_id = classes.class_id) as subjects
             FROM app.classes
 			INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
@@ -606,17 +606,18 @@ $app->post('/addClass', function () use($app) {
     // Add class
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
-	$className = 	( isset($allPostVars['class_name']) ? $allPostVars['class_name']: null);
-	$classCatId = 	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
-	$teacherId = 	( isset($allPostVars['teacher_id']) ? $allPostVars['v']: null);
-	$subjects =  	( isset($allPostVars['subjects']) ? $allPostVars['subjects']: null);	
-	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$className = 		( isset($allPostVars['class_name']) ? $allPostVars['class_name']: null);
+	$classCatId = 		( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$teacherId = 		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
+	$reportCardType = 	( isset($allPostVars['report_card_type']) ? $allPostVars['report_card_type']: null);
+	$subjects =  		( isset($allPostVars['subjects']) ? $allPostVars['subjects']: null);	
+	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.classes(class_name, class_cat_id, teacher_id, created_by) 
-            VALUES(:className, :classCatId, :teacherId, :userId)");
+        $sth = $db->prepare("INSERT INTO app.classes(class_name, class_cat_id, teacher_id, created_by, report_card_type) 
+            VALUES(:className, :classCatId, :teacherId, :userId, :reportCardType)");
  		
 		if( count($subjects) > 0 )
 		{
@@ -629,7 +630,7 @@ $app->post('/addClass', function () use($app) {
 		
 		$db->beginTransaction();
 		
-		$sth->execute( array(':className' => $className, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId ) );
+		$sth->execute( array(':className' => $className, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId, ':reportCardType' => $reportCardType ) );
 		
 		if( count($subjects) > 0 )
 		{
@@ -673,12 +674,13 @@ $app->put('/updateClass', function () use($app) {
     // Update class
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
-	$classId = 		( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
-	$className = 	( isset($allPostVars['class_name']) ? $allPostVars['class_name']: null);
-	$classCatId = 	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
-	$teacherId = 	( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
-	$subjects =  	( isset($allPostVars['subjects']) ? $allPostVars['subjects']: null);	
-	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$classId = 			( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+	$className = 		( isset($allPostVars['class_name']) ? $allPostVars['class_name']: null);
+	$classCatId = 		( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$teacherId = 		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
+	$reportCardType = 	( isset($allPostVars['report_card_type']) ? $allPostVars['report_card_type']: null);
+	$subjects =  		( isset($allPostVars['subjects']) ? $allPostVars['subjects']: null);	
+	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
     try 
     {
@@ -687,22 +689,29 @@ $app->put('/updateClass', function () use($app) {
 			SET class_name = :className,
 				class_cat_id = :classCatId,
 				teacher_id = :teacherId,
+				report_card_type = :reportCardType,
 				active = true,
 				modified_date = now(),
 				modified_by = :userId
             WHERE class_id = :classId");
 			
 		
-		if( count($subjects) > 0 )
-		{
-			$insertSubject =  $db->prepare("INSERT INTO app.class_subjects(class_id,subject_id,created_by)
-							VALUES(:classId,:subjectId,:userId)");
-		
-			$inactivateSubject =  $db->prepare("UPDATE app.class_subjects 
+		$inactivateSubject =  $db->prepare("UPDATE app.class_subjects 
 								SET active = false,
 									modified_date =  now(),
 									modified_by = :userId
 								WHERE class_subject_id = :classSubjectId");
+		
+		$inactivateAllSubjectExams = $db->prepare( "UPDATE app.class_subject_exams 
+								SET active = false,
+									modified_date =  now(),
+									modified_by = :userId
+								WHERE class_subject_id = :classSubjectId");
+								
+		if( count($subjects) > 0 )
+		{
+			$insertSubject =  $db->prepare("INSERT INTO app.class_subjects(class_id,subject_id,created_by)
+							VALUES(:classId,:subjectId,:userId)");
 		
 			$updateExam =  $db->prepare("UPDATE app.class_subject_exams 
 							SET grade_weight = :gradeWeight,
@@ -722,11 +731,7 @@ $app->put('/updateClass', function () use($app) {
 									modified_by = :userId
 								WHERE class_sub_exam_id = :classSubExamId");
 			
-			$inactivateAllSubjectExams = $db->prepare( "UPDATE app.class_subject_exams 
-								SET active = false,
-									modified_date =  now(),
-									modified_by = :userId
-								WHERE class_subject_id = :classSubjectId");
+			
 			
 								
 		}
@@ -746,6 +751,7 @@ $app->put('/updateClass', function () use($app) {
         $updateClass->execute( array(':className' => $className, 
 									 ':classCatId' => $classCatId, 
 									 ':teacherId' => $teacherId, 
+									 ':reportCardType' => $reportCardType,
 									 ':userId' => $userId,
 									 ':classId' => $classId) );
 		
@@ -914,6 +920,48 @@ $app->put('/setClassStatus', function () use($app) {
 
 });
 
+$app->put('/setClassSortOrder', function () use($app) {
+    // Update class sort order
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$sortData =		( isset($allPostVars['data']) ? $allPostVars['data']: null);
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE app.classes
+							SET sort_order = :sortOrder,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE class_id = :classId
+							"); 
+							
+		$db->beginTransaction();
+		foreach( $sortData as $item )
+		{
+			$classId =		( isset($item['class_id']) ? $item['class_id']: null);
+			$sortOrder =	( isset($item['sort_order']) ? $item['sort_order']: null);
+			$sth->execute( array(':classId' => $classId, 
+							 ':sortOrder' => $sortOrder, 
+							 ':userId' => $userId
+					) );
+		}
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
 
 // ************** Class Categories  ****************** //
 $app->get('/getClassCats(/:teacher_id)', function ($teacherId=null) {
@@ -2264,7 +2312,8 @@ $app->get('/getSubjects/(:classCatId)', function ($classCatId = null) {
 		$db = getDB();
 		$params = array();
 		$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
-						teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active
+						teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
+						parent_subject_id, sort_order
 					FROM app.subjects
 					LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
 					INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id
@@ -2308,18 +2357,21 @@ $app->post('/addSubject', function () use($app) {
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
-	$subjectName =	( isset($allPostVars['subject_name']) ? $allPostVars['subject_name']: null);
-	$classCatId =	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
-	$teacherId =	( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
-	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$subjectName =		( isset($allPostVars['subject_name']) ? $allPostVars['subject_name']: null);
+	$classCatId =		( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$teacherId =		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
+	$parentSubjectId =	( isset($allPostVars['parent_subject_id']) ? $allPostVars['parent_subject_id']: null);
+	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by) 
-            VALUES(:subjectName, :classCatId, :teacherId, :userId)");
+        $sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by, parent_subject_id) 
+            VALUES(:subjectName, :classCatId, :teacherId, :userId, :parentSubjectId)");
  
-        $sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId ) );
+        $sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, 
+							 ':teacherId' => $teacherId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId,
+							) );
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -2339,11 +2391,12 @@ $app->put('/updateSubject', function () use($app) {
     // Update subject
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
-	$subjectId =	( isset($allPostVars['subject_id']) ? $allPostVars['subject_id']: null);
-	$subjectName =	( isset($allPostVars['subject_name']) ? $allPostVars['subject_name']: null);
-	$classCatId =	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
-	$teacherId =	( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
-	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$subjectId =		( isset($allPostVars['subject_id']) ? $allPostVars['subject_id']: null);
+	$subjectName =		( isset($allPostVars['subject_name']) ? $allPostVars['subject_name']: null);
+	$classCatId =		( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$teacherId =		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
+	$parentSubjectId =	( isset($allPostVars['parent_subject_id']) ? $allPostVars['parent_subject_id']: null);
+	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
     try 
     {
@@ -2351,10 +2404,15 @@ $app->put('/updateSubject', function () use($app) {
         $sth = $db->prepare("UPDATE app.subjects
 			SET subject_name = :subjectName,
 				class_cat_id = :classCatId,
-				teacher_id = :teacherId
+				teacher_id = :teacherId,
+				parent_subject_id = :parentSubjectId,
+				modified_date = now(),
+				modified_by = :userId
             WHERE subject_id = :subjectId");
  
-        $sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':subjectId' => $subjectId ) );
+        $sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId, 
+							 ':subjectId' => $subjectId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId,
+							 ) );
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -2406,9 +2464,52 @@ $app->put('/setSubjectStatus', function () use($app) {
 
 });
 
+$app->put('/setSubjectSortOrder', function () use($app) {
+    // Update subject sort order
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$sortData =		( isset($allPostVars['data']) ? $allPostVars['data']: null);
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE app.subjects
+							SET sort_order = :sortOrder,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE subject_id = :subjectId
+							"); 
+							
+		$db->beginTransaction();
+		foreach( $sortData as $item )
+		{
+			$subjectId =	( isset($item['subject_id']) ? $item['subject_id']: null);
+			$sortOrder =	( isset($item['sort_order']) ? $item['sort_order']: null);
+			$sth->execute( array(':subjectId' => $subjectId, 
+							 ':sortOrder' => $sortOrder, 
+							 ':userId' => $userId
+					) );
+		}
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Exams  ****************** //
-$app->get('/getExamTypes(/:class_cat_id)', function ($classCatId = null) {
+$app->get('/getExamTypes/:class_cat_id', function ($classCatId) {
 
     // Get all exam types
 	
@@ -2417,29 +2518,15 @@ $app->get('/getExamTypes(/:class_cat_id)', function ($classCatId = null) {
     try 
     {
         $db = getDB();
-		if( $classCatId == null )
-		{
-			$sth = $db->prepare("SELECT exam_type_id, exam_type, exam_types.class_cat_id, class_cat_name,
-										(select count(*) from app.class_subject_exams where exam_type_id = exam_types.exam_type_id) as associations
-								FROM app.exam_types 
-								LEFT JOIN app.class_cats
-								ON exam_types.class_cat_id = class_cats.class_cat_id
-								--WHERE exam_types.class_cat_id is null 
-								ORDER BY sort_order");
-			$sth->execute(); 
-		}
-		else
-		{
-			$sth = $db->prepare("SELECT exam_type_id, exam_type, exam_types.class_cat_id, class_cat_name
-								FROM app.exam_types 
-								LEFT JOIN app.class_cats
-								ON exam_types.class_cat_id = class_cats.class_cat_id
-								WHERE exam_types.class_cat_id is null 
-								OR exam_types.class_cat_id = :classCatId 
-								ORDER BY sort_order");
-			$sth->execute(array(':classCatId' => $classCatId)); 
-		}
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+		$sth = $db->prepare("SELECT exam_type_id, exam_type, exam_types.class_cat_id, class_cat_name
+							FROM app.exam_types 
+							LEFT JOIN app.class_cats
+							ON exam_types.class_cat_id = class_cats.class_cat_id
+							WHERE exam_types.class_cat_id = :classCatId 
+							ORDER BY sort_order");
+		$sth->execute(array(':classCatId' => $classCatId)); 
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
  
         if($results) {
             $app->response->setStatus(200);
@@ -2474,13 +2561,21 @@ $app->post('/addExamType', function () use($app) {
     {
         $db = getDB();
 		
-		$db->beginTransaction();
+
 		
-        $sth = $db->prepare("INSERT INTO app.exam_types(exam_type, class_cat_id,  created_by) 
-								VALUES(:examType, :classCatId, :userId)"); 
-        $sth->execute( array(':examType' => $examType, ':classCatId' => $classCatId, ':userId' => $userId ) );
- 
+		/* get the next number for sort order */		
+		$sth0 = $db->prepare("SELECT sort_order FROM app.exam_types WHERE class_cat_id = :classCatId ORDER BY sort_order desc LIMIT 1");
+        $sth1 = $db->prepare("INSERT INTO app.exam_types(exam_type, class_cat_id, sort_order, created_by) 
+								VALUES(:examType, :classCatId, :sortOrder, :userId)"); 
 		$sth2 = $db->prepare("SELECT * FROM app.exam_types WHERE exam_type_id = currval('app.exam_types_exam_type_id_seq')");
+		
+							
+		$db->beginTransaction();
+		$sth0->execute( array(':classCatId' => $classCatId) );
+		$sort = $sth0->fetch(PDO::FETCH_OBJ);
+		$sortOrder = ($sort ? $sort->sort_order + 1 : 1);
+		
+        $sth1->execute( array(':examType' => $examType, ':classCatId' => $classCatId, ':sortOrder' => $sortOrder, ':userId' => $userId ) );
 		$sth2->execute();
 		$results = $sth2->fetch(PDO::FETCH_OBJ);
 		
@@ -2520,6 +2615,49 @@ $app->delete('/deleteExamType/:exam_type_id', function ($examTypeId) {
  
     } catch(PDOException $e) {
 		
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/setExamTypeSortOrder', function () use($app) {
+    // Update exam type sort order
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$sortData =		( isset($allPostVars['data']) ? $allPostVars['data']: null);
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE app.exam_types
+							SET sort_order = :sortOrder,
+								modified_date = now(),
+								modified_by = :userId 
+							WHERE exam_type_id = :examTypeId
+							"); 
+							
+		$db->beginTransaction();
+		foreach( $sortData as $item )
+		{
+			$examTypeId =	( isset($item['exam_type_id']) ? $item['exam_type_id']: null);
+			$sortOrder =	( isset($item['sort_order']) ? $item['sort_order']: null);
+			$sth->execute( array(':examTypeId' => $examTypeId, 
+							 ':sortOrder' => $sortOrder, 
+							 ':userId' => $userId
+					) );
+		}
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
@@ -2653,7 +2791,7 @@ $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id', function ($clas
 
 });
 
-$app->get('/getAllStudentExamMarks/:class/:term(/:type)', function ($classId,$termId,$examTypeId=null) {
+$app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$termId,$examTypeId) {
     //Get all student exam marks
 	
 	$app = \Slim\Slim::getInstance();
@@ -2661,7 +2799,7 @@ $app->get('/getAllStudentExamMarks/:class/:term(/:type)', function ($classId,$te
     try 
     {
 		// need to make sure class, term and type are integers
-		if( is_numeric($classId) && is_numeric($termId) )
+		if( is_numeric($classId) && is_numeric($termId)  && is_numeric($examTypeId) )
 		{
 			$db = getDB();
 			
@@ -2684,17 +2822,10 @@ $app->get('/getAllStudentExamMarks/:class/:term(/:type)', function ($classId,$te
 						INNER JOIN app.students ON exam_marks.student_id = students.student_id
 						WHERE class_subjects.class_id = $classId
 						AND term_id = $termId						
-						";
-				
-			if( $examTypeId !== null && is_numeric($examTypeId) )
-			{
-				$query .= " AND class_subject_exams.exam_type_id = $examTypeId
-				";
-			}
-			
-			$query .= " WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY class_subjects.subject_id, mark desc)
+						AND class_subject_exams.exam_type_id = $examTypeId
+						WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY class_subjects.subject_id, mark desc)
 						',
-				array['student_id','student_name','exam_type'], array['subject_name','grade_weight'], '#.mark', null);";
+						array['student_id','student_name','exam_type'], array['subject_name','grade_weight'], '#.mark', null);";
 			
 			$query2 = "select *,
 									(
@@ -2711,14 +2842,8 @@ $app->get('/getAllStudentExamMarks/:class/:term(/:type)', function ($classId,$te
 											ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 											WHERE class_subjects.class_id = $classId
 											AND term_id = $termId
-											";
-			if( $examTypeId !== null && is_numeric($examTypeId) )
-			{
-				$query2 .= " AND class_subject_exams.exam_type_id = $examTypeId
-				";
-			}								
-											
-			$query2 .= "							GROUP BY exam_marks.student_id
+											AND class_subject_exams.exam_type_id = $examTypeId
+											GROUP BY exam_marks.student_id
 											WINDOW w AS (ORDER BY coalesce(sum(mark),0) desc)	
 										) q
 										WHERE student_id = _exam_marks.student_id
@@ -2920,7 +3045,7 @@ $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
 		$db = getDB();
 		
 		$sth = $db->prepare("SELECT report_cards.student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name, admission_number,
-									report_cards.class_id, class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data				
+									report_cards.class_id, class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type			
 							FROM app.report_cards
 							INNER JOIN app.students ON report_cards.student_id = students.student_id
 							INNER JOIN app.classes ON report_cards.class_id = classes.class_id
@@ -2963,7 +3088,7 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
     {
         $db = getDB();
 		
-		$sth = $db->prepare("SELECT report_cards.student_id, report_cards.class_id, class_name, term_name, date_part('year', start_date) as year, report_data
+		$sth = $db->prepare("SELECT report_cards.student_id, report_cards.class_id, class_name, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
 					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
@@ -3004,7 +3129,7 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT report_cards.student_id, class_name, term_name, report_cards.term_id, date_part('year', start_date) as year, report_data
+		$sth = $db->prepare("SELECT report_cards.student_id, class_name, term_name, report_cards.term_id, date_part('year', start_date) as year, report_data, report_cards.report_card_type
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
 					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
@@ -3081,28 +3206,41 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 		$sth2 = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, rank, percentage, 
 									(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade
 							FROM (
-								SELECT class_id
-									  ,subject_name      
-									  ,student_id
-									  ,sum(mark) as total_mark    
-									  ,sum(grade_weight) as total_grade_weight
-									  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
-									  ,dense_rank() over w as rank
-								FROM app.exam_marks
-								INNER JOIN app.class_subject_exams 
-								INNER JOIN app.exam_types
-								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-								INNER JOIN app.class_subjects 
-									INNER JOIN app.subjects
-									ON class_subjects.subject_id = subjects.subject_id
-								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-								WHERE class_subjects.class_id = :classId
-								AND term_id = :termId
-								GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id
-								WINDOW w AS (PARTITION BY class_subjects.subject_id ORDER BY class_subjects.subject_id, sum(mark) desc)								
+							SELECT
+								class_id, subject_id
+										  ,subject_name      
+										  ,student_id
+										  ,total_mark    
+										  ,total_grade_weight
+										  ,percentage
+										  ,dense_rank() over w as rank
+										  ,sort_order
+							FROM (
+									SELECT class_id
+									      ,class_subjects.subject_id
+										  ,subject_name      
+										  ,student_id
+										  ,sum(mark) as total_mark    
+										  ,sum(grade_weight) as total_grade_weight
+										  ,round((sum(mark)::float/sum(grade_weight)::float)*100) as percentage
+										  ,subjects.sort_order
+									FROM app.exam_marks
+									INNER JOIN app.class_subject_exams 
+									INNER JOIN app.exam_types
+									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+									INNER JOIN app.class_subjects 
+										INNER JOIN app.subjects
+										ON class_subjects.subject_id = subjects.subject_id
+									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+									WHERE class_subjects.class_id = :classId
+									AND term_id = :termId
+									GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order
+								) a
+								WINDOW w AS (PARTITION BY subject_id ORDER BY sort_order, total_mark desc)								
 							 ) q
-							 where student_id = :studentId");
+							 where student_id = :studentId
+							 ORDER BY sort_order");
 		$sth2->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
 		$subjectOverall = $sth2->fetchAll(PDO::FETCH_OBJ);
 		
@@ -3203,11 +3341,12 @@ $app->post('/addReportCard', function () use($app) {
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
-	$studentId =	( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
-	$termId =		( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
-	$classId =		( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
-	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
-	$reportData =	( isset($allPostVars['report_data']) ? $allPostVars['report_data']: null);
+	$studentId =		( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+	$termId =			( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
+	$classId =			( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+	$reportCardType =	( isset($allPostVars['report_card_type']) ? $allPostVars['report_card_type']: null);
+	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$reportData =		( isset($allPostVars['report_data']) ? $allPostVars['report_data']: null);
 	
     try 
     {
@@ -3215,8 +3354,8 @@ $app->post('/addReportCard', function () use($app) {
 		
 		$getReport = $db->prepare("SELECT report_card_id FROM app.report_cards WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId");
 		
-		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by) 
-								VALUES(:studentId, :classId, :termId, :reportData, :userId)"); 
+		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by, report_card_type) 
+								VALUES(:studentId, :classId, :termId, :reportData, :userId, :reportCardType)"); 
 		
 		$updateReport = $db->prepare("UPDATE app.report_cards
 									SET report_data = :reportData,
@@ -3238,6 +3377,7 @@ $app->post('/addReportCard', function () use($app) {
 		{
 			$addReport->execute( array(':studentId' => $studentId, 
 											':classId' => $classId,
+											':reportCardType' => $reportCardType,
 											':termId' => $termId, 
 											':reportData' => $reportData, 
 											':userId' => $userId
@@ -4898,9 +5038,10 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
     {
         $db = getDB();
 		
-		$sth = $db->prepare("SELECT *
+		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
 							 FROM app.students 
-							 WHERE active = :status 
+							 INNER JOIN app.classes ON students.current_class = classes.class_id
+							 WHERE students.active = :status 
 							 ORDER BY first_name, middle_name, last_name");
 		$sth->execute( array(':status' => $status)); 
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -4934,7 +5075,7 @@ $app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $st
     {
         $db = getDB();
 		
-		$sth = $db->prepare("SELECT *
+		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
 							 FROM app.students 
 							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.teacher_id = :teacherId
 							 WHERE students.active = :status 
@@ -4970,9 +5111,10 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT students.*, 
+        $sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
 								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' days apart)' as payment_plan_name
 							 FROM app.students 
+							 INNER JOIN app.classes ON students.current_class = classes.class_id
 							 LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
 							 WHERE student_id = :studentID 
 							 ORDER BY first_name, middle_name, last_name");

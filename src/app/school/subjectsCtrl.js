@@ -4,14 +4,20 @@ angular.module('eduwebApp').
 controller('subjectsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter',
 function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
-	$scope.filters= {};
+	$scope.filters = {};
 	$scope.alert = {};
 
 	var initializeController = function () 
 	{
-		getSubjects("");
+		
 	}
 	$timeout(initializeController,1);
+	
+	$rootScope.$watch('classCats', function(newVal,oldVal){
+		/* wait till the class cats are ready, then fetch subjects for first cat */
+		$scope.filters.class_cat_id = $rootScope.classCats[0].class_cat_id;
+		getSubjects($rootScope.classCats[0].class_cat_id);
+	});
 
 	var getSubjects = function(class_cat_id)
 	{
@@ -28,6 +34,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			if( result.response == 'success')
 			{	
 				$scope.subjects = ( result.nodata ? [] : result.data );	
+				
+				if( $scope.subjects.length > 0 )
+				{
+					$scope.subjects = $scope.subjects.map(function(item){
+						if( item.parent_subject_id !== null )
+						{
+							var parent_subject = $scope.subjects.filter(function(item2){
+								if( item.parent_subject_id == item2.subject_id ) return item2;
+							})[0];
+							
+							item.parent_subject_name = parent_subject.subject_name;
+						}
+						return item;
+					});
+				}
 				$timeout(initDataGrid,10);
 			}
 			else
@@ -49,23 +70,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	{
 	
 		var tableElement = $('#resultsTable');
+		
 		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
+				rowReorder: true,
+				columnDefs: [
+					{ orderable: true, className: 'reorder', targets: 0 },
+					{ orderable: false, targets: '_all' }
+				],
 				paging: false,
 				destroy:true,				
 				filter: true,
-				//order:[[1,'asc'],[2,'asc']],
 				info: false,
-				sorting:[],
 				initComplete: function(settings, json) {
 					$scope.loading = false;
 					$rootScope.loading = false;
@@ -78,7 +93,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 						emptyTable: "No subjects found."
 				},
 			} );
-			
+
 		
 		var headerHeight = $('.navbar-fixed-top').height();
 		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
@@ -88,6 +103,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 				header: true,
 				headerOffset: (headerHeight + searchHeight) + offset
 			} );
+		
+		
+		// handle reordering, update sort order and update database		
+		$scope.dataGrid.on( 'row-reordered', function ( e, diff, edit ) {
+		
+			/* need to update the sort order of all the rows */
+			updateSortOrder();
+
+		} );
 		
 		
 		// position search box
@@ -113,6 +137,30 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		
 	}
 	
+	var updateSortOrder = function()
+	{
+		/* loop through all the rows, grab the id from the row and the value in the first table cell */
+		/* build array and pass to database */
+
+		var putData = {
+			user_id: $rootScope.currentUser.user_id,
+			data: []
+		};
+		$scope.dataGrid.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+			var data = {
+				subject_id: this.id(),
+				sort_order: this.data()[0],
+				
+			}
+			putData.data.push(data);
+			
+		} );
+		
+		if( putData.data.length > 0 ) apiService.setSubjectSortOrder(putData, function(){}, apiError);
+			
+		
+	}	
+	
 	var apiError = function (response, status) 
 	{
 		var result = angular.fromJson( response );
@@ -123,12 +171,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	
 	$scope.addSubject = function()
 	{
-		$scope.openModal('school', 'subjectForm', 'md');
+		var data = { subjects: $scope.subjects };
+		$scope.openModal('school', 'subjectForm', 'md', data);
 	}
 	
 	$scope.viewSubject = function(item)
 	{
-		$scope.openModal('school', 'subjectForm', 'md',item);
+		var data = {
+			subjects: $scope.subjects,
+			subject : item
+		}
+		$scope.openModal('school', 'subjectForm', 'md',data);
 	}
 	
 	$scope.exportItems = function()

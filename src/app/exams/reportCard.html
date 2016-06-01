@@ -57,6 +57,7 @@
 			<!-- // end search form -->
 			
 			<div ng-show="showReportCard">
+			
 				<div class="row progress-report-header">
 					<div class="col-xs-2">
 						<img src="{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" /> 
@@ -71,159 +72,260 @@
 						<h2 class="report-card-title">Progress Report</h2>
 					</div>
 				</div>
-				<div class="progress-report-student">
-				<!-- name and adm number -->	
-				<div class="row">
-					<div class="col-xs-1 nopad-right">
-						<label class="">Name:</label>
-					</div>
-					<div class="col-xs-5 lesspad">
-						<p class="form-control-static">{{student.student_name}}</p>
-					</div>
-					<div class="col-xs-1 nopad-right">
-						<label>Adm No:</label>
-					</div>
-					<div class="col-xs-5 lesspad">
-						<p class="form-control-static">{{student.admission_number}}</p>
-					</div>
-				</div>
-				<!-- class, term and year -->
-				<div class="row">
-					<div class="col-xs-1 nopad-right">
-						<label>Class:</label>
-					</div>
-					<div class="col-xs-3 lesspad">
-						<p class="form-control-static">{{report.class_name}}</p>
-					</div>
-					<div class="col-xs-1 nopad-right">
-						<label>Term:</label>
-					</div>
-					<div class="col-xs-3 lesspad">
-						<p class="form-control-static">{{report.term}}</p>
-					</div>
-					<div class="col-xs-1 nopad-right">
-						<label>Year:</label>
-					</div>
-					<div class="col-xs-3 lesspad">
-						<p class="form-control-static">{{report.year}}</p>
-					</div>
-				</div>
-				<!-- position, out of, pos last term, out of -->
-				<div class="row">
-					<div class="col-xs-1 nopad-right">
-						<label>Position:</label>
-					</div>
-					<div class="col-xs-1 lesspad">
-						<p class="form-control-static">{{overall.rank}}</p>
-					</div>
-					<div class="col-xs-1 nopad-right">
-						<label>Out Of:</label>
-					</div>
-					<div class="col-xs-1 lesspad">
-						<p class="form-control-static">{{overall.position_out_of}}</p>
-					</div>
-					<div class="col-xs-2 nopad-right">
-						<label>Pos Last Term:</label>
-					</div>
-					<div class="col-xs-2 lesspad">
-						<p class="form-control-static">{{overallLastTerm.rank}}</p>
-					</div>
-					<div class="col-xs-1 nopad-right">
-						<label>Out Of:</label>
-					</div>
-					<div class="col-xs-3 lesspad">
-						<p class="form-control-static">{{overallLastTerm.position_out_of}}</p>
-					</div>
-				</div>
-				</div>
-				<table class="display dataTable" cellspacing="0" width="100%">
-					<thead>
-						<tr>
-							<th rowspan="3" class="center">Subject</th>
-							<th class="center" colspan="{{examTypes.length*3}}">Marks</th>
-							<th rowspan="2" colspan="2" class="center">Overall</th>
-							<th rowspan="3" class="center">Position</th>
-							<th class="center" rowspan="3" width="350">Remarks</th>
-							<th class="center" rowspan="3">Teacher<br>Int.</th>
-						</tr>
-						<tr>
-							<th class="center" colspan="3" ng-repeat="item in examTypes">{{item}}</th>
-						</tr>
-						<tr>
-							<th class="center" ng-repeat-start="item in examTypes">Mark</th>
-							<th class="center">Out Of</th>
-							<th class="center" ng-repeat-end="">Grade</th>
-							<th class="center">Avg</th>
-							<th class="center">Grade</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr ng-repeat="item in reportData.subjects track by $index">
-							<td>{{item.subject_name}}</td>
-							<td class="center" ng-repeat-start="examType in examTypes">{{item.marks[examType].mark}}</td>
-							<td class="center">{{item.marks[examType].grade_weight}}</td>
-							<td class="center" ng-repeat-end="">{{item.marks[examType].grade}}</td>
-							<td class="center">{{item.overall_mark}}%</td>
-							<td class="center">{{item.overall_grade}}</td>
-							<td class="center">{{item.position}}</td>
-							<td>
-								<span ng-show="isPrinting">{{item.remarks}}</span>
-								<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
-							</td>
-							<td>{{item.initials}}</td>
-						</tr>
-					</tbody>
-					<tfoot>
-						<tr>
-							<th class="center">Total</th>
-							<th class="center" ng-repeat-start="examType in examTypes">{{totals[examType].total_mark}}</th>
-							<th class="center">{{totals[examType].total_grade_weight}}</th>
-							<th class="center" ng-repeat-end=""></th>
-							<th class="center">{{total_overall_mark}}%</th>
-							<th colspan="4" class="center"></th>
-						</tr>
-					</tfoot>
-				</table>
 				
-				
-				<div class="progress-report-remarks">
-					<h3>Remarks</h3>
-					<table width="100%">
-						<tr>
-							<td colspan="2">
-								<label>Non examinable (sports/responsibility/clubs)</label>
-								<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
-								<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
-							</td>
-						</tr>
-						<tr>
-							<td width="75%">
-								<label>Class teacher comments:</label>
-								<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
-								<p ng-show="isPrinting" class="form-control-static">{{comments.teacher_comments}}</p>
-							</td>
-							<td>
-								<label>Sign:</label>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label>Principle comments:</label>
-								<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
-								<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>	
-							</td>
-							<td>
-								<label>Sign:</label>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="2">
-								<label>Next Term Begins:</label>	
-								<p class="form-control-static">{{nextTermStartDate}}</p>	
-							</td>
-						</tr>
+				<div ng-include="reportCardType"></div>
+			
+				<script type="text/ng-template" id="Standard">
+
+					<div class="progress-report-student">
+						<!-- name and adm number -->	
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label class="">Name:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{student.student_name}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Adm No:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{student.admission_number}}</p>
+							</div>
+						</div>
+						<!-- class, term and year -->
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>Class:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static">{{report.class_name}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Term:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static">{{report.term}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Year:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static">{{report.year}}</p>
+							</div>
+						</div>
+						<!-- position, out of, pos last term, out of -->
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>Position:</label>
+							</div>
+							<div class="col-xs-1 lesspad">
+								<p class="form-control-static">{{overall.rank}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Out Of:</label>
+							</div>
+							<div class="col-xs-1 lesspad">
+								<p class="form-control-static">{{overall.position_out_of}}</p>
+							</div>
+							<div class="col-xs-2 nopad-right">
+								<label>Pos Last Term:</label>
+							</div>
+							<div class="col-xs-2 lesspad">
+								<p class="form-control-static">{{overallLastTerm.rank}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Out Of:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static">{{overallLastTerm.position_out_of}}</p>
+							</div>
+						</div>
+					</div>
+					
+					<table class="display dataTable" cellspacing="0" width="100%">
+						<thead>
+							<tr>
+								<th rowspan="3" class="center">Subject</th>
+								<th class="center" colspan="{{examTypes.length*3}}">Marks</th>
+								<th rowspan="2" colspan="2" class="center">Overall</th>
+								<th rowspan="3" class="center">Position</th>
+								<th class="center" rowspan="3" width="350">Remarks</th>
+								<th class="center" rowspan="3">Teacher<br>Int.</th>
+							</tr>
+							<tr>
+								<th class="center" colspan="3" ng-repeat="item in examTypes">{{item.exam_type}}</th>
+							</tr>
+							<tr>
+								<th class="center" ng-repeat-start="item in examTypes">Mark</th>
+								<th class="center">Out Of</th>
+								<th class="center" ng-repeat-end="">Grade</th>
+								<th class="center">Avg</th>
+								<th class="center">Grade</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="item in reportData.subjects track by $index">
+								<td>{{item.subject_name}}</td>
+								<td class="center" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
+								<td class="center">{{item.marks[examType.exam_type].grade_weight}}</td>
+								<td class="center" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
+								<td class="center">{{item.overall_mark}}%</td>
+								<td class="center">{{item.overall_grade}}</td>
+								<td class="center">{{item.position}}</td>
+								<td>
+									<span ng-show="isPrinting">{{item.remarks}}</span>
+									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
+								</td>
+								<td>{{item.initials}}</td>
+							</tr>
+						</tbody>
+						<tfoot>
+							<tr>
+								<th class="center">Total</th>
+								<th class="center" ng-repeat-start="examType in examTypes">{{totals[examType.exam_type].total_mark}}</th>
+								<th class="center">{{totals[examType.exam_type].total_grade_weight}}</th>
+								<th class="center" ng-repeat-end=""></th>
+								<th class="center">{{total_overall_mark}}%</th>
+								<th colspan="4" class="center"></th>
+							</tr>
+						</tfoot>
 					</table>
-				</div>
+					
+					<div class="progress-report-remarks">
+						<h3>Remarks</h3>
+						<table width="100%">
+							<tr>
+								<td colspan="2">
+									<label>Non examinable (sports/responsibility/clubs)</label>
+									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
+								</td>
+							</tr>
+							<tr>
+								<td width="75%">
+									<label>Class teacher comments:</label>
+									<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{comments.teacher_comments}}</p>
+								</td>
+								<td>
+									<label>Sign:</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<label>Principle comments:</label>
+									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>	
+								</td>
+								<td>
+									<label>Sign:</label>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2">
+									<label>Next Term Begins:</label>	
+									<p class="form-control-static">{{nextTermStartDate}}</p>	
+								</td>
+							</tr>
+						</table>
+					</div>				
+				</script>
+				
+				<script type="text/ng-template" id="Kindergarten">
+				<div class="progress-report-student">
+						<!-- name and adm number -->	
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>Name:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{student.student_name}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Class:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{report.class_name}}</p>
+							</div>
+						</div>
+						<!-- class, term and year -->
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>Class Teacher:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{report.teacher_name}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Term:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{report.term}}</p>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>Date:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{report.date}}</p>
+							</div>
+						</div>						
+					</div>
+					<table class="display dataTable" cellspacing="0" width="100%">
+						<thead>
+							<tr>
+								<th class="center">Subject</th>
+								<th class="center" width="75%">Remarks</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="item in reportData.subjects track by $index">
+								<td>{{item.subject_name}}</td>
+								<td>
+									<span ng-show="isPrinting">{{item.remarks}}</span>
+									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					
+					<div class="progress-report-remarks">
+						<h3>Remarks</h3>
+						<table width="100%">
+							<tr>
+								<td width="75%">
+									<label>CLASS TEACHER'S COMMENTS:</label>
+									<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{comments.teacher_comments}}</p>
+								</td>
+								<td>
+									<label>Sign:</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<label>HEAD TEACHER</label>
+									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>	
+								</td>
+								<td>
+									<label>Sign:</label>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2">
+									<label>Next term begins on:</label>	
+									<p class="form-control-static">{{nextTermStartDate}}</p>	
+								</td>
+							</tr>
+						</table>
+					</div>				
+					
+					
+				</script>
+				
 				
 				<div ng-show="saved" class="alert alert-success">
 					Report card has been saved! Click the 'Print' button below.

@@ -208,11 +208,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			
 			
-			// get exam types
-			
+			// get exam types			
 			if( $rootScope.examTypes === undefined )
 			{
-				apiService.getExamTypes(undefined, function(response){
+				apiService.getExamTypes($scope.student.class_cat_id, function(response){
 					var result = angular.fromJson(response);				
 					if( result.response == 'success'){ $scope.examTypes = result.data;	$rootScope.examTypes = result.data;}			
 				}, function(){});

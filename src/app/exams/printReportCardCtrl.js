@@ -20,6 +20,7 @@ function($scope, $rootScope){
 		$scope.comments = angular.fromJson(data.comments);
 		$scope.nextTermStartDate = data.nextTermStartDate;
 		$scope.total_overall_mark = data.total_overall_mark;
+		$scope.reportCardType = data.report_card_type;
 		
 		$scope.loading = false;
 		

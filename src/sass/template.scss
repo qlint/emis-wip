@@ -1098,6 +1098,11 @@ table.clickable{
 .receipt{
 	margin-bottom:50px;
 	
+	img.brand{
+		width:100px;
+		height:auto;
+	}
+	
 	p.form-control-static{
 		border-bottom: 1px dotted #bbb;
 		padding: 0 3px 0 3px !important;

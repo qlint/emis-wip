@@ -8,6 +8,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	
 	$scope.initializeController = function()
 	{
+		apiService.getNextTerm({}, function(response,status){
+			var result = angular.fromJson(response);				
+			if( result.response == 'success')
+			{ 
+				$scope.nextTermSet = ( result.nodata !== undefined ? false : true);
+			}
+		}, apiError);
 	}
 	$scope.initializeController();
 	

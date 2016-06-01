@@ -185,12 +185,14 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		// make adjustments to student data
 		var formatedResults = data.map(function(item){
 			item.student_name = item.first_name + ' ' + ( item.middle_name || '' ) + ' ' + item.last_name;
+			/*
 			var theClass = $rootScope.allClasses.filter(function(a){ 
 				return a.class_id == item.current_class;
 			})[0];
 			item.class_name = (theClass ? theClass.class_name : '');
 			item.class_cat_id = (theClass ? theClass.class_cat_id : '');
 			item.class_id = (theClass ? theClass.class_id : '');
+			*/
 			
 			if( item.guardians)
 			{
