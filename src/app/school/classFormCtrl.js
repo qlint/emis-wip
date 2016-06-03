@@ -19,31 +19,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	var getSubjects = function(classCatId)
 	{
-		apiService.getSubjects(classCatId,function(response){
+		apiService.getAllSubjects(classCatId,function(response){
 			var result = angular.fromJson(response);
 			if( result.response == 'success') $scope.subjects = ( result.nodata? [] : result.data );
-			
-			/* set parent subject name if set*/
-			if( $scope.subjects.length > 0 )
-			{
-				$scope.subjects = $scope.subjects.map(function(item){
-					if( item.parent_subject_id !== null )
-					{
-						var parent_subject = $scope.subjects.filter(function(item2){
-							if( item.parent_subject_id == item2.subject_id ) return item2;
-						})[0];
-						
-						item.parent_subject_name = parent_subject.subject_name;
-					}
-					return item;
-				});
-			}
 		}, apiError);
 	}
 	
 	var getClassDetails = function(classId)
 	{
-		apiService.getClassExams(classId,function(response){
+		apiService.getAllClassExams(classId,function(response){
 			var result = angular.fromJson(response);
 			if( result.response == 'success')
 			{
@@ -124,10 +108,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			
 			if( $scope.edit )
 			{
-				//console.log($scope.subjectSelection);
+				console.log($scope.subjectSelection);
 				angular.forEach( $scope.subjectSelection, function(subject_id,key){
 					
 					var examsArray = [];
+					var class_subject_id = undefined;
+					
 					angular.forEach($scope.subjectExamSelection[subject_id], function(exam_type_id,key2){
 					
 						// get ids
@@ -137,19 +123,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 							var ids = $scope.classDetails.filter(function(item){
 								if( item.subject_id == subject_id && item.exam_type_id == exam_type_id ) return item;
 							})[0];
-							//console.log(ids);
+							console.log(ids);
 						}
+						
+						class_subject_id = (ids !== undefined ? ids.class_subject_id : undefined);
 					
 						examsArray.push({
 							exam_type_id: exam_type_id,
-							class_subject_id: (ids !== undefined ? ids.class_subject_id : undefined),
+							class_subject_id: class_subject_id,
 							class_sub_exam_id: (ids !== undefined ? ids.class_sub_exam_id : undefined),
 							grade_weight: ( $scope.gradeWeight[subject_id + '-' + exam_type_id] !== undefined ? $scope.gradeWeight[subject_id + '-' + exam_type_id].grade_weight : 0)
 						});
+						
+						
 					});
 					
 					data.subjects.push({
 						subject_id: subject_id,
+						class_subject_id: class_subject_id,
 						exams: examsArray
 					});
 					

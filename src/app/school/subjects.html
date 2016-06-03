@@ -68,7 +68,7 @@
 					<tr id="{{item.subject_id}}" ng-repeat="item in subjects track by $index">
 						<td>{{$index+1}}</td>
 						<td ng-click="viewSubject(item)">{{item.class_cat_name}}</td>
-						<td ng-click="viewSubject(item)"><span ng-show="item.parent_subject_name!==undefined">{{item.parent_subject_name + ' - '}}</span>{{item.subject_name}}</td>
+						<td ng-click="viewSubject(item)"><span ng-show="item.parent_subject_name!==null">{{item.parent_subject_name + ' - '}}</span>{{item.subject_name}}</td>
 						<td ng-click="viewSubject(item)">{{item.teacher_name}}</td>
 					</tr>
 				</tbody>

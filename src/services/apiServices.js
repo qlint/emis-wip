@@ -189,6 +189,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	/*********** subjects ***********/
+	this.getAllSubjects = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getAllSubjects/" + param, successFunction, errorFunction, params);
+	};
+	
 	this.getSubjects = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getSubjects/" + param, successFunction, errorFunction, params);
 	};
@@ -246,6 +250,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	
 	this.getClassExams = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getClassExams/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getAllClassExams = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getAllClassExams/" + param, successFunction, errorFunction, params);
 	};
 	
 	this.addExamType = function (request, successFunction, errorFunction, params) {          

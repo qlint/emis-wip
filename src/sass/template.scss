@@ -135,7 +135,9 @@ body {
 a{
 	cursor:pointer;
 }
-
+.strong{
+	font-weight:700;
+}
 /********************** Branding Styles ******************************/
 .navbar-brand{
 	padding:5px;
@@ -966,6 +968,10 @@ table.clickable{
 			width:40px;
 			display:inline-block;
 		}
+		.indent{
+			padding-left:25px;
+		}
+
 	}
 	
 	.modal-tabs.main-tabs{
@@ -1055,6 +1061,8 @@ table.clickable{
 		background-color:#eee;
 	}
 }
+
+
 .pic-container{
 	padding: 10px;
     background: #ddd;
@@ -1259,7 +1267,12 @@ table.clickable{
 			line-height: 14pt;
 		}
 	}
-	
+	.indent{
+		padding-left:10px!important;
+	}
+	.strong{
+		font-weight:700;
+	}
 }
 
 .printReceipt{

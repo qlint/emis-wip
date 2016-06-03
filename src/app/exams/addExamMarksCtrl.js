@@ -34,7 +34,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		
 	var getClassDetails = function(classId)
 	{
-		apiService.getClassExams(classId,function(response){
+		apiService.getAllClassExams(classId,function(response){
 			var result = angular.fromJson(response);
 			if( result.response == 'success')
 			{
@@ -64,7 +64,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			}
 			
 			var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id;
-			apiService.getClassExams(request, function(response){
+			apiService.getAllClassExams(request, function(response){
 				$scope.loading = false;
 				var result = angular.fromJson( response );
 				if( result.response == 'success' )
@@ -85,7 +85,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			}, apiError)
 		}	
 	}
-	
+		
 	var loadMarks = function(response,status)
 	{
 		$scope.loading = false;
@@ -135,7 +135,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					marks[thesubject.subject_name] = {
 						mark: item.mark,
 						class_sub_exam_id: item.class_sub_exam_id,
-						grade_weight: item.grade_weight
+						grade_weight: item.grade_weight,
+						is_parent: item.is_parent,
+						parent_subject_id : item.parent_subject_id,
+						subject_id : item.subject_id
 					};
 					
 					lastStudent = item.student_id;
@@ -150,6 +153,33 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		{
 			$scope.marksNotFound = true;
 			$scope.errMsg = result.data;
+		}
+	}
+	
+	$scope.calculateParentSubject = function(marks, parent_id)
+	{
+		if( parent_id !== undefined )
+		{
+			var children = [];
+			var parent = null;
+			console.log(marks);
+			
+			angular.forEach(marks, function(item,key){
+				// get marks for children subjects
+				if( item.parent_subject_id == parent_id ) children.push(item);
+				else if(item.subject_id == parent_id ) parent = item;
+			});
+			console.log(children);
+			// add them up
+			var numChildren = children.length;
+			var total = children.reduce(function(sum,item){
+				var mark = parseInt(item.mark) || 0;
+				console.log(( mark / item.grade_weight) * 100);
+				sum += ( mark / item.grade_weight) * 100;
+				return sum;
+			},0);
+			console.log(total);
+			parent.mark = Math.round( total / numChildren ) ;
 		}
 	}
 	
@@ -239,7 +269,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						student_id : item.student_id,
 						class_sub_exam_id: mark.class_sub_exam_id,
 						term_id: $scope.currentFilters.term_id,
-						mark: mark.mark
+						mark: mark.mark,
+						parent_subject_id: mark.parent_subject_id
 					});
 				});
 			});

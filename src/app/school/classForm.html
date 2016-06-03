@@ -80,7 +80,7 @@
 											value="{{item.subject_id}}"
 											ng-checked="subjectSelection.indexOf(item.subject_id) > -1"
 											ng-click="toggleSubjects(item.subject_id)"
-										  > <span ng-show="item.parent_subject_name!==undefined">{{item.parent_subject_name + ' - '}}</span> {{item.subject_name}}
+										  > <span ng-show="item.parent_subject_name!==null">{{item.parent_subject_name + ' - '}}</span> {{item.subject_name}}
 										</label>									
 									</td>
 									<td class="center" ng-repeat="exam in examTypes track by $index">

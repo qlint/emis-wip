@@ -710,7 +710,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// update invoices
 			if( $scope.dataGrid !== undefined )
 			{
-				$scope.dataGrid.destroy();
+				//$scope.dataGrid.destroy();
+				$scope.dataGrid.clear();
 			}
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 			apiService.getStudentPayments($scope.student.student_id, loadInvoices, apiError);
@@ -719,8 +720,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// update invoices
 			if( $scope.dataGrid !== undefined )
 			{
-				$scope.dataGrid.destroy();
-				$scope.dataGrid = undefined;
+				//$scope.dataGrid.destroy();
+				$scope.dataGrid.clear();
 			}
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 			apiService.getStudentPayments($scope.student.student_id, loadInvoices, apiError);
@@ -1005,8 +1006,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{		
 		if( $scope.dataGrid !== undefined )
 		{
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;
+			$scope.dataGrid.clear();
+			//$scope.dataGrid = undefined;
 		}
 		$scope.reportsNotFound = false;
 		apiService.getStudentReportCards($scope.student.student_id, loadReportCards, apiError);
@@ -1054,6 +1055,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 							{
 								class_name: item.class_name,
 								class_id: item.class_id,
+								class_cat_id: item.class_cat_id,
+								report_card_type: item.report_card_type,
 								term_id: item.term_id,
 								year: item.year
 							}
@@ -1105,12 +1108,23 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var data = {
 			student : $scope.student,
 			class_name : item.class_name,
-			class_id : item.class_id,
+			class_id : item.class_id,			
 			term_id: item.term_id,
 			term_name : term_name,
 			year: item.year,
+			report_card_type: item.report_card_type,
 			reportData: reportData,
-			adding: false
+			adding: false,
+			filters:{
+				term:{
+					term_name:term_name,
+					term_id: item.term_id,
+				},
+				class:{
+					class_id: item.class_id,
+					class_cat_id: item.class_cat_id
+				}
+			}
 		}
 
 		var domain = window.location.host;
@@ -1118,7 +1132,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		dlg.result.then(function(examMarks){
 			$scope.getStudentReportCards();
 		},function(){
-			
+			$scope.getStudentReportCards();
 		});
 	}
 	
@@ -2005,7 +2019,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				$scope.currentFilters = angular.copy($scope.filters);
 				
 				var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id;
-				apiService.getClassExams(request, function(response){
+				apiService.getAllClassExams(request, function(response){
 					$scope.loading = false;
 					var result = angular.fromJson( response );
 					if( result.response == 'success' )
@@ -2054,6 +2068,31 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			
 		}
 		
+		$scope.calculateParentSubject = function(parent_id)
+		{
+			if( parent_id !== undefined )
+			{
+				var children = [];
+				var parent = null;
+				angular.forEach($scope.subjects, function(item,key){
+					// get marks for children subjects
+					if( item.parent_subject_id == parent_id ) children.push(item);
+					else if(item.subject_id == parent_id ) parent = item;
+				});
+				console.log(children);
+				// add them up
+				var numChildren = children.length;
+				var total = children.reduce(function(sum,item){
+					var mark = parseInt(item.mark) || 0;
+					console.log(( mark / item.grade_weight) * 100);
+					sum += ( mark / item.grade_weight) * 100;
+					return sum;
+				},0);
+				console.log(total);
+				parent.mark = Math.round( total / numChildren ) ;
+			}
+		}		
+		
 		$scope.save = function()
 		{
 			var examMarks = [];
@@ -2062,7 +2101,8 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					student_id : $scope.student_id,
 					class_sub_exam_id: item.class_sub_exam_id,
 					term_id: $scope.currentFilters.term_id,
-					mark: item.mark
+					mark: item.mark,
+					parent_subject_id: item.parent_subject_id
 				});
 			});
 			
@@ -2159,10 +2199,10 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 						'The selected exam has not been set up for this class.' +
 					'</p>' +
 					'<div class="row">' +
-						'<div class="col-sm-6" ng-repeat="item in subjects track by $index">' +
-							'<label class="col-sm-6">{{item.subject_name}}</label>' +
-							'<div class="input-group col-sm-6">' +
-								'<input type="text" class="form-control" ng-model="item.mark" numeric-only />' +
+						'<div class="col-sm-12" ng-repeat="item in subjects track by $index" ng-class="{\'text-muted\': item.parent_subject_id!==null}">' +
+							'<label class="col-sm-6" ng-class="{\'indent\': item.parent_subject_id!==null}">{{item.subject_name}}</label>' +
+							'<div class="input-group col-sm-2">' +
+								'<input type="text" class="form-control" ng-model="item.mark" numeric-only ng-change="calculateParentSubject({{item.parent_subject_id}})" ng-model-options="{ debounce: 500 }" ng-disabled="item.is_parent" />' +
 								'<div class="input-group-addon"> / {{item.grade_weight}}</div>' +
 							'</div>' +
 						'</div>' +

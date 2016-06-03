@@ -5,10 +5,9 @@ controller('subjectFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'api
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	$scope.subject = ( data.subject !== undefined ? data.subject : {} );
-	$scope.allSubjects = $scope.subjects = data.subjects;
-	$scope.edit = ( data.subject.subject_id !== undefined ? true : false );
+	$scope.edit = ( data.subject && data.subject.subject_id !== undefined ? true : false );
 	
-	//console.log(data);
+	console.log(data);
 	
 	$scope.initializeController = function()
 	{
@@ -16,16 +15,27 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			var result = angular.fromJson(response);
 			if( result.response == 'success') $scope.teachers = result.data;
 		},apiError);
+		
+		// get subjects
+		if( $scope.subject.class_cat_id !== undefined )
+		{
+			apiService.getAllSubjects($scope.subject.class_cat_id, function(response,status,params){
+				var result = angular.fromJson(response);
+				if( result.response == 'success') $scope.subjects = ( result.nodata ? [] : result.data );
+			}, apiError);
+		}
+		
 	}
 	$scope.initializeController();
 	
 	$scope.$watch('subject.class_cat_id', function(newVal, oldVal){
 		if( newVal == oldVal) return;
 		
-		// filter the subjects
-		$scope.subjects = $scope.allSubjects.filter( function(item){
-			if( item.class_cat_id == newVal ) return item;
-		});
+		// get subjects
+		apiService.getAllSubjects(newVal, function(response,status,params){
+			var result = angular.fromJson(response);
+			if( result.response == 'success') $scope.subjects = ( result.nodata ? [] : result.data );
+		}, apiError);
 	});
 	
 	$scope.cancel = function()

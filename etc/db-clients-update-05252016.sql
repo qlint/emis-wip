@@ -56,6 +56,8 @@ ALTER TABLE app.exam_types ADD CONSTRAINT "FK_exam_type_class_cat" FOREIGN KEY (
 ALTER TABLE app.classes ADD COLUMN report_card_type character varying;
 ALTER TABLE app.report_cards ADD COLUMN report_card_type character varying NOT NULL;
 
+ALTER TABLE app.class_subjects ADD CONSTRAINT "U_class_subject" UNIQUE (class_id, subject_id);
+
 
 
 COMMIT;

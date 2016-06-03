@@ -21,7 +21,7 @@
 						<ui-select ng-model="thestudent.selected" theme="select2" class="form-control" name="student" required> 
 						  <ui-select-match placeholder="Select or search a student...">
 							<span>{{$select.selected.student_name}}</span>
-							<button type="button" class="clear text-danger" ng-click="clearSelect('thestudent',$event)"><span class="glyphicon glyphicon-remove"></span></button>	  
+							<button type="button" class="clear text-danger" ng-click="clearSelect($event)"><span class="glyphicon glyphicon-remove"></span></button>	  
 						  </ui-select-match>
 						  <ui-select-choices repeat="item in students | filter: $select.search">
 							<span ng-bind-html="item.student_name | highlight: $select.search"></span>
@@ -32,19 +32,21 @@
 				</div>
 				
 				<!-- class select -->
-				<div class="form-group">
+				<div class="form-group" ng-class="{ 'has-error' : reportForm.class_id.$invalid && (!reportForm.class_id.$pristine || reportForm.$submitted) }">	
 					<label for="class">Class</label>	
-					<select class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
+					<select name="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
 						<option value="">--select class--</option>
 					</select>	
+					<p ng-show="reportForm.class_id.$invalid && (!reportForm.class_id.$pristine || reportForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a class.</p>
 				</div>		
 
 				<!-- term select -->
-				<div class="form-group">
+				<div class="form-group" ng-class="{ 'has-error' : reportForm.term.$invalid && (!reportForm.term.$pristine || reportForm.$submitted) }">	
 					<label for="term">Term</label>	
-					<select class="form-control" ng-options="item.term_year_name for item in terms track by item.term_id" ng-model="filters.term">
+					<select name="term" class="form-control" ng-options="item.term_year_name for item in terms track by item.term_id" ng-model="filters.term" required>
 						<option value="">--select term--</option>
 					</select>	
+					<p ng-show="reportForm.term.$invalid && (!reportForm.term.$pristine || reportForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a term.</p>
 				</div>		
 				
 				<!-- search btn -->
@@ -76,7 +78,22 @@
 				<div ng-include="reportCardType"></div>
 			
 				<script type="text/ng-template" id="Standard">
-
+					<div ng-show="savedReport" class="alert alert-warning">
+						You are viewing a previously saved report card. If this student's exam marks were updated, click 'Re-Create' to generate a new report card.
+						<button type="button" class="btn btn-sm btn-info" ng-click="recreateReport()">Re-Create</button>
+						<div ng-show="differences.length>0">
+							The following changes have been found:
+							<ul>
+								<li ng-repeat="diff in differences">
+									<strong>{{diff.subject_name}} {{diff.exam_type}} {{diff.change}}</strong>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div ng-show="recreated" class="alert alert-success">
+						Report card has been re-created. 
+						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
+					</div>
 					<div class="progress-report-student">
 						<!-- name and adm number -->	
 						<div class="row">
@@ -166,13 +183,13 @@
 						</thead>
 						<tbody>
 							<tr ng-repeat="item in reportData.subjects track by $index">
-								<td>{{item.subject_name}}</td>
-								<td class="center" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
-								<td class="center">{{item.marks[examType.exam_type].grade_weight}}</td>
-								<td class="center" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
-								<td class="center">{{item.overall_mark}}%</td>
-								<td class="center">{{item.overall_grade}}</td>
-								<td class="center">{{item.position}}</td>
+								<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
+								<td class="center" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
+								<td class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
+								<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
+								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
+								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
+								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.position}}</span></td>
 								<td>
 									<span ng-show="isPrinting">{{item.remarks}}</span>
 									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
@@ -186,8 +203,10 @@
 								<th class="center" ng-repeat-start="examType in examTypes">{{totals[examType.exam_type].total_mark}}</th>
 								<th class="center">{{totals[examType.exam_type].total_grade_weight}}</th>
 								<th class="center" ng-repeat-end=""></th>
-								<th class="center">{{total_overall_mark}}%</th>
-								<th colspan="4" class="center"></th>
+								<th class="center">{{overall.percentage}}%</th>
+								<th class="center">{{overall.grade}}</th>
+								<th class="center">{{overall.rank}}</th>
+								<th colspan="2" class="center"></th>
 							</tr>
 						</tfoot>
 					</table>
@@ -285,7 +304,7 @@
 								<td>{{item.subject_name}}</td>
 								<td>
 									<span ng-show="isPrinting">{{item.remarks}}</span>
-									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
+									<textarea ng-show="!isPrinting" rows="3" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()"></textarea>
 								</td>
 							</tr>
 						</tbody>

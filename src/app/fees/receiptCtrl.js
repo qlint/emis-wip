@@ -30,6 +30,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			
 			$scope.paymentDetails = results.paymentItems;
 			var invoiceItems = results.invoice;
+			$scope.term_name = (invoiceItems.length > 0 ? invoiceItems[0].term_name : '');
 			
 			$scope.paymentItems = [];
 			var totalAmt = 0;
@@ -50,7 +51,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			if( invoiceItems.length > 0 )
 			{
 				var invoiceTotal = invoiceItems[0].total_due;
-				$scope.balanaceDue = invoiceTotal - $scope.payment.amount;
+				$scope.balanceDue = invoiceTotal - $scope.payment.amount;
 			}
 
 		}
@@ -67,6 +68,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			student : $scope.student,
 			payment: $scope.payment,
 			paymentItems : $scope.paymentItems,
+			termName: $scope.term_name,
 			totals : {
 				totalAmtKsh: $scope.totalAmtKsh,
 				totalAmtCts: $scope.totalAmtCts,

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('blogCtrl', ['$scope', '$rootScope', 'apiService', '$state',
+controller('studentDetailsCtrl', ['$scope', '$rootScope', 'apiService', '$state',
 function($scope, $rootScope, apiService, $state){
 	
 	$scope.blogTitle = '';

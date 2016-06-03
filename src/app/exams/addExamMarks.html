@@ -56,7 +56,7 @@
 						<tr ng-repeat="item in examMarks track by $index">
 							<td id="{{item.student_id}}">{{item.student_name}}</td>
 							<td class="center td-form-control-add-on" ng-repeat="col in subjects">
-								<input type="text" ng-model="item.marks[col.subject_name].mark" class="form-control" numeric-only />
+								<input type="text" class="form-control" ng-model="item.marks[col.subject_name].mark" numeric-only ng-change="calculateParentSubject(item.marks,{{item.marks[col.subject_name].parent_subject_id}})" ng-model-options="{ debounce: 500 }" ng-disabled="item.marks[col.subject_name].is_parent" />
 								<div class="input-group-addon">/{{item.marks[col.subject_name].grade_weight}}</div>
 							</td>
 						</tr>

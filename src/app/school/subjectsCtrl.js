@@ -15,8 +15,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	
 	$rootScope.$watch('classCats', function(newVal,oldVal){
 		/* wait till the class cats are ready, then fetch subjects for first cat */
-		$scope.filters.class_cat_id = $rootScope.classCats[0].class_cat_id;
-		getSubjects($rootScope.classCats[0].class_cat_id);
+		if( $rootScope.classCats && $rootScope.classCats.length > 0 )
+		{
+			$scope.filters.class_cat_id = $rootScope.classCats[0].class_cat_id;
+			getSubjects($rootScope.classCats[0].class_cat_id);
+		}
 	});
 
 	var getSubjects = function(class_cat_id)
@@ -28,27 +31,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			$scope.dataGrid.destroy();				
 		}		
 		
-		apiService.getSubjects(class_cat_id, function(response,status,params){
+		apiService.getAllSubjects(class_cat_id, function(response,status,params){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
 			{	
 				$scope.subjects = ( result.nodata ? [] : result.data );	
-				
-				if( $scope.subjects.length > 0 )
-				{
-					$scope.subjects = $scope.subjects.map(function(item){
-						if( item.parent_subject_id !== null )
-						{
-							var parent_subject = $scope.subjects.filter(function(item2){
-								if( item.parent_subject_id == item2.subject_id ) return item2;
-							})[0];
-							
-							item.parent_subject_name = parent_subject.subject_name;
-						}
-						return item;
-					});
-				}
+
 				$timeout(initDataGrid,10);
 			}
 			else

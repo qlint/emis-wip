@@ -48,6 +48,9 @@ body {
 a {
   cursor: pointer; }
 
+.strong {
+  font-weight: 700; }
+
 /********************** Branding Styles ******************************/
 .navbar-brand {
   padding: 5px;
@@ -707,6 +710,8 @@ table.clickable tr {
   .modal-content .modalForm .sm-inline {
     width: 40px;
     display: inline-block; }
+  .modal-content .modalForm .indent {
+    padding-left: 25px; }
   .modal-content .modal-tabs.main-tabs {
     margin: -15px;
     background: #eee; }
@@ -908,6 +913,10 @@ table.clickable tr {
   min-height: auto;
   font-size: 10pt;
   line-height: 14pt; }
+.progress-report .indent {
+  padding-left: 10px !important; }
+.progress-report .strong {
+  font-weight: 700; }
 
 /*
  * Max-Width 768 Styling

@@ -179,33 +179,75 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				
 				$scope.examMarks = result.data;
 				
+				/* loop through the first exam mark result to build the table columns */
 				$scope.tableHeader = [];
 				var ignoreCols = ['student_id','student_name','rank','exam_type'];
+				var subjectsArray = {};				
 				angular.forEach($scope.examMarks[0], function(value,key){
 					if( ignoreCols.indexOf(key) === -1 )
 					{
-						// keys read like 'C.R.E', '40', remove the ' and replace , with /
-						var colRow = key.replace(/, /g , " / ").replace(/["']/g, "");
+						// keys read like '7', 'C.R.E', '40', remove the ' and replace , with /
+						/* need the sort order id on the front so it orders correctly, seems to go alphabetical regardless of sort order applied to query
+						   in order to fix this, the first item needs to strip this off */
+						
+						var colRow = key.replace(/["']/g, "");
+						var subjectDetails = colRow.split(', '),
+							parentSubject = subjectDetails[1],
+							subjectName = subjectDetails[2],
+							gradeWeight = subjectDetails[3];
+						
+						colRow = subjectName + ' / ' + gradeWeight;
+						
+						/* each subject group needs to scored out of 100, if a subject does not have a parent, add 100 for grand total
+						   if a subject has a parent, add 100 for each parent subject
+						*/						
+						if( parentSubject == '' ) subjectsArray[subjectName] = 100; // no parent
+						else subjectsArray[parentSubject] = 100; // has parent, use parents subject name
 						
 						$scope.tableHeader.push({
 							title: colRow,
-							key: key
+							key: key,
+							isParent: (parentSubject == '' ? true : false)
 						});
 					}
 				});
+				console.log($scope.tableHeader);
+				/* sum up the total grade weight value */
+				$scope.totalGradeWeight = 0;
+				for (var key in subjectsArray) {
+					// skip loop if the property is from prototype
+					if (!subjectsArray.hasOwnProperty(key)) continue;
+
+					var value = subjectsArray[key];
+					$scope.totalGradeWeight += subjectsArray[key];
+				}
+				console.log($scope.totalGradeWeight);
 				
-				// total up marks
+				/* loop through all exam mark results and calculate the students total score */
+				/* only total up the parent subjects */
+				// total up marks				
+				console.log($scope.examMarks);
+				
+				var total = 0;
 				angular.forEach($scope.examMarks, function(item){
 					var total = 0;
 					angular.forEach(item, function(value,key){
 						if( ignoreCols.indexOf(key) === -1 )
-						{
-							total += value;
-						}
+						{							
+							var colRow = key.replace(/["']/g, "");
+							var subjectDetails = colRow.split(', '),
+								parentSubject = subjectDetails[1],
+								subjectName = subjectDetails[2],
+								gradeWeight = subjectDetails[3];
+							
+							if( parentSubject == '' ) total += value;	
+						}							
+						
 					});
-					item.total = total;
+					item.total = Math.round(total);
+					
 				});
-
+				
 				$scope.getReport = "examsTable";
 				$timeout(initDataGrid,100);
 			}

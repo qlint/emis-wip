@@ -129,6 +129,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 								student_name: item.student_name,
 								student_id: item.student_id,
 								class_id: item.class_id,
+								class_cat_id: item.class_cat_id,
+								report_card_type: item.report_card_type,
 								class_name: item.class_name,
 								term_id: item.term_id,
 								year: item.year,
@@ -174,8 +176,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			term_id: item.term_id,
 			term_name : term_name,
 			year: item.year,
+			report_card_type: item.report_card_type,
 			reportData: reportData,
-			adding: false
+			adding: false,
+			filters:{
+				term:{
+					term_name:term_name,
+					term_id: item.term_id,
+				},
+				class:{
+					class_id: item.class_id,
+					class_cat_id: item.class_cat_id
+				}
+			}
 		}
 		console.log(data);
 		$scope.openModal('exams', 'reportCard', 'lg', data);
