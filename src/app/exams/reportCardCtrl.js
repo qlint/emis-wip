@@ -13,6 +13,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.adding = data.adding;
 	$scope.thestudent = {};
 	$scope.examTypes = {};
+	$scope.comments = {};
 	
 	$scope.canPrint = false;
 	
@@ -194,7 +195,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		
 				$scope.report = result.data;
 				$scope.reportData = ( result.data.report_data !== null ? angular.fromJson(result.data.report_data) : []);
-				$scope.originalData = angular.copy($scope.report);
+				$scope.originalData = angular.copy($scope.reportData);
 						
 				$scope.setReportCardData();
 				filterExamTypes();
@@ -249,13 +250,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				/* group the results by subject */				
 				$scope.reportData = {};
 				$scope.reportData.subjects = groupExamMarks( $scope.examMarks );
-				console.log($scope.reportData.subjects);
-							
+				console.log($scope.reportData.subjects);							
 				
 				// set overall
 				var total_marks = 0;
 				var total_grade_weight = 0;
-				$scope.total_overall_mark = 0;
+				//$scope.total_overall_mark = 0;
 				angular.forEach( $scope.reportData.subjects, function(item,key){
 
 					var overall = $scope.overallSubjectMarks.filter(function(item2){
@@ -286,7 +286,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						if( item.parent_subject_name == null ) $scope.totals[key].total_grade_weight += item2.grade_weight;
 					});						
 				});
+				
+				
+				if( $scope.originalData !== undefined )
+				{
+					// recreated a report, carry over the comments
+					console.log($scope.originalData);
+
+					$scope.comments = angular.copy($scope.originalData.comments) || {};
 					
+					angular.forEach( $scope.reportData.subjects, function(item,key){
+				
+						/* get matching element of currentReportData */
+						var orgData = $scope.originalData.subjects.filter(function(newItem){
+							if( newItem.subject_name == item.subject_name ) return newItem;
+						})[0];
+						item.remarks = angular.copy(orgData.remarks);
+					});
+				}
 			}
 		}
 	}
@@ -340,13 +357,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		if( result.response == 'success')
 		{
 			var currentExamMarks = result.data.details;
+			var currentOverall = result.data.overall;
 			$scope.currentReportData = {};
 			$scope.currentReportData.subjects = groupExamMarks( currentExamMarks );
-			console.log($scope.currentReportData.subjects);
 			
-			// compare to stored report that is currently loaded
-			console.log($scope.reportData.subjects);
-			
+			/* compare to stored report that is currently loaded */
 			$scope.differences = [];
 			angular.forEach( $scope.reportData.subjects, function(item,key){
 				
@@ -354,7 +369,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				var curData = $scope.currentReportData.subjects.filter(function(newItem){
 					if( newItem.subject_name == item.subject_name ) return newItem;
 				})[0];
-				console.log(curData);
 				
 				angular.forEach( item.marks, function(mark,examType){
 					
@@ -386,9 +400,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				});
 				
 			});
+			
+			/* compare overall standing */			
+			if( currentOverall.rank != $scope.overall.rank )
+			{
+				$scope.differences.push({
+					change : 'Students rank has changed from ' + $scope.overall.rank + ' to ' + currentOverall.rank
+				});
+			}
+			if( currentOverall.position_out_of != $scope.overall.position_out_of )
+			{
+				$scope.differences.push({
+					change : 'Position Out Of has changed from ' + $scope.overall.position_out_of + ' to ' + currentOverall.position_out_of
+				});
+			}
+					
+			
 		}
 	}
-	
 	
 	var filterExamTypes = function()
 	{
@@ -421,7 +450,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.modified = false;
 		$scope.recreated = false;
 		$scope.savedReport = true;
-		$scope.reportData = angular.copy($scope.originalData);
+		$scope.getProgressReport();
 	}
 	
 	$scope.setReportCardData = function()
@@ -429,18 +458,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.canPrint = true;
 		$scope.showReportCard = true;
 			
-		$scope.overall = $scope.reportData.position;
-		$scope.overallLastTerm = $scope.reportData.position_last_term;
+		$scope.overall = angular.copy($scope.reportData.position);
 		
-		$scope.total_overall_mark = $scope.reportData.total_overall_mark;
-		$scope.totals = $scope.reportData.totals;
+		$scope.overallLastTerm = angular.copy($scope.reportData.position_last_term);
 		
-		$scope.comments = $scope.reportData.comments;
-		$scope.nextTermStartDate = $scope.reportData.nextTerm;
+		//$scope.total_overall_mark = angular.copy( $scope.reportData.total_overall_mark);
+		$scope.totals = angular.copy($scope.reportData.totals);
 		
+		$scope.comments = angular.copy($scope.reportData.comments) || {};
+		
+		$scope.nextTermStartDate = angular.copy($scope.reportData.nextTerm);
+
 		//console.log($scope.reportData);
 	}
-	
 	
 	$scope.updateReport = function()
 	{
@@ -460,30 +490,30 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			totals: $scope.totals,
 			comments: $scope.comments,
 			nextTermStartDate: $scope.nextTermStartDate,
-			total_overall_mark: $scope.total_overall_mark,
+			//total_overall_mark: $scope.total_overall_mark,
 			report_card_type: $scope.reportCardType
 		}
-
+		console.log(criteria);
 		var domain = window.location.host;
 		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
 	}
-	
-	
+		
 	$scope.cancel = function()
 	{
 		$uibModalInstance.dismiss('canceled');  
 	}; // end cancel
 	
-	
 	$scope.save = function()
 	{
+		console.log($scope.comments);
 		$scope.reportData.position = $scope.overall;
 		$scope.reportData.position_last_term = $scope.overallLastTerm;
 		$scope.reportData.totals = $scope.totals;
-		$scope.reportData.total_overall_mark = $scope.total_overall_mark;
+		//$scope.reportData.total_overall_mark = $scope.total_overall_mark;
 		$scope.reportData.comments = $scope.comments;
 		$scope.reportData.nextTerm = $scope.nextTermStartDate;
+		console.log($scope.reportData);
 		
 		var data = {
 			user_id: $rootScope.currentUser.user_id,
@@ -504,6 +534,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
+			/* update the original data with saved data */
+			$scope.originalData = angular.copy($scope.reportData);
 			$scope.canPrint = true;
 			$scope.saved = true;
 			$scope.modified = false;
