@@ -25,31 +25,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.student.admission_date = {};
 	$scope.initLoad = true;
 	
-	$scope.initializeController = function()
+	var initializeController = function()
 	{
 		
-		apiService.getStudentDetails(data.student_id, function(response){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
-			{
-				var student = $rootScope.formatStudentData([result.data]);
-				
-				// set current class to full class object
-				var currentClass = $rootScope.allClasses.filter(function(item){
-					if( item.class_id == student[0].class_id ) return item;
-				});
-				
-				student[0].current_class = currentClass[0];
-
-				$scope.student = student[0];
-
-				originalData = angular.copy($scope.student);
-				
-				getFeeItems();
-				
-			}
-		});
+		$scope.getStudentDetails(data.student_id);
 	
 		var studentCats = $rootScope.currentUser.settings['Student Categories'];
 		$scope.studentCats = studentCats.split(',');	
@@ -92,7 +71,33 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 		
 	}
-	$scope.initializeController();
+	setTimeout(initializeController,100);
+	
+	$scope.getStudentDetails = function(student_id)
+	{
+		apiService.getStudentDetails(student_id, function(response){
+			var result = angular.fromJson(response);
+			
+			if( result.response == 'success')
+			{
+				var student = $rootScope.formatStudentData([result.data]);
+				
+				// set current class to full class object
+				var currentClass = $rootScope.allClasses.filter(function(item){
+					if( item.class_id == student[0].class_id ) return item;
+				});
+				
+				student[0].current_class = currentClass[0];
+
+				$scope.student = student[0];
+
+				originalData = angular.copy($scope.student);
+				
+				getFeeItems();
+				
+			}
+		});
+	}
 	
 	var getFeeItems = function()
 	{
@@ -1169,6 +1174,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						current_class : $scope.student.class_id,
 						update_class : ( originalData.class_id != $scope.student.class_id ? true : false),
 						previous_class :  originalData.class_id,
+						previous_class_cat : originalData.class_cat_id,
+						current_class_cat : $scope.student.class_cat_id,
 						student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null),
 						active : ( $scope.student.active ? 't' : 'f' ),
 						admission_date: moment($scope.student.admission_date).format('YYYY-MM-DD'),
@@ -1244,7 +1251,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			
 			// saved, update the originalData
-			originalData = angular.copy($scope.student);
+			//originalData = angular.copy($scope.student);
+			// repull the student details
+			$scope.getStudentDetails($scope.student.student_id);
 			$scope.studentForm.$setPristine();
 			
 			// if moving tabs, continue

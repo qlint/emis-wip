@@ -6047,21 +6047,23 @@ $app->put('/updateStudent', function () use($app) {
 	if( isset($allPostVars['details']) )
 	{
 		$updateDetails = true;
-		$gender = 			( isset($allPostVars['details']['gender']) ? $allPostVars['details']['gender']: null);
-		$firstName = 		( isset($allPostVars['details']['first_name']) ? $allPostVars['details']['first_name']: null);
-		$middleName = 		( isset($allPostVars['details']['middle_name']) ? $allPostVars['details']['middle_name']: null);
-		$lastName =			( isset($allPostVars['details']['last_name']) ? $allPostVars['details']['last_name']: null);
-		$dob = 				( isset($allPostVars['details']['dob']) ? $allPostVars['details']['dob']: null);
-		$studentCat = 		( isset($allPostVars['details']['student_category']) ? $allPostVars['details']['student_category']: null);
-		$nationality = 		( isset($allPostVars['details']['nationality']) ? $allPostVars['details']['nationality']: null);
-		$currentClass = 	( isset($allPostVars['details']['current_class']) ? $allPostVars['details']['current_class']: null);
-		$previousClass = 	( isset($allPostVars['details']['previous_class']) ? $allPostVars['details']['previous_class']: null);
-		$updateClass = 		( isset($allPostVars['details']['update_class']) ? $allPostVars['details']['update_class']: false);
-		$studentImg = 		( isset($allPostVars['details']['student_image']) ? $allPostVars['details']['student_image']: null);
-		$active = 			( isset($allPostVars['details']['active']) ? $allPostVars['details']['active']: true);
-		$newStudent = 		( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: true);
-		$admissionNumber =	( isset($allPostVars['details']['admission_number']) ? $allPostVars['details']['admission_number']: null);
-		$admissionDate = 	( isset($allPostVars['details']['admission_date']) ? $allPostVars['details']['admission_date']: null);
+		$gender = 				( isset($allPostVars['details']['gender']) ? $allPostVars['details']['gender']: null);
+		$firstName = 			( isset($allPostVars['details']['first_name']) ? $allPostVars['details']['first_name']: null);
+		$middleName = 			( isset($allPostVars['details']['middle_name']) ? $allPostVars['details']['middle_name']: null);
+		$lastName =				( isset($allPostVars['details']['last_name']) ? $allPostVars['details']['last_name']: null);
+		$dob = 					( isset($allPostVars['details']['dob']) ? $allPostVars['details']['dob']: null);
+		$studentCat = 			( isset($allPostVars['details']['student_category']) ? $allPostVars['details']['student_category']: null);
+		$nationality = 			( isset($allPostVars['details']['nationality']) ? $allPostVars['details']['nationality']: null);
+		$currentClass = 		( isset($allPostVars['details']['current_class']) ? $allPostVars['details']['current_class']: null);
+		$previousClass = 		( isset($allPostVars['details']['previous_class']) ? $allPostVars['details']['previous_class']: null);
+		$currentClassCatId = 	( isset($allPostVars['details']['current_class_cat']) ? $allPostVars['details']['current_class_cat']: null);
+		$previousClassCatId = 	( isset($allPostVars['details']['previous_class_cat']) ? $allPostVars['details']['previous_class_cat']: null);
+		$updateClass = 			( isset($allPostVars['details']['update_class']) ? $allPostVars['details']['update_class']: false);
+		$studentImg = 			( isset($allPostVars['details']['student_image']) ? $allPostVars['details']['student_image']: null);
+		$active = 				( isset($allPostVars['details']['active']) ? $allPostVars['details']['active']: true);
+		$newStudent = 			( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: true);
+		$admissionNumber =		( isset($allPostVars['details']['admission_number']) ? $allPostVars['details']['admission_number']: null);
+		$admissionDate = 		( isset($allPostVars['details']['admission_date']) ? $allPostVars['details']['admission_date']: null);
 	}
 	
 	if( isset($allPostVars['family']) )
@@ -6136,6 +6138,16 @@ $app->put('/updateStudent', function () use($app) {
 					INSERT INTO app.student_class_history(student_id,class_id,created_by)
 					VALUES(:studentId,:currentClass,:createdBy);"
 				);
+				
+				if( $currentClassCatId != $previousClassCatId )
+				{
+					// need to remove any students fee items associated with old class cat
+					$feeItemUpdate = $db->prepare("UPDATE app.student_fee_items 
+													SET active = false,
+														modified_date = now(),
+														modified_by = :userId												
+													WHERE fee_item_id = any(SELECT fee_item_id FROM app.fee_items WHERE :previousClassCatId = any(class_cats_restriction))");
+				}
 			}
 				
 		}
@@ -6218,17 +6230,17 @@ $app->put('/updateStudent', function () use($app) {
 										WHERE student_id = :studentId
 										AND fee_item_id = :feeItemId"
 			);
+			
+			
+			// get what is already set of this student
+			$query = $db->prepare("SELECT fee_item_id FROM app.student_fee_items WHERE student_id = :studentID");
+			$query->execute( array('studentID' => $studentId) );
+			$currentFeeItems = $query->fetchAll(PDO::FETCH_OBJ);
+						
 		
 		}
 		
-		
-		// get what is already set of this student
-		$query = $db->prepare("SELECT fee_item_id FROM app.student_fee_items WHERE student_id = :studentID");
-		$query->execute( array('studentID' => $studentId) );
-		$currentFeeItems = $query->fetchAll(PDO::FETCH_OBJ);
-		
-		
-				
+			
 		$db->beginTransaction();
 	
 		if( $updateDetails )
@@ -6253,6 +6265,11 @@ $app->put('/updateStudent', function () use($app) {
 			{
 				$classInsert1->execute(array('studentId' => $studentId, ':previousClass' => $previousClass));
 				$classInsert2->execute(array('studentId' => $studentId, ':currentClass' => $currentClass,':createdBy' => $userId));
+				
+				if( $currentClassCatId != $previousClassCatId )
+				{				
+					$feeItemUpdate->execute( array(':previousClassCatId' => $previousClassCatId, ':userId' => $userId) );
+				}
 			}
 		}
 		

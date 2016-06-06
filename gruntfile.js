@@ -67,7 +67,7 @@ module.exports = function(grunt) {
 												'src/components/ui-bootstrap-tpls.min.js',
 												'src/components/moment.min.js',
 												'src/components/daterangepicker.js',
-												'src/components/angular-daterangepicker.min.js',
+												'src/components/angular-daterangepicker.js',
 												'src/components/dialogs.min.js',
 												'src/components/filesaver.min.js',
 												'src/components/select.min.js',
