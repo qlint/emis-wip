@@ -41,7 +41,7 @@
 					<div class="form-group">		
 						<label for="parent_subject_id" class="col-sm-3 control-label">Parent Subject</label>
 						<div class="col-sm-9">
-							<select name="parent_subject_id" class="form-control" ng-options="subject.subject_id as subject.subject_name for subject in subjects"  ng-model="subject.parent_subject_id">
+							<select name="parent_subject_id" class="form-control" ng-options="subject.subject_id as ( (subject.parent_subject_name !== null ? ' - ' : '') + subject.subject_name) for subject in subjects"  ng-model="subject.parent_subject_id">
 								<option value="">--select subject--</option>
 							</select>						
 						</div>	

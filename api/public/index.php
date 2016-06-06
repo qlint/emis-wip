@@ -6608,7 +6608,7 @@ $app->post('/addGuardian', function () use($app) {
 		 $db = null;
 
 		// if login data was passed
-		if( $login !== null )
+		if( $login !== null && isset($data['login']['username']) )
 		{
 			$allPostVars['guardian']['student_id'] = $studentId;
 			$allPostVars['guardian']['guardian_id'] = $guardian_id;
@@ -6711,7 +6711,7 @@ $app->put('/updateGuardian', function () use($app) {
 		$db = null;
 		
 		// if login data was passed
-		if( $login !== null )
+		if( $login !== null && isset($data['login']['username']) )
 		{
 			$allPostVars['guardian']['student_id'] = $studentId;
 			createParentLogin($allPostVars['guardian']);
