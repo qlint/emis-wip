@@ -6,7 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.employee = {};
 	var start_date = moment().format('YYYY-MM-DD HH:MM');
-	$scope.employee.joined_date = start_date;
+	$scope.employee.joined_date = {startDate:start_date};
 	$scope.employee.country = 'Kenya';
 	$scope.employee.status = 'true';
 
@@ -52,7 +52,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			
 			var postData = angular.copy($scope.employee);
-			//postData.joined_date = $scope.employee.joined_date.startDate;
+			postData.joined_date = moment($scope.employee.joined_date.startDate).format('YYYY-MM-DD');
 			postData.user_id = $rootScope.currentUser.user_id;
 			postData.active = ( $scope.employee.status == 'true' ? 't' : 'f' );
 			//console.log(postData);

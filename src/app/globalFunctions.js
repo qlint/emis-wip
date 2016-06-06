@@ -89,7 +89,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		if( $rootScope.activeSubSubSection  == 'print' ) $rootScope.isPrinting = true;
 		
 		// if this is a parent, last two parms in url identify the student
-		console.log(toParams);
+	//	console.log(toParams);
 		if( $rootScope.currentUsers && $rootScope.currentUser.user_type == 'PARENT' ) 
 		{
 			// we are not viewing the dashboard, get the student identifier

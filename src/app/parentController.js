@@ -318,7 +318,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				i = 0;
 			});
 		}
-		console.log($scope.navItems);
+		//console.log($scope.navItems);
 		
 		$rootScope.navItems = $scope.navItems;
 		
@@ -351,7 +351,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 			});
 		//}
 		
-		console.log($rootScope.mainSubNavItems );
+		//console.log($rootScope.mainSubNavItems );
 		
 	}
 	

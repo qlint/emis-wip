@@ -3,7 +3,7 @@
         // setting timeout of 1 second to simulate a busy server.
 		
 		var loadingCount = 0;
-		console.log($rootScope.clientIdentifier);
+		//console.log($rootScope.clientIdentifier);
 
         this.AjaxPost = function (data, route, successFunction, errorFunction, extras) {
 			$http({

@@ -14,7 +14,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.student = {};
 	$scope.student.guardians = [];
 	var start_date = moment().format('YYYY-MM-DD HH:MM');
-	$scope.student.admission_date = start_date;
+	$scope.student.admission_date = {startDate:start_date};
 	$scope.student.student_category = 'Regular';
 	$scope.student.nationality = 'Kenya';
 	$scope.student.status = 'true';
@@ -306,7 +306,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
 
 			var postData = angular.copy($scope.student);
-			postData.admission_date = moment($scope.student.admission_date).format('YYYY-MM-DD');
+			postData.admission_date = moment($scope.student.admission_date.startDate).format('YYYY-MM-DD');
 			postData.current_class = $scope.student.current_class.class_id;		
 			postData.new_student = (  $scope.student.new_student ? 't' : 'f' );
 			postData.medicalConditions = $scope.conditionSelection;

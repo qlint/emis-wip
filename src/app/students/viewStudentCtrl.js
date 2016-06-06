@@ -90,7 +90,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				student[0].current_class = currentClass[0];
 
 				$scope.student = student[0];
-
+				$scope.student.admission_date = {startDate: $scope.student.admission_date};
 				originalData = angular.copy($scope.student);
 				
 				getFeeItems();
@@ -1178,7 +1178,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						current_class_cat : $scope.student.class_cat_id,
 						student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null),
 						active : ( $scope.student.active ? 't' : 'f' ),
-						admission_date: moment($scope.student.admission_date).format('YYYY-MM-DD'),
+						admission_date: moment($scope.student.admission_date.startDate).format('YYYY-MM-DD'),
 						admission_number: $scope.student.admission_number,
 						new_student : ( $scope.student.new_student ? 't' : 'f' ),
 					}

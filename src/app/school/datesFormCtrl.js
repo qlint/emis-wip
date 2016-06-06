@@ -13,14 +13,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		if( !$scope.edit )
 		{
 			var currentDate = moment().format('YYYY-MM-DD');
-			$scope.start_date = currentDate;
-			$scope.end_date = currentDate;
+			$scope.start_date = {startDate: currentDate};
+			$scope.end_date = {startDate: currentDate};
 		}		
 		else
 		{
 			//console.log($scope.date);
-			$scope.start_date = $scope.date.start_date;
-			$scope.end_date = $scope.date.end_date;
+			$scope.start_date = {startDate: $scope.date.start_date};
+			$scope.end_date = {startDate: $scope.date.end_date};
 		}
 	}
 	$scope.initializeController();
@@ -37,8 +37,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		{
 			var data = $scope.date;
 			//console.log(data);
-			data.start_date = moment($scope.start_date).format('YYYY-MM-DD');
-			data.end_date = moment($scope.end_date).format('YYYY-MM-DD');
+			data.start_date = moment($scope.start_date.startDate).format('YYYY-MM-DD');
+			data.end_date = moment($scope.end_date.startDate).format('YYYY-MM-DD');
 			//console.log(data);
 			
 			if( $scope.edit )

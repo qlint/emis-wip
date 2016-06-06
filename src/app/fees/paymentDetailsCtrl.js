@@ -12,6 +12,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.student = {};
 	$scope.payment = {};	
 	$scope.selectedPayment = data || undefined;
+	$scope.selectedPayment.payment_date = {startDate: $scope.selectedPayment.payment_date};
 
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	$scope.invoiceSelection = [];

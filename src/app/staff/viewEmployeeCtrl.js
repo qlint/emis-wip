@@ -16,7 +16,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.edit = ($rootScope.permissions.staff.edit ? true : false );
 	
 	$scope.employee = {};
-	$scope.employee.joined_date = {};
+	$scope.employee.joined_date = {startDate:''};
 	$scope.initLoad = true;
 	
 	$scope.initializeController = function()
@@ -28,7 +28,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			if( result.response == 'success')
 			{
 				$scope.employee = angular.copy(result.data);
-				//$scope.employee.joined_date = {startDate: $scope.employee.joined_date};
+				$scope.employee.joined_date = {startDate: $scope.employee.joined_date};
 				
 				// select emp category
 				$scope.employee.emp_cat = $rootScope.empCats.filter(function(item){
