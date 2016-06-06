@@ -89,7 +89,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 				{
 					settings.push({
 						name: 'logo',
-						value: 'assets/' + uploader.queue[0].file.name,
+						value: 'assets/schools/' + uploader.queue[0].file.name,
 						append: false
 					})
 				}
@@ -238,7 +238,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	var uploader = $scope.uploader = new FileUploader({
             url: 'upload.php',
 			formData : [{
-				'dir': ''
+				'dir': 'schools'
 			}]
     });
 	
