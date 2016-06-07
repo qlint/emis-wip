@@ -1,0 +1,1 @@
+﻿ALTER TABLE app.report_cards ADD COLUMN teacher_id integer;

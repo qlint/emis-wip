@@ -420,10 +420,12 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT class_id, class_name, class_cat_id, teacher_id, active, report_card_type
-            FROM app.classes
-            WHERE active = :status
-			ORDER BY sort_order"); 
+        $sth = $db->prepare("SELECT class_id, class_name, class_cat_id, classes.teacher_id, classes.active, report_card_type,
+									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name
+							FROM app.classes
+							LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
+							WHERE classes.active = :status
+							ORDER BY sort_order"); 
        $sth->execute( array(':status' => $status ) );
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1026,6 +1028,7 @@ $app->put('/setClassSortOrder', function () use($app) {
     }
 
 });
+
 
 // ************** Class Categories  ****************** //
 $app->get('/getClassCats(/:teacher_id)', function ($teacherId=null) {
@@ -2264,7 +2267,7 @@ $app->get('/getCurrentTerm', function () {
 
 });
 
-$app->get('/getNextTerm', function () {
+$app->get('/getNextTerm(/:date)', function ($date = null) {
     //Get next term
 	
 	$app = \Slim\Slim::getInstance();
@@ -2272,9 +2275,21 @@ $app->get('/getNextTerm', function () {
     try 
     {
 		$db = getDB();
-	
-		$query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.next_term");
-		$query->execute();			
+		if( $date == null )
+		{
+			$query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.next_term");
+			$query->execute();	
+		}
+		else
+		{
+			$query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year 
+									FROM app.terms
+									WHERE start_date >= :date
+									ORDER BY start_date asc
+									LIMIT 1");
+			$query->execute( array(':date' => $date) );	
+		}
+				
         $results = $query->fetch(PDO::FETCH_ASSOC);
  
         if($results) {
@@ -3171,21 +3186,22 @@ $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
 
 		$db = getDB();
 		
-		$sth = $db->prepare("SELECT report_cards.student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name, admission_number,
-									report_cards.class_id, class_cat_id,
-									class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type			
+		$sth = $db->prepare("SELECT report_cards.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, 
+									admission_number, report_cards.class_id, class_cat_id,
+									class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type,
+									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
+									report_cards.creation_date::date as date									
 							FROM app.report_cards
 							INNER JOIN app.students ON report_cards.student_id = students.student_id
 							INNER JOIN app.classes ON report_cards.class_id = classes.class_id
 							INNER JOIN app.terms ON report_cards.term_id = terms.term_id
+							LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 							WHERE report_cards.class_id = :classId
-							ORDER BY student_id");
+							ORDER BY students.student_id");
 		
 		$sth->execute( array($classId) ); 
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 
-					
-		
         if($results) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -3217,11 +3233,14 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
         $db = getDB();
 		
 		$sth = $db->prepare("SELECT report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
-									date_part('year', start_date) as year, report_data, report_cards.report_card_type, class_cat_id
+									date_part('year', start_date) as year, report_data, report_cards.report_card_type, class_cat_id,
+									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
+									report_cards.creation_date::date as date
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
 					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
 					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
+					LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 					WHERE report_cards.student_id = :studentId
 					ORDER BY report_card_id");
 		$sth->execute( array(':studentId' => $studentId) ); 
@@ -3258,11 +3277,15 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT report_cards.student_id, class_name, term_name, report_cards.term_id, date_part('year', start_date) as year, report_data, report_cards.report_card_type
+		$sth = $db->prepare("SELECT report_cards.student_id, class_name, term_name, report_cards.term_id, 
+									date_part('year', start_date) as year, report_data, report_cards.report_card_type,
+									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
+									report_cards.creation_date::date as date
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
 					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
 					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
+					LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 					WHERE report_cards.student_id = :studentId
 					AND report_cards.class_id = :classId
 					AND report_cards.term_id = :termId");
@@ -3491,6 +3514,7 @@ $app->post('/addReportCard', function () use($app) {
 	$termId =			( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
 	$classId =			( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
 	$reportCardType =	( isset($allPostVars['report_card_type']) ? $allPostVars['report_card_type']: null);
+	$teacherId =		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	$reportData =		( isset($allPostVars['report_data']) ? $allPostVars['report_data']: null);
 	
@@ -3500,8 +3524,8 @@ $app->post('/addReportCard', function () use($app) {
 		
 		$getReport = $db->prepare("SELECT report_card_id FROM app.report_cards WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId");
 		
-		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by, report_card_type) 
-								VALUES(:studentId, :classId, :termId, :reportData, :userId, :reportCardType)"); 
+		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by, report_card_type, teacher_id) 
+								VALUES(:studentId, :classId, :termId, :reportData, :userId, :reportCardType, :teacherId)"); 
 		
 		$updateReport = $db->prepare("UPDATE app.report_cards
 									SET report_data = :reportData,
@@ -3526,6 +3550,7 @@ $app->post('/addReportCard', function () use($app) {
 											':reportCardType' => $reportCardType,
 											':termId' => $termId, 
 											':reportData' => $reportData, 
+											':teacherId' => $teacherId,
 											':userId' => $userId
 											) );
 		}
@@ -4323,7 +4348,6 @@ $app->put('/reactivatePayment', function() use($app) {
 });
 
 
-
 // ************** Invoices  ****************** //
 $app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($startDate, $endDate, $canceled = false, $status = true) {
     // Get all students balances
@@ -4851,7 +4875,6 @@ $app->put('/reactivateInvoice', function() use($app) {
 });
 
 
-
 // ************** Fee Items  ****************** //
 $app->get('/getFeeItems(/:status)', function ($status = true) {
     //Show fee items
@@ -5172,7 +5195,6 @@ $app->put('/updateRoutes', function () use($app) {
     }
 
 });
-
 
 
 // ************** Students  ****************** //

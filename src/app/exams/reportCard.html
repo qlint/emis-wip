@@ -288,7 +288,7 @@
 								<label>Date:</label>
 							</div>
 							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{report.date}}</p>
+								<p class="form-control-static">{{report.date|date}}</p>
 							</div>
 						</div>						
 					</div>
@@ -304,7 +304,7 @@
 								<td>{{item.subject_name}}</td>
 								<td>
 									<span ng-show="isPrinting">{{item.remarks}}</span>
-									<textarea ng-show="!isPrinting" rows="3" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()"></textarea>
+									<textarea ng-show="!isPrinting" rows="2" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()"></textarea>
 								</td>
 							</tr>
 						</tbody>

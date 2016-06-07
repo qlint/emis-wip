@@ -245,7 +245,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// get terms
 			if( $rootScope.terms === undefined )
 			{
-				apiService.getTerms(undefined, setTerms, function(){});
+				var year = moment().format('YYYY');
+				apiService.getTerms(year, setTerms, function(){});
 			}
 			else
 			{
@@ -1062,7 +1063,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 								class_id: item.class_id,
 								class_cat_id: item.class_cat_id,
 								report_card_type: item.report_card_type,
+								teacher_id: item.teacher_id,
+								teacher_name: item.teacher_name,
 								term_id: item.term_id,
+								date: item.date,
 								year: item.year
 							}
 						);
@@ -1104,7 +1108,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		dlg.result.then(function(examMarks){
 			$scope.getStudentReportCards();
 		},function(){
-			
+			$scope.getStudentReportCards();
 		});
 	}
 	
@@ -1118,6 +1122,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			term_name : term_name,
 			year: item.year,
 			report_card_type: item.report_card_type,
+			teacher_id: item.teacher_id,
+			teacher_name: item.teacher_name,
+			date: item.date,
 			reportData: reportData,
 			adding: false,
 			filters:{

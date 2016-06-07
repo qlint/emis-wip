@@ -19,7 +19,7 @@ function($scope, $rootScope){
 		$scope.totals = angular.fromJson(data.totals);
 		$scope.comments = angular.fromJson(data.comments);
 		$scope.nextTermStartDate = data.nextTermStartDate;
-		$scope.total_overall_mark = data.total_overall_mark;
+		//$scope.total_overall_mark = data.total_overall_mark;
 		$scope.reportCardType = data.report_card_type;
 		
 		$scope.loading = false;
@@ -31,7 +31,7 @@ function($scope, $rootScope){
 				$rootScope.isPrinting = false;
 				//window.close();
 			}, 100);
-		}, 100);
+		}, 500);
 
 	}
 	setTimeout(initializeController,1);

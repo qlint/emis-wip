@@ -184,8 +184,9 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGetWithData(request, path + "/getCurrentTerm", successFunction, errorFunction, params);
 	};
 	
-	this.getNextTerm = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxGetWithData(request, path + "/getNextTerm", successFunction, errorFunction, params);
+	this.getNextTerm = function (param, successFunction, errorFunction, params) {          
+		if( param === undefined ) ajaxService.AjaxGet(path + "/getNextTerm", successFunction, errorFunction, params);
+		else  ajaxService.AjaxGet(path + "/getNextTerm/" + param, successFunction, errorFunction, params);
 	};
 	
 	/*********** subjects ***********/

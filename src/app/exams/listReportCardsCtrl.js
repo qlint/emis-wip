@@ -131,8 +131,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 								class_id: item.class_id,
 								class_cat_id: item.class_cat_id,
 								report_card_type: item.report_card_type,
+								teacher_id: item.teacher_id,
+								teacher_name: item.teacher_name,
 								class_name: item.class_name,
 								term_id: item.term_id,
+								date: item.date,
 								year: item.year,
 								admission_number: item.admission_number
 							}
@@ -177,6 +180,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			term_name : term_name,
 			year: item.year,
 			report_card_type: item.report_card_type,
+			teacher_id: item.teacher_id,
+			teacher_name: item.teacher_name,
+			date: item.date,
 			reportData: reportData,
 			adding: false,
 			filters:{
