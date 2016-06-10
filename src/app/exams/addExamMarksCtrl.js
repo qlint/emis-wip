@@ -171,15 +171,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			});
 			console.log(children);
 			// add them up
-			var numChildren = children.length;
 			var total = children.reduce(function(sum,item){
-				var mark = parseInt(item.mark) || 0;
-				console.log(( mark / item.grade_weight) * 100);
-				sum += ( mark / item.grade_weight) * 100;
+				sum += parseFloat(item.mark) || 0;
 				return sum;
 			},0);
-			console.log(total);
-			parent.mark = Math.round( total / numChildren ) ;
+			var totalWeight = children.reduce(function(sum,item){
+				sum += parseFloat(item.grade_weight) || 0;
+				return sum;
+			},0);
+			parent.mark = Math.round( (total/totalWeight)*100 ) ;
 		}
 	}
 	

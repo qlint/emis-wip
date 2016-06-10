@@ -130,6 +130,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 								student_id: item.student_id,
 								class_id: item.class_id,
 								class_cat_id: item.class_cat_id,
+								report_card_id: item.report_card_id,
 								report_card_type: item.report_card_type,
 								teacher_id: item.teacher_id,
 								teacher_name: item.teacher_name,
@@ -174,6 +175,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 		var data = {
 			student : student,
+			report_card_id: item.report_card_id,
 			class_name : item.class_name,
 			class_id : item.class_id,
 			term_id: item.term_id,
@@ -367,6 +369,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid){
 			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
 			$scope.dataGrid.destroy();
 		}
 		$rootScope.isModal = false;

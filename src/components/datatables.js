@@ -15358,7 +15358,7 @@ var FixedHeader = function ( dt, config ) {
 	}
 
 	dt = new DataTable.Api( dt );
-
+	
 	this.c = $.extend( true, {}, FixedHeader.defaults, config );
 
 	this.s = {
@@ -15385,7 +15385,8 @@ var FixedHeader = function ( dt, config ) {
 		},
 		enable: true
 	};
-
+	//console.log(' init fixed header ');
+	//console.log($(dt.table().header()));
 	this.dom = {
 		floatingHeader: null,
 		thead: $(dt.table().header()),
@@ -15434,8 +15435,9 @@ $.extend( FixedHeader.prototype, {
 	 */
 	enable: function ( enable )
 	{
+		
 		this.s.enable = enable;
-
+		//console.log('enable ' + enable);
 		if ( this.c.header ) {
 			this._modeChange( 'in-place', 'header', true );
 		}
@@ -15486,8 +15488,7 @@ $.extend( FixedHeader.prototype, {
 		this._positions();
 		this._scroll( true );
 	},
-
-
+	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Constructor
 	 */
@@ -15557,7 +15558,8 @@ $.extend( FixedHeader.prototype, {
 		var itemElement = item === 'header' ?
 			this.dom.thead :
 			this.dom.tfoot;
-
+		//console.log('_clone');
+		//console.log(itemDom);
 		if ( ! force && itemDom.floating ) {
 			// existing floating element - reuse it
 			itemDom.floating.removeClass( 'fixedHeader-floating fixedHeader-locked' );
@@ -15684,7 +15686,8 @@ $.extend( FixedHeader.prototype, {
 		var dt = this.s.dt;
 		var itemDom = this.dom[ item ];
 		var position = this.s.position;
-
+		//console.log('_modeChange');
+		//console.log(itemDom);
 		// Record focus. Browser's will cause input elements to loose focus if
 		// they are inserted else where in the doc
 		var tablePart = this.dom[ item==='footer' ? 'tfoot' : 'thead' ];
@@ -15810,6 +15813,7 @@ $.extend( FixedHeader.prototype, {
 	 */
 	_scroll: function ( forceChange )
 	{
+		//console.log('_scroll');
 		var windowTop = $(document).scrollTop();
 		var windowLeft = $(document).scrollLeft();
 		var position = this.s.position;
@@ -15890,6 +15894,7 @@ $.fn.DataTable.FixedHeader = FixedHeader;
 // DataTables creation - check if the FixedHeader option has been defined on the
 // table and if so, initialise
 $(document).on( 'init.dt.dtfh', function (e, settings, json) {
+	//console.log('init.dt.dtfh');
 	if ( e.namespace !== 'dt' ) {
 		return;
 	}
@@ -15936,6 +15941,17 @@ DataTable.Api.register( 'fixedHeader.disable()', function ( ) {
 		if ( fh ) {
 			fh.enable( false );
 		}
+	} );
+} );
+
+DataTable.Api.register( 'fixedHeader.destroy()', function ( ) {
+	return this.iterator( 'table', function ( ctx ) {
+		var fh = ctx._fixedHeader;
+		//console.log(fh);
+		$(window).off('scroll'+fh.s.namespace);
+		$(window).off('resize'+fh.s.namespace);
+		//console.log('destroyed?');
+		
 	} );
 } );
 

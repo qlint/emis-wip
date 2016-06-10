@@ -5,6 +5,7 @@ controller('subjectsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$wi
 function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
 	$scope.filters = {};
+	$scope.filters.status = 'true';
 	$scope.alert = {};
 
 	var initializeController = function () 
@@ -31,7 +32,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			$scope.dataGrid.destroy();				
 		}		
 		
-		apiService.getAllSubjects(class_cat_id, function(response,status,params){
+		var params = class_cat_id + '/' + $scope.filters.status;
+		apiService.getAllSubjects(params, function(response,status,params){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
@@ -210,6 +212,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid){
 			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
 			$scope.dataGrid.destroy();
 		}
 		$rootScope.isModal = false;

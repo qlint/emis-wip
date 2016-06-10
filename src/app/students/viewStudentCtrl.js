@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('viewStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', 'data',
-function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, data){
+controller('viewStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', '$timeout', 'data',
+function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, $timeout, data){
 	
 	$rootScope.modalLoading = false;
 	$scope.tabs = ( $rootScope.currentUser.user_type == 'TEACHER' ? ['Details','Family','Medical History','Exams','Report Cards','News'] : ['Details','Family','Medical History','Fees','Exams','Report Cards','News'] );
@@ -24,6 +24,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.student = {};
 	$scope.student.admission_date = {};
 	$scope.initLoad = true;
+	
+	$scope.studentForm = {};
 	
 	var initializeController = function()
 	{
@@ -93,6 +95,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.student.admission_date = {startDate: $scope.student.admission_date};
 				originalData = angular.copy($scope.student);
 				
+				// set the form as pristine
+				$timeout(function(){
+					$scope.studentForm.$setUntouched();
+					$scope.studentForm.$setPristine();
+				},10);
+				
 				getFeeItems();
 				
 			}
@@ -102,7 +110,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	var getFeeItems = function()
 	{
 		// get fee items
-		apiService.getFeeItems({}, function(response){
+		apiService.getFeeItems(true, function(response){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
@@ -160,7 +168,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			},function(btn){
 				// revert the changes and move on
 				$scope.student = angular.copy(originalData);
-				$scope.studentForm.$setPristine();
+				$timeout(function(){
+					$scope.studentForm.$setUntouched();
+					$scope.studentForm.$setPristine();
+				},10);
 				goToTab(tab);
 			});
 		}
@@ -645,8 +656,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 	
-	
-
 	var initFeesDataGrid = function() 
 	{
 		var settings = {
@@ -928,47 +937,58 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				
 				$scope.examMarks = {};
 				
+				// get unique exam types
+				$scope.examMarks.types = result.data.reduce(function(sum,item){
+					if( sum.indexOf(item.exam_type) === -1 ) sum.push(item.exam_type);
+					return sum;
+				}, []);
+				
+				/*
 				// get unique exam subjects
 				$scope.examMarks.subjects = result.data.reduce(function(sum,item){
 					if( sum.indexOf(item.subject_name) === -1 ) sum.push(item.subject_name);
 					return sum;
 				}, []);
-				//console.log($scope.examMarks.subjects);
+				*/
 				
-				// group the marks by exam types
-				$scope.examMarks.types = [];
-				var lastExamType = '';
+				// group the marks by subject
+				$scope.examMarks.subjects = [];
+				var lastSubject = '';
 				var marks = [];
 				var i = 0;
 				angular.forEach(result.data, function(item,key){
 					
-					if( item.exam_type != lastExamType )
+					if( item.subject_name != lastSubject )
 					{
 						// changing to new exam type, store the complied marks array
-						if( i > 0 ) $scope.examMarks.types[(i-1)].marks = marks;
+						if( i > 0 ) $scope.examMarks.subjects[(i-1)].marks = marks;
 						
-						$scope.examMarks.types.push(
+						$scope.examMarks.subjects.push(
 							{
-								exam_type: item.exam_type,
+								subject_name: item.subject_name,
+								parent_subject_name: item.parent_subject_name,
 								marks: []
 							}
 						);
 						
 						// init marks array for this exam type
-						marks = [];
+						marks = {};
 						i++;
 
 					}
-					marks.push({
-						mark:item.mark,
-						grade_weight: item.grade_weight
-					});
+					marks[item.exam_type] = {
+						mark: item.mark,
+						grade_weight: item.grade_weight,
+						position: item.rank,
+						grade: item.grade							
+					}
+
 					
-					lastExamType = item.exam_type;
+					lastSubject = item.subject_name;
 					
 					
 				});
-				$scope.examMarks.types[(i-1)].marks = marks;
+				$scope.examMarks.subjects[(i-1)].marks = marks;
 				
 			}
 		}
@@ -1027,6 +1047,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		{
 			if( result.nodata )
 			{
+				$scope.reportCards = {};
 				$scope.reportsNotFound = true;
 				$scope.errMsg = "There are currently no report cards entered for this student.";
 			}
@@ -1059,6 +1080,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						
 						$scope.reportCards.classes.push(
 							{
+								report_card_id: item.report_card_id,
 								class_name: item.class_name,
 								class_id: item.class_id,
 								class_cat_id: item.class_cat_id,
@@ -1116,6 +1138,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		var data = {
 			student : $scope.student,
+			report_card_id: item.report_card_id,
 			class_name : item.class_name,
 			class_id : item.class_id,			
 			term_id: item.term_id,
@@ -1261,7 +1284,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			//originalData = angular.copy($scope.student);
 			// repull the student details
 			$scope.getStudentDetails($scope.student.student_id);
-			$scope.studentForm.$setPristine();
+			
 			
 			// if moving tabs, continue
 			if( params.tab !== undefined ) goToTab(params.tab);
@@ -2097,15 +2120,15 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				});
 				console.log(children);
 				// add them up
-				var numChildren = children.length;
 				var total = children.reduce(function(sum,item){
-					var mark = parseInt(item.mark) || 0;
-					console.log(( mark / item.grade_weight) * 100);
-					sum += ( mark / item.grade_weight) * 100;
+					sum += parseFloat(item.mark) || 0;
 					return sum;
 				},0);
-				console.log(total);
-				parent.mark = Math.round( total / numChildren ) ;
+				var totalWeight = children.reduce(function(sum,item){
+					sum += parseFloat(item.grade_weight) || 0;
+					return sum;
+				},0);
+				parent.mark = Math.round( (total/totalWeight)*100 ) ;
 			}
 		}		
 		

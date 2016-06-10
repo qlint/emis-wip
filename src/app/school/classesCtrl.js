@@ -4,7 +4,8 @@ angular.module('eduwebApp').
 controller('classesCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter',
 function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
-	$scope.filters= {};
+	$scope.filters = {};
+	$scope.filters.status = 'true';
 	$scope.alert = {};
 
 	var initializeController = function () 
@@ -35,7 +36,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		
 		if ( $rootScope.currentUser.user_type == 'TEACHER' )
 		{
-			apiService.getTeacherClasses($rootScope.currentUser.emp_id, function(response,status){
+			var params = $rootScope.currentUser.emp_id + '/' + $scope.filters.status;
+			apiService.getTeacherClasses(params, function(response,status){
 				var result = angular.fromJson(response);
 				
 				if( result.response == 'success')
@@ -58,7 +60,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		else
 		{
 
-			var params = (class_cat_id != '' && class_cat_id !== null ? class_cat_id + '/true' : "");
+			var params = (class_cat_id != '' && class_cat_id !== null && class_cat_id !== undefined ? class_cat_id + '/' + $scope.filters.status : "ALL" + '/' + $scope.filters.status);
 			apiService.getClasses(params, function(response,status){
 				var result = angular.fromJson(response);
 				
@@ -236,6 +238,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid){
 			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
 			$scope.dataGrid.destroy();
 		}
 		$rootScope.isModal = false;

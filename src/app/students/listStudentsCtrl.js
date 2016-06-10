@@ -92,6 +92,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var getStudents = function(status, filtering)
 	{
+		if( $scope.dataGrid !== undefined )
+		{	
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();				
+		}	
+		
 		if ( $rootScope.currentUser.user_type == 'TEACHER' )
 		{
 			var params = $rootScope.currentUser.emp_id + '/' + status;
@@ -110,14 +117,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		
 		if( result.response == 'success')
 		{
-			
-			if( $scope.dataGrid !== undefined )
-			{
-				$('.fixedHeader-floating').remove();
-				$scope.dataGrid.clear();
-				//$scope.dataGrid.destroy();
-			}
-			
+					
 			if( result.nodata ) var formatedResults = [];
 			else {
 				// make adjustments to student data
@@ -189,12 +189,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				},
 			} );
 			
-		
+		console.log('remove any fixedheaders still hanging around');
+		$('.fixedHeader-floating').remove();
 		var headerHeight = $('.navbar-fixed-top').height();
 		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
 		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 13 );
-		new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
+		var offset = ( $rootScope.isSmallScreen ? 22 : 41 );
+		
+		console.log($scope.dataGrid);
+		$scope.fixedHeader = new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
 				header: true,
 				headerOffset: (headerHeight + searchHeight) + offset
 			} );
@@ -383,20 +386,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	{
 		$scope.loading = true;
 		$rootScope.loading = true;
-		
-		if( $scope.dataGrid !== undefined )
-		{
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
-			
+					
 		getStudents(currentStatus,isFiltered);
 	}
 	
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid){
 			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
 			$scope.dataGrid.destroy();
 		}
 		$rootScope.isModal = false;

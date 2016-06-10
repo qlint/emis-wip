@@ -4,7 +4,8 @@ angular.module('eduwebApp').
 controller('departmentsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter',
 function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
-
+	$scope.filters = {};
+	$scope.filters.status = 'true';
 	$scope.alert = {};
 
 	var initializeController = function () 
@@ -22,7 +23,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			$scope.dataGrid.destroy();			
 		}		
 
-		apiService.getDepts({}, function(response,status,params){
+		apiService.getDepts($scope.filters.status, function(response,status,params){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
@@ -32,7 +33,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 				// update the rootScope variable
 				$rootScope.allDepts = $scope.departments;
 				
-				$timeout(initDataGrid,10);
+				$timeout(initDataGrid,100);
 			}
 			else
 			{
@@ -92,7 +93,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',0);
+			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
 		
 		$window.addEventListener('resize', function() {
@@ -118,6 +119,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		$scope.errMsg = result.data;
 	}
 	
+	$scope.loadFilter = function()
+	{
+		$scope.loading = true;
+		getDepartments();		
+	}
 	
 	$scope.addDept = function()
 	{
@@ -164,7 +170,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid) $scope.dataGrid.destroy();
+		if($scope.dataGrid){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();
+		}
 		$rootScope.isModal = false;
     });
 

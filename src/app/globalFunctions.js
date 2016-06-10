@@ -322,7 +322,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		// get departments
 		if( $rootScope.allDepts === undefined )
 		{
-			apiService.getDepts({}, function(response){
+			apiService.getDepts(true, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often

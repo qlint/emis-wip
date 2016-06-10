@@ -30,7 +30,12 @@ function($scope, $rootScope, apiService){
 	
 	
 	$scope.$on('$destroy', function() {
-		if($scope.datagrid) $scope.datagrid.destroy();
+		if($scope.dataGrid){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();
+		}
 		$rootScope.isModal = false;
     });
 	

@@ -39,6 +39,15 @@
 						<select class="form-control" id="category" name="class_cat_id" ng-options="item.class_cat_id as item.class_cat_name for item in classCats" ng-model="filters.class_cat_id">
 						</select>
 					</div>
+					
+					<!-- status select -->
+					<div class="form-group">
+						<label for="status">Status</label>	
+						<select name="status" id="status" class="form-control" ng-model="filters.status">
+							<option value="true">Active</option>
+							<option value="false">In-active</option>							
+						</select>
+					</div>	
 
 					<!-- search btn -->
 					<div class="form-group submit-btn">

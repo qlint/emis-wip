@@ -4,7 +4,8 @@ angular.module('eduwebApp').
 controller('feeStructureCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter',
 function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
-
+	$scope.filters = {};
+	$scope.filters.status = 'true';
 	$scope.alert = {};
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 
@@ -23,7 +24,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			$scope.dataGrid.destroy();			
 		}		
 
-		apiService.getFeeItems({}, function(response,status,params){
+		apiService.getFeeItems($scope.filters.status, function(response,status,params){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
@@ -124,7 +125,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',0);
+			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
 		
 		$window.addEventListener('resize', function() {
@@ -150,6 +151,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		$scope.errMsg = result.data;
 	}
 	
+	$scope.loadFilter = function()
+	{
+		$scope.loading = true;
+		getFeeStructure();		
+	}
 	
 	$scope.addFeeItem = function()
 	{
@@ -196,7 +202,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid) $scope.dataGrid.destroy();
+		if($scope.dataGrid){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();
+		}
 		$rootScope.isModal = false;
     });
 

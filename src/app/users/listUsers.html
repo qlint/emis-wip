@@ -30,6 +30,31 @@
 				<h1 id="pageTitle">Users</h1>
 			</div>
 			
+			<!-- search form -->
+			<div class="dataFilterForm">	
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+					
+					<!-- status select -->
+					<div class="form-group">
+						<label for="status">Status</label>	
+						<select name="status" id="status" class="form-control" ng-model="filters.status">
+							<option value="true">Active</option>
+							<option value="false">In-active</option>							
+						</select>
+					</div>	
+
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="loadFilter()" value="Load" />
+						<img src="assets/spinner.gif" ng-show="loading" />
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+
+				</form>
+			</div>
+			<!-- // end search form -->			
 			
 		</div>
 		

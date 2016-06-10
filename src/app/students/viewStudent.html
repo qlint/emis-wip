@@ -13,7 +13,7 @@
 				<div class="col-sm-12 clearfix">
 					<div class="modal-tabs main-tabs">					
 						<ul class="nav nav-tabs">
-							<li ng-class="{active: currentTab==item}" ng-repeat="item in tabs"><a class="clickable" ng-click="getTabContent(item)">{{item}}</a></li>
+							<li ng-class="{active: currentTab==item}" ng-repeat="item in tabs"><a class="clickable" ng-click="getTabContent(item,studentForm)">{{item}}</a></li>
 						</ul>						
 					</div>
 				</div>
@@ -730,7 +730,7 @@
 			
 			<script type="text/ng-template" id="Exams">				
 				<h2>Exams</h2>
-				<button type="button" class="pull-right btn btn-link" ng-click="addExamMarks()"><i class="glyphicon glyphicon-plus-sign"></i> Add Exam Marks</button>
+				<button type="button" class="pull-right btn btn-link" ng-click="addExamMarks()"><i class="glyphicon glyphicon-plus-sign"></i> Add/Update Exam Marks</button>
 				
 				<!-- search form -->
 				<div class="modalDataFilter clearfix">	
@@ -738,14 +738,12 @@
 					<div class="form-group">
 						<label for="category">Category</label>
 						<select class="form-control" ng-options="item.class_cat_id as item.class_cat_name for item in classCats" ng-model="filters.class_cat_id" ignore-dirty>
-							<option value="">--select class category--</option>
 						</select>	
 					</div>
 					<!-- class select -->
 					<div class="form-group">
 						<label for="class">Class</label>	
 						<select class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" ignore-dirty>
-							<option value="">--select class--</option>
 						</select>	
 					</div>		
 
@@ -753,7 +751,6 @@
 					<div class="form-group">
 						<label for="term">Term</label>	
 						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" ignore-dirty>
-							<option value="">--select term--</option>
 						</select>	
 					</div>	
 					
@@ -783,13 +780,13 @@
 					<thead>
 						<tr>
 							<th>Exam</th>
-							<th class="center" ng-repeat="item in examMarks.subjects">{{item}}</th>
+							<th class="center" ng-repeat="examType in examMarks.types">{{examType}}</th>
 						</tr>
 					</thead>	
 					<tbody>
-						<tr ng-repeat="item in examMarks.types track by $index">
-							<td id="{{item.exam_id}}">{{item.exam_type}}</td>
-							<td class="center" ng-repeat="mark in item.marks track by $index">{{mark.mark}}<span class="text-muted">/{{mark.grade_weight}}</span></td>
+						<tr ng-repeat="item in examMarks.subjects track by $index">
+							<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" id="{{item.exam_id}}">{{item.subject_name}}</td>
+							<td class="center" ng-repeat="examType in examMarks.types"><b>{{item.marks[examType].mark}}</b><span class="text-muted">/{{item.marks[examType].grade_weight}}</span></td>
 						</tr>
 					</tbody>
 				</table>

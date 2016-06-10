@@ -301,10 +301,10 @@
 						</thead>
 						<tbody>
 							<tr ng-repeat="item in reportData.subjects track by $index">
-								<td>{{item.subject_name}}</td>
+								<td style="vertical-align:top" ng-class="{'strong uppercase': item.parent_subject_name===null, 'indent' : item.parent_subject_name!==null}">{{item.subject_name}}</td>
 								<td>
 									<span ng-show="isPrinting">{{item.remarks}}</span>
-									<textarea ng-show="!isPrinting" rows="2" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()"></textarea>
+									<textarea ng-show="!isPrinting && !item.has_children" rows="2" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()"></textarea>
 								</td>
 							</tr>
 						</tbody>
@@ -352,7 +352,10 @@
 				
 			</div>
 		</div>
-		<div class="modal-footer">				
+		<div class="modal-footer">		
+			<div class="pull-left" ng-show="canDelete">
+				<button type="button" class="btn btn-danger" ng-click="deleteReportCard()">Delete</button>	
+			</div>
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>			
 			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint"><i class="glyphicon glyphicon-print"></i> Print</button>		
 			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint&&adding">Save</button>		

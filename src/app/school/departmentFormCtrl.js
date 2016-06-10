@@ -43,6 +43,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			
 		}
 	}
+	
 	var createCompleted = function ( response, status, params ) 
 	{
 
@@ -64,21 +65,47 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
-		$scope.errMsg = result.data;
+		var msg = ( result.data.indexOf('"U_dept_name"') > -1 ? 'The Department name you entered already exists.' : result.data);
+		$scope.errMsg = msg;
 	}
 	
 	$scope.deleteDept = function()
 	{
-		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to mark this department as deleted? ',{size:'sm'});
-		dlg.result.then(function(btn){
-			var data = {
-				user_id : $rootScope.currentUser.user_id,
-				dept_id: $scope.department.dept_id,
-				status: 'f'
-			}
-			apiService.setDeptStatus(data,createCompleted,apiError);
+		apiService.checkDepartment($scope.department.dept_id,function(response,status){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				var canDelete = ( parseInt(result.data.num_employees) == 0 ? true : false );
+				
+				if( canDelete )
+				{
+					var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to permanently delete this department? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						apiService.deleteDept($scope.department.dept_id,createCompleted,apiError);
+					});
+				}
+				else
+				{
+					var dlg = $dialogs.confirm('Please Confirm','This department is associated with <b>' + result.data.num_employees + '</b> employees. Are you sure you want to mark this department as in-active? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						var data = {
+							user_id : $rootScope.currentUser.user_id,
+							dept_id: $scope.department.dept_id,
+							status: 'f'
+						}
+						apiService.setDeptStatus(data,createCompleted,apiError);
 
-		});
+					});
+				}
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		},apiError);
+		
+		
 	}
 	
 	$scope.activateDept = function()

@@ -152,29 +152,47 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	
 	$scope.removeEmpCat = function(item)
 	{
-		var dlg = $dialogs.confirm('Delete Employee Category','You are deleting employee category <strong>' + item.emp_cat_name + '</strong>, do you wish to continue?', {size:'sm'});
-		dlg.result.then(function(btn){
-			var data = {
-				user_id : $rootScope.currentUser.user_id,
-				emp_cat_id: item.emp_cat_id,
-				status: 'f'
-			}
-			apiService.setEmployeeCatStatus(data, function(response, status){
-				var result = angular.fromJson(response);
-			
-				if( result.response == 'success')
-				{	
-					$rootScope.empCats = undefined;
-					$rootScope.getEmpCats();
+		$scope.error = false;
+		apiService.checkEmpCat(item.emp_cat_id,function(response,status){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				var canDelete = ( parseInt(result.data.num_employees) == 0 ? true : false );
+				
+				if( canDelete )
+				{
+					var dlg = $dialogs.confirm('Delete Employee Category','Are you sure you want to permanently delete employee category <strong>' + item.emp_cat_name + '</strong>? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						apiService.deleteEmpCat(item.emp_cat_id,function(response,status){
+							$rootScope.empCats = undefined;
+							$rootScope.getEmpCats();	
+						},apiError);
+					});
 				}
 				else
 				{
-					$scope.error = true;
-					$scope.errMsg = result.data;
+					var dlg = $dialogs.confirm('Please Confirm','Employee category <strong>' + item.emp_cat_name + '</strong> is associated with <b>' + result.data.num_employees + '</b> employees. Are you sure you want to mark this employee category as in-active? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						var data = {
+							user_id : $rootScope.currentUser.user_id,
+							emp_cat_id: item.emp_cat_id,
+							status: 'f'
+						}
+						apiService.setEmployeeCatStatus(data,function(response,status){
+							$rootScope.empCats = undefined;
+							$rootScope.getEmpCats();
+						},apiError);
+
+					});
 				}
-				
-			}, apiError);
-		});
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		},apiError);
+
 	}
 	
 	$scope.addClassCat = function()
@@ -201,37 +219,54 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	
 	$scope.removeClassCat = function(item)
 	{
-		console.log(item);
-		var dlg = $dialogs.confirm('Delete Class Category','You are deleting class category <strong>' + item.class_cat_name + '</strong>, do you wish to continue?', {size:'sm'});
-		dlg.result.then(function(btn){
-			var data = {
-				user_id : $rootScope.currentUser.user_id,
-				class_cat_id: item.class_cat_id,
-				status: 'f'
-			}
-			apiService.setClassCatStatus(data, function(response, status){
-				var result = angular.fromJson(response);
-			
-				if( result.response == 'success')
-				{	
-					$rootScope.classCats = undefined;
-					$rootScope.getClassCats();
+		$scope.error = false;
+		apiService.checkClassCat(item.class_cat_id,function(response,status){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				var canDelete = ( parseInt(result.data.num_exams) == 0 ? true : false );
+				
+				if( canDelete )
+				{
+					var dlg = $dialogs.confirm('Delete Class Category','Are you sure you want to permanently delete class category <strong>' + item.class_cat_name + '</strong>? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						apiService.deleteClassCat(item.class_cat_id,function(response,status){
+							$rootScope.classCats = undefined;
+							$rootScope.getClassCats();	
+						},apiError);
+					});
 				}
 				else
 				{
-					$scope.error = true;
-					$scope.errMsg = result.data;
+					var dlg = $dialogs.confirm('Please Confirm','Class category <strong>' + item.class_cat_name + '</strong> is associated with <b>' + result.data.num_exams + '</b> exam marks. Are you sure you want to mark this class category as in-active? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						var data = {
+							user_id : $rootScope.currentUser.user_id,
+							class_cat_id: item.class_cat_id,
+							status: 'f'
+						}
+						apiService.setClassCatStatus(data,function(response,status){
+							$rootScope.classCats = undefined;
+							$rootScope.getClassCats();	
+						},apiError);
+
+					});
 				}
-				
-			}, apiError);
-		});
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		},apiError);
 	}		
 
 	var apiError = function (response, status) 
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
-		$scope.errMsg = result.data;
+		var msg = ( result.data.indexOf('"U_active_emp_cat"') > -1 ? 'The Employee Category name you entered already exists.' : result.data);
+		$scope.errMsg = msg;
 	}
 	
 	
@@ -243,7 +278,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
     });
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid) $scope.dataGrid.destroy();
+		if($scope.dataGrid){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();
+		}
 		$rootScope.isModal = false;
     });
 
@@ -303,7 +343,8 @@ function($scope,$rootScope,$uibModalInstance,apiService,$dialogs,data){
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
-			$scope.errMsg = result.data;
+			var msg = ( result.data.indexOf('"U_active_emp_cat"') > -1 ? 'The Employee Category name you entered already exists.' : result.data);
+			$scope.errMsg = msg;
 		}
 		
 		$scope.hitEnter = function(evt){

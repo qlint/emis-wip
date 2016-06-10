@@ -40,10 +40,10 @@
 							<label for="new_student"  class="col-sm-4 control-label">Is this a new student?</label>
 							<div class="col-sm-8">
 								<label class="radio-inline">
-								  <input type="radio" name="new_student" ng-model="student.new_student" value="true" required> Yes
+								  <input type="radio" name="new_student" ng-model="student.new_student" ng-value="true" required> Yes
 								</label>
 								<label class="radio-inline">
-								  <input type="radio" name="new_student" ng-model="student.new_student" value="false" required> No
+								  <input type="radio" name="new_student" ng-model="student.new_student" ng-value="false" required> No
 								</label>
 								<p ng-show="(studentForm.$submitted || studentForm.new_student.$dirty ) && studentForm.new_student.$invalid && studentForm.new_student.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> New Student selection is required.</p>
 							</div>
@@ -64,9 +64,15 @@
 						<!-- admission number -->
 						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.admission_number.$dirty ) && studentForm.admission_number.$invalid && studentForm.admission_number.$error.required }">
 							<label for="admission_number" class="col-sm-4 control-label">Admission Number</label>
-							<div class="col-sm-8">
-								<input type="text" name="admission_number" ng-model="student.admission_number" class="form-control" required >	
+							<div class="col-sm-4">
+								<input type="text" name="admission_number" ng-model="student.admission_number" class="form-control" ng-model-options="{ debounce: 1000 }" required >	
 								<p ng-show="(studentForm.$submitted || studentForm.admission_number.$dirty ) && studentForm.admission_number.$invalid && studentForm.admission_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Admission Number is required.</p>
+							</div>
+							<div class="col-sm-4" ng-show="uniqueAdmNumber===false">
+								<p class="form-control-static alert alert-danger"><i class="glyphicon glyphicon-remove pull-left"></i> Already exists.</p>	
+							</div>
+							<div class="col-sm-2" ng-show="uniqueAdmNumber===true">
+								<p class="form-control-static alert alert-success icon-only"><i class="glyphicon glyphicon-ok"></i></p>	
 							</div>
 						</div>
 						

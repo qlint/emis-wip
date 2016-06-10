@@ -403,7 +403,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				$scope.student = student[0];
 				
 				// get fee items
-				apiService.getFeeItems({}, function(response){
+				apiService.getFeeItems(true, function(response){
 					var result = angular.fromJson(response);
 					
 					if( result.response == 'success')
@@ -521,7 +521,12 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid) $scope.dataGrid.destroy();
+		if($scope.dataGrid){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();
+		}
 		$rootScope.isModal = false;
     });
 

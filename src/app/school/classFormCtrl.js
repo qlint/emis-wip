@@ -9,12 +9,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	//console.log(data);
 	
 	$scope.edit = ( $scope.theClass.class_id !== undefined ? true : false );
+	$scope.deleted = false;
 	
 	$scope.subjectSelection = [];
 	$scope.subjectExamSelection = {};
 	$scope.apply_to_all_subjects = [];
 	$scope.gradeWeight = {};
 	$scope.reportCardTypes = ["Standard","Kindergarten"];
+	$scope.examTypes = [];
 	
 	
 	var getSubjects = function(classCatId)
@@ -180,7 +182,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		if( result.response == 'success' )
 		{
 			$uibModalInstance.close();
-			var msg = ($scope.edit ? 'Class was updated.' : 'Class was added.');
+			var msg = ($scope.deleted ? 'Class was deleted.' : ( $scope.edit ? 'Class was updated' :  'Class was added.'));
 			$rootScope.$emit('classAdded', {'msg' : msg, 'clear' : true});
 		}
 		else
@@ -194,21 +196,48 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
-		$scope.errMsg = result.data;
+		var msg = ( result.data.indexOf('"U_class_name"') > -1 ? 'This class already exists.' : result.data);
+		$scope.errMsg = msg;
 	}
 	
 	$scope.deleteClass = function()
 	{
-		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to mark this class as deleted? ',{size:'sm'});
-		dlg.result.then(function(btn){
-			var data = {
-				user_id : $rootScope.currentUser.user_id,
-				class_id: $scope.theClass.class_id,
-				status: 'f'
-			}
-			apiService.setClassStatus(data,createCompleted,apiError);
+	$scope.error = false;
+		apiService.checkClass($scope.theClass.class_id,function(response,status){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				var canDelete = ( parseInt(result.data.num_exams) == 0 ? true : false );
+				
+				if( canDelete )
+				{
+					var dlg = $dialogs.confirm('Delete Class','Are you sure you want to permanently delete class <strong>' + $scope.theClass.class_name + '</strong>? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						$scope.deleted = true;
+						apiService.deleteClass($scope.theClass.class_id,createCompleted,apiError);
+					});
+				}
+				else
+				{
+					var dlg = $dialogs.confirm('Please Confirm','Class <strong>' + $scope.theClass.class_name + '</strong> is associated with <b>' + result.data.num_exams + '</b> classes. Are you sure you want to mark this class as in-active? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						var data = {
+							user_id : $rootScope.currentUser.user_id,
+							class_id: $scope.theClass.class_id,
+							status: 'f'
+						}
+						apiService.setClassStatus(data,createCompleted,apiError);
 
-		});
+					});
+				}
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		},apiError)
+		
 		
 	}
 	

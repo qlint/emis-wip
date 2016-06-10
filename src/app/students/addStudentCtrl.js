@@ -65,7 +65,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 		
 		// get fee items
-		apiService.getFeeItems({}, function(response){
+		apiService.getFeeItems(true, function(response){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
@@ -182,6 +182,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			if( feeItem.fee_item == 'Transport') feeItem.amount = newVal.amount;
 		});
 	});
+	
+	$scope.$watch('student.admission_number',function(newVal,oldVal){
+			if( newVal == oldVal || newVal === undefined ) return;
+			
+			$scope.uniqueAdmNumber = undefined;
+			$scope.checkAdmNumber(newVal);
+		});	
 	
 	var filterFeeItems = function(feesArray)
 	{
@@ -326,7 +333,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 	
-	
+	$scope.checkAdmNumber = function( admissionNumber )
+	{
+		// this will query the guardians table to ensure id number is unique
+		apiService.checkAdmNumber(admissionNumber,function(response){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				$scope.uniqueAdmNumber = (result.nodata ? true : false);					
+			}
+		},apiError);
+	}
+		
 	var countErrors = function()
 	{		
 		$scope.detailsErrors = 0;
@@ -366,6 +384,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.errMsg = result.data;
 			//$rootScope.$emit('jobError', {'msg' : result.data });
 		}
+	}
+	
+	var apiError = function (response, status) 
+	{
+		var result = angular.fromJson( response );
+		$scope.error = true;
+		$scope.errMsg = result.data;
 	}
 	
 	var createError = function (response) 

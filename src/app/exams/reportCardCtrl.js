@@ -32,6 +32,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			//console.log($scope.reportData);
 			$scope.originalData = angular.copy($scope.reportData);
 			
+			$scope.report.report_card_id = data.report_card_id;
 			$scope.report.class_name = data.class_name;
 			$scope.report.class_id = data.class_id;
 			$scope.report.term = data.term_name;
@@ -47,6 +48,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			
 			$scope.setReportCardData();
 			$scope.savedReport = true;
+			$scope.canDelete = true;
 			
 			/* look for adjustments to exam marks */
 			if( $scope.reportCardType != 'Kindergarten' )
@@ -167,7 +169,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.overallLastTerm = {};
 		//$scope.examTypes = {};
 		$scope.reportData = undefined;
-		$scope.comments = undefined;
+		$scope.comments = {};
 		$scope.recreated = false;
 		//$scope.nextTermStartDate = undefined;
 		
@@ -211,6 +213,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.canPrint = true;
 				$scope.showReportCard = true;
 				$scope.savedReport = true;
+				$scope.canDelete = true;
 		
 				$scope.report = result.data;
 				$scope.reportData = ( result.data.report_data !== null ? angular.fromJson(result.data.report_data) : []);
@@ -237,7 +240,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					// set date to now 
 					$scope.report.date = moment().format('YYYY-MM-DD');
-					apiService.getSubjects($scope.filters.class.class_cat_id, loadSubjects, apiError);
+					apiService.getAllSubjects($scope.filters.class.class_cat_id, loadSubjects, apiError);
 				}
 				else
 				{
@@ -358,6 +361,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.showReportCard = true;
 				$scope.reportData = {};
 				$scope.reportData.subjects = result.data;
+
 			}
 			
 		}
@@ -553,6 +557,41 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		var domain = window.location.host;
 		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
+	}
+	
+	$scope.deleteReportCard = function()
+	{
+		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete this report card? <br><br><b><i>(THIS CAN NOT BE UNDONE)</i></b>',{size:'sm'});
+		dlg.result.then(function(btn){
+			apiService.deleteReportCard($scope.report.report_card_id, function(response,status,params){
+				var result = angular.fromJson(response);
+				if( result.response == 'success')
+				{
+					if( $scope.adding )
+					{
+						$scope.showReportCard = false;
+						$scope.report = {};
+						$scope.overall = {};
+						$scope.overallLastTerm = {};
+						$scope.reportData = undefined;
+						$scope.comments = {};
+						$scope.recreated = false;		
+						$scope.canDelete = false;					
+					}
+					else
+					{
+						$uibModalInstance.dismiss('canceled');  
+					}
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, apiError);
+
+		});
 	}
 		
 	$scope.cancel = function()

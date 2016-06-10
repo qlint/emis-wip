@@ -450,7 +450,7 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
 
 });
 
-$app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $status=true) {
+$app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $status=true) {
     //Show classes for specific class category
 	
 	$app = \Slim\Slim::getInstance();
@@ -465,17 +465,17 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $st
 						from (
 							select subject_name, sort_order
 							from app.class_subjects 
-							inner join app.subjects on class_subjects.subject_id = subjects.subject_id
+							inner join app.subjects on class_subjects.subject_id = subjects.subject_id and subjects.active is true
 							where class_subjects.class_id = classes.class_id 
 							group by subject_name, sort_order
 						)a ) as subjects
             FROM app.classes
-			INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+			INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 			LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
             WHERE classes.active = :status
 			";
 			
-		if( $classCatid !== null )
+		if( $classCatid != 'ALL' )
 		{
 			$query .= "AND classes.class_cat_id = :classCatid";
 			$params[':classCatid'] = $classCatid;
@@ -514,7 +514,7 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = null, $st
 
 });
 
-$app->get('/getTeacherClasses/:teacher_id', function ($teacherId) {
+$app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $status = true) {
     //Show classes for specific teacher
 	
 	$app = \Slim\Slim::getInstance();
@@ -524,14 +524,18 @@ $app->get('/getTeacherClasses/:teacher_id', function ($teacherId) {
         $db = getDB();
 		$sth = $db->prepare("SELECT class_id, class_name, classes.class_cat_id, teacher_id, classes.active, class_cat_name,
 					classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
-					(select array_agg(distinct subject_name) from app.class_subjects inner join app.subjects using (subject_id) where class_subjects.class_id = classes.class_id) as subjects
+					(select array_agg(distinct subject_name) 
+						from app.class_subjects 
+						inner join app.subjects on class_subjects.subject_id = subjects.subject_id and subjects.active is true
+						where class_subjects.class_id = classes.class_id) as subjects
 					FROM app.classes
-					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 					LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
 					WHERE teacher_id = :teacherId
+					AND classes.active = :status 
 					ORDER BY sort_order"); 
 		
-        $sth->execute( array(':teacherId' => $teacherId));
+        $sth->execute( array(':teacherId' => $teacherId, ':status' => $status));
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
@@ -569,15 +573,15 @@ $app->get('/getAllClassExams/:class_id(/:exam_type_id)', function ($classId, $ex
         $db = getDB();
 		$query = "SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, 
 								subject_name, class_subject_exams.exam_type_id, exam_type, grade_weight, parent_subject_id,
-								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1) as parent_subject_name,
-								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id limit 1) is null then false else true end as is_parent
+								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
+								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null then false else true end as is_parent
 							FROM app.class_subjects 
 							INNER JOIN app.class_subject_exams
 								INNER JOIN app.exam_types
 								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 							ON class_subjects.class_subject_id = class_subject_exams.class_subject_id
 							INNER JOIN app.subjects
-							ON class_subjects.subject_id = subjects.subject_id
+							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 							WHERE class_id = :classId
 							";
 		$params = array(':classId' => $classId);
@@ -624,16 +628,16 @@ $app->get('/getClassExams/:class_id(/:exam_type_id)', function ($classId, $examT
         $db = getDB();
 		$query = "SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, 
 								subject_name, class_subject_exams.exam_type_id, exam_type, grade_weight, parent_subject_id,
-								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1) as parent_subject_name
+								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
 							FROM app.class_subjects 
 							INNER JOIN app.class_subject_exams
 								INNER JOIN app.exam_types
 								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 							ON class_subjects.class_subject_id = class_subject_exams.class_subject_id
 							INNER JOIN app.subjects
-							ON class_subjects.subject_id = subjects.subject_id
+							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 							WHERE class_id = :classId
-							AND (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id limit 1) is null 
+							AND (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null 
 							";
 		$params = array(':classId' => $classId);
 		if( $examTypeId !== null )
@@ -1029,6 +1033,89 @@ $app->put('/setClassSortOrder', function () use($app) {
 
 });
 
+$app->get('/checkClass/:class_id', function ($classId) {
+    // Check is class can be deleted
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT count(exam_id) as num_exams
+								FROM app.exam_marks
+								INNER JOIN app.class_subject_exams 
+									INNER JOIN app.class_subjects
+										INNER JOIN app.classes
+										ON class_subjects.class_id = classes.class_id
+									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+								WHERE classes.class_id = :classId");
+        $sth->execute( array(':classId' => $classId ) );
+ 
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->delete('/deleteClass/:class_id', function ($classId) {
+    // delete class
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$d1 = $db->prepare("DELETE FROM app.class_subject_exams 
+								WHERE class_sub_exam_id in (select class_sub_exam_id 
+															from app.class_subjects
+															inner join app.class_subject_exams
+															on class_subjects.class_subject_id = class_subject_exams.class_subject_id
+															where class_id = :classId)
+							");
+		$d2 = $db->prepare("DELETE FROM app.class_subjects WHERE class_id = :classId");		
+		
+		$d3 = $db->prepare("DELETE FROM app.classes WHERE class_id = :classId");	
+										
+		$db->beginTransaction();
+		$d1->execute( array(':classId' => $classId) );
+		$d2->execute( array(':classId' => $classId) );
+		$d3->execute( array(':classId' => $classId) );
+		$db->commit();
+
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Class Categories  ****************** //
 $app->get('/getClassCats(/:teacher_id)', function ($teacherId=null) {
@@ -1043,7 +1130,7 @@ $app->get('/getClassCats(/:teacher_id)', function ($teacherId=null) {
 		{
 			$sth = $db->prepare("SELECT class_cats.class_cat_id, class_cat_name 
 								FROM app.class_cats 
-								INNER JOIN app.classes ON class_cats.class_cat_id = classes.class_cat_id AND teacher_id = :teacherId
+								INNER JOIN app.classes ON class_cats.class_cat_id = classes.class_cat_id AND classes.active is true  AND teacher_id = :teacherId
 								WHERE class_cats.active is true 
 								ORDER BY class_cats.class_cat_id");
 			$sth->execute(array(':teacherId' => $teacherId));
@@ -1214,7 +1301,7 @@ $app->get('/getClassCatsSummary', function () {
 							(select count(*) 
 								from app.students 
 								inner join app.classes 
-								on students.current_class = classes.class_id 
+								on students.current_class = classes.class_id  AND classes.active is true 
 								where class_cat_id = class_cats.class_cat_id) as num_students
 							FROM app.class_cats 
 							WHERE active is true
@@ -1236,6 +1323,104 @@ $app->get('/getClassCatsSummary', function () {
         }
  
     } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/checkClassCat/:class_cat_id', function ($classCatId) {
+    // Check is class category is associated with any exam marks
+	
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT count(exam_id) as num_exams
+								FROM app.exam_marks
+								INNER JOIN app.class_subject_exams 
+									INNER JOIN app.class_subjects
+										INNER JOIN app.classes
+										ON class_subjects.class_id = classes.class_id
+									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+								WHERE class_cat_id = :classCatId");
+        $sth->execute( array(':classCatId' => $classCatId ) );
+ 
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->delete('/deleteClassCat/:class_cat_id', function ($classCatId) {
+    // delete class category
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$d1 = $db->prepare("DELETE FROM app.class_subject_exams 
+								WHERE class_sub_exam_id in (select class_sub_exam_id 
+															from app.classes
+															inner join app.class_subjects
+																inner join app.class_subject_exams
+																on class_subjects.class_subject_id = class_subject_exams.class_subject_id
+															on classes.class_id = class_subjects.class_id
+															where class_cat_id = :classCatId)
+							");
+		$d2 = $db->prepare("DELETE FROM app.class_subjects 
+								WHERE class_subject_id in (select class_subject_id 
+															from app.classes
+															inner join app.class_subjects
+															on classes.class_id = class_subjects.class_id
+															where class_cat_id = :classCatId)
+							");
+		$d3 = $db->prepare("DELETE FROM app.classes WHERE class_cat_id = :classCatId");
+		
+		
+		$d4 = $db->prepare("DELETE FROM app.exam_types WHERE class_cat_id = :classCatId");		
+		$d5 = $db->prepare("DELETE FROM app.subjects WHERE class_cat_id = :classCatId");		
+		$d6 = $db->prepare("DELETE FROM app.class_cats WHERE class_cat_id = :classCatId");		
+										
+		$db->beginTransaction();
+		$d1->execute( array(':classCatId' => $classCatId) );
+		$d2->execute( array(':classCatId' => $classCatId) );
+		$d3->execute( array(':classCatId' => $classCatId) );
+		$d4->execute( array(':classCatId' => $classCatId) );
+		$d5->execute( array(':classCatId' => $classCatId) );
+		$d6->execute( array(':classCatId' => $classCatId) );
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
@@ -1294,6 +1479,41 @@ $app->get('/getDepartments(/:status)', function ($status=true) {
         $sth->execute( array(':status' => $status ) );
  
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/checkDepartment/:dept_id', function ($deptId) {
+    // Check is department can be deleted
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT count(emp_id) as num_employees
+								FROM app.employees
+								WHERE dept_id = :deptId");
+        $sth->execute( array(':deptId' => $deptId ) );
+ 
+        $results = $sth->fetch(PDO::FETCH_OBJ);
  
         if($results) {
             $app->response->setStatus(200);
@@ -1384,9 +1604,9 @@ $app->put('/setDeptStatus', function () use($app) {
     // Update department status
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
-	$deptId =	( isset($allPostVars['dept_id']) ? $allPostVars['dept_id']: null);
-	$status =		( isset($allPostVars['status']) ? $allPostVars['status']: null);
-	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$deptId = ( isset($allPostVars['dept_id']) ? $allPostVars['dept_id']: null);
+	$status = ( isset($allPostVars['status']) ? $allPostVars['status']: null);
+	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
     try 
     {
@@ -1448,6 +1668,34 @@ $app->get('/getDeptSummary', function () {
         }
  
     } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->delete('/deleteDept/:dept_id', function ($deptId) {
+    // delete department
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("DELETE FROM app.departments WHERE dept_id = :deptId");		
+										
+		$sth->execute( array(':deptId' => $deptId) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
@@ -1573,8 +1821,8 @@ $app->get('/getAllEmployees(/:status)', function ($status=true) {
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as employee_name,
 									emp_cat_name, dept_name
 							 FROM app.employees
-							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id
-							 INNER JOIN app.departments ON employees.dept_id = departments.dept_id
+							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id AND employee_cats.active is true
+							 INNER JOIN app.departments ON employees.dept_id = departments.dept_id AND departments.active is TRUE
 							 WHERE employees.active = :status 
 							 ORDER BY first_name, middle_name, last_name, emp_cat_name, dept_name");
         $sth->execute( array(':status' => $status)); 
@@ -1994,12 +2242,12 @@ $app->get('/getEmployeeDetails/:empId', function ($empId) {
         $sth = $db->prepare("SELECT employees.*,
 									employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as employee_name,
 									emp_cat_name, dept_name,
-									(select array_agg(class_name) from app.classes where teacher_id = employees.emp_id) as classes,
-									(select array_agg(subject_name) from app.subjects where teacher_id = employees.emp_id) as subjects,
+									(select array_agg(class_name) from app.classes where teacher_id = employees.emp_id and classes.active is true) as classes,
+									(select array_agg(subject_name) from app.subjects where teacher_id = employees.emp_id and subjects.active is true) as subjects,
 									username, user_type, users.active as login_active
 							 FROM app.employees 
-							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id
-							 INNER JOIN app.departments ON employees.dept_id = departments.dept_id
+							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id AND employee_cats.active is true
+							 INNER JOIN app.departments ON employees.dept_id = departments.dept_id AND departments.active is TRUE
 							 LEFT JOIN app.users ON employees.login_id = users.user_id
 							 WHERE emp_id = :empId");
         $sth->execute( array(':empId' => $empId)); 
@@ -2175,6 +2423,69 @@ $app->put('/setEmployeeCatStatus', function () use($app) {
  
  
     } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/checkEmpCat/:emp_cat_id', function ($empCatId) {
+    // Check is employe cat can be deleted
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT count(emp_id) as num_employees
+								FROM app.employees
+								WHERE emp_cat_id = :empCatId");
+        $sth->execute( array(':empCatId' => $empCatId ) );
+ 
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->delete('/deleteEmpCat/:emp_cat_id', function ($empCatId) {
+    // delete employee cat
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("DELETE FROM app.employee_cats WHERE emp_cat_id = :empCatId");		
+										
+		$sth->execute( array(':empCatId' => $empCatId) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
@@ -2381,7 +2692,7 @@ $app->put('/updateTerm', function () use($app) {
 
 
 // ************** Subjects  ****************** //
-$app->get('/getAllSubjects/:classCatId', function ($classCatId) {
+$app->get('/getAllSubjects/:classCatId(/:status)', function ($classCatId, $status = true) {
     //Show all subjects, including parent subjects
 	
 	$app = \Slim\Slim::getInstance();
@@ -2392,15 +2703,17 @@ $app->get('/getAllSubjects/:classCatId', function ($classCatId) {
 		$sth = $db->prepare("SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 									teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
 									parent_subject_id, sort_order,
-									(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1) as parent_subject_name			
+									(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
+									case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
 								FROM app.subjects
 								LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
-								INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id
+								INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 								WHERE subjects.class_cat_id = :classCatId
+								AND subjects.active = :status
 								ORDER BY class_cat_name, sort_order, subject_name;
 							");
 							
-		$sth->execute(array(':classCatId' => $classCatId));			
+		$sth->execute(array(':classCatId' => $classCatId, ':status' => $status));			
  
         $results = $sth->fetchAll(PDO::FETCH_ASSOC);
  
@@ -2435,12 +2748,13 @@ $app->get('/getSubjects/:classCatId', function ($classCatId) {
 		$sth = $db->prepare("SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 									teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
 									parent_subject_id, sort_order,
-									(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1) as parent_subject_name			
+									(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name			
 								FROM app.subjects
 								LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
-								INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id
+								INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true 
 								WHERE subjects.class_cat_id = :classCatId
-								AND (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id limit 1) is null 
+								AND subjects.active is true
+								AND (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null 
 								ORDER BY class_cat_name, sort_order, subject_name;
 							");
 							
@@ -2623,6 +2937,83 @@ $app->put('/setSubjectSortOrder', function () use($app) {
 
 });
 
+$app->get('/checkSubject/:subject_id', function ($subjectId) {
+    // Check is subject can be deleted
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT count(class_subject_id) as num_classes
+								FROM app.class_subjects
+								WHERE subject_id = :subjectId");
+        $sth->execute( array(':subjectId' => $subjectId ) );
+ 
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->delete('/deleteSubject/:subject_id', function ($subjectId) {
+    // delete subject
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$d1 = $db->prepare("DELETE FROM app.class_subject_exams 
+								WHERE class_sub_exam_id in (select class_sub_exam_id 
+															from app.class_subjects
+															inner join app.class_subject_exams
+															on class_subjects.class_subject_id = class_subject_exams.class_subject_id
+															where subject_id = :subjectId)
+							");
+		$d2 = $db->prepare("DELETE FROM app.class_subjects WHERE subject_id = :subjectId");		
+		
+		$d3 = $db->prepare("DELETE FROM app.subjects WHERE subject_id = :subjectId");	
+										
+		$db->beginTransaction();
+		$d1->execute( array(':subjectId' => $subjectId) );
+		$d2->execute( array(':subjectId' => $subjectId) );
+		$d3->execute( array(':subjectId' => $subjectId) );
+		$db->commit();
+
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Exams  ****************** //
 $app->get('/getExamTypes/:class_cat_id', function ($classCatId) {
@@ -2638,7 +3029,7 @@ $app->get('/getExamTypes/:class_cat_id', function ($classCatId) {
 		$sth = $db->prepare("SELECT exam_type_id, exam_type, exam_types.class_cat_id, class_cat_name
 							FROM app.exam_types 
 							LEFT JOIN app.class_cats
-							ON exam_types.class_cat_id = class_cats.class_cat_id
+							ON exam_types.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 							WHERE exam_types.class_cat_id = :classCatId 
 							ORDER BY sort_order");
 		$sth->execute(array(':classCatId' => $classCatId)); 
@@ -2792,10 +3183,11 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 		
 		// get exam marks by exam type
 		$queryArray = array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId);
-		$query = "SELECT subject_name, mark, grade_weight, exam_type, rank, grade
+		$query = "SELECT subject_name, parent_subject_name, mark, grade_weight, exam_type, rank, grade
 					FROM (
 						SELECT class_id
-							  ,subject_name      
+							  ,subject_name  
+							  ,(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
 							  ,exam_type
 							  ,student_id
 							  ,mark          
@@ -2810,11 +3202,10 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 						ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 						INNER JOIN app.class_subjects 
 							INNER JOIN app.subjects
-							ON class_subjects.subject_id = subjects.subject_id
+							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-						WHERE class_subjects.class_id = :classId
-						
+						WHERE class_subjects.class_id = :classId						
 						AND term_id = :termId
 						";
 						
@@ -2825,10 +3216,10 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 			$queryArray[':examTypeId'] = $examTypeId; 
 		}
 		
-		$query .= "WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY  exam_types.exam_type_id, subjects.sort_order)
+		$query .= "WINDOW w AS (PARTITION BY class_subjects.subject_id, class_subject_exams.exam_type_id ORDER BY  subjects.sort_order, exam_types.exam_type_id)
 				 ) q
 				 where student_id = :studentId
-				 ORDER BY exam_type_id, sort_order";
+				 ORDER BY sort_order,exam_type_id ";
 		
 		$sth = $db->prepare($query);
 		$sth->execute( $queryArray ); 
@@ -2867,16 +3258,16 @@ $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id', function ($clas
 							FROM (
 								SELECT  students.student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name, 
 									subject_name, class_subject_exams.class_sub_exam_id, grade_weight, subjects.sort_order, parent_subject_id, subjects.subject_id,
-									case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id limit 1) is null then false else true end as is_parent
+									case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null then false else true end as is_parent
 								FROM app.students 
 								INNER JOIN app.classes 
 									INNER JOIN app.class_subjects 
 										INNER JOIN app.subjects
-										ON class_subjects.subject_id = subjects.subject_id
+										ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 										INNER JOIN app.class_subject_exams																	
 										ON class_subjects.class_subject_id = class_subject_exams.class_subject_id		
 									ON classes.class_id = class_subjects.class_id									
-								ON students.current_class = classes.class_id							
+								ON students.current_class = classes.class_id AND classes.active is true 					
 								WHERE current_class = :classId
 								AND exam_type_id = :examTypeId							
 							) q
@@ -2922,7 +3313,7 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$term
 			$query = "select app.colpivot('_exam_marks', 'SELECT first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name
 							 ,class_id
 							  ,subject_name     
-							  ,coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1),'''') as parent_subject_name
+							  ,coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name
 							  ,exam_type
 							  ,exam_marks.student_id
 							  ,mark          
@@ -2934,7 +3325,7 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$term
 						ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 						INNER JOIN app.class_subjects 
 							INNER JOIN app.subjects
-							ON class_subjects.subject_id = subjects.subject_id
+							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 						INNER JOIN app.students ON exam_marks.student_id = students.student_id
@@ -2963,7 +3354,7 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type', function ($classId,$term
 													ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 													INNER JOIN app.class_subjects 
 														INNER JOIN app.subjects
-														ON class_subjects.subject_id = subjects.subject_id
+														ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 													ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 												ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 												WHERE class_subjects.class_id = $classId
@@ -3125,9 +3516,9 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 									INNER JOIN app.class_subjects 
 										INNER JOIN app.subjects
-										ON class_subjects.subject_id = subjects.subject_id
+										ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 										INNER JOIN app.classes
-										ON class_subjects.class_id = classes.class_id
+										ON class_subjects.class_id = classes.class_id AND classes.active is true 
 									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 								WHERE term_id = (select term_id from app.current_term)
@@ -3193,7 +3584,7 @@ $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
 									report_cards.creation_date::date as date									
 							FROM app.report_cards
 							INNER JOIN app.students ON report_cards.student_id = students.student_id
-							INNER JOIN app.classes ON report_cards.class_id = classes.class_id
+							INNER JOIN app.classes ON report_cards.class_id = classes.class_id AND classes.active is true 
 							INNER JOIN app.terms ON report_cards.term_id = terms.term_id
 							LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 							WHERE report_cards.class_id = :classId
@@ -3232,13 +3623,13 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
     {
         $db = getDB();
 		
-		$sth = $db->prepare("SELECT report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
+		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
 									date_part('year', start_date) as year, report_data, report_cards.report_card_type, class_cat_id,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
-					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
+					INNER JOIN app.classes ON report_cards.class_id = classes.class_id AND classes.active is true 
 					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
 					LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 					WHERE report_cards.student_id = :studentId
@@ -3277,13 +3668,13 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT report_cards.student_id, class_name, term_name, report_cards.term_id, 
+		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, class_name, term_name, report_cards.term_id, 
 									date_part('year', start_date) as year, report_data, report_cards.report_card_type,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
-					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
+					INNER JOIN app.classes ON report_cards.class_id = classes.class_id AND classes.active is true 
 					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
 					LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 					WHERE report_cards.student_id = :studentId
@@ -3335,14 +3726,14 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 							  ,dense_rank() over w as rank,
 							  subjects.sort_order,
 							  exam_types.exam_type_id,
-							  (select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1) as parent_subject_name
+							  (select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types
 						ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 						INNER JOIN app.class_subjects 
 							INNER JOIN app.subjects
-							ON class_subjects.subject_id = subjects.subject_id
+							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 						WHERE class_subjects.class_id = :classId
@@ -3386,7 +3777,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 									INNER JOIN app.class_subjects 
 										INNER JOIN app.subjects
-										ON class_subjects.subject_id = subjects.subject_id
+										ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 									WHERE class_subjects.class_id = :classId
@@ -3426,7 +3817,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 										ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 										INNER JOIN app.class_subjects 
 											INNER JOIN app.subjects
-											ON class_subjects.subject_id = subjects.subject_id
+											ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 										ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 										ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 										WHERE class_subjects.class_id = :classId
@@ -3465,7 +3856,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 										ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 										INNER JOIN app.class_subjects 
 											INNER JOIN app.subjects
-											ON class_subjects.subject_id = subjects.subject_id
+											ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 										ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 										ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 										WHERE class_subjects.class_id = :classId
@@ -3570,6 +3961,33 @@ $app->post('/addReportCard', function () use($app) {
 
 });
 
+$app->delete('/deleteReportCard/:report_card_id', function ($reportCardId) {
+    // delete report card
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("DELETE FROM app.report_cards WHERE report_card_id = :reportCardId");		
+										
+		$sth->execute( array(':reportCardId' => $reportCardId) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
 
 // ************** Payments  ****************** //
 $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStatus)', function ($startDate,$endDate, $paymentStatus = false, $studentStatus = null) {
@@ -3612,7 +4030,7 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 								) AS unapplied_amount
 					FROM app.payments
 					INNER JOIN app.students ON payments.student_id = students.student_id
-					INNER JOIN app.classes ON students.current_class = classes.class_id
+					INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
 					WHERE payment_date between :startDate and :endDate
 					AND reversed = :reversed
 							";
@@ -3797,7 +4215,7 @@ $app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true
 							FROM app.invoice_balances
 							INNER JOIN app.students
 								INNER JOIN app.classes
-								ON students.current_class = classes.class_id
+								ON students.current_class = classes.class_id AND classes.active is true 
 							ON invoice_balances.student_id = students.student_id
 							WHERE invoice_balances.due_date < now()
 							AND date_part('year', due_date) = :year
@@ -4371,7 +4789,7 @@ $app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($sta
 							FROM app.invoice_balances
 							INNER JOIN app.students
 								INNER JOIN app.classes
-								ON students.current_class = classes.class_id
+								ON students.current_class = classes.class_id AND classes.active is true 
 							ON invoice_balances.student_id = students.student_id
 							WHERE due_date between :startDate and :endDate
 							AND students.active = :status
@@ -4514,8 +4932,8 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 								FROM app.students									
 								INNER JOIN app.student_fee_items
 									INNER JOIN app.fee_items
-									ON student_fee_items.fee_item_id = fee_items.fee_item_id										
-								ON students.student_id = student_fee_items.student_id AND student_Fee_items.active = true
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id AND fee_items.active is true									
+								ON students.student_id = student_fee_items.student_id AND student_fee_items.active = true
 								LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
 								WHERE students.active = true
 								ORDER BY students.student_id
@@ -4640,7 +5058,7 @@ $app->get('/getInvoiceDetails/:inv_id', function ($invId) {
 							ON invoices.inv_id = invoice_line_items.inv_id
 							INNER JOIN app.students
 								INNER JOIN app.classes
-								ON students.current_class = classes.class_id
+								ON students.current_class = classes.class_id AND classes.active is true 
 							ON invoices.student_id = students.student_id
 							WHERE invoices.inv_id = :invId
 							ORDER BY fee_item
@@ -4671,7 +5089,7 @@ $app->get('/getInvoiceDetails/:inv_id', function ($invId) {
 $app->put('/updateInvoice', function() use($app){
 	 // Update invoice	
 	$allPostVars = json_decode($app->request()->getBody(),true);
-	var_dump($allPostVars);
+
 	$invId = 	 ( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
 	$invDate = 	 ( isset($allPostVars['inv_date']) ? $allPostVars['inv_date']: null);
 	$totalAmt =  ( isset($allPostVars['total_amount']) ? $allPostVars['total_amount']: null);
@@ -5125,13 +5543,16 @@ $app->put('/updateRoutes', function () use($app) {
 		
 		$insertRoute = $db->prepare("INSERT INTO app.transport_routes(route,amount,created_by)
 										VALUES(:route, :amount, :userId)");
-		
+		/*
 		$inactivateRoute = $db->prepare("UPDATE app.transport_routes
 							SET active = false,
 								modified_date = now(),
 								modified_by = :userId 
 							WHERE transport_id = :transportId
 							"); 
+		*/
+		$deleteRoute = $db->prepare('DELETE FROM app.transport_routes WHERE transport_id = :transportId');		
+							
 							
 		// pull out existing routes	    
 	    $query = $db->prepare("SELECT transport_id FROM app.transport_routes WHERE active is true");
@@ -5176,7 +5597,7 @@ $app->put('/updateRoutes', function () use($app) {
 			
 			if( $deleteMe )
 			{
-				$inactivateRoute->execute(array(':transportId' => $currentRoute->transport_id, ':userId' => $userId));
+				$deleteRoute->execute(array(':transportId' => $currentRoute->transport_id));
 			}
 		}
 		
@@ -5189,6 +5610,69 @@ $app->put('/updateRoutes', function () use($app) {
  
  
     } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/checkFeeItem/:fee_item_id', function ($feeItemId) {
+    // Check is fee item can be deleted
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT count(student_id) as num_students
+								FROM app.student_fee_items
+								WHERE fee_item_id = :feeItemId");
+        $sth->execute( array(':feeItemId' => $feeItemId ) );
+ 
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->delete('/deleteFeeItem/:fee_item_id', function ($feeItemId) {
+    // delete fee item
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("DELETE FROM app.fee_items WHERE fee_item_id = :feeItemId");		
+										
+		$sth->execute( array(':feeItemId' => $feeItemId) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
@@ -5209,7 +5693,7 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
 		
 		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
 							 FROM app.students 
-							 INNER JOIN app.classes ON students.current_class = classes.class_id
+							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
 							 WHERE students.active = :status 
 							 ORDER BY first_name, middle_name, last_name");
 		$sth->execute( array(':status' => $status)); 
@@ -5246,7 +5730,7 @@ $app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $st
 		
 		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
 							 FROM app.students 
-							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.teacher_id = :teacherId
+							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true AND classes.teacher_id = :teacherId
 							 WHERE students.active = :status 
 							 ORDER BY first_name, middle_name, last_name");
 		$sth->execute( array(':status' => $status, ':teacherId' => $teacherId)); 
@@ -5283,7 +5767,7 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
         $sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
 								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' days apart)' as payment_plan_name
 							 FROM app.students 
-							 INNER JOIN app.classes ON students.current_class = classes.class_id
+							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
 							 LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
 							 WHERE student_id = :studentID 
 							 ORDER BY first_name, middle_name, last_name");
@@ -5324,7 +5808,8 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
 										from app.payment_inv_items 
 										inner join app.invoice_line_items 
 										on payment_inv_items.inv_item_id = invoice_line_items.inv_item_id 
-										where invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id) as payment_made,
+										where invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+									) as payment_made,
 									student_fee_items.active
 								FROM app.student_fee_items 
 								INNER JOIN app.fee_items on student_fee_items.fee_item_id = fee_items.fee_item_id
@@ -5523,7 +6008,7 @@ $app->get('/getOpenInvoices/:studentId', function ($studentId) {
 							ON invoice_balances.inv_id = invoice_line_items.inv_id
 							INNER JOIN app.students
 								INNER JOIN app.classes
-								ON students.current_class = classes.class_id
+								ON students.current_class = classes.class_id AND classes.active is true 
 							ON invoice_balances.student_id = students.student_id
 							WHERE students.student_id = :studentId
 							AND balance < 0
@@ -5565,7 +6050,7 @@ $app->get('/getStudentFeeItems/:studentId', function ($studentId) {
 									     ELSE 1
 									END as frequency
 							FROM app.student_fee_items
-							INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+							INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id AND fee_items.active is true
 							WHERE student_id = :studentId
 							AND student_fee_items.active = true
 							ORDER BY fee_item");
@@ -5601,7 +6086,7 @@ $app->get('/getReplaceableFeeItems/:studentId', function ($studentId) {
         $db = getDB();
        $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount
 							FROM app.student_fee_items
-							INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+							INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id AND fee_items.active is true
 							WHERE student_id = :studentId
 							AND student_fee_items.active = true
 							AND replaceable = true
@@ -5716,12 +6201,12 @@ $app->get('/getStudentClassess/:studentId', function ($studentId) {
 								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 2') then true else false end as term_2,
 								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
 							FROM app.students
-							INNER JOIN app.classes ON students.current_class = classes.class_id
+							INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
 							WHERE student_id = :studentId
 							UNION
 							SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
 							FROM app.student_class_history
-							INNER JOIN app.classes ON student_class_history.class_id = classes.class_id
+							INNER JOIN app.classes ON student_class_history.class_id = classes.class_id AND classes.active is true 
 							WHERE student_id = :studentId
 							ORDER BY ord");
 		$sth->execute( array(':studentId' => $studentId) ); 
@@ -5763,7 +6248,7 @@ $app->post('/addStudent', function () use($app) {
 	$studentImg = 					( isset($allPostVars['student_image']) ? $allPostVars['student_image']: null);
 	$paymentMethod = 				( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
 	$active = 						( isset($allPostVars['active']) ? $allPostVars['active']: true);
-	$newStudent = 		( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: true);
+	$newStudent = 					( isset($allPostVars['new_student']) ? $allPostVars['new_student']: 'f');
 	$admissionDate = 				( isset($allPostVars['admission_date']) ? $allPostVars['admission_date']: null);
 	$marialStatusParents = 			( isset($allPostVars['marial_status_parents']) ? $allPostVars['marial_status_parents']: null);
 	$adopted = 						( isset($allPostVars['adopted']) ? $allPostVars['adopted']: 'f');
@@ -5797,7 +6282,11 @@ $app->post('/addStudent', function () use($app) {
 
 	$createdBy = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
-
+	$hasGuardian = false;
+	$hasMedical = false;
+	$hasFeeItems = false;
+	$hasOptFeeItems = false;
+	
     try 
     {
         $db = getDB();
@@ -5819,8 +6308,9 @@ $app->post('/addStudent', function () use($app) {
 		$query = $db->prepare("SELECT currval('app.students_student_id_seq') as student_id");
         $query2 = $db->prepare("SELECT currval('app.students_student_id_seq') as student_id, currval('app.guardians_guardian_id_seq') as guardian_id");
 		
-		if( $guardianData !== null )
+		if( $guardianData !== null && count($guardianData) > 0 )
 		{
+			$hasGuardian = true;
 			// add contact
 			$guardianInsert = $db->prepare("INSERT INTO app.guardians(first_name, middle_name, last_name, title, id_number, address, telephone, email, 
 											marital_status, occupation, employer, employer_address, work_email, work_phone, created_by)
@@ -5858,12 +6348,16 @@ $app->post('/addStudent', function () use($app) {
 
 		if( count($medicalConditions) > 0 )
 		{
+			$hasMedical = true;
 			$conditionInsert = $db->prepare("INSERT INTO app.student_medical_history(student_id, illness_condition, age, comments, created_by) 
             VALUES(currval('app.students_student_id_seq'),?,?,?,?);"); 
         
 		}
+		
 		if( count($feeItems) > 0 || count($optFeeItems) > 0 )
 		{
+			$hasFeeItems = ( count($feeItems) > 0 ? true : false);
+			$hasOptFeeItems = ( count($optFeeItems) > 0 ? true : false);
 			$feesInsert = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
 										VALUES(currval('app.students_student_id_seq'),:feeItemID,:amount,:paymentMethod,:userId);"); 
 		}		
@@ -5907,7 +6401,7 @@ $app->post('/addStudent', function () use($app) {
 		
 		$studentClassInsert->execute(array(':currentClass' => $currentClass,':createdBy' => $createdBy));
 		
-		if( $guardianData !== null )
+		if( $hasGuardian )
 		{
 			foreach( $guardianData as $guardian )
 			{
@@ -5974,7 +6468,7 @@ $app->post('/addStudent', function () use($app) {
 			
 		}
 			
-		if( count($medicalConditions) > 0 )
+		if( $hasMedical )
 		{
         
 			foreach($medicalConditions as $medicalCondition )
@@ -5987,7 +6481,7 @@ $app->post('/addStudent', function () use($app) {
 			}
 		}
 		
-		if( count($feeItems) > 0 )
+		if( $hasFeeItems )
 		{
 			foreach( $feeItems as $feeItem )
 			{
@@ -6000,7 +6494,7 @@ $app->post('/addStudent', function () use($app) {
 			}
 		}
 
-		if( count($optFeeItems) > 0 )
+		if( $hasOptFeeItems )
 		{
         
 			foreach( $optFeeItems as $optFeeItem )
@@ -6014,9 +6508,10 @@ $app->post('/addStudent', function () use($app) {
 			}
 		}
 		
-		// if guardian id was sent, just grab student id, else grab both ids
+		// if guardian id was sent, just grab student id, else grab both ids, if a guardian was saved
 		if( isset($guardian['guardian_id']) ) $query->execute();
-		else $query2->execute();
+		else if( $hasGuardian ) $query2->execute();
+		else $query->execute();
 		
 		$newStudent = $query->fetch(PDO::FETCH_OBJ);	
 		
@@ -6083,7 +6578,7 @@ $app->put('/updateStudent', function () use($app) {
 		$updateClass = 			( isset($allPostVars['details']['update_class']) ? $allPostVars['details']['update_class']: false);
 		$studentImg = 			( isset($allPostVars['details']['student_image']) ? $allPostVars['details']['student_image']: null);
 		$active = 				( isset($allPostVars['details']['active']) ? $allPostVars['details']['active']: true);
-		$newStudent = 			( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: true);
+		$newStudent = 			( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: 'f');
 		$admissionNumber =		( isset($allPostVars['details']['admission_number']) ? $allPostVars['details']['admission_number']: null);
 		$admissionDate = 		( isset($allPostVars['details']['admission_date']) ? $allPostVars['details']['admission_date']: null);
 	}
@@ -6168,7 +6663,7 @@ $app->put('/updateStudent', function () use($app) {
 													SET active = false,
 														modified_date = now(),
 														modified_by = :userId												
-													WHERE fee_item_id = any(SELECT fee_item_id FROM app.fee_items WHERE :previousClassCatId = any(class_cats_restriction))");
+													WHERE fee_item_id = any(SELECT fee_item_id FROM app.fee_items WHERE :previousClassCatId = any(class_cats_restriction) AND fee_items.active is true)");
 				}
 			}
 				
@@ -6236,7 +6731,18 @@ $app->put('/updateStudent', function () use($app) {
 			$feesInsert = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
 										VALUES(:studentID,:feeItemID,:amount,:paymentMethod,:userId);"); 
 			
-
+			$feeItemCheck = $db->prepare("SELECT coalesce(sum(inv_item_id),0) as total_invoices,  
+												 coalesce(sum(payment_replace_item_id),0) as total_payments
+											FROM app.student_fee_items
+											LEFT JOIN app.invoice_line_items 
+											ON student_fee_items.student_fee_item_id = invoice_line_items.student_fee_item_id
+											LEFT JOIN app.payment_replacement_items 
+											ON student_fee_items.student_fee_item_id = payment_replacement_items.student_fee_item_id
+											WHERE student_id = :studentId
+											AND fee_item_id = :feeItemId");
+											
+			$deleteItem = $db->prepare("DELETE FROM app.student_fee_items WHERE student_id = :studentId AND fee_item_id = :feeItemId");
+			
 			$inactivate = $db->prepare("UPDATE app.student_fee_items
 										SET active = false,
 											modified_date = now(),
@@ -6448,7 +6954,24 @@ $app->put('/updateStudent', function () use($app) {
 				
 				if( $deleteMe )
 				{
-					$inactivate->execute(array(':studentId' => $studentId, ':feeItemId' => $currentFeeItem->fee_item_id, ':userId' => $userId));
+					// if there is a payment, mark inactive
+					// if there is an invoice item, mark inactive
+					// if no payments or invoice, delete
+					
+					$feeItemCheck->execute( array(':studentId' => $studentId, ':feeItemId' => $currentFeeItem->fee_item_id) );
+					$checkResults = $feeItemCheck->fetch(PDO::FETCH_OBJ);
+					
+					if( $checkResults->total_invoices > 0 || $checkResults->total_payments > 0 )
+					{
+						$inactivate->execute(array(':studentId' => $studentId, ':feeItemId' => $currentFeeItem->fee_item_id, ':userId' => $userId));
+					}
+					else
+					{
+						// no invoices or payments, delete
+						$deleteItem->execute( array(':studentId' => $studentId, ':feeItemId' => $currentFeeItem->fee_item_id) );
+					}
+					
+					
 				}
 			}
 			
@@ -7063,6 +7586,40 @@ $app->get('/checkIdNumber/:id_number', function ($idNumber) {
 
 });
 
+$app->get('/checkAdmNumber/:admission_number', function ($admissionNumber) {
+    // Check that admission number is unique
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT student_id
+							FROM app.students
+							WHERE admission_number = :admissionNumber");
+		$sth->execute( array(':admissionNumber' => $admissionNumber) ); 
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 
 // ************** Parent Portal  ****************** //
 $app->post('/parentLogin', function () use($app) {
@@ -7110,7 +7667,7 @@ $app->post('/parentLogin', function () use($app) {
 												 students.active, class_name, class_id,
 												 (SELECT value FROM app.settings WHERE name = 'School Name') as school_name
 											FROM app.students
-											INNER JOIN app.classes ON students.current_class = classes.class_id
+											INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
 											WHERE student_id = :studentId");
 					$sth3->execute(array(':studentId' => $student->student_id));
 					$details = $sth3->fetch(PDO::FETCH_OBJ);

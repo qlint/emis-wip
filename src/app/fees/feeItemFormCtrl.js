@@ -7,6 +7,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.classCatSelection = [];
 	$scope.edit = ( data !== undefined ? true : false );
 	$scope.item = ( data !== undefined ? data : {} );
+	$scope.deleted = false;
 	//console.log(data);
 	
 	$scope.initializeController = function()
@@ -137,7 +138,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		if( result.response == 'success' )
 		{
 			$uibModalInstance.close();
-			var msg = ($scope.edit ? 'Fee Item  was updated.' : 'Fee Item  was added.');
+			var msg = ($scope.deleted ? 'Fee Item was deleted.' : ( $scope.edit ? 'Fee Item was updated' :  'Fee Item was added.'));
 			$rootScope.$emit('feeItemAdded', {'msg' : msg, 'clear' : true});
 		}
 		else
@@ -151,17 +152,48 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
-		$scope.errMsg = result.data;
+		var msg = ( result.data.indexOf('"U_route"') > -1 ? 'Duplicate route name.' : result.data);
+		$scope.errMsg = msg;
 	}
 	
 	$scope.deleteFeeItem = function()
 	{
-		var data = {
-			user_id : $rootScope.currentUser.user_id,
-			fee_item_id: $scope.item.fee_item_id,
-			status: 'f'
-		}
-		apiService.setFeeItemStatus(data,createCompleted,apiError);
+		$scope.error = false;
+		apiService.checkFeeItem($scope.item.fee_item_id,function(response,status){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				var canDelete = ( parseInt(result.data.num_students) == 0 ? true : false );
+				
+				if( canDelete )
+				{
+					var dlg = $dialogs.confirm('Delete Subject','Are you sure you want to permanently delete fee item <strong>' + $scope.item.fee_item + '</strong>? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						$scope.deleted = true;
+						apiService.deleteFeeItem($scope.item.fee_item_id,createCompleted,apiError);
+					});
+				}
+				else
+				{
+					var dlg = $dialogs.confirm('Please Confirm','Fee Item <strong>' + $scope.item.fee_item + '</strong> is associated with <b>' + result.data.num_students + '</b> students. Are you sure you want to mark this fee item as in-active? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						var data = {
+							user_id : $rootScope.currentUser.user_id,
+							fee_item_id: $scope.item.fee_item_id,
+							status: 'f'
+						}
+						apiService.setFeeItemStatus(data,createCompleted,apiError);
+
+					});
+				}
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		},apiError)
+		
 	}
 	
 	$scope.activateFeeItem = function()

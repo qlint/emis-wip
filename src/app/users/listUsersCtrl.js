@@ -5,13 +5,15 @@ controller('listUsersCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$w
 function($scope, $rootScope, apiService, $timeout, $window, $state){
 
 	var initialLoad = true;
+	$scope.filters = {};
+	$scope.filters.status = 'true';
 	$scope.users = [];
 
 	$scope.alert = {};
 	
 	var getUsers = function()
 	{
-		apiService.getUsers(true, function(response){
+		apiService.getUsers($scope.filters.status, function(response){
 			var result = angular.fromJson(response);
 			
 			// store these as they do not change often
@@ -46,6 +48,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	}
 	$timeout(initializeController,1000);
 	
+	$scope.loadFilter = function()
+	{
+		$scope.loading = true;
+		getUsers();		
+	}
 	
 	var initDataGrid = function() 
 	{		
@@ -101,8 +108,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	{
 		if( !$rootScope.isSmallScreen )
 		{
-			//var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',0);
+			var filterFormWidth = $('.dataFilterForm form').width();
+			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
 	}
 	
@@ -170,7 +177,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid) $scope.dataGrid.destroy();
+		if($scope.dataGrid){
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.fixedHeader.destroy();
+			$scope.dataGrid.clear();
+			$scope.dataGrid.destroy();
+		}
 		$rootScope.isModal = false;
     });
 	

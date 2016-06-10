@@ -6,6 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	$scope.subject = ( data.subject !== undefined ? data.subject : {} );
 	$scope.edit = ( data.subject && data.subject.subject_id !== undefined ? true : false );
+	$scope.deleted = false;
 	
 	console.log(data);
 	
@@ -71,7 +72,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		if( result.response == 'success' )
 		{
 			$uibModalInstance.close();
-			var msg = ($scope.edit ? 'Subject was updated.' : 'Subject was added.');
+			var msg = ($scope.deleted ? 'Subject was deleted.' : ( $scope.edit ? 'Subject was updated' :  'Subject was added.'));
 			$rootScope.$emit('subjectAdded', {'msg' : msg, 'clear' : true});
 		}
 		else
@@ -85,21 +86,48 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
-		$scope.errMsg = result.data;
+		var msg = ( result.data.indexOf('"U_subject_by_class_cat"') > -1 ? 'This subject already exists.' : result.data);
+		$scope.errMsg = msg;
 	}
 	
 	$scope.deleteSubject = function()
 	{
-		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to mark this subject as deleted? ',{size:'sm'});
-		dlg.result.then(function(btn){
-			var data = {
-				user_id : $rootScope.currentUser.user_id,
-				subject_id: $scope.subject.subject_id,
-				status: 'f'
-			}
-			apiService.setSubjectStatus(data,createCompleted,apiError);
+		$scope.error = false;
+		apiService.checkSubject($scope.subject.subject_id,function(response,status){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				var canDelete = ( parseInt(result.data.num_classes) == 0 ? true : false );
+				
+				if( canDelete )
+				{
+					var dlg = $dialogs.confirm('Delete Subject','Are you sure you want to permanently delete subject <strong>' + $scope.subject.subject_name + '</strong>? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						$scope.deleted = true;
+						apiService.deleteSubject($scope.subject.subject_id,createCompleted,apiError);
+					});
+				}
+				else
+				{
+					var dlg = $dialogs.confirm('Please Confirm','Subject <strong>' + $scope.subject.subject_name + '</strong> is associated with <b>' + result.data.num_classes + '</b> classes. Are you sure you want to mark this subject as in-active? ',{size:'sm'});
+					dlg.result.then(function(btn){
+						var data = {
+							user_id : $rootScope.currentUser.user_id,
+							subject_id: $scope.subject.subject_id,
+							status: 'f'
+						}
+						apiService.setSubjectStatus(data,createCompleted,apiError);
 
-		});
+					});
+				}
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		},apiError)
+		
 		
 	}
 	
@@ -188,7 +216,8 @@ function($scope,$rootScope,$uibModalInstance,apiService,$dialogs,data){
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
-			$scope.errMsg = result.data;
+			var msg = ( result.data.indexOf('"U_active_class_cat"') > -1 ? 'The Class Category name you entered already exists.' : result.data);
+			$scope.errMsg = msg;
 		}
 		
 		$scope.hitEnter = function(evt){
