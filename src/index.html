@@ -75,7 +75,7 @@
 								<a ui-sref="{{item.id}}">{{item.label}}</a>					
 							</li>
 							
-							<li ng-if="isSmallScreen" ng-class="{active: item.section == activeSection}">
+							<li ng-if="isSmallScreen" ng-show="manageUsers" ng-class="{active: item.section == activeSection}">
 								<a ui-sref="users">Manage Users</a>					
 							</li>
 							<li ng-if="isSmallScreen" ng-class="{active: item.section == activeSection}">
