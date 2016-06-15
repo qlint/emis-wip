@@ -533,6 +533,29 @@ h1{
 				background-color:rgba(238, 238, 238, 0.38);
 			}		
 		}
+		p{
+			margin:15px 50px 5px 5px;
+		}
+		.title{
+			b{
+				font-size:14px;
+			}
+			span{
+				font-size:12px;
+				font-style:italic;
+			}
+			
+			a{
+				color:#333;
+			}
+		}
+		.indent{
+			margin: 5px 0;
+			
+			a{
+				font-size:12px;
+			}
+		}
 		
 	}
 	.dashboard-panel-footer{
@@ -1028,7 +1051,7 @@ table.clickable{
 	.header .modalDataFilter{
 		padding:0 25px;
 	}
-	
+		
 	.invoice-status{
 		margin-top: -16px;
 		padding-top: 25px;
@@ -1281,6 +1304,56 @@ table.clickable{
 
 .printReceipt{
 	
+}
+
+/********************** Blog Styles ******************************/
+.blog-title{
+	margin: 0 -15px 10px -15px;
+	background: rgba(238, 238, 238, 0.53);
+	padding: 5px 15px;
+}
+.blog-post{
+	margin-top:15px;
+	margin-bottom:15px;
+}
+.trix-content{
+	min-height:200px;
+}
+.blog{
+	h2{
+		font-size:20px;
+	}
+	.buttons{
+		margin-top:15px;
+		padding-top:10px;
+	}
+	.feature-img{
+		margin-bottom:15px;
+	}
+	.feature-img.thumb{
+		width:150px;
+		height:auto;
+	}
+	.feature-img.post{
+		width:100%;
+	}
+	.icon-sm{
+		font-size:14px;
+		color:$bright-green;
+	}
+	.blog-meta{
+		margin:15px -15px -15px -15px;
+		padding:10px 15px;
+		color:#777;
+		border-top:1px solid #ddd;
+		border-bottom:1px solid #ddd;
+		font-style:italic;
+		background-color:#eee;
+		
+		p{
+			margin-bottom:3px;
+		}
+	}
 }
 
 /*

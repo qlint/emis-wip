@@ -12,7 +12,7 @@ function($scope, $rootScope, apiService){
 	$scope.fees3Loading = true;
 	$scope.newsLoading = true;
 	
-	
+	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false);
 	
 	var getStudentCount = function()
 	{
@@ -35,6 +35,51 @@ function($scope, $rootScope, apiService){
 			
 		}, function(){});
 	}
+	
+	var getTeacherClasses = function()
+	{
+		var params = $rootScope.currentUser.emp_id + '/true';
+		apiService.getTeacherClasses(params, function(response){
+			
+			var result = angular.fromJson(response);			
+			
+			if( result.response == 'success')
+			{
+				$scope.myClasses =  ( result.nodata !== undefined ? [] : result.data);
+				$scope.studentsLoading = false;
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+				$scope.studentsLoading = false;
+			}
+			
+		}, function(){});
+	}
+	
+	var getTeacherSubjects = function()
+	{
+		var params = $rootScope.currentUser.emp_id + '/true';
+		apiService.getTeacherSubjects(params, function(response){
+			
+			var result = angular.fromJson(response);			
+			
+			if( result.response == 'success')
+			{
+				$scope.subjects = ( result.nodata !== undefined ? [] : result.data);
+				$scope.studentsLoading = false;
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+				$scope.studentsLoading = false;
+			}
+			
+		}, function(){});
+	}
+	
 	
 	var getStaffCount = function()
 	{
@@ -230,10 +275,19 @@ function($scope, $rootScope, apiService){
 	
 	var initializeController = function () 
 	{
-		getStudentCount();
-		getStaffCount();
-		getFeeSummary();
-		getTopStudents();
+		if( $scope.isTeacher )
+		{
+			getTeacherClasses();
+			getTeacherSubjects();
+			getTopStudents();
+		}
+		else
+		{
+			getStudentCount();
+			getStaffCount();
+			getFeeSummary();
+			getTopStudents();
+		}
 	}
 	
 	setTimeout(initializeController(),10);

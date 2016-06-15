@@ -25,18 +25,36 @@ WITH (
 )
 ;
 
+CREATE TABLE app.blog_post_statuses
+(
+  post_status_id serial NOT NULL,
+  post_status character varying NOT NULL,
+  CONSTRAINT "PK_post_status_id" PRIMARY KEY (post_status_id )
+)
+WITH (
+  OIDS = FALSE
+)
+;
+
 CREATE TABLE app.blog_posts
 (
   post_id serial NOT NULL,
   blog_id integer NOT NULL,
-  creation_date time without time zone NOT NULL DEFAULT now(),
+  creation_date timestamp without time zone NOT NULL DEFAULT now(),
   created_by integer,
   post_type_id integer,
   body text NOT NULL,
   title character varying NOT NULL,
+  post_status_id integer NOT NULL,
+  feature_image character varying,
+  modified_date timestamp without time zone,
+  modified_by integer,
   CONSTRAINT "PK_post_id" PRIMARY KEY (post_id ),
   CONSTRAINT "FK_post_blog" FOREIGN KEY (blog_id)
       REFERENCES app.blogs (blog_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "FK_post_status" FOREIGN KEY (post_status_id)
+      REFERENCES app.blog_post_statuses (post_status_id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT "FK_post_type" FOREIGN KEY (post_type_id)
       REFERENCES app.blog_post_types (post_type_id) MATCH SIMPLE

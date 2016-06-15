@@ -1,12 +1,20 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('classesCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter',
-function($scope, $rootScope, apiService, $timeout, $window, $filter){
+controller('classesCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter','$state',
+function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 
 	$scope.filters = {};
 	$scope.filters.status = 'true';
 	$scope.alert = {};
+	
+	$scope.filters = {};
+	$scope.filters.status = 'true';
+	$scope.filters.class_cat_id = ( $state.params.class_cat_id !== '' ? $state.params.class_cat_id : null );
+	$scope.filterClassCat = ( $state.params.class_cat_id !== '' ? true : false );
+	$scope.filters.class_id = ( $state.params.class_id !== '' ? $state.params.class_id : null );
+	$scope.filterClass = ( $state.params.class_id !== '' ? true : false );
+	
 
 	var initializeController = function () 
 	{

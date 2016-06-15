@@ -40,14 +40,22 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
       }
     })
 	.state('students', {
-      url: "/students/:filter",
+      url: "/students",
+	  params: {
+		class_cat_id: null,
+		class_id:  null
+	  },
 	  templateUrl: 'app/students/listStudents.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
 	.state('staff', {
-      url: "/staff/:category/:dept",
+      url: "/staff",
+	  params: {
+		category: null,
+		dept:  null
+	  },
 	  templateUrl: 'app/staff/listStaff.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
@@ -105,12 +113,23 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
     })
 	.state('school/classes', {
       url: "/school/classes",
+	  params: {
+		class_cat_id: null,
+		class_id: null,
+	  },
 	  templateUrl: 'app/school/classes.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
 	.state('school/subjects', {
+      url: "/school/subjects",
+	  templateUrl: 'app/school/subjects.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
+	.state('my_classes/subjects', {
       url: "/school/subjects",
 	  templateUrl: 'app/school/subjects.html',
       data: {
@@ -181,44 +200,36 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
-	.state('parents_dashboard', {
-      url: "/home",
-	  templateUrl: 'app/portal/dashboard.html',
+	.state('manage_blog', {
+      url: "/blog",
+	  params: {
+		class_id: null,
+	  },
+	  templateUrl: 'app/blog/listPosts.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
       }
     })
-	.state('blog', {
-      url: "/blog/:school/:student_id",
-	  templateUrl: 'app/portal/blog.html',
+	.state('add_post', {
+      url: "/blog/post",
+	  params: {
+		action: 'add',
+		class_id: null,
+	  },
+	  templateUrl: 'app/blog/postForm.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
       }
     })
-	.state('student_details', {
-      url: "/student_details/:school/:student_id",
-	  templateUrl: 'app/portal/studentDetails.html',
-      data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
-      }
-    })
-	.state('student_fees', {
-      url: "/fees/:school/:student_id",
-	  templateUrl: 'app/portal/studentFees.html',
-      data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
-      }
-    })
-	.state('student_fees/summary', {
-      url: "/fees/summary/:school/:student_id",
-	  templateUrl: 'app/portal/studentFees.html',
-      data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
-      }
-    })
-	.state('student_fees/invoices', {
-      url: "/fees/invoices/:school/:student_id",
-	  templateUrl: 'app/portal/studentFees.html',
+	.state('edit_post', {
+      url: "/blog/post/:post_id",
+	  params: {
+		action: 'edit',
+		post: null,
+		class_id: null,
+		selectedClass: null
+	  },
+	  templateUrl: 'app/blog/postForm.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
       }

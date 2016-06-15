@@ -1,4 +1,4 @@
-<div ng-controller="listStudentsCtrl">	
+<div ng-controller="listPostsCtrl">	
 	
 	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 		
@@ -15,15 +15,12 @@
 			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
-					<div class="btn add-btn" title="Add Student" ng-show="permissions.students.add" ng-click="addStudent()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Student</span></a></div>
-					<!--div class="btn" title="Print" ng-hide="isSmallScreen" ng-click="printablePage()"><a class="print-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div-->
-					<div class="btn" title="Import" ng-show="permissions.students.import" ng-click="importStudents()"><a class="export-btn"><span class="glyphicon glyphicon-upload"></span> <span class="tool-text">Import Students</span></a></div>
-					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
+					<div class="btn add-btn" title="Add Post" ng-show="permissions.manage_blog.add" ng-click="addPost()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Post</span></a></div>
 				</div>			
 			</div>
 			
 			<div class="clearfix">
-				<h1 id="pageTitle">Students</h1>
+				<h1 id="pageTitle">Blog Posts</h1>
 			</div>
 			
 			<!-- search form -->
@@ -31,29 +28,21 @@
 				<h4 ng-show="!isSmallScreen">Filters</h4>
 				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
 				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
-					<!-- category select -->
-					<div class="form-group">
-						<label for="category">Category</label>
-						<select class="form-control" id="category" name="class_cat_id" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats" ng-model="filters.class_cat_id">
-							<option value="">All Class Categories</option>
-						</select>
-					</div>
+					
 					<!-- class select -->
 					<div class="form-group">
 						<label for="class">Class</label>	
 						<select name="class" id="class" class="form-control" ng-options="class.class_id as class.class_name for class in classes" ng-model="filters.class_id">
-							<option value="">All Classes</option>
 						</select>
 					</div>		
 
 					<!-- status select -->
 					<div class="form-group">
-						<label for="status">Status</label>	
-						<select name="status" id="status" class="form-control" ng-model="filters.status">
-							<option value="true">Current</option>
-							<option value="false">Former</option>							
+						<label for="category">Status</label>
+						<select class="form-control" id="post_status" name="post_status" ng-options="status.post_status_id as status.post_status for status in postStatuses" ng-model="filters.post_status_id">
+							<option value="">All</option>
 						</select>
-					</div>	
+					</div>
 					
 					<!-- search btn -->
 					<div class="form-group submit-btn">
@@ -74,24 +63,26 @@
 				<thead>
 					<tr>
 						<th></th>
-						<th>Name</th>
+						<th>Title</th>
 						<th>Class</th>
-						<th>Admission Number</th>
+						<th>Date</th>
+						<th>Status</th>
+						<th>Preview</th>
 					</tr>
 				</thead>	
 				<tbody>
-					<tr ng-repeat="item in students track by $index">
+					<tr ng-repeat="item in posts track by $index">
 						<td></td>
-						<td id="{{item.student_id}}" class="student_id" ng-click="viewStudent(item)">{{item.student_name}}</td>
-						<td ng-click="viewStudent(item)">{{item.class_name}}</td>
-						<td ng-click="viewStudent(item)">{{item.admission_number}}</td>
+						<td id="{{item.post_id}}" class="post_id" ng-click="viewPost(item)">{{item.title}}</td>
+						<td ng-click="viewPost(item)">{{item.class_name}}</td>
+						<td ng-click="viewPost(item)">{{item.creation_date}}</td>
+						<td ng-click="viewPost(item)">{{item.post_status}}</td>
+						<td ng-click="preview(item)"><i class="fa fa-eye"></i></td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
-		
-
-		
+				
 	</div>
 </div>
 

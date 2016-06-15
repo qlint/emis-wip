@@ -13,6 +13,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.filterEmpCat = ( $state.params.category !== '' ? true : false );
 	$scope.filters.dept_id = ( $state.params.dept !== '' ? $state.params.dept : null );
 	$scope.filterDept = ( $state.params.dept !== '' ? true : false );
+	
+	/* get full employee cat record from state param */
+	if( $state.params.category !== null )
+	{
+		$scope.filters.emp_cat = $rootScope.empCats.filter(function(item){
+			if( item.emp_cat_id == $state.params.category ) return item;
+		})[0];
+	}
+	
 	$scope.alert = {};
 	
 	var getStaff = function()

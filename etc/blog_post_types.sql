@@ -1,4 +1,4 @@
---
+﻿--
 -- PostgreSQL database dump
 --
 
@@ -14,11 +14,6 @@ SET client_min_messages = warning;
 
 SET search_path = app, pg_catalog;
 
---
--- TOC entry 2119 (class 0 OID 91254)
--- Dependencies: 254 2120
--- Data for Name: blog_post_types; Type: TABLE DATA; Schema: app; Owner: postgres
---
 
 INSERT INTO blog_post_types VALUES (2, 'Event');
 INSERT INTO blog_post_types VALUES (3, 'Reminder');
@@ -26,18 +21,13 @@ INSERT INTO blog_post_types VALUES (4, 'Important');
 INSERT INTO blog_post_types VALUES (1, 'General');
 
 
---
--- TOC entry 2124 (class 0 OID 0)
--- Dependencies: 253
--- Name: blog_post_types_post_type_id_seq; Type: SEQUENCE SET; Schema: app; Owner: postgres
---
-
 SELECT pg_catalog.setval('blog_post_types_post_type_id_seq', 4, true);
 
 
--- Completed on 2016-05-30 13:38:50
+INSERT INTO blog_post_statuses VALUES (3, 'Deleted');
+INSERT INTO blog_post_statuses VALUES (2, 'Draft');
+INSERT INTO blog_post_statuses VALUES (1, 'Published');
 
---
--- PostgreSQL database dump complete
---
+
+SELECT pg_catalog.setval('blog_post_statuses_post_status_id_seq', 3, true);
 

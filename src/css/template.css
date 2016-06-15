@@ -360,6 +360,25 @@ h1 {
 .dashboard .dashboard-panel-body ul.stripped li:nth-child(even),
 .school_settings .dashboard-panel-body ul.stripped li:nth-child(even) {
   background-color: rgba(238, 238, 238, 0.38); }
+.dashboard .dashboard-panel-body p,
+.school_settings .dashboard-panel-body p {
+  margin: 15px 50px 5px 5px; }
+.dashboard .dashboard-panel-body .title b,
+.school_settings .dashboard-panel-body .title b {
+  font-size: 14px; }
+.dashboard .dashboard-panel-body .title span,
+.school_settings .dashboard-panel-body .title span {
+  font-size: 12px;
+  font-style: italic; }
+.dashboard .dashboard-panel-body .title a,
+.school_settings .dashboard-panel-body .title a {
+  color: #333; }
+.dashboard .dashboard-panel-body .indent,
+.school_settings .dashboard-panel-body .indent {
+  margin: 5px 0; }
+  .dashboard .dashboard-panel-body .indent a,
+  .school_settings .dashboard-panel-body .indent a {
+    font-size: 12px; }
 .dashboard .dashboard-panel-footer,
 .school_settings .dashboard-panel-footer {
   margin: 0; }
@@ -920,6 +939,44 @@ table.clickable tr {
   padding-left: 10px !important; }
 .progress-report .strong {
   font-weight: 700; }
+
+/********************** Blog Styles ******************************/
+.blog-title {
+  margin: 0 -15px 10px -15px;
+  background: rgba(238, 238, 238, 0.53);
+  padding: 5px 15px; }
+
+.blog-post {
+  margin-top: 15px;
+  margin-bottom: 15px; }
+
+.trix-content {
+  min-height: 200px; }
+
+.blog h2 {
+  font-size: 20px; }
+.blog .buttons {
+  margin-top: 15px;
+  padding-top: 10px; }
+.blog .feature-img {
+  margin-bottom: 15px; }
+.blog .feature-img.thumb {
+  width: 150px;
+  height: auto; }
+.blog .feature-img.post {
+  width: 100%; }
+.blog .icon-sm {
+  font-size: 14px;
+  color: #009e0f; }
+.blog .blog-meta {
+  margin: 15px -15px -15px -15px;
+  padding: 10px 15px;
+  color: #777;
+  border-top: 1px solid #ddd;
+  font-style: italic;
+  background-color: #eee; }
+  .blog .blog-meta p {
+    margin-bottom: 3px; }
 
 /*
  * Max-Width 768 Styling

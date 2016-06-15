@@ -8,7 +8,62 @@
 
 		<div class="row">
 						
-			<div class="col-sm-3">
+			<div class="col-sm-3" ng-show="isTeacher">
+
+				<div class="dashboard-panel">					
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-child text-lg section-label"></span>
+						<h2>My Classes</h2>						
+					</div>
+					<div class="row dashboard-panel-body">	
+						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						<p class="text-muted" ng-show="myClasses.length==0">You are currently do not have any assigned classes.</p>
+						<ul class="stripped">
+							<li ng-repeat="item in myClasses">
+								<span class="title">
+									<a ui-sref="school/classes({ class_cat_id: item.class_cat_id, class_id: item.class_id })">
+										<b>{{item.class_name}}</b>
+									</a>
+									<a ui-sref="students({ class_cat_id: item.class_cat_id, class_id: item.class_id })">
+										<span class='text-muted'>({{item.num_students}} students)</span>
+									</a>
+								</span>
+								<div class="indent">
+									<a ui-sref="manage_blog({ class_id: item.class_id })">Manage Blog</a> |
+									<a ui-sref="homework({ class_id: item.class_id })">Manage Homework</a>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+				
+				<div class="dashboard-panel">					
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-book text-lg section-label"></span>
+						<h2>My Subjects</h2>						
+					</div>
+					<div class="row dashboard-panel-body">	
+						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						<p class="text-muted" ng-show="subjects.length==0">You are currently do not have any assigned subjects.</p>
+						<ul class="stripped">
+							<li ng-repeat="item in subjects">
+								<span class="title">
+									<a ui-sref="school/subjects({ class_cat_id: item.class_cat_id, subject_id: item.subject_id })">
+										<b>{{item.subject_name}}</b>
+									</a>
+									<span class='text-muted'>({{item.num_students}} students)</span>
+									<br />{{item.class_cat_name}}									
+								</span>
+								<div class="indent">
+									<a ui-sref="homework({ class_id: item.class_id })">Manage Homework</a>
+								</div>
+						</ul>
+					</div>
+				</div>
+			
+			</div>
+			
+			<div class="col-sm-3" ng-show="!isTeacher">
 				<div class="dashboard-panel" ng-show="permissions.students.view">					
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-child text-lg section-label"></span>
@@ -18,10 +73,13 @@
 					<div class="row dashboard-panel-body">	
 						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<ul class="stripped">
-							<li ng-repeat="item in classCats"><a ui-sref="students({ filter: item.class_cat_id })">{{item.class_cat_name}} ({{item.num_students}})</a></li>
+							<li ng-repeat="item in classCats">
+								<a ui-sref="students({ class_cat_id: item.class_cat_id })">{{item.class_cat_name}} ({{item.num_students}})</a>
+							</li>
 						</ul>
 					</div>
 				</div>
+				
 				<div class="dashboard-panel" ng-show="permissions.staff.view">					
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-users text-md section-label"></span>

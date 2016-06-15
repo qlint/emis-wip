@@ -1,0 +1,25 @@
+<form name="postForm" class="form-horizontal modalForm" method="post" novalidate >		
+	<div class="modal-header dialog-header-form">
+				<h4 class="modal-title">Preview Post for {{post.blog_name}}</h4>
+			</div>
+			<div class="modal-body blog clearfix">
+
+				<div ng-show="error" class="alert alert-danger">
+					{{errMsg}}
+				</div>
+					
+				<h2>{{post.title}}</h2>
+				<img ng-if="post.feature_image" src="assets/posts/{{post.feature_image}}" class="feature-img post" />
+				<div ng-bind-html="post.body"></div>
+				
+				<div class="blog-meta">
+					<p><b>Status</b>: {{post.post_status}}</p>
+					<p><b>Created</b>: {{post.creation_date}}</p>
+					<p><b>Created By</b>: {{post.posted_by}}</p>
+				</div>
+					
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>				
+			</div>
+</form>
