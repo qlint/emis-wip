@@ -330,7 +330,7 @@ $app->get('/getTeacherSubjects/:teacher_id(/:status)', function ($teacherId, $st
     {
         $db = getDB();
 		$sth = $db->prepare("SELECT subjects.subject_id, subject_name, subjects.teacher_id, subjects.active, subjects.class_cat_id, class_cat_name,
-					first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
+					first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, class_subjects.class_id, class_name,
 					(select count(*) 
 								from app.class_subjects 
 								INNER JOIN app.classes 
@@ -341,6 +341,10 @@ $app->get('/getTeacherSubjects/:teacher_id(/:status)', function ($teacherId, $st
 					INNER JOIN app.class_cats 
 					ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true	
 					INNER JOIN app.employees ON subjects.teacher_id = employees.emp_id
+					INNER JOIN app.class_subjects 
+						INNER JOIN app.classes
+						ON class_subjects.class_id = classes.class_id
+					ON subjects.subject_id = class_subjects.subject_id
 					WHERE subjects.teacher_id = :teacherId
 					AND subjects.active = :status 
 					ORDER BY subjects.sort_order"); 
@@ -368,4 +372,61 @@ $app->get('/getTeacherSubjects/:teacher_id(/:status)', function ($teacherId, $st
     }
 
 });
+
+$app->get('/getTeacherClassSubjects/:teacher_id', function ($teacherId) {
+    //Show class subjects for specific teacher
+	// Teachers can have classes, and be assigned subjects, get both results
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		$sth = $db->prepare("SELECT class_subject_id, class_name, subject_name, classes.class_id, subjects.subject_id, 
+									classes.sort_order as class_order, subjects.sort_order as subject_order
+										FROM app.class_subjects
+										INNER JOIN app.classes
+										ON class_subjects.class_id = classes.class_id
+										INNER JOIN app.subjects
+										ON class_subjects.subject_id = subjects.subject_id					
+										WHERE classes.teacher_id = :teacherId
+										AND classes.active = true 
+										AND subjects.active = true
+							UNION
+							SELECT class_subject_id, class_name, subject_name, classes.class_id, subjects.subject_id, 
+									classes.sort_order as class_order, subjects.sort_order as subject_order
+										FROM app.subjects
+										INNER JOIN app.class_subjects	
+											INNER JOIN app.classes
+											ON class_subjects.class_id = classes.class_id	
+										ON subjects.subject_id = class_subjects.subject_id									
+										WHERE subjects.teacher_id = :teacherId
+										AND subjects.active = true
+										ORDER BY class_order, subject_order"); 
+		
+        $sth->execute( array(':teacherId' => $teacherId));
+ 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {		
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+             $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+			$app->response()->setStatus(404);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));        
+    }
+
+});
+
+
 ?>

@@ -200,38 +200,53 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
-	.state('manage_blog', {
-      url: "/blog",
+	.state('manage_blog/posts', {
+      url: "/blog/posts",
 	  params: {
 		class_id: null,
 	  },
 	  templateUrl: 'app/blog/listPosts.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+      }
+    })
+	.state('manage_blog/homework', {
+      url: "/blog/homework",
+	  params: {
+		class_id: null,
+		subject_id: null,
+	  },
+	  templateUrl: 'app/blog/listHomework.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
 	.state('add_post', {
-      url: "/blog/post",
+      url: "/blog/post/:post_type",
 	  params: {
 		action: 'add',
 		class_id: null,
+		subject_id: null,
+		class_subject_id: null
 	  },
 	  templateUrl: 'app/blog/postForm.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
 	.state('edit_post', {
-      url: "/blog/post/:post_id",
+      url: "/blog/post/:post_type/:post_id",
 	  params: {
 		action: 'edit',
 		post: null,
 		class_id: null,
-		selectedClass: null
+		class_subject_id: null,
+		selectedClass: null,
+		selectedClassSubject: null,
 	  },
 	  templateUrl: 'app/blog/postForm.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
 	;

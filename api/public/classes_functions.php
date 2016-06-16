@@ -118,9 +118,9 @@ $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $sta
 						where class_subjects.class_id = classes.class_id) as subjects,
 					(select count(*) 
 								from app.students 
-								inner join app.classes 
-								on students.current_class = classes.class_id  AND classes.active is true 
-								where class_cat_id = class_cats.class_cat_id) as num_students,
+								inner join app.classes c
+								on students.current_class = c.class_id  AND c.active is true 
+								where c.class_id = classes.class_id) as num_students,
 								blog_id, blog_name
 					FROM app.classes
 					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id AND class_cats.active is true

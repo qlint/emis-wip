@@ -237,6 +237,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getTeacherSubjects/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getTeacherClassSubjects = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getTeacherClassSubjects/" + param, successFunction, errorFunction, params);
+	};
+	
 	this.getSubjects = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getSubjects/" + param, successFunction, errorFunction, params);
 	};
@@ -572,6 +576,26 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	
 	this.deletePost = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxDelete(path + "/deletePost/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getHomeworkPosts = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getHomeworkPosts/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getHomeworkPost = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getHomeworkPost/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.addHomework = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, path + "/addHomework", successFunction, errorFunction, params);
+	};
+	
+	this.updateHomework = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/updateHomework", successFunction, errorFunction, params);
+	};
+	
+	this.deleteHomework = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deleteHomework/" + param, successFunction, errorFunction, params);
 	};
 
 	return this;

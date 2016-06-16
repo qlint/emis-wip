@@ -5,7 +5,8 @@ controller('previewPostCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'dat
 function($scope, $rootScope, $uibModalInstance, data){
 
 	console.log(data);
-	$scope.post = data;		
+	$scope.type = data.type;
+	$scope.post = data.post;		
 	
 	$scope.cancel = function()
 	{

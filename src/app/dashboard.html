@@ -29,8 +29,8 @@
 									</a>
 								</span>
 								<div class="indent">
-									<a ui-sref="manage_blog({ class_id: item.class_id })">Manage Blog</a> |
-									<a ui-sref="homework({ class_id: item.class_id })">Manage Homework</a>
+									<a ui-sref="manage_blog/posts({ class_id: item.class_id })">Manage Blog</a> |
+									<a ng-show="item.subjects!=null" ui-sref="manage_blog/homework({ class_id: item.class_id })">Manage Homework</a>
 								</div>
 							</li>
 						</ul>
@@ -52,10 +52,11 @@
 										<b>{{item.subject_name}}</b>
 									</a>
 									<span class='text-muted'>({{item.num_students}} students)</span>
-									<br />{{item.class_cat_name}}									
+									<br />{{item.class_cat_name}}	
+									<br />{{item.class_name}}	
 								</span>
 								<div class="indent">
-									<a ui-sref="homework({ class_id: item.class_id })">Manage Homework</a>
+									<a ui-sref="manage_blog/homework({ class_id: item.class_id, subject_id: item.subject_id })">Manage Homework</a>
 								</div>
 						</ul>
 					</div>

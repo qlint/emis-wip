@@ -15,13 +15,10 @@ SET client_min_messages = warning;
 SET search_path = app, pg_catalog;
 
 
-INSERT INTO blog_post_types VALUES (2, 'Event');
-INSERT INTO blog_post_types VALUES (3, 'Reminder');
-INSERT INTO blog_post_types VALUES (4, 'Important');
 INSERT INTO blog_post_types VALUES (1, 'General');
+INSERT INTO blog_post_types VALUES (2, 'Homework');
 
-
-SELECT pg_catalog.setval('blog_post_types_post_type_id_seq', 4, true);
+SELECT pg_catalog.setval('blog_post_types_post_type_id_seq', 2, true);
 
 
 INSERT INTO blog_post_statuses VALUES (3, 'Deleted');

@@ -43,7 +43,7 @@ CREATE TABLE app.blog_posts
   creation_date timestamp without time zone NOT NULL DEFAULT now(),
   created_by integer,
   post_type_id integer,
-  body text NOT NULL,
+  body text,
   title character varying NOT NULL,
   post_status_id integer NOT NULL,
   feature_image character varying,
@@ -68,16 +68,23 @@ WITH (
 CREATE TABLE app.homework
 (
   homework_id serial NOT NULL,
-  teacher_id integer NOT NULL,
-  class_id integer NOT NULL,
-  homework_date date NOT NULL,
-  description character varying NOT NULL,
+  class_subject_id integer NOT NULL,
+  creation_date timestamp without time zone NOT NULL DEFAULT now(),
+  created_by integer,
+  due_date timestamp without time zone,
+  assigned_date timestamp without time zone,
+  body text,
+  title character varying NOT NULL,
+  post_status_id integer NOT NULL,
+  attachment character varying,
+  modified_date timestamp without time zone,
+  modified_by integer,
   CONSTRAINT "FK_homework_id" PRIMARY KEY (homework_id ),
-  CONSTRAINT "FK_blog_class" FOREIGN KEY (class_id)
-      REFERENCES app.classes (class_id) MATCH SIMPLE
+  CONSTRAINT "FK_homework_class_subject" FOREIGN KEY (class_subject_id)
+      REFERENCES app.class_subjects (class_subject_id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "FK_blog_teacher" FOREIGN KEY (teacher_id)
-      REFERENCES app.employees (emp_id) MATCH SIMPLE
+  CONSTRAINT "FK_homework_post_status" FOREIGN KEY (post_status_id)
+      REFERENCES app.blog_post_statuses (post_status_id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
 WITH (

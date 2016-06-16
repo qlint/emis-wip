@@ -195,9 +195,16 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						'edit': true,
 					},
 					'manage_blog':{
-						'view': true,
-						'add': true,
-						'edit': true,
+						'posts': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+						'homework': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						}
 					}
 				};
 				break;

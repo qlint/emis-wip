@@ -7,10 +7,27 @@
 				<div ng-show="error" class="alert alert-danger">
 					{{errMsg}}
 				</div>
+				
+				<div ng-show="type=='post'">
+					<h2>{{post.title}}</h2>
+					<img ng-if="post.feature_image" src="assets/posts/{{post.feature_image}}" class="feature-img post" />
+					<div ng-bind-html="post.body"></div>
+				</div>
+				
+				<div ng-show="type=='homework'">
 					
-				<h2>{{post.title}}</h2>
-				<img ng-if="post.feature_image" src="assets/posts/{{post.feature_image}}" class="feature-img post" />
-				<div ng-bind-html="post.body"></div>
+					<p class="strong highlight">{{post.title}}</p>
+					<p class="meta"><b>Subject:</b> {{post.subject_name}}</p>
+					<p class="meta"><b>Assigned:</b> {{post.assigned_date}}</p>
+					<p class="meta" ng-show="item.due_date!==null"><b>Due:</b> {{post.due_date}}</p>
+					<p  ng-show="post.attachment!==null">
+						<b>Attachment:</b>
+						<a target="_new" href="assets/posts/{{post.attachment}}">
+							<i class="fa fa-file-text icon-lg"></i>
+						</a>
+					</p>
+					<p ng-bind-html="post.body"></p>	
+				</div>
 				
 				<div class="blog-meta">
 					<p><b>Status</b>: {{post.post_status}}</p>

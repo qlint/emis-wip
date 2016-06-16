@@ -15,8 +15,9 @@
 			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
-					<div class="btn add-btn" title="Add Post" ng-show="permissions.manage_blog.add" ng-click="addPost()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Post</span></a></div>
-				</div>			
+					<div class="btn add-btn" title="Add Post" ng-show="permissions.manage_blog.posts.add" ng-click="addPost()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Post</span></a></div>
+					<div class="btn add-btn" title="Add Homework" ng-show="permissions.manage_blog.homework.add" ng-click="addHomework()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Homework</span></a></div>
+				</div>				
 			</div>
 			
 			<div class="clearfix">
@@ -30,15 +31,26 @@
 				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
 					
 					<!-- class select -->
-					<div class="form-group" ng-class="{ 'has-error' : postForm.class_id.$invalid && (!postForm.class_id.$pristine || postForm.$submitted) }">	
+					<div ng-if="isPost" class="form-group" ng-class="{ 'has-error' : postForm.class_id.$invalid && (!postForm.class_id.$pristine || postForm.$submitted) }">	
 						<label for="class">Which class blog would you like to post to?</label>	
-						<select name="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
+						<select name="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" required>
 							<option value="">--select class--</option>
 						</select>	
 						<input type="button" class="btn btn-sm btn-info" ng-click="setClass()" value="Load" />
 						<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
 						<p ng-show="postForm.class_id.$invalid && (!postForm.class_id.$pristine || postForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a class.</p>
-					</div>		
+					</div>	
+
+					<!-- class subject select -->
+					<div ng-if="isHomework" class="form-group" ng-class="{ 'has-error' : postForm.class_subject_id.$invalid && (!postForm.class_subject_id.$pristine || postForm.$submitted) }">	
+						<label for="class">Which subject would you like to post homework to?</label>	
+						<select name="class_subject_id" class="form-control" ng-options="subject.class_name + ' - ' + subject.subject_name for subject in classSubjects track by subject.class_subject_id" ng-model="filters.subject" required>
+							<option value="">--select class subject--</option>
+						</select>	
+						<input type="button" class="btn btn-sm btn-info" ng-click="setClass()" value="Load" />
+						<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
+						<p ng-show="postForm.class_subject_id.$invalid && (!postForm.class_subject_id.$pristine || postForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a class.</p>
+					</div>						
 
 				</form>
 			</div>
@@ -65,7 +77,7 @@
 			</div>
 				
 			<div ng-if="classSelected && !setupBlog">
-				<h1 class="blog-title">
+				<h1 ng-show="isPost" class="blog-title">
 					Posting to blog: 
 					<span ng-show="!editingBlogName">
 						{{selectedClass.blog_name}} 
@@ -76,23 +88,49 @@
 						<button type="button" ng-click="saveBlogName()" class="btn btn-sm btn-success">Save</button>
 					<div>
 				</h1>
-								
-				<div ng-class="{ 'has-error' : postForm.title.$invalid && (postForm.title.$touched || postForm.$submitted) }">		
-					<h2>{{ ( edit ? 'Update' : 'Add' ) }} New Post</h2>
-					<input type="text" name="title" ng-model="post.title" class="form-control" required placeholder="Enter title here" >						
+				
+				<h1 ng-show="isHomework" class="blog-title">
+					Posting to: {{selectedClassSubject.class_name}} - {{selectedClassSubject.subject_name}} 
+				</h1>
+				
+				<h2>{{ ( edit ? 'Update' : 'Add New' ) }} {{ (isHomework ? 'Homework' : 'Post') }}</h2>
+				
+				<div ng-if="isHomework" class="row clearfix">		
+					<div class="col-sm-3" ng-class="{ 'has-error' : postForm.assigned_date.$invalid && (postForm.assigned_date.$touched || postForm.$submitted) }">
+						<h4>Assigned Date</h4>
+						<div class="input-group">
+							<input type="text" name="assigned_date" date-range-picker class="form-control date-picker input-sm" ng-model="dates.assigned_date" options="{singleDatePicker: true,autoApply: true}" required />
+							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>							
+						</div>
+						<p ng-show="postForm.assigned_date.$invalid && (postForm.assigned_date.$touched || postForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Assigned Date is required.</p>
+					</div>
+					<div class="col-sm-3">
+						<h4>Due Date</h4>
+						<div class="input-group">
+							<input type="text" name="due_date" date-range-picker class="form-control date-picker input-sm" ng-model="dates.due_date" options="{singleDatePicker: true,autoApply: true}" />
+							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+						</div>
+					</div>
+				</div>
+				
+				<div ng-class="{ 'has-error' : postForm.title.$invalid && (postForm.title.$touched || postForm.$submitted) }">	
+					<h4 ng-show="isHomework">Title</h4>
+					<input type="text" name="title" ng-model="post.title" class="form-control" required placeholder="Enter title here" required >						
 					<p ng-show="postForm.title.$invalid && (postForm.title.$touched || postForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Title is required.</p>
 				</div>
 				
 				<div class="blog-post">
+					<h4 ng-show="isHomework">Description</h4>
 					<trix-editor class="trix-content" ng-model="post.body" angular-trix prevent-trix-file-accept="true"></trix-editor>						
 				</div>
 				
 				<div class="clearfix">		
-					<h4>Feature Image</h4>
+					<h4 ng-show="isHomework">Attachment</h4>
+					<h4 ng-show="isPost">Feature Image</h4>
 					<img ng-if="post.feature_image" src="assets/posts/{{post.feature_image}}" class="feature-img thumb" />
 					<input type="file" nv-file-select="" uploader="uploader" />						
 				</div>
-				
+								
 				<div class="blog-meta">
 					<p><b>Status</b>: {{post.post_status}}</p>
 					<p><b>Created</b>: {{post.creation_date}}</p>
@@ -127,7 +165,7 @@
 					<div class="pull-right">
 						<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
 						<button type="button" ng-click="preview()" class="btn btn-default">Preview</button>
-						<button type="button" ng-click="updatePost(postForm)" class="btn btn-success">Update {{ (post.post_status == 'Draft' ? 'Draft' : '') }}
+						<button type="button" ng-click="updatePost(postForm)" class="btn btn-primary">Update {{ (post.post_status == 'Draft' ? 'Draft' : '') }}
 							<span ng-show="saving" class="fa fa-spinner fa-pulse"></span>
 						</button>
 						<button ng-show="post.post_status=='Draft'" type="button" ng-click="publish(postForm)" class="btn btn-success">Publish

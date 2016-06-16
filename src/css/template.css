@@ -232,33 +232,6 @@ h1 {
         text-decoration: none;
         cursor: default; }
 
-.homework-col {
-  -webkit-border-radius: 7px;
-  -moz-border-radius: 7px;
-  border-radius: 7px;
-  background-color: #eee;
-  padding: 5px 10px; }
-  .homework-col .homework-body {
-    margin-left: 25px;
-    margin-right: 10px;
-    margin-bottom: 10px; }
-    .homework-col .homework-body .homework-item {
-      position: relative;
-      margin: 15px 0; }
-      .homework-col .homework-body .homework-item .date {
-        position: absolute;
-        left: -36px;
-        background: #fff;
-        padding: 7px;
-        font-size: 10px;
-        color: #777; }
-      .homework-col .homework-body .homework-item .dow {
-        margin-bottom: 5px; }
-  .homework-col .dates {
-    margin-left: 25px;
-    font-weight: 700;
-    margin-bottom: 5px; }
-
 /********************** Dashboard Styles ******************************/
 .dashboard .dashboard-panel,
 .school_settings .dashboard-panel {
@@ -953,6 +926,13 @@ table.clickable tr {
 .trix-content {
   min-height: 200px; }
 
+.highlight {
+  color: #009e0f; }
+
+.blog .btn-group.toolbar {
+  position: absolute !important;
+  right: 5px;
+  top: 50px; }
 .blog h2 {
   font-size: 20px; }
 .blog .buttons {
@@ -964,7 +944,8 @@ table.clickable tr {
   width: 150px;
   height: auto; }
 .blog .feature-img.post {
-  width: 100%; }
+  width: 100%;
+  max-width: 400px; }
 .blog .icon-sm {
   font-size: 14px;
   color: #009e0f; }
@@ -973,6 +954,7 @@ table.clickable tr {
   padding: 10px 15px;
   color: #777;
   border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
   font-style: italic;
   background-color: #eee; }
   .blog .blog-meta p {
