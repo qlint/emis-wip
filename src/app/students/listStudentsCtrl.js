@@ -138,9 +138,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		console.log('get students');
 		if( $scope.dataGrid !== undefined )
 		{	
+			$scope.dataGrid.fixedHeader.destroy();
 			$('.fixedHeader-floating').remove();
 			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();				
+		//	$scope.dataGrid.destroy();				
 		}	
 		
 		if ( $scope.isTeacher )

@@ -48,7 +48,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		if( !theForm.$invalid )
 		{
 			if( uploader.queue[0] !== undefined ){
-				$scope.employee.emp_image = uploader.queue[0].file.name;
+				$scope.employee.emp_image = moment() + '_' + uploader.queue[0].file.name;
 			}
 			
 			var postData = angular.copy($scope.employee);

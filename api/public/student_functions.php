@@ -82,7 +82,7 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
     {
         $db = getDB();
         $sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
-								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' days apart)' as payment_plan_name
+								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' ' || payment_interval2 || '(s) apart)' as payment_plan_name
 							 FROM app.students 
 							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
 							 LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
@@ -115,7 +115,8 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
 
 			$results->medical_history = $results3;
 			
-			// get fee items			
+			// get fee items		
+			// TO DO: I only want fee items for this school year?	
 			$sth4 = $db->prepare("SELECT 
 									student_fee_item_id, 
 									student_fee_items.fee_item_id, 
@@ -269,7 +270,8 @@ $app->get('/getStudentInvoices/:studentId', function ($studentId) {
     {
         $db = getDB();
 		
-		// get fee items
+		// get invoices
+		// TO DO: I only want invoices for this school year?	
 		$sth = $db->prepare("SELECT * FROM app.invoice_balances WHERE student_id = :studentId ORDER BY inv_date");
 		$sth->execute( array(':studentId' => $studentId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -362,6 +364,7 @@ $app->get('/getStudentFeeItems/:studentId', function ($studentId) {
     try 
     {
         $db = getDB();
+		// TO DO: I only want fee items for this school year?	
        $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount, 
 									CASE WHEN frequency = 'per term' THEN 3 
 									     ELSE 1
@@ -401,6 +404,7 @@ $app->get('/getReplaceableFeeItems/:studentId', function ($studentId) {
     try 
     {
         $db = getDB();
+		// TO DO: I only want fee items for this school year?	
        $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount
 							FROM app.student_fee_items
 							INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id AND fee_items.active is true
@@ -440,7 +444,8 @@ $app->get('/getStudentPayments/:studentId', function ($studentId) {
     {
         $db = getDB();
 		
-		// get fee items
+		// get payments
+		// TO DO: I only want payments for this school year?	
 		$sth = $db->prepare("SELECT payment_id,
 								payment_date,
 								payment_method,
@@ -505,7 +510,7 @@ $app->get('/getStudentPayments/:studentId', function ($studentId) {
 
 });
 
-$app->get('/getStudentClassess/:studentId', function ($studentId) {
+$app->get('/getStudentClasses/:studentId', function ($studentId) {
     // Get all students classes, present and past
 	
 	$app = \Slim\Slim::getInstance();
@@ -525,6 +530,7 @@ $app->get('/getStudentClassess/:studentId', function ($studentId) {
 							FROM app.student_class_history
 							INNER JOIN app.classes ON student_class_history.class_id = classes.class_id AND classes.active is true 
 							WHERE student_id = :studentId
+							AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId)
 							ORDER BY ord");
 		$sth->execute( array(':studentId' => $studentId) ); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);

@@ -85,7 +85,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				if( uploader.queue[0] !== undefined )
 				{
 					// need a unique filename
-					uploader.queue[0].file.name = uploader.queue[0].file.name + '_' + moment();
+					uploader.queue[0].file.name = moment() + '_' + uploader.queue[0].file.name;
 					uploader.uploadAll();
 					
 					$scope.post.feature_image = ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null);

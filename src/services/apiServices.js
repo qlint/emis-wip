@@ -444,8 +444,8 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxDelete(path + "/deleteMedicalCondition/" + param, successFunction, errorFunction, params);
 	};
 	
-	this.getStudentClassess = function (param, successFunction, errorFunction, params) {          
-		ajaxService.AjaxGet(path + "/getStudentClassess/" + param, successFunction, errorFunction, params);
+	this.getStudentClasses = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getStudentClasses/" + param, successFunction, errorFunction, params);
 	};
 	
 	

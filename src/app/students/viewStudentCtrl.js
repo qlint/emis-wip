@@ -1213,7 +1213,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						previous_class :  originalData.class_id,
 						previous_class_cat : originalData.class_cat_id,
 						current_class_cat : $scope.student.class_cat_id,
-						student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null),
+						student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : $scope.student.student_image),
 						active : ( $scope.student.active ? 't' : 'f' ),
 						admission_date: moment($scope.student.admission_date.startDate).format('YYYY-MM-DD'),
 						admission_number: $scope.student.admission_number,

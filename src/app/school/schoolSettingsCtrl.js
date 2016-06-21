@@ -78,7 +78,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			// do logo upload
 			if( uploader.queue[0] !== undefined )
 			{
-				uploader.queue[0].file.name = uploader.queue[0].file.name;
+				uploader.queue[0].file.name = moment() + '_' + uploader.queue[0].file.name;
 				uploader.uploadAll();
 			}
 			
@@ -89,7 +89,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 				{
 					settings.push({
 						name: 'logo',
-						value: 'assets/schools/' + uploader.queue[0].file.name,
+						value: uploader.queue[0].file.name,
 						append: false
 					})
 				}
