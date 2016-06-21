@@ -440,6 +440,9 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getStudentClassess/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.adminDeleteStudent = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/adminDeleteStudent/" + param, successFunction, errorFunction, params);
+	};
 	
 	
 	/*********** payments ***********/

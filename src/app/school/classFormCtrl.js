@@ -196,7 +196,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
-		var msg = ( result.data.indexOf('"U_class_name"') > -1 ? 'This class already exists.' : result.data);
+		var msg = ( result.data.indexOf('"U_active_class_name"') > -1 ? 'This class already exists.' : result.data);
 		$scope.errMsg = msg;
 	}
 	
@@ -294,6 +294,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',data,{size: 'sm',backdrop:'static'});
 		dlg.result.then(function(examType){
 			
+			console.log($scope.examTypes);
+			if( $scope.examTypes === undefined ) $scope.examTypes = [];
 			$scope.examTypes.push(examType);
 					
 		},function(){

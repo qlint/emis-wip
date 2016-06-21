@@ -91,14 +91,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$timeout(initializeController,1);
 	
 	var getStudents = function(status, filtering)
-	{
-		if( $scope.dataGrid !== undefined )
-		{	
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();				
-		}	
-		
+	{		
 		if ( $rootScope.currentUser.user_type == 'TEACHER' )
 		{
 			var params = $rootScope.currentUser.emp_id + '/' + status;
@@ -106,7 +99,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		}
 		else
 		{
-			apiService.getAllStudents(status, loadStudents, apiError, {filtering:filtering});
+			console.log(filtering);
+			apiService.getAllStudents(status, loadStudents, apiError, {filtering:filtering,status:status});
 		}
 		
 	}
@@ -117,26 +111,32 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		
 		if( result.response == 'success')
 		{
+			
+			if( $scope.dataGrid !== undefined )
+			{	
+				//$scope.dataGrid.clear();
+				$scope.dataGrid.destroy();				
+			}
 					
 			if( result.nodata ) var formatedResults = [];
 			else {
 				// make adjustments to student data
 				var formatedResults = $rootScope.formatStudentData(result.data);
 			}
-				
-			if( params.filtering )
+			
+			if( params.status == 'false' )
 			{
 				$scope.formerStudents = formatedResults
-				filterStudents();
+				filterStudents(false);
 			}
 			else
 			{
 				$scope.allStudents = formatedResults;
 				$scope.students = formatedResults;
 				
-				if( $scope.filterClassCat ) filterStudents();
-				$timeout(initDataGrid,10);
-			}
+				if( $scope.filterClassCat ) filterStudents(false);
+				$timeout(initDataGrid,100);
+			}		
 			
 		}
 		else
@@ -188,19 +188,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 						emptyTable: "No students found."
 				},
 			} );
-			
-		console.log('remove any fixedheaders still hanging around');
-		$('.fixedHeader-floating').remove();
+		
+
 		var headerHeight = $('.navbar-fixed-top').height();
-		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
 		var searchHeight = $('#body-content .content-fixed-header').height();
 		var offset = ( $rootScope.isSmallScreen ? 22 : 41 );
 		
-		console.log($scope.dataGrid);
-		$scope.fixedHeader = new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
+		$timeout(function(){
+			console.log($scope.dataGrid);
+			$scope.fixedHeader = new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
 				header: true,
 				headerOffset: (headerHeight + searchHeight) + offset
 			} );
+		},1000);
 		
 		
 		// position search box
@@ -302,7 +302,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		}
 		else
 		{
-			filterStudents();
+			filterStudents(true);
 		}
 		
 		// store the current status filter
@@ -310,17 +310,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		
 	}
 	
-	var filterStudents = function()
+	var filterStudents = function(clearTable)
 	{
-		if( $scope.dataGrid !== undefined ){
-			$('.fixedHeader-floating').remove();
+		if( $scope.dataGrid !== undefined && clearTable )
+		{
+		//	$scope.dataGrid.clear();
 			$scope.dataGrid.destroy();
 		}
 		
 		// filter by class category
 		// allStudents holds current students, formerStudents, the former...
 		var filteredResults = ( $scope.filters.status == 'false' ? $scope.formerStudents : $scope.allStudents);
-		console.log(filteredResults);
+		
+		
 		if( $scope.filters.class_cat_id !== undefined && $scope.filters.class_cat_id !== null && $scope.filters.class_cat_id !== ''  )
 		{
 			filteredResults = filteredResults.reduce(function(sum, item) {
@@ -328,7 +330,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			  return sum;
 			}, []);
 		}
-		console.log($scope.filters);
+
 		if( $scope.filters.class_id !== undefined && $scope.filters.class_id !== null && $scope.filters.class_id !== ''  )
 		{
 			filteredResults = filteredResults.reduce(function(sum, item) {
@@ -338,7 +340,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		}
 		
 		$scope.students = filteredResults;
-		$timeout(initDataGrid,1);
+		console.log($scope.students);
+		
+		$timeout(initDataGrid,100);
+		
+	
 	}
 	
 	$scope.addStudent = function()

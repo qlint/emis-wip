@@ -686,8 +686,12 @@ $app->post('/addClass', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.classes(class_name, class_cat_id, teacher_id, created_by, report_card_type) 
-            VALUES(:className, :classCatId, :teacherId, :userId, :reportCardType)");
+		
+		/* get the next number for sort order */		
+		$sth0 = $db->prepare("SELECT max(sort_order) as sort_order FROM app.classes WHERE active is true");	
+			
+        $sth = $db->prepare("INSERT INTO app.classes(class_name, class_cat_id, teacher_id, created_by, report_card_type, sort_order) 
+            VALUES(:className, :classCatId, :teacherId, :userId, :reportCardType, :sortOrder)");
  		
 		if( count($subjects) > 0 )
 		{
@@ -700,7 +704,11 @@ $app->post('/addClass', function () use($app) {
 		
 		$db->beginTransaction();
 		
-		$sth->execute( array(':className' => $className, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId, ':reportCardType' => $reportCardType ) );
+		$sth0->execute();
+		$sort = $sth0->fetch(PDO::FETCH_OBJ);
+		$sortOrder = ($sort && $sort->sort_order !== NULL ? $sort->sort_order + 1 : 1);
+		
+		$sth->execute( array(':className' => $className, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId, ':reportCardType' => $reportCardType, ':sortOrder' => $sortOrder ) );
 		
 		if( count($subjects) > 0 )
 		{
@@ -1258,22 +1266,40 @@ $app->put('/setClassCatStatus', function () use($app) {
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	$classCatId = ( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
-	$status =	( isset($allPostVars['status']) ? $allPostVars['status']: null);
+	$status =	( isset($allPostVars['status']) ? $allPostVars['status']: 't');
 	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("UPDATE app.class_cats
+        $sth1 = $db->prepare("UPDATE app.class_cats
 							SET active = :status,
 								modified_date = now(),
 								modified_by = :userId 
 							WHERE class_cat_id = :classCatId
 							"); 
-        $sth->execute( array(':classCatId' => $classCatId, 
-							 ':status' => $status, 
-							 ':userId' => $userId
-					) );
+		
+		/* also update the associated classes and subjects */
+		$sth2 = $db->prepare("UPDATE app.classes
+						SET active = :status,
+							modified_date = now(),
+							modified_by = :userId 
+						WHERE class_cat_id = :classCatId
+						"); 
+		
+						
+		$sth3 = $db->prepare("UPDATE app.subjects
+						SET active = :status,
+							modified_date = now(),
+							modified_by = :userId 
+						WHERE class_cat_id = :classCatId
+						"); 
+					
+		$db->beginTransaction();
+        $sth1->execute( array(':classCatId' => $classCatId, ':status' => $status,  ':userId' => $userId) );
+		$sth2->execute( array(':classCatId' => $classCatId, ':status' => $status,  ':userId' => $userId) );
+		$sth3->execute( array(':classCatId' => $classCatId, ':status' => $status,  ':userId' => $userId) );
+		$db->commit();
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -1302,7 +1328,8 @@ $app->get('/getClassCatsSummary', function () {
 								from app.students 
 								inner join app.classes 
 								on students.current_class = classes.class_id  AND classes.active is true 
-								where class_cat_id = class_cats.class_cat_id) as num_students
+								where class_cat_id = class_cats.class_cat_id
+								AND students.active is true) as num_students
 							FROM app.class_cats 
 							WHERE active is true
 							ORDER BY class_cat_id");
@@ -2796,12 +2823,25 @@ $app->post('/addSubject', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by, parent_subject_id) 
-            VALUES(:subjectName, :classCatId, :teacherId, :userId, :parentSubjectId)");
+		/* need to determine sort order, grab the last sort order number */
+		
+		$sortOrder = $db->prepare("SELECT max(sort_order) as sort_order FROM app.subjects WHERE class_cat_id = :classCatId AND active is true");
+		
+		$sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by, parent_subject_id, sort_order) 
+            VALUES(:subjectName, :classCatId, :teacherId, :userId, :parentSubjectId, :sortOrder)");
+			
+			
+		$db->beginTransaction();
+        
+		$sortOrder->execute( array(':classCatId' => $classCatId) );
+		$sort = $sortOrder->fetch(PDO::FETCH_OBJ);
+		$sortOrder = ($sort && $sort->sort_order !== NULL ? $sort->sort_order + 1 : 1);
  
         $sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, 
 							 ':teacherId' => $teacherId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId,
-							) );
+							 ':sortOrder' => $sortOrder) );
+							 
+		$db->commit();
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -3070,8 +3110,8 @@ $app->post('/addExamType', function () use($app) {
 		
 
 		
+		$sth0 = $db->prepare("SELECT max(sort_order) as sort_order FROM app.exam_types WHERE class_cat_id = :classCatId");
 		/* get the next number for sort order */		
-		$sth0 = $db->prepare("SELECT sort_order FROM app.exam_types WHERE class_cat_id = :classCatId ORDER BY sort_order desc LIMIT 1");
         $sth1 = $db->prepare("INSERT INTO app.exam_types(exam_type, class_cat_id, sort_order, created_by) 
 								VALUES(:examType, :classCatId, :sortOrder, :userId)"); 
 		$sth2 = $db->prepare("SELECT * FROM app.exam_types WHERE exam_type_id = currval('app.exam_types_exam_type_id_seq')");
@@ -3080,7 +3120,7 @@ $app->post('/addExamType', function () use($app) {
 		$db->beginTransaction();
 		$sth0->execute( array(':classCatId' => $classCatId) );
 		$sort = $sth0->fetch(PDO::FETCH_OBJ);
-		$sortOrder = ($sort ? $sort->sort_order + 1 : 1);
+		$sortOrder = ($sort && $sort->sort_order !== NULL ? $sort->sort_order + 1 : 1);
 		
         $sth1->execute( array(':examType' => $examType, ':classCatId' => $classCatId, ':sortOrder' => $sortOrder, ':userId' => $userId ) );
 		$sth2->execute();
@@ -7614,6 +7654,88 @@ $app->get('/checkAdmNumber/:admission_number', function ($admissionNumber) {
  
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$studentId) {
+    // delete student and all associated records
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+		if( $secret == 'G8sJvT8Qs5gHFBVQ' )
+		{
+			$db = getDB();
+
+			/* delete payments */
+			$d1 = $db->prepare("DELETE FROM app.payment_inv_items
+									WHERE inv_id in (select inv_id 
+														from app.invoices
+														where student_id = :studentId)
+								");
+			$d2 = $db->prepare("DELETE FROM app.payments WHERE student_id = :studentId");
+								
+			$d3 = $db->prepare("DELETE FROM app.payment_replacement_items
+									WHERE student_fee_item_id in (select student_fee_item_id 
+														from app.student_fee_items
+														where student_id = :studentId)
+								");
+								
+			/* delete invoices */
+			$d4 = $db->prepare("DELETE FROM app.invoice_line_items
+									WHERE inv_id in (select inv_id 
+														from app.invoices
+														where student_id = :studentId)
+								");
+			$d5 = $db->prepare("DELETE FROM app.invoices WHERE student_id = :studentId");
+			
+			/* delete report cards and exam marks */
+			$d6 = $db->prepare("DELETE FROM app.report_cards WHERE student_id = :studentId");	
+			$d7 = $db->prepare("DELETE FROM app.exam_marks WHERE student_id = :studentId");	
+			
+			/* delete student data */
+			$d8 = $db->prepare("DELETE FROM app.student_class_history WHERE student_id = :studentId");	
+			$d9 = $db->prepare("DELETE FROM app.student_fee_items WHERE student_id = :studentId");	
+			$d10 = $db->prepare("DELETE FROM app.student_guardians WHERE student_id = :studentId");	
+			$d11 = $db->prepare("DELETE FROM app.student_medical_history WHERE student_id = :studentId");	
+			$d12 = $db->prepare("DELETE FROM app.students WHERE student_id = :studentId");	
+			
+			$params = array(':studentId' => $studentId);
+											
+			$db->beginTransaction();
+			$d1->execute( $params );
+			$d2->execute( $params );
+			$d3->execute( $params );
+			$d4->execute( $params );
+			$d5->execute( $params );
+			$d6->execute( $params );
+			$d7->execute( $params );
+			$d8->execute( $params );
+			$d9->execute( $params );
+			$d10->execute( $params );
+			$d11->execute( $params );
+			$d12->execute( $params );
+			$db->commit();
+
+	 
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array("response" => "success", "code" => 1));
+			$db = null;
+		}
+		else
+		{
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array("response" => "failed", "code" => 2));
+		}
+    } catch(PDOException $e) {
+		
+        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }

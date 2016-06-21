@@ -1320,6 +1320,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}]
     });
 	
+	$scope.adminDelete = function()
+	{
+		var dlg = $dialogs.create('adminDelete.html', 'adminDeleteCtrl', {student_id:$scope.student.student_id}, {size:'sm',backdrop:'static'});
+
+		dlg.result.then(function(btn){
+			//$rootScope.$emit('studentAdded', {'msg' : 'Student was deleted.', 'clear' : true});
+			$uibModalInstance.dismiss('Canceled');
+		},function(btn){
+			
+		});
+	}
+	
+	
 } ])
 .controller('addParentCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
 function($scope,$rootScope,$uibModalInstance,apiService,data){
@@ -2254,6 +2267,78 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			'</div>'
 		);
 }])
+.controller('adminDeleteCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){
+		
+		//-- Variables --//
+		$scope.student_id = data.student_id;
+		$scope.adminPwd = '';
+		
+		//-- Methods --//
+		$scope.cancel = function(){
+			$uibModalInstance.dismiss('Canceled');
+		}; // end cancel
+		
+		$scope.done = function(theForm)
+		{			
+			console.log(theForm);
+			if( !theForm.$invalid )
+			{
+				var params = $scope.adminPwd + '/' + $scope.student_id;
+				
+				apiService.adminDeleteStudent(params, function(response,status,params){
+					var result = angular.fromJson(response);
+					if( result.response == 'success')
+					{
+						$rootScope.$emit('studentAdded', {'msg' : 'Student was deleted.', 'clear' : true});
+						$uibModalInstance.close();
+					}
+					else
+					{
+						$scope.error = true;
+						$scope.errMsg = "The password you entered was incorrect.";
+					}
+					
+				}, apiError);
+			}
+		}; // end save
+		
+		var apiError = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+		
+		
+	}]) // end controller(addCargoCtrl)
+.run(['$templateCache',function($templateCache){
+  		$templateCache.put('adminDelete.html',
+			'<form name="deleteForm" class="form-horizontal modalForm" novalidate role="form" ng-submit="done(deleteForm)">' +	
+			'<div class="modal-header dialog-header-confirm">'+
+				'<h4 class="modal-title">Delete Student</h4>' +
+			'</div>' +
+			'<div class="modal-body cleafix">' +				
+					'<p >' +
+						'Are you sure you want to delete this student and all their associated invoices and payments?<br><strong>THIS CAN NOT BE UNDONE.</strong>' +
+					'</p>' +
+					'<div ng-class="{ \'has-error\' : (deleteForm.$submitted || deleteForm.admin_pwd.$dirty ) && deleteForm.admin_pwd.$invalid && deleteForm.admin_pwd.$error.required }">' +
+						'<input type="password" ng-model="adminPwd" class="form-control" name="admin_pwd" placeholder="Enter admin password" required />' +
+						'<p ng-show="(deleteForm.$submitted || deleteForm.admin_pwd.$dirty ) && deleteForm.admin_pwd.$invalid && deleteForm.admin_pwd.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Admin password is required.</p>' +
+					'</div>' +
+					'<div ng-show="error" class="alert alert-danger">' +
+						'{{errMsg}}'+
+					'</div>' +				
+			'</div>'+
+			'<div class="modal-footer">' +
+				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
+				'<button type="submit" class="btn btn-danger">Delete</button>' +
+			'</div>' +
+			'</form>'
+		);
+}])
+
+
 ;
 
 
