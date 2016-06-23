@@ -59,10 +59,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 
 		
-		if( $scope.reportCardType == 'Kindergarten' )
-		{
-		}		
-		else
+		if( $scope.reportCardType != 'Kindergarten' )
 		{
 			// get exam types
 			apiService.getExamTypes($scope.filters.class.class_cat_id, function(response){
@@ -115,6 +112,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		if( newVal == oldVal ) return;
 		
 		$scope.student = $scope.thestudent.selected;
+		$scope.reportCardType = $scope.student.report_card_type;
 	});
 	
 	$scope.$watch('filters.class', function(newVal,oldVal){
@@ -167,11 +165,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.report = {};
 		$scope.overall = {};
 		$scope.overallLastTerm = {};
-		//$scope.examTypes = {};
 		$scope.reportData = undefined;
 		$scope.comments = {};
 		$scope.recreated = false;
-		//$scope.nextTermStartDate = undefined;
+
 		
 		$scope.currentFilters = angular.copy($scope.filters);
 		$scope.report.class_name = $scope.currentFilters.class.class_name;
@@ -196,6 +193,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		else
 		{
 			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id
+			console.log(params)
 			apiService.getStudentReportCard(params,loadReportCard, apiError);
 		}
 		
@@ -223,6 +221,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				filterExamTypes();
 				
 				/* look for adjustments to exam marks */
+				console.log($scope.reportCardType );
 				if( $scope.reportCardType != 'Kindergarten' )
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id

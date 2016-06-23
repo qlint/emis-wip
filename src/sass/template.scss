@@ -141,6 +141,10 @@ a{
 .uppercase{
 	text-transform:uppercase;
 }
+.note{
+	font-style:italic;
+	color:#777;
+}
 
 /********************** Branding Styles ******************************/
 .navbar-brand{
@@ -497,7 +501,7 @@ h1{
 				background-color:rgba(238, 238, 238, 0.38);
 			}		
 		}
-		p{
+		p.padded{
 			margin:15px 50px 5px 5px;
 		}
 		.title{
@@ -1298,13 +1302,13 @@ table.clickable{
 	.buttons{
 		margin-top:15px;
 		padding-top:10px;
+		padding-bottom:50px;
 	}
 	.feature-img{
 		margin-bottom:15px;
 	}
 	.feature-img.thumb{
-		width:150px;
-		height:auto;
+		max-height:100px;
 	}
 	.feature-img.post{
 		width:100%;
@@ -1326,6 +1330,19 @@ table.clickable{
 		p{
 			margin-bottom:3px;
 		}
+	}
+}
+
+.post-options-form{
+	background: #eee;
+    padding: 10px 0px;
+    border-bottom: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	margin-bottom:15px;
+	margin-left:-15px;
+	
+	.row, select{
+		margin-bottom:5px;
 	}
 }
 
@@ -1649,7 +1666,7 @@ table.clickable{
 		}
 	}
 	.main-datagrid{
-		padding-top:83px;
+		padding-top:40px;
 		border-top:1px solid #fff;
 		
 		.dataTables_filter{
@@ -1657,6 +1674,9 @@ table.clickable{
 			left: 350px;
 		}
 	}	
+	.fixed-filter .main-datagrid{
+		padding-top:83px;
+	}
 	.hasSubNav .main-datagrid,
 	{
 		padding-top:131px

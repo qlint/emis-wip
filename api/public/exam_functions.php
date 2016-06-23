@@ -50,30 +50,28 @@ $app->post('/addExamType', function () use($app) {
     try 
     {
         $db = getDB();
-		
 
-		
+		$sth0 = $db->prepare("SELECT max(sort_order) as sort_order FROM app.exam_types WHERE class_cat_id = :classCatId");
 		/* get the next number for sort order */		
-		$sth0 = $db->prepare("SELECT sort_order FROM app.exam_types WHERE class_cat_id = :classCatId ORDER BY sort_order desc LIMIT 1");
-        $sth1 = $db->prepare("INSERT INTO app.exam_types(exam_type, class_cat_id, sort_order, created_by) 
+		$sth1 = $db->prepare("INSERT INTO app.exam_types(exam_type, class_cat_id, sort_order, created_by) 
 								VALUES(:examType, :classCatId, :sortOrder, :userId)"); 
 		$sth2 = $db->prepare("SELECT * FROM app.exam_types WHERE exam_type_id = currval('app.exam_types_exam_type_id_seq')");
-		
-							
+
+						
 		$db->beginTransaction();
 		$sth0->execute( array(':classCatId' => $classCatId) );
 		$sort = $sth0->fetch(PDO::FETCH_OBJ);
-		$sortOrder = ($sort ? $sort->sort_order + 1 : 1);
-		
-        $sth1->execute( array(':examType' => $examType, ':classCatId' => $classCatId, ':sortOrder' => $sortOrder, ':userId' => $userId ) );
+		$sortOrder = ($sort && $sort->sort_order !== NULL ? $sort->sort_order + 1 : 1);
+
+		$sth1->execute( array(':examType' => $examType, ':classCatId' => $classCatId, ':sortOrder' => $sortOrder, ':userId' => $userId ) );
 		$sth2->execute();
 		$results = $sth2->fetch(PDO::FETCH_OBJ);
-		
+
 		$db->commit();
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "data" => $results));
-        $db = null;
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array("response" => "success", "data" => $results));
+		$db = null;
  
  
     } catch(PDOException $e) {

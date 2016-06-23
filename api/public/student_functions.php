@@ -36,6 +36,52 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
 
 });
 
+$app->get('/getAllParents', function () {
+    //Show parents associated with teacher's students
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		
+		$sth = $db->prepare("SELECT guardians.guardian_id, 
+									guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name AS parent_full_name,
+									email, telephone,
+									students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,
+									students.student_id, students.current_class, class_name, relationship
+							FROM app.students
+							INNER JOIN app.student_guardians 
+								INNER JOIN app.guardians
+								ON student_guardians.guardian_id = guardians.guardian_id
+							ON students.student_id = student_guardians.student_id AND student_guardians.active is true
+							INNER JOIN app.classes
+							ON students.current_class = classes.class_id AND students.active is true
+							WHERE students.active is true
+							ORDER BY guardians.first_name, guardians.middle_name, guardians.last_name");
+		$sth->execute(); 
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $status=true) {
     //Show teacher students
 	
@@ -51,6 +97,53 @@ $app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $st
 							 WHERE students.active = :status 
 							 ORDER BY first_name, middle_name, last_name");
 		$sth->execute( array(':status' => $status, ':teacherId' => $teacherId)); 
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getTeacherParents/:teacher_id', function ($teacherId) {
+    //Show parents associated with teacher's students
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		
+		$sth = $db->prepare("SELECT guardians.guardian_id, 
+									guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name AS parent_full_name,
+									email, telephone,
+									students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,
+									students.student_id, students.current_class, class_name, relationship
+							FROM app.classes
+							INNER JOIN app.students
+								INNER JOIN app.student_guardians 
+									INNER JOIN app.guardians
+									ON student_guardians.guardian_id = guardians.guardian_id
+								ON students.student_id = student_guardians.student_id AND student_guardians.active is true
+							ON classes.class_id = students.current_class AND students.active is true
+							WHERE classes.active is true
+							AND classes.teacher_id = :teacherId
+							ORDER BY guardians.first_name, guardians.middle_name, guardians.last_name");
+		$sth->execute( array(':teacherId' => $teacherId)); 
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
         if($results) {
@@ -1941,6 +2034,84 @@ $app->get('/checkAdmNumber/:admission_number', function ($admissionNumber) {
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
+});
+
+$app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$studentId) {
+    // delete student and all associated records
+	
+	$app = \Slim\Slim::getInstance();
+    try 
+    {
+		if( $secret == 'G8sJvT8Qs5gHFBVQ' )
+		{
+			$db = getDB();
+			/* delete payments */
+			$d1 = $db->prepare("DELETE FROM app.payment_inv_items
+									WHERE inv_id in (select inv_id 
+														from app.invoices
+														where student_id = :studentId)
+								");
+			$d2 = $db->prepare("DELETE FROM app.payments WHERE student_id = :studentId");
+								
+			$d3 = $db->prepare("DELETE FROM app.payment_replacement_items
+									WHERE student_fee_item_id in (select student_fee_item_id 
+														from app.student_fee_items
+														where student_id = :studentId)
+								");
+								
+			/* delete invoices */
+			$d4 = $db->prepare("DELETE FROM app.invoice_line_items
+									WHERE inv_id in (select inv_id 
+														from app.invoices
+														where student_id = :studentId)
+								");
+			$d5 = $db->prepare("DELETE FROM app.invoices WHERE student_id = :studentId");
+			
+			/* delete report cards and exam marks */
+			$d6 = $db->prepare("DELETE FROM app.report_cards WHERE student_id = :studentId");	
+			$d7 = $db->prepare("DELETE FROM app.exam_marks WHERE student_id = :studentId");	
+			
+			/* delete student data */
+			$d8 = $db->prepare("DELETE FROM app.student_class_history WHERE student_id = :studentId");	
+			$d9 = $db->prepare("DELETE FROM app.student_fee_items WHERE student_id = :studentId");	
+			$d10 = $db->prepare("DELETE FROM app.student_guardians WHERE student_id = :studentId");	
+			$d11 = $db->prepare("DELETE FROM app.student_medical_history WHERE student_id = :studentId");	
+			$d12 = $db->prepare("DELETE FROM app.students WHERE student_id = :studentId");	
+			
+			$params = array(':studentId' => $studentId);
+											
+			$db->beginTransaction();
+			$d1->execute( $params );
+			$d2->execute( $params );
+			$d3->execute( $params );
+			$d4->execute( $params );
+			$d5->execute( $params );
+			$d6->execute( $params );
+			$d7->execute( $params );
+			$d8->execute( $params );
+			$d9->execute( $params );
+			$d10->execute( $params );
+			$d11->execute( $params );
+			$d12->execute( $params );
+			$db->commit();
+	 
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array("response" => "success", "code" => 1));
+			$db = null;
+		}
+		else
+		{
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array("response" => "failed", "code" => 2));
+		}
+    } catch(PDOException $e) {
+		
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
 });
 
 ?>

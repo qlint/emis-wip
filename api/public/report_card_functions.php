@@ -100,7 +100,7 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, class_name, term_name, report_cards.term_id, 
+		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, class_name, classes.class_id, term_name, report_cards.term_id, 
 									date_part('year', start_date) as year, report_data, report_cards.report_card_type,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date

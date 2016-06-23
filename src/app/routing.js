@@ -200,54 +200,66 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
-	.state('manage_blog/posts', {
-      url: "/blog/posts",
+	.state('communications/blog_posts', {
+      url: "/communications/blog/posts",
 	  params: {
 		class_id: null,
 	  },
-	  templateUrl: 'app/blog/listPosts.html',
+	  templateUrl: 'app/communications/listPosts.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
-	.state('manage_blog/homework', {
-      url: "/blog/homework",
+	.state('communications/homework', {
+      url: "/communications/blog/homework",
 	  params: {
 		class_id: null,
 		subject_id: null,
 	  },
-	  templateUrl: 'app/blog/listHomework.html',
+	  templateUrl: 'app/communications/listHomework.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
-	.state('add_post', {
-      url: "/blog/post/:post_type",
+	.state('communications/send_email', {
+      url: "/communications/send_email",
+	  params: {
+		class_id: null,
+		subject_id: null,
+	  },
+	  templateUrl: 'app/communications/listEmails.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+      }
+    })
+	.state('communications/add_post', {
+      url: "/communications/blog/post/:post_type",
 	  params: {
 		action: 'add',
 		class_id: null,
 		subject_id: null,
 		class_subject_id: null
 	  },
-	  templateUrl: 'app/blog/postForm.html',
+	  templateUrl: 'app/communications/postForm.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
-	.state('edit_post', {
-      url: "/blog/post/:post_type/:post_id",
+	.state('communications/edit_post', {
+      url: "/communications/blog/post/:post_type/:post_id",
 	  params: {
 		action: 'edit',
 		post: null,
-		class_id: null,
-		class_subject_id: null,
-		selectedClass: null,
-		selectedClassSubject: null,
+		//class_id: null,
+		//class_subject_id: null,
+		//selectedClass: null,
+		//selectedClassSubject: null
 	  },
-	  templateUrl: 'app/blog/postForm.html',
+	  templateUrl: 'app/communications/postForm.html',
       data: {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
+
 	;
 }]);

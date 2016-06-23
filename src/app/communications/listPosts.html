@@ -19,8 +19,9 @@
 			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
-					<div class="btn add-btn" title="Add Post" ng-show="permissions.manage_blog.posts.add" ng-click="addPost()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Post</span></a></div>
-					<div class="btn add-btn" title="Add Homework" ng-show="permissions.manage_blog.homework.add" ng-click="addHomework()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Homework</span></a></div>
+					<div class="btn add-btn" title="Add Post" ng-show="permissions.communications.blog_posts.add" ng-click="addPost()"><a class="clickable"><span class="fa fa-comment"></span> <span class="tool-text">Add Blog Post</span></a></div>
+					<div class="btn add-btn" title="Add Homework" ng-show="permissions.communications.homework.add" ng-click="addHomework()"><a class="clickable"><span class="glyphicon glyphicon-pencil"></span> <span class="tool-text">Add Homework</span></a></div>
+					<div class="btn add-btn" title="Compose Message" ng-show="permissions.communications.send_email.add" ng-click="addEmail()"><a class="clickable"><span class="glyphicon glyphicon-send"></span> <span class="tool-text">Compose Message</span></a></div>
 				</div>			
 			</div>
 			

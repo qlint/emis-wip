@@ -17,7 +17,7 @@
 					</div>
 					<div class="row dashboard-panel-body">	
 						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
-						<p class="text-muted" ng-show="myClasses.length==0">You are currently do not have any assigned classes.</p>
+						<p class="text-muted padded" ng-show="myClasses.length==0">You are currently do not have any assigned classes.</p>
 						<ul class="stripped">
 							<li ng-repeat="item in myClasses">
 								<span class="title">
@@ -44,7 +44,7 @@
 					</div>
 					<div class="row dashboard-panel-body">	
 						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
-						<p class="text-muted" ng-show="subjects.length==0">You are currently do not have any assigned subjects.</p>
+						<p class="text-muted padded" ng-show="subjects.length==0">You are currently do not have any assigned subjects.</p>
 						<ul class="stripped">
 							<li ng-repeat="item in subjects">
 								<span class="title">
@@ -161,7 +161,7 @@
 						<h2>Latest News</h2>
 					</div>
 					<div class="row dashboard-panel-body">	
-						<p>Coming soon...</p>
+						<p class="padded">Coming soon...</p>
 					</div>
 				</div>
 			</div>

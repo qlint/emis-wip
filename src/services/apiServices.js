@@ -360,8 +360,16 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getAllStudents/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getAllParents = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGetWithData(request, path + "/getAllParents", successFunction, errorFunction, params);
+	};
+	
 	this.getTeacherStudents = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getTeacherStudents/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getTeacherParents = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getTeacherParents/" + param, successFunction, errorFunction, params);
 	};
 	
 	this.getStudentDetails = function (param, successFunction, errorFunction, params) {          
@@ -597,6 +605,35 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.deleteHomework = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxDelete(path + "/deleteHomework/" + param, successFunction, errorFunction, params);
 	};
+
+	this.getCommunicationOptions = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGetWithData(request, path + "/getCommunicationOptions", successFunction, errorFunction, params);
+	};
+	
+	this.getTeacherCommunications = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getTeacherCommunications/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getSchoolCommunications = function (request, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGetWithData(request, path + "/getSchoolCommunications", successFunction, errorFunction, params);
+	};
+	
+	this.addCommunication = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, path + "/addCommunication", successFunction, errorFunction, params);
+	};
+	
+	this.getCommunication = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getCommunication/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.updateCommunication = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/updateCommunication", successFunction, errorFunction, params);
+	};
+	
+	this.deleteCommunication = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deleteCommunication/" + param, successFunction, errorFunction, params);
+	};
+	
 
 	return this;
 }]);

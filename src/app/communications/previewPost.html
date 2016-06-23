@@ -1,5 +1,6 @@
 <form name="postForm" class="form-horizontal modalForm" method="post" novalidate >		
 	<div class="modal-header dialog-header-form">
+				<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 				<h4 class="modal-title">Preview Post for {{post.blog_name}}</h4>
 			</div>
 			<div class="modal-body blog clearfix">
@@ -29,10 +30,37 @@
 					<p ng-bind-html="post.body"></p>	
 				</div>
 				
+				<div ng-show="type=='communication'">
+					
+					<div ng-show="post.send_method=='email'">
+						<p class="strong highlight">Email Message</p>
+						<p class="meta"><b>Type:</b> {{post.com_type}}</p>
+						<p class="meta"><b>Send To:</b> {{post.audience}} {{post.class_name}} {{post.parent_full_name}}</p>
+						<p class="meta"><b>Sent From:</b> {{post.posted_by}}</p>
+						<p class="meta"><b>Reply To:</b> {{post.reply_to}}</p>	
+						<p class="meta"><b>Subject:</b> {{post.title}}</p>					
+						<p ng-bind-html="post.body"></p>	
+						<p  ng-show="post.attachment!==null">
+							<b>Attachment:</b>
+							<a target="_new" href="assets/posts/{{post.attachment}}">
+								<i class="fa fa-file-text icon-lg"></i>
+							</a>
+						</p>
+					</div>
+					<div ng-show="post.send_method=='sms'">
+						<p class="strong highlight">SMS Message</p>
+						<p class="meta"><b>Type:</b> {{post.com_type}}</p>
+						<p class="meta"><b>Send To:</b> {{post.audience}} {{post.class_name}} {{post.parent_full_name}}</p>
+						<p class="meta"><b>Sent From:</b> {{post.posted_by}}</p>
+						<p class="meta"><b>Message:</b> {{post.title}}</p>					
+					</div>
+				</div>
+				
 				<div class="blog-meta">
 					<p><b>Status</b>: {{post.post_status}}</p>
 					<p><b>Created</b>: {{post.creation_date}}</p>
 					<p><b>Created By</b>: {{post.posted_by}}</p>
+					<p ng-show="type=='communication'"><b>Sent</b>: {{post.sent_date || 'Pending'}}</p>
 				</div>
 					
 			</div>

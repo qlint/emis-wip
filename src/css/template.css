@@ -54,6 +54,10 @@ a {
 .uppercase {
   text-transform: uppercase; }
 
+.note {
+  font-style: italic;
+  color: #777; }
+
 /********************** Branding Styles ******************************/
 .navbar-brand {
   padding: 5px;
@@ -333,8 +337,8 @@ h1 {
 .dashboard .dashboard-panel-body ul.stripped li:nth-child(even),
 .school_settings .dashboard-panel-body ul.stripped li:nth-child(even) {
   background-color: rgba(238, 238, 238, 0.38); }
-.dashboard .dashboard-panel-body p,
-.school_settings .dashboard-panel-body p {
+.dashboard .dashboard-panel-body p.padded,
+.school_settings .dashboard-panel-body p.padded {
   margin: 15px 50px 5px 5px; }
 .dashboard .dashboard-panel-body .title b,
 .school_settings .dashboard-panel-body .title b {
@@ -937,12 +941,12 @@ table.clickable tr {
   font-size: 20px; }
 .blog .buttons {
   margin-top: 15px;
-  padding-top: 10px; }
+  padding-top: 10px;
+  padding-bottom: 50px; }
 .blog .feature-img {
   margin-bottom: 15px; }
 .blog .feature-img.thumb {
-  width: 150px;
-  height: auto; }
+  max-height: 100px; }
 .blog .feature-img.post {
   width: 100%;
   max-width: 400px; }
@@ -959,6 +963,16 @@ table.clickable tr {
   background-color: #eee; }
   .blog .blog-meta p {
     margin-bottom: 3px; }
+
+.post-options-form {
+  background: #eee;
+  padding: 10px 0px;
+  border-bottom: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  margin-bottom: 15px;
+  margin-left: -15px; }
+  .post-options-form .row, .post-options-form select {
+    margin-bottom: 5px; }
 
 /*
  * Max-Width 768 Styling
@@ -1169,11 +1183,14 @@ table.clickable tr {
       margin-top: 12px; }
 
   .main-datagrid {
-    padding-top: 83px;
+    padding-top: 40px;
     border-top: 1px solid #fff; }
     .main-datagrid .dataTables_filter {
       margin-top: -40px;
       left: 350px; }
+
+  .fixed-filter .main-datagrid {
+    padding-top: 83px; }
 
   .hasSubNav .main-datagrid {
     padding-top: 131px; }

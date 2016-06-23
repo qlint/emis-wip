@@ -33,9 +33,8 @@
 				</button>
 				
 				<div class="navbar-brand">
-					<img src="{{'assets/schools/' + currentUser.settings.logo || '/assets/eduweb-logo-lg.png'}}" title="{{currentUser.settings['School Name']}}" class="brand" /> 
-					<span>{{currentUser.settings['School Name']}}</span>
-					
+					<img src="{{ (currentUser.settings.logo !== undefined ?'assets/schools/' + currentUser.settings.logo : '/assets/eduweb-logo-lg.png' )}}" title="{{currentUser.settings['School Name'] || 'Eduweb'}}" class="brand" /> 
+					<span>{{currentUser.settings['School Name'] || 'Eduweb MIS Login'}}</span>					
 				</div>
 				<div ng-show="loggedIn">
 					<div class="navbar-right collapse navbar-collapse" id="navtopright">
@@ -159,10 +158,11 @@
 	<script type="text/javascript" src="app/exams/listReportCardsCtrl.js"></script>	
 	<script type="text/javascript" src="app/users/listUsersCtrl.js"></script>	
 	<script type="text/javascript" src="app/users/userFormCtrl.js"></script>
-	<script type="text/javascript" src="app/blog/listPostsCtrl.js"></script>
-	<script type="text/javascript" src="app/blog/listHomeworkCtrl.js"></script>
-	<script type="text/javascript" src="app/blog/postFormCtrl.js"></script>
-	<script type="text/javascript" src="app/blog/previewPostCtrl.js"></script>
+	<script type="text/javascript" src="app/communications/listPostsCtrl.js"></script>
+	<script type="text/javascript" src="app/communications/listHomeworkCtrl.js"></script>
+	<script type="text/javascript" src="app/communications/postFormCtrl.js"></script>
+	<script type="text/javascript" src="app/communications/previewPostCtrl.js"></script>
+	<script type="text/javascript" src="app/communications/listEmailsCtrl.js"></script>
 	<script type="text/javascript" src="app/login.js"></script>
 	
 	<!--SERVICES -->

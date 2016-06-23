@@ -1,21 +1,17 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('listHomeworkCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter','$state',
+controller('listPostsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter','$state',
 function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	console.log($state.params);
-	
-	var initialLoad = true;
 	$scope.filters = {};
 	$scope.filters.post_status_id = 'All';
 	$scope.filters.class_id = ( $state.params.class_id !== '' ? $state.params.class_id : null );
-	$scope.filters.subject_id = ( $state.params.subject_id !== '' ? $state.params.subject_id : null );
 	$scope.filterClass = ( $state.params.class_id !== '' ? true : false );	
 	$scope.alert = {};
 	
 	var initializeController = function () 
 	{		
-		/* get post statuses if not set */
 		if( $rootScope.postStatuses === undefined )
 		{
 			apiService.getBlogPostStatuses({}, function(response){
@@ -35,67 +31,37 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			$scope.postStatuses = $rootScope.postStatuses;
 		}
 		
-		/* get all the teachers class subjects */
-		getClassSubjects();		
+		// get all the teachers classes
+		if( $rootScope.classes === undefined )
+		{
+			getClasses();	
+		}
+		else
+		{
+			$scope.classes = $rootScope.classes;
+			if( $scope.filters.class_id === null ) $scope.filters.class_id = $scope.classes[0].class_id;
+			getPosts( angular.copy($scope.filters) );
+		}
 	}
 	$timeout(initializeController,1);
-	
-	$scope.$watch('filters.class_id', function(newVal,oldVal){
-		if( newVal == oldVal ) return;
-		
-		/* filter the subjects based on selected class */
-		$scope.classSubjects = $scope.allClassSubjects.reduce(function(sum,item){
-			if( item.class_id == newVal ) sum.push(item);
-			return sum;
-		},[]);
-		$timeout(setSearchBoxPosition,10);
-		
-	});
 
-	var getClassSubjects = function()
+	var getClasses = function()
 	{	
-		var params = $rootScope.currentUser.emp_id;
-		apiService.getTeacherClassSubjects(params, function(response,status){
+		var params = $rootScope.currentUser.emp_id + '/true';
+		apiService.getTeacherClasses(params, function(response,status){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
 			{	
-				$scope.allClassSubjects = ( result.nodata ? [] : result.data );	
-				if( $scope.allClassSubjects.length > 0 )
+				$rootScope.classes = $scope.classes = ( result.nodata ? [] : result.data );	
+				if( $scope.classes.length > 0 )
 				{				
-					/* build array of unique classes for classes drop down */
-					$scope.classes = $scope.allClassSubjects.reduce(function(sum,item){
-						var classObj = {
-							class_id: item.class_id,
-							class_name: item.class_name
-						};
-						if( !containsClassId(classObj, sum) ) sum.push(classObj);
-						return sum;
-					}, []);
-					console.log($scope.classes);
-					
-					//if( $scope.filters.class_id === null ) $scope.filters.class_id = $scope.classes[0].class_id;
-					if( $scope.filters.subject_id !== null )
-					{
-						/* set class subjects */
-						$scope.classSubjects = $scope.allClassSubjects.reduce(function(sum,item){
-							if( item.class_id == $scope.filters.class_id ) sum.push(item);
-							return sum;
-						},[]);
-		
-						/* set selected class subject */
-						var activeClassSubject = $scope.allClassSubjects.filter(function(item){
-							if( item.class_id == $scope.filters.class_id && item.subject_id == $scope.filters.subject_id) return item;
-						})[0];
-						
-						$scope.filters.class_subject_id = activeClassSubject.class_subject_id;
-					}
-					console.log(angular.copy($scope.filters));
-					getHomework( angular.copy($scope.filters) );
+					if( $scope.filters.class_id === null ) $scope.filters.class_id = $scope.classes[0].class_id;
+					getPosts( angular.copy($scope.filters) );
 				}
 				else
 				{
-					$scope.noHomework = true;
+					$scope.noClasses = true;
 				}
 
 			}
@@ -110,18 +76,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 		
 	}
 	
-	var containsClassId = function(obj, list) {
-		var i;
-		for (i = 0; i < list.length; i++) {
-			if (list[i].class_id == obj.class_id) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-	
-	var getHomework = function(filters)
+	var getPosts = function(filters)
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
@@ -129,18 +84,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			$scope.dataGrid.clear();
 			$scope.dataGrid.destroy();				
 		}	
-		console.log(filters);
-		var params = (filters.post_status_id || 'All') + '/' + (filters.class_subject_id || 'All') + '/' + (filters.class_id || 'All');
-		apiService.getHomeworkPosts(params, function(response,status){
+		
+		var params = filters.class_id + '/' + (filters.post_status_id || 'All');
+		apiService.getClassPosts(params, function(response,status){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
 			{	
-				$scope.homework = ( result.nodata ? [] : result.data );	
+				$scope.posts = ( result.nodata ? [] : result.data );	
 
-				$scope.homework = $scope.homework.map(function(item){
-					item.assigned_date2 = moment(item.assigned_date).format('MMM Do YYYY, h:mm a');
-					item.due_date2 = moment(item.due_date).format('MMM Do YYYY, h:mm a');
+				$scope.posts = $scope.posts.map(function(item){
+					item.creation_date = moment(item.creation_date).format('MMM Do YYYY, h:mm a');
 					return item;
 				});
 				$timeout(initDataGrid,10);
@@ -157,7 +111,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.loadFilter = function()
 	{
 		$scope.loading = true;
-		getHomework( angular.copy($scope.filters) );		
+		getPosts( angular.copy($scope.filters) );		
 	}
 		
 	var initDataGrid = function() 
@@ -190,7 +144,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 						search: "Search Results<br>",
 						searchPlaceholder: "Filter",
 						lengthMenu: "Display _MENU_",
-						emptyTable: "No homework posts found."
+						emptyTable: "No posts found."
 				},
 			} );
 			
@@ -206,27 +160,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	
 		
 		// position search box
-		setSearchBoxPosition();
-		
-		if( initialLoad ) setResizeEvent();
-		
-	}
-	
-	var setSearchBoxPosition = function()
-	{
 		if( !$rootScope.isSmallScreen )
 		{
-			console.log('here');
 			var filterFormWidth = $('.dataFilterForm form').width();
 			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
-	}
-	
-	var setResizeEvent = function()
-	{
-		 initialLoad = false;
-
-		 $window.addEventListener('resize', function() {
+		
+		$window.addEventListener('resize', function() {
 			
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
@@ -239,6 +179,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
+		
 	}
 	
 	var apiError = function (response, status) 
@@ -251,30 +192,36 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.preview = function(post)
 	{
 		var data = {
-			type: 'homework',
+			type: 'post',
 			post: post
 		}
-		$scope.openModal('blog', 'previewPost', 'md', data);
+		$scope.openModal('communications', 'previewPost', 'md', data);
 	}
 	
 	$scope.addPost = function()
 	{		
-		$state.go('add_post', {class_subject_id: $scope.filters.class_subject_id, post_type:'post'});
+		$state.go('communications/add_post', {class_id: $scope.filters.class_id, post_type:'post'});
 	}
 	
 	$scope.addHomework = function()
 	{		
-		$state.go('add_post', {class_subject_id: $scope.filters.class_subject_id, post_type:'homework'});
+		$state.go('communications/add_post', {class_id: $scope.filters.class_id, post_type:'homework'});
 	}
+	
+	$scope.addEmail = function()
+	{		
+		$state.go('communications/add_post', { post_type:'communication'});
+	}
+	
 	
 	$scope.viewPost = function(item)
 	{
-		console.log(item);
-		var selectedClassSubject = $scope.allClassSubjects.filter(function(item){
-			if( item.class_subject_id == $scope.filters.class_subject_id ) return item;
+	/*
+		var selectedClass = $scope.classes.filter(function(item){
+			if( item.class_id == $scope.filters.class_id ) return item;
 		})[0];
-
-		$state.go('edit_post', {post_type: 'homework', post: item, post_id: item.homework_id, class_subject_id: item.class_subject_id, selectedClassSubject: selectedClassSubject});
+		*/
+		$state.go('communications/edit_post', {post: item, post_id: item.post_id, post_type: 'post'});
 	}
 	
 	$scope.$on('refreshPosts', function(event, args) {
@@ -302,7 +249,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	{
 		$scope.loading = true;
 		$rootScope.loading = true;
-		getHomework( angular.copy($scope.filters)  );
+		getPosts( angular.copy($scope.filters)  );
 	}
 	
 	$scope.$on('$destroy', function() {

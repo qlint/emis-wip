@@ -103,12 +103,26 @@ $app->post('/addSubject', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by, parent_subject_id) 
-            VALUES(:subjectName, :classCatId, :teacherId, :userId, :parentSubjectId)");
+		
+		/* need to determine sort order, grab the last sort order number */
+
+		$sortOrder = $db->prepare("SELECT max(sort_order) as sort_order FROM app.subjects WHERE class_cat_id = :classCatId AND active is true");
+
+		$sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by, parent_subject_id, sort_order) 
+		VALUES(:subjectName, :classCatId, :teacherId, :userId, :parentSubjectId, :sortOrder)");
+
+
+		$db->beginTransaction();
+        
+		$sortOrder->execute( array(':classCatId' => $classCatId) );
+		$sort = $sortOrder->fetch(PDO::FETCH_OBJ);
+		$sortOrder = ($sort && $sort->sort_order !== NULL ? $sort->sort_order + 1 : 1);
  
         $sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, 
 							 ':teacherId' => $teacherId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId,
-							) );
+							 ':sortOrder' => $sortOrder) );
+							 
+		$db->commit();
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');

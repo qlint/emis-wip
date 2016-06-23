@@ -10,7 +10,7 @@ $app->get('/getClassPosts/:class_id/:status', function ($classId, $status) {
 		$params = array(':classId' => $classId);
 		$query = "SELECT post_id, blogs.blog_id, blog_posts.creation_date, title, post_type, body, blog_posts.post_status_id, post_status,
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as posted_by, feature_image,
-									blog_posts.modified_date, class_name 
+									blog_posts.modified_date, class_name, blogs.class_id
 							FROM app.blogs 
 							INNER JOIN app.blog_posts 
 								INNER JOIN app.employees 
@@ -438,7 +438,7 @@ $app->get('/getHomeworkPost/:post_id', function ($postId) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT homework_id, homework.creation_date, title, body, homework.post_status_id, post_status,
+        $sth = $db->prepare("SELECT homework_id as post_id, homework.creation_date, title, body, homework.post_status_id, post_status,
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as posted_by, attachment, homework.modified_date,
 									class_name, classes.class_id, homework.class_subject_id, subjects.subject_id, subject_name, assigned_date, due_date
 							FROM app.homework 
@@ -587,5 +587,310 @@ $app->delete('/deleteHomework/:homework_id', function ($homeworkId) {
 
 });
 
+$app->get('/getCommunicationOptions', function () {
+    // Get communication types and audiences
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth1 = $db->prepare("SELECT * FROM app.communication_types ORDER BY com_type");
+		$sth2 = $db->prepare("SELECT * FROM app.communication_audience ORDER BY audience");
+		$sth1->execute(); 
+		$sth2->execute(); 
+        $types = $sth1->fetchAll(PDO::FETCH_OBJ);
+		$audiences = $sth2->fetchAll(PDO::FETCH_OBJ);
+		
+		$results = new stdClass();
+		$results->com_types = $types;
+		$results->audiences = $audiences;
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getTeacherCommunications/:teacherId', function ($teacherId) {
+    // Get all communications for teacher for current school year
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+
+        $sth = $db->prepare( "SELECT com_id as post_id, com_date, communications.creation_date, communications.com_type_id, com_type, subject, message, send_as_email, send_as_sms, 
+									employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+									communications.audience_id, audience, attachment, reply_to,
+									students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
+									guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
+									communications.guardian_id, communications.student_id, classes.class_name, communications.class_id, communications.post_status_id, post_status,
+									sent, sent_date, message_from
+							FROM app.communications 	
+							LEFT JOIN app.students ON communications.student_id = students.student_id
+							LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
+							LEFT JOIN app.classes ON communications.class_id = classes.class_id
+							INNER JOIN app.employees ON communications.message_from = employees.emp_id							
+							INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
+							INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
+							INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
+							WHERE message_from = :teacherId
+							AND communications.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+								AND communications.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
+							ORDER BY communications.creation_date desc" );
+		$sth->execute( array(':teacherId' => $teacherId) ); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getSchoolCommunications', function () {
+    // Get all communications for current school year
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+
+        $sth = $db->prepare( "SELECT com_id as post_id, com_date, communications.creation_date, communications.com_type_id, com_type, subject, message, send_as_email, send_as_sms, 
+									employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+									communications.audience_id, audience, attachment, reply_to,
+									students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
+									guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
+									communications.guardian_id, communications.student_id, classes.class_name, communications.class_id,communications.post_status_id, post_status,
+									sent, sent_date, message_from
+							FROM app.communications 	
+							LEFT JOIN app.students ON communications.student_id = students.student_id
+							LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
+							LEFT JOIN app.classes ON communications.class_id = classes.class_id
+							INNER JOIN app.employees ON communications.message_from = employees.emp_id							
+							INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
+							INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
+							INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
+							WHERE communications.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+								AND communications.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
+							ORDER BY communications.creation_date desc" );
+		$sth->execute(); 
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addCommunication', function () use($app) {
+    // Add communication
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+
+	$subject = 		( isset($allPostVars['post']['title']) ? $allPostVars['post']['title']: null);
+	$message = 		( isset($allPostVars['post']['body']) ? $allPostVars['post']['body']: null);
+	$attachment =	( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
+	$audienceId =	( isset($allPostVars['post']['audience_id']) ? $allPostVars['post']['audience_id']: null);
+	$comTypeId =	( isset($allPostVars['post']['com_type_id']) ? $allPostVars['post']['com_type_id']: null);
+	$studentId	 =	( isset($allPostVars['post']['student_id']) ? $allPostVars['post']['student_id']: null);
+	$guardianId =	( isset($allPostVars['post']['guardian_id']) ? $allPostVars['post']['guardian_id']: null);
+	$classId =		( isset($allPostVars['post']['class_id']) ? $allPostVars['post']['class_id']: null);
+	$sendAsEmail =	( isset($allPostVars['post']['send_as_email']) ? $allPostVars['post']['send_as_email']: 'f');
+	$sendAsSms =	( isset($allPostVars['post']['send_as_sms']) ? $allPostVars['post']['send_as_sms']: 'f');
+	$replyTo =		( isset($allPostVars['post']['reply_to']) ? $allPostVars['post']['reply_to']: null);
+	$postStatus =	( isset($allPostVars['post']['post_status_id']) ? $allPostVars['post']['post_status_id']: null);
+	$messageFrom =	( isset($allPostVars['post']['message_from']) ? $allPostVars['post']['message_from']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+	
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, post_status_id) 
+							 VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :postStatus)");
+
+		$sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message , 
+							':attachment' => $attachment , ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
+							':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo,
+							':messageFrom' => $messageFrom, ':postStatus' => $postStatus) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getCommunication/:post_id', function ($postId) {
+    // Get communication
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT com_id as post_id, com_date, communications.creation_date, communications.com_type_id, com_type, subject, message, send_as_email, send_as_sms, 
+									employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+									communications.audience_id, audience, attachment, reply_to,
+									students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
+									guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
+									communications.guardian_id, communications.student_id, classes.class_name, communications.class_id, communications.post_status_id, post_status,
+									sent, sent_date, message_from
+							FROM app.communications 	
+							LEFT JOIN app.students ON communications.student_id = students.student_id
+							LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
+							LEFT JOIN app.classes ON communications.class_id = classes.class_id
+							INNER JOIN app.employees ON communications.message_from = employees.emp_id							
+							INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
+							INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
+							INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
+							WHERE com_id = :postId 
+							");
+		$sth->execute( array(':postId' => $postId) ); 
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateCommunication', function () use($app) {
+    // Update communication
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$comId = 		( isset($allPostVars['post']['post_id']) ? $allPostVars['post']['post_id']: null);
+	$subject = 		( isset($allPostVars['post']['title']) ? $allPostVars['post']['title']: null);
+	$message = 		( isset($allPostVars['post']['body']) ? $allPostVars['post']['body']: null);
+	$postStatusId =	( isset($allPostVars['post']['post_status_id']) ? $allPostVars['post']['post_status_id']: null);
+	$attachment =	( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
+	$replyTo =		( isset($allPostVars['post']['reply_to']) ? $allPostVars['post']['reply_to']: null);
+	$messageFrom =	( isset($allPostVars['post']['message_from']) ? $allPostVars['post']['message_from']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
+    try 
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE app.communications
+			SET subject = :subject,
+				message = :message,
+				message_from = :messageFrom,
+				post_status_id = :postStatusId,
+				attachment = :attachment,
+				reply_to = :replyTo,
+				modified_date = now(),
+				modified_by = :userId
+            WHERE com_id = :comId");
+ 
+        $sth->execute( array(':subject' => $subject, ':message' => $message, ':postStatusId' => $postStatusId,
+							 ':attachment' => $attachment, ':userId' => $userId, ':comId' => $comId,
+							 ':replyTo' => $replyTo, ':messageFrom' => $messageFrom) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->delete('/deleteCommunication/:com_id', function ($comId) {
+    // delete communication
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("DELETE FROM app.communications WHERE com_id = :comId");
+		$sth->execute( array(':comId' => $comId) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
 
 ?>

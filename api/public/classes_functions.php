@@ -281,8 +281,12 @@ $app->post('/addClass', function () use($app) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.classes(class_name, class_cat_id, teacher_id, created_by, report_card_type) 
-            VALUES(:className, :classCatId, :teacherId, :userId, :reportCardType)");
+		
+        /* get the next number for sort order */		
+		$sth0 = $db->prepare("SELECT max(sort_order) as sort_order FROM app.classes WHERE active is true");	
+			
+        $sth = $db->prepare("INSERT INTO app.classes(class_name, class_cat_id, teacher_id, created_by, report_card_type, sort_order) 
+            VALUES(:className, :classCatId, :teacherId, :userId, :reportCardType, :sortOrder)");
  		
 		if( count($subjects) > 0 )
 		{
@@ -295,7 +299,11 @@ $app->post('/addClass', function () use($app) {
 		
 		$db->beginTransaction();
 		
-		$sth->execute( array(':className' => $className, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId, ':reportCardType' => $reportCardType ) );
+		$sth0->execute();
+		$sort = $sth0->fetch(PDO::FETCH_OBJ);
+		$sortOrder = ($sort && $sort->sort_order !== NULL ? $sort->sort_order + 1 : 1);
+		
+		$sth->execute( array(':className' => $className, ':classCatId' => $classCatId, ':teacherId' => $teacherId, ':userId' => $userId, ':reportCardType' => $reportCardType, ':sortOrder' => $sortOrder ) );
 		
 		if( count($subjects) > 0 )
 		{
@@ -312,7 +320,6 @@ $app->post('/addClass', function () use($app) {
 						$gradeWeight = ( isset($exam['grade_weight']) ? $exam['grade_weight']: null);
 						
 						$sth3->execute( array(':examTypeId' => $examTypeId, ':gradeWeight' => $gradeWeight, ':userId' => $userId ) );
-
 					}
 				}
 				
@@ -857,17 +864,18 @@ $app->put('/setClassCatStatus', function () use($app) {
 
     try 
     {
-        $db = getDB();
-        $sth = $db->prepare("UPDATE app.class_cats
-							SET active = :status,
-								modified_date = now(),
-								modified_by = :userId 
-							WHERE class_cat_id = :classCatId
-							"); 
-        $sth->execute( array(':classCatId' => $classCatId, 
-							 ':status' => $status, 
-							 ':userId' => $userId
-					) );
+       	$sth3 = $db->prepare("UPDATE app.subjects
+						SET active = :status,
+							modified_date = now(),
+							modified_by = :userId 
+						WHERE class_cat_id = :classCatId
+						"); 
+					
+		$db->beginTransaction();
+        $sth1->execute( array(':classCatId' => $classCatId, ':status' => $status,  ':userId' => $userId) );
+		$sth2->execute( array(':classCatId' => $classCatId, ':status' => $status,  ':userId' => $userId) );
+		$sth3->execute( array(':classCatId' => $classCatId, ':status' => $status,  ':userId' => $userId) );
+		$db->commit();
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');

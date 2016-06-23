@@ -140,10 +140,12 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'edit': true,
 						},						
 					},
-					'news':{
-						'view': true,
-						'add': true,
-						'edit': true,
+					'communications':{
+						'send_email' : {
+							'view': true,
+							'add': true,
+							'edit': true,
+						}
 					}
 					
 				};
@@ -189,18 +191,18 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'edit': true,
 						},						
 					},
-					'news':{
-						'view': true,
-						'add': true,
-						'edit': true,
-					},
-					'manage_blog':{
-						'posts': {
+					'communications':{
+						'blog_posts': {
 							'view': true,
 							'add': true,
 							'edit': true,
 						},
 						'homework': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+						'send_email' : {
 							'view': true,
 							'add': true,
 							'edit': true,
