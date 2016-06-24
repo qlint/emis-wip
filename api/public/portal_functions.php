@@ -70,7 +70,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
 										 students.active, class_name, class_id, class_cat_id, report_card_type,
 										 (SELECT value FROM app.settings WHERE name = 'School Name') as school_name
 									FROM app.students
-									INNER JOIN app.classes ON students.current_class = classes.class_id AND
+									INNER JOIN app.classes ON students.current_class = classes.class_id
 									WHERE student_id = :studentId");
 			$sth3->execute(array(':studentId' => $student->student_id));
 			$details = $sth3->fetch(PDO::FETCH_OBJ);
