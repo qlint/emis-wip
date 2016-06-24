@@ -305,8 +305,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 		if( !theForm.$invalid)
 		{
-			if( uploader.queue[0] !== undefined ){
-				$scope.student.student_image = moment() + '_' + uploader.queue[0].file.name;
+			if( uploader.queue[0] !== undefined )
+			{
+				// do logo upload
+				uploader.queue[0].file.name = moment() + '_' + uploader.queue[0].file.name;
+				uploader.uploadAll();
+			
+				$scope.student.student_image = uploader.queue[0].file.name ;
 			}
 			
 			$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
@@ -373,7 +378,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
-			uploader.uploadAll();
 			$uibModalInstance.close();
 			$rootScope.$emit('studentAdded', {'msg' : 'Student was created.', 'clear' : true});
 		}
@@ -417,7 +421,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.addGuardian = function()
 	{
 		// show small dialog with add form
-		var data = {student_id: $scope.student.student_id};
+		var data = {
+			student_id: $scope.student.student_id,
+			action: 'add'
+		};
 		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(parent){
 			$scope.student.guardians.push(parent);
