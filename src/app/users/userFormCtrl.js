@@ -6,7 +6,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	$scope.edit = ( data !== undefined ? true : false );
 	$scope.user = data || {};
-	//console.log(data);
 	
 	$scope.initializeController = function()
 	{
@@ -21,12 +20,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	$scope.save = function(form)
 	{
-		//console.log(form);
 		if ( !form.$invalid ) 
 		{
 			var data = $scope.user;
 			data.current_user_id = $rootScope.currentUser.user_id;
-			//console.log(data);
 			
 			if( $scope.edit )
 			{

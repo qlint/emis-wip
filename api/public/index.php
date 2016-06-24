@@ -169,6 +169,10 @@ require('term_functions.php');
 // ************** Subjects  ****************** //
 require('subject_functions.php');
 
+
+// ************** Exam Marks  ****************** //
+require('exam_functions.php');
+
 // ************** Report Cards  ****************** //
 require('report_card_functions.php');
 

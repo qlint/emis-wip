@@ -8,7 +8,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.edit = ( data !== undefined ? true : false );
 	$scope.item = ( data !== undefined ? data : {} );
 	$scope.deleted = false;
-	//console.log(data);
+
 	
 	$scope.initializeController = function()
 	{
@@ -28,7 +28,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			// set class categories
 			$scope.item.default_amount = parseFloat(data.default_amount_raw);
 			$scope.classCatSelection = data.class_cats_restriction || [];
-			//console.log($scope.classCatSelection);
+
 			$scope.isTransport = ( data.fee_item == 'Transport' ? true : false );
 			
 			if( $scope.isTransport )
@@ -78,22 +78,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		else {		
 			$scope.classCatSelection.push(item);
 		}
-		//console.log($scope.classCatSelection);
+
 	};
 	
 	$scope.save = function(form)
 	{
-		//console.log(form);
+
 		if ( !form.$invalid ) 
 		{
-			//console.log($scope.classCatSelection);
 			var data = $scope.item;			
 			data.new_student_only = ( data.new_student_only ? 't' : 'f' );
 			data.optional = ( data.optional ? 't' : 'f' );
 			data.replaceable = ( data.replaceable ? 't' : 'f' );
 			data.class_cats_restriction = $scope.classCatSelection;
 			data.user_id = $rootScope.currentUser.user_id;
-			//console.log(data);
 			
 			if( $scope.edit )
 			{

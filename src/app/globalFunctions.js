@@ -33,7 +33,6 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			Session.create($rootScope.currentUser);					
 			
 			$rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
-			//console.log($rootScope.currentUser);
 			
 			// get class categories and classes
 			$rootScope.getClassCats();
@@ -66,7 +65,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 				}
 				
 			}
-			//console.log($rootScope.loggedIn);
+
 		}
 	
 	 });
@@ -86,7 +85,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		$rootScope.activeSubSubSection = ( section[2] === undefined ? section[0] : section[2]);
 		if( $rootScope.activeSubSubSection  == 'print' ) $rootScope.isPrinting = true;
 		$rootScope.currentPageSection = section[0] + '/' + section[1];
-		console.log($rootScope.activeSection);
+
 		
 		$timeout( function () {
 			//$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
@@ -99,7 +98,6 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		
 		}, 100);
 		
-		//console.log( $rootScope.currentUser);
 		
 		
 	});
@@ -155,22 +153,6 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		Auth.logout();
 	};
 	
-	/*
-	$rootScope.testDevUser = function(userType){
-		Auth.testUsers(userType, function(user) {
-
-			$rootScope.loggingIn = false;
-			
-			console.log($state.current);
-			$state.go('home');
-			
-		}, function(err) {
-			//console.log($scope.credentials);
-			$rootScope.error = true;
-			$rootScope.loggingIn = false;
-		});
-	};
-	*/
 	
 	$rootScope.userTypes = ['SYS_ADMIN','TEACHER'];		
 	

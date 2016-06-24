@@ -203,7 +203,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			//console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+50);
 		}
 		
@@ -212,13 +211,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				//console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				//console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);

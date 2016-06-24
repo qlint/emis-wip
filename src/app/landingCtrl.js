@@ -75,7 +75,6 @@ function($scope, $rootScope, $state, $window, Auth, apiService, token ) {
 	};	
 	
 	$rootScope.$on('displayLoginError', function(event, args) {
-		//console.log(args);
 		$scope.errorMsg = args.errorMsg;
 		$scope.credentials.user_pwd = '';
 		$scope.error = true;

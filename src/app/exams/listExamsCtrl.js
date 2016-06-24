@@ -129,7 +129,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 	$scope.$watch('filters.class',function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		//console.log(newVal);
+
 		$scope.filters.class_id = newVal.class_id;
 
 		apiService.getExamTypes(newVal.class_cat_id, function(response){
@@ -211,7 +211,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						});
 					}
 				});
-				console.log($scope.tableHeader);
+
 				/* sum up the total grade weight value */
 				$scope.totalGradeWeight = 0;
 				for (var key in subjectsArray) {
@@ -221,12 +221,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					var value = subjectsArray[key];
 					$scope.totalGradeWeight += subjectsArray[key];
 				}
-				console.log($scope.totalGradeWeight);
 				
 				/* loop through all exam mark results and calculate the students total score */
 				/* only total up the parent subjects */
 				// total up marks				
-				console.log($scope.examMarks);
 				
 				var total = 0;
 				angular.forEach($scope.examMarks, function(item){

@@ -55,7 +55,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			postData.joined_date = moment($scope.employee.joined_date.startDate).format('YYYY-MM-DD');
 			postData.user_id = $rootScope.currentUser.user_id;
 			postData.active = ( $scope.employee.status == 'true' ? 't' : 'f' );
-			//console.log(postData);
 			
 			apiService.addEmployee(postData, createCompleted, createError);
 		}

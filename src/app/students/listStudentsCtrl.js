@@ -21,7 +21,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var initializeController = function () 
 	{
-		console.log('init list students');
+
 		// if user is a teacher, we only want to give them class categories and classes that they are associated with
 		if ( $scope.isTeacher )
 		{
@@ -44,7 +44,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 							{
 								$rootScope.allClasses = result.data;
 								$scope.classes = $rootScope.allClasses;
-								console.log('get students from teacher, no scope set');
+
 								getStudents('true',false );
 								
 								if( $state.params.class_cat_id !== null )
@@ -67,15 +67,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 					{
 						$scope.classes = $rootScope.allClasses;
 						getStudents('true',false);
-						console.log('get students from teacher, scope set');
+
 						if( $state.params.class_cat_id !== null )
 						{
-							console.log($state.params);
 							$scope.filters.class_cat_id = ( $state.params.class_cat_id !== '' ? $state.params.class_cat_id : null );
 							$scope.filterClassCat = ( $state.params.class_cat_id !== '' ? true : false );
 							$scope.filters.class_id = ( $state.params.class_id !== '' ? $state.params.class_id : null );
 							$scope.filterClass = ( $state.params.class_id !== '' ? true : false );
-							console.log($scope.filters);
+
 						}
 						else
 						{
@@ -99,15 +98,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 					{
 						$rootScope.allClasses = result.data;
 						$scope.classes = $rootScope.allClasses;
-						console.log('get students from non teacher, no scope set');
+
 						getStudents('true',false );
 						
-						console.log($state.params);
 						$scope.filters.class_cat_id = ( $state.params.class_cat_id !== '' ? $state.params.class_cat_id : null );
 						$scope.filterClassCat = ( $state.params.class_cat_id !== '' ? true : false );
 						$scope.filters.class_id = ( $state.params.class_id !== '' ? $state.params.class_id : null );
 						$scope.filterClass = ( $state.params.class_id !== '' ? true : false );
-						console.log($scope.filters);
 					}
 					
 				}, apiError);
@@ -115,14 +112,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			else
 			{
 				$scope.classes = $rootScope.allClasses;
-				console.log('get students from non teacher, scope set');
 				
-				console.log($state.params);
 				$scope.filters.class_cat_id = ( $state.params.class_cat_id !== '' ? $state.params.class_cat_id : null );
 				$scope.filterClassCat = ( $state.params.class_cat_id !== '' ? true : false );
 				$scope.filters.class_id = ( $state.params.class_id !== '' ? $state.params.class_id : null );
 				$scope.filterClass = ( $state.params.class_id !== '' ? true : false );
-				console.log($scope.filters);
+
 							
 				getStudents('true',false);
 			}
@@ -135,7 +130,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var getStudents = function(status, filtering)
 	{
-		console.log('get students');
+
 		if( $scope.dataGrid !== undefined )
 		{	
 			$scope.dataGrid.fixedHeader.destroy();
@@ -151,7 +146,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		}
 		else
 		{
-			console.log(filtering);
 			apiService.getAllStudents(status, loadStudents, apiError, {filtering:filtering,status:status});
 		}
 		
@@ -241,19 +235,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				},
 			} );
 			
-		//console.log('remove any fixedheaders still hanging around');
 		$('.fixedHeader-floating').remove();
 
 		var headerHeight = $('.navbar-fixed-top').height();
 		var searchHeight = $('#body-content .content-fixed-header').height();
 		var offset = ( $rootScope.isSmallScreen ? 22 : 41 );
 		
-//		console.log($scope.dataGrid);
+
 		$scope.fixedHeader = new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
 				header: true,
 				headerOffset: (headerHeight + searchHeight) + offset
 			} );
-		},1000);
+
 		
 		
 		// position search box
@@ -351,7 +344,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		if( $scope.filters.status == 'false' && $scope.formerStudents === undefined )
 		{
 			// we need to fetch inactive students first
-			console.log('get students from load filter');
 			getStudents('false', true);			
 		}
 		else
@@ -394,7 +386,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		}
 		
 		$scope.students = filteredResults;
-		console.log($scope.students);
 		
 		$timeout(initDataGrid,100);
 		
@@ -446,7 +437,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	{
 		$scope.loading = true;
 		$rootScope.loading = true;
-		console.log('get students from refresh');
 		getStudents(currentStatus,isFiltered);
 	}
 	

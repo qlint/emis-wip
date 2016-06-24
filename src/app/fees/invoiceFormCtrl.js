@@ -114,7 +114,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		if( result.response == 'success')
 		{
 			$scope.results = ( result.nodata ? [] : result.data );	
-			//console.log($scope.results.length);
 			
 			// group results by due date	
 			$scope.invoices = $scope.results.reduce(function(sum, item) {		
@@ -125,7 +124,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			}, {});
 				
 
-			//console.log($scope.invoices);
+
 			$scope.activeInvoice = Object.keys($scope.invoices)[0];			
 			
 			// get total of each array in the object
@@ -135,7 +134,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 					return sum = (sum + parseFloat(item.amount));
 				},0);				
 			});
-			//console.log($scope.invoiceTotal);
 			
 			$scope.invoiceLineItems = $scope.invoices[$scope.activeInvoice];
 			$scope.totals.balance = $scope.invoiceTotal[$scope.activeInvoice];
@@ -156,7 +154,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	}
 	
 	$scope.$watch('invoice.newItem',function(newVal,oldVal){
-		//console.log(newVal);
 		if( newVal == oldVal ) return;
 		
 		var index = $scope.invoiceLineItems.length - 1;
@@ -252,7 +249,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		}
 		else
 		{
-			//console.log($scope.invoiceLineItems);
 			angular.forEach($scope.invoiceLineItems, function(item,key){	
 				if( item !== null )
 				{
@@ -271,7 +267,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				line_items:lineItems
 			});
 		}
-		//console.log(data);
 		apiService.createInvoice(data,createCompleted,apiError);
 		
 	}

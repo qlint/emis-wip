@@ -130,7 +130,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					var thesubject = $scope.subjects.filter(function(subject){
 						if ( subject.subject_name == item.subject_name ) return subject;
 					})[0];
-					//console.log(thesubject);
+
 					
 					marks[thesubject.subject_name] = {
 						mark: item.mark,
@@ -145,7 +145,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					
 				});
 				$scope.examMarks[(i-1)].marks = marks;
-				console.log($scope.examMarks);
+
 				
 			}
 		}
@@ -162,14 +162,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		{
 			var children = [];
 			var parent = null;
-			console.log(marks);
+
 			
 			angular.forEach(marks, function(item,key){
 				// get marks for children subjects
 				if( item.parent_subject_id == parent_id ) children.push(item);
 				else if(item.subject_id == parent_id ) parent = item;
 			});
-			console.log(children);
+
 			// add them up
 			var total = children.reduce(function(sum,item){
 				sum += parseFloat(item.mark) || 0;
@@ -231,7 +231,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			//console.log(filterFormWidth);
+
 			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
 		
@@ -240,13 +240,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				//console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				//console.log(filterFormWidth);
+
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
@@ -280,7 +279,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				user_id: $rootScope.currentUser.user_id,
 				exam_marks: examMarks
 			}
-			console.log(data);
+
 			apiService.addExamMarks(data,createCompleted,apiError);			
 		}
 	}

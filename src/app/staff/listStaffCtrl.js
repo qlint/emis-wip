@@ -41,7 +41,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				}
 		
 		
-				//console.log(result.data);
 				$scope.allEmployees = (result.nondata !== undefined ? [] : result.data);	
 				$scope.employees = $scope.allEmployees ;
 				
@@ -71,14 +70,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	{
 		// get staff
 		$scope.departments = $rootScope.allDepts;
-		//console.log($scope.departments );
 		getStaff()			
 	}
 	$timeout(initializeController,1000);
 	
 	$scope.$watch('filters.emp_cat', function(newVal,oldVal){
 		if (oldVal == newVal) return;
-		//console.log(newVal);
+
 		if( newVal === undefined || newVal === null || newVal == '' ) 	$scope.departments = $rootScope.allDepts;
 		else
 		{	
@@ -186,7 +184,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		// filter by emp category
 		var filteredResults = $scope.allEmployees;
 		
-		//console.log($scope.filters);
 		
 		if( $scope.filters.emp_cat_id !== undefined && $scope.filters.emp_cat_id !== null && $scope.filters.emp_cat_id != ''  )
 		{
@@ -195,7 +192,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			  return sum;
 			}, []);
 		}
-		//console.log(filteredResults);
+
 		
 		if( $scope.filters.dept_id !== undefined && $scope.filters.dept_id !== null && $scope.filters.dept_id != '' )
 		{

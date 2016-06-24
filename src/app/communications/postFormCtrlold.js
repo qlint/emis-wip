@@ -4,7 +4,6 @@ angular.module('eduwebApp').
 controller('postFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader','$timeout', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, $timeout, data){
 
-	console.log(data);
 	$scope.edit = ( data.edit !== undefined ? data.edit : false );
 	$scope.classes = data.classes;
 	$scope.selectedClass = data.selectedClass;
@@ -37,7 +36,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		$scope.classSelected = true;
 		$scope.setupBlog = ( $scope.selectedClass.blog_id === null ? true : false );
-		console.log($scope.selectedClass);
 	}
 	
 	$scope.preview = function()
@@ -60,7 +58,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.save = function(form)
 	{
-		//console.log(form);
 		if ( !form.$invalid ) 
 		{
 
@@ -90,9 +87,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					
 					$scope.post.feature_image = ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null);
 				}
-				console.log($scope.bodyContent);
+
 				$scope.post.body = $scope.bodyContent;
-				console.log($scope.post);
+
 				var data = {
 					user_id: $scope.currentUser.user_id,
 					blog_id: $scope.selectedClass.blog_id,

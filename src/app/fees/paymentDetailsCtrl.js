@@ -4,7 +4,6 @@ angular.module('eduwebApp').
 controller('paymentDetailsCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$filter',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $filter){
 
-	//console.log(data);
 	$scope.edit = ( $scope.permissions.fees.payments_received.edit !== undefined ? $scope.permissions.fees.payments_received.edit  : false);
 	
 	$scope.makeSelection = (data.payment_id === undefined ? true : false );
@@ -19,7 +18,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.feeItemsSelection = [];
 	$scope.feeItemsSelection2 = [];
 	
-	console.log(data);
 	
 	var initializeController = function()
 	{
@@ -115,7 +113,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			
 			$scope.selectedPayment = results.payment;
 			$scope.selectedInvoice = ( results.invoice.length > 0 ? formatInvoices(results.invoice)[0] : undefined);
-			//console.log($scope.selectedInvoice);	
 
 			apiService.getOpenInvoices($scope.student_id, loadInvoices, apiError);
 			
@@ -136,7 +133,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					});						
 				});
 
-				//console.log($scope.feeItemsSelection);
 			}
 			
 			// if its a replacement payment, set the selected replacement items
@@ -161,7 +157,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 							});						
 						});
 
-						//console.log($scope.feeItemsSelection2);
 						
 					}
 				},apiError);
@@ -231,7 +226,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				total_due: currentItem.total_due,
 				fee_items: feeItems,
 			});
-			//console.log(invoices);
+
 			return invoices;
 	}
 	
@@ -325,7 +320,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.$watch('selectedPayment.apply_to_all', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 		
-		//console.log(newVal);
 		
 		if( $scope.selectedNewInvoice )
 		{
@@ -435,7 +429,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			sum = sum + parseFloat(item.amount);
 			return sum;
 		},0);
-		//console.log(totalFeeItems);
+
 		
 		
 		if( $scope.selectedPayment.replacement_payment !== true )
@@ -519,8 +513,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			
 		}
 
-		//console.log(data);
-		
 		apiService.updatePayment(data,createCompleted,apiError);
 		
 	}

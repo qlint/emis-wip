@@ -6,7 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	$scope.edit = ( data !== undefined ? true : false );
 	$scope.department = ( data !== undefined ? data : {} );
-	//console.log(data);
+
 	
 	$scope.initializeController = function()
 	{
@@ -24,12 +24,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	$scope.save = function(form)
 	{
-		//console.log(form);
+
 		if ( !form.$invalid ) 
 		{
 			var data = $scope.department;
 			data.user_id = $rootScope.currentUser.user_id;
-			//console.log(data);
 			
 			if( $scope.edit )
 			{
@@ -139,7 +138,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 						total[ current.name ] = current.value;
 						return total;
 					}, {});
-					//console.log(settings);
 					
 					$rootScope.$emit('setSettings', settings);
 					
@@ -166,7 +164,6 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.save = function()
 		{
-			//console.log($scope.guardian);
 			var postData = {
 				name: 'Department Categories',
 				value: $scope.category.name,

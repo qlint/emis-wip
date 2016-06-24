@@ -3,7 +3,6 @@
 angular.module('eduwebApp').
 controller('listHomeworkCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter','$state',
 function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
-	console.log($state.params);
 	
 	var initialLoad = true;
 	$scope.filters = {};
@@ -72,7 +71,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 						if( !containsClassId(classObj, sum) ) sum.push(classObj);
 						return sum;
 					}, []);
-					console.log($scope.classes);
+
 					
 					//if( $scope.filters.class_id === null ) $scope.filters.class_id = $scope.classes[0].class_id;
 					if( $scope.filters.subject_id !== null )
@@ -90,7 +89,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 						
 						$scope.filters.class_subject_id = activeClassSubject.class_subject_id;
 					}
-					console.log(angular.copy($scope.filters));
+
 					getHomework( angular.copy($scope.filters) );
 				}
 				else
@@ -129,7 +128,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			$scope.dataGrid.clear();
 			$scope.dataGrid.destroy();				
 		}	
-		console.log(filters);
+
 		var params = (filters.post_status_id || 'All') + '/' + (filters.class_subject_id || 'All') + '/' + (filters.class_id || 'All');
 		apiService.getHomeworkPosts(params, function(response,status){
 			var result = angular.fromJson(response);
@@ -216,7 +215,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	{
 		if( !$rootScope.isSmallScreen )
 		{
-			console.log('here');
 			var filterFormWidth = $('.dataFilterForm form').width();
 			$('#resultsTable_filter').css('left',filterFormWidth+45);
 		}
@@ -275,12 +273,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	
 	$scope.viewPost = function(item)
 	{
-	/*
-		console.log(item);
-		var selectedClassSubject = $scope.allClassSubjects.filter(function(item){
-			if( item.class_subject_id == $scope.filters.class_subject_id ) return item;
-		})[0];
-*/
 		$state.go('communications/edit_post', {post: item, post_id: item.homework_id, post_type: 'homework'});
 	}
 	

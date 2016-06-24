@@ -6,7 +6,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	
 	$scope.theClass = ( data !== undefined ? data : {} );
-	//console.log(data);
 	
 	$scope.edit = ( $scope.theClass.class_id !== undefined ? true : false );
 	$scope.deleted = false;
@@ -35,7 +34,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			{
 				// build the subject and exams array
 				$scope.classDetails = ( result.nodata ? [] : angular.copy(result.data) );	;
-		//		console.log($scope.classDetails);			
+		
 				angular.forEach($scope.classDetails , function(item,key){
 					if( $scope.subjectSelection.indexOf(item.subject_id) === -1 ) $scope.subjectSelection.push(item.subject_id);
 				
@@ -46,8 +45,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 					$scope.gradeWeight[item.subject_id + '-' + item.exam_type_id ].grade_weight = item.grade_weight;
 					
 				});
-				//console.log($scope.subjectExamSelection);
-				//console.log($scope.gradeWeight);								
+						
 				
 				getSubjects($scope.theClass.class_cat_id);
 			
@@ -70,7 +68,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 		if( $scope.edit )
 		{
-			//console.log('here');
+
 			getClassDetails($scope.theClass.class_id);
 		}
 		
@@ -80,7 +78,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	$scope.$watch('theClass.class_cat_id',function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		//console.log('here');
+
 		getSubjects(newVal);
 		
 		apiService.getExamTypes(newVal, function(response){
@@ -106,11 +104,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			data.subjects = [];
 			
 			
-			//console.log(data);
-			
 			if( $scope.edit )
 			{
-				console.log($scope.subjectSelection);
 				angular.forEach( $scope.subjectSelection, function(subject_id,key){
 					
 					var examsArray = [];
@@ -119,13 +114,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 					angular.forEach($scope.subjectExamSelection[subject_id], function(exam_type_id,key2){
 					
 						// get ids
-						//console.log(subject_id);
-						//console.log(exam_type_id);
 						if( $scope.classDetails !== undefined ) {
 							var ids = $scope.classDetails.filter(function(item){
 								if( item.subject_id == subject_id && item.exam_type_id == exam_type_id ) return item;
 							})[0];
-							console.log(ids);
 						}
 						
 						class_subject_id = (ids !== undefined ? ids.class_subject_id : undefined);
@@ -151,7 +143,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			}
 			else
 			{
-				//console.log($scope.subjectSelection);
 				angular.forEach( $scope.subjectSelection, function(subject_id,key){
 					
 					var examsArray = [];
@@ -294,7 +285,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',data,{size: 'sm',backdrop:'static'});
 		dlg.result.then(function(examType){
 			
-			console.log($scope.examTypes);
 			if( $scope.examTypes === undefined ) $scope.examTypes = [];
 			$scope.examTypes.push(examType);
 					
@@ -317,7 +307,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		else {
 			$scope.subjectSelection.push(subject_id);
 			$scope.subjectExamSelection[subject_id] = [];
-			//console.log()
 		}
 	}
 	
@@ -336,7 +325,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			$scope.subjectExamSelection[subject_id].push(exam_type_id);
 		}
 		
-		//console.log($scope.subjectExamSelection);
 	}
 	
 	$scope.$watch('subject.apply_to_all', function(newVal,oldVal){

@@ -4,7 +4,6 @@ angular.module('eduwebApp').
 controller('postFormCtrl', ['$scope', '$rootScope', 'apiService', 'dialogs', 'FileUploader','$timeout','$state',
 function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $state){
 	
-	console.log($state.params);
 	
 	$scope.loadingPost = true;	
 	$scope.editingBlogName = false;
@@ -25,7 +24,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	$scope.filters.send_method = 'email';
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 	$scope.noEmpId = ( $rootScope.currentUser.emp_id === null ? true : false );
-	console.log($rootScope.currentUser.emp_id);
+
 	
 	if( $scope.isHomework )
 	{
@@ -69,7 +68,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 							}
 							$scope.setupBlog = false;
 							$scope.loadingPost = false;
-							console.log($scope.post);
+
 							
 						}
 						getHomeworkOptions();
@@ -108,7 +107,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 							$scope.setupBlog = false;
 							$scope.loadingPost = false;
 							if( $scope.post.send_method ==  'sms' ) $scope.post.title = $scope.post.message; // sms message is displayed in title field
-							console.log($scope.post);
+
 							
 							if( $scope.noEmpId )
 							{
@@ -156,7 +155,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 							*/
 							$scope.setupBlog = false;
 							$scope.loadingPost = false;
-							console.log($scope.post);
 	
 						}
 						getPostOptions();
@@ -202,7 +200,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.optionsSelected = true;
 			$scope.setupBlog = false;
 			$scope.loadingPost = false;
-			console.log($scope.post);
 
 		}
 		else{
@@ -270,7 +267,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				if( result.response == 'success' )
 				{	
 					$rootScope.classSubjects = $scope.classSubjects = ( result.nodata ? [] : result.data );	
-					console.log($rootScope.classSubjects);
+
 					if( $scope.classSubjects.length > 0 ) 
 					{
 						setInitalClassSubject();
@@ -561,13 +558,12 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		{
 			$scope.optionsSelected = true;
 			$scope.selectedClass = angular.copy($scope.filters.class);
-			console.log($scope.selectedClass);
+
 			$scope.setupBlog = ( $scope.selectedClass.blog_id === null ? true : false );
 			if( $scope.setupBlog )
 			{
 				$scope.blog = {};
 			}
-			console.log($scope.selectedClass);
 		}
 	}
 	
@@ -576,7 +572,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		$scope.optionsSelected = true;
 		$scope.classSubjectSelected = true;
 		$scope.selectedClassSubject = angular.copy($scope.filters.subject);
-		console.log($scope.selectedClassSubject);
 	}
 	
 	$scope.setEmailType = function(form)
@@ -606,7 +601,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			/* if the user is not associated with an employee id, need to ask for one */
 			if( $scope.noEmpId ) apiService.getAllEmployees(true, loadEmployees, apiError); // get list of employees
 			
-			console.log($scope.post);
 		}
 	}
 	
@@ -691,7 +685,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			else $scope.post.feature_image = ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null);
 		}
 
-		console.log($scope.post);
 		if( $scope.isHomework )
 		{
 			$scope.post.due_date = ( $scope.dates.due_date.startDate !== undefined ? moment($scope.dates.due_date.startDate).format('YYYY-MM-DD'): null);
@@ -745,7 +738,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	
 	$scope.save = function(form)
 	{
-		//console.log(form);
 		$scope.error = false;
 		$scope.errMsg = '';
 		if ( !form.$invalid ) 
@@ -787,12 +779,9 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 					if( $scope.isHomework ) $scope.post.attachment = ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null);
 					else $scope.post.feature_image = ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null);
 				}
-				console.log($scope.post);
 				
 				if( $scope.isHomework )
 				{
-					console.log($scope.due_date);
-					console.log($scope.assigned_date);
 					
 					$scope.post.due_date = ( $scope.dates.due_date.startDate !== undefined ? moment($scope.dates.due_date.startDate).format('YYYY-MM-DD'): null);
 					$scope.post.assigned_date = ( $scope.dates.assigned_date.startDate !== undefined ? moment($scope.dates.assigned_date.startDate).format('YYYY-MM-DD'): null);

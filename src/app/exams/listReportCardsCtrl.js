@@ -152,7 +152,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					
 				});
 				$scope.reportCards.students[(i-1)].reports = reports;
-				console.log($scope.reportCards);
+
 				
 				$scope.getReport = "reportTable";
 				$timeout(initDataGrid,100);
@@ -198,7 +198,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				}
 			}
 		}
-		console.log(data);
+
 		$scope.openModal('exams', 'reportCard', 'lg', data);
 		
 	}

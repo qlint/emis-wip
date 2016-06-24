@@ -7,7 +7,6 @@ function($scope, $rootScope){
 	var initializeController = function()
 	{
 		var data = window.printCriteria;
-		//console.log(data);
 		$rootScope.isPrinting = true;
 		$scope.showReportCard = true;
 		$scope.student = angular.fromJson(data.student);	

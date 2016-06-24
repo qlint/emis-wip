@@ -5,7 +5,7 @@ controller('viewStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'api
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, $timeout, data){
 	
 	$rootScope.modalLoading = false;
-	$scope.tabs = ( $rootScope.currentUser.user_type == 'TEACHER' ? ['Details','Family','Medical History','Exams','Report Cards','News'] : ['Details','Family','Medical History','Fees','Exams','Report Cards','News'] );
+	$scope.tabs = ( $rootScope.currentUser.user_type == 'TEACHER' ? ['Details','Family','Medical History','Exams','Report Cards'] : ['Details','Family','Medical History','Fees','Exams','Report Cards'] );
 	$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
 	$scope.currentTab = $scope.tabs[0];
 	$scope.currentFeeTab = $scope.feeTabs[0];
@@ -125,12 +125,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				
 				// remove any items that do not apply to this students class category
 				$scope.feeItems = filterFeeItems($scope.allFeeItems);				
-				//console.log($scope.feeItems);
 				
 				
 				// set the selected fee items based on what fee items are set for student
 				$scope.feeItemSelection = setSelectedFeeItems($scope.feeItems);
-				//console.log($scope.feeItemSelection);
 				
 				
 				// repeat for optional fees
@@ -146,7 +144,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				// set the selected fee items based on what fee items are set for student
 				$scope.optFeeItemSelection = setSelectedFeeItems($scope.optFeeItems);
 				
-				//console.log($scope.optFeeItemSelection);
 				
 				$scope.initLoad  = false;
 				
@@ -240,7 +237,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// get data for filters
 			$scope.loading = true;	
 			
-			console.log($scope.student);
 			$scope.filters.class = $scope.student.current_class;
 			$scope.filters.class_cat_id = $scope.student.class_cat_id; // set the students current class category as default
 			$scope.filters.class_id = $scope.student.class_id; 
@@ -382,7 +378,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(parent){
 			
-			//console.log(parent);
 			$scope.student.guardians.push(parent);
 			
 		},function(){
@@ -402,13 +397,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		dlg.result.then(function(guardian){
 			
 			// find guardian and update
-			console.log(guardian);
+
 			angular.forEach( $scope.student.guardians, function(item,key){
 				if( item.guardian_id == guardian.guardian_id)
 				{
-					console.log($scope.student.guardians[key]);
+
 					$scope.student.guardians[key] = guardian;
-					console.log($scope.student.guardians[key]);
 				}
 			});
 			
@@ -531,7 +525,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.$watch('student.transport_route', function(newVal, oldVal){
 		if( newVal == oldVal) return;
-		//console.log(newVal);
+
 		// use the amount and put it into the input box
 		angular.forEach($scope.optFeeItemSelection, function(feeItem,key){
 			if( feeItem.fee_item == 'Transport') feeItem.amount = newVal.amount;
@@ -770,10 +764,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var setSelectedFeeItems = function(feeItems)
 	{
-		//console.log(feeItems);
+	
 		return feeItems.filter(function(item){
 			return $scope.student.fee_items.filter(function(a){
-				//console.log(a.fee_item_id + ' ' + item.fee_item_id );
+
 				if( a.fee_item_id == item.fee_item_id && a.active )
 				{
 					item.amount = a.amount;
@@ -789,7 +783,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var filterFeeItems = function(feesArray)
 	{
-		//console.log($scope.student.new_student);
+
 		var feeItems = [];
 
 		if( $scope.student.new_student )
@@ -806,7 +800,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 		
 		// now filter by selected class
-		//console.log( $scope.student);
+
 		if( $scope.student.current_class !== undefined )
 		{
 			feeItems = feeItems.filter(function(item){
@@ -1111,7 +1105,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					
 				});
 				$scope.reportCards.classes[(i-1)].reports = reports;
-				console.log($scope.reportCards);
+
 			}
 			
 		}
@@ -1195,7 +1189,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				}
 				
 				//postData.feeItems = $scope.feeItemSelection;
-				console.log($scope.student.admission_date);
+
 				
 				var postData = {
 					student_id : $scope.student.student_id,
@@ -1271,7 +1265,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					}
 				}
 			}
-			//console.log(postData);
+
 			apiService.updateStudent(postData, createCompleted, apiError, {tab:tab});
 		}
 	}
@@ -1430,7 +1424,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 						if( $scope.guardian.login === undefined ) $scope.guardian.login = {};
 						$scope.guardian.login.login_active = 'false';
 					}
-					console.log($scope.guardian);
+;
 				}
 			},apiError);
 		}
@@ -1494,9 +1488,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.save = function(theForm)
 		{
-			console.log(theForm.$invalid);
-			console.log($scope.uniqueUsername);
-			console.log($scope.uniqueIdNumber);
+
 			if( !theForm.$invalid && $scope.uniqueUsername !== false && $scope.uniqueIdNumber !== false )
 			{
 				if( $scope.edit ) 
@@ -1504,7 +1496,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					$scope.update();
 				}
 				else{
-					//console.log($scope.guardian);
+
 					if( $scope.student_id )
 					{
 						var postData = {
@@ -1527,7 +1519,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.update = function()
 		{
-			//console.log($scope.guardian);
+
 			var postData = {
 				student_id: $scope.student_id,
 				guardian: $scope.guardian,
@@ -1896,7 +1888,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.save = function()
 		{
-			//console.log($scope.guardian);
+
 			var postData = {
 				student_id: data.student_id,
 				medicalConditions: $scope.conditionSelection,
@@ -2021,7 +2013,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.save = function()
 		{
-			//console.log($scope.guardian);
+
 			var postData = {
 				student_id: data.student_id,
 				medicalCondition: $scope.medicalCondition,
@@ -2097,7 +2089,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		//-- Variables --//
-		//console.log(data);
+
 		$scope.student_id = data.student_id;
 		$scope.filters = data.filters;
 		$scope.classes = data.classes;
@@ -2191,7 +2183,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					if( item.parent_subject_id == parent_id ) children.push(item);
 					else if(item.subject_id == parent_id ) parent = item;
 				});
-				console.log(children);
+
 				// add them up
 				var total = children.reduce(function(sum,item){
 					sum += parseFloat(item.mark) || 0;
@@ -2222,7 +2214,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				user_id: $rootScope.currentUser.user_id,
 				exam_marks: examMarks
 			}
-			//console.log(data);
+
 			apiService.addExamMarks(data,createCompleted,apiError);				
 			
 		}; // end save
@@ -2341,7 +2333,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.done = function(theForm)
 		{			
-			console.log(theForm);
+
 			if( !theForm.$invalid )
 			{
 				var params = $scope.adminPwd + '/' + $scope.student_id;

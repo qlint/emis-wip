@@ -212,7 +212,6 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			//console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+50);
 		}
 		
@@ -221,13 +220,11 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				//console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				//console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);
@@ -306,8 +303,6 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		else
 		{
 			// otherwise we have all we need, just filter it down 
-			//console.log( $scope.reversedPayments);
-			//console.log( $scope.allPayments);
 			$scope.payments = filterResults(( $scope.filters.payment_status == 'true' ? $scope.reversedPayments : $scope.allPayments), $scope.filters);
 			$timeout(initDataGrid,1);
 		}
@@ -463,7 +458,6 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	var filterFeeItems = function(feesArray)
 	{
-		//console.log($scope.student.new_student);
 		var feeItems = [];
 
 		if( $scope.student.new_student )
@@ -480,7 +474,6 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		}
 		
 		// now filter by selected class
-		//console.log( $scope.student);
 		if( $scope.student.current_class !== undefined )
 		{
 			feeItems = feeItems.filter(function(item){

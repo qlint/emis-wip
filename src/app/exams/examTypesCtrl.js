@@ -159,7 +159,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 		// show small dialog with add form		
 		var dlg = $dialogs.create('addExamType.html','addExamTypeCtrl',{},{size: 'sm',backdrop:'static'});
 		dlg.result.then(function(examType){
-			console.log(examType);
 			$scope.filters.class_cat_id = examType.class_cat_id;
 			getExamTypes($scope.filters.class_cat_id);
 					

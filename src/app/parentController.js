@@ -12,7 +12,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 	$rootScope.updatePwd = false;
 	
 	var showLoginDialog = function(args) {
-		//console.log(args);
 		if(!$scope.modalShown){
 			$scope.modalShown = true;
 			var modalInstance = $uibModal.open({
@@ -272,8 +271,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 		
 		angular.forEach( $rootScope.navItems, function( item, key) {
 			var section = item.section;
-		//	console.log(section);
-		//	console.log(page);
+
 			if( section.toUpperCase() == page.toUpperCase() )
 			{
 				$rootScope.mainSubNavItems = item.subnav;

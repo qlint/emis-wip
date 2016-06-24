@@ -151,7 +151,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			else if ( $scope.currentTab == 'Employee Info' )
 			{
-				//console.log($scope.employee.joined_date);
+
 				var postData = {
 					emp_id : $scope.employee.emp_id,
 					user_id : $rootScope.currentUser.user_id,
@@ -177,7 +177,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				}
 			}
 			
-			//console.log(postData);
 			apiService.updateEmployee(postData, createCompleted, apiError, {tab:tab});
 		}
 	}

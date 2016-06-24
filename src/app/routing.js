@@ -9,7 +9,6 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	
 	
 	var _isSmallScreen = (function() {
-		//console.log(window.innerWidth);
 		return (window.innerWidth <= 768 ? true : false );
 	})();
 

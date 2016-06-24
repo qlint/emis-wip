@@ -172,7 +172,6 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			//console.log(filterFormWidth);
 			$('#resultsTable_filter').css('left',filterFormWidth+40);
 		}
 		
@@ -181,13 +180,11 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
-				//console.log('here');
 				$('#resultsTable_filter').css('left',0);
 			}
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				//console.log(filterFormWidth);
 				$('#resultsTable_filter').css('left',filterFormWidth-30);	
 			}
 		}, false);

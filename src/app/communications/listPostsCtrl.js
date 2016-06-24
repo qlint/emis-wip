@@ -3,7 +3,7 @@
 angular.module('eduwebApp').
 controller('listPostsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter','$state',
 function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
-	console.log($state.params);
+
 	$scope.filters = {};
 	$scope.filters.post_status_id = 'All';
 	$scope.filters.class_id = ( $state.params.class_id !== '' ? $state.params.class_id : null );

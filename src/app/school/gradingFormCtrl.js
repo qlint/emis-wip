@@ -20,11 +20,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	$scope.save = function(form)
 	{
-		//console.log(form);
 		if ( !form.$invalid ) 
 		{
 			var data = $scope.grading;
-			//console.log(data);
 			
 			if( $scope.edit )
 			{

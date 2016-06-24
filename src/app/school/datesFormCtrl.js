@@ -18,7 +18,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		}		
 		else
 		{
-			//console.log($scope.date);
 			$scope.start_date = {startDate: $scope.date.start_date};
 			$scope.end_date = {startDate: $scope.date.end_date};
 		}
@@ -32,14 +31,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	$scope.save = function(form)
 	{
-		//console.log(form);
 		if ( !form.$invalid ) 
 		{
 			var data = $scope.date;
-			//console.log(data);
 			data.start_date = moment($scope.start_date.startDate).format('YYYY-MM-DD');
 			data.end_date = moment($scope.end_date.startDate).format('YYYY-MM-DD');
-			//console.log(data);
+
 			
 			if( $scope.edit )
 			{

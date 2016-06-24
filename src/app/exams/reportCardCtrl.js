@@ -3,7 +3,7 @@
 angular.module('eduwebApp').
 controller('reportCardCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$timeout','$window','$parse',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window, $parse){
-	console.log(data);
+
 	$rootScope.isPrinting = false;
 	$scope.student = data.student || undefined;
 	$scope.reportCardType = ($scope.student !== undefined ? $scope.student.report_card_type : undefined);
@@ -29,7 +29,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		{
 			/* passing in a report to view, load it */			
 			$scope.reportData = angular.fromJson(data.reportData);
-			//console.log($scope.reportData);
 			$scope.originalData = angular.copy($scope.reportData);
 			
 			$scope.report.report_card_id = data.report_card_id;
@@ -44,7 +43,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.report.date = data.date;
 					
 			$scope.filters = data.filters;
-			//console.log($scope.filters);
 			
 			$scope.setReportCardData();
 			$scope.savedReport = true;
@@ -136,7 +134,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	
 	$scope.$watch('filters.term', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		console.log(newVal);
+
 		/* get the next term based on the selected term for report card */
 		apiService.getNextTerm(newVal.end_date, function(response,status){
 			var result = angular.fromJson(response);				
@@ -178,7 +176,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.report.year = $scope.currentFilters.term.year;
 		$scope.report.teacher_id = $scope.currentFilters.class.teacher_id;
 		$scope.report.teacher_name = $scope.currentFilters.class.teacher_name;
-		console.log($scope.report);
+
 		
 		// check to see if there is already a report card with this criteria
 		if( recreate )
@@ -193,7 +191,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		else
 		{
 			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id
-			console.log(params)
 			apiService.getStudentReportCard(params,loadReportCard, apiError);
 		}
 		
@@ -221,7 +218,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				filterExamTypes();
 				
 				/* look for adjustments to exam marks */
-				console.log($scope.reportCardType );
+
 				if( $scope.reportCardType != 'Kindergarten' )
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id
@@ -287,7 +284,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				/* group the results by subject */				
 				$scope.reportData = {};
 				$scope.reportData.subjects = groupExamMarks( $scope.examMarks );
-				console.log($scope.reportData.subjects);							
+						
 				
 				// set overall
 				var total_marks = 0;
@@ -328,7 +325,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				if( $scope.originalData !== undefined )
 				{
 					// recreated a report, carry over the comments
-					console.log($scope.originalData);
 
 					$scope.comments = angular.copy($scope.originalData.comments) || {};
 					
@@ -529,7 +525,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		
 		$scope.nextTermStartDate = angular.copy($scope.reportData.nextTerm);
 
-		//console.log($scope.reportData);
+
 	}
 	
 	$scope.updateReport = function()
@@ -552,7 +548,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			nextTermStartDate: $scope.nextTermStartDate,
 			report_card_type: $scope.reportCardType
 		}
-		console.log(criteria);
+
 		var domain = window.location.host;
 		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
@@ -600,14 +596,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	
 	$scope.save = function()
 	{
-		console.log($scope.comments);
+
 		$scope.reportData.position = $scope.overall;
 		$scope.reportData.position_last_term = $scope.overallLastTerm;
 		$scope.reportData.totals = $scope.totals;
 		//$scope.reportData.total_overall_mark = $scope.total_overall_mark;
 		$scope.reportData.comments = $scope.comments;
 		$scope.reportData.nextTerm = $scope.nextTermStartDate;
-		console.log($scope.reportData);
+
 		
 		var data = {
 			user_id: $rootScope.currentUser.user_id,
@@ -618,7 +614,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			teacher_id : $scope.report.teacher_id,
 			report_data : JSON.stringify($scope.reportData)
 		}
-		console.log(data);
+
 		apiService.addReportCard(data,createCompleted,apiError);			
 		
 	}
