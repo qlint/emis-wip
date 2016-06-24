@@ -1,0 +1,96 @@
+<div ng-controller="listPostsCtrl">	
+	
+	<div id="body-content" class="row blog fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+		
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+		
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+					<div class="btn add-btn" title="Add Post" ng-show="permissions.communications.blog_posts.add" ng-click="addPost()"><a class="clickable"><span class="fa fa-comment"></span> <span class="tool-text">Add Blog Post</span></a></div>
+					<div class="btn add-btn" title="Add Homework" ng-show="permissions.communications.homework.add" ng-click="addHomework()"><a class="clickable"><span class="glyphicon glyphicon-pencil"></span> <span class="tool-text">Add Homework</span></a></div>
+					<div class="btn add-btn" title="Compose Message" ng-show="permissions.communications.send_email.add" ng-click="addEmail()"><a class="clickable"><span class="glyphicon glyphicon-send"></span> <span class="tool-text">Compose Message</span></a></div>
+				</div>			
+			</div>
+			
+			<div class="clearfix">
+				<h1 id="pageTitle">Blog Posts</h1>
+			</div>
+			
+			<!-- search form -->
+			<div class="dataFilterForm">	
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+					
+					<!-- class select -->
+					<div class="form-group">
+						<label for="class">Class</label>	
+						<select name="class" id="class" class="form-control" ng-options="class.class_id as class.class_name for class in classes" ng-model="filters.class_id">
+						</select>
+					</div>
+
+					<!-- status select -->
+					<div class="form-group">
+						<label for="post_status">Status</label>
+						<select class="form-control" id="post_status" name="post_status" ng-options="status.post_status_id as status.post_status for status in postStatuses" ng-model="filters.post_status_id">
+							<option value="">All</option>
+						</select>
+					</div>
+					
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="loadFilter()" value="Load" />
+						<img src="assets/spinner.gif" ng-show="loading" />
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+
+				</form>
+			</div>
+			<!-- // end search form -->
+			
+			
+		</div>
+		
+		<div class="full-height datagrid main-datagrid" ng-class="{tableLoading: loading}">
+			<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%">
+				<thead>
+					<tr>
+						<th></th>
+						<th>Title</th>
+						<th>Class</th>
+						<th>Date</th>
+						<th>Status</th>
+						<th class="center">Preview</th>
+					</tr>
+				</thead>	
+				<tbody>
+					<tr ng-repeat="item in posts track by $index">
+						<td></td>
+						<td id="{{item.post_id}}" class="post_id" ng-click="viewPost(item)">{{item.title}}</td>
+						<td ng-click="viewPost(item)">{{item.class_name}}</td>
+						<td ng-click="viewPost(item)">{{item.creation_date}}</td>
+						<td ng-click="viewPost(item)">{{item.post_status}}</td>
+						<td class="center" ng-click="preview(item)"><i class="fa fa-eye"></i></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+				
+	</div>
+</div>
+
+
+

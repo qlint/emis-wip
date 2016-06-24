@@ -32,7 +32,7 @@
 							<!-- admission date -->
 							<div class="col-sm-4"ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.admission_date.$dirty ) && studentForm.admission_date.$invalid && studentForm.admission_date.$error.required }">		
 								<label>Admission Date</label>
-								<p class="form-control-static" ng-show="!edit">{{student.admission_date}}</p>
+								<p class="form-control-static" ng-show="!edit">{{student.admission_date.startDate}}</p>
 								<div ng-show="edit">
 									<div class="input-group">
 										<input type="text" name="admission_date" date-range-picker id="admission_date" class="form-control date-picker input-sm" ng-model="student.admission_date" options="{singleDatePicker: true,autoApply: true}"  required>
@@ -158,7 +158,8 @@
 							<!-- pic -->
 							<div class="col-sm-4">					
 								<label for="student-image">Student Image</label>
-								<div>
+								<p class="form-control-static" ng-show="!edit">{{student.student_image}}</p>
+								<div ng-show="edit">
 									<input type="file" nv-file-select="" uploader="uploader" />						
 								</div>	
 							</div>

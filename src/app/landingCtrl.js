@@ -52,7 +52,7 @@ function($scope, $rootScope, $state, $window, Auth, apiService, token ) {
 			$scope.loggedIn = true;
 			
 			// check to see if they have set up their school, if not take them to the settings page to get started
-			if( $rootScope.currentUser.user_type == 'PARENT' ) $state.go('parents_dashboard');
+			if( $rootScope.currentUser.user_type == 'PARENT' ) $state.go('portal_dashboard');
 			else
 			{				
 				if( $rootScope.currentUser.settings['School Name'] === undefined )

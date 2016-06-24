@@ -141,6 +141,10 @@ a{
 .uppercase{
 	text-transform:uppercase;
 }
+.note{
+	font-style:italic;
+	color:#777;
+}
 
 /********************** Branding Styles ******************************/
 .navbar-brand{
@@ -359,42 +363,6 @@ h1{
 	}
 }
 
-.homework-col{
-	@include rounded(7px);
-	background-color:#eee;
-	padding: 5px 10px;
-	
-	.homework-body{
-		margin-left: 25px;
-		margin-right: 10px;
-		margin-bottom: 10px;
-		
-		.homework-item{
-			position:relative;
-			margin: 15px 0;
-			
-			.date{
-				position: absolute;
-				left: -36px;
-				background: #fff;
-				padding: 7px;
-				font-size: 10px;
-				color:#777;
-			}
-			.dow{
-				margin-bottom:5px;
-			}	
-		}
-		
-		
-	}
-	
-	.dates{
-		margin-left: 25px;
-		font-weight: 700;
-		margin-bottom: 5px;
-	}
-}
 
 /********************** Dashboard Styles ******************************/
 .dashboard .dashboard-panel,
@@ -485,7 +453,7 @@ h1{
     color: $bright-green;
     top: 0px;
     @include rounded(10px);
-	z-index:9999;
+	z-index:100;
 }
 
 .dashboard,
@@ -532,6 +500,29 @@ h1{
 			li:nth-child(even){
 				background-color:rgba(238, 238, 238, 0.38);
 			}		
+		}
+		p.padded{
+			margin:15px 50px 5px 5px;
+		}
+		.title{
+			b{
+				font-size:14px;
+			}
+			span{
+				font-size:12px;
+				font-style:italic;
+			}
+			
+			a{
+				color:#333;
+			}
+		}
+		.indent{
+			margin: 5px 0;
+			
+			a{
+				font-size:12px;
+			}
 		}
 		
 	}
@@ -1028,7 +1019,7 @@ table.clickable{
 	.header .modalDataFilter{
 		padding:0 25px;
 	}
-	
+		
 	.invoice-status{
 		margin-top: -16px;
 		padding-top: 25px;
@@ -1281,6 +1272,78 @@ table.clickable{
 
 .printReceipt{
 	
+}
+
+/********************** Blog Styles ******************************/
+.blog-title{
+	margin: 0 -15px 10px -15px;
+	background: rgba(238, 238, 238, 0.53);
+	padding: 5px 15px;
+}
+.blog-post{
+	margin-top:15px;
+	margin-bottom:15px;
+}
+.trix-content{
+	min-height:200px;
+}
+.highlight{
+	color:$bright-green;
+}
+.blog{
+	.btn-group.toolbar{
+		position:absolute!important;
+		right:5px;
+		top:50px;
+	}
+	h2{
+		font-size:20px;
+	}
+	.buttons{
+		margin-top:15px;
+		padding-top:10px;
+		padding-bottom:50px;
+	}
+	.feature-img{
+		margin-bottom:15px;
+	}
+	.feature-img.thumb{
+		max-height:100px;
+	}
+	.feature-img.post{
+		width:100%;
+		max-width:400px;
+	}
+	.icon-sm{
+		font-size:14px;
+		color:$bright-green;
+	}
+	.blog-meta{
+		margin:15px -15px -15px -15px;
+		padding:10px 15px;
+		color:#777;
+		border-top:1px solid #ddd;
+		border-bottom:1px solid #ddd;
+		font-style:italic;
+		background-color:#eee;
+		
+		p{
+			margin-bottom:3px;
+		}
+	}
+}
+
+.post-options-form{
+	background: #eee;
+    padding: 10px 0px;
+    border-bottom: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	margin-bottom:15px;
+	margin-left:-15px;
+	
+	.row, select{
+		margin-bottom:5px;
+	}
 }
 
 /*
@@ -1603,7 +1666,7 @@ table.clickable{
 		}
 	}
 	.main-datagrid{
-		padding-top:83px;
+		padding-top:40px;
 		border-top:1px solid #fff;
 		
 		.dataTables_filter{
@@ -1611,6 +1674,9 @@ table.clickable{
 			left: 350px;
 		}
 	}	
+	.fixed-filter .main-datagrid{
+		padding-top:83px;
+	}
 	.hasSubNav .main-datagrid,
 	{
 		padding-top:131px

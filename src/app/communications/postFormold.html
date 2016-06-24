@@ -1,0 +1,82 @@
+<form name="postForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(postForm)">		
+	<div class="modal-header dialog-header-form">
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Post</h4>
+			</div>
+			<div class="modal-body cleafix">
+				<div class="row header">
+					<div class="modalDataFilter clearfix">	
+					
+						<!-- class select -->
+						<div class="form-group" ng-class="{ 'has-error' : postForm.class_id.$invalid && (!postForm.class_id.$pristine || postForm.$submitted) }">	
+							<label for="class">Which class blog would you like to post to?</label>	
+							<select name="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="selectedClass">
+								<option value="">--select class--</option>
+							</select>	
+							<p ng-show="postForm.class_id.$invalid && (!postForm.class_id.$pristine || postForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a class.</p>
+						</div>		
+				
+						
+						<!-- search btn -->
+						<div class="form-group submit-btn">
+							<input type="button" class="btn btn-sm btn-info" ng-click="setClass()" value="Next" />
+							<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
+						</div>					
+					</div>
+				</div>
+			
+				<div ng-show="error" class="alert alert-danger">
+					{{errMsg}}
+				</div>
+					
+				<div ng-if="classSelected && setupBlog">
+					<!-- blog name -->
+					<p class="alert alert-info">
+						Before you post your first blog post, you must give your class blog a name. Enter one below, then click 'Save' to continue to enter a blog post.
+					</p>
+					<div ng-class="{ 'has-error' : postForm.blog_name.$invalid && (postForm.blog_name.$touched || postForm.$submitted) }">		
+						<label for="blog_name">Blog Name</label>
+						<input type="text" name="blog_name" ng-model="blog_name" class="form-control" required >						
+						<p ng-show="postForm.blog_name.$invalid && (postForm.blog_name.$touched || postForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Blog Name is required.</p>
+					</div>
+				</div>
+				
+				<div ng-if="classSelected && !setupBlog">
+					<h1 class="blog-title">{{selectedClass.blog_name}}</h1>
+					
+					<div ng-class="{ 'has-error' : postForm.title.$invalid && (postForm.title.$touched || postForm.$submitted) }">		
+						<h2>Add New Post</h2>
+						<input type="text" name="title" ng-model="post.title" class="form-control" required placeholder="Enter title here" >						
+						<p ng-show="postForm.title.$invalid && (postForm.title.$touched || postForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Title is required.</p>
+					</div>
+					
+					<div class="blog-post">
+						<trix-editor class="trix-content" ng-model="bodyContent" angular-trix prevent-trix-file-accept="true"></trix-editor>						
+					</div>
+					{{bodyContent}}
+					<div>		
+						<label for="blog_name">Feature Image</label>
+						<input type="file" nv-file-select="" uploader="uploader" class="form-control" >						
+					</div>
+					
+					
+				</div>
+
+					
+					
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+				
+				<span ng-show="!edit && classSelected && !setupBlog">
+					<button type="button" ng-click="preview()" class="btn btn-primary">Preview</button>
+					<button type="button" ng-click="saveDraft(postForm)" class="btn btn-primary">Save Draft</button>
+					<button type="button" ng-click="publish(postForm)" class="btn btn-primary">Publish</button>
+				</span>
+				
+				<span ng-show="!edit && classSelected && setupBlog">
+					<button type="submit" class="btn btn-primary">Save</button>
+				</span>
+				
+				<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>
+			</div>
+</form>

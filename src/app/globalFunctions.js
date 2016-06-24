@@ -30,21 +30,19 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			loggedIn = true;
 			$rootScope.loggedIn = true;
 			$rootScope.currentUser = JSON.parse($window.sessionStorage["userInfo"]);
-			Session.create($rootScope.currentUser);
+			Session.create($rootScope.currentUser);					
+			
 			$rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
 			//console.log($rootScope.currentUser);
 			
 			// get class categories and classes
-
-			if( $rootScope.currentUser.user_type != 'PARENT' )
-			{
-				$rootScope.getClassCats();
-				$rootScope.getAllClasses();
-				$rootScope.getEmpCats();
-				$rootScope.getDepts();
-				$rootScope.getCountries();
-				$rootScope.getInstallmentOptions();
-			}
+			$rootScope.getClassCats();
+			$rootScope.getAllClasses();
+			$rootScope.getEmpCats();
+			$rootScope.getDepts();
+			$rootScope.getCountries();
+			$rootScope.getInstallmentOptions();
+			
 		}
 		else
 		{
@@ -87,23 +85,19 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		$rootScope.activeSubSection = ( section[1] === undefined ? section[0] : section[1]);
 		$rootScope.activeSubSubSection = ( section[2] === undefined ? section[0] : section[2]);
 		if( $rootScope.activeSubSubSection  == 'print' ) $rootScope.isPrinting = true;
-		
-		// if this is a parent, last two parms in url identify the student
-	//	console.log(toParams);
-		if( $rootScope.currentUsers && $rootScope.currentUser.user_type == 'PARENT' ) 
-		{
-			// we are not viewing the dashboard, get the student identifier
-			if( toParams.school !== undefined ) $rootScope.activeStudent = toParams.school + '/' + toParams.student_id;
-			else $rootScope.activeStudent = undefined;
-		}
-		
-		
 		$rootScope.currentPageSection = section[0] + '/' + section[1];
-		if( $('#navigation').hasClass('in') ) $('#mainnav').trigger('click');
+		console.log($rootScope.activeSection);
+		
 		$timeout( function () {
 			//$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			//adjustPositions();
-		}, 1000);
+			if( $('#navigation').hasClass('in') )
+			{
+				$('#mainnav').trigger('click');
+				$rootScope.menuOn = false;
+			}
+		
+		}, 100);
 		
 		//console.log( $rootScope.currentUser);
 		
@@ -270,6 +264,10 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 	
 	$rootScope.$on('userAdded', function(event, args) {
         $rootScope.$broadcast('refreshUsers', args);
+    });
+	
+	$rootScope.$on('postAdded', function(event, args) {
+        $rootScope.$broadcast('refreshPosts', args);
     });
 	
 	$rootScope.$on('setSettings', function(event, args) {

@@ -307,7 +307,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		if( !theForm.$invalid)
 		{
 			if( uploader.queue[0] !== undefined ){
-				$scope.student.student_image = uploader.queue[0].file.name;
+				$scope.student.student_image = moment() + '_' + uploader.queue[0].file.name;
 			}
 			
 			$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );

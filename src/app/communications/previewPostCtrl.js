@@ -1,0 +1,18 @@
+'use strict';
+
+angular.module('eduwebApp').
+controller('previewPostCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'data',
+function($scope, $rootScope, $uibModalInstance, data){
+
+	console.log(data);
+	$scope.type = data.type;
+	$scope.post = data.post;		
+	
+	$scope.cancel = function()
+	{
+		$uibModalInstance.dismiss('canceled');  
+	}; // end cancel
+	
+	
+	
+} ]);

@@ -233,6 +233,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getAllSubjects/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getTeacherSubjects = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getTeacherSubjects/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getTeacherClassSubjects = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getTeacherClassSubjects/" + param, successFunction, errorFunction, params);
+	};
+	
 	this.getSubjects = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getSubjects/" + param, successFunction, errorFunction, params);
 	};
@@ -352,8 +360,16 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getAllStudents/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getAllParents = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGetWithData(request, path + "/getAllParents", successFunction, errorFunction, params);
+	};
+	
 	this.getTeacherStudents = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getTeacherStudents/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getTeacherParents = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getTeacherParents/" + param, successFunction, errorFunction, params);
 	};
 	
 	this.getStudentDetails = function (param, successFunction, errorFunction, params) {          
@@ -436,8 +452,8 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxDelete(path + "/deleteMedicalCondition/" + param, successFunction, errorFunction, params);
 	};
 	
-	this.getStudentClassess = function (param, successFunction, errorFunction, params) {          
-		ajaxService.AjaxGet(path + "/getStudentClassess/" + param, successFunction, errorFunction, params);
+	this.getStudentClasses = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getStudentClasses/" + param, successFunction, errorFunction, params);
 	};
 	
 	this.adminDeleteStudent = function (param, successFunction, errorFunction, params) {          
@@ -513,6 +529,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.cancelInvoice = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPut(request, path + "/cancelInvoic/", successFunction, errorFunction, params);
 	};
+	
 	this.reactivateInvoice = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPut(request, path + "/reactivateInvoice", successFunction, errorFunction, params);
 	};
@@ -535,13 +552,89 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPut(request, path + "/updateUser", successFunction, errorFunction, params);
 	};
 	
-	/*********** blog ***********/	
-	this.getBlog = function (param, successFunction, errorFunction, params) {      
-		ajaxService.AjaxGet(path + "/getBlog/" + param, successFunction, errorFunction, params);
-	};	
+	/*********** manage blog ***********/	
+	this.getClassPosts = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getClassPosts/" + param, successFunction, errorFunction, params);
+	};
 	
-	this.getHomework = function (param, successFunction, errorFunction, params) {      
-		ajaxService.AjaxGet(path + "/getHomework/" + param, successFunction, errorFunction, params);
+	this.getBlogPostTypes = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGetWithData(request, path + "/getBlogPostTypes", successFunction, errorFunction, params);
+	};
+	
+	this.getBlogPostStatuses = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGetWithData(request, path + "/getBlogPostStatuses", successFunction, errorFunction, params);
+	};
+	
+	this.getPost = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getPost/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.addBlog = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, path + "/addBlog", successFunction, errorFunction, params);
+	};
+	
+	this.addPost = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, path + "/addPost", successFunction, errorFunction, params);
+	};
+	
+	this.updatePost = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/updatePost", successFunction, errorFunction, params);
+	};
+	
+	this.updateBlog = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/updateBlog", successFunction, errorFunction, params);
+	};
+	
+	this.deletePost = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deletePost/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getHomeworkPosts = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getHomeworkPosts/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getHomeworkPost = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getHomeworkPost/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.addHomework = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, path + "/addHomework", successFunction, errorFunction, params);
+	};
+	
+	this.updateHomework = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/updateHomework", successFunction, errorFunction, params);
+	};
+	
+	this.deleteHomework = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deleteHomework/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getCommunicationOptions = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGetWithData(request, path + "/getCommunicationOptions", successFunction, errorFunction, params);
+	};
+	
+	this.getTeacherCommunications = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getTeacherCommunications/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getSchoolCommunications = function (request, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGetWithData(request, path + "/getSchoolCommunications", successFunction, errorFunction, params);
+	};
+	
+	this.addCommunication = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPost2(request, path + "/addCommunication", successFunction, errorFunction, params);
+	};
+	
+	this.getCommunication = function (param, successFunction, errorFunction, params) {      
+		ajaxService.AjaxGet(path + "/getCommunication/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.updateCommunication = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/updateCommunication", successFunction, errorFunction, params);
+	};
+	
+	this.deleteCommunication = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deleteCommunication/" + param, successFunction, errorFunction, params);
 	};
 	
 

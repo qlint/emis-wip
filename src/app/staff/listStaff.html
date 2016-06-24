@@ -45,9 +45,8 @@
 					<!-- class select -->
 					<div class="form-group">
 						<label for="dept">Department</label>	
-						<select name="dept" id="dept" class="form-control" ng-model="filters.dept_id">
+						<select name="dept" id="dept" class="form-control" ng-options="dept.dept_id as dept.dept_name for dept in departments" ng-model="filters.dept_id">
 							<option value="">All Departments</option>
-							<option value="{{dept.dept_id}}" ng-repeat="dept in departments">{{dept.dept_name}}</option>
 						</select>
 					</div>			
 					

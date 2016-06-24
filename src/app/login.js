@@ -56,7 +56,7 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 				}
 			, 100);
 			
-			if( $rootScope.currentUser.user_type == 'PARENT' ) $state.go('parents_dashboard');
+			if( $rootScope.currentUser.user_type == 'PARENT' ) $state.go('portal_dashboard');
 			else $state.go('dashboard');
 			
 			

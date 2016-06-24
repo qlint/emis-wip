@@ -41,9 +41,8 @@
 					<!-- class select -->
 					<div class="form-group">
 						<label for="class">Class</label>	
-						<select name="class" id="class" class="form-control" ng-model="filters.class_id">
+						<select name="class" id="class" class="form-control" ng-options="class.class_id as class.class_name for class in classes" ng-model="filters.class_id">
 							<option value="">All Classes</option>
-							<option value="{{class.class_id}}" ng-repeat="class in classes">{{class.class_name}}</option>
 						</select>
 					</div>		
 
