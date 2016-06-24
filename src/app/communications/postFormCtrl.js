@@ -182,11 +182,9 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				$scope.selectedMethod = $scope.post.send_method.toUpperCase();
 				if( $scope.post.send_method ==  'sms' ) $scope.post.title = $scope.post.message; // sms message is displayed in title field
 				getCommunicationOptions();
-				if( $scope.noEmpId )
-				{
-					// get list of employees
-					apiService.getAllEmployees(true, loadEmployees, apiError);
-				}
+				
+				if( $scope.noEmpId ) apiService.getAllEmployees(true, loadEmployees, apiError);// get list of employees
+	
 			}
 			else if( $scope.isHomework )
 			{			
@@ -590,21 +588,23 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.optionsSelected = true;
 			$scope.selectedClass = null;
 			$scope.setupBlog = false
+			
+			/* set variables for display of type of message they are entering */
 			$scope.selectedAudience = angular.copy($scope.filters.audience.audience);
 			$scope.selectedType = angular.copy($scope.filters.com_type.com_type);
 			$scope.selectedParent = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.parent_full_name) : undefined );
 			$scope.selectedMethod =	angular.copy($scope.filters.send_method).toUpperCase();
+			
+			/* set variables to post of selected criteria */
 			$scope.post.student_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.student_id) : undefined );
 			$scope.post.guardian_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.guardian_id) : undefined );
+			$scope.post.class_id = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_id) : undefined );
 			$scope.post.audience_id = angular.copy($scope.filters.audience.audience_id);
 			$scope.post.com_type_id = angular.copy($scope.filters.com_type.com_type_id);			
 			$scope.post.send_method = angular.copy($scope.filters.send_method);
 			
-			if( $scope.noEmpId )
-			{
-				// get list of employees
-				apiService.getAllEmployees(true, loadEmployees, apiError);
-			}
+			/* if the user is not associated with an employee id, need to ask for one */
+			if( $scope.noEmpId ) apiService.getAllEmployees(true, loadEmployees, apiError); // get list of employees
 			
 			console.log($scope.post);
 		}
@@ -809,12 +809,12 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				{
 					$scope.post.send_as_email = ( $scope.filters.send_method == 'email' ? 't' : 'f' );
 					$scope.post.send_as_sms = ( $scope.filters.send_method == 'sms' ? 't' : 'f' );
+					
 					if( $scope.isTeacher ) $scope.post.message_from = $rootScope.currentUser.emp_id; // needs to be emp id
 					else $scope.post.message_from = $scope.theemployee.selected.emp_id;
-					if( $scope.post.send_method ==  'sms' )
-					{
-						$scope.post.body = $scope.post.title; // sms message is displayed in title field
-					}
+					
+					if( $scope.post.send_method ==  'sms' ) $scope.post.body = $scope.post.title; // sms message is displayed in title field
+					
 					var data = {
 						user_id: $rootScope.currentUser.user_id,
 						post: $scope.post

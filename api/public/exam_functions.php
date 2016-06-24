@@ -248,7 +248,7 @@ $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id', function ($clas
 										INNER JOIN app.class_subject_exams																	
 										ON class_subjects.class_subject_id = class_subject_exams.class_subject_id		
 									ON classes.class_id = class_subjects.class_id									
-								ON students.current_class = classes.class_id AND classes.active is true 					
+								ON students.current_class = classes.class_id					
 								WHERE current_class = :classId
 								AND exam_type_id = :examTypeId							
 							) q

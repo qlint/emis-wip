@@ -16,7 +16,7 @@ $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
 									report_cards.creation_date::date as date									
 							FROM app.report_cards
 							INNER JOIN app.students ON report_cards.student_id = students.student_id
-							INNER JOIN app.classes ON report_cards.class_id = classes.class_id AND classes.active is true 
+							INNER JOIN app.classes ON report_cards.class_id = classes.class_id
 							INNER JOIN app.terms ON report_cards.term_id = terms.term_id
 							LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 							WHERE report_cards.class_id = :classId
@@ -61,7 +61,7 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
 									report_cards.creation_date::date as date
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
-					INNER JOIN app.classes ON report_cards.class_id = classes.class_id AND classes.active is true 
+					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
 					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
 					LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 					WHERE report_cards.student_id = :studentId
@@ -106,7 +106,7 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
 									report_cards.creation_date::date as date
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
-					INNER JOIN app.classes ON report_cards.class_id = classes.class_id AND classes.active is true 
+					INNER JOIN app.classes ON report_cards.class_id = classes.class_id 
 					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
 					LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 					WHERE report_cards.student_id = :studentId

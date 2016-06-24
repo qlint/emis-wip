@@ -731,7 +731,7 @@ $app->get('/getClassCats(/:teacher_id)', function ($teacherId=null) {
 		{
 			$sth = $db->prepare("SELECT class_cats.class_cat_id, class_cat_name 
 								FROM app.class_cats 
-								INNER JOIN app.classes ON class_cats.class_cat_id = classes.class_cat_id AND classes.active is true  AND teacher_id = :teacherId
+								INNER JOIN app.classes ON class_cats.class_cat_id = classes.class_cat_id AND teacher_id = :teacherId
 								WHERE class_cats.active is true 
 								ORDER BY class_cats.class_cat_id");
 			$sth->execute(array(':teacherId' => $teacherId));
@@ -903,7 +903,7 @@ $app->get('/getClassCatsSummary', function () {
 							(select count(*) 
 								from app.students 
 								inner join app.classes 
-								on students.current_class = classes.class_id  AND classes.active is true 
+								on students.current_class = classes.class_id
 								where class_cat_id = class_cats.class_cat_id) as num_students
 							FROM app.class_cats 
 							WHERE active is true

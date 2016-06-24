@@ -39,7 +39,7 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 								) AS unapplied_amount
 					FROM app.payments
 					INNER JOIN app.students ON payments.student_id = students.student_id
-					INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
+					INNER JOIN app.classes ON students.current_class = classes.class_id
 					WHERE payment_date between :startDate and :endDate
 					AND reversed = :reversed
 							";
@@ -224,7 +224,7 @@ $app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true
 							FROM app.invoice_balances
 							INNER JOIN app.students
 								INNER JOIN app.classes
-								ON students.current_class = classes.class_id AND classes.active is true 
+								ON students.current_class = classes.class_id
 							ON invoice_balances.student_id = students.student_id
 							WHERE invoice_balances.due_date < now()
 							AND date_part('year', due_date) = :year

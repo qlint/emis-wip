@@ -10,7 +10,7 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
 		
 		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
 							 FROM app.students 
-							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
+							 INNER JOIN app.classes ON students.current_class = classes.class_id
 							 WHERE students.active = :status 
 							 ORDER BY first_name, middle_name, last_name");
 		$sth->execute( array(':status' => $status)); 
@@ -93,7 +93,7 @@ $app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $st
 		
 		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
 							 FROM app.students 
-							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true AND classes.teacher_id = :teacherId
+							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.teacher_id = :teacherId
 							 WHERE students.active = :status 
 							 ORDER BY first_name, middle_name, last_name");
 		$sth->execute( array(':status' => $status, ':teacherId' => $teacherId)); 
@@ -177,7 +177,7 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
         $sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
 								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' ' || payment_interval2 || '(s) apart)' as payment_plan_name
 							 FROM app.students 
-							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
+							 INNER JOIN app.classes ON students.current_class = classes.class_id 
 							 LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
 							 WHERE student_id = :studentID 
 							 ORDER BY first_name, middle_name, last_name");
@@ -420,7 +420,7 @@ $app->get('/getOpenInvoices/:studentId', function ($studentId) {
 							ON invoice_balances.inv_id = invoice_line_items.inv_id
 							INNER JOIN app.students
 								INNER JOIN app.classes
-								ON students.current_class = classes.class_id AND classes.active is true 
+								ON students.current_class = classes.class_id
 							ON invoice_balances.student_id = students.student_id
 							WHERE students.student_id = :studentId
 							AND balance < 0
@@ -616,12 +616,12 @@ $app->get('/getStudentClasses/:studentId', function ($studentId) {
 								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 2') then true else false end as term_2,
 								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
 							FROM app.students
-							INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.active is true 
+							INNER JOIN app.classes ON students.current_class = classes.class_id
 							WHERE student_id = :studentId
 							UNION
 							SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
 							FROM app.student_class_history
-							INNER JOIN app.classes ON student_class_history.class_id = classes.class_id AND classes.active is true 
+							INNER JOIN app.classes ON student_class_history.class_id = classes.class_id 
 							WHERE student_id = :studentId
 							AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId)
 							ORDER BY ord");

@@ -453,7 +453,7 @@ h1{
     color: $bright-green;
     top: 0px;
     @include rounded(10px);
-	z-index:9999;
+	z-index:100;
 }
 
 .dashboard,

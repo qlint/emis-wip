@@ -307,7 +307,7 @@ h1 {
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
-  z-index: 9999; }
+  z-index: 100; }
 
 .dashboard .dashboard-panel-body h2,
 .school_settings .dashboard-panel-body h2 {

@@ -21,7 +21,7 @@ $app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($sta
 							FROM app.invoice_balances
 							INNER JOIN app.students
 								INNER JOIN app.classes
-								ON students.current_class = classes.class_id AND classes.active is true 
+								ON students.current_class = classes.class_id
 							ON invoice_balances.student_id = students.student_id
 							WHERE due_date between :startDate and :endDate
 							AND students.active = :status
@@ -290,7 +290,7 @@ $app->get('/getInvoiceDetails/:inv_id', function ($invId) {
 							ON invoices.inv_id = invoice_line_items.inv_id
 							INNER JOIN app.students
 								INNER JOIN app.classes
-								ON students.current_class = classes.class_id AND classes.active is true 
+								ON students.current_class = classes.class_id
 							ON invoices.student_id = students.student_id
 							WHERE invoices.inv_id = :invId
 							ORDER BY fee_item
