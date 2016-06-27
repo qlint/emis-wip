@@ -133,7 +133,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	
 	$scope.viewDepartment = function(item)
 	{
-		$scope.openModal('school', 'departmentForm', 'md',item);
+		var data = {
+			department: item
+		};
+		$scope.openModal('school', 'departmentForm', 'md',data);
 	}
 	
 	$scope.exportItems = function()

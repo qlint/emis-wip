@@ -429,28 +429,32 @@
 				</div>
 
 				<div class="row">
-					<!-- preferred payment method -->
-					<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.payment_method.$dirty ) && studentForm.payment_method.$invalid && studentForm.payment_method.$error.required }">		
-						<label for="payment_method" class="col-sm-3 control-label">Preferred Payment Method</label>
-						<div class="col-sm-3">
-							<select name="payment_method" ng-model="student.payment_method" class="form-control" required>
-								<option value="">--select payment option--</option>
-								<option value="{{item}}" ng-repeat="item in paymentOptions">{{item}}</option>
-							</select>
-							<p ng-show="(studentForm.$submitted || studentForm.payment_method.$dirty ) && studentForm.payment_method.$invalid && studentForm.payment_method.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
+					<div class="col-sm-12">
+					<button ng-show="permissions.fees.fee_structure.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addFeeItem()"><i class="glyphicon glyphicon-plus-sign"></i> Add Fee Item</button>
+				
+						<!-- preferred payment method -->
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.payment_method.$dirty ) && studentForm.payment_method.$invalid && studentForm.payment_method.$error.required }">		
+							<label for="payment_method" class="col-sm-3 control-label">Preferred Payment Method</label>
+							<div class="col-sm-3">
+								<select name="payment_method" ng-model="student.payment_method" class="form-control" required>
+									<option value="">--select payment option--</option>
+									<option value="{{item}}" ng-repeat="item in paymentOptions">{{item}}</option>
+								</select>
+								<p ng-show="(studentForm.$submitted || studentForm.payment_method.$dirty ) && studentForm.payment_method.$invalid && studentForm.payment_method.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
+							</div>	
 						</div>	
-					</div>	
-					<!-- installment plan -->
-					<div class="form-group" ng-show="student.payment_method=='Installments'"  ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.installment_option.$dirty ) && studentForm.installment_option.$invalid && studentForm.installment_option.$error.required }">			
-						<label for="installment_option" class="col-sm-3 control-label">Installment Option</label>
-						<div class="col-sm-3">
-							<select name="installment_option" ng-model="student.installment_option" class="form-control" ng-required="student.payment_method=='Installments'">
-								<option value="">--select installment option--</option>
-								<option value="{{item.installment_id}}" ng-repeat="item in installmentOptions">{{item.payment_plan_name}}</option>
-							</select>
-							<p ng-show="(studentForm.$submitted || studentForm.installment_option.$dirty ) && studentForm.installment_option.$invalid && studentForm.installment_option.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
+						<!-- installment plan -->
+						<div class="form-group" ng-show="student.payment_method=='Installments'"  ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.installment_option.$dirty ) && studentForm.installment_option.$invalid && studentForm.installment_option.$error.required }">			
+							<label for="installment_option" class="col-sm-3 control-label">Installment Option</label>
+							<div class="col-sm-3">
+								<select name="installment_option" ng-model="student.installment_option" class="form-control" ng-required="student.payment_method=='Installments'">
+									<option value="">--select installment option--</option>
+									<option value="{{item.installment_id}}" ng-repeat="item in installmentOptions">{{item.payment_plan_name}}</option>
+								</select>
+								<p ng-show="(studentForm.$submitted || studentForm.installment_option.$dirty ) && studentForm.installment_option.$invalid && studentForm.installment_option.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
+							</div>	
 						</div>	
-					</div>	
+					</div>
 				</div>
 				<div class="row">
 					<div class="col-sm-6">

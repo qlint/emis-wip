@@ -42,6 +42,52 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 	});
 	
+	$scope.addEmpCat = function()
+	{
+		var dlg = $dialogs.create('addEmpCategory.html','addEmpCategoryCtrl',{},{size: 'sm',backdrop:'static'});
+		dlg.result.then(function(category){
+			$rootScope.empCats = undefined;
+			$rootScope.getEmpCats();		
+		},function(){
+			
+		});
+	}
+	
+	$scope.addDept = function()
+	{		
+		// show small dialog with add form
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/school/departmentForm.html','departmentFormCtrl',{emp_cat_name: $scope.employee.emp_cat.emp_cat_name},{size: 'md',backdrop:'static'});
+		dlg.result.then(function(){
+			
+			// update departments
+			apiService.getDepts(true,function(response){
+				var result = angular.fromJson(response);
+				if( result.response == 'success')
+				{
+					if( result.nodata )
+					{
+						$scope.departments = [];
+					}
+					else
+					{
+						// filter dept to only show those belonging to the selected category
+						$rootScope.allDepts = result.data;
+						$scope.departments = $rootScope.allDepts.reduce(function(sum,item){
+							if( item.category == $scope.employee.emp_cat.emp_cat_name ) sum.push(item);
+							return sum;
+						}, []);
+					}
+					
+				}
+			}, function(){});
+
+					
+		},function(){
+			
+		});
+	}
+	
 	
 	$scope.save = function(theForm)
 	{	

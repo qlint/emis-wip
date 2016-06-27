@@ -179,24 +179,30 @@
 						<!-- Category -->
 						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.emp_cat.$dirty ) && empForm.emp_cat.$invalid && empForm.emp_cat.$error.required }">
 							<label for="emp_cat" class="col-sm-4 control-label">Category</label>
-							<div class="col-sm-8">
+							<div class="col-sm-5 nopad-right">
 								<select name="emp_cat"  ng-options="item.emp_cat_name for item in empCats" ng-model="employee.emp_cat" class="form-control" required>
 									<option value="">--select one--</option>
 								</select>
 								<p ng-show="(empForm.$submitted || empForm.emp_cat.$dirty ) && empForm.emp_cat.$invalid && empForm.emp_cat.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Category is required.</p>
+							</div>
+							<div class="col-sm-3">
+								<button type="button" class="btn btn-sm btn-link text-success" ng-click="addEmpCat()"><i class="glyphicon glyphicon-plus"></i> Add Cat</button>
 							</div>
 						</div>
 						
 						<!-- Department -->
 						<div class="form-group" ng-class="{ 'has-error' : (empForm.$submitted || empForm.dept_id.$dirty ) && empForm.dept_id.$invalid && empForm.dept_id.$error.required }">
 							<label for="dept_id" class="col-sm-4 control-label">Department</label>
-							<div class="col-sm-8">
+							<div class="col-sm-5 nopad-right">
 								<select name="dept_id" ng-model="employee.dept_id" class="form-control" required>
 									<option value="">--select one--</option>
 									<option value="{{item.dept_id}}" ng-repeat="item in departments">{{item.dept_name}}</option>
 								</select>
 								<p ng-show="(empForm.$submitted || empForm.dept_id.$dirty ) && empForm.dept_id.$invalid && empForm.dept_id.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Department is required.</p>
 							</div>	
+							<div class="col-sm-3">
+								<button type="button" class="btn btn-sm btn-link text-success" ng-click="addDept()"><i class="glyphicon glyphicon-plus"></i> Add Dept</button>
+							</div>
 						</div>
 						
 						<!-- Joining date -->

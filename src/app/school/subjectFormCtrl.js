@@ -4,7 +4,6 @@ angular.module('eduwebApp').
 controller('subjectFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
-	$scope.subject = ( data.subject !== undefined ? data.subject : {} );
 	$scope.edit = ( data.subject && data.subject.subject_id !== undefined ? true : false );
 	$scope.deleted = false;
 	
@@ -15,6 +14,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			var result = angular.fromJson(response);
 			if( result.response == 'success') $scope.teachers = result.data;
 		},apiError);
+		
+		if( $scope.edit )
+		{
+			$scope.subject = ( data.subject !== undefined ? data.subject : {} );	
+		}
+		else{
+			$scope.subject = {};
+			$scope.subject.class_cat_id = ( data.class_cat_id !== undefined ? data.class_cat_id : {} );
+		}
 		
 		// get subjects
 		if( $scope.subject.class_cat_id !== undefined )

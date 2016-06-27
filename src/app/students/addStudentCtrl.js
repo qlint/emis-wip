@@ -33,7 +33,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	var feesSection = ['payment_method','installment_option'];
 	$scope.submitted = false;
 	
-	$scope.initializeController = function()
+	var initializeController = function()
 	{
 		var studentCats = $rootScope.currentUser.settings['Student Categories'];
 		$scope.studentCats = studentCats.split(',');	
@@ -64,20 +64,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}, []);
 		
 		
-		// get fee items
-		apiService.getFeeItems(true, function(response){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
-			{
-				$scope.feeItems = formatFeeItems(result.data.required_items);
-				$scope.allFeeItems = $scope.feeItems;
-				
-				$scope.optFeeItems = formatFeeItems(result.data.optional_items);
-				$scope.allOptFeeItems = $scope.optFeeItems;
-			}
-			
-		}, function(){});
+		getFeeItems();
 		
 		// get transport routes
 		apiService.getTansportRoutes({}, function(response){
@@ -92,8 +79,28 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		
 		
 	}
-	$scope.initializeController();
+	setTimeout(initializeController,10);
 	
+	var getFeeItems = function(filter)
+	{
+		// get fee items
+		apiService.getFeeItems(true, function(response){
+			var result = angular.fromJson(response);
+			
+			if( result.response == 'success')
+			{
+				$scope.feeItems = formatFeeItems(result.data.required_items);
+				$scope.allFeeItems = $scope.feeItems;
+				
+				$scope.optFeeItems = formatFeeItems(result.data.optional_items);
+				$scope.allOptFeeItems = $scope.optFeeItems;
+				
+				if( filter )$scope.feeItems = filterFeeItems($scope.allFeeItems);
+			}
+			
+		}, function(){});
+	}
+
 	var formatFeeItems = function(feeItems)
 	{
 		// convert the classCatsRestriction to array for future filtering
@@ -370,6 +377,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				}
 			}						
 		});
+	}
+	
+	$scope.addFeeItem = function()
+	{
+		// open dialog
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/feeItemForm.html','feeItemFormCtrl',undefined,{size: 'md',backdrop:'static'});
+		dlg.result.then(function(){
+			// update fee items
+			getFeeItems(true);
+		},function(){
+				
+		});
+		
 	}
 	
 	var createCompleted = function ( response, status ) 
