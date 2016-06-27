@@ -210,7 +210,7 @@
 					</div>
 				</div>
 				
-				<div ng-if="isEmail && noEmpId" ng-class="{ 'has-error' : postForm.message_from.$invalid && (postForm.message_from.$touched || postForm.$submitted) }">
+				<div ng-if="noEmpId" ng-class="{ 'has-error' : postForm.message_from.$invalid && (postForm.message_from.$touched || postForm.$submitted) }">
 					<h4>Message From</h4>
 					<ui-select ng-model="theemployee.selected" theme="select2" class="form-control" name="message_from" required> 
 					  <ui-select-match placeholder="Select or search a employee...">

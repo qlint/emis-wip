@@ -22,7 +22,9 @@ $app->get('/getClassPosts/:class_id/:status', function ($classId, $status) {
 							ON blogs.blog_id = blog_posts.blog_id			
 							INNER JOIN app.classes ON blogs.class_id = classes.class_id
 							WHERE blogs.class_id = :classId 
-							AND blog_posts.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+							AND blog_posts.creation_date > coalesce((select end_date from app.terms 
+																	where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
+																	ORDER BY end_date desc LIMIT 1 ) , (select date_trunc('year',now()) ))
 								AND blog_posts.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
 							";
 							
@@ -258,16 +260,17 @@ $app->post('/addPost', function () use($app) {
 	$postStatusId =	( isset($allPostVars['post']['post_status_id']) ? $allPostVars['post']['post_status_id']: null);
 	$postTypeId =	( isset($allPostVars['post']['post_type_id']) ? $allPostVars['post']['post_type_id']: null);
 	$featureImage =	( isset($allPostVars['post']['feature_image']) ? $allPostVars['post']['feature_image']: null);
+	$postedBy =		( isset($allPostVars['post']['posted_by']) ? $allPostVars['post']['posted_by']: null);
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
     try 
     {
         $db = getDB();
         $sth = $db->prepare("INSERT INTO app.blog_posts(blog_id, created_by, body, title, post_status_id, feature_image, post_type_id) 
-            VALUES(:blogId, :userId, :body, :title, :postStatusId, :featureImage, :postTypeId)");
+            VALUES(:blogId, :postedBy, :body, :title, :postStatusId, :featureImage, :postTypeId)");
 
 		$sth->execute( array(':blogId' => $blogId, ':title' => $title, ':body' => $body, ':postStatusId' => $postStatusId , 
-							':featureImage' => $featureImage , ':userId' => $userId, ':postTypeId' => $postTypeId,
+							':featureImage' => $featureImage , ':postedBy' => $postedBy, ':postTypeId' => $postTypeId,
 							) );
  
 		$app->response->setStatus(200);
@@ -380,7 +383,9 @@ $app->get('/getHomeworkPosts/:status/:class_subject_id(/:class_id)', function ($
 									INNER JOIN app.subjects
 									ON class_subjects.subject_id = subjects.subject_id
 								ON homework.class_subject_id = class_subjects.class_subject_id
-								WHERE (homework.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+								WHERE (homework.creation_date > coalesce((select end_date from app.terms 
+																			where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
+																			ORDER BY end_date desc LIMIT 1 ) , (select date_trunc('year',now()) ))
 									AND homework.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) )
 							";
 							
@@ -488,6 +493,7 @@ $app->post('/addHomework', function () use($app) {
 	$attachment =	( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
 	$dueDate	 =	( isset($allPostVars['post']['due_date']) ? $allPostVars['post']['due_date']: null);
 	$assignedDate =	( isset($allPostVars['post']['assigned_date']) ? $allPostVars['post']['assigned_date']: null);
+	$postedBy =		( isset($allPostVars['post']['posted_by']) ? $allPostVars['post']['posted_by']: null);
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
 	
@@ -495,10 +501,10 @@ $app->post('/addHomework', function () use($app) {
     {
         $db = getDB();
         $sth = $db->prepare("INSERT INTO app.homework(class_subject_id, created_by, body, title, post_status_id, attachment, due_date, assigned_date) 
-            VALUES(:classSubjectId, :userId, :body, :title, :postStatusId, :attachment, :dueDate, :assignedDate)");
+            VALUES(:classSubjectId, :postedBy, :body, :title, :postStatusId, :attachment, :dueDate, :assignedDate)");
 
 		$sth->execute( array(':classSubjectId' => $classSubjectId, ':title' => $title, ':body' => $body, ':postStatusId' => $postStatusId , 
-							':attachment' => $attachment , ':userId' => $userId, ':dueDate' => $dueDate, ':assignedDate' => $assignedDate,
+							':attachment' => $attachment , ':postedBy' => $postedBy, ':dueDate' => $dueDate, ':assignedDate' => $assignedDate,
 							 ) );
  
 		$app->response->setStatus(200);
@@ -651,7 +657,9 @@ $app->get('/getTeacherCommunications/:teacherId', function ($teacherId) {
 							INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
 							INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
 							WHERE message_from = :teacherId
-							AND communications.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+							AND communications.creation_date > coalesce((select end_date from app.terms 
+																where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
+																ORDER BY end_date desc LIMIT 1 ) , (select date_trunc('year',now()) ))
 								AND communications.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
 							ORDER BY communications.creation_date desc" );
 		$sth->execute( array(':teacherId' => $teacherId) ); 
@@ -701,7 +709,9 @@ $app->get('/getSchoolCommunications', function () {
 							INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
 							INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
 							INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-							WHERE communications.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+							WHERE communications.creation_date > coalesce((select end_date from app.terms 
+																			where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
+																			ORDER BY end_date desc LIMIT 1 ) , (select date_trunc('year',now()) ))
 								AND communications.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
 							ORDER BY communications.creation_date desc" );
 		$sth->execute(); 

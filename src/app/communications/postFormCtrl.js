@@ -689,6 +689,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		{
 			$scope.post.due_date = ( $scope.dates.due_date.startDate !== undefined ? moment($scope.dates.due_date.startDate).format('YYYY-MM-DD'): null);
 			$scope.post.assigned_date = ( $scope.dates.assigned_date.startDate !== undefined ? moment($scope.dates.assigned_date.startDate).format('YYYY-MM-DD'): null);
+					
 			var data = {
 				user_id: $rootScope.currentUser.user_id,
 				post: $scope.post
@@ -700,8 +701,10 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		{
 			$scope.post.send_as_email = ( $scope.filters.send_method == 'email' ? 't' : 'f' );
 			$scope.post.send_as_sms = ( $scope.filters.send_method == 'sms' ? 't' : 'f' );
+			
 			if( $scope.isTeacher ) $scope.post.message_from = $rootScope.currentUser.emp_id; // needs to be emp id
 			else $scope.post.message_from = $scope.theemployee.selected.emp_id;
+			
 			if( $scope.post.send_method ==  'sms' )
 			{
 				$scope.post.body = $scope.post.title; // sms message is displayed in title field
@@ -785,6 +788,10 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 					
 					$scope.post.due_date = ( $scope.dates.due_date.startDate !== undefined ? moment($scope.dates.due_date.startDate).format('YYYY-MM-DD'): null);
 					$scope.post.assigned_date = ( $scope.dates.assigned_date.startDate !== undefined ? moment($scope.dates.assigned_date.startDate).format('YYYY-MM-DD'): null);
+					
+					if( $scope.isTeacher ) $scope.post.posted_by = $rootScope.currentUser.emp_id; // needs to be emp id
+					else $scope.post.posted_by = $scope.theemployee.selected.emp_id;
+			
 
 					var data = {
 						user_id: $rootScope.currentUser.user_id,
@@ -799,7 +806,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 					$scope.post.send_as_email = ( $scope.filters.send_method == 'email' ? 't' : 'f' );
 					$scope.post.send_as_sms = ( $scope.filters.send_method == 'sms' ? 't' : 'f' );
 					
-					if( $scope.isTeacher ) $scope.post.message_from = $rootScope.currentUser.emp_id; // needs to be emp id
+					if( $scope.isTeacher ) $scope.post.message_from = $rootScope.currentUser.emp_id; 
 					else $scope.post.message_from = $scope.theemployee.selected.emp_id;
 					
 					if( $scope.post.send_method ==  'sms' ) $scope.post.body = $scope.post.title; // sms message is displayed in title field
@@ -814,6 +821,10 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				else
 				{
 					$scope.post.post_type_id = 1;
+					
+					if( $scope.isTeacher ) $scope.post.posted_by = $rootScope.currentUser.emp_id; // needs to be emp id
+					else $scope.post.posted_by = $scope.theemployee.selected.emp_id;
+					
 					var data = {
 						user_id: $rootScope.currentUser.user_id,
 						blog_id: $scope.selectedClass.blog_id,
