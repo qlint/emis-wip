@@ -8,7 +8,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	var end_date = moment().add(1,'day').format('YYYY-MM-DD');
 	$scope.date = {startDate: start_date, endDate: end_date};
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
-	
+	$scope.paymentsLoading = true;
+	$scope.invoicesLoading = true;
+	$scope.pastDueLoading = true;
 
 	var initializeController = function () 
 	{
@@ -52,6 +54,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		{
 			$scope.paymentsReceived = result.data;
 			$scope.paymentsReceivedTotal = 0;
+			$scope.paymentsLoading = false;
 			
 			if( result.data  instanceof Array )
 			{
@@ -92,6 +95,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		{
 			$scope.paymentsDue = result.data;
 			$scope.paymentsDueTotal = 0; 
+			$scope.invoicesLoading = false;
 			
 			if( result.data  instanceof Array )
 			{
@@ -131,6 +135,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		{
 			$scope.paymentsPastDue = result.data;
 			$scope.paymentsPastDueTotal = 0; 
+			$scope.pastDueLoading = false;
 			
 			if( result.data  instanceof Array )
 			{

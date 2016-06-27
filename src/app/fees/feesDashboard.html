@@ -67,6 +67,7 @@
 						</div>
 					</div>
 					<div class="dashboard-panel-body">
+						<div class="loading-indicator" ng-show="paymentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<table id="paymentsReceivedTable" class="display clickable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
@@ -98,6 +99,7 @@
 						<span class="totalSum pull-right">{{paymentsDueTotal|currency:""}} {{currency}}</span>
 					</div>
 					<div class="dashboard-panel-body">
+						<div class="loading-indicator" ng-show="invoicesLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<table id="paymentsDueTable" class="display clickable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
@@ -129,6 +131,7 @@
 						<span class="totalSum pull-right">{{paymentsPastDueTotal|numeric}} {{currency}}</span>
 					</div>
 					<div class="dashboard-panel-body">
+						<div class="loading-indicator" ng-show="pastDueLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<table id="paymentsPastDueTable" class="display clickable" cellspacing="0" width="100%">
 							<thead>
 								<tr>

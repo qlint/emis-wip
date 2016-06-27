@@ -8,6 +8,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.filters = {};
 	$scope.filters.status = 'true';
 	$scope.users = [];
+	$scope.loading = true;
 
 	$scope.alert = {};
 	

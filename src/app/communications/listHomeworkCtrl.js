@@ -11,6 +11,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.filters.subject_id = ( $state.params.subject_id !== '' ? $state.params.subject_id : null );
 	$scope.filterClass = ( $state.params.class_id !== '' ? true : false );	
 	$scope.alert = {};
+	$scope.loading = true;
 	
 	var initializeController = function () 
 	{		

@@ -18,6 +18,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	$scope.totals = {};
 	$scope.balanceStatuses = ['Balance Owing','Paid in Full','Due This Month','Past Due'];
+	$scope.loading = true;
 
 	var start_date = moment().format('YYYY-01-01');
 	var end_date = moment().format('YYYY-MM-DD');

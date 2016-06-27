@@ -9,6 +9,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.filters.com_type_id = null;
 	$scope.filters.post_status_id = null;
 	$scope.alert = {};
+	$scope.loading = true;
 	
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 	
@@ -145,9 +146,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			$('.fixedHeader-floating').remove();
 			$scope.dataGrid.destroy();
 		}
-		//getPosts( angular.copy($scope.filters) );		
-		// to do: filter emails by the selected class for teacher, or audience, type for school
-		console.log($scope.filters);
 		
 		var filteredResults = $scope.allResults;
 		

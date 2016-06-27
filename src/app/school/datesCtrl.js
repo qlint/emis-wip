@@ -6,7 +6,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
 	$scope.filters= {};
 	$scope.alert = {};
-
+	$scope.loading = true;
+	
 	var initializeController = function () 
 	{
 		$scope.years = [];

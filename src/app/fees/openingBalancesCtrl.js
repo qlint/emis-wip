@@ -15,6 +15,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	$scope.alert = null;
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	$scope.totals = {};
+	$scope.loading = true;
 	
 	$scope.years = [];
 	var currentYear = moment().format('YYYY');

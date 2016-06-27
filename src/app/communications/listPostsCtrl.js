@@ -9,6 +9,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.filters.class_id = ( $state.params.class_id !== '' ? $state.params.class_id : null );
 	$scope.filterClass = ( $state.params.class_id !== '' ? true : false );	
 	$scope.alert = {};
+	$scope.loading = true;
 	
 	var initializeController = function () 
 	{		

@@ -7,6 +7,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$rootScope.modalLoading = false;
 	$scope.tabs = ['Personal Info','Employee Info'];
 	$scope.currentTab = $scope.tabs[0];
+	$scope.staffLoading = true;
 
 	$scope.hasChanges = false;
 
@@ -37,6 +38,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				
 				$scope.editUsername = ( result.data.username === null ? true : false);
 				$scope.employee.login_active = ( $scope.employee.login_active === null ? true : $scope.employee.login_active);
+				
+				$scope.staffLoading = false;
 				
 				$timeout(function(){
 					$scope.initLoad  = false;

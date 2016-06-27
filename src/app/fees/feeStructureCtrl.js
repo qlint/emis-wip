@@ -8,6 +8,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.filters.status = 'true';
 	$scope.alert = {};
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
+	$scope.loading = true;
 
 	var initializeController = function () 
 	{

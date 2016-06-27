@@ -19,7 +19,8 @@
 				</div>
 			</div>
 			
-			<div class="tab-content clearfix" ng-include="currentTab"></div>
+			<div class="tab-content clearfix" ng-include="currentTab" ng-show="!studentLoading"></div>
+			<div class="loading-indicator" ng-show="studentLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 			
 			<script type="text/ng-template" id="Details">
 				

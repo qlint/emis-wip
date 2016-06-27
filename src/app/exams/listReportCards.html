@@ -56,7 +56,8 @@
 		
 		
 		
-		<div class="full-height datagrid main-datagrid" ng-class="{tableLoading: loading}" >
+		<div class="full-height datagrid main-datagrid">
+			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 			<p ng-show="reportsNotFound" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
@@ -64,7 +65,7 @@
 			<div ng-include="getReport"></div>
 			
 			<script type="text/ng-template" id="reportTable">
-				<table id="resultsTable" class="display dataTable clickable" cellspacing="0" width="100%">
+				<table id="resultsTable" class="display dataTable clickable" cellspacing="0" width="100%" ng-show="!loading">
 					<thead>
 						<tr>
 							<th></th>

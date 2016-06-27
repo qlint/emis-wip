@@ -13,6 +13,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	var originalData;
 	$scope.filters = {};
+	$scope.studentLoading = true;
 	
 	$scope.edit = ($rootScope.permissions.students.edit ? true : false );
 
@@ -94,6 +95,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.student = student[0];
 				$scope.student.admission_date = {startDate: $scope.student.admission_date};
 				originalData = angular.copy($scope.student);
+				
+				$scope.studentLoading = false;
 				
 				// set the form as pristine
 				$timeout(function(){

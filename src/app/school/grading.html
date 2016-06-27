@@ -29,9 +29,9 @@
 			
 		</div>
 		
-		<div class="full-height datagrid main-datagrid" ng-class="{tableLoading: loading}">
-			
-			<table id="resultsTable" class="display clickable" cellspacing="0" width="100%">
+		<div class="full-height datagrid main-datagrid">
+			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+			<table id="resultsTable" class="display clickable" cellspacing="0" width="100%" ng-show="!loading">
 				<thead>
 					<tr>
 						<th></th>

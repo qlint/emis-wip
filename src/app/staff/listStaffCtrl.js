@@ -6,6 +6,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 
 	var initialLoad = true;
 	$scope.employees = [];
+	$scope.loading = true;
 	
 	$scope.filters = {};
 	$scope.filters.status = 'true';
@@ -26,6 +27,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var getStaff = function()
 	{
+		if( $scope.dataGrid !== undefined )
+		{	
+			$scope.dataGrid.fixedHeader.destroy();
+			$('.fixedHeader-floating').remove();
+			$scope.dataGrid.clear();
+		//	$scope.dataGrid.destroy();				
+		}
+		
 		apiService.getAllEmployees(true, function(response){
 			var result = angular.fromJson(response);
 			
@@ -35,8 +44,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				
 				if( $scope.dataGrid !== undefined )
 				{
-					$('.fixedHeader-floating').remove();
-					$scope.dataGrid.clear();
 					$scope.dataGrid.destroy();
 				}
 		
@@ -47,7 +54,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				// if filters set, filter results
 				if( $scope.currentFilters !== undefined || $scope.filterEmpCat || $scope.filterDept  )
 				{
-					filterResults();
+					filterResults(false);
 				}
 				else
 				{
@@ -171,13 +178,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.filter = function()
 	{
 		$scope.currentFilters = angular.copy($scope.filters);
-		filterResults();
+		filterResults(true);
 	}
 	
-	var filterResults = function()
+	var filterResults = function(clearTable)
 	{
-		if( $scope.dataGrid !== undefined ){
-			$('.fixedHeader-floating').remove();
+		$scope.loading = true;
+		if( $scope.dataGrid !== undefined && clearTable )
+		{
+		//	$scope.dataGrid.clear();
 			$scope.dataGrid.destroy();
 		}
 		

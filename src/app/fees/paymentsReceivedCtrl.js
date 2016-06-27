@@ -15,6 +15,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	$scope.totals = {};
 	$scope.paymentStatuses = [{value:'false',label:'Good'},{value:'true',label:'Reversed'}];
 	$scope.filters.payment_status = 'false';
+	$scope.loading = true;
 
 
 	var start_date = moment().format('YYYY-01-01');

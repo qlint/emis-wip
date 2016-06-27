@@ -7,6 +7,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.filters = {};
 	$scope.filters.status = 'true';
 	$scope.alert = {};
+	$scope.loading = true;
 
 	var initializeController = function () 
 	{

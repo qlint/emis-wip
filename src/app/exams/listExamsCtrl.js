@@ -16,6 +16,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.alert = {};
 	$scope.refreshing = false;
 	$scope.getReport = "examsTable";
+	//$scope.loading = true;
 	
 	var initializeController = function () 
 	{
