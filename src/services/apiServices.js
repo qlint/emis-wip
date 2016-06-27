@@ -1,7 +1,7 @@
 angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService', function($rootScope, ajaxService) {
 		
 	var domain = window.location.host;
-	var path = ( domain.indexOf('pdev.eduweb.co.ke') > -1 ? 'http://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1  ? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost'));
+	var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'http://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1  ? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost'));
 		
 	/*********** class categories ***********/	
 	this.getClassCats = function (param, successFunction, errorFunction, params) {      
