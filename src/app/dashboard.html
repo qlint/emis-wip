@@ -113,6 +113,7 @@
 					<div class="row dashboard-panel-body">	
 						<h2>Top Three Students Per Class</h2>
 						<div class="loading-indicator" ng-show="examsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						<p class="text-muted padded" ng-show="classes.length==0">There are currently no exam marks added for your students this term.</p>
 						<div class="col-sm-6 nopad" ng-repeat="item in classes">
 							<h3>{{item.class_name}}</h3>
 							<ul class="stripped">

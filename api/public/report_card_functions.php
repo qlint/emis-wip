@@ -136,7 +136,7 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
 
 });
 
-$app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($studentId,$classId,$termId) {
+$app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', function ($studentId,$classId,$termId,$teacherId=null) {
     //Get student exam marks
 	
 	$app = \Slim\Slim::getInstance();
@@ -146,9 +146,10 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
         $db = getDB();
 		
 		// get exam marks by exam type
-		$sth = $db->prepare("SELECT subject_name, mark, grade_weight, exam_type, rank, grade, parent_subject_name
+		$params = array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId);
+		$query = "SELECT subject_name, mark, grade_weight, exam_type, rank, grade, parent_subject_name, teacher_id
 					FROM (
-						SELECT class_id
+						SELECT class_subjects.class_id
 							  ,subject_name      
 							  ,exam_type
 							  ,student_id
@@ -158,23 +159,37 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term', function ($stud
 							  ,dense_rank() over w as rank,
 							  subjects.sort_order,
 							  exam_types.exam_type_id,
-							  (select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
+							  (select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
+							  subjects.teacher_id
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types
 						ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 						INNER JOIN app.class_subjects 
 							INNER JOIN app.subjects
-							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+							ON class_subjects.subject_id = subjects.subject_id
+							INNER JOIN app.classes
+							ON class_subjects.class_id = classes.class_id
+						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id  AND class_subjects.active is true
 						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 						WHERE class_subjects.class_id = :classId
 						AND term_id = :termId
-						WINDOW w AS (PARTITION BY class_subjects.subject_id, class_subject_exams.exam_type_id ORDER BY subjects.sort_order, exam_types.exam_type_id)
+						";
+		if( $teacherId !== null )
+		{
+			$query .= "AND (subjects.teacher_id = :teacherId OR classes.teacher_id = :teacherId) ";
+			$params[':teacherId'] = $teacherId;
+		}
+		
+		
+		$query .= "	WINDOW w AS (PARTITION BY class_subjects.subject_id, class_subject_exams.exam_type_id ORDER BY subjects.sort_order, exam_types.exam_type_id)
 				 ) q
 				 where student_id = :studentId
-				 ORDER BY sort_order, exam_type_id");
-		$sth->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
+				 ORDER BY sort_order, exam_type_id";
+				 
+				 
+		$sth = $db->prepare($query);
+		$sth->execute( $params ); 
 		$details = $sth->fetchAll(PDO::FETCH_OBJ);
 		
 

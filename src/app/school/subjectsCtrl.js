@@ -8,10 +8,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.filters.status = 'true';
 	$scope.alert = {};
 	$scope.loading = true;
+	
+	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 
 	var initializeController = function () 
 	{
-		
 	}
 	$timeout(initializeController,1);
 	
@@ -33,23 +34,48 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			$scope.dataGrid.destroy();				
 		}		
 		
-		var params = class_cat_id + '/' + $scope.filters.status;
-		apiService.getAllSubjects(params, function(response,status,params){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
-			{	
-				$scope.subjects = ( result.nodata ? [] : result.data );	
+		if ( $scope.isTeacher )
+		{
+			var params = $rootScope.currentUser.emp_id + '/' + class_cat_id + '/' + $scope.filters.status;
+			apiService.getAllTeacherSubjects(params, function(response,status,params){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success')
+				{	
+					$scope.subjects = ( result.nodata ? [] : result.data );	
 
-				$timeout(initDataGrid,10);
-			}
-			else
-			{
-				$scope.error = true;
-				$scope.errMsg = result.data;
-			}
-			
-		}, apiError);
+					$timeout(initDataGrid,10);
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, apiError);
+
+		}
+		else
+		{
+			var params = class_cat_id + '/' + $scope.filters.status;
+			apiService.getAllSubjects(params, function(response,status,params){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success')
+				{	
+					$scope.subjects = ( result.nodata ? [] : result.data );	
+
+					$timeout(initDataGrid,10);
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, apiError);
+		}
+		
 	}
 	
 	$scope.loadFilter = function()

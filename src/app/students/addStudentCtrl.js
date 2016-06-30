@@ -309,16 +309,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{	
 		$scope.forms[$scope.currentTab] = angular.copy(theForm);
 		$scope.submitted = true;
+		$scope.error = false;
+		$scope.errMsg = '';
 		
 		if( !theForm.$invalid)
 		{
 			if( uploader.queue[0] !== undefined )
 			{
 				// do logo upload
-				uploader.queue[0].file.name = moment() + '_' + uploader.queue[0].file.name;
+				$scope.filename = moment() + '_' + uploader.queue[0].file.name;
+				uploader.queue[0].file.name = $scope.filename;
 				uploader.uploadAll();
 			
-				$scope.student.student_image = uploader.queue[0].file.name ;
+				$scope.student.student_image = $scope.filename;
 			}
 			
 			$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
@@ -399,6 +402,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
+			if( uploader.queue[0] !== undefined )
+			{
+				$scope.student.student_image = $scope.filename;
+			}
 			$uibModalInstance.close();
 			$rootScope.$emit('studentAdded', {'msg' : 'Student was created.', 'clear' : true});
 		}
@@ -414,7 +421,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
-		$scope.errMsg = result.data;
+		var msg = ( result.data.indexOf('"U_id_number"') > -1 ? 'Duplicate ID Number for Guardian.' : result.data);
+		$scope.errMsg = msg;
 	}
 	
 	var createError = function (response) 

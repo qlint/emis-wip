@@ -38,8 +38,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				// store these as they do not change often
 				if( result.response == 'success') 
 				{
-					$rootScope.allClasses = result.data;
-					$scope.classes = $rootScope.allClasses;
+					//$rootScope.allClasses = result.data;
+					$scope.classes = result.data;
 				}
 				
 			}, function(){});

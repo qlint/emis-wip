@@ -8,7 +8,8 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
     {
         $db = getDB();
 		
-		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
+		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
+									classes.teacher_id as class_teacher_id
 							 FROM app.students 
 							 INNER JOIN app.classes ON students.current_class = classes.class_id
 							 WHERE students.active = :status 
@@ -91,10 +92,18 @@ $app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $st
     {
         $db = getDB();
 		
-		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
+		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
+									classes.teacher_id as class_teacher_id
 							 FROM app.students 
-							 INNER JOIN app.classes ON students.current_class = classes.class_id AND classes.teacher_id = :teacherId
-							 WHERE students.active = :status 
+							 INNER JOIN app.classes 
+								INNER JOIN app.class_subjects
+									INNER JOIN app.subjects
+									ON class_subjects.subject_id = subjects.subject_id
+								ON classes.class_id = class_subjects.class_id
+							 ON students.current_class = classes.class_id
+							 WHERE students.active = :status
+							 AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
+							 GROUP BY students.student_id, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
 							 ORDER BY first_name, middle_name, last_name");
 		$sth->execute( array(':status' => $status, ':teacherId' => $teacherId)); 
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -175,7 +184,8 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
     {
         $db = getDB();
         $sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
-								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' ' || payment_interval2 || '(s) apart)' as payment_plan_name
+								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' ' || payment_interval2 || '(s) apart)' as payment_plan_name,
+								classes.teacher_id as class_teacher_id
 							 FROM app.students 
 							 INNER JOIN app.classes ON students.current_class = classes.class_id 
 							 LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
@@ -699,6 +709,7 @@ $app->post('/addStudent', function () use($app) {
 	$createdBy = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
 	$hasGuardian = false;
+	$hasGuardianId = false;
 	$hasMedical = false;
 	$hasFeeItems = false;
 	$hasOptFeeItems = false;
@@ -839,6 +850,7 @@ $app->post('/addStudent', function () use($app) {
 				
 				if( isset($guardian['guardian_id']) ) 
 				{
+					$hasGuardianId = true;
 					$guardianUpdate->execute(array( ':guardianId' => $guardian['guardian_id'],
 								':guardianFirstName' => $guardianFirstName,
 								':guardianMiddleName' => $guardianMiddleName,
@@ -925,22 +937,26 @@ $app->post('/addStudent', function () use($app) {
 		}
 		
 		// if guardian id was sent, just grab student id, else grab both ids, if a guardian was saved
-		if( isset($guardian['guardian_id']) ) $query->execute();
-		else if( $hasGuardian ) $query2->execute();
-		else $query->execute();
-		
-		$newStudent = $query->fetch(PDO::FETCH_OBJ);	
-		
+		if( $hasGuardianId || !$hasGuardian )
+		{
+			$query->execute();
+			$newStudent = $query->fetch(PDO::FETCH_OBJ);	
+		}
+		else if( $hasGuardian )
+		{
+			$query2->execute();
+			$newStudent = $query2->fetch(PDO::FETCH_OBJ);	
+		}
+
 		$db->commit();
 		
 
 		// if login data was passed
-		if( $guardianData !== null )
+		if( $hasGuardian )
 		{
-			
 			foreach( $guardianData as $guardian )
 			{
-				if( $guardian['login'] !== null )
+				if( $guardian['login'] !== null && isset($guardian['login']['username']) )
 				{
 					$guardian['student_id'] = $newStudent->student_id;
 					if( !isset($guardian['guardian_id']) ) $guardian['guardian_id'] = $newStudent->guardian_id;

@@ -394,6 +394,10 @@ h1 {
 .icon-lg {
   font-size: 20px; }
 
+.inactive {
+  text-decoration: strikethrough;
+  color: #777; }
+
 .student-box {
   background: #eee;
   padding: 10px;

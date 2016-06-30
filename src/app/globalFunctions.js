@@ -269,7 +269,8 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		// get class categories
 		if( $rootScope.classCats === undefined )
 		{
-			apiService.getClassCats(undefined, function(response){
+			var params = ( $rootScope.currentUser.user_type == 'TEACHER' ? $rootScope.currentUser.emp_id : undefined);
+			apiService.getClassCats(params, function(response){
 				var result = angular.fromJson(response);
 				
 				// store these as they do not change often
@@ -286,14 +287,28 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		// get classes
 		if( $rootScope.allClasses === undefined )
 		{
-			apiService.getAllClasses({}, function(response){
-				var result = angular.fromJson(response);
-				
-				// store these as they do not change often
-				if( result.response == 'success') $rootScope.allClasses = result.data;
-				return result.data;
-				
-			}, function(){});
+			if ( $rootScope.currentUser.user_type == 'TEACHER')
+			{
+				apiService.getTeacherClasses($rootScope.currentUser.emp_id, function(response){
+					var result = angular.fromJson(response);
+					
+					// store these as they do not change often
+					if( result.response == 'success') $rootScope.allClasses = result.data;
+					return result.data;
+					
+				}, function(){});
+			}
+			else
+			{
+				apiService.getAllClasses({}, function(response){
+					var result = angular.fromJson(response);
+					
+					// store these as they do not change often
+					if( result.response == 'success') $rootScope.allClasses = result.data;
+					return result.data;
+					
+				}, function(){});
+			}
 		}
 	}
 	

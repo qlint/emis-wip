@@ -230,7 +230,7 @@ $app->put('/updateEmployee', function () use($app) {
 		$username =			( isset($allPostVars['employee']['username']) ? $allPostVars['employee']['username']: null);
 		$password =			( isset($allPostVars['employee']['password']) ? $allPostVars['employee']['password']: null);
 		$userType =			( isset($allPostVars['employee']['user_type']) ? $allPostVars['employee']['user_type']: null);
-		$loginActive =		( isset($allPostVars['employee']['login_active']) ? $allPostVars['employee']['login_active']: null);
+		$loginActive =		( isset($allPostVars['employee']['login_active']) ? $allPostVars['employee']['login_active']: 'f');
 		$loginId =			( isset($allPostVars['employee']['login_id']) ? $allPostVars['employee']['login_id']: null);
 		$updateEmployee = true;
 	}
@@ -435,7 +435,7 @@ $app->get('/getEmployeeDetails/:empId', function ($empId) {
 									employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as employee_name,
 									emp_cat_name, dept_name,
 									(select array_agg(class_name) from app.classes where teacher_id = employees.emp_id and classes.active is true) as classes,
-									(select array_agg(subject_name) from app.subjects where teacher_id = employees.emp_id and subjects.active is true) as subjects,
+									(select array_agg(subject_name || ' (' || class_cat_name || ')') from app.subjects inner join app.class_cats using (class_cat_id) where teacher_id = employees.emp_id and subjects.active is true) as subjects,
 									username, user_type, users.active as login_active
 							 FROM app.employees 
 							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id AND employee_cats.active is true

@@ -7,7 +7,23 @@ $app->get('/getAllSubjects/:classCatId(/:status)', function ($classCatId, $statu
     try 
     {
 		$db = getDB();
-		$sth = $db->prepare("SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
+		if( $status == 'all' )
+		{
+			$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
+									teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
+									parent_subject_id, sort_order,
+									(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
+									case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
+								FROM app.subjects
+								LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
+								INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
+								WHERE subjects.class_cat_id = :classCatId
+								ORDER BY class_cat_name, sort_order, subject_name";
+			$params = array(':classCatId' => $classCatId);
+		}
+		else
+		{
+			$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 									teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
 									parent_subject_id, sort_order,
 									(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
@@ -17,10 +33,11 @@ $app->get('/getAllSubjects/:classCatId(/:status)', function ($classCatId, $statu
 								INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 								WHERE subjects.class_cat_id = :classCatId
 								AND subjects.active = :status
-								ORDER BY class_cat_name, sort_order, subject_name;
-							");
-							
-		$sth->execute(array(':classCatId' => $classCatId, ':status' => $status));			
+								ORDER BY class_cat_name, sort_order, subject_name";
+			$params = array(':classCatId' => $classCatId, ':status' => $status);
+		}
+		$sth = $db->prepare($query);
+		$sth->execute($params);			
  
         $results = $sth->fetchAll(PDO::FETCH_ASSOC);
  
@@ -44,6 +61,71 @@ $app->get('/getAllSubjects/:classCatId(/:status)', function ($classCatId, $statu
 
 });
 
+$app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($teacherId, $classCatId, $status = true) {
+    //Show all subjects, including parent subjects
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+		$db = getDB();
+		if( $status == 'all' )
+		{
+			$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
+									teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
+									parent_subject_id, sort_order,
+									(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
+									case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
+								FROM app.subjects
+								LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
+								INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
+								WHERE subjects.class_cat_id = :classCatId
+								AND subjects.teacher_id = :teacherId
+								ORDER BY class_cat_name, sort_order, subject_name";
+			$params = array(':teacherId' => $teacherId, ':classCatId' => $classCatId);
+		}
+		else
+		{
+			$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
+									teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
+									parent_subject_id, sort_order,
+									(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
+									case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
+								FROM app.subjects
+								LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
+								INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
+								WHERE subjects.class_cat_id = :classCatId
+								AND subjects.active = :status
+								AND subjects.teacher_id = :teacherId
+								ORDER BY class_cat_name, sort_order, subject_name";
+			$params = array(':teacherId' => $teacherId, ':classCatId' => $classCatId, ':status' => $status);
+		}
+		$sth = $db->prepare($query);
+		$sth->execute($params);			
+ 
+        $results = $sth->fetchAll(PDO::FETCH_ASSOC);
+ 
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+/*
 $app->get('/getSubjects/:classCatId', function ($classCatId) {
     //Show only subjects that receive exam marks (children subjects)
 	
@@ -88,7 +170,7 @@ $app->get('/getSubjects/:classCatId', function ($classCatId) {
     }
 
 });
-
+*/
 $app->post('/addSubject', function () use($app) {
     // Add subject
 	

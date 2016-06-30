@@ -11,28 +11,30 @@
 					<div class="form-group" ng-class="{ 'has-error' : classForm.class_cat.$invalid && (classForm.class_cat.$touched || classForm.$submitted) }">		
 						<label for="class_cat" class="col-sm-2 control-label">Class Category</label>
 						<div class="col-sm-3">
-							<select name="class_cat" class="form-control" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats"  ng-model="theClass.class_cat_id" required>
+							<select name="class_cat" class="form-control" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats"  ng-model="theClass.class_cat_id" required ng-disabled="!canEditClass">
 								<option value="">--select class category--</option>
 							</select>							
 							<p ng-show="classForm.class_cat.$invalid && (classForm.class_cat.$touched || classForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Category is required.</p>
 						</div>	
 						<div class="col-sm-4">
-							<button type="button" class="btn btn-sm btn-link" ng-click="addClassCat()"><i class="glyphicon glyphicon-plus"></i> Add class category</button>					
+							<button type="button" class="btn btn-sm btn-link" ng-click="addClassCat()" ng-hide="isTeacher"><i class="glyphicon glyphicon-plus"></i> Add class category</button>					
 						</div>	
 					</div>
+					
 					<!-- class name -->
 					<div class="form-group" ng-class="{ 'has-error' : classForm.class_name.$invalid && (classForm.class_name.$touched || classForm.$submitted) }">
 						<label for="class_name" class="col-sm-2 control-label">Class Name</label>
 						<div class="col-sm-5">
-							<input type="text" name="class_name" ng-model="theClass.class_name" class="form-control" required >
+							<input type="text" name="class_name" ng-model="theClass.class_name" class="form-control" required  ng-disabled="!canEditClass">
 							<p ng-show="classForm.class_name.$invalid && (classForm.class_name.$touched || classForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Name is required.</p>
 						</div>
 					</div>
+					
 					<!-- teacher -->
 					<div class="form-group">		
 						<label for="teacher_id" class="col-sm-2 control-label">Teacher</label>
 						<div class="col-sm-5">
-							<select name="teacher_id" class="form-control" ng-options="teacher.teacher_id as teacher.teacher_name for teacher in teachers"  ng-model="theClass.teacher_id">
+							<select name="teacher_id" class="form-control" ng-options="teacher.teacher_id as teacher.teacher_name for teacher in teachers"  ng-model="theClass.teacher_id" ng-disabled="!canEditClass">
 								<option value="">--select teacher--</option>
 							</select>						
 						</div>	
@@ -42,7 +44,7 @@
 					<div class="form-group">		
 						<label for="report_card_type" class="col-sm-2 control-label">Report Card Type</label>
 						<div class="col-sm-5">
-							<select name="report_card_type" class="form-control" ng-options="type for type in reportCardTypes"  ng-model="theClass.report_card_type">
+							<select name="report_card_type" class="form-control" ng-options="type for type in reportCardTypes"  ng-model="theClass.report_card_type" ng-disabled="!canEditClass">
 								<option value="">--select report card type--</option>
 							</select>						
 						</div>	
@@ -50,7 +52,7 @@
 
 					<div ng-show="subjects!==undefined">
 						<div class="pull-right">
-							<button type="button" class="btn btn-sm btn-link text-success" ng-click="addSubject()"><i class="glyphicon glyphicon-plus"></i> Add Subject</button>
+							<button ng-hide="!canEditClass" type="button" class="btn btn-sm btn-link text-success" ng-click="addSubject()"><i class="glyphicon glyphicon-plus"></i> Add Subject</button>
 							<button type="button" class="btn btn-sm btn-link text-success" ng-click="addExamType()"><i class="glyphicon glyphicon-plus"></i> Add Exam Type</button>
 						</div>
 						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
@@ -72,16 +74,19 @@
 							</thead>
 							<tbody>
 								<tr ng-repeat="item in subjects track by $index">
-									<td>
-										<label class="checkbox-inline">
+									<td width="30%">
+										<label class="checkbox-inline" ng-class="{'inactive': !item.active}">
 										  <input
 											type="checkbox"
 											name="subjects[]"
 											value="{{item.subject_id}}"
 											ng-checked="subjectSelection.indexOf(item.subject_id) > -1"
 											ng-click="toggleSubjects(item.subject_id)"
-										  > <span ng-show="item.parent_subject_name!==null">{{item.parent_subject_name + ' - '}}</span> {{item.subject_name}}
-										</label>									
+											ng-disabled="!item.active"
+										  > <span ng-show="item.parent_subject_name!==null">{{item.parent_subject_name + ' - '}}</span> {{item.subject_name}}										  
+										</label>
+										<i ng-show="!item.active" tooltip-placement="top" uib-tooltip="This subject has been marked inactive and will not appear on report card. To reactivate, view inactive subjects and reactivate." class="fa fa-question-circle text-warning icon-lg"></i>
+						
 									</td>
 									<td class="center" ng-repeat="exam in examTypes track by $index">
 										
@@ -91,9 +96,10 @@
 											value="{{exam.exam_type_id}}"
 											ng-checked="subjectExamSelection[item.subject_id].indexOf(exam.exam_type_id) > -1"
 											ng-click="toggleSubjectExam(item.subject_id,exam.exam_type_id)"
+											ng-disabled="!item.active"
 										  > 
 											
-										<input type="text" name="" class="form-control sm-inline" ng-model="gradeWeight[item.subject_id + '-' + exam.exam_type_id].grade_weight" />
+										<input type="text" name="" class="form-control sm-inline" ng-model="gradeWeight[item.subject_id + '-' + exam.exam_type_id].grade_weight" ng-disabled="!item.active" />
 									</td>
 									
 								</tr>
@@ -103,8 +109,8 @@
 			</div>
 			<div class="modal-footer">
 				<div class="pull-left">
-					<button type="button" class="btn btn-sm btn-danger" ng-click="deleteClass()" ng-show="edit && theClass.active">Remove Class</button>
-					<button type="button" class="btn btn-sm btn-success" ng-click="activateClass()" ng-show="edit && !theClass.active">Re-activate Class</button>
+					<button type="button" class="btn btn-sm btn-danger" ng-click="deleteClass()" ng-show="edit && theClass.active && !isTeacher">Remove Class</button>
+					<button type="button" class="btn btn-sm btn-success" ng-click="activateClass()" ng-show="edit && !theClass.active && !isTeacher">Re-activate Class</button>
 				</div>
 				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
 				<button type="submit" class="btn btn-primary">{{(edit ? 'Update' : 'Save')}}</button>

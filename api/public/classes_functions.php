@@ -55,6 +55,7 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $s
 							from app.class_subjects 
 							inner join app.subjects on class_subjects.subject_id = subjects.subject_id and subjects.active is true
 							where class_subjects.class_id = classes.class_id 
+							and class_subjects.active is true
 							group by subject_name, sort_order
 						)a ) as subjects
             FROM app.classes
@@ -114,21 +115,31 @@ $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $sta
 					first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
 					(select array_agg(distinct subject_name) 
 						from app.class_subjects 
-						inner join app.subjects on class_subjects.subject_id = subjects.subject_id and subjects.active is true
-						where class_subjects.class_id = classes.class_id) as subjects,
+						inner join app.subjects on class_subjects.subject_id = subjects.subject_id
+						where class_subjects.class_id = classes.class_id
+						and class_subjects.active is true
+						and teacher_id = :teacherId) as subjects,
 					(select count(*) 
 								from app.students 
 								inner join app.classes c
 								on students.current_class = c.class_id  AND c.active is true 
 								where c.class_id = classes.class_id) as num_students,
-								blog_id, blog_name
+								blog_id, blog_name, report_card_type
 					FROM app.classes
-					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
-					INNER JOIN app.employees ON classes.teacher_id = employees.emp_id
-					LEFT JOIN app.blogs ON classes.class_id = blogs.class_id AND classes.teacher_id = blogs.teacher_id
-					WHERE classes.teacher_id = :teacherId
-					AND classes.active = :status 
-					ORDER BY sort_order"); 
+					INNER JOIN app.class_subjects
+						INNER JOIN app.subjects
+						ON class_subjects.subject_id = subjects.subject_id
+					ON classes.class_id = class_subjects.class_id
+					LEFT JOIN app.employees 
+					ON classes.teacher_id = employees.emp_id
+					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+					LEFT JOIN app.blogs 
+					ON classes.class_id = blogs.class_id AND classes.teacher_id = blogs.teacher_id
+					WHERE (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
+					AND classes.active = :status
+					GROUP BY classes.class_id, class_name, classes.class_cat_id, classes.teacher_id, classes.active, class_cat_name,
+					teacher_name, subjects, num_students, blog_id, blog_name
+					ORDER BY classes.sort_order"); 
 		
         $sth->execute( array(':teacherId' => $teacherId, ':status' => $status));
  
@@ -158,7 +169,7 @@ $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $sta
 
 });
 
-$app->get('/getAllClassExams/:class_id(/:exam_type_id)', function ($classId, $examTypeId = null) {
+$app->get('/getAllClassExams/:class_id(/:exam_type_id/:teacher_id)', function ($classId, $examTypeId = null, $teacherId = null) {
     //Return all associated class subject exams, including the parent subjects
 	
 	$app = \Slim\Slim::getInstance();
@@ -168,23 +179,34 @@ $app->get('/getAllClassExams/:class_id(/:exam_type_id)', function ($classId, $ex
         $db = getDB();
 		$query = "SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, 
 								subject_name, class_subject_exams.exam_type_id, exam_type, grade_weight, parent_subject_id,
-								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
-								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null then false else true end as is_parent
+								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1) as parent_subject_name,
+								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id limit 1) is null then false else true end as is_parent
 							FROM app.class_subjects 
-							INNER JOIN app.class_subject_exams
+							LEFT JOIN app.class_subject_exams
 								INNER JOIN app.exam_types
 								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 							ON class_subjects.class_subject_id = class_subject_exams.class_subject_id
 							INNER JOIN app.subjects
-							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-							WHERE class_id = :classId
+							ON class_subjects.subject_id = subjects.subject_id
+							INNER JOIN app.classes
+							ON class_subjects.class_id = classes.class_id
+							WHERE class_subjects.class_id = :classId
+							AND class_subjects.active is true
 							";
 		$params = array(':classId' => $classId);
+		
 		if( $examTypeId !== null )
 		{
-			$query .= "AND class_subject_exams.exam_type_id = :examTypeId";
+			$query .= "AND class_subject_exams.exam_type_id = :examTypeId ";
 			$params[':examTypeId'] = $examTypeId; 
 		}
+		
+		if( $teacherId !== null && $teacherId !== '0' )
+		{
+			$query .= "AND (subjects.teacher_id = :teacherId OR classes.teacher_id = :teacherId)";
+			$params[':teacherId'] = $teacherId; 
+		}
+		
 		$query .= " ORDER BY exam_types.sort_order, subjects.sort_order";
 		
         $sth = $db->prepare($query);
@@ -223,16 +245,17 @@ $app->get('/getClassExams/:class_id(/:exam_type_id)', function ($classId, $examT
         $db = getDB();
 		$query = "SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, 
 								subject_name, class_subject_exams.exam_type_id, exam_type, grade_weight, parent_subject_id,
-								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
+								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1) as parent_subject_name
 							FROM app.class_subjects 
 							INNER JOIN app.class_subject_exams
 								INNER JOIN app.exam_types
 								ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 							ON class_subjects.class_subject_id = class_subject_exams.class_subject_id
 							INNER JOIN app.subjects
-							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+							ON class_subjects.subject_id = subjects.subject_id
 							WHERE class_id = :classId
-							AND (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null 
+							AND class_subjects.active is true
+							AND (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id limit 1) is null 
 							";
 		$params = array(':classId' => $classId);
 		if( $examTypeId !== null )
@@ -380,6 +403,7 @@ $app->put('/updateClass', function () use($app) {
 									modified_by = :userId
 								WHERE class_subject_id = :classSubjectId");
 								
+					
 		if( count($subjects) > 0 )
 		{
 			$insertSubject =  $db->prepare("INSERT INTO app.class_subjects(class_id,subject_id,created_by)
@@ -387,9 +411,10 @@ $app->put('/updateClass', function () use($app) {
 		
 			$updateExam =  $db->prepare("UPDATE app.class_subject_exams 
 							SET grade_weight = :gradeWeight,
+								active = true,
 								modified_date =  now(),
 								modified_by = :userId
-							WHERE class_sub_exam_id = :classSubExamId");
+							WHERE class_sub_exam_id = :classSubExamId");			
 			
 			$insertNewSubjectExam =  $db->prepare("INSERT INTO app.class_subject_exams(class_subject_id, exam_type_id, grade_weight, created_by)
 							VALUES(currval('app.class_subjects_class_subject_id_seq'), :examTypeId, :gradeWeight, :userId)");
@@ -404,17 +429,23 @@ $app->put('/updateClass', function () use($app) {
 								WHERE class_sub_exam_id = :classSubExamId");
 			
 			
-			
+			$activateSubject =  $db->prepare("UPDATE app.class_subjects 
+								SET active = true,
+									modified_date =  now(),
+									modified_by = :userId
+								WHERE class_subject_id = :classSubjectId");
+		
 								
 		}
 		
 		// pull out existing class subjects	    
-	    $query = $db->prepare("SELECT class_subject_id FROM app.class_subjects WHERE class_id = :classId");
+	    $query = $db->prepare("SELECT class_subject_id, class_id, subject_id FROM app.class_subjects WHERE class_id = :classId");
 		$query->execute( array(':classId' => $classId ) );
 		$currentSubjects = $query->fetchAll(PDO::FETCH_OBJ);
 		
 		// pull out existing class subject exams  
-	    $query = $db->prepare("SELECT class_sub_exam_id FROM app.class_subject_exams INNER JOIN app.class_subjects USING (class_subject_id) WHERE class_id = :classId");
+	    $query = $db->prepare("SELECT class_sub_exam_id, class_subject_exams.class_subject_id, subject_id, exam_type_id 
+								FROM app.class_subject_exams INNER JOIN app.class_subjects USING (class_subject_id) WHERE class_id = :classId");
 		$query->execute( array(':classId' => $classId ) );
 		$currentSubjectExams = $query->fetchAll(PDO::FETCH_OBJ);
 					
@@ -425,28 +456,47 @@ $app->put('/updateClass', function () use($app) {
 									 ':teacherId' => $teacherId, 
 									 ':reportCardType' => $reportCardType,
 									 ':userId' => $userId,
-									 ':classId' => $classId) );
-		
+									 ':classId' => $classId) ); 
+
 		if( count($subjects) > 0 )
 		{
-			foreach($subjects as $subject)
+			foreach($subjects as $key => $subject)
 			{
 				$classSubjectId = ( isset($subject['class_subject_id']) ? $subject['class_subject_id']: null);
 				$subjectId = ( isset($subject['subject_id']) ? $subject['subject_id']: null);
 				$exams =	( isset($subject['exams']) ? $subject['exams']: null);
-
+				
+				/* no class subject was passed in, so it's either a new subject added or activating an existing inactive one */
 				if( $classSubjectId === null )
 				{
-					$insertSubject->execute( array(':classId' => $classId,
+					$updated = false;
+					
+					// if already there but inactive, set to active
+					foreach( $currentSubjects as $currentSubject )
+					{
+						if( $currentSubject->class_id == $classId && $currentSubject->subject_id == $subjectId )
+						{
+							$activateSubject->execute(array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId));
+							$subjects[$key]['class_subject_id'] = $currentSubject->class_subject_id;
+							$updated = true;
+							break;
+						}
+					}
+					
+					// else add
+					if( !$updated )
+					{
+						$insertSubject->execute( array(':classId' => $classId,
 												':subjectId' => $subjectId, 					 
 												':userId' => $userId
-					) );
+						) );
+					}
 				}
 				
 				// check exams?
 				if( count($exams) > 0 )
 				{
-					foreach($exams as $exam)
+					foreach($exams as $key => $exam)
 					{
 						$examTypeId =		( isset($exam['exam_type_id']) ? $exam['exam_type_id']: null);
 						$gradeWeight =		( isset($exam['grade_weight']) ? $exam['grade_weight']: null);
@@ -461,19 +511,38 @@ $app->put('/updateClass', function () use($app) {
 						{
 							// if no class subject id, then subject was new, use new seq value
 							if( $classSubjectId === null )			
-							{
-								$insertNewSubjectExam->execute( array(':examTypeId' => $examTypeId,		
+							{	
+								$updated = false;
+								
+								// if already there but inactive, set to active
+								foreach( $currentSubjectExams as $currentSubjectExam )
+								{
+									if( $currentSubjectExam->subject_id == $subjectId && $currentSubjectExam->exam_type_id == $examTypeId )
+									{
+										$updateExam->execute(array(':gradeWeight' => $gradeWeight, ':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));
+										$exams[$key]['class_sub_exam_id'] = $currentSubjectExam->class_sub_exam_id;
+										$updated = true;
+										break;
+									}
+								}
+								
+								// else add
+								if( !$updated )
+								{
+									$insertNewSubjectExam->execute( array(':examTypeId' => $examTypeId,		
 															':gradeWeight' => $gradeWeight,
 															':userId' => $userId
-								) );
+									) );		
+								}									
 							}
 							else
 							{
 								$insertExam->execute( array(':classSubjectId' => $classSubjectId, 	
-															':examTypeId' => $examTypeId,		
-															':gradeWeight' => $gradeWeight,
-															':userId' => $userId
+														':examTypeId' => $examTypeId,		
+														':gradeWeight' => $gradeWeight,
+														':userId' => $userId
 								) );
+								
 							}
 						}
 					}
@@ -501,9 +570,254 @@ $app->put('/updateClass', function () use($app) {
 				}
 				
 			}
-		   
-			// set active to false for any not passed in
+		    
+			// set active to false for any not passed in			
+			foreach( $currentSubjects as $currentSubject )
+			{	
+				$deleteMe = true;
+				// if found, do not delete
+				foreach( $subjects as $subject )
+				{
+					if( isset($subject['class_subject_id']) && $subject['class_subject_id'] == $currentSubject->class_subject_id )
+					{
+						$deleteMe = false;
+					}
+				}
+				
+				if( $deleteMe )
+				{
+					$inactivateSubject->execute(array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId));
+					
+					// if subject was marked inactive, mark exams inactive as well
+					$inactivateAllSubjectExams->execute( array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId) );
+					
+				}
+			}
 			
+			
+		}
+		else
+		{
+			// no subjects, remove any associated with class
+			// if subject was marked inactive, mark exams inactive as well
+			foreach( $currentSubjects as $currentSubject )
+			{	
+				$inactivateSubject->execute( array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId) );
+				$inactivateAllSubjectExams->execute( array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId) ); 
+			}
+
+		}
+		
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateTeacherSubject', function () use($app) {
+    // Update class, but only update teachers subject
+	
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$classId = 	( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+	$teacherId =( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
+	$subjects = ( isset($allPostVars['subjects']) ? $allPostVars['subjects']: null);	
+	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try 
+    {
+        $db = getDB();
+		
+		$inactivateSubject =  $db->prepare("UPDATE app.class_subjects 
+								SET active = false,
+									modified_date =  now(),
+									modified_by = :userId
+								WHERE class_subject_id = :classSubjectId");
+		
+		$inactivateAllSubjectExams = $db->prepare( "UPDATE app.class_subject_exams 
+								SET active = false,
+									modified_date =  now(),
+									modified_by = :userId
+								WHERE class_subject_id = :classSubjectId");
+								
+					
+		if( count($subjects) > 0 )
+		{
+		
+			$updateExam =  $db->prepare("UPDATE app.class_subject_exams 
+							SET grade_weight = :gradeWeight,
+								active = true,
+								modified_date =  now(),
+								modified_by = :userId
+							WHERE class_sub_exam_id = :classSubExamId");			
+			
+			$insertNewSubjectExam =  $db->prepare("INSERT INTO app.class_subject_exams(class_subject_id, exam_type_id, grade_weight, created_by)
+							VALUES(currval('app.class_subjects_class_subject_id_seq'), :examTypeId, :gradeWeight, :userId)");
+							
+			$insertExam =  $db->prepare("INSERT INTO app.class_subject_exams(class_subject_id, exam_type_id, grade_weight, created_by)
+							VALUES(:classSubjectId, :examTypeId, :gradeWeight, :userId)");
+			
+			$inactivateExam = $db->prepare( "UPDATE app.class_subject_exams 
+								SET active = false,
+									modified_date =  now(),
+									modified_by = :userId
+								WHERE class_sub_exam_id = :classSubExamId");
+			
+			
+			$activateSubject =  $db->prepare("UPDATE app.class_subjects 
+								SET active = true,
+									modified_date =  now(),
+									modified_by = :userId
+								WHERE class_subject_id = :classSubjectId");
+		
+								
+		}
+		
+		// pull out existing class subjects	    
+	    $query = $db->prepare("SELECT class_subject_id, class_id, class_subjects.subject_id 
+								FROM app.class_subjects 
+								INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+								WHERE class_id = :classId
+								AND subjects.teacher_id = :teacherId");
+		$query->execute( array(':classId' => $classId, ':teacherId' => $teacherId ) );
+		$currentSubjects = $query->fetchAll(PDO::FETCH_OBJ);
+		
+		// pull out existing class subject exams  
+	    $query = $db->prepare("SELECT class_sub_exam_id, class_subject_exams.class_subject_id, class_subjects.subject_id, exam_type_id 
+								FROM app.class_subject_exams 
+								INNER JOIN app.class_subjects 
+									INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id 
+								WHERE class_id = :classId
+								AND subjects.teacher_id = :teacherId");
+		$query->execute( array(':classId' => $classId, ':teacherId' => $teacherId ) );
+		$currentSubjectExams = $query->fetchAll(PDO::FETCH_OBJ);
+					
+		$db->beginTransaction();
+		
+		if( count($subjects) > 0 )
+		{
+			foreach($subjects as $key => $subject)
+			{
+				$classSubjectId = ( isset($subject['class_subject_id']) ? $subject['class_subject_id']: null);
+				$subjectId = ( isset($subject['subject_id']) ? $subject['subject_id']: null);
+				$exams =	( isset($subject['exams']) ? $subject['exams']: null);
+				
+				/* no class subject was passed in, so it's either a new subject added or activating an existing inactive one */
+				if( $classSubjectId === null )
+				{
+					$updated = false;
+					
+					// if already there but inactive, set to active
+					foreach( $currentSubjects as $currentSubject )
+					{
+						if( $currentSubject->class_id == $classId && $currentSubject->subject_id == $subjectId )
+						{
+							$activateSubject->execute(array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId));
+							$subjects[$key]['class_subject_id'] = $currentSubject->class_subject_id;
+							$updated = true;
+							break;
+						}
+					}
+					
+					// else add
+					if( !$updated )
+					{
+						$insertSubject->execute( array(':classId' => $classId,
+												':subjectId' => $subjectId, 					 
+												':userId' => $userId
+						) );
+					}
+				}
+				
+				// check exams?
+				if( count($exams) > 0 )
+				{
+					foreach($exams as $key => $exam)
+					{
+						$examTypeId =		( isset($exam['exam_type_id']) ? $exam['exam_type_id']: null);
+						$gradeWeight =		( isset($exam['grade_weight']) ? $exam['grade_weight']: null);
+						$classSubExamId =	( isset($exam['class_sub_exam_id']) ? $exam['class_sub_exam_id']: null);
+						$classSubjectId =	( isset($exam['class_subject_id']) ? $exam['class_subject_id']: null);
+						
+						if( $classSubExamId !== null )			
+						{
+							$updateExam->execute(array(':gradeWeight' => $gradeWeight, ':classSubExamId' => $classSubExamId, ':userId' => $userId));
+						}
+						else
+						{
+							// if no class subject id, then subject was new, use new seq value
+							if( $classSubjectId === null )			
+							{	
+								$updated = false;
+								
+								// if already there but inactive, set to active
+								foreach( $currentSubjectExams as $currentSubjectExam )
+								{
+									if( $currentSubjectExam->subject_id == $subjectId && $currentSubjectExam->exam_type_id == $examTypeId )
+									{
+										$updateExam->execute(array(':gradeWeight' => $gradeWeight, ':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));
+										$exams[$key]['class_sub_exam_id'] = $currentSubjectExam->class_sub_exam_id;
+										$updated = true;
+										break;
+									}
+								}
+								
+								// else add
+								if( !$updated )
+								{
+									$insertNewSubjectExam->execute( array(':examTypeId' => $examTypeId,		
+															':gradeWeight' => $gradeWeight,
+															':userId' => $userId
+									) );		
+								}									
+							}
+							else
+							{
+								$insertExam->execute( array(':classSubjectId' => $classSubjectId, 	
+														':examTypeId' => $examTypeId,		
+														':gradeWeight' => $gradeWeight,
+														':userId' => $userId
+								) );
+								
+							}
+						}
+					}
+					
+					// set active to false for any not passed in
+					
+					foreach( $currentSubjectExams as $currentSubjectExam )
+					{	
+						$deleteMe = true;
+						// if found, do not delete
+						foreach( $exams as $exam )
+						{
+							if( isset($exam['class_sub_exam_id']) && $exam['class_sub_exam_id'] == $currentSubjectExam->class_sub_exam_id )
+							{
+								$deleteMe = false;
+							}
+						}
+						
+						if( $deleteMe )
+						{
+							$inactivateExam->execute(array(':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));								
+						}
+					}
+					
+				}
+				
+			}
+		    
+			// set active to false for any not passed in			
 			foreach( $currentSubjects as $currentSubject )
 			{	
 				$deleteMe = true;
@@ -731,8 +1045,15 @@ $app->get('/getClassCats(/:teacher_id)', function ($teacherId=null) {
 		{
 			$sth = $db->prepare("SELECT class_cats.class_cat_id, class_cat_name 
 								FROM app.class_cats 
-								INNER JOIN app.classes ON class_cats.class_cat_id = classes.class_cat_id AND teacher_id = :teacherId
+								INNER JOIN app.classes 
+									INNER JOIN app.class_subjects
+									INNER JOIN app.subjects
+									ON class_subjects.subject_id = subjects.subject_id
+								ON classes.class_id = class_subjects.class_id
+								ON class_cats.class_cat_id = classes.class_cat_id
 								WHERE class_cats.active is true 
+								AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
+								GROUP BY class_cats.class_cat_id, class_cat_name 
 								ORDER BY class_cats.class_cat_id");
 			$sth->execute(array(':teacherId' => $teacherId));
 		}

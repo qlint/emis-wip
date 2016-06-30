@@ -16,10 +16,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.filterClass = ( $state.params.class_id !== '' ? true : false );
 	$scope.loading = true;
 	
+	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
+	
 
 	var initializeController = function () 
 	{
-		if ( $rootScope.currentUser.user_type == 'TEACHER' )
+/*		if ( $scope.isTeacher )
 		{
 			apiService.getClassCats($rootScope.currentUser.emp_id, function(response){
 				var result = angular.fromJson(response);
@@ -29,7 +31,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				
 			}, apiError);
 		}
-		
+		*/
 		getClasses("");
 	}
 	$timeout(initializeController,1);
@@ -43,7 +45,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			$scope.dataGrid.destroy();				
 		}		
 		
-		if ( $rootScope.currentUser.user_type == 'TEACHER' )
+		if ( $scope.isTeacher )
 		{
 			var params = $rootScope.currentUser.emp_id + '/' + $scope.filters.status;
 			apiService.getTeacherClasses(params, function(response,status){
@@ -53,7 +55,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				{	
 					$scope.classes = ( result.nodata ? [] : result.data );	
 					
-					$rootScope.allClasses = $scope.classes
+					//$rootScope.allClasses = $scope.classes
 					
 					$timeout(initDataGrid,10);
 				}
@@ -77,7 +79,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				{	
 					$scope.classes = ( result.nodata ? [] : result.data );	
 					
-					$rootScope.allClasses = $scope.classes
+					//$rootScope.allClasses = $scope.classes
 					
 					$timeout(initDataGrid,10);
 				}

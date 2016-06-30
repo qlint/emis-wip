@@ -126,7 +126,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				if( uploader.queue[0] !== undefined )
 				{
 					// need a unique filename
-					uploader.queue[0].file.name = $scope.employee.emp_id + "_" + uploader.queue[0].file.name;
+					$scope.filename = $scope.employee.emp_id + "_" + uploader.queue[0].file.name;
+					uploader.queue[0].file.name = $scope.filename;
 					uploader.uploadAll();
 				}
 				
@@ -142,7 +143,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						country : $scope.employee.country,
 						gender : $scope.employee.gender,
 						dob: $scope.employee.dob,
-						emp_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null),
+						emp_image : ( uploader.queue[0] !== undefined ? $scope.filename : null),
 						active : ( $scope.employee.active ? 't' : 'f' ),
 						telephone : $scope.employee.telephone,
 						email : $scope.employee.email,
@@ -174,7 +175,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						username: $scope.employee.username,
 						password: $scope.employee.password,
 						user_type: $scope.employee.user_type,
-						login_active: ( $scope.employee.login_active == 'true' ? 't' : 'f'),
+						login_active: ( $scope.employee.login_active ? 't' : 'f'),
 						login_id: $scope.employee.login_id
 					}
 				}
@@ -192,7 +193,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		{
 			if( uploader.queue[0] !== undefined )
 			{
-				$scope.employee.emp_image = uploader.queue[0].file.name;
+				$scope.employee.emp_image = $scope.filename;
 			}
 			
 			// saved, update the originalData

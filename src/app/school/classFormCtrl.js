@@ -6,8 +6,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	
 	$scope.theClass = ( data !== undefined ? data : {} );
-	
-	$scope.edit = ( $scope.theClass.class_id !== undefined ? true : false );
 	$scope.deleted = false;
 	
 	$scope.subjectSelection = [];
@@ -17,13 +15,28 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.reportCardTypes = ["Standard","Kindergarten"];
 	$scope.examTypes = [];
 	
+	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
+	$scope.edit = ( $scope.theClass.class_id !== undefined ? true : false );
 	
 	var getSubjects = function(classCatId)
 	{
-		apiService.getAllSubjects(classCatId,function(response){
-			var result = angular.fromJson(response);
-			if( result.response == 'success') $scope.subjects = ( result.nodata? [] : result.data );
-		}, apiError);
+		/* if teacher of subject, only pull their subjects, else if teacher assigned to class, show all subjects */
+		if( $scope.isTeacher && !$scope.canEditClass )
+		{
+			var params = $rootScope.currentUser.emp_id + '/' + classCatId + '/all';
+			apiService.getAllTeacherSubjects(params,function(response){
+				var result = angular.fromJson(response);
+				if( result.response == 'success') $scope.subjects = ( result.nodata? [] : result.data );
+			}, apiError);
+		}
+		else
+		{
+			var params = classCatId + '/all';
+			apiService.getAllSubjects(params,function(response){
+				var result = angular.fromJson(response);
+				if( result.response == 'success') $scope.subjects = ( result.nodata? [] : result.data );
+			}, apiError);
+		}
 	}
 	
 	var getClassDetails = function(classId)
@@ -39,10 +52,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 					if( $scope.subjectSelection.indexOf(item.subject_id) === -1 ) $scope.subjectSelection.push(item.subject_id);
 				
 					if( $scope.subjectExamSelection[item.subject_id] === undefined) $scope.subjectExamSelection[item.subject_id] = [];
-					$scope.subjectExamSelection[item.subject_id].push(item.exam_type_id);
+					if( item.exam_type_id !== null ) $scope.subjectExamSelection[item.subject_id].push(item.exam_type_id);
 					
-					if( $scope.gradeWeight[ item.subject_id + '-' + item.exam_type_id ] === undefined ) $scope.gradeWeight[item.subject_id + '-' + item.exam_type_id ] = {};
-					$scope.gradeWeight[item.subject_id + '-' + item.exam_type_id ].grade_weight = item.grade_weight;
+					if( item.exam_type_id !== null ) 
+					{
+						if( $scope.gradeWeight[ item.subject_id + '-' + item.exam_type_id ] === undefined ) $scope.gradeWeight[item.subject_id + '-' + item.exam_type_id ] = {};
+						if( item.grade_weight !== null ) $scope.gradeWeight[item.subject_id + '-' + item.exam_type_id ].grade_weight = item.grade_weight;
+					}
 					
 				});
 						
@@ -68,9 +84,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 		if( $scope.edit )
 		{
-
 			getClassDetails($scope.theClass.class_id);
+			
+			if( $scope.isTeacher )
+			{
+				/* check if this teacher is assigned to this class, or only to subjects */
+				/* if assigned to class, can make edits to all, subject only teachers can not edit class details */
+				$scope.canEditClass = ( $scope.theClass.teacher_id == $scope.currentUser.emp_id ? true : false )
+			}
+			else $scope.canEditClass = true;
+		
 		}
+		
+		
 		
 	}
 	setTimeout(initializeController,1);
@@ -103,16 +129,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			data.user_id = $rootScope.currentUser.user_id;
 			data.subjects = [];
 			
-			
 			if( $scope.edit )
 			{
-				angular.forEach( $scope.subjectSelection, function(subject_id,key){
-					
+				// only update teachers subject
+				angular.forEach( $scope.subjectSelection, function(subject_id,key){						
 					var examsArray = [];
 					var class_subject_id = undefined;
 					
 					angular.forEach($scope.subjectExamSelection[subject_id], function(exam_type_id,key2){
-					
+								
 						// get ids
 						if( $scope.classDetails !== undefined ) {
 							var ids = $scope.classDetails.filter(function(item){
@@ -121,6 +146,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 						}
 						
 						class_subject_id = (ids !== undefined ? ids.class_subject_id : undefined);
+						
+						if( class_subject_id === undefined )
+						{
+							// check if any subjects saved without exams set
+							var ids = $scope.classDetails.filter(function(item){
+								if( item.subject_id == subject_id && item.exam_type_id == null ) return item;
+							})[0];
+							class_subject_id = (ids !== undefined ? ids.class_subject_id : undefined);
+						}
 					
 						examsArray.push({
 							exam_type_id: exam_type_id,
@@ -130,7 +164,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 						});
 						
 						
-					});
+					});	
 					
 					data.subjects.push({
 						subject_id: subject_id,
@@ -139,10 +173,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 					});
 					
 				});
-				apiService.updateClass(data,createCompleted,apiError);
+				
+				
+				if( $scope.isTeacher && !$scope.canEditClass ) apiService.updateTeacherSubject(data,createCompleted,apiError);
+				else apiService.updateClass(data,createCompleted,apiError);	
 			}
 			else
 			{
+				
 				angular.forEach( $scope.subjectSelection, function(subject_id,key){
 					
 					var examsArray = [];
@@ -173,7 +211,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		if( result.response == 'success' )
 		{
 			$uibModalInstance.close();
-			var msg = ($scope.deleted ? 'Class was deleted.' : ( $scope.edit ? 'Class was updated' :  'Class was added.'));
+			var msg = ($scope.deleted ? 'Class was deleted.' : ( $scope.edit  ? 'Class was updated' :  'Class was added.'));
 			$rootScope.$emit('classAdded', {'msg' : msg, 'clear' : true});
 		}
 		else
@@ -305,8 +343,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 		// is newly selected
 		else {
-			$scope.subjectSelection.push(subject_id);
-			$scope.subjectExamSelection[subject_id] = [];
+			if( $scope.subjectSelection.indexOf(subject_id) === -1 )
+			{
+				$scope.subjectSelection.push(subject_id);
+				$scope.subjectExamSelection[subject_id] = [];
+			}
 		}
 	}
 	

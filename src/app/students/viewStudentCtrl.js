@@ -1187,7 +1187,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				if( uploader.queue[0] !== undefined )
 				{
 					// need a unique filename
-					uploader.queue[0].file.name = $scope.student.student_id + "_" + uploader.queue[0].file.name;
+					$scope.filename =  $scope.student.student_id + "_" + uploader.queue[0].file.name;
+					uploader.queue[0].file.name = $scope.filename;
 					uploader.uploadAll();
 				}
 				
@@ -1281,7 +1282,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		{
 			if( uploader.queue[0] !== undefined )
 			{
-				$scope.student.student_image = uploader.queue[0].file.name;
+				$scope.student.student_image = $scope.filename;
 			}
 			
 			// saved, update the originalData
@@ -1361,6 +1362,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		$scope.existingGuardian = {};
 		$scope.uniqueUsername = undefined;
 		$scope.uniqueIdNumber = undefined;
+		$scope.checkID = true;
 
 		//-- Methods --//
 		
@@ -1449,12 +1451,15 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.checkIdNumber = function( username )
 		{
+			console.log($scope.guardian.guardian_id);
 			// this will query the guardians table to ensure id number is unique
 			apiService.checkIdNumber(username,function(response){
 				var result = angular.fromJson( response );
 				if( result.response == 'success' )
 				{
-					$scope.uniqueIdNumber = (result.nodata ? true : false);					
+					/* if the guardian returned from check is the existing guardian, return true, else check */
+					if( $scope.guardian !== undefined && result.data.guardian_id == $scope.guardian.guardian_id ) $scope.uniqueIdNumber = true;
+					else $scope.uniqueIdNumber = (result.nodata ? true : false);					
 				}
 			},apiError);
 		}
@@ -1467,13 +1472,13 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			$scope.guardian = newVal;
 			$scope.guardian.relationship = relationship; // get cleared, reset it previous selection
 			$scope.getStudents( $scope.guardian.guardian_id );
+			
 		});
 		
 		$scope.$watch('guardian.id_number',function(newVal,oldVal){
 			if( newVal == oldVal || newVal === undefined ) return;
 			// populate form
 			$scope.checkMISLogin(newVal);
-			
 			$scope.uniqueIdNumber = undefined;
 			$scope.checkIdNumber(newVal);
 		});	

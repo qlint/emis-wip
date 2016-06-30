@@ -221,7 +221,7 @@
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
 								</td>
 							</tr>
-							<tr>
+							<tr ng-show="!isTeacher || isClassTeacher">
 								<td width="75%">
 									<label>Class teacher comments:</label>
 									<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
@@ -231,7 +231,7 @@
 									<label>Sign:</label>
 								</td>
 							</tr>
-							<tr>
+							<tr ng-show="!isTeacher">
 								<td>
 									<label>Principle comments:</label>
 									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
@@ -346,7 +346,7 @@
 				</script>
 				
 				
-				<div ng-show="saved" class="alert alert-success">
+				<div ng-show="saved && !isTeacher" class="alert alert-success">
 					Report card has been saved! Click the 'Print' button below.
 				</div>
 				
@@ -357,8 +357,8 @@
 				<button type="button" class="btn btn-danger" ng-click="deleteReportCard()">Delete</button>	
 			</div>
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>			
-			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint"><i class="glyphicon glyphicon-print"></i> Print</button>		
-			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint&&adding">Save</button>		
-			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint&&!adding&&modified">Update</button>				
+			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint && !isTeacher"><i class="glyphicon glyphicon-print"></i> Print</button>		
+			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && adding">Save</button>		
+			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && !adding&&modified">Update</button>				
 		</div>
 </form>

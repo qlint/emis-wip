@@ -43,8 +43,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 							// store these as they do not change often
 							if( result.response == 'success') 
 							{
-								$rootScope.allClasses = result.data;
-								$scope.classes = $rootScope.allClasses;
+								//$rootScope.allClasses = result.data;
+								$scope.classes = result.data;
 
 								getStudents('true',false );
 								
@@ -97,8 +97,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 					// store these as they do not change often
 					if( result.response == 'success') 
 					{
-						$rootScope.allClasses = result.data;
-						$scope.classes = $rootScope.allClasses;
+					//	$rootScope.allClasses = ;
+						$scope.classes = result.data;
 
 						getStudents('true',false );
 						

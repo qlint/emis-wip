@@ -36,8 +36,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					// store these as they do not change often
 					if( result.response == 'success') 
 					{
-						$rootScope.allClasses = result.data;
-						$scope.classes = $rootScope.allClasses || [];
+						$scope.classes = result.data || [];
 						$scope.filters.class = $scope.classes[0];
 						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
 						deferred.resolve();
@@ -57,8 +56,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					// store these as they do not change often
 					if( result.response == 'success') 
 					{
-						$rootScope.allClasses = result.data;
-						$scope.classes = $rootScope.allClasses || [];
+						$scope.classes = result.data || [];
 						$scope.filters.class = $scope.classes[0];
 						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
 						$scope.filters.class_cat_id = ( $scope.classes[0] ? $scope.classes[0].class_cat_id : null);
@@ -152,8 +150,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.marksNotFound = false;
 		$scope.getReport = "";
 		
-		var request = $scope.filters.class_id + '/' + $scope.filters.term_id;
-		if( $scope.filters.exam_type_id !== null ) request += '/' + $scope.filters.exam_type_id;
+		var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+		if( $rootScope.currentUser.user_type == 'TEACHER' ) request += '/' + $rootScope.currentUser.emp_id;
 		apiService.getAllStudentExamMarks(request, loadMarks, apiError);
 	}
 	

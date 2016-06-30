@@ -43,8 +43,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					// store these as they do not change often
 					if( result.response == 'success') 
 					{
-						$rootScope.allClasses = result.data;
-						$scope.classes = $rootScope.allClasses || [];
+						$scope.classes = result.data || [];
 						$scope.filters.class = $scope.classes[0];
 						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
 						$scope.getStudentReportCards();
@@ -61,8 +60,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					// store these as they do not change often
 					if( result.response == 'success') 
 					{
-						$rootScope.allClasses = result.data;
-						$scope.classes = $rootScope.allClasses || [];
+						$scope.classes = result.data || [];
 						$scope.filters.class = $scope.classes[0];
 						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
 						$scope.getStudentReportCards();
@@ -169,10 +167,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	
 	$scope.getReportCard = function(item, term_name, reportData)
 	{
+		console.log(item);
 		var student = {
 			student_id :item.student_id,
 			student_name : item.student_name,
-			admission_number: item.admission_number
+			admission_number: item.admission_number,
+			class_teacher_id: item.teacher_id
 		}
 		var data = {
 			student : student,
@@ -321,7 +321,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.addReportCard = function()
 	{
 		var data = {
-			classes: $rootScope.allClasses,
+			classes: $scope.classes,
 			terms: $scope.terms,
 			filters: $scope.filters,
 			adding: true

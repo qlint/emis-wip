@@ -93,8 +93,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{	
 		if( !theForm.$invalid )
 		{
-			if( uploader.queue[0] !== undefined ){
-				$scope.employee.emp_image = moment() + '_' + uploader.queue[0].file.name;
+			if( uploader.queue[0] !== undefined )
+			{
+				// need a unique filename
+				$scope.filename = moment() + '_' + uploader.queue[0].file.name;
+				uploader.queue[0].file.name = $scope.filename;
+				uploader.uploadAll();
+				$scope.employee.emp_image = $scope.filename;
 			}
 			
 			var postData = angular.copy($scope.employee);
@@ -117,7 +122,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
-			uploader.uploadAll();
+			if( uploader.queue[0] !== undefined )
+			{
+				$scope.employee.emp_image = $scope.filename;
+			}
 			$uibModalInstance.close();
 			$rootScope.$emit('employeeAdded', {'msg' : 'Employee was created.', 'clear' : true});
 		}

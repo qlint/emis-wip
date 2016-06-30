@@ -206,7 +206,8 @@ function($scope, $rootScope, apiService){
 	
 	var getTopStudents = function()
 	{
-		apiService.getTopStudents(undefined, loadTopStudents, apiError);
+		if( $scope.isTeacher ) apiService.getTeacherTopStudents($rootScope.currentUser.emp_id, loadTopStudents, apiError);
+		else apiService.getTopStudents(undefined, loadTopStudents, apiError);
 	}
 	
 	var loadTopStudents = function(response, status)

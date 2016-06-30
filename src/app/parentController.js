@@ -36,7 +36,8 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 		}
 	};
 	
-	var setCurrentUser = function(){
+	var setCurrentUser = function()
+	{
 		//$scope.currentUser = $rootScope.currentUser;
 		$rootScope.permissions = [];
 		$rootScope.manageUsers = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false);
@@ -162,12 +163,12 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						'alt_label': 'my_classes',
 						'subjects': {
 							'view': true,
-							'add': true,
+							'add': false,
 							'edit': true,
 						},
 						'classes': {
 							'view': true,
-							'add': true,
+							'add': false,
 							'edit': true,
 						}				
 
