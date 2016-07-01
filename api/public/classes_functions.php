@@ -477,6 +477,7 @@ $app->put('/updateClass', function () use($app) {
 						if( $currentSubject->class_id == $classId && $currentSubject->subject_id == $subjectId )
 						{
 							$activateSubject->execute(array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId));
+							$subjects[$key]['class_subject_id'] = $currentSubject->class_subject_id;
 							// set class subject id in all associated exams
 							foreach($exams as $key2 => $exam)
 							{
@@ -733,7 +734,7 @@ $app->put('/updateTeacherSubject', function () use($app) {
 						if( $currentSubject->class_id == $classId && $currentSubject->subject_id == $subjectId )
 						{
 							$activateSubject->execute(array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId));
-							
+							$subjects[$key]['class_subject_id'] = $currentSubject->class_subject_id;
 							// set class subject id in all associated exams
 							foreach($exams as $key2 => $exam)
 							{
