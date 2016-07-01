@@ -115,7 +115,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.$watch('thestudent.selected', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		
+		$scope.showReportCard = false;
 		$scope.student = $scope.thestudent.selected;
 		$scope.reportCardType = $scope.student.report_card_type;
 		
