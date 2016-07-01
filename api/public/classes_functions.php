@@ -515,40 +515,40 @@ $app->put('/updateClass', function () use($app) {
 						else
 						{
 							// if no class subject id, then subject was new, use new seq value
-							if( $classSubjectId === null )			
-							{	
-								$updated = false;
+							
+							$examUpdated = false;
 								
-								// if already there but inactive, set to active
-								foreach( $currentSubjectExams as $currentSubjectExam )
+							// if already there but inactive, set to active
+							foreach( $currentSubjectExams as $currentSubjectExam )
+							{
+								if( $currentSubjectExam->subject_id == $subjectId && $currentSubjectExam->exam_type_id == $examTypeId )
 								{
-									if( $currentSubjectExam->subject_id == $subjectId && $currentSubjectExam->exam_type_id == $examTypeId )
-									{
-										$updateExam->execute(array(':gradeWeight' => $gradeWeight, ':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));
-										$exams[$key]['class_sub_exam_id'] = $currentSubjectExam->class_sub_exam_id;
-										$updated = true;
-										break;
-									}
+									$updateExam->execute(array(':gradeWeight' => $gradeWeight, ':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));
+									$exams[$key]['class_sub_exam_id'] = $currentSubjectExam->class_sub_exam_id;
+									$examUpdated = true;
+									break;
 								}
-								
-								// else add
-								if( !$updated )
-								{
+							}
+							
+							// else add
+							if( !$examUpdated )
+							{	
+								if( $classSubjectId === null )			
+								{	
 									$insertNewSubjectExam->execute( array(':examTypeId' => $examTypeId,		
+													':gradeWeight' => $gradeWeight,
+													':userId' => $userId
+									) );	
+								}
+								else
+								{
+									$insertExam->execute( array(':classSubjectId' => $classSubjectId, 	
+															':examTypeId' => $examTypeId,		
 															':gradeWeight' => $gradeWeight,
 															':userId' => $userId
-									) );		
-								}									
-							}
-							else
-							{
-								$insertExam->execute( array(':classSubjectId' => $classSubjectId, 	
-														':examTypeId' => $examTypeId,		
-														':gradeWeight' => $gradeWeight,
-														':userId' => $userId
-								) );
-								
-							}
+									) );
+								}																			
+							}	
 						}
 					}
 					
@@ -773,40 +773,40 @@ $app->put('/updateTeacherSubject', function () use($app) {
 						else
 						{
 							// if no class subject id, then subject was new, use new seq value
-							if( $classSubjectId === null )			
-							{	
-								$examUpdated = false;
+							
+							$examUpdated = false;
 								
-								// if already there but inactive, set to active
-								foreach( $currentSubjectExams as $currentSubjectExam )
+							// if already there but inactive, set to active
+							foreach( $currentSubjectExams as $currentSubjectExam )
+							{
+								if( $currentSubjectExam->subject_id == $subjectId && $currentSubjectExam->exam_type_id == $examTypeId )
 								{
-									if( $currentSubjectExam->subject_id == $subjectId && $currentSubjectExam->exam_type_id == $examTypeId )
-									{
-										$updateExam->execute(array(':gradeWeight' => $gradeWeight, ':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));
-										$exams[$key]['class_sub_exam_id'] = $currentSubjectExam->class_sub_exam_id;
-										$examUpdated = true;
-										break;
-									}
+									$updateExam->execute(array(':gradeWeight' => $gradeWeight, ':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));
+									$exams[$key]['class_sub_exam_id'] = $currentSubjectExam->class_sub_exam_id;
+									$examUpdated = true;
+									break;
 								}
-								
-								// else add
-								if( !$examUpdated )
+							}
+							
+							// else add
+							if( !$examUpdated )
+							{	
+								if( $classSubjectId === null )			
 								{	
 									$insertNewSubjectExam->execute( array(':examTypeId' => $examTypeId,		
-														':gradeWeight' => $gradeWeight,
-														':userId' => $userId
-									) );																				
-								}									
-							}
-							else
-							{
-								$insertExam->execute( array(':classSubjectId' => $classSubjectId, 	
-														':examTypeId' => $examTypeId,		
-														':gradeWeight' => $gradeWeight,
-														':userId' => $userId
-								) );
-								
-							}
+													':gradeWeight' => $gradeWeight,
+													':userId' => $userId
+									) );	
+								}
+								else
+								{
+									$insertExam->execute( array(':classSubjectId' => $classSubjectId, 	
+															':examTypeId' => $examTypeId,		
+															':gradeWeight' => $gradeWeight,
+															':userId' => $userId
+									) );
+								}																			
+							}	
 						}
 					}
 					
