@@ -127,11 +127,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		{
 			var data = $scope.theClass;
 			data.user_id = $rootScope.currentUser.user_id;
+			
 			data.subjects = [];
 			
 			if( $scope.edit )
 			{
-				// only update teachers subject
+				console.log($scope.subjectSelection);
 				angular.forEach( $scope.subjectSelection, function(subject_id,key){						
 					var examsArray = [];
 					var class_subject_id = undefined;
@@ -144,8 +145,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 								if( item.subject_id == subject_id && item.exam_type_id == exam_type_id ) return item;
 							})[0];
 						}
-						
 						class_subject_id = (ids !== undefined ? ids.class_subject_id : undefined);
+						
 						
 						if( class_subject_id === undefined )
 						{
@@ -165,6 +166,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 						
 						
 					});	
+				
 					
 					data.subjects.push({
 						subject_id: subject_id,
@@ -174,8 +176,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 					
 				});
 				
-				
-				if( $scope.isTeacher && !$scope.canEditClass ) apiService.updateTeacherSubject(data,createCompleted,apiError);
+				console.log(data);
+				if( $scope.isTeacher && !$scope.canEditClass )
+				{
+					// set the teacher id to the current user
+					data.teacher_id = $rootScope.currentUser.emp_id;
+					apiService.updateTeacherSubject(data,createCompleted,apiError);
+				}
 				else apiService.updateClass(data,createCompleted,apiError);	
 			}
 			else

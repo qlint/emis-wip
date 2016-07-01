@@ -177,7 +177,7 @@ $app->get('/getAllClassExams/:class_id(/:exam_type_id/:teacher_id)', function ($
     try 
     {
         $db = getDB();
-		$query = "SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, 
+		$query = "SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, subjects.teacher_id,
 								subject_name, class_subject_exams.exam_type_id, exam_type, grade_weight, parent_subject_id,
 								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1) as parent_subject_name,
 								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id limit 1) is null then false else true end as is_parent
@@ -652,7 +652,7 @@ $app->put('/updateTeacherSubject', function () use($app) {
 					
 		if( count($subjects) > 0 )
 		{
-		
+							
 			$updateExam =  $db->prepare("UPDATE app.class_subject_exams 
 							SET grade_weight = :gradeWeight,
 								active = true,
@@ -706,17 +706,19 @@ $app->put('/updateTeacherSubject', function () use($app) {
 		
 		if( count($subjects) > 0 )
 		{
+			
 			foreach($subjects as $key => $subject)
 			{
 				$classSubjectId = ( isset($subject['class_subject_id']) ? $subject['class_subject_id']: null);
 				$subjectId = ( isset($subject['subject_id']) ? $subject['subject_id']: null);
 				$exams =	( isset($subject['exams']) ? $subject['exams']: null);
 				
-				/* no class subject was passed in, so it's either a new subject added or activating an existing inactive one */
+				// no class subject was passed in, so it's either a new subject added or activating an existing inactive one 
 				if( $classSubjectId === null )
 				{
 					$updated = false;
-					
+						
+						
 					// if already there but inactive, set to active
 					foreach( $currentSubjects as $currentSubject )
 					{
@@ -724,19 +726,11 @@ $app->put('/updateTeacherSubject', function () use($app) {
 						{
 							$activateSubject->execute(array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId));
 							$subjects[$key]['class_subject_id'] = $currentSubject->class_subject_id;
-							$updated = true;
 							break;
 						}
 					}
+
 					
-					// else add
-					if( !$updated )
-					{
-						$insertSubject->execute( array(':classId' => $classId,
-												':subjectId' => $subjectId, 					 
-												':userId' => $userId
-						) );
-					}
 				}
 				
 				// check exams?
@@ -816,6 +810,7 @@ $app->put('/updateTeacherSubject', function () use($app) {
 				}
 				
 			}
+			
 		    
 			// set active to false for any not passed in			
 			foreach( $currentSubjects as $currentSubject )
