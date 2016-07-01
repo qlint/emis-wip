@@ -1451,7 +1451,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		
 		$scope.checkIdNumber = function( username )
 		{
-			console.log($scope.guardian.guardian_id);
+
 			// this will query the guardians table to ensure id number is unique
 			apiService.checkIdNumber(username,function(response){
 				var result = angular.fromJson( response );

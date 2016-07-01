@@ -13,10 +13,24 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
 	var initializeController = function () 
 	{
+		// get class categories
+		if( $rootScope.classCats === undefined )
+		{
+			var params = ( $rootScope.currentUser.user_type == 'TEACHER' ? $rootScope.currentUser.emp_id : undefined);
+			apiService.getClassCats(params, function(response){
+				var result = angular.fromJson(response);
+				
+				// store these as they do not change often
+				if( result.response == 'success')	$rootScope.classCats = $scope.classCats = result.data;
+				
+			}, function(){});
+			
+		}
+		else $scope.classCats = $rootScope.classCats;
 	}
 	$timeout(initializeController,1);
 	
-	$rootScope.$watch('classCats', function(newVal,oldVal){
+	$scope.$watch('classCats', function(newVal,oldVal){
 		/* wait till the class cats are ready, then fetch subjects for first cat */
 		if( $rootScope.classCats && $rootScope.classCats.length > 0 )
 		{
@@ -57,7 +71,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		}
 		else
 		{
-			var params = class_cat_id + '/' + $scope.filters.status;
+			var params = class_cat_id + '/' + $scope.filters.status + '/0';
 			apiService.getAllSubjects(params, function(response,status,params){
 				var result = angular.fromJson(response);
 				
@@ -86,7 +100,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		
 	var initDataGrid = function() 
 	{
-	
 		var tableElement = $('#resultsTable');
 		
 		$scope.dataGrid = tableElement.DataTable( {
@@ -125,7 +138,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		
 		// handle reordering, update sort order and update database		
 		$scope.dataGrid.on( 'row-reordered', function ( e, diff, edit ) {
-		
 			/* need to update the sort order of all the rows */
 			updateSortOrder();
 
@@ -238,6 +250,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid){
+			$scope.dataGrid.off( 'row-reordered' );
 			$('.fixedHeader-floating').remove();
 			$scope.dataGrid.fixedHeader.destroy();
 			$scope.dataGrid.clear();

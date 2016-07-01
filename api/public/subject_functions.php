@@ -1,13 +1,14 @@
 <?php
-$app->get('/getAllSubjects/:classCatId(/:status)', function ($classCatId, $status = true) {
+$app->get('/getAllSubjects/:classCatId(/:status/:teacher_id)', function ($classCatId, $status = true, $teacherId = null) {
     //Show all subjects, including parent subjects
 	
 	$app = \Slim\Slim::getInstance();
 
     try 
     {
+
 		$db = getDB();
-		if( $status == 'all' )
+		if( $status === 'all' )
 		{
 			$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 									teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
@@ -23,18 +24,29 @@ $app->get('/getAllSubjects/:classCatId(/:status)', function ($classCatId, $statu
 		}
 		else
 		{
-			$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
+			$params = array(':classCatId' => $classCatId, ':status' => $status);
+			$query = "SELECT subjects.subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 									teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
 									parent_subject_id, sort_order,
 									(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
 									case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
-								FROM app.subjects
-								LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
-								INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
+								FROM app.class_subjects
+								INNER JOIN app.subjects
+									LEFT JOIN app.employees 
+									ON subjects.teacher_id = employees.emp_id
+									INNER JOIN app.class_cats 
+									ON subjects.class_cat_id = class_cats.class_cat_id
+								ON class_subjects.subject_id = subjects.subject_id							
 								WHERE subjects.class_cat_id = :classCatId
-								AND subjects.active = :status
-								ORDER BY class_cat_name, sort_order, subject_name";
-			$params = array(':classCatId' => $classCatId, ':status' => $status);
+								AND class_subjects.active = :status
+								";
+			if( $teacherId !== '0' )
+			{
+				$query .= "AND subjects.teacher_id = :teacherId ";
+				$params['teacherId'] = $teacherId;
+			}
+			$query .= "	ORDER BY class_cat_name, sort_order, subject_name";
+			
 		}
 		$sth = $db->prepare($query);
 		$sth->execute($params);			
@@ -69,7 +81,7 @@ $app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($
     try 
     {
 		$db = getDB();
-		if( $status == 'all' )
+		if( $status === 'all' )
 		{
 			$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 									teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,

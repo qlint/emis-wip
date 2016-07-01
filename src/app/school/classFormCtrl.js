@@ -31,7 +31,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		}
 		else
 		{
-			var params = classCatId + '/all';
+			var params = classCatId + '/all/0';
 			apiService.getAllSubjects(params,function(response){
 				var result = angular.fromJson(response);
 				if( result.response == 'success') $scope.subjects = ( result.nodata? [] : result.data );

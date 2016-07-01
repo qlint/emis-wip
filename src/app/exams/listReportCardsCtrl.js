@@ -167,7 +167,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	
 	$scope.getReportCard = function(item, term_name, reportData)
 	{
-		console.log(item);
 		var student = {
 			student_id :item.student_id,
 			student_name : item.student_name,

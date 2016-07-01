@@ -27,7 +27,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		// get subjects
 		if( $scope.subject.class_cat_id !== undefined )
 		{
-			apiService.getAllSubjects($scope.subject.class_cat_id, function(response,status,params){
+			var params = $scope.subject.class_cat_id + '/true/0';
+			apiService.getAllSubjects(params, function(response,status,params){
 				var result = angular.fromJson(response);
 				if( result.response == 'success') $scope.subjects = ( result.nodata ? [] : result.data );
 			}, apiError);
@@ -40,7 +41,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		if( newVal == oldVal) return;
 		
 		// get subjects
-		apiService.getAllSubjects(newVal, function(response,status,params){
+		var params = newVal + '/true/0';
+		apiService.getAllSubjects(params, function(response,status,params){
 			var result = angular.fromJson(response);
 			if( result.response == 'success') $scope.subjects = ( result.nodata ? [] : result.data );
 		}, apiError);

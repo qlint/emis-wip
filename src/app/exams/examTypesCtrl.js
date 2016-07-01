@@ -11,11 +11,24 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 
 	var initializeController = function () 
 	{
-		
+		// get class categories
+		if( $rootScope.classCats === undefined )
+		{
+			var params = ( $rootScope.currentUser.user_type == 'TEACHER' ? $rootScope.currentUser.emp_id : undefined);
+			apiService.getClassCats(params, function(response){
+				var result = angular.fromJson(response);
+				
+				// store these as they do not change often
+				if( result.response == 'success')	$rootScope.classCats = $scope.classCats = result.data;
+				
+			}, function(){});
+			
+		}
+		else $scope.classCats = $rootScope.classCats;
 	}
 	$timeout(initializeController,1);
 	
-	$rootScope.$watch('classCats', function(newVal,oldVal){
+	$scope.$watch('classCats', function(newVal,oldVal){
 		/* wait till the class cats are ready, then fetch subjects for first cat */
 		$scope.filters.class_cat_id = $rootScope.classCats[0].class_cat_id;
 		getExamTypes($rootScope.classCats[0].class_cat_id);
@@ -220,6 +233,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 	
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid){
+			$scope.dataGrid.off( 'row-reordered' );
 			$('.fixedHeader-floating').remove();
 			$scope.dataGrid.fixedHeader.destroy();
 			$scope.dataGrid.clear();

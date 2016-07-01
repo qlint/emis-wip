@@ -204,7 +204,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		
 	var initDataGrid = function() 
 	{
-
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {

@@ -248,6 +248,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid){
+			$scope.dataGrid.off( 'row-reordered' );
 			$('.fixedHeader-floating').remove();
 			$scope.dataGrid.fixedHeader.destroy();
 			$scope.dataGrid.clear();
