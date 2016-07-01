@@ -73,6 +73,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		else
 		{
 			$scope.classes = $rootScope.allClasses;
+			console.log( $rootScope.allClasses);
 			$scope.filters.class = $scope.classes[0];
 			$scope.filters.class_id = $scope.classes[0].class_id;
 			$scope.filters.class_cat_id = $scope.classes[0].class_cat_id;

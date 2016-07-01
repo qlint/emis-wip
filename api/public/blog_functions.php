@@ -357,7 +357,7 @@ $app->delete('/deletePost/:post_id', function ($postId) {
 
 });
 
-$app->get('/getHomeworkPosts/:status/:class_subject_id(/:class_id)', function ($status, $classSubjectId, $classId = null) {
+$app->get('/getHomeworkPosts/:status/:class_subject_id(/:class_id/:teacher_id)', function ($status, $classSubjectId, $classId = null, $teacherId = null) {
     // Get all homework for class for current school year
 	
 	$app = \Slim\Slim::getInstance();
@@ -403,6 +403,12 @@ $app->get('/getHomeworkPosts/:status/:class_subject_id(/:class_id)', function ($
 		{
 			$query .= "AND classes.class_id = :classId ";
 			$params[':classId'] = $classId;
+		}
+		
+		if( $teacherId !== '0' )
+		{
+			$query .= "AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId) ";
+			$params[':teacherId'] = $teacherId;
 		}
 		
 		$query .= " GROUP BY homework_id, assigned_date, title, body, homework.post_status_id, post_status,

@@ -131,6 +131,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 		}	
 
 		var params = (filters.post_status_id || 'All') + '/' + (filters.class_subject_id || 'All') + '/' + (filters.class_id || 'All');
+		if( $rootScope.currentUser.user_type == 'TEACHER' ) params += "/" + $rootScope.currentUser.emp_id;
+		else params += "/0";
 		apiService.getHomeworkPosts(params, function(response,status){
 			var result = angular.fromJson(response);
 			
