@@ -195,7 +195,7 @@ $app->get('/getAllClassExams/:class_id(/:exam_type_id/:teacher_id)', function ($
 							";
 		$params = array(':classId' => $classId);
 		
-		if( $examTypeId !== null )
+		if( $examTypeId !== null && $examTypeId !== '0' )
 		{
 			$query .= "AND class_subject_exams.exam_type_id = :examTypeId ";
 			$params[':examTypeId'] = $examTypeId; 
@@ -652,6 +652,8 @@ $app->put('/updateTeacherSubject', function () use($app) {
 					
 		if( count($subjects) > 0 )
 		{
+			$insertSubject =  $db->prepare("INSERT INTO app.class_subjects(class_id,subject_id,created_by)
+							VALUES(:classId,:subjectId,:userId)");
 							
 			$updateExam =  $db->prepare("UPDATE app.class_subject_exams 
 							SET grade_weight = :gradeWeight,
@@ -720,16 +722,26 @@ $app->put('/updateTeacherSubject', function () use($app) {
 						
 						
 					// if already there but inactive, set to active
+					var_dump($currentSubjects);
 					foreach( $currentSubjects as $currentSubject )
 					{
 						if( $currentSubject->class_id == $classId && $currentSubject->subject_id == $subjectId )
 						{
 							$activateSubject->execute(array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId));
 							$subjects[$key]['class_subject_id'] = $currentSubject->class_subject_id;
+							$updated = true;
 							break;
 						}
 					}
-
+					
+					// else add
+					if( !$updated )
+					{
+						$insertSubject->execute( array(':classId' => $classId,
+												':subjectId' => $subjectId, 					 
+												':userId' => $userId
+						) );
+					}
 					
 				}
 				
