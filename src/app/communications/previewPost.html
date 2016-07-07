@@ -9,13 +9,13 @@
 					{{errMsg}}
 				</div>
 				
-				<div ng-show="type=='post'">
+				<div ng-if="type=='post'">
 					<h2>{{post.title}}</h2>
 					<img ng-if="post.feature_image" src="assets/posts/{{post.feature_image}}" class="feature-img post" />
 					<div ng-bind-html="post.body"></div>
 				</div>
 				
-				<div ng-show="type=='homework'">
+				<div ng-if="type=='homework'">
 					
 					<p class="strong highlight">{{post.title}}</p>
 					<p class="meta"><b>Subject:</b> {{post.subject_name}}</p>
@@ -30,13 +30,17 @@
 					<p ng-bind-html="post.body"></p>	
 				</div>
 				
-				<div ng-show="type=='communication'">
+				<div ng-if="type=='communication'">
 					
 					<div ng-show="post.send_method=='email'">
 						<p class="strong highlight">Email Message</p>
-						<p class="meta"><b>Type:</b> {{post.com_type}}</p>
-						<p class="meta"><b>Send To:</b> {{post.audience}} {{post.class_name}} {{post.parent_full_name}}</p>
-						<p class="meta"><b>Sent From:</b> {{post.posted_by}}</p>
+						<p class="meta"><b>Type:</b> {{post.details.com_type}}</p>
+						<p class="meta"><b>Send To:</b> 
+							<span ng-if="post.details.audience != 'Class Specific' || post.details.audience != 'Parent'">{{post.details.audience}}</span>
+							<span ng-if="post.details.class_name!==undefined">{{post.details.class_name}}</span>
+							<span ng-if="post.details.parent_full_name!==undefined">{{post.details.parent_full_name}}</span>
+						</p>
+						<p class="meta"><b>Sent From:</b> {{post.details.posted_by}}</p>
 						<p class="meta"><b>Reply To:</b> {{post.reply_to}}</p>	
 						<p class="meta"><b>Subject:</b> {{post.title}}</p>					
 						<p ng-bind-html="post.body"></p>	

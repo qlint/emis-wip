@@ -98,6 +98,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			else $scope.canEditClass = true;
 		
 		}
+		else $scope.canEditClass = true;
 		
 		
 		

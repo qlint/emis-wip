@@ -24,7 +24,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	$scope.filters.send_method = 'email';
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 	$scope.noEmpId = ( $rootScope.currentUser.emp_id === null ? true : false );
-
+	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
 	
 	if( $scope.isHomework )
 	{
@@ -145,14 +145,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 						{
 							$scope.post = result.data;	
 							$scope.optionsSelected = true;
-							/*
-							$scope.selectedClass = {
-								blog_name: $scope.post.blog_name,
-								class_id: $scope.post.class_id,
-								class_name: $scope.post.class_name,
-								blog_id: $scope.post.blog_id
-							}
-							*/
+
 							$scope.setupBlog = false;
 							$scope.loadingPost = false;
 	
@@ -186,14 +179,12 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			}
 			else if( $scope.isHomework )
 			{			
-				//$scope.selectedClassSubject = $state.params.selectedClassSubject;
 				$scope.dates.assigned_date = {startDate:moment($scope.post.assigned_date).format('YYYY-MM-DD')};
 				$scope.dates.due_date = {startDate:moment($scope.post.due_date).format('YYYY-MM-DD')};
 				getHomeworkOptions();
 			}
 			else	
 			{
-				//$scope.selectedClass = $state.params.selectedClass;
 				getPostOptions();
 			}
 			
@@ -431,6 +422,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		$scope.theparent.selected = undefined;
 		if( $scope.post.post_id === undefined ) $scope.filters.audience = undefined;
 		$scope.isParent = false;
+		$scope.isClassSpecific = false;
 		$scope.filters.audience_id = null;
 		$scope.isStudentFeedback = ( newVal.com_type == 'Student Feedback' ? true : false );
 		
@@ -461,6 +453,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		/* don't run this if student feedback, automatically set audience to parent */
 		if( newVal == oldVal || $scope.isStudentFeedback ) return;
 		
+		
 		// if parent, show parent select
 		$scope.theparent.selected = undefined;
 		$scope.isParent = ( newVal.audience == 'Parent' ? true : false );
@@ -489,6 +482,8 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				apiService.getAllClasses({}, loadClasses, apiError);
 			}
 		}
+
+				
 		
 	})
 	
@@ -581,13 +576,14 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		if( !form.$invalid )
 		{
 			$scope.optionsSelected = true;
-			$scope.selectedClass = null;
+			$scope.selectedClass = undefined;
 			$scope.setupBlog = false
 			
 			/* set variables for display of type of message they are entering */
 			$scope.selectedAudience = angular.copy($scope.filters.audience.audience);
 			$scope.selectedType = angular.copy($scope.filters.com_type.com_type);
 			$scope.selectedParent = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.parent_full_name) : undefined );
+			$scope.selectedClassName = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_name) : undefined );
 			$scope.selectedMethod =	angular.copy($scope.filters.send_method).toUpperCase();
 			
 			/* set variables to post of selected criteria */
@@ -648,6 +644,21 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	
 	$scope.preview = function()
 	{
+	
+		if( $scope.isEmail )
+		{
+			$scope.post.details = {
+				com_type : $scope.selectedMethod,
+				audience : $scope.selectedAudience,
+				class_name : $scope.selectedClassName,
+				parent_full_name : $scope.selectedParent,
+				posted_by: ( $scope.isTeacher ? $rootScope.currentUser.full_name : ($scope.theemployee.selected !== undefined ? $scope.theemployee.selected.employee_name : ''))
+			}
+			
+			
+			
+		}
+
 		var data = {
 			type: $scope.post_type,
 			post: $scope.post

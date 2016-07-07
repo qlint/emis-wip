@@ -180,8 +180,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			user_id: $scope.currentUser.user_id,
 			inv_id: $scope.invoice.inv_id,
 			total_amount: $scope.totals.total_due,
-			inv_date: $scope.invoice.inv_date,
-			due_date: $scope.invoice.due_date,			
+			inv_date: moment($scope.date.startDate).format('YYYY-MM-DD'),
+			due_date: moment($scope.due_date.startDate).format('YYYY-MM-DD'),
 			line_items: lineItems
 		};
 		

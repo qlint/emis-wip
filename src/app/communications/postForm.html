@@ -111,7 +111,7 @@
 					</div>
 					<div class="row" ng-if="isClassSpecific">
 						<div class="col-sm-10">
-							<label for="parent">Select a class:</label>	
+							<label for="class_id">Select a class:</label>	
 							<div>
 								<select name="class_id" class="form-control input-sm" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" required>
 									<option value="">--select class--</option>
@@ -135,6 +135,7 @@
 					<div class="row">
 						<div class="col-sm-10">
 							<input type="submit" class="btn btn-sm btn-info" ng-click="setEmailType(dataFilterForm)" value="Load" />
+							<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
 							<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>	
 						</div>
 					</div>	
@@ -164,7 +165,7 @@
 				
 				<!-- heading -->
 				<div ng-show="isPost">
-					<h1  class="blog-title">
+					<h1 class="blog-title">
 						Posting to blog: 
 						<span ng-show="!editingBlogName">
 							{{selectedClass.blog_name}} 
@@ -187,7 +188,7 @@
 				
 				<div ng-show="isEmail">
 					<h2>Compose Message</h2>
-					<p class="note">Sending {{selectedType}} Message to {{selectedAudience}} {{selectedParent}} {{selectedMethod}}</p>
+					<p class="note">Sending {{selectedType}} Message to {{selectedAudience}} {{selectedClassName}} {{selectedParent}} {{selectedMethod}}</p>
 				</div>
 				
 				
@@ -210,7 +211,7 @@
 					</div>
 				</div>
 				
-				<div ng-if="noEmpId" ng-class="{ 'has-error' : postForm.message_from.$invalid && (postForm.message_from.$touched || postForm.$submitted) }">
+				<div ng-if="noEmpId || isAdmin" ng-class="{ 'has-error' : postForm.message_from.$invalid && (postForm.message_from.$touched || postForm.$submitted) }">
 					<h4>Message From</h4>
 					<ui-select ng-model="theemployee.selected" theme="select2" class="form-control" name="message_from" required> 
 					  <ui-select-match placeholder="Select or search a employee...">

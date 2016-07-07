@@ -14,7 +14,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	var currentStatus = true;
 	var isFiltered = false;	
 	$rootScope.modalLoading = false;
-	$scope.alert = null;
+	$scope.alert = {};
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	$scope.totals = {};
 	$scope.balanceStatuses = ['Balance Owing','Paid in Full','Due This Month','Past Due'];

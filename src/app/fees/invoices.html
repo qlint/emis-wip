@@ -120,7 +120,7 @@
 							<td ng-click="viewInvoice(item)" class="center">{{item.total_due|currency:""}}</td>
 							<td ng-click="viewInvoice(item)" class="center">{{item.total_paid|currency:""}}</td>
 							<td ng-click="viewInvoice(item)" class="center">{{item.balance|numeric}}</td>
-							<td ng-click="viewInvoice(item)">{{item.due_date}}</td>
+							<td ng-click="viewInvoice(item)">{{item.due_date|date}}</td>
 							<td ng-click="viewInvoice(item)">{{item.days_overdue}}</td>
 						</tr>
 					</tbody>
