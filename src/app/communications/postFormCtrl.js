@@ -109,7 +109,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 							if( $scope.post.send_method ==  'sms' ) $scope.post.title = $scope.post.message; // sms message is displayed in title field
 
 							
-							if( $scope.noEmpId )
+							if( $scope.noEmpId || $scope.isAdmin )
 							{
 								// get list of employees
 								apiService.getAllEmployees(true, loadEmployees, apiError);
