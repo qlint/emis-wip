@@ -117,14 +117,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			
 			// group results by due date	
 			$scope.invoices = $scope.results.reduce(function(sum, item) {		
+				var date = angular.copy(item.due_date); // store it to use as our key
 				item.amount = item.invoice_amount;
-				if( sum[item.due_date] === undefined ) sum[item.due_date] = [];	
-				sum[item.due_date].push( item );				
+				item.inv_date = {startDate:moment().format('YYYY-MM-DD')};
+				item.due_date = {startDate:item.due_date}; // put into object for date selector
+				if( sum[date] === undefined ) sum[date] = [];	
+				sum[date].push( item );				
 				return sum;
 			}, {});
-				
-
-
+			
 			$scope.activeInvoice = Object.keys($scope.invoices)[0];			
 			
 			// get total of each array in the object
@@ -225,7 +226,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		
 		if( $scope.invoice.creation_method == 'automatic' )
 		{
-
 			angular.forEach($scope.invoices, function(items,key){			
 				lineItems = [];
 				angular.forEach(items, function(item,key2){
@@ -239,9 +239,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				});
 				
 				data.invoices.push( {
-					inv_date: moment().format('YYYY-MM-DD'),
+					inv_date: moment( items[0].inv_date.startDate ).format('YYYY-MM-DD'),
 					student_id: $scope.selectedStudent.student_id,
-					due_date: key,
+					due_date: moment( items[0].due_date.startDate ).format('YYYY-MM-DD'),
 					total_amount: $scope.invoiceTotal[key],				
 					line_items:lineItems
 				});

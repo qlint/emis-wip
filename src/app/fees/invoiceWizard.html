@@ -35,11 +35,33 @@
 					<div class="subtab-content clearfix">
 						<!-- invoice date -->				
 						<h2>Balance Due {{invoiceTotal[activeMonth]|currency:""}} {{currency}}</h2>
+						
+						<!-- invoice date -->
+						<div class="form-group">		
+							<label for="inv_date" class="col-sm-2 control-label">Invoice Date</label>
+							<div class="col-sm-3">
+								<div class="input-group" >
+									<input type="text" name="inv_date" date-range-picker class="form-control date-picker input-sm" ng-model="invoices[activeMonth][0].inv_date" options="{singleDatePicker: true,autoApply: true}" />
+									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+								</div>
+							</div>	
+						</div>
+						
+						<!-- due date -->
+						<div class="form-group">	
+							<label for="due_date" class="col-sm-2 control-label">Due Date</label>
+							<div class="col-sm-3">
+								<div class="input-group">
+									<input type="text" name="due_date" date-range-picker class="form-control date-picker input-sm" ng-model="invoices[activeMonth][0].due_date" options="{singleDatePicker: true,autoApply: true}" />
+									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+								</div>
+							</div>	
+						</div>
+						
 						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
 									<th>Student</th>
-									<th>Invoice Date</th>
 									<th class="center">Amount</th>
 									<th>Fee Items</th>									
 								</tr>
@@ -47,7 +69,6 @@
 							<tbody>
 								<tr ng-repeat="item in invoices[activeMonth] track by $index">
 									<td>{{item.student_name}}</td>
-									<td>{{item.due_date}}</td>
 									<td class="center">{{item.total_amount|currency:""}}</td>
 									<td>{{item.fee_items|arrayToList}}</td>									
 								</tr>

@@ -8,7 +8,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	
 	$scope.initializeController = function()
 	{
-		apiService.getNextTerm({}, function(response,status){
+		apiService.getNextTerm(undefined, function(response,status){
 			var result = angular.fromJson(response);				
 			if( result.response == 'success')
 			{ 
@@ -98,13 +98,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			
 			
 			// group results by due date	
-			$scope.invoices = $scope.results.reduce(function(sum, item) {		
-				var month = moment(item.due_date).format('MMM');
+			$scope.invoices = $scope.results.reduce(function(sum, item) {	
+				var date = angular.copy(item.due_date); // store it to use as our key
+				var month = moment(date).format('MMM');
+				item.inv_date = {startDate:moment().format('YYYY-MM-DD')};
+				item.due_date = {startDate:item.due_date}; // put into object for date selector
+					
 				if( sum[month] === undefined ) sum[month] = [];	
 				sum[month].push( item );				
 				return sum;
 			}, {});
-			
+
 			
 			$scope.activeMonth = Object.keys($scope.invoices)[0];			
 			
@@ -139,27 +143,30 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			invoices: []
 		};
 		var lineItems = [];
-		angular.forEach($scope.results, function(invoices,key){
+
+		angular.forEach($scope.invoices, function(invoices,key){
 			lineItems = [];
-			angular.forEach(invoices.line_items, function(item,key2){
-				if( item !== null ){
-					lineItems.push({
-						student_fee_item_id: item.student_fee_item_id,
-						amount: item.invoice_amount
-					});
-				}
-			});
+			angular.forEach(invoices, function(invoice,key){
+				angular.forEach(invoice.line_items, function(item,key2){
+					if( item !== null ){
+						lineItems.push({
+							student_fee_item_id: item.student_fee_item_id,
+							amount: item.invoice_amount
+						});
+					}
+				});
 				
-			data.invoices.push( {
-				inv_date: moment().format('YYYY-MM-DD'),
-				student_id: invoices.student_id,
-				due_date: invoices.due_date,
-				total_amount: invoices.total_amount,				
-				line_items:lineItems
-			});
-			
+				data.invoices.push( {
+					inv_date: moment( invoices[0].inv_date.startDate ).format('YYYY-MM-DD'),
+					student_id: invoice.student_id,
+					due_date: moment( invoices[0].due_date.startDate ).format('YYYY-MM-DD'),
+					total_amount: invoice.total_amount,				
+					line_items:lineItems
+				});	
+				
+			});			
 		});
-		
+
 		apiService.createInvoice(data,createCompleted,apiError);
 		
 	}

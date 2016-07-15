@@ -137,11 +137,33 @@
 							<li ng-class="{active: activeInvoice==key}" ng-repeat="(key,item) in invoices track by $index"><a class="clickable" ng-click="getInvoice(key)">Invoice {{$index+1}}</a></li>
 						</ul>
 					</div>
-				
+									
 					<div class="subtab-content clearfix">
 						<!-- invoice date -->
 						<h2><strong>Invoice Date:</strong> {{activeInvoice}}</h2>
 						
+						<!-- invoice date -->
+						<div class="form-group">		
+							<label for="inv_date" class="col-sm-2 control-label">Invoice Date</label>
+							<div class="col-sm-3">
+								<div class="input-group" >
+									<input type="text" name="inv_date" date-range-picker class="form-control date-picker input-sm" ng-model="invoiceLineItems[0].inv_date" options="{singleDatePicker: true,autoApply: true}" />
+									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+								</div>
+							</div>	
+						</div>
+						
+						<!-- due date -->
+						<div class="form-group">	
+							<label for="due_date" class="col-sm-2 control-label">Due Date</label>
+							<div class="col-sm-3">
+								<div class="input-group">
+									<input type="text" name="due_date" date-range-picker class="form-control date-picker input-sm" ng-model="invoiceLineItems[0].due_date" options="{singleDatePicker: true,autoApply: true}" />
+									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+								</div>
+							</div>	
+						</div>
+					
 						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
