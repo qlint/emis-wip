@@ -345,7 +345,8 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
 								ON homework.class_subject_id = class_subjects.class_subject_id
 								WHERE student_id = :studentId
 								AND homework.post_status_id = 1
-								AND (homework.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+								AND (homework.creation_date > coalesce((select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 ),
+												  (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1)) 
 									AND homework.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) )
 								AND assigned_date between date_trunc('week', now())::date	and (date_trunc('week', now())+ '6 days'::interval)::date
 								ORDER BY homework.assigned_date, subjects.sort_order
