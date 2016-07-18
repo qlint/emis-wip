@@ -233,7 +233,8 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
 							  WHERE student_id = :studentId
 							  AND blog_posts.post_status_id = 1
 							 -- AND blog_posts.post_type_id = 1
-							  AND blog_posts.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+							  AND blog_posts.creation_date > coalesce((select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 ),
+												  (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))  
 								AND blog_posts.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
 							  ORDER BY blog_posts.creation_date desc
 							  ");
@@ -253,7 +254,8 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
 							 WHERE student_id = :studentId
 							 AND blog_posts.post_status_id = 1
 							-- AND blog_posts.post_type_id = 1
-							 AND blog_posts.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+							 AND blog_posts.creation_date > coalesce((select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 ),
+												  (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
 								AND blog_posts.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
 							  ");
 							  
@@ -276,7 +278,8 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
 							  WHERE student_id = :studentId
 							  AND blog_posts.post_status_id = 1
 							  --AND blog_posts.post_type_id = 1
-							  AND blog_posts.creation_date > (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 )  
+							  AND blog_posts.creation_date > coalesce((select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year') ORDER BY end_date desc LIMIT 1 ),
+												  (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
 								AND blog_posts.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
 							  ORDER BY blog_posts.creation_date desc
 							  OFFSET :offset LIMIT :limit

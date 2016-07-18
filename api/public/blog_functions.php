@@ -24,7 +24,8 @@ $app->get('/getClassPosts/:class_id/:status', function ($classId, $status) {
 							WHERE blogs.class_id = :classId 
 							AND blog_posts.creation_date > coalesce((select end_date from app.terms 
 																	where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
-																	ORDER BY end_date desc LIMIT 1 ) , (select date_trunc('year',now()) ))
+																	ORDER BY end_date desc LIMIT 1 ) , 
+																	(select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
 								AND blog_posts.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
 							";
 							
@@ -385,7 +386,7 @@ $app->get('/getHomeworkPosts/:status/:class_subject_id(/:class_id/:teacher_id)',
 								ON homework.class_subject_id = class_subjects.class_subject_id
 								WHERE (homework.creation_date > coalesce((select end_date from app.terms 
 																			where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
-																			ORDER BY end_date desc LIMIT 1 ) , (select date_trunc('year',now()) ))
+																			ORDER BY end_date desc LIMIT 1 ) , (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
 									AND homework.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) )
 							";
 							
@@ -665,7 +666,7 @@ $app->get('/getTeacherCommunications/:teacherId', function ($teacherId) {
 							WHERE message_from = :teacherId
 							AND communications.creation_date > coalesce((select end_date from app.terms 
 																where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
-																ORDER BY end_date desc LIMIT 1 ) , (select date_trunc('year',now()) ))
+																ORDER BY end_date desc LIMIT 1 ) , (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
 								AND communications.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
 							ORDER BY communications.creation_date desc" );
 		$sth->execute( array(':teacherId' => $teacherId) ); 
@@ -717,7 +718,7 @@ $app->get('/getSchoolCommunications', function () {
 							INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
 							WHERE communications.creation_date > coalesce((select end_date from app.terms 
 																			where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
-																			ORDER BY end_date desc LIMIT 1 ) , (select date_trunc('year',now()) ))
+																			ORDER BY end_date desc LIMIT 1 ) , (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
 								AND communications.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
 							ORDER BY communications.creation_date desc" );
 		$sth->execute(); 

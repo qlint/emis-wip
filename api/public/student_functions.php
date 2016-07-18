@@ -286,7 +286,7 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 							ON invoices.inv_id = invoice_line_items.inv_id
 							WHERE invoices.student_id = :studentID
 							AND invoices.canceled = false
-							AND invoices.due_date < now()
+							--AND invoices.due_date < now()
 							GROUP BY fee_item, payment_method
 							");
         $sth->execute( array(':studentID' => $studentId)); 

@@ -1458,8 +1458,16 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				if( result.response == 'success' )
 				{
 					/* if the guardian returned from check is the existing guardian, return true, else check */
-					if( $scope.guardian !== undefined && result.data.guardian_id == $scope.guardian.guardian_id ) $scope.uniqueIdNumber = true;
-					else $scope.uniqueIdNumber = (result.nodata ? true : false);					
+					if( result.nodata )
+					{
+						$scope.uniqueIdNumber = true;
+					}
+					else
+					{
+						if( $scope.guardian !== undefined && result.data.guardian_id == $scope.guardian.guardian_id ) $scope.uniqueIdNumber = true;
+						else $scope.uniqueIdNumber = false;		
+					}
+							
 				}
 			},apiError);
 		}

@@ -89,9 +89,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	{
 		if( $scope.dataGrid !== undefined )
 		{	
+			$scope.dataGrid.fixedHeader.destroy();
 			$('.fixedHeader-floating').remove();
 			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();			
+		//	$scope.dataGrid.destroy();				
 		}		
 		// TO DO: ability to change the invoice canceled status from false to true
 		var filters = angular.copy($scope.filters);
@@ -102,6 +103,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			// store these as they do not change often
 			if( result.response == 'success')
 			{	
+				if( $scope.dataGrid !== undefined )
+				{	
+					//$scope.dataGrid.clear();
+					$scope.dataGrid.destroy();				
+				}
+			
 				if(result.nodata !== undefined )
 				{
 					$scope.invoices = {};
@@ -310,7 +317,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		if ($scope.dataGrid !== undefined)
 		{
 			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;
 		}
 		
 		// filter by class category		
