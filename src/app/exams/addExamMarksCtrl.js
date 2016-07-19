@@ -237,7 +237,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
 
-			$('#resultsTable_filter').css('left',filterFormWidth+45);
+			$('#resultsTable_filter').css('left',filterFormWidth+55);
 		}
 		
 		$window.addEventListener('resize', function() {

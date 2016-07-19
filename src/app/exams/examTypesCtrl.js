@@ -117,7 +117,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $dialogs){
 		if( !$rootScope.isSmallScreen )
 		{
 			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',filterFormWidth+45);
+			$('#resultsTable_filter').css('left',filterFormWidth+55);
 		}
 		
 		$window.addEventListener('resize', function() {
