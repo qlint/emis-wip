@@ -140,7 +140,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			{	
 				if(result.nodata !== undefined )
 				{
-					$scope.payments = {};
+					$scope.payments = [];
 				}
 				else
 				{

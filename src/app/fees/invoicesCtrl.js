@@ -129,6 +129,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var getInvoices = function(status, filtering)
 	{
+		$scope.gridOptions.data = [];
 	
 		// TO DO: ability to change the invoice canceled status from false to true
 		var filters = angular.copy($scope.filters);
@@ -142,7 +143,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			{				
 				if(result.nodata !== undefined )
 				{
-					$scope.invoices = {};
+					$scope.invoices = [];
 				}
 				else
 				{
@@ -298,6 +299,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		else if( requery )
 		{
 			// need to get fresh data, most likely because the user selected a new year
+			console.log('here');
 			getInvoices(currentStatus, true);		
 		}
 		else
