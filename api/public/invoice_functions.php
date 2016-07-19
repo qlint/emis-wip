@@ -17,7 +17,7 @@ $app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($sta
 								total_paid,
 								balance,
 								due_date,
-								case when now()::date > due_date and balance < 0 then now()::date - due_date end as days_overdue
+								case when now()::date > due_date and balance < 0 then now()::date - due_date else 0 end as days_overdue
 							FROM app.invoice_balances
 							INNER JOIN app.students
 								INNER JOIN app.classes

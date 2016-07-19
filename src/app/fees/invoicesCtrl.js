@@ -19,6 +19,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.totals = {};
 	$scope.balanceStatuses = ['Balance Owing','Paid in Full','Due This Month','Past Due'];
 	$scope.loading = true;
+	
+	$scope.gridFilter = {};
+	$scope.gridFilter.filterValue  = '';
 
 	var start_date = moment().format('YYYY-01-01');
 	var end_date = moment().format('YYYY-MM-DD');
@@ -29,6 +32,39 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.filters.date = $scope.date;			
 			
 
+	var rowTemplate = function() 
+	{
+		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.days_overdue > 0}" ng-click="grid.appScope.viewInvoice(row.entity)">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	
+	var names = ['Amount ( ' + $scope.currency + ' )', 'Paid ( ' + $scope.currency + ' )', 'Balance ( ' + $scope.currency + ' )'];
+	$scope.gridOptions = {
+		enableSorting: true,
+		rowTemplate: rowTemplate(),
+		rowHeight:24,
+		columnDefs: [
+			{ name: 'Name', field: 'student_name', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewStudent(row.entity)">{{row.entity.student_name}}</div>'},
+			{ name: 'Class', field: 'class_name', enableColumnMenu: false,},
+			{ name: 'Invoice Date', field: 'inv_date', type: 'date', cellFilter: 'date', enableColumnMenu: false},
+			{ name: names[0], field: 'total_due', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_due|currency:""}}</div>'},
+			{ name: names[1], field: 'total_paid', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_paid|currency:""}}</div>'},
+			{ name: names[2], field: 'balance', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.balance|numeric}}</div>'},
+			{ name: 'Due Date', field: 'due_date', type: 'date', enableColumnMenu: false, cellFilter:'date' },
+			{ name: 'Days Over Due', field: 'days_overdue', enableColumnMenu: false,sort: {direction: 'desc', priority: 1},},
+		],
+		exporterCsvFilename: 'invoices.csv',
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $scope.gridApi.grid.registerRowsProcessor( $scope.singleFilter, 200 );
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
+	
 	var initializeController = function () 
 	{
 		// get classes
@@ -71,6 +107,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			setTermRanges($scope.terms );
 		}
 		
+		setTimeout(function(){
+			var height = $('.full-height.datagrid').height();
+			$('#grid1').css('height', height);
+			$scope.gridApi.core.handleWindowResize();
+		},100);
+		
 		getInvoices('true',$scope.filterBalStatus);
 
 	}
@@ -87,32 +129,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var getInvoices = function(status, filtering)
 	{
-		if( $scope.dataGrid !== undefined )
-		{	
-			$scope.dataGrid.fixedHeader.destroy();
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-		//	$scope.dataGrid.destroy();				
-		}		
+	
 		// TO DO: ability to change the invoice canceled status from false to true
 		var filters = angular.copy($scope.filters);
 		var request =  moment(filters.date.startDate).format('YYYY-MM-DD') + '/' + moment(filters.date.endDate).format('YYYY-MM-DD') + '/false/' + status;
 		apiService.getInvoices(request, function(response,status,params){
+		
 			var result = angular.fromJson(response);
 			
 			// store these as they do not change often
 			if( result.response == 'success')
-			{	
-				if( $scope.dataGrid !== undefined )
-				{	
-					//$scope.dataGrid.clear();
-					$scope.dataGrid.destroy();				
-				}
-			
+			{				
 				if(result.nodata !== undefined )
 				{
 					$scope.invoices = {};
-					$timeout(initDataGrid,10);
 				}
 				else
 				{
@@ -131,8 +161,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 						$scope.invoices = ( filtering ? filterResults(invoices,params.filters): invoices);						
 					}
 					
-					$timeout(initDataGrid,10);
+					
 				}
+				
+				initDataGrid($scope.invoices);
 				
 			}
 			else
@@ -159,76 +191,44 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		},0);
 	}
 	
-	var initDataGrid = function() 
+	var initDataGrid = function(data) 
 	{
 		// updating datagrid, also update totals
 		if( $scope.invoices.length > 0 ) calcTotals();
 		
-		
-		var tableElement = $('#resultsTable');
-		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
-				paging: false,
-				destroy:true,
-				order: [8,'desc'],
-				filter: true,
-				info: false,
-				sorting:[],
-				initComplete: function(settings, json) {
-					$scope.loading = false;
-					$rootScope.loading = false;
-					$scope.$apply();
-				},
-				language: {
-						search: "Search Results<br>",
-						searchPlaceholder: "Filter",
-						lengthMenu: "Display _MENU_",
-						emptyTable: "No student balances found."
-				},
-			} );
-			
-		
-		var headerHeight = $('.navbar-fixed-top').height();
-		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
-		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 13 );
-		new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
-				header: true,
-				headerOffset: (headerHeight + searchHeight) + offset
-			} );
-		
-		
-		// position search box
-		if( !$rootScope.isSmallScreen )
-		{
-			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',filterFormWidth+50);
-		}
-		
-		$window.addEventListener('resize', function() {
-			
-			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
-			if( $rootScope.isSmallScreen )
-			{
-				$('#resultsTable_filter').css('left',0);
-			}
-			else
-			{
-				var filterFormWidth = $('.dataFilterForm form').width();
-				$('#resultsTable_filter').css('left',filterFormWidth-30);	
-			}
-		}, false);
-		
+		$scope.gridOptions.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
+
 	}
+	
+	$scope.filterDataTable = function() 
+	{
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.clearFilterDataTable = function() 
+	{
+		$scope.gridFilter.filterValue = '';
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.singleFilter = function( renderableRows )
+	{
+		var matcher = new RegExp($scope.gridFilter.filterValue, 'i');
+		renderableRows.forEach( function( row ) {
+		  var match = false;
+		  [ 'student_name', 'class_name', 'inv_date' ].forEach(function( field ){
+			if ( row.entity[field].match(matcher) ){
+			  match = true;
+			}
+		  });
+		  if ( !match ){
+			row.visible = false;
+		  }
+		});
+		return renderableRows;
+	};
 	
 	$scope.$watch('filters.class_cat_id', function(newVal,oldVal){
 		if (oldVal == newVal) return;
@@ -304,7 +304,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		{
 			// otherwise we have all we need, just filter it down 
 			$scope.invoices = filterResults(( $scope.filters.status == 'false' ? $scope.formerStudents : $scope.allStudents), $scope.filters);
-			$timeout(initDataGrid,1);
+			initDataGrid($scope.invoices);
 		}
 		
 		// store the current status filter
@@ -314,10 +314,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var filterResults = function(data, filters)
 	{
-		if ($scope.dataGrid !== undefined)
-		{
-			$scope.dataGrid.destroy();
-		}
 		
 		// filter by class category		
 		
@@ -389,7 +385,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	$scope.exportInvoices = function()
 	{
-		$rootScope.wipNotice();
+		$scope.gridApi.exporter.csvExport( 'visible', 'visible' );
 	}
 	
 	$scope.viewStudent = function(student)
@@ -431,12 +427,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid){
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.fixedHeader.destroy();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
 		$rootScope.isModal = false;
     });
 

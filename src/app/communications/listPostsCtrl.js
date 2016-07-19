@@ -11,8 +11,46 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.alert = {};
 	$scope.loading = true;
 	
+	$scope.gridFilter = {};
+	$scope.gridFilter.filterValue  = '';
+	
+	var rowTemplate = function() 
+	{
+		return '<div class="clickable">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	
+	$scope.gridOptions = {
+		enableSorting: true,
+		rowTemplate: rowTemplate(),
+		rowHeight:24,
+		columnDefs: [
+			{ name: 'Title', field: 'title', enableColumnMenu: false, sort: {direction:'asc'}, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.title}}</div>'},
+			{ name: 'Class', field: 'class_name', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.class_name}}</div>'},
+			{ name: 'Date', field: 'creation_date', type: 'date', cellFilter: 'date', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.creation_date}}</div>'},
+			{ name: 'Status', field: 'post_status', width:75, enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.post_status}}</div>'},
+			{ name: 'View', field: '', cellClass:'center', width:40, headerCellClass:'center', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.preview(row.entity)"><i class="fa fa-eye"></i></div>'},
+			
+		],
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $scope.gridApi.grid.registerRowsProcessor( $scope.singleFilter, 200 );
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
+	
 	var initializeController = function () 
 	{		
+		setTimeout(function(){
+			var height = $('.full-height.datagrid').height();
+			$('#grid1').css('height', height);
+			$scope.gridApi.core.handleWindowResize();
+		},100);
+		
 		if( $rootScope.postStatuses === undefined )
 		{
 			apiService.getBlogPostStatuses({}, function(response){
@@ -79,12 +117,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	
 	var getPosts = function(filters)
 	{
-		if( $scope.dataGrid !== undefined )
-		{	
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();				
-		}	
 		
 		var params = filters.class_id + '/' + (filters.post_status_id || 'All');
 		apiService.getClassPosts(params, function(response,status){
@@ -98,7 +130,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 					item.creation_date = moment(item.creation_date).format('MMM Do YYYY, h:mm a');
 					return item;
 				});
-				$timeout(initDataGrid,10);
+				initDataGrid($scope.posts);
 			}
 			else
 			{
@@ -115,73 +147,41 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 		getPosts( angular.copy($scope.filters) );		
 	}
 		
-	var initDataGrid = function() 
+	var initDataGrid = function(data) 
 	{
-	
-		var tableElement = $('#resultsTable');
-		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
-				paging: false,
-				destroy:true,
-				order: [1,'asc'],
-				filter: true,
-				info: false,
-				sorting:[],
-				initComplete: function(settings, json) {
-					$scope.loading = false;
-					$rootScope.loading = false;
-					$scope.$apply();
-				},
-				language: {
-						search: "Search Results<br>",
-						searchPlaceholder: "Filter",
-						lengthMenu: "Display _MENU_",
-						emptyTable: "No posts found."
-				},
-			} );
-			
-		
-		var headerHeight = $('.navbar-fixed-top').height();
-		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
-		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 13 );
-		new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
-				header: true,
-				headerOffset: (headerHeight + searchHeight) + offset
-			} );
-	
-		
-		// position search box
-		if( !$rootScope.isSmallScreen )
-		{
-			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',filterFormWidth+45);
-		}
-		
-		$window.addEventListener('resize', function() {
-			
-			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
-			if( $rootScope.isSmallScreen )
-			{
-				$('#resultsTable_filter').css('left',0);
-			}
-			else
-			{
-				var filterFormWidth = $('.dataFilterForm form').width();
-				$('#resultsTable_filter').css('left',filterFormWidth-30);	
-			}
-		}, false);
+		$scope.gridOptions.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
 		
 	}
+	
+	$scope.filterDataTable = function() 
+	{
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.clearFilterDataTable = function() 
+	{
+		$scope.gridFilter.filterValue = '';
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.singleFilter = function( renderableRows )
+	{
+		var matcher = new RegExp($scope.gridFilter.filterValue, 'i');
+		renderableRows.forEach( function( row ) {
+		  var match = false;
+		  [ 'class_name', 'title', 'post_status' ].forEach(function( field ){
+			if ( row.entity[field].match(matcher) ){
+			  match = true;
+			}
+		  });
+		  if ( !match ){
+			row.visible = false;
+		  }
+		});
+		return renderableRows;
+	};
 	
 	var apiError = function (response, status) 
 	{
@@ -254,12 +254,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid){
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.fixedHeader.destroy();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
 		$rootScope.isModal = false;
     });
 

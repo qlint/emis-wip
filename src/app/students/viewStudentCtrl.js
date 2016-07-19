@@ -28,6 +28,89 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.studentForm = {};
 	
+	$scope.gridFilter = {};
+	$scope.gridFilter.filterValue  = '';
+	
+	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false);
+	
+	var rowTemplate = function() 
+	{
+		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.balance>0, \'alert-success\':row.entity.balance==0, \'canceled\': row.entity.canceled}" ng-click="grid.appScope.viewInvoice(row.entity)">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	
+	var rowTemplate2 = function() 
+	{
+		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.balance>0, \'alert-success\':row.entity.balance==0, \'alert-warning\': row.entity.replacement_payment}">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	
+	var names = ['Amount ( ' + $scope.currency + ' )', 'Paid ( ' + $scope.currency + ' )', 'Balance ( ' + $scope.currency + ' )'];
+	
+	$scope.feesGrid = {
+		enableSorting: true,
+		rowTemplate: rowTemplate2(),
+		rowHeight:24,
+		columnDefs: [
+			{ name: 'Item', field: 'fee_item', enableColumnMenu: false},
+			{ name: 'Payment Method', field: 'payment_method',  enableColumnMenu: false,},
+			{ name: names[0], field: 'total_due', cellFilter:'currency:""', cellClass:'center', headerCellClass:'center',  enableColumnMenu: false,},
+			{ name: names[1], field: 'total_paid', cellFilter:'currency:""', cellClass:'center', headerCellClass:'center',  enableColumnMenu: false,},
+			{ name: names[2], field: 'balance', cellFilter:'numeric', cellClass:'center', headerCellClass:'center', enableColumnMenu: false, sort: {direction:'asc'}},
+		],
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
+	
+	$scope.invoiceGrid = {
+		enableSorting: true,
+		rowTemplate: rowTemplate(),
+		rowHeight:24,
+		columnDefs: [
+			{ name: 'Invoice Date', field: 'inv_date', type:'date', cellFilter:'date', enableColumnMenu: false},
+			{ name: 'Due Date', field: 'due_date', type:'date', cellFilter:'date', enableColumnMenu: false, sort: {direction:'desc'}},
+			{ name: names[0], field: 'total_due', cellFilter:'currency:""', cellClass:'center', headerCellClass:'center',  enableColumnMenu: false,},
+			{ name: names[1], field: 'total_paid', cellFilter:'currency:""', cellClass:'center', headerCellClass:'center',  enableColumnMenu: false,},
+			{ name: names[2], field: 'balance', cellFilter:'numeric', cellClass:'center', headerCellClass:'center', enableColumnMenu: false,},
+		],
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
+	
+	$scope.paidGrid = {
+		enableSorting: true,
+		rowTemplate: rowTemplate2(),
+		rowHeight:34,
+		columnDefs: [
+			{ name: 'Receipt', field: 'payment_id', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false , width:60, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.getReceipt(row.entity)"><i class="glyphicon glyphicon-file"></i><br>{{row.entity.receipt_number}}</div>'},
+			{ name: 'Payment Date', field: 'payment_date', enableColumnMenu: false , type: 'date', sort: {direction: 'desc' }, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_date|date}}</div>'},
+			{ name: 'Payment Method', field: 'payment_method', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_method}}</div>'},
+			{ name: names[0], field: 'amount', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.amount|currency:""}}</div>'},
+			{ name: 'Applied To', field: 'applied_to', enableColumnMenu: false , width:200, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.applied_to|arrayToList}}</div>'},
+			{ name: 'Amount Unapplied', field: 'unapplied_amount', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)" ng-class="{\'alert-danger\': row.entity.unapplied_amount>0}">{{row.entity.unapplied_amount|currency:""}}</div>'},
+			{ name: 'Replacement?', field: 'replacement', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.replacement}}</div>'},
+			{ name: 'Reversed?', field: 'reverse', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.reverse}}</div>'},
+		],
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
+	
 	var initializeController = function()
 	{
 		
@@ -293,7 +376,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}			
 				
 	}
-	
+	/*
 	var initDataGrid = function(settings)
 	{
 	
@@ -327,7 +410,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				},
 			} );
 	}
-	
+	*/
 	$scope.cancel = function()
 	{
 		$uibModalInstance.dismiss('canceled');  
@@ -540,7 +623,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.currentFeeTab = tab;
 		if( tab == 'Fee Summary' )
 		{
-			setTimeout(initFeesDataGrid,50);
+			initFeesDataGrid($scope.fees);
 		}
 		else if( tab == 'Invoices' )
 		{
@@ -575,7 +658,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.nofeeSummary = true;
 			}
 			
-			if( $scope.currentFeeTab == 'Fee Summary' )	setTimeout(initFeesDataGrid,50);
+			if( $scope.currentFeeTab == 'Fee Summary' )	initFeesDataGrid($scope.fees);
 		}
 	}
 	
@@ -588,7 +671,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		{
 			$scope.invoices = ( result.nodata ? {} : angular.copy(result.data) );		
 			
-			if( $scope.currentFeeTab == 'Invoices' )	setTimeout(initInvoicesDataGrid,10);
+			if( $scope.currentFeeTab == 'Invoices' )	initInvoicesDataGrid($scope.invoices);
 		}
 	}
 	
@@ -598,11 +681,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceForm.html','invoiceFormCtrl',{selectedStudent:$scope.student},{size: 'md',backdrop:'static'});
 		dlg.result.then(function(invoice){
 			// update invoices
-			if( $scope.dataGrid !== undefined )
-			{
-				$scope.dataGrid.destroy();
-				$scope.dataGrid = undefined;
-			}
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
 		},function(){
@@ -619,21 +697,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceDetails.html','invoiceDetailsCtrl',item,{size: 'md',backdrop:'static'});
 		dlg.result.then(function(invoice){
 			// update invoices
-			if( $scope.dataGrid !== undefined )
-			{
-				$scope.dataGrid.destroy();
-				$scope.dataGrid = undefined;
-			}
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
 			
 		},function(){
 			// update invoices
-			if( $scope.dataGrid !== undefined )
-			{
-				$scope.dataGrid.destroy();
-				$scope.dataGrid = undefined;
-			}
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
 		});
@@ -656,35 +724,29 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				return item;
 			});
 			
-			if( $scope.currentFeeTab == 'Payments Received' )	setTimeout(initPaymentsDataGrid,10);
+			if( $scope.currentFeeTab == 'Payments Received' ) initPaymentsDataGrid($scope.payments);
 		}
 	}
 	
-	var initFeesDataGrid = function() 
+	var initFeesDataGrid = function(data) 
 	{
-		var settings = {
-			sortOrder: [5,'asc'],
-			noResultsTxt: "This student has not been invoiced."
-		}
-		initDataGrid(settings);
+		$scope.feesGrid.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
 	}
 	
-	var initInvoicesDataGrid = function() 
+	var initInvoicesDataGrid = function(data) 
 	{
-		var settings = {
-			sortOrder: [1,'desc'],
-			noResultsTxt: "No invoices found."
-		}
-		initDataGrid(settings);
+		$scope.invoiceGrid.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
 	}
 	
-	var initPaymentsDataGrid = function() 
+	var initPaymentsDataGrid = function(data) 
 	{
-		var settings = {
-			sortOrder: [2,'desc'],
-			noResultsTxt: "No payments found."
-		}
-		initDataGrid(settings);
+		$scope.paidGrid.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
 	}
 	
 	$scope.addPayment = function()
@@ -694,11 +756,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentForm.html','paymentFormCtrl',{selectedStudent:$scope.student},{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(payment){
 			// update payments
-			if( $scope.dataGrid !== undefined )
-			{
-				$scope.dataGrid.destroy();
-				$scope.dataGrid = undefined;
-			}
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 			apiService.getStudentPayments($scope.student.student_id, loadPayments, apiError);
 		},function(){
@@ -727,21 +784,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentDetails.html','paymentDetailsCtrl',payment,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(payment){
 			// update invoices
-			if( $scope.dataGrid !== undefined )
-			{
-				//$scope.dataGrid.destroy();
-				$scope.dataGrid.clear();
-			}
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 			apiService.getStudentPayments($scope.student.student_id, loadInvoices, apiError);
 			
 		},function(){
 			// update invoices
-			if( $scope.dataGrid !== undefined )
-			{
-				//$scope.dataGrid.destroy();
-				$scope.dataGrid.clear();
-			}
 			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 			apiService.getStudentPayments($scope.student.student_id, loadInvoices, apiError);
 		});
@@ -912,12 +959,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		// /:student_id/:class/:term/:type
 		$scope.examMarks = {};
 		$scope.marksNotFound = false;
-		
-		if( $scope.dataGrid !== undefined )
-		{
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;
-		}
 
 		var request = $scope.student.student_id + '/' + $scope.filters.class_id + '/' + $scope.filters.term_id;
 		if( $scope.filters.exam_type_id != "" && $scope.filters.exam_type_id !== undefined ) request += '/' + $scope.filters.exam_type_id;
@@ -1034,11 +1075,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	/************************************* Report Card Functions ***********************************************/
 	$scope.getStudentReportCards = function()
 	{		
-		if( $scope.dataGrid !== undefined )
-		{
-			$scope.dataGrid.clear();
-			//$scope.dataGrid = undefined;
-		}
 		$scope.reportsNotFound = false;
 		apiService.getStudentReportCards($scope.student.student_id, loadReportCards, apiError);
 	}

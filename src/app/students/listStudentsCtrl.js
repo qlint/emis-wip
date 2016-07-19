@@ -18,11 +18,40 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$rootScope.modalLoading = false;
 	$scope.alert = {};
 	
+	$scope.gridFilter = {};
+	$scope.gridFilter.filterValue  = '';
+	
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false);
+	
+	var rowTemplate = function() 
+	{
+		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.balance > 0, \'alert-success\' : row.entity.balance == 0}" ng-click="grid.appScope.viewStudent(row.entity)">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	
+	$scope.gridOptions = {
+		enableSorting: true,
+		rowTemplate: rowTemplate(),
+		rowHeight:24,
+		columnDefs: [
+			{ name: 'Name', field: 'student_name', enableColumnMenu: false, sort: {direction:'asc'}},
+			{ name: 'Class', field: 'class_name', enableColumnMenu: false,},
+			{ name: 'Admission Number', field: 'admission_number', enableColumnMenu: false,},
+		],
+		exporterCsvFilename: 'students.csv',
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $scope.gridApi.grid.registerRowsProcessor( $scope.singleFilter, 200 );
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
 	
 	var initializeController = function () 
 	{
-
 		// if user is a teacher, we only want to give them class categories and classes that they are associated with
 		if ( $scope.isTeacher )
 		{
@@ -124,22 +153,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			}
 		}
 		
-		
+		setTimeout(function(){
+			var height = $('.full-height.datagrid').height();
+			$('#grid1').css('height', height);
+			$scope.gridApi.core.handleWindowResize();
+		},100);
 
 	}
 	$timeout(initializeController,1);
 	
 	var getStudents = function(status, filtering)
-	{
-
-		if( $scope.dataGrid !== undefined )
-		{	
-			$scope.dataGrid.fixedHeader.destroy();
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-		//	$scope.dataGrid.destroy();				
-		}	
-		
+	{		
 		if ( $scope.isTeacher )
 		{
 			var params = $rootScope.currentUser.emp_id + '/' + status;
@@ -158,13 +182,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		
 		if( result.response == 'success')
 		{
-			
-			if( $scope.dataGrid !== undefined )
-			{	
-				//$scope.dataGrid.clear();
-				$scope.dataGrid.destroy();				
-			}
-					
+	
 			if( result.nodata ) var formatedResults = [];
 			else {
 				// make adjustments to student data
@@ -182,7 +200,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				$scope.students = formatedResults;
 				
 				if( $scope.filterClassCat || $scope.filterClass ) filterStudents();
-				$timeout(initDataGrid,10);
+				initDataGrid($scope.students);
 			}
 			
 		}
@@ -199,64 +217,44 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		$scope.error = true;
 		$scope.errMsg = result.data;
 	}
-	
-	
 		
-	var initDataGrid = function() 
+	var initDataGrid = function( data ) 
 	{
-		var tableElement = $('#resultsTable');
-		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
-				paging: false,
-				destroy:true,
-				order: [1,'asc'],
-				filter: true,
-				info: false,
-				sorting:[],
-				initComplete: function(settings, json) {
-					$scope.loading = false;
-					$rootScope.loading = false;
-					$scope.$apply();
-				},
-				language: {
-						search: "Search Results<br>",
-						searchPlaceholder: "Filter",
-						lengthMenu: "Display _MENU_",
-						emptyTable: "No students found."
-				},
-			} );
-			
-		$('.fixedHeader-floating').remove();
-
-		var headerHeight = $('.navbar-fixed-top').height();
-		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 41 );
-		
-
-		$scope.fixedHeader = new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
-				header: true,
-				headerOffset: (headerHeight + searchHeight) + offset
-			} );
-
-		
-		
-		// position search box
-		setSearchBoxPosition();
-		
-		if( initialLoad ) setResizeEvent();
-		
+	
+		$scope.gridOptions.data = $scope.students;
+		$scope.loading = false;
+		$rootScope.loading = false;
 		
 	}
 	
+	$scope.filterDataTable = function() 
+	{
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.clearFilterDataTable = function() 
+	{
+		$scope.gridFilter.filterValue = '';
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.singleFilter = function( renderableRows )
+	{
+		var matcher = new RegExp($scope.gridFilter.filterValue, 'i');
+		renderableRows.forEach( function( row ) {
+		  var match = false;
+		  [ 'student_name', 'class_name', 'admission_number' ].forEach(function( field ){
+			if ( row.entity[field].match(matcher) ){
+			  match = true;
+			}
+		  });
+		  if ( !match ){
+			row.visible = false;
+		  }
+		});
+		return renderableRows;
+	};
+	/*
 	var setSearchBoxPosition = function()
 	{
 		if( !$rootScope.isSmallScreen )
@@ -284,11 +282,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			}
 		}, false);
 	}
-	
+	*/
 	$scope.$watch('filters.class_cat_id', function(newVal,oldVal){
 		if (oldVal == newVal) return;
-		
-		if( newVal === undefined || newVal == '' ) 	$scope.classes = $rootScope.allClasses;
+		console.log(newVal);
+		if( newVal === undefined || newVal === null || newVal == '' ) 	$scope.classes = $rootScope.allClasses;
 		else
 		{	
 			// filter classes to only show those belonging to the selected class category
@@ -296,7 +294,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				if( item.class_cat_id == newVal ) sum.push(item);
 				return sum;
 			}, []);
-			$timeout(setSearchBoxPosition,10);
+			//$timeout(setSearchBoxPosition,10);
 			
 		}
 	});
@@ -358,11 +356,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	var filterStudents = function(clearTable)
 	{
-		if( $scope.dataGrid !== undefined && clearTable )
-		{
-		//	$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
 		
 		// filter by class category
 		// allStudents holds current students, formerStudents, the former...
@@ -387,7 +380,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		
 		$scope.students = filteredResults;
 		
-		$timeout(initDataGrid,100);
+		initDataGrid($scope.students);
 		
 	
 	}
@@ -409,7 +402,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	$scope.exportData = function()
 	{
-		$rootScope.wipNotice();
+		$scope.gridApi.exporter.csvExport( 'visible', 'visible' );
 	}
 	
 	$scope.$on('refreshStudents', function(event, args) {
@@ -441,12 +434,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid){
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.fixedHeader.destroy();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
 		$rootScope.isModal = false;
     });
 	

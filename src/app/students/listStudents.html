@@ -1,10 +1,11 @@
-<div ng-controller="listStudentsCtrl">	
+<div ng-controller="listStudentsCtrl" class="full-height">	
 	
 	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 		
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
 		</div>
+		
 		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
 			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 			{{errMsg}}
@@ -61,7 +62,12 @@
 						<img src="assets/spinner.gif" ng-show="loading" />
 						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
 					</div>
-
+					
+					<div class="form-group grid-filter">
+						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' placeholder="Filter"/>
+						<button class="btn btn-xs btn-primary" ng-click='filterDataTable()'>Filter</button>
+						<button class="btn btn-xs " ng-click='clearFilterDataTable()'>Clear</button>
+					</div>
 				</form>
 			</div>
 			<!-- // end search form -->
@@ -71,6 +77,12 @@
 		
 		<div class="full-height datagrid main-datagrid">
 			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+		
+			<div id="grid1" ui-grid="gridOptions" ui-grid-exporter class="myGrid">
+				<div ng-if="!gridOptions.data.length" class="no-results">No results found.</div>
+			</div>
+
+			<!--
 			<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%" ng-show="!loading">
 				<thead>
 					<tr>
@@ -89,9 +101,8 @@
 					</tr>
 				</tbody>
 			</table>
+			-->
 		</div>
-		
-
 		
 	</div>
 </div>

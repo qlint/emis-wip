@@ -8,21 +8,51 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.filters.status = 'true';
 	$scope.alert = {};
 	$scope.loading = true;
+	
+	$scope.gridFilter = {};
+	$scope.gridFilter.filterValue  = '';
+	
+	var rowTemplate = function() 
+	{
+		return '<div class="clickable" ng-click="grid.appScope.viewDepartment(row.entity)">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	
+	$scope.gridOptions = {
+		enableSorting: true,
+		rowTemplate: rowTemplate(),
+		rowHeight:24,
+		columnDefs: [
+			{ name: 'Category', field: 'category', enableColumnMenu: false, sort: {direction:'asc'},},
+			{ name: 'Department Name', field: 'dept_name', enableColumnMenu: false,},
+		],
+		exporterCsvFilename: 'school-departments.csv',
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $scope.gridApi.grid.registerRowsProcessor( $scope.singleFilter, 200 );
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
 
 	var initializeController = function () 
 	{
 		getDepartments();
+		
+		setTimeout(function(){
+			var height = $('.full-height.datagrid').height();
+			$('#grid1').css('height', height);
+			$scope.gridApi.core.handleWindowResize();
+		},100);
+		
 	}
 	$timeout(initializeController,1);
 
 	var getDepartments = function()
-	{
-		if( $scope.dataGrid !== undefined )
-		{	
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();			
-		}		
+	{	
 
 		apiService.getDepts($scope.filters.status, function(response,status,params){
 			var result = angular.fromJson(response);
@@ -34,7 +64,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 				// update the rootScope variable
 				$rootScope.allDepts = $scope.departments;
 				
-				$timeout(initDataGrid,100);
+				initDataGrid($scope.departments);
 			}
 			else
 			{
@@ -45,73 +75,42 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		}, apiError);
 	}
 		
-	var initDataGrid = function() 
+	var initDataGrid = function(data) 
 	{
-	
-		var tableElement = $('#resultsTable');
-		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
-				paging: false,
-				destroy:true,				
-				filter: true,
-				order:[1,'asc'],
-				info: false,
-				sorting:[],
-				initComplete: function(settings, json) {
-					$scope.loading = false;
-					$rootScope.loading = false;
-					$scope.$apply();
-				},
-				language: {
-						search: "Search Results<br>",
-						searchPlaceholder: "Filter",
-						lengthMenu: "Display _MENU_",
-						emptyTable: "No departments found."
-				},
-			} );
-			
-		
-		var headerHeight = $('.navbar-fixed-top').height();
-		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
-		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 13 );
-		new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
-				header: true,
-				headerOffset: (headerHeight + searchHeight) + offset
-			} );
-		
-		
-		// position search box
-		if( !$rootScope.isSmallScreen )
-		{
-			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',filterFormWidth+45);
-		}
-		
-		$window.addEventListener('resize', function() {
-			
-			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
-			if( $rootScope.isSmallScreen )
-			{
-				$('#resultsTable_filter').css('left',0);
-			}
-			else
-			{
-				var filterFormWidth = $('.dataFilterForm form').width();
-				$('#resultsTable_filter').css('left',filterFormWidth-30);	
-			}
-		}, false);
-		
+		$scope.gridOptions.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
 	}
+	
+	
+	$scope.filterDataTable = function() 
+	{
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.clearFilterDataTable = function() 
+	{
+		$scope.gridFilter.filterValue = '';
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.singleFilter = function( renderableRows )
+	{
+		var matcher = new RegExp($scope.gridFilter.filterValue, 'i');
+		renderableRows.forEach( function( row ) {
+		  var match = false;
+		  [ 'category', 'dept_name' ].forEach(function( field ){
+			if ( row.entity[field].match(matcher) ){
+			  match = true;
+			}
+		  });
+		  if ( !match ){
+			row.visible = false;
+		  }
+		});
+		return renderableRows;
+	};
+	
 	
 	var apiError = function (response, status) 
 	{
@@ -141,7 +140,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	
 	$scope.exportItems = function()
 	{
-		$rootScope.wipNotice();
+		$scope.gridApi.exporter.csvExport( 'visible', 'visible' );
 	}
 	
 
@@ -174,12 +173,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid){
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.fixedHeader.destroy();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
 		$rootScope.isModal = false;
     });
 

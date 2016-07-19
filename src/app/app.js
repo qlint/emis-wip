@@ -1,7 +1,7 @@
 'use strict';
 
 // Configure the main application module.
-var eduwebApp = angular.module('eduwebApp', ['ui.router', 'ui.bootstrap', 'dialogs.main', 'daterangepicker', 'ui.select', 'angularFileUpload','angularTrix'])
+var eduwebApp = angular.module('eduwebApp', ['ui.router', 'ui.bootstrap', 'dialogs.main', 'daterangepicker', 'ui.select', 'angularFileUpload','angularTrix','ui.grid', 'ui.grid.exporter'])
 /*Constants regarding user login defined here*/
 .constant('USER_ROLES', {
 	all : '*',

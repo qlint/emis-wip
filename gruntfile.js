@@ -35,16 +35,16 @@ module.exports = function(grunt) {
 						dest: 'src/css/',
 						ext: '.min.css'
 					},
-					{
+					/*{
 					  'src/min/css/dependencies.min.css': ['src/components/css/bootstrap.min.css',
-													'src/components/css/datatables.min.css',
+												//	'src/components/css/datatables.min.css',
 													'src/components/css/daterangepicker.css',
 													'src/components/css/dialogs.css',
 													'src/components/css/font-awesome.min.css',
 													'src/components/css/select2.css',
 													'src/components/css/select2-bootstrap.css',
 													'src/components/css/select.min.css']
-					}
+					}*/
 				]
 			}
 		},

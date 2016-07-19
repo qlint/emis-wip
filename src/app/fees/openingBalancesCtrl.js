@@ -17,6 +17,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	$scope.totals = {};
 	$scope.loading = true;
 	
+	$scope.gridFilter = {};
+	$scope.gridFilter.filterValue  = '';
+	
 	$scope.years = [];
 	var currentYear = moment().format('YYYY');
 	var startYear = ( $rootScope.currentUser.settings['Initial Year'] !== undefined ? $rootScope.currentUser.settings['Initial Year'] : '2014');
@@ -28,6 +31,38 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	$scope.filters.year = currentYear;
 	var lastQueriedYear = currentYear;
 	var requery = false;
+	
+	var rowTemplate = function() 
+	{
+		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.days_overdue > 0}" ng-click="grid.appScope.viewStudent(row.entity)">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	
+	var names = ['Opening Balance ( ' + $scope.currency + ' )', 'Payments Received ( ' + $scope.currency + ' )', 'Balance ( ' + $scope.currency + ' )'];
+	$scope.gridOptions = {
+		enableSorting: true,
+		rowTemplate: rowTemplate(),
+		rowHeight:24,
+		columnDefs: [
+			{ name: 'Name', field: 'student_name',},
+			{ name: 'Class', field: 'class_name',},
+			{ name: names[0], field: 'total_due', cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_due|currency:""}}</div>'},
+			{ name: names[1], field: 'total_paid', cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_paid|currency:""}}</div>'},
+			{ name: names[2], field: 'balance', cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.balance|numeric}}</div>'},
+			{ name: 'Last Payment', field: 'last_payment'},
+			{ name: 'Next Payment Due', field: 'next_payment'},
+		],
+		exporterCsvFilename: 'opening-balances.csv',
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $scope.gridApi.grid.registerRowsProcessor( $scope.singleFilter, 200 );
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
 
 	var initializeController = function () 
 	{
@@ -51,18 +86,18 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$scope.classes = $rootScope.allClasses;
 		}
 		
+		setTimeout(function(){
+			var height = $('.full-height.datagrid').height();
+			$('#grid1').css('height', height);
+			$scope.gridApi.core.handleWindowResize();
+		},100);
+		
 		getStudentBalances('true',false);
 	}
 	$timeout(initializeController,1);
 	
 	var getStudentBalances = function(status, filtering)
-	{
-		if( $scope.dataGrid !== undefined )
-		{	
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();			
-		}		
+	{		
 		
 		var year = angular.copy($scope.filters.year);
 		var request =  year + '/' + status;
@@ -75,7 +110,6 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				if(result.nodata !== undefined )
 				{
 					$scope.students = [];
-					$timeout(initDataGrid,10);
 				}
 				else
 				{
@@ -91,10 +125,10 @@ function($scope, $rootScope, apiService, $timeout, $window){
 					{
 						$scope.allStudents = formatedResults;
 						$scope.students = formatedResults;
-						$timeout(initDataGrid,10);
 					}
 
 				}
+				initDataGrid($scope.students);
 				
 			}
 			else
@@ -121,76 +155,44 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		},0);
 	}
 	
-	var initDataGrid = function() 
+	var initDataGrid = function(data) 
 	{
 		// updating datagrid, also update totals
 		calcTotals();
-		
-		
-		var tableElement = $('#resultsTable');
-		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
-				paging: false,
-				destroy:true,
-				order: [5,'asc'],
-				filter: true,
-				info: false,
-				sorting:[],
-				initComplete: function(settings, json) {
-					$scope.loading = false;
-					$rootScope.loading = false;
-					$scope.$apply();
-				},
-				language: {
-						search: "Search Results<br>",
-						searchPlaceholder: "Filter",
-						lengthMenu: "Display _MENU_",
-						emptyTable: "No student balances found."
-				},
-			} );
-			
-		
-		var headerHeight = $('.navbar-fixed-top').height();
-		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
-		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 13 );
-		new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
-				header: true,
-				headerOffset: (headerHeight + searchHeight) + offset
-			} );
-		
-		
-		// position search box
-		if( !$rootScope.isSmallScreen )
-		{
-			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',filterFormWidth+40);
-		}
-		
-		$window.addEventListener('resize', function() {
-			
-			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
-			if( $rootScope.isSmallScreen )
-			{
-				$('#resultsTable_filter').css('left',0);
-			}
-			else
-			{
-				var filterFormWidth = $('.dataFilterForm form').width();
-				$('#resultsTable_filter').css('left',filterFormWidth-30);	
-			}
-		}, false);
+		$scope.gridOptions.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
 		
 	}
+	
+	$scope.filterDataTable = function() 
+	{
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.clearFilterDataTable = function() 
+	{
+		$scope.gridFilter.filterValue = '';
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.singleFilter = function( renderableRows )
+	{
+		var matcher = new RegExp($scope.gridFilter.filterValue, 'i');
+		renderableRows.forEach( function( row ) {
+		  var match = false;
+		  [ 'student_name', 'class_name' ].forEach(function( field ){
+			if ( row.entity[field].match(matcher) ){
+			  match = true;
+			}
+		  });
+		  if ( !match ){
+			row.visible = false;
+		  }
+		});
+		return renderableRows;
+	};
+	
 	
 	$scope.$watch('filters.class_cat_id', function(newVal,oldVal){
 		if (oldVal == newVal) return;
@@ -274,13 +276,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	}
 	
 	var filterResults = function()
-	{
-		if ($scope.dataGrid !== undefined)
-		{
-			$scope.dataGrid.destroy();
-			$scope.dataGrid = undefined;
-		}
-		
+	{		
 		// filter by class category
 		// allStudents holds current students, formerStudents, the former...
 		var filteredResults = ( $scope.filters.status == 'false' ? $scope.formerStudents : $scope.allStudents);
@@ -303,7 +299,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		}
 		
 		$scope.students = filteredResults;
-		$timeout(initDataGrid,1);
+		initDataGrid($scope.students);
 	}
 	
 	$scope.addPayment = function()
@@ -323,7 +319,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	$scope.exportBalances = function()
 	{
-		$rootScope.wipNotice();
+		$scope.gridApi.exporter.csvExport( 'visible', 'visible' );
 	}
 	
 	$scope.$on('refreshBalances', function(event, args) {
@@ -355,12 +351,6 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid){
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.fixedHeader.destroy();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
 		$rootScope.isModal = false;
     });
 

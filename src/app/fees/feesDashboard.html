@@ -25,7 +25,7 @@
 			</div>
 			
 			<div class="clearfix">
-				<h1 id="pageTitle">Fee Summary for {{currentTermTitle}}</h1>
+				<h1 id="pageTitle">Fee Summary for {{currentTermTitle}} ({{date.startDate|date}} - {{date.endDate|date}})</h1>
 			</div>
 
 		</div>
@@ -50,13 +50,13 @@
 			</div>
 			
 			<div class="col-sm-4">
-				<div class="dashboard-panel alert alert-success">					
-					<div class="row dashboard-panel-header">
+				<div class="dashboard-panel alert alert-success">		
+					<!--
+					<div class="row dashboard-panel-header">					
 						<div class="col-xs-12">
 							<h2>Payment Received</h2>
 						</div>
-						<div class="col-xs-7">
-							<!-- date range picker -->				
+						<div class="col-xs-7">			
 							<div class="input-group">
 								<input type="text" name="dob" date-range-picker class="form-control date-picker input-sm" ng-model="date" options="{}" />
 								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
@@ -66,8 +66,24 @@
 							<span class="totalSum pull-right">{{paymentsReceivedTotal|currency:""}} {{currency}}</span>
 						</div>
 					</div>
+					-->
+					<div class="dashboard-panel-header clearfix">
+						<h2 class="pull-left">Payment Received</h2>
+						<span class="totalSum pull-right">{{paymentsReceivedTotal|currency:""}} {{currency}}</span>
+					</div>
 					<div class="dashboard-panel-body">
 						<div class="loading-indicator" ng-show="paymentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						
+						<div class="form-group grid-filter">
+							<input class="ui-grid-filter" ng-model="gridFilter.filterValue1" placeholder="Filter"/>
+							<button class="btn btn-xs btn-primary" ng-click="filterDataTable('1')">Filter</button>
+							<button class="btn btn-xs " ng-click="clearFilterDataTable('1')">Clear</button>
+						</div>
+					
+						<div id="grid1" ui-grid="gridOptions1" class="myGrid">
+							<div ng-if="gridOptions1.data.length==0" class="no-results">No results found.</div>
+						</div>
+						<!--
 						<table id="paymentsReceivedTable" class="display clickable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
@@ -86,6 +102,7 @@
 								</tr>
 							</tbody>
 						</table>
+						-->
 					</div>
 					<div class="row dashboard-panel-footer">
 						<a ui-sref="fees/payments_received" class="btn btn-link pull-right">See All</a>
@@ -100,6 +117,17 @@
 					</div>
 					<div class="dashboard-panel-body">
 						<div class="loading-indicator" ng-show="invoicesLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						
+						<div class="form-group grid-filter">
+							<input class="ui-grid-filter" ng-model="gridFilter.filterValue2" placeholder="Filter"/>
+							<button class="btn btn-xs btn-primary" ng-click="filterDataTable('2')">Filter</button>
+							<button class="btn btn-xs " ng-click="clearFilterDataTable('2')">Clear</button>
+						</div>
+					
+						<div id="grid2" ui-grid="gridOptions2" class="myGrid">
+							<div ng-if="gridOptions2.data.length==0" class="no-results">No results found.</div>
+						</div>
+						<!--
 						<table id="paymentsDueTable" class="display clickable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
@@ -118,6 +146,7 @@
 								</tr>
 							</tbody>
 						</table>
+						-->
 					</div>
 					<div class="row dashboard-panel-footer">
 						<a ui-sref="fees/invoices" class="btn btn-link pull-right">See All</a>
@@ -132,6 +161,17 @@
 					</div>
 					<div class="dashboard-panel-body">
 						<div class="loading-indicator" ng-show="pastDueLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						
+						<div class="form-group grid-filter">
+							<input class="ui-grid-filter" ng-model="gridFilter.filterValue3" placeholder="Filter"/>
+							<button class="btn btn-xs btn-primary" ng-click="filterDataTable('3')">Filter</button>
+							<button class="btn btn-xs " ng-click="clearFilterDataTable('3')">Clear</button>
+						</div>
+					
+						<div id="grid3" ui-grid="gridOptions3" class="myGrid">
+							<div ng-if="gridOptions3.data.length==0" class="no-results">No results found.</div>
+						</div>
+						<!--
 						<table id="paymentsPastDueTable" class="display clickable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
@@ -150,6 +190,7 @@
 								</tr>
 							</tbody>
 						</table>
+						-->
 					</div>
 					<div class="row dashboard-panel-footer">
 						<a ui-sref="fees/invoices" class="btn btn-link pull-right">See All</a>

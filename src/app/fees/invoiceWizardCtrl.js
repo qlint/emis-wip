@@ -23,7 +23,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		$uibModalInstance.dismiss('canceled');  
 	}; // end cancel
 
-	
 	$scope.viewStudent = function(student)
 	{
 		var domain = window.location.host;
@@ -145,8 +144,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		var lineItems = [];
 
 		angular.forEach($scope.invoices, function(invoices,key){
-			lineItems = [];
 			angular.forEach(invoices, function(invoice,key){
+				lineItems = [];
 				angular.forEach(invoice.line_items, function(item,key2){
 					if( item !== null ){
 						lineItems.push({

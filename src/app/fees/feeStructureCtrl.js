@@ -9,22 +9,54 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.alert = {};
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	$scope.loading = true;
+	
+	$scope.gridFilter = {};
+	$scope.gridFilter.filterValue  = '';
+	
+	var rowTemplate = function() 
+	{
+		return '<div class="clickable" ng-class="{\'alert-warning\': row.entity.replacement_payment}" ng-click="grid.appScope.viewFeeItem(row.entity)">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	
+	var names = ['Default Fee ( ' + $scope.currency + ' )'];
+	$scope.gridOptions = {
+		enableSorting: true,
+		rowTemplate: rowTemplate(),
+		rowHeight:24,
+		columnDefs: [
+			{ name: 'Item Name', field: 'fee_item', enableColumnMenu: false },
+			{ name: names[0], field: 'default_amount', enableColumnMenu: false },
+			{ name: 'Frequency', field: 'frequency', enableColumnMenu: false },
+			{ name: 'Class Categories', field: 'class_categories', cellFilter:'arrayToList', enableColumnMenu: false },
+			{ name: 'New Student Only', field: 'new_student', enableColumnMenu: false },
+		],
+		exporterCsvFilename: 'fee-structure.csv',
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $scope.gridApi.grid.registerRowsProcessor( $scope.singleFilter, 200 );
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
 
 	var initializeController = function () 
 	{
+		setTimeout(function(){
+			var height = $('.full-height.datagrid').height();
+			$('#grid1').css('height', height);
+			$scope.gridApi.core.handleWindowResize();
+		},100);
+		
 		getFeeStructure();
 	}
 	$timeout(initializeController,1);
 
 	var getFeeStructure = function()
 	{
-		if( $scope.dataGrid !== undefined )
-		{	
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();			
-		}		
-
 		apiService.getFeeItems($scope.filters.status, function(response,status,params){
 			var result = angular.fromJson(response);
 			
@@ -65,7 +97,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 					});
 				}
 
-				$timeout(initDataGrid,10);
+				initDataGrid($scope.items);
 			}
 			else
 			{
@@ -76,73 +108,41 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		}, apiError);
 	}
 		
-	var initDataGrid = function() 
+	var initDataGrid = function(data) 
 	{
-	
-		var tableElement = $('#resultsTable');
-		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
-				paging: false,
-				destroy:true,				
-				order:[1,'asc'],
-				filter: true,
-				info: false,
-				sorting:[],
-				initComplete: function(settings, json) {
-					$scope.loading = false;
-					$rootScope.loading = false;
-					$scope.$apply();
-				},
-				language: {
-						search: "Search Results<br>",
-						searchPlaceholder: "Filter",
-						lengthMenu: "Display _MENU_",
-						emptyTable: "No student balances found."
-				},
-			} );
-			
-		
-		var headerHeight = $('.navbar-fixed-top').height();
-		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
-		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 13 );
-		new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
-				header: true,
-				headerOffset: (headerHeight + searchHeight) + offset
-			} );
-		
-		
-		// position search box
-		if( !$rootScope.isSmallScreen )
-		{
-			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',filterFormWidth+45);
-		}
-		
-		$window.addEventListener('resize', function() {
-			
-			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
-			if( $rootScope.isSmallScreen )
-			{
-				$('#resultsTable_filter').css('left',0);
-			}
-			else
-			{
-				var filterFormWidth = $('.dataFilterForm form').width();
-				$('#resultsTable_filter').css('left',filterFormWidth-30);	
-			}
-		}, false);
-		
+		$scope.gridOptions.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
+
 	}
+	
+	$scope.filterDataTable = function() 
+	{
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.clearFilterDataTable = function() 
+	{
+		$scope.gridFilter.filterValue = '';
+		$scope.gridApi.grid.refresh();
+	};
+	
+	$scope.singleFilter = function( renderableRows )
+	{
+		var matcher = new RegExp($scope.gridFilter.filterValue, 'i');
+		renderableRows.forEach( function( row ) {
+		  var match = false;
+		  [ 'fee_item', 'frequency' ].forEach(function( field ){
+			if ( row.entity[field].match(matcher) ){
+			  match = true;
+			}
+		  });
+		  if ( !match ){
+			row.visible = false;
+		  }
+		});
+		return renderableRows;
+	};
 	
 	var apiError = function (response, status) 
 	{
@@ -169,7 +169,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	
 	$scope.exportItems = function()
 	{
-		$rootScope.wipNotice();
+		$scope.gridApi.exporter.csvExport( 'visible', 'visible' );
 	}
 	
 
@@ -202,12 +202,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid){
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.fixedHeader.destroy();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
 		$rootScope.isModal = false;
     });
 

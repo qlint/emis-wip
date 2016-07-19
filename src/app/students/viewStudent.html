@@ -552,8 +552,19 @@
 			</script>
 			
 			<script type="text/ng-template" id="Fee Summary">
-				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
-				
+				<div class="row">
+					<div class="col-xs-12">
+						<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-12">
+						<div id="grid1" ui-grid="feesGrid" class="myGrid">
+							<div ng-if="!feesGrid.data.length" class="no-results">No results found.</div>
+						</div>
+					</div>
+				</div>		
+				<!--
 				<table id="resultsTable2" class="display nowrap" cellspacing="0" width="100%">
 					<thead>
 						<tr>
@@ -576,12 +587,24 @@
 						</tr>
 					</tbody>
 				</table>
+				-->
 			</script>
 			
 			<script type="text/ng-template" id="Invoices">
-				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
-				<button ng-show="permissions.fees.invoices.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addInvoice()"><i class="glyphicon glyphicon-plus-sign"></i> Add Invoice</button>
-				
+				<div class="row">
+					<div class="col-xs-12">		
+						<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
+						<button ng-show="permissions.fees.invoices.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addInvoice()"><i class="glyphicon glyphicon-plus-sign"></i> Add Invoice</button>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-12">
+						<div id="grid1" ui-grid="invoiceGrid" class="myGrid">
+							<div ng-if="!invoiceGrid.data.length" class="no-results">No results found.</div>
+						</div>
+					</div>
+				</div>
+				<!--
 				<table id="resultsTable2" class="display nowrap clickable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
@@ -604,11 +627,25 @@
 						</tr>
 					</tbody>
 				</table>
+				-->
 			</script>
 			
 			<script type="text/ng-template" id="Payments Received">
-				<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
+			
+				<div class="row">
+					<div class="col-xs-12">		
+						<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-12">
+						<div id="grid1" ui-grid="paidGrid" class="myGrid">
+							<div ng-if="!paidGrid.data.length" class="no-results">No results found.</div>
+						</div>
+					</div>
+				</div>
 				
+				<!--
 				<table id="resultsTable2" class="display clickable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
@@ -624,7 +661,7 @@
 						</tr>
 					</thead>	
 					<tbody>
-						<tr ng-repeat="item in payments track by $index"ng-class="{'alert-warning': item.replacement_payment}">
+						<tr ng-repeat="item in payments track by $index" ng-class="{'alert-warning': item.replacement_payment}">
 							<td></td>
 							<td ng-click="getReceipt(item)" class="center" id="{{item.payment_id}}"><span class="glyphicon glyphicon-file"></span></td>
 							<td ng-click="viewPayment(item)">{{item.payment_date|date}}</td>
@@ -637,11 +674,14 @@
 						</tr>
 					</tbody>
 				</table>
+				-->
 			</script>
 			
 			<script type="text/ng-template" id="Fee Items">
-				<div class="col-sm-12">
-					<button ng-show="permissions.fees.fee_structure.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addFeeItem()"><i class="glyphicon glyphicon-plus-sign"></i> Add Fee Item</button>
+				<div class="row">
+					<div class="col-xs-12">		
+						<button ng-show="permissions.fees.fee_structure.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addFeeItem()"><i class="glyphicon glyphicon-plus-sign"></i> Add Fee Item</button>
+					</div>
 				</div>
 				<div class="row">				
 					<div class="col-sm-6">

@@ -15,6 +15,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.filters.dept_id = ( $state.params.dept !== '' ? $state.params.dept : null );
 	$scope.filterDept = ( $state.params.dept !== '' ? true : false );
 	
+	$scope.gridFilter = {};
+	$scope.gridFilter.filterValue  = '';
+	
 	/* get full employee cat record from state param */
 	if( $state.params.category !== null )
 	{
@@ -25,29 +28,41 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	$scope.alert = {};
 	
-	var getStaff = function()
+	var rowTemplate = function() 
 	{
-		if( $scope.dataGrid !== undefined )
-		{	
-			$scope.dataGrid.fixedHeader.destroy();
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.clear();
-		//	$scope.dataGrid.destroy();				
+		return '<div class="clickable" ng-click="grid.appScope.viewEmployee(row.entity)">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	
+	$scope.gridOptions = {
+		enableSorting: true,
+		rowTemplate: rowTemplate(),
+		rowHeight:24,
+		columnDefs: [
+			{ name: 'Name', field: 'employee_name', enableColumnMenu: false, sort: {direction:'asc'},},
+			{ name: 'Category', field: 'emp_cat_name', enableColumnMenu: false,},
+			{ name: 'Department', field: 'dept_name', enableColumnMenu: false,},
+		],
+		exporterCsvFilename: 'staff.csv',
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $scope.gridApi.grid.registerRowsProcessor( $scope.singleFilter, 200 );
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
 		}
-		
+	};
+	
+	var getStaff = function()
+	{		
 		apiService.getAllEmployees(true, function(response){
 			var result = angular.fromJson(response);
 			
 			// store these as they do not change often
 			if( result.response == 'success')
-			{
-				
-				if( $scope.dataGrid !== undefined )
-				{
-					$scope.dataGrid.destroy();
-				}
-		
-		
+			{		
 				$scope.allEmployees = (result.nondata !== undefined ? [] : result.data);	
 				$scope.employees = $scope.allEmployees ;
 				
@@ -58,16 +73,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				}
 				else
 				{
-					$timeout(initDataGrid,10);
+					initDataGrid($scope.employees);
 				}
 				
 				
 			}
 			else
 			{
-				//$scope.error = true;
-				//$scope.errMsg = result.data;
-				$timeout(initDataGrid,10);
+				initDataGrid($scope.employees);
 			}
 			
 		}, function(){});
@@ -77,7 +90,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	{
 		// get staff
 		$scope.departments = $rootScope.allDepts;
-		getStaff()			
+		getStaff()		
+
+		setTimeout(function(){
+			var height = $('.full-height.datagrid').height();
+			$('#grid1').css('height', height);
+			$scope.gridApi.core.handleWindowResize();
+		},100);		
 	}
 	$timeout(initializeController,1000);
 	
@@ -97,84 +116,42 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		}
 	});
 	
-	var initDataGrid = function() 
+	var initDataGrid = function(data) 
 	{		
-		var tableElement = $('#resultsTable');
-		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
-				paging: false,
-				destroy:true,
-				order: [1,'asc'],
-				filter: true,
-				info: false,
-				sorting:[],
-				initComplete: function(settings, json) {
-					$scope.loading = false;
-					$rootScope.loading = false;
-					$scope.$apply();
-				},
-				language: {
-						search: "Search Results<br>",
-						searchPlaceholder: "Filter",
-						lengthMenu: "Display _MENU_"
-				},
-			} );
-			
-		
-		var headerHeight = $('.navbar-fixed-top').height();
-		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
-		var searchHeight = $('#body-content .content-fixed-header').height();
-		var offset = ( $rootScope.isSmallScreen ? 22 : 13 );
-		new $.fn.dataTable.FixedHeader( $scope.dataGrid, {
-				header: true,
-				headerOffset: (headerHeight + searchHeight) + offset
-			} );
-		
-		
-		// position search box
-		setSearchBoxPosition();
-		
-		if( initialLoad ) setResizeEvent();
+		$scope.gridOptions.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
 		
 	}
 	
-	var setSearchBoxPosition = function()
+	$scope.filterDataTable = function() 
 	{
-		if( !$rootScope.isSmallScreen )
-		{
-			var filterFormWidth = $('.dataFilterForm form').width();
-			$('#resultsTable_filter').css('left',filterFormWidth+45);
-		}
-	}
+		$scope.gridApi.grid.refresh();
+	};
 	
-	var setResizeEvent = function()
+	$scope.clearFilterDataTable = function() 
 	{
-		 initialLoad = false;
-
-		 $window.addEventListener('resize', function() {
-			
-			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
-			if( $rootScope.isSmallScreen )
-			{
-				$('#resultsTable_filter').css('left',0);
-			}
-			else
-			{
-				var filterFormWidth = $('.dataFilterForm form').width();
-				$('#resultsTable_filter').css('left',filterFormWidth-30);	
-			}
-		}, false);
-	}
+		$scope.gridFilter.filterValue = '';
+		$scope.gridApi.grid.refresh();
+	};
 	
+	$scope.singleFilter = function( renderableRows )
+	{
+		var matcher = new RegExp($scope.gridFilter.filterValue, 'i');
+		renderableRows.forEach( function( row ) {
+		  var match = false;
+		  [ 'employee_name', 'emp_cat_name', 'dept_name' ].forEach(function( field ){
+			if ( row.entity[field].match(matcher) ){
+			  match = true;
+			}
+		  });
+		  if ( !match ){
+			row.visible = false;
+		  }
+		});
+		return renderableRows;
+	};
+		
 	$scope.filter = function()
 	{
 		$scope.currentFilters = angular.copy($scope.filters);
@@ -184,11 +161,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	var filterResults = function(clearTable)
 	{
 		$scope.loading = true;
-		if( $scope.dataGrid !== undefined && clearTable )
-		{
-		//	$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
 		
 		// filter by emp category
 		var filteredResults = $scope.allEmployees;
@@ -212,7 +184,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		}
 		
 		$scope.employees = filteredResults;
-		$timeout(initDataGrid,1);
+		initDataGrid($scope.employees);
 	}
 	
 	$scope.addEmployee = function()
@@ -227,7 +199,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	$scope.exportData = function()
 	{
-		$rootScope.wipNotice();
+		$scope.gridApi.exporter.csvExport( 'visible', 'visible' );
 	}
 	
 	$scope.$on('refreshStaff', function(event, args) {
@@ -259,12 +231,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	}
 	
 	$scope.$on('$destroy', function() {
-		if($scope.dataGrid){
-			$('.fixedHeader-floating').remove();
-			$scope.dataGrid.fixedHeader.destroy();
-			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();
-		}
 		$rootScope.isModal = false;
     });
 	
