@@ -2174,7 +2174,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				$scope.marksNotFound = false;
 				$scope.currentFilters = angular.copy($scope.filters);
 				
-				var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id;
+				var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id + '/0';
 				apiService.getAllClassExams(request, function(response){
 					$scope.loading = false;
 					var result = angular.fromJson( response );
