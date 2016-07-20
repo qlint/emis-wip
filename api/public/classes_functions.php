@@ -448,7 +448,7 @@ $app->put('/updateClass', function () use($app) {
 								FROM app.class_subject_exams INNER JOIN app.class_subjects USING (class_subject_id) WHERE class_id = :classId");
 		$query->execute( array(':classId' => $classId ) );
 		$currentSubjectExams = $query->fetchAll(PDO::FETCH_OBJ);
-					
+						
 		$db->beginTransaction();
 		
         $updateClass->execute( array(':className' => $className, 
@@ -552,26 +552,6 @@ $app->put('/updateClass', function () use($app) {
 						}
 					}
 					
-					// set active to false for any not passed in
-					
-					foreach( $currentSubjectExams as $currentSubjectExam )
-					{	
-						$deleteMe = true;
-						// if found, do not delete
-						foreach( $exams as $exam )
-						{
-							if( isset($exam['class_sub_exam_id']) && $exam['class_sub_exam_id'] == $currentSubjectExam->class_sub_exam_id )
-							{
-								$deleteMe = false;
-							}
-						}
-						
-						if( $deleteMe )
-						{
-							$inactivateExam->execute(array(':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));								
-						}
-					}
-					
 				}
 				
 			}
@@ -596,6 +576,28 @@ $app->put('/updateClass', function () use($app) {
 					// if subject was marked inactive, mark exams inactive as well
 					$inactivateAllSubjectExams->execute( array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId) );
 					
+				}
+			}
+			
+			// set active to false for any not passed in					
+			foreach( $currentSubjectExams as $currentSubjectExam )
+			{	
+				$deleteMe = true;
+				
+				foreach( $subjects as $subject )
+				{
+					// if found, do not delete
+					foreach( $subject['exams'] as $exam )
+					{						
+						if( isset($exam['class_sub_exam_id']) && $exam['class_sub_exam_id'] == $currentSubjectExam->class_sub_exam_id )
+						{
+							$deleteMe = false;
+						}
+					}
+				}
+				if( $deleteMe )
+				{
+					$inactivateExam->execute(array(':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));								
 				}
 			}
 			
@@ -809,27 +811,7 @@ $app->put('/updateTeacherSubject', function () use($app) {
 							}	
 						}
 					}
-					
-					// set active to false for any not passed in
-					
-					foreach( $currentSubjectExams as $currentSubjectExam )
-					{	
-						$deleteMe = true;
-						// if found, do not delete
-						foreach( $exams as $exam )
-						{
-							if( isset($exam['class_sub_exam_id']) && $exam['class_sub_exam_id'] == $currentSubjectExam->class_sub_exam_id )
-							{
-								$deleteMe = false;
-							}
-						}
-						
-						if( $deleteMe )
-						{
-							$inactivateExam->execute(array(':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));								
-						}
-					}
-					
+										
 				}
 				
 			}
@@ -855,6 +837,28 @@ $app->put('/updateTeacherSubject', function () use($app) {
 					// if subject was marked inactive, mark exams inactive as well
 					$inactivateAllSubjectExams->execute( array(':classSubjectId' => $currentSubject->class_subject_id, ':userId' => $userId) );
 					
+				}
+			}
+			
+			// set active to false for any not passed in					
+			foreach( $currentSubjectExams as $currentSubjectExam )
+			{	
+				$deleteMe = true;
+				// if found, do not delete
+				foreach( $subjects as $subject )
+				{
+					foreach( $subject['exams'] as $exam )
+					{
+						if( isset($exam['class_sub_exam_id']) && $exam['class_sub_exam_id'] == $currentSubjectExam->class_sub_exam_id )
+						{
+							$deleteMe = false;
+						}
+					}
+				}
+				
+				if( $deleteMe )
+				{
+					$inactivateExam->execute(array(':classSubExamId' => $currentSubjectExam->class_sub_exam_id, ':userId' => $userId));								
 				}
 			}
 			
