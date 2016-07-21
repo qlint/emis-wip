@@ -1000,16 +1000,20 @@ table.clickable tr {
   text-align: left;
   margin-top: 1px;
   line-height: 10px; }
+.progress-report p.form-control-static.inline {
+  display: inline-block;
+  padding-left: 10px !important;
+  padding-right: 10px !important; }
 .progress-report table {
   border-top: 1px solid #777;
   border-bottom: 1px solid #777;
   margin-bottom: 10px;
   margin-top: 5px; }
   .progress-report table th, .progress-report table td {
-    padding: 1px 0 !important;
+    padding: 1px 4px !important;
     font-size: 11px;
     border-left: 1px solid #aaa; }
-  .progress-report table th {
+  .progress-report table thead th {
     background-color: #fff !important;
     color: #000 !important;
     font-weight: bold;
@@ -1018,13 +1022,20 @@ table.clickable tr {
   .progress-report table tr:first-child th:first-child {
     border-left: none; }
   .progress-report table tfoot td {
-    border-top: 1px solid #000 !important;
+    border-top: 3px double #000 !important;
+    font-weight: bold; }
+  .progress-report table tfoot th {
+    border-top: 3px double #aaa !important;
     font-weight: bold; }
   .progress-report table input {
     height: 20px !important;
     -webkit-border-radius: 0;
     -moz-border-radius: 0;
     border-radius: 0; }
+  .progress-report table .double-border {
+    border-left: 3px double #aaa; }
+  .progress-report table .no-border {
+    border-left: none; }
 .progress-report .progress-report-remarks table {
   border: none; }
   .progress-report .progress-report-remarks table tr td {

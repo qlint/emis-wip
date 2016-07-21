@@ -83,7 +83,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.reportCardType = data.report_card_type;
 			$scope.report.teacher_id = data.teacher_id;
 			$scope.report.teacher_name = data.teacher_name;
+			$scope.comments.teacher_name = data.teacher_name;
+			//$scope.report.head_teacher_name = data.head_teacher_name;
 			$scope.report.date = data.date;
+			$scope.nextTermStartDate = $scope.savedReportData.nextTerm;
+			$scope.currentTermEndDate = $scope.savedReportData.closingDate;
 			
 			$scope.savedReport = true;
 			$scope.canPrint = true;
@@ -145,6 +149,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.$watch('filters.term', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 
+		$scope.currentTermEndDate = newVal.end_date;
+
 		/* get the next term based on the selected term for report card */
 		apiService.getNextTerm(newVal.end_date, function(response,status){
 			var result = angular.fromJson(response);				
@@ -187,7 +193,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.report.year = $scope.currentFilters.term.year;
 		$scope.report.teacher_id = $scope.currentFilters.class.teacher_id;
 		$scope.report.teacher_name = $scope.currentFilters.class.teacher_name;
-
+		$scope.comments.teacher_name = $scope.currentFilters.class.teacher_name;
 		
 		// check to see if there is already a report card with this criteria
 		if( recreate )
@@ -595,6 +601,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.comments = angular.copy(data.comments) || {};
 		
 		$scope.nextTermStartDate = angular.copy(data.nextTerm);
+		$scope.currentTermEndDate = angular.copy(data.closingDate);
 		
 		/* if this is a teacher and not the class teacher, only display their subjects */
 		if( $scope.isTeacher && !$scope.isClassTeacher )
@@ -643,6 +650,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			totals: $scope.totals,
 			comments: $scope.comments,
 			nextTermStartDate: $scope.nextTermStartDate,
+			currentTermEndDate: $scope.currentTermEndDate,
 			report_card_type: $scope.reportCardType
 		}
 
@@ -699,6 +707,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.reportData.totals = $scope.totals;
 		$scope.reportData.comments = $scope.comments;
 		$scope.reportData.nextTerm = $scope.nextTermStartDate;
+		$scope.reportData.closingDate = $scope.currentTermEndDate;
 
 		/* if subject teacher, and there is an existing report card, need to update only the subject they are associated with */
 		if( $scope.isTeacher && !$scope.isClassTeacher )

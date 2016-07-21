@@ -6,6 +6,8 @@ function($scope, $rootScope){
 	
 	var initializeController = function()
 	{
+		$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
+		
 		var data = window.printCriteria;
 		$rootScope.isPrinting = true;
 		$scope.showReportCard = true;
@@ -18,6 +20,7 @@ function($scope, $rootScope){
 		$scope.totals = angular.fromJson(data.totals);
 		$scope.comments = angular.fromJson(data.comments);
 		$scope.nextTermStartDate = data.nextTermStartDate;
+		$scope.currentTermEndDate = data.currentTermEndDate;
 		//$scope.total_overall_mark = data.total_overall_mark;
 		$scope.reportCardType = data.report_card_type;
 		

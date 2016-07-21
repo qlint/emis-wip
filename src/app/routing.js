@@ -103,6 +103,14 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
+	.state('fees/invoice/print', {
+      url: "/fees/invoice/print",
+	  templateUrl: 'app/fees/invoice.html',
+	  controller: 'printInvoiceCtrl',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
 	.state('school/departments', {
       url: "/school/departments",
 	  templateUrl: 'app/school/departments.html',

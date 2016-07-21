@@ -160,6 +160,35 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		
 	}
 	
+	$scope.printInvoice = function()
+	{
+		// get the student and invoice line items
+		apiService.getStudentDetails($scope.invoice.student_id, function(response){
+			var result = angular.fromJson(response);
+			
+			if( result.response == 'success')
+			{
+				var student = $rootScope.formatStudentData([result.data]);
+				
+				// set current class to full class object
+				var currentClass = $rootScope.allClasses.filter(function(item){
+					if( item.class_id == student[0].class_id ) return item;
+				});
+				
+				student[0].current_class = currentClass[0];
+
+				$scope.student = student[0];
+				
+				// open up invoice
+				var data = {
+					student: $scope.student,
+					invoice: $scope.invoice
+				}	
+				$dialogs.create('/app/fees/invoice.html','invoiceCtrl',data,{size: 'md',backdrop:'static'});	
+			}
+		});
+	}
+	
 	$scope.save = function()
 	{
 		$scope.error = false;

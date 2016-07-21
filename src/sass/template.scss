@@ -1334,6 +1334,11 @@ table.clickable{
 		margin-top: 1px;
 		line-height: 10px;
 	}
+	p.form-control-static.inline {
+		display: inline-block;
+		padding-left: 10px!important;
+		padding-right: 10px!important;
+	}
 	
 	
 	table{
@@ -1343,12 +1348,12 @@ table.clickable{
 		margin-top:5px;
 		
 		th,td{
-			padding:1px 0!important;
+			padding:1px 4px!important;
 			font-size:11px;
 			border-left:1px solid #aaa;
 		}
 		
-		th{
+		thead th{
 			background-color:#fff!important;
 			color:#000!important;
 			font-weight:bold;
@@ -1359,7 +1364,11 @@ table.clickable{
 			border-left:none;
 		}
 		tfoot td{
-			border-top:1px solid #000!important;			
+			border-top:3px double #000!important;			
+			font-weight:bold;
+		}
+		tfoot th{
+			border-top:3px double #aaa!important;			
 			font-weight:bold;
 		}
 		
@@ -1367,6 +1376,14 @@ table.clickable{
 			height:20px!important;
 			@include rounded(0);
 		}
+		
+		.double-border{
+			border-left:3px double #aaa;
+		}
+		.no-border{
+			border-left:none;
+		}
+		
 	}
 	.progress-report-remarks{
 		table{

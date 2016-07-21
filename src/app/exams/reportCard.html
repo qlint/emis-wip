@@ -136,26 +136,22 @@
 							<div class="col-xs-1 nopad-right">
 								<label>Position:</label>
 							</div>
-							<div class="col-xs-1 lesspad">
-								<p class="form-control-static">{{overall.rank}}</p>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static inline">{{overall.rank}}</p> / <p class="form-control-static inline">{{overall.position_out_of}}</p>
 							</div>
-							<div class="col-xs-1 nopad-right">
-								<label>Out Of:</label>
-							</div>
-							<div class="col-xs-1 lesspad">
-								<p class="form-control-static">{{overall.position_out_of}}</p>
-							</div>
+							
 							<div class="col-xs-2 nopad-right">
 								<label>Pos Last Term:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static">{{overallLastTerm.rank}}</p>
+								<p class="form-control-static inline">{{overallLastTerm.rank||'-'}}</p> / <p class="form-control-static inline">{{overallLastTerm.position_out_of||'-'}}</p>
 							</div>
-							<div class="col-xs-1 nopad-right">
-								<label>Out Of:</label>
+							
+							<div class="col-xs-2 nopad-right">
+								<label>Last Term Marks:</label>
 							</div>
-							<div class="col-xs-3 lesspad">
-								<p class="form-control-static">{{overallLastTerm.position_out_of}}</p>
+							<div class="col-xs-2 lesspad">
+								<p class="form-control-static inline">{{overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline">{{overallLastTerm.total_grade_weight||'-'}}</p>
 							</div>
 						</div>
 					</div>
@@ -164,33 +160,31 @@
 						<thead>
 							<tr>
 								<th rowspan="3" class="center">Subject</th>
-								<th class="center" colspan="{{examTypes.length*3}}">Marks</th>
-								<th rowspan="2" colspan="2" class="center">Overall</th>
-								<th rowspan="3" class="center">Position</th>
-								<th class="center" rowspan="3" width="350">Remarks</th>
+								<th class="center double-border" colspan="{{examTypes.length*3}}">Marks</th>
+								<th rowspan="2" colspan="2" class="center double-border">Overall</th>
+								<th class="center double-border" rowspan="3" width="300">Remarks</th>
 								<th class="center" rowspan="3">Teacher<br>Int.</th>
 							</tr>
 							<tr>
-								<th class="center" colspan="3" ng-repeat="item in examTypes">{{item.exam_type}}</th>
+								<th class="center double-border" colspan="3" ng-repeat="item in examTypes">{{item.exam_type}}</th>
 							</tr>
 							<tr>
-								<th class="center" ng-repeat-start="item in examTypes">Mark</th>
+								<th class="center double-border" ng-repeat-start="item in examTypes">Mark</th>
 								<th class="center">Out Of</th>
 								<th class="center" ng-repeat-end="">Grade</th>
-								<th class="center">Avg</th>
+								<th class="center double-border">Avg</th>
 								<th class="center">Grade</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr ng-repeat="item in reportData.subjects track by $index">
 								<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
-								<td class="center" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
+								<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
 								<td class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
 								<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
-								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
+								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
 								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
-								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.position}}</span></td>
-								<td>
+								<td class="double-border">
 									<span ng-show="isPrinting">{{item.remarks}}</span>
 									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
 								</td>
@@ -200,13 +194,12 @@
 						<tfoot>
 							<tr>
 								<th class="center">Total</th>
-								<th class="center" ng-repeat-start="examType in examTypes">{{totals[examType.exam_type].total_mark}}</th>
+								<th class="center double-border" ng-repeat-start="examType in examTypes">{{totals[examType.exam_type].total_mark}}</th>
 								<th class="center">{{totals[examType.exam_type].total_grade_weight}}</th>
 								<th class="center" ng-repeat-end=""></th>
-								<th class="center">{{overall.percentage}}%</th>
+								<th class="center double-border">{{overall.percentage}}%</th>
 								<th class="center">{{overall.grade}}</th>
-								<th class="center">{{overall.rank}}</th>
-								<th colspan="2" class="center"></th>
+								<th colspan="2" class="center double-border"></th>
 							</tr>
 						</tfoot>
 					</table>
@@ -216,35 +209,47 @@
 						<table width="100%">
 							<tr>
 								<td colspan="2">
-									<label>Non examinable (sports/responsibility/clubs)</label>
+									<label>Extra Curricular Activities</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
 								</td>
 							</tr>
 							<tr ng-show="isAdmin || isClassTeacher">
 								<td width="75%">
-									<label>Class teacher comments:</label>
+									<label>Class Teacher Comments:</label>
 									<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.teacher_comments}}</p>
 								</td>
 								<td>
+									<label>Teacher Name</label>
+									<p class="form-control-static">{{comments.teacher_name}}</p>
 									<label>Sign:</label>
 								</td>
 							</tr>
 							<tr ng-show="isAdmin">
 								<td>
-									<label>Principle comments:</label>
+									<label>Head Teacher Comments:</label>
 									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>	
 								</td>
 								<td>
+									<label>Teacher Name</label>
+									<p class="form-control-static" ng-show="isPrinting">{{comments.head_teacher_name}}</p>
+									<input ng-show="!isPrinting" type="text" name="head_teacher_name" class="form-control" ng-model="comments.head_teacher_name" ng-change="updateReport()" />
+									
 									<label>Sign:</label>
 								</td>
 							</tr>
+						</table>
+						<table width="100%">
 							<tr>
-								<td colspan="2">
+								<td>
+									<label>Closing Date:</label>	
+									<p class="form-control-static">{{currentTermEndDate|date}}</p>	
+								</td>
+								<td>
 									<label>Next Term Begins:</label>	
-									<p class="form-control-static">{{nextTermStartDate}}</p>	
+									<p class="form-control-static">{{nextTermStartDate|date}}</p>	
 								</td>
 							</tr>
 						</table>

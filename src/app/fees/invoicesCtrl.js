@@ -34,7 +34,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 
 	var rowTemplate = function() 
 	{
-		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.days_overdue > 0}" ng-click="grid.appScope.viewInvoice(row.entity)">' +
+		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.days_overdue > 0}">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
@@ -44,16 +44,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.gridOptions = {
 		enableSorting: true,
 		rowTemplate: rowTemplate(),
-		rowHeight:24,
+		rowHeight:34,
 		columnDefs: [
+			{ name: 'Invoice', field: 'inv_id', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false , width:60, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.getInvoice(row.entity)"><i class="glyphicon glyphicon-file"></i><br>{{row.entity.inv_id}}</div>'},
 			{ name: 'Name', field: 'student_name', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewStudent(row.entity)">{{row.entity.student_name}}</div>'},
-			{ name: 'Class', field: 'class_name', enableColumnMenu: false,},
-			{ name: 'Invoice Date', field: 'inv_date', type: 'date', cellFilter: 'date', enableColumnMenu: false},
-			{ name: names[0], field: 'total_due', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_due|currency:""}}</div>'},
-			{ name: names[1], field: 'total_paid', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_paid|currency:""}}</div>'},
-			{ name: names[2], field: 'balance', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.balance|numeric}}</div>'},
-			{ name: 'Due Date', field: 'due_date', type: 'date', enableColumnMenu: false, cellFilter:'date' },
-			{ name: 'Days Over Due', field: 'days_overdue', enableColumnMenu: false,sort: {direction: 'desc', priority: 1},},
+			{ name: 'Class', field: 'class_name', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents"  ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.class_name}}</div>'},
+			{ name: 'Invoice Date', field: 'inv_date', type: 'date', cellFilter: 'date', enableColumnMenu: false,  cellTemplate: '<div class="ui-grid-cell-contents"  ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.inv_date|date}}</div>'},
+			{ name: names[0], field: 'total_due', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.total_due|currency:""}}</div>'},
+			{ name: names[1], field: 'total_paid', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.total_paid|currency:""}}</div>'},
+			{ name: names[2], field: 'balance', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.balance|numeric}}</div>'},
+			{ name: 'Due Date', field: 'due_date', type: 'date', enableColumnMenu: false, cellFilter:'date',  cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.due_date|date}}</div>' },
+			{ name: 'Days Over Due', field: 'days_overdue', enableColumnMenu: false,sort: {direction: 'desc', priority: 1}, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.days_overdue}}</div>'},
 		],
 		exporterCsvFilename: 'invoices.csv',
 		onRegisterApi: function(gridApi){
@@ -175,6 +176,38 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			}
 			
 		}, function(){}, {filters:filters});
+	}
+	
+	$scope.getInvoice = function(invoice)
+	{
+		// get the student and invoice line items
+		apiService.getStudentDetails(invoice.student_id, function(response){
+			var result = angular.fromJson(response);
+			
+			if( result.response == 'success')
+			{
+				var student = $rootScope.formatStudentData([result.data]);
+				
+				// set current class to full class object
+				var currentClass = $rootScope.allClasses.filter(function(item){
+					if( item.class_id == student[0].class_id ) return item;
+				});
+				
+				student[0].current_class = currentClass[0];
+
+				$scope.student = student[0];
+				
+				// open up invoice
+				var data = {
+					student: $scope.student,
+					invoice: invoice
+				}			
+				$scope.openModal('fees', 'invoice', 'md',data);
+	
+					
+			}
+		});
+		
 	}
 	
 	var calcTotals = function()
@@ -397,7 +430,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	$scope.viewInvoice = function(item)
 	{
-		$scope.openModal('fees', 'invoiceDetails', 'lg', item);	
+		$scope.openModal('fees', 'invoiceDetails', 'md', item);	
 	}
 	
 	$scope.$on('refreshInvoices', function(event, args) {

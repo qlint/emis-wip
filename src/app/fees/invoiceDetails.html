@@ -123,6 +123,7 @@
 				<button type="button" class="btn btn-danger" ng-click="cancelInvoice()" ng-show="permissions.fees.invoices.delete && !invoice.canceled">Cancel Invoice</button>
 				<button type="button" class="btn btn-success" ng-click="reactivateInvoice()" ng-show="permissions.fees.invoices.edit && invoice.canceled">Reactivate Invoice</button>
 				<button type="button" class="btn btn-link" ng-click="revertInvoice()" ng-show="edit && changes">Undo Changes</button>
+				<button type="button" class="btn btn-success" ng-click="printInvoice()"><i class="glyphicon glyphicon-print"></i> Print</button>	
 			</div>
 			
 			<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
