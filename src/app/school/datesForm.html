@@ -42,6 +42,10 @@
 					</div>
 			</div>
 			<div class="modal-footer">
+				<div class="pull-left" ng-show="canDelete">
+					<button type="button" class="btn btn-danger" ng-click="deleteTerm()">Delete</button>	
+				</div>
+			
 				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
 				<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>
 				<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>

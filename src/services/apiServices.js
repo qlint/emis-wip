@@ -232,6 +232,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		else  ajaxService.AjaxGet(path + "/getNextTerm/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.deleteTerm = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deleteTerm/" + param, successFunction, errorFunction, params);
+	};
+	
 	/*********** subjects ***********/
 	this.getAllSubjects = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getAllSubjects/" + param, successFunction, errorFunction, params);

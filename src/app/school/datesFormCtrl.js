@@ -6,6 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	$scope.edit = ( data !== undefined ? true : false );
 	$scope.date = ( data !== undefined ? data : {} );
+	$scope.canDelete = ( $scope.date.has_exams == '0' ? true : false);
 		
 	$scope.initializeController = function()
 	{
@@ -75,5 +76,27 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		$scope.errMsg = result.data;
 	}
 	
+	$scope.deleteTerm = function()
+	{
+		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete this term? <br><br><b><i>(THIS CAN NOT BE UNDONE)</i></b>',{size:'sm'});
+		dlg.result.then(function(btn){
+			apiService.deleteTerm($scope.date.term_id, function(response,status,params){
+				var result = angular.fromJson(response);
+				if( result.response == 'success')
+				{
+					var msg = 'Term was deleted.';
+					$rootScope.$emit('termAdded', {'msg' : msg, 'clear' : true});
+					$uibModalInstance.dismiss('canceled');  
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, apiError);
+
+		});
+	}
 	
 } ]);

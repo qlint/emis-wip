@@ -11,7 +11,8 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 		if( $year == null )
 		{
 			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name, start_date, end_date,
-										  case when term_id = (select term_id from app.current_term) then true else false end as current_term, date_part('year',start_date) as year
+										  case when term_id = (select term_id from app.current_term) then true else false end as current_term, date_part('year',start_date) as year,
+										  (select count(*) from app.exam_marks where term_id = terms.term_id) as has_exams
 										FROM app.terms
 										--WHERE date_part('year',start_date) <= date_part('year',now())
 										ORDER BY date_part('year',start_date), term_name");
@@ -21,7 +22,8 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 		{
 			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name,start_date, end_date,
 										  case when term_id = (select term_id from app.current_term) then true else false end as current_term,
-										  date_part('year',start_date) as year
+										  date_part('year',start_date) as year,
+										  (select count(*) from app.exam_marks where term_id = terms.term_id) as has_exams
 										FROM app.terms
 										WHERE date_part('year',start_date) = :year
 										ORDER BY date_part('year',start_date), term_name");
@@ -195,5 +197,32 @@ $app->put('/updateTerm', function () use($app) {
 
 });
 
+$app->delete('/deleteTerm/:term_id', function ($termId) {
+    // delete term
+	
+	$app = \Slim\Slim::getInstance();
+
+    try 
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("DELETE FROM app.terms WHERE term_id = :termId");		
+										
+		$sth->execute( array(':termId' => $termId) );
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
 
 ?>
