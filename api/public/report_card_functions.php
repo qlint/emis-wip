@@ -147,7 +147,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 		
 		// get exam marks by exam type
 		$params = array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId);
-		$query = "SELECT subject_name, mark, grade_weight, exam_type, rank, grade, parent_subject_name, teacher_id
+		$query = "SELECT subject_name, mark, grade_weight, exam_type, rank, grade, parent_subject_name, teacher_id,initials
 					FROM (
 						SELECT class_subjects.class_id
 							  ,subject_name      
@@ -160,13 +160,16 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 							  subjects.sort_order,
 							  exam_types.exam_type_id,
 							  (select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
-							  subjects.teacher_id
+							  subjects.teacher_id,
+							  employees.initials
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types
 						ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 						INNER JOIN app.class_subjects 
 							INNER JOIN app.subjects
+								LEFT JOIN app.employees
+								ON subjects.teacher_id = employees.emp_id
 							ON class_subjects.subject_id = subjects.subject_id
 							INNER JOIN app.classes
 							ON class_subjects.class_id = classes.class_id

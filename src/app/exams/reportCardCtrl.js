@@ -419,7 +419,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					{
 						subject_name: item.subject_name,
 						parent_subject_name: item.parent_subject_name,
-						teacher_id: item.teacher_id
+						teacher_id: item.teacher_id,
+						initials: item.initials
 					}
 				);
 				
