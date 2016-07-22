@@ -460,6 +460,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.canDelete = ( $scope.isTeacher ? false : true);
 		
 				$scope.report = result.data;
+				$scope.report.term = $scope.report.term_name;
 				$scope.savedReportData = ( result.data.report_data !== null ? angular.fromJson(result.data.report_data) : []);
 				$scope.originalData = angular.copy($scope.savedReportData);
 						
