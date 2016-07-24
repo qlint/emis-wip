@@ -127,9 +127,20 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 											 ELSE 0 END
 										ELSE
 											-- are there any installments due this term
-											case when payment_plan_name = 'Per Month' then 4
-												 when payment_plan_name = 'Per Term' then 1
-											end
+											(SELECT count(*) FROM (
+												SELECT
+												generate_series(date_last_invoice, date_last_invoice + ((payment_interval*(num_per_pay_period-1)) || payment_interval2)::interval, (payment_interval::text || payment_interval2)::interval)::date
+												--generate_series(year_start_date, year_start_date + ((payment_interval*(num_payments-1)) || payment_interval2)::interval, (payment_interval::text || payment_interval2)::interval)::date  as due_date
+												FROM (
+														SELECT payment_interval,payment_interval2,num_payments,
+														coalesce( (select max(due_date) from app.invoices where invoices.student_id = students.student_id), (select start_date from app.current_term)) as date_last_invoice
+														FROM app.students
+														INNER JOIN app.installment_options 
+														ON installment_option_id = installment_options.installment_id
+														WHERE student_id = 5
+													) q
+												)q2
+											)
 										END
 									 ELSE
 										-- otherwise we are paying annually, this is due in the first invoice
@@ -141,7 +152,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 											AND student_fee_item_id = q.student_fee_item_id
 										) = 0 THEN 1 ELSE 0 END
 								END::integer AS num_payments_this_term,
-								coalesce( (select max(due_date) from app.invoices where invoices.student_id = q.student_id), term_start_date) as date_last_invoice
+								date_last_invoice
 							FROM (
 								SELECT 
 									students.student_id, first_name, middle_name, last_name, 
@@ -151,7 +162,11 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 									(select start_date from $termStatement) as term_start_date,
 									(select end_date from $termStatement) as term_end_date,
 									coalesce((select start_date from $nextTermStatement), (select end_date from $termStatement)) as start_next_term,
-									( select min(start_date) from app.terms where date_part('year',start_date) = date_part('year', (select start_date from $termStatement)) ) as year_start_date
+									( select min(start_date) from app.terms where date_part('year',start_date) = date_part('year', (select start_date from $termStatement)) ) as year_start_date,
+									coalesce( (select max(due_date) from app.invoices where invoices.student_id = students.student_id), (select start_date from $termStatement)) as date_last_invoice,
+									case when payment_plan_name = 'Per Month' then 4
+										 when payment_plan_name = 'Per Term' then 1
+									end as num_per_pay_period
 								FROM app.students									
 								INNER JOIN app.student_fee_items
 									INNER JOIN app.fee_items
