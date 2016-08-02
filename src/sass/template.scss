@@ -377,7 +377,13 @@ h1{
 		margin-bottom:3px;
 	}
 	.pic-container{
-		margin-top:50%;
+		margin-bottom:25px;
+		
+		p{
+			text-align:left;
+			border-bottom:1px solid #aaa;
+			font-weight:600;
+		}
 	}
 }
 .dashboard-panel{
@@ -795,6 +801,10 @@ form .select2-chosen button {
 .center{
 	text-align:center;
 }
+img.center{
+	display:block;
+	margin:0 auto;
+}
 .clickable{
 	cursor:pointer;
 }
@@ -897,10 +907,23 @@ table.dataTable tbody tr.alert-info td,
 	background-color: #d9edf7!important;
 }
 
-table.dataTable tbody tr.canceled td{
+table.dataTable tbody tr.canceled td,
+div.canceled div.ui-grid-cell{
 	text-decoration:line-through;
 	background-color:#ccc!important;
 	color:#aaa!important;
+}
+
+.compact{
+
+	p.form-control-static{
+		padding:0!important;
+		min-height:15px!important;
+		height:auto!important;
+	}
+	th{
+		padding:4px 18px!important;
+	}
 }
 
 table.clickable{
@@ -1166,6 +1189,7 @@ table.clickable{
 		border-top-right-radius: 0;
 		border-top-left-radius: 0;
 		padding-bottom: 15px;
+		margin-bottom: 5px;
 	}
 }
 
@@ -1247,9 +1271,9 @@ table.clickable{
 	p.form-control-static{
 		border-bottom: 1px dotted #bbb;
 		padding: 0 3px 0 3px !important;
-		height: 18px!important;
-		min-height: 18px!important;
-		font-size: 18px;
+		height: 14px!important;
+		min-height: 16px!important;
+		font-size: 16px;
 		margin-bottom: 5px;
 		text-align: left;
 		margin-top: 1px;
@@ -1886,6 +1910,9 @@ table.clickable{
 		
 		img{
 			height:60px;
+		}
+		img.center{
+			height:auto;
 		}
 		
 		.progress-report-header

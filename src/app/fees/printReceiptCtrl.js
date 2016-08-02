@@ -3,7 +3,7 @@
 angular.module('eduwebApp').
 controller('printReceiptCtrl', ['$scope', '$rootScope',
 function($scope, $rootScope){
-	
+
 	var initializeController = function()
 	{
 		var data = window.printCriteria;

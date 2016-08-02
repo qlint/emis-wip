@@ -8,6 +8,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 	$scope.student = data.student;
 	$scope.feeItems = data.feeItems;
 	
+	
 	var initializeController = function()
 	{
 		apiService.getPaymentDetails($scope.payment.payment_id, loadPaymentDetails, apiError);

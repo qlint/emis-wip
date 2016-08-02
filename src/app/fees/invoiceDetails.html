@@ -9,55 +9,21 @@
 				{{errMsg}}
 			</p>			
 
-			<div class="row">	
-				<div class="col-sm-8">
-					<!-- invoice id -->
-					<div class="form-group">		
-						<label class="col-sm-4 control-label">Invoice Number</label>
-						<div class="col-sm-8">
-							<p class="form-control-static">{{invoice.inv_id}}</p>
-						</div>	
-					</div>
-					<!-- student -->
-					<div class="form-group">		
-						<label class="col-sm-4 control-label">Student</label>
-						<div class="col-sm-8">
-							<p class="form-control-static">{{invoice.student_name}}</p>
-						</div>	
-					</div>
-					<!-- invoice date -->
-					<div class="form-group">		
-						<label for="inv_date" class="col-sm-4 control-label">Invoice Date</label>
-						<div class="col-sm-6">
-							<p class="form-control-static" ng-show="!edit">{{invoice.inv_date}}</p>
-							<div class="input-group" ng-show="edit">
-								<input type="text" name="inv_date" date-range-picker class="form-control date-picker input-sm" ng-model="date" options="{singleDatePicker: true,autoApply: true}" />
-								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
-							</div>
-						</div>	
-					</div>
-					
-					<!-- due date -->
-					<div class="form-group">		
-						<label for="due_date" class="col-sm-4 control-label">Due Date</label>
-						<div class="col-sm-6">
-							<p class="form-control-static" ng-show="!edit">{{invoice.due_date}}</p>
-							<div class="input-group" ng-show="edit">
-								<input type="text" name="due_date" date-range-picker class="form-control date-picker input-sm" ng-model="due_date" options="{singleDatePicker: true,autoApply: true}" />
-								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
-							</div>
-						</div>	
-					</div>
-					
-					<!-- balance -->
-					<div class="form-group">		
-						<label class="col-sm-4 control-label">Balance</label>
-						<div class="col-sm-8">
-							<p class="form-control-static"><strong>{{totals.balance|numeric}} {{currency}}</strong></p>
-						</div>	
-					</div>
+			<div class="row compact">
+			
+				<!-- invoice number -->
+				<div class="col-sm-4" >		
+					<label>Invoice Number</label>
+					<p class="form-control-static">{{invoice.inv_id}}</p>
 				</div>
-				<div class="col-sm-3">
+						
+				<!-- student -->
+				<div class="col-sm-4" >		
+					<label>Student</label>
+					<p class="form-control-static">{{invoice.student_name}}</p>
+				</div>
+				
+				<div class="col-sm-4">
 					<div class="alert alert-success invoice-status" ng-show="invoice.balance==0 && !invoice.canceled">
 						Paid in Full
 					</div>
@@ -68,6 +34,41 @@
 						Canceled!
 					</div>
 				</div>
+				
+			</div>
+			
+			
+			<div class="row compact">	
+				<!-- invoice date -->
+				<div class="col-sm-4" >		
+					<label>Invoice Date</label>
+					<p class="form-control-static" ng-show="!edit">{{invoice.inv_date}}</p>
+					<div ng-show="edit">
+						<div class="input-group">
+							<input type="text" name="inv_date" date-range-picker id="inv_date" class="form-control date-picker input-sm" ng-model="date" options="{singleDatePicker: true,autoApply: true}" >
+							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+						</div>
+					</div>
+				</div>
+				
+				<!-- due date -->
+				<div class="col-sm-4" >		
+					<label>Due Date</label>
+					<p class="form-control-static" ng-show="!edit">{{invoice.due_date}}</p>
+					<div ng-show="edit">
+						<div class="input-group">
+							<input type="text" name="due_date" date-range-picker id="due_date" class="form-control date-picker input-sm" ng-model="due_date" options="{singleDatePicker: true,autoApply: true}" >
+							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+						</div>
+					</div>
+				</div>
+					
+				<!-- balance -->
+				<div class="col-sm-4" >		
+					<label>Balance</label>
+					<p class="form-control-static"><strong>{{totals.balance|numeric}} {{currency}}</strong></p>
+				</div>
+
 			</div>
 
 			<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
@@ -95,7 +96,7 @@
 						</td>
 					</tr>
 				</tbody>
-				<tfoot>
+				<tfoot class="compact">
 					<tr>
 						<td colspan="3">
 							<button type="button" class="btn btn-sm btn-success" ng-click="addRow()" ng-show="!invoice.canceled">Add Line Item</button>

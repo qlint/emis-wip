@@ -59,10 +59,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'School Level' : angular.copy($rootScope.currentUser.settings['School Level']	),
 			'logo' : angular.copy($rootScope.currentUser.settings['logo']	),
 			'Currency' : angular.copy($rootScope.currentUser.settings['Currency']	),
+			'Letterhead' : angular.copy($rootScope.currentUser.settings['Letterhead']	),
 		}
+		console.log($rootScope.currentUser.settings);
+		console.log($scope.settings);
 	}
 	
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){
+		// need to watch the uploaded and manually set form to dirty if changed
+		if( newVal === undefined) return;
+		$scope.schoolForm.$setDirty();
+	});
+	
+	$scope.$watch('uploader2.queue[0]', function(newVal, oldVal){
 		// need to watch the uploaded and manually set form to dirty if changed
 		if( newVal === undefined) return;
 		$scope.schoolForm.$setDirty();
@@ -81,6 +90,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 				uploader.queue[0].file.name = moment() + '_' + uploader.queue[0].file.name;
 				uploader.uploadAll();
 			}
+			// do letterhead upload
+			if( uploader2.queue[0] !== undefined )
+			{
+				uploader2.queue[0].file.name = moment() + '_' + uploader2.queue[0].file.name;
+				uploader2.uploadAll();
+			}
 			
 			var settings = [];
 			angular.forEach( $scope.settings, function(item,key){
@@ -90,6 +105,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 					settings.push({
 						name: 'logo',
 						value: uploader.queue[0].file.name,
+						append: false
+					})
+				}
+				else if( uploader2.queue[0] !== undefined && key == 'Letterhead' )
+				{
+					settings.push({
+						name: 'Letterhead',
+						value: uploader2.queue[0].file.name,
 						append: false
 					})
 				}
@@ -271,6 +294,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	
 	
 	var uploader = $scope.uploader = new FileUploader({
+            url: 'upload.php',
+			formData : [{
+				'dir': 'schools'
+			}]
+    });	
+	var uploader2 = $scope.uploader2 = new FileUploader({
             url: 'upload.php',
 			formData : [{
 				'dir': 'schools'

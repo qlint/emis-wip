@@ -41,6 +41,8 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 		//$scope.currentUser = $rootScope.currentUser;
 		$rootScope.permissions = [];
 		$rootScope.manageUsers = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false);
+		
+		$rootScope.useLetterhead = ( $rootScope.currentUser.settings['Letterhead'] !== undefined ? true : false);
 
 		switch( $rootScope.currentUser.user_type ){
 			case "SYS_ADMIN":

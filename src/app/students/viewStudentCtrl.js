@@ -35,7 +35,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var rowTemplate = function() 
 	{
-		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.balance>0, \'alert-success\':row.entity.balance==0, \'canceled\': row.entity.canceled}" ng-click="grid.appScope.viewInvoice(row.entity)">' +
+		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.balance>0, \'alert-success\':row.entity.balance==0, \'canceled\': row.entity.canceled}">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
@@ -73,13 +73,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.invoiceGrid = {
 		enableSorting: true,
 		rowTemplate: rowTemplate(),
-		rowHeight:24,
+		rowHeight:34,
 		columnDefs: [
-			{ name: 'Invoice Date', field: 'inv_date', type:'date', cellFilter:'date', enableColumnMenu: false},
-			{ name: 'Due Date', field: 'due_date', type:'date', cellFilter:'date', enableColumnMenu: false, sort: {direction:'desc'}},
-			{ name: names[0], field: 'total_due', cellFilter:'currency:""', cellClass:'center', headerCellClass:'center',  enableColumnMenu: false,},
-			{ name: names[1], field: 'total_paid', cellFilter:'currency:""', cellClass:'center', headerCellClass:'center',  enableColumnMenu: false,},
-			{ name: names[2], field: 'balance', cellFilter:'numeric', cellClass:'center', headerCellClass:'center', enableColumnMenu: false,},
+			{ name: 'Invoice', field: 'inv_id', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false , width:60, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.getInvoice(row.entity)"><i class="glyphicon glyphicon-file"></i><br>{{row.entity.inv_id}}</div>'},
+			{ name: 'Invoice Date', field: 'inv_date', type:'date', cellFilter:'date', enableColumnMenu: false,  cellTemplate: '<div class="ui-grid-cell-contents"  ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.inv_date|date}}</div>'},
+			{ name: 'Due Date', field: 'due_date', type:'date', cellFilter:'date', enableColumnMenu: false, sort: {direction:'desc'},  cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.due_date|date}}</div>' },
+			{ name: names[0], field: 'total_due', cellFilter:'currency:""', cellClass:'center', headerCellClass:'center',  enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.total_due|currency:""}}</div>'},
+			{ name: names[1], field: 'total_paid', cellFilter:'currency:""', cellClass:'center', headerCellClass:'center',  enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.total_paid|currency:""}}</div>'},
+			{ name: names[2], field: 'balance', cellFilter:'numeric', cellClass:'center', headerCellClass:'center', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.balance|numeric}}</div>'},
 		],
 		onRegisterApi: function(gridApi){
 		  $scope.gridApi = gridApi;
@@ -706,6 +707,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
 		});
 	
+	}
+	$scope.getInvoice = function(invoice)
+	{
+		// open up invoice
+		var data = {
+			student: $scope.student,
+			invoice: invoice
+		}			
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoice.html','invoiceCtrl',data,{size: 'md',backdrop:'static'});
+		
+		//$scope.openModal('fees', 'invoice', 'md',data);
 	}
 	
 	var loadPayments = function(response,status)

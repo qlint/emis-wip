@@ -6,7 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 
 	$scope.invoice = data.invoice;
 	$scope.student = data.student;
-	
+
 	var initializeController = function()
 	{	
 		var params =  $scope.invoice.inv_id;

@@ -543,7 +543,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 	
 	this.cancelInvoice = function (request, successFunction, errorFunction, params) {          
-		ajaxService.AjaxPut(request, path + "/cancelInvoice/", successFunction, errorFunction, params);
+		ajaxService.AjaxPut(request, path + "/cancelInvoice", successFunction, errorFunction, params);
 	};
 	
 	this.reactivateInvoice = function (request, successFunction, errorFunction, params) {          

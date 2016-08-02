@@ -9,7 +9,9 @@
 				{{errMsg}}
 			</p>
 			
-			<div class="row">
+			<img ng-if="useLetterhead" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+			
+			<div class="row" ng-if="!useLetterhead">
 				<div class="col-xs-2">
 					<img src="{{'assets/schools/' + currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" /> 
 				</div>

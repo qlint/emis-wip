@@ -55,7 +55,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		rowHeight:24,
 		columnDefs: [
 			{ name: 'Student', field: 'student_name', enableColumnMenu: false, sort: {direction: 'asc'} },
-			{ name: names[0], field: 'amount', cellFilter:'currency:""', enableColumnMenu: false },
+			{ name: names[1], field: 'balance', cellFilter:'numeric', enableColumnMenu: false },
 			{ name: 'Due Date', field: 'due_date', type:'date', cellFilter:'date', enableColumnMenu: false },
 		],
 		onRegisterApi: function(gridApi){
@@ -172,7 +172,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			if( result.data  instanceof Array )
 			{
 				$scope.paymentsDueTotal = result.data.reduce(function(sum,item){
-					return sum = (sum + parseFloat(item.amount));
+					return sum = (sum + parseFloat(item.balance));
 				},0);
 			}
 			
@@ -211,7 +211,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$scope.paymentsPastDueTotal = 0; 
 			$scope.pastDueLoading = false;
 			
-			if( result.data  instanceof Array )
+			if( result.data instanceof Array )
 			{
 				$scope.paymentsPastDueTotal = result.data.reduce(function(sum,item){
 					return sum = (sum + parseFloat(item.balance));

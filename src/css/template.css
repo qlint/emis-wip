@@ -246,7 +246,11 @@ h1 {
 .school_settings .dashboard-panel .form-group {
   margin-bottom: 3px; }
 .school_settings .dashboard-panel .pic-container {
-  margin-top: 50%; }
+  margin-bottom: 25px; }
+  .school_settings .dashboard-panel .pic-container p {
+    text-align: left;
+    border-bottom: 1px solid #aaa;
+    font-weight: 600; }
 
 .dashboard-panel {
   margin: 0 -10px;
@@ -603,6 +607,10 @@ form .select2-chosen button {
 .center {
   text-align: center; }
 
+img.center {
+  display: block;
+  margin: 0 auto; }
+
 .clickable {
   cursor: pointer; }
 
@@ -689,10 +697,18 @@ table.dataTable tbody tr.alert-info td,
 .alert-info {
   background-color: #d9edf7 !important; }
 
-table.dataTable tbody tr.canceled td {
+table.dataTable tbody tr.canceled td,
+div.canceled div.ui-grid-cell {
   text-decoration: line-through;
   background-color: #ccc !important;
   color: #aaa !important; }
+
+.compact p.form-control-static {
+  padding: 0 !important;
+  min-height: 15px !important;
+  height: auto !important; }
+.compact th {
+  padding: 4px 18px !important; }
 
 table.clickable tr {
   cursor: pointer; }
@@ -880,7 +896,8 @@ table.clickable tr {
     text-align: center;
     border-top-right-radius: 0;
     border-top-left-radius: 0;
-    padding-bottom: 15px; }
+    padding-bottom: 15px;
+    margin-bottom: 5px; }
 
 .section-container {
   margin-bottom: 27px;
@@ -937,9 +954,9 @@ table.clickable tr {
   .receipt p.form-control-static {
     border-bottom: 1px dotted #bbb;
     padding: 0 3px 0 3px !important;
-    height: 18px !important;
-    min-height: 18px !important;
-    font-size: 18px;
+    height: 14px !important;
+    min-height: 16px !important;
+    font-size: 16px;
     margin-bottom: 5px;
     text-align: left;
     margin-top: 1px;
@@ -1369,6 +1386,8 @@ table.clickable tr {
 
   .progress-report img {
     height: 60px; }
+  .progress-report img.center {
+    height: auto; }
   .progress-report .progress-report-header {
     margin-bottom: 5px; }
     .progress-report .progress-report-header h1 {
