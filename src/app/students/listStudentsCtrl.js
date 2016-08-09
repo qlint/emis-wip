@@ -285,7 +285,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	*/
 	$scope.$watch('filters.class_cat_id', function(newVal,oldVal){
 		if (oldVal == newVal) return;
-		console.log(newVal);
+
 		if( newVal === undefined || newVal === null || newVal == '' ) 	$scope.classes = $rootScope.allClasses;
 		else
 		{	

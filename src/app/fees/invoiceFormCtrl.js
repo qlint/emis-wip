@@ -17,8 +17,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	$scope.totals = {};
 	$scope.alert = {};
 	
-	console.log($scope.selectedStudent);
-	console.log($scope.selectedStudent);
 	
 	$scope.initializeController = function()
 	{
@@ -221,7 +219,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			});
 			
 			$scope.invoiceLineItems = $scope.invoices[$scope.activeInvoice];
-			console.log($scope.invoiceLineItems);
 			$scope.totals.balance = angular.copy($scope.invoiceTotal[$scope.activeInvoice]);
 			$scope.totals.invoice = angular.copy($scope.totals.balance);
 			

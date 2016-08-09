@@ -544,7 +544,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			};
 			
 		}
-		console.log(data);
 		apiService.updatePayment(data,createCompleted,apiError);
 		
 	}

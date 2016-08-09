@@ -61,8 +61,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Currency' : angular.copy($rootScope.currentUser.settings['Currency']	),
 			'Letterhead' : angular.copy($rootScope.currentUser.settings['Letterhead']	),
 		}
-		console.log($rootScope.currentUser.settings);
-		console.log($scope.settings);
+
 	}
 	
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){

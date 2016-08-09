@@ -332,7 +332,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		else if( requery )
 		{
 			// need to get fresh data, most likely because the user selected a new year
-			console.log('here');
 			getInvoices(currentStatus, true);		
 		}
 		else

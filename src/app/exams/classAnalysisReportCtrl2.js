@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('listExamsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse',
-function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
+controller('classAnalysisReportCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse', 'uiGridConstants',
+function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, uiGridConstants){
 
 	var initialLoad = true;
 	$scope.filters = {};
@@ -17,6 +17,29 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.refreshing = false;
 	$scope.getReport = "examsTable";
 	//$scope.loading = true;
+	
+	var footerTemplate = function() 
+	{
+		return   "<div class=\"ui-grid-footer-panel ui-grid-footer-aggregates-row\">" +
+				 "<div class=\"ui-grid-footer ui-grid-footer-viewport\"><div class=\"ui-grid-footer-canvas\"><div class=\"ui-grid-footer-cell-wrapper\" ng-style=\"colContainer.headerCellWrapperStyle()\"><div role=\"row\" class=\"ui-grid-footer-cell-row\">" +
+				 "<div ui-grid-footer-cell role=\"gridcell\" ng-repeat=\"col in colContainer.renderedColumns track by col.uid\" col=\"col\" render-index=\"$index\" class=\"ui-grid-footer-cell ui-grid-clearfix\">" +
+				 "</div></div></div></div></div></div>"
+  
+	}
+	
+	$scope.gridOptions = {
+		enableSorting: true,
+		rowHeight:24,
+		columnFooterHeight:40,
+		showColumnFooter: true,
+		exporterCsvFilename: 'class-analysis.csv',
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
 	
 	var initializeController = function () 
 	{
@@ -115,14 +138,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.filters.term_id = currentTerm.term_id;
 			deferred2.resolve();
 		}
+
 		
-		
-		/* taking the out, going to need user to choose exam then click load 
-		// need to wait for three data pieces, then run this
-		$q.all(requests).then(function () {
-			//if( $scope.filters.class_id !== null ) $scope.getStudentExams();
-		});	
-		*/
 	}
 	$timeout(initializeController,1);
 
@@ -146,6 +163,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.getStudentExams = function()
 	{
 		$scope.examMarks = {};
+		$scope.totalMarks = {};
+		$scope.meanScores = {};
 		$scope.tableHeader = [];
 		$scope.marksNotFound = false;
 		$scope.getReport = "";
@@ -164,24 +183,31 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			if( result.nodata )
 			{
 				$scope.marksNotFound = true;
-				$scope.errMsg = "There are currently no exam marks entered for this search criteria.";				
+				$scope.errMsg = "There are currently no exam marks entered for this search criteria.";
 			}
 			else
 			{
-				
+				/*
 				if( $scope.dataGrid !== undefined )
 				{
 					$('.fixedHeader-floating').remove();
 					$scope.dataGrid.clear();
 					$scope.dataGrid.destroy();
 				}
+				*/
+				
+				$scope.gridOptions.columnDefs = [
+					{ name: 'Student', field: 'student_name', enableColumnMenu: false, footerCellFilter: '<div class="ui-grid-cell-contents right">TOTAL MARKS<br>MEAN SCORE</div>'},
+				];
 				
 				$scope.examMarks = result.data;
+				$scope.totalStudents = result.data.length;
 				
 				/* loop through the first exam mark result to build the table columns */
 				$scope.tableHeader = [];
 				var ignoreCols = ['student_id','student_name','rank','exam_type'];
-				var subjectsArray = {};				
+				var subjectsWeights = {};
+				var subjectsObj = {};
 				angular.forEach($scope.examMarks[0], function(value,key){
 					if( ignoreCols.indexOf(key) === -1 )
 					{
@@ -195,58 +221,133 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							subjectName = subjectDetails[2],
 							gradeWeight = subjectDetails[3];
 						
-						colRow = subjectName + ' / ' + gradeWeight;
-						
 						/* each subject group needs to scored out of 100, if a subject does not have a parent, add 100 for grand total
 						   if a subject has a parent, add 100 for each parent subject
-						*/						
-						if( parentSubject == '' ) subjectsArray[subjectName] = 100; // no parent
-						else subjectsArray[parentSubject] = 100; // has parent, use parents subject name
-						
-						$scope.tableHeader.push({
-							title: colRow,
-							key: key,
-							isParent: (parentSubject == '' ? true : false)
-						});
+						*/
+						// also grouping to determine which subjects are parents but do not have children
+						// needed to build table header, which happens next
+						if( parentSubject == '' )
+						{
+							// no parent
+							subjectsWeights[subjectName] = 100;
+							if( subjectsObj[subjectName] === undefined )
+							{ 
+								subjectsObj[subjectName] = {
+									isParent:true,
+									subjectName:subjectName,
+									children: []
+								}
+							}
+						}
+						else
+						{
+							// has parent, use parents subject name
+							subjectsWeights[parentSubject] = 100;
+							if( subjectsObj[parentSubject] === undefined )
+							{
+								subjectsObj[parentSubject] = {
+									isParent:true,
+									subjectName:parentSubject,
+									children: []
+								};
+							}
+							subjectsObj[parentSubject].children.push({
+								subjectName:subjectName
+							});
+						}						
 					}
 				});
 
-				/* sum up the total grade weight value */
-				$scope.totalGradeWeight = 0;
-				for (var key in subjectsArray) {
-					// skip loop if the property is from prototype
-					if (!subjectsArray.hasOwnProperty(key)) continue;
+				// build table header, use TOT for parents that have children
+				// exception is Kiswahili, needs to be Juml (total in Kiswahili)
+				angular.forEach($scope.examMarks[0], function(value,key){
+					if( ignoreCols.indexOf(key) === -1 )
+					{
+						var colRow = key.replace(/["']/g, "");
+						var subjectDetails = colRow.split(', '),
+							parentSubject = subjectDetails[1],
+							subjectName = subjectDetails[2];
+						
+						var hasChildren = ( parentSubject == '' && subjectsObj[subjectName].children.length > 0 ? true : false );
+						var cellClass = ( parentSubject == '' ? 'strong' : 'text-muted');
+						/*
+						$scope.tableHeader.push({
+							title: (hasChildren ? ( subjectName == 'Kiswahili' ? 'Juml' : 'TOT') : subjectName),
+							key: key,
+							isParent: (parentSubject == '' ? true : false)
+						});
+						*/
+						
+						$scope.gridOptions.columnDefs.push({
+							name: (hasChildren ? ( subjectName == 'Kiswahili' ? 'Juml' : 'TOT') : subjectName), 
+							field: key, 
+							enableColumnMenu: false,
+							cellClass: cellClass,
+							aggregationType: averageAndTotal,
+							footerCellFilter: '<div class="ui-grid-cell-contents">{{col.getAggregationValue()[1]}}<br>{{col.getAggregationValue()[0] | number : 1}}</div>'
+						});
+					}
+				});
+				
 
-					var value = subjectsArray[key];
-					$scope.totalGradeWeight += subjectsArray[key];
+				/* sum up the total grade weight value 
+				$scope.totalGradeWeight = 0;
+				for (var key in subjectsWeights) {
+					// skip loop if the property is from prototype
+					if (!subjectsWeights.hasOwnProperty(key)) continue;
+
+					//var value = subjectsWeights[key];
+					$scope.totalGradeWeight += subjectsWeights[key];
 				}
+				*/
 				
 				/* loop through all exam mark results and calculate the students total score */
 				/* only total up the parent subjects */
-				// total up marks				
+				// total up marks
 				
 				var total = 0;
+				// need to total up each subject for total marks in footer
+				//$scope.totalMarks = {};
 				angular.forEach($scope.examMarks, function(item){
 					var total = 0;
+
 					angular.forEach(item, function(value,key){
 						if( ignoreCols.indexOf(key) === -1 )
-						{							
+						{
 							var colRow = key.replace(/["']/g, "");
 							var subjectDetails = colRow.split(', '),
-								parentSubject = subjectDetails[1],
-								subjectName = subjectDetails[2],
-								gradeWeight = subjectDetails[3];
+								parentSubject = subjectDetails[1];
 							
-							if( parentSubject == '' ) total += value;	
-						}							
-						
+							if( parentSubject == '' ) total += value;
+							
+							//if( $scope.totalMarks[key] === undefined ) $scope.totalMarks[key] = 0; 
+							//$scope.totalMarks[key] = $scope.totalMarks[key] + value;
+						}
 					});
 					item.total = Math.round(total);
 					
 				});
 				
+				$scope.gridOptions.columnDefs.push(
+					{
+						name: 'G.TOT', 
+						field: 'total', 
+						enableColumnMenu: false,
+						cellClass: 'strong',
+					},
+					{
+						name: 'Pos', 
+						field: 'rank', 
+						enableColumnMenu: false,
+						cellClass: 'strong',
+						sort: {direction:'asc'},
+					}
+				);
+
 				$scope.getReport = "examsTable";
-				$timeout(initDataGrid,100);
+				//$timeout(initDataGrid,100);
+				$scope.gridOptions.data = $scope.examMarks;
+				
 			}
 		}
 		else
@@ -256,9 +357,47 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 	}
 	
+	Array.prototype.avg = function (e) 
+	{
+		if (this.length == 0)return 0;
+		var t = 0;
+		for (var n = 0; n < this.length; n++) {
+			t += this[n]["entity"][e] / this.length;
+		}
+		return t;
+	};
+
+	Array.prototype.total = function (e) 
+	{
+		if (this.length == 0)return 0;
+		var t = 0;
+		for (var n = 0; n < this.length; n++) {
+			t += this[n]["entity"][e];
+		}
+		return t;
+	};
+
+	var averageAndTotal = function(e,t)
+	{
+		var n = e.avg(t.field);
+        var r = e.total(t.field, n);
+        return [n, r];
+	}
+	
 	$scope.displayMark = function(index, key)
 	{
-		return $parse("examMarks[" + index + "][\"" + key + "\"]" )($scope) || '-' ;
+		return $scope.examMarks[index][key] || '-';
+		//return $parse("examMarks[" + index + "][\"" + key + "\"]" )($scope) || '-' ;
+	}
+	
+	$scope.displayTotalMark = function(key)
+	{
+		return $scope.totalMarks[key] || '-' ;
+	}
+	
+	$scope.displayMeanScore = function(key)
+	{
+		return Math.round($scope.totalMarks[key]/$scope.totalStudents,1) || '-' ;
 	}
 	
 	var initDataGrid = function() 
@@ -266,19 +405,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
-				responsive: {
-					details: {
-						type: 'column'
-					}
-				},
-				columnDefs: [ {
-					className: 'control',
-					orderable: false,
-					targets:   0
-				} ],
 				paging: false,
 				destroy:true,
-				order: [2,'asc'],
 				filter: true,
 				info: false,
 				sorting:[],
@@ -294,7 +422,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						emptyTable: "No students found."
 				},
 			} );
-			
+		
+		tableElement.DataTable().columns(-1).order('asc').draw();
 		
 		var headerHeight = $('.navbar-fixed-top').height();
 		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
@@ -340,8 +469,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			}
 		}, false);
 	}
-	
-			
+		
 	$scope.toggleFilter = function()
 	{
 		$scope.filterShowing = !$scope.filterShowing;
@@ -382,7 +510,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			classes: $scope.classes,
 			terms: $scope.terms,
 			examTypes: $scope.examTypes,
-			filters: $scope.filters
+			filters: $scope.filters,
+			viewing: 'report'
 		}
 		$scope.openModal('exams', 'addExamMarks', 'lg', data);
 	}
@@ -397,7 +526,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$rootScope.wipNotice();
 	}
 	
-	$scope.$on('refreshExamMarks', function(event, args) {
+	$scope.$on('refreshExamMarks2', function(event, args) {
 
 		$scope.loading = true;
 		$rootScope.loading = true;

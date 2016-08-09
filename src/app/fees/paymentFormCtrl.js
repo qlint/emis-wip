@@ -114,7 +114,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.selectAllItems = function(key, invoice)
 	{
 		$scope.apply_to_all[key] = !$scope.apply_to_all[key];
-		console.log($scope.apply_to_all[key]);
+
 		if( $scope.apply_to_all[key] )
 		{
 			angular.forEach(invoice.fee_items, function(feeitem,key){
@@ -129,7 +129,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				$scope.feeItemsSelection = [];
 			});
 		}
-		console.log($scope.feeItemsSelection);
+
 	}
 	
 	$scope.viewStudent = function(student)
