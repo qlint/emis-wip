@@ -1,18 +1,14 @@
 <form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-			<h4 class="modal-title">Receipt for Payment</h4>
+			<h4 class="modal-title">Statement</h4>
 		</div>
 		<div class="modal-body receipt">
 	
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
-			
-			<div class="watermark reversed" ng-show="payment.reversed">
-				<p>REVERSED</p>
-			</div>
-			
+						
 			<img ng-if="useLetterhead" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
 			
 			<div class="row" ng-if="!useLetterhead">
@@ -20,7 +16,7 @@
 					<img src="{{'assets/schools/' + currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" /> 
 				</div>
 				<div class="col-xs-10 receipt-header">
-					<h2 class="receipt-title">Receipt</h2>
+					<h2 class="receipt-title">Statement</h2>
 					<h1 class="receipt-school-name">{{currentUser.settings['School Name']}}</h1>
 					<div class="receipt-school-address">
 						<p>{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
@@ -32,19 +28,20 @@
 							<label class="pull-right">Date:</label>
 						</div>
 						<div class="col-xs-4">
-							<p class="form-control-static">{{payment.payment_date|date}}</p>
+							<p class="form-control-static">{{todays_date|date}}</p>
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-xs-2 nopad-right">
-					<label>Received From:</label>
+					<label>Invoice For:</label>
 				</div>
 				<div class="col-xs-9 lesspad">
 					<p class="form-control-static">{{student.student_name}}</p>
 				</div>
 			</div>
+			
 			<div class="row">
 				<div class="col-xs-2 nopad-right">
 					<label>Admission No:</label>
@@ -62,7 +59,7 @@
 					<label>Term:</label>
 				</div>
 				<div class="col-xs-2 nopad-left">
-					<p class="form-control-static">{{term_name}}</p>
+					<p class="form-control-static">{{invoice.term_name}}</p>
 				</div>
 			</div>
 			<div class="row">
@@ -70,7 +67,7 @@
 					<label>The sum of Kshs:</label>
 				</div>
 				<div class="col-xs-9">
-					<p class="form-control-static">{{payment.amount|numeric}}</p>
+					<p class="form-control-static">{{totalAmt|currency:""}}</p>
 				</div>
 			</div>
 			<div class="row">
@@ -78,57 +75,42 @@
 					<label>Outstanding Balance:</label>
 				</div>
 				<div class="col-xs-9">
-					<p class="form-control-static">{{balanceDue|numeric}}</p>
+					<p class="form-control-static"><b>{{totalBalance|numeric}}</b></p>
 				</div>
 			</div>
+			
 			<div class="">
 				<table class="display dataTable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
-							<th class="center">Being Payment of</th>
-							<th class="center">Kshs</th>
-							<th class="center">Cts</th>
+							<th>Invoice</th>
+							<th>Date</th>
+							<th>Due Date</th>
+							<th class="center">Amount ({{currency}})</th>
+							<th class="center">Paid ({{currency}})</th>
+							<th class="center">Balance ({{currency}})</th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="item in feeItems">
-							<td>{{item.fee_item}}</td>
-							<td class="center">{{paymentItems[item.fee_item].ksh|number}}</td>
-							<td class="center">{{paymentItems[item.fee_item].cts}}</td>
-						</tr>
-						<tr>
-							<td>Other</td>
-							<td class="center"></td>
-							<td class="center"></td>
+						<tr ng-repeat="item in invoices">
+							<td>{{item.inv_id}}</td>
+							<td>{{item.inv_date}}</td>
+							<td>{{item.due_date}}</td>
+							<td class="center">{{item.total_due|currency:""}}</td>
+							<td class="center">{{item.total_paid|currency:""}}</td>
+							<td class="center">{{item.balance|numeric}}</td>
 						</tr>
 					</tbody>
 					<tfoot>
 						<tr>
-							<td>
-								No: {{payment.receipt_number}}
-								<div class="pull-right">TOTAL KSHS</div>
-							</td>
-							<td class="center">{{totalAmtKsh|number}}</td>
-							<td class="center">{{totalAmtCts}}</td>
+							<td colspan="3"></td>
+							<td class="center">{{totalAmt|currency:""}}</td>
+							<td class="center">{{totalPaid|currency:""}}</td>
+							<td class="center">{{totalBalance|numeric}}</td>
 						</tr>
 					</tfoot>
 				</table>
 				
-				<div class="row">
-					<div class="col-xs-4 nopad-right">
-						<label>Cash/Deposit Slip/Cheque No:</label>
-					</div>
-					<div class="col-xs-8 nopad-left">
-						<p class="form-control-static">{{payment.slip_cheque_no}}</p>
-					</div>
-				</div>
-			
-				<div class="row">
-					<div class="col-xs-3 nopad-right">
-						<label>Official Stamp:</label>
-					</div>
-
-				</div>
 
 			</div>
 			

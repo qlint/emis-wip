@@ -11,8 +11,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	$scope.edit = ( $scope.permissions.fees.invoices.edit !== undefined ? $scope.permissions.fees.invoices.edit  : false);
 	var allLineItems = undefined;
 	$scope.totals = {};
-	$scope.totals.balance = angular.copy($scope.invoice.balance);
-	$scope.totals.total_due = angular.copy($scope.invoice.total_due);
+	$scope.overpayment = 0;
 
 	
 	// can no longer edit an invoice if it is fully paid
@@ -30,22 +29,50 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	
 	$scope.initializeController = function()
 	{
-		
-		apiService.getInvoiceDetails($scope.invoice.inv_id, function(response){
+		apiService.getStudentBalance($scope.invoice.student_id, function(response,status)
+		{
+			$scope.loading = false;		
 			var result = angular.fromJson(response);
-			
-			if( result.response == 'success')
+					
+			if( result.response == 'success') 
 			{
-				$scope.invoiceLineItems = ( result.nodata ? {} : result.data );	
-				allLineItems = angular.copy($scope.invoiceLineItems);
-			}
-			else
-			{
-				$scope.error = true;
-				$scope.errMsg = result.data;
+				if( result.nodata === undefined )
+				{
+					$scope.feeSummary = angular.copy(result.data.fee_summary);
+				}			
 			}
 			
-		}, function(){});
+			
+			apiService.getInvoiceDetails($scope.invoice.inv_id, function(response){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success')
+				{
+					$scope.invoiceLineItems = ( result.nodata ? {} : result.data );	
+					allLineItems = angular.copy($scope.invoiceLineItems);
+					
+					$scope.totals.balance = angular.copy($scope.invoice.balance);
+					$scope.totals.total_due = angular.copy($scope.invoice.total_due);
+					
+					// is there an overpayment?
+					if( $scope.feeSummary && $scope.feeSummary.unapplied_payments > 0 )
+					{
+						$scope.hasOverPayment = true;
+						$scope.overpayment = parseFloat($scope.feeSummary.unapplied_payments);
+						$scope.totals.balance = Math.abs($scope.totals.balance) - $scope.overpayment;
+						$scope.invoice.balance = angular.copy($scope.totals.balance);
+					}
+					
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				
+			}, apiError);
+			
+		}, apiError);
 		
 	}
 	$scope.initializeController();
@@ -118,7 +145,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			sum = sum + parseFloat(item.amount);
 			return sum;
 		},0);
-		$scope.totals.balance = $scope.invoice.total_paid - $scope.totals.total_due;
+		$scope.totals.balance = ($scope.invoice.total_paid + $scope.overpayment) - $scope.totals.total_due;
+		$scope.invoice.balance = angular.copy($scope.totals.balance);
 		$scope.changes = true;
 	}
 	

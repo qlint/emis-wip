@@ -15,6 +15,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.invoiceSelection = [];
 	$scope.feeItemsSelection = [];
 	$scope.feeItemsSelection2 = [];
+	$scope.apply_to_all = [];
 	
 	var initializeController = function()
 	{
@@ -69,9 +70,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		apiService.getStudentBalance($scope.student.selected.student_id, loadFeeBalance, apiError);
 	});
 	
+	/*
 	$scope.$watch('payment.apply_to_all', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		
 		
 		if( newVal )
 		{
@@ -89,6 +90,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 		
 	});
+	*/
 	
 	$scope.$watch('payment.replacement_payment', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
@@ -108,6 +110,27 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		},apiError);
 		
 	});
+	
+	$scope.selectAllItems = function(key, invoice)
+	{
+		$scope.apply_to_all[key] = !$scope.apply_to_all[key];
+		console.log($scope.apply_to_all[key]);
+		if( $scope.apply_to_all[key] )
+		{
+			angular.forEach(invoice.fee_items, function(feeitem,key){
+				feeitem.amount = Math.abs(feeitem.balance);
+				$scope.feeItemsSelection.push(feeitem);
+			});
+		}
+		else
+		{
+			angular.forEach(invoice.fee_items, function(feeitem,key){
+				feeitem.amount = undefined;
+				$scope.feeItemsSelection = [];
+			});
+		}
+		console.log($scope.feeItemsSelection);
+	}
 	
 	$scope.viewStudent = function(student)
 	{
@@ -135,49 +158,56 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	
 	var formatInvoices = function(invoiceData)
 	{
+		var currentInvoice = {};
+		var currentItem = {};
+		var invoices = [];
+		var feeItems = []
+		angular.forEach( invoiceData, function(item,key){
 		
-			var currentInvoice = {};
-			var currentItem = {};
-			var invoices = [];
-			var feeItems = []
-			angular.forEach( invoiceData, function(item,key){
-			
-				if( key > 0 && currentInvoice != item.inv_id )
-				{
-					// store row
-					invoices.push({
-						inv_id: currentItem.inv_id,
-						inv_date: currentItem.inv_date,
-						due_date: currentItem.due_date,
-						balance: currentItem.balance,
-						fee_items: feeItems,
-					});
-					
-					// reset
-					feeItems = [];
-				}
-				
-				feeItems.push({
-					fee_item_id: item.fee_item_id,
-					fee_item: item.fee_item,
-					balance: item.line_item_amount,
-					inv_item_id: item.inv_item_id,
-					amount: null
+			if( key > 0 && currentInvoice != item.inv_id )
+			{
+				// store row
+				invoices.push({
+					inv_id: currentItem.inv_id,
+					inv_date: currentItem.inv_date,
+					due_date: currentItem.due_date,
+					balance: currentItem.balance,
+					overall_balance: currentItem.overall_balance,
+					total_due: currentItem.total_due,
+					fee_items: feeItems,
 				});
 				
-				currentInvoice = item.inv_id;
-				currentItem = item;				
+				// reset
+				feeItems = [];
+			}
+			
+			feeItems.push({
+				fee_item_id: item.fee_item_id,
+				fee_item: item.fee_item,
+				balance: item.balance,
+				inv_item_id: item.inv_item_id,
+				inv_id: item.inv_id,
+				payment_id: item.payment_id,
+				amount: null,
+				isPaid: parseInt(item.balance) === 0 ? true : false,
+				modifiable: parseInt(item.balance) < 0 ? true : false,
 			});
-			// push in last row
-			invoices.push({
-				inv_id: currentItem.inv_id,
-				inv_date: currentItem.inv_date,
-				due_date: currentItem.due_date,
-				balance: currentItem.balance,
-				fee_items: feeItems,
-			});
-
-			return invoices;
+			
+			currentInvoice = item.inv_id;
+			currentItem = item;				
+		});
+		// push in last row
+		invoices.push({
+			inv_id: currentItem.inv_id,
+			inv_date: currentItem.inv_date,
+			due_date: currentItem.due_date,
+			balance: currentItem.balance,
+			overall_balance: currentItem.overall_balance,
+			total_due: currentItem.total_due,
+			fee_items: feeItems,
+		});
+		//console.log(invoices);
+		return invoices;
 	}
 	
 	var loadFeeBalance = function(response,status)
@@ -297,7 +327,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 
 		// is newly selected
 		else {
-			feeitem.amount = feeitem.balance;
+			feeitem.amount = Math.abs(feeitem.balance);
 			$scope.feeItemsSelection.push(feeitem);
 		}
 	};
@@ -386,6 +416,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			angular.forEach($scope.feeItemsSelection, function(item,key){
 				lineItems.push({
 					inv_item_id: item.inv_item_id,
+					inv_id :item.inv_id,
 					amount: item.amount
 				});
 			});
@@ -398,7 +429,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				payment_method : $scope.payment.payment_method,
 				slip_cheque_no: $scope.payment.slip_cheque_no,
 				replacement_payment: ($scope.payment.replacement_payment == 'true' ? 't' : 'f' ),
-				inv_id : $scope.payment.invoice.inv_id,
+			//	inv_id : $scope.payment.invoice.inv_id,
 				line_items: lineItems
 			};
 			

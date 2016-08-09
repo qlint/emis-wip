@@ -110,6 +110,10 @@
 						<th colspan="2" class="rightalign">Total Paid ({{currency}})</th>
 						<th class="rightalign">{{invoice.total_paid|currency:""}}</th>
 					</tr>
+					<tr ng-show="hasOverPayment">
+						<th colspan="2" class="rightalign">Overpayment ({{currency}})</th>
+						<th class="rightalign">{{overpayment|numeric}}</th>
+					</tr>
 					<tr>
 						<th colspan="2" class="rightalign">Balance Due ({{currency}})</th>
 						<th class="rightalign">{{totals.balance|numeric}}</th>
@@ -121,10 +125,10 @@
 		<div class="modal-footer">
 			
 			<div class="pull-left">
-				<button type="button" class="btn btn-danger" ng-click="cancelInvoice()" ng-show="permissions.fees.invoices.delete && !invoice.canceled">Cancel Invoice</button>
+				<button type="button" class="btn btn-danger" ng-click="cancelInvoice()" ng-show="permissions.fees.invoices.delete && !invoice.canceled && invoice.total_paid==0">Cancel Invoice</button>
 				<button type="button" class="btn btn-success" ng-click="reactivateInvoice()" ng-show="permissions.fees.invoices.edit && invoice.canceled">Reactivate Invoice</button>
-				<button type="button" class="btn btn-link" ng-click="revertInvoice()" ng-show="edit && changes">Undo Changes</button>
 				<button type="button" class="btn btn-success" ng-click="printInvoice()"><i class="glyphicon glyphicon-print"></i> Print</button>	
+				<button type="button" class="btn btn-link" ng-click="revertInvoice()" ng-show="edit && changes">Undo Changes</button>				
 			</div>
 			
 			<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>

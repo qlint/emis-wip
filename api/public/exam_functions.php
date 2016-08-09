@@ -476,9 +476,11 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 		$db = getDB();
 		$queryParams = array();
 		$query = "SELECT student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name, class_id, class_name,
-							total_mark, total_grade_weight, rank, percentage, 
-								(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
-								position_out_of
+							round(total_mark/denominator) as total_mark, 
+							round(total_grade_weight/denominator) as total_grade_weight, 
+							rank, percentage, 
+							(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
+							position_out_of
 							FROM (
 							SELECT
 								 student_id
@@ -489,6 +491,7 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 									  ,class_name
 									  ,total_mark    
 									  ,total_grade_weight
+									  ,round((total_grade_weight/500)) as denominator
 									  ,round((total_mark/total_grade_weight)*100) as percentage
 									  ,dense_rank() over w as rank
 									  ,position_out_of
@@ -575,9 +578,11 @@ $app->get('/getTeacherTopStudents/:teacher_id(/:class_id)', function ($teacherId
 		$db = getDB();
 		$queryParams = array(':teacherId' => $teacherId);
 		$query = "SELECT student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name, class_id, class_name,
-							total_mark, total_grade_weight, rank, percentage, 
-								(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
-								position_out_of
+							round(total_mark/denominator) as total_mark, 
+							round(total_grade_weight/denominator) as total_grade_weight, 
+							rank, percentage, 
+							(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
+							position_out_of
 							FROM (
 							SELECT
 								 student_id
@@ -588,6 +593,7 @@ $app->get('/getTeacherTopStudents/:teacher_id(/:class_id)', function ($teacherId
 									  ,class_name
 									  ,total_mark    
 									  ,total_grade_weight
+									  ,round((total_grade_weight/500)) as denominator
 									  ,round((total_mark/total_grade_weight)*100) as percentage
 									  ,dense_rank() over w as rank
 									  ,position_out_of

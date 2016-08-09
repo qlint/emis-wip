@@ -31,7 +31,7 @@ function($scope, $rootScope){
 			
 			setTimeout( function(){
 				$rootScope.isPrinting = false;
-				//window.close();
+				window.close();
 			}, 100);
 		}, 500);
 

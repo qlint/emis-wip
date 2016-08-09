@@ -1,7 +1,7 @@
 'use strict';
 
 // Configure the main application module.
-var eduwebApp = angular.module('eduwebApp', ['ui.router', 'ui.bootstrap', 'dialogs.main', 'daterangepicker', 'ui.select', 'angularFileUpload','angularTrix','ui.grid', 'ui.grid.exporter'])
+var eduwebApp = angular.module('eduwebApp', ['ui.router', 'ui.bootstrap', 'dialogs.main', 'daterangepicker', 'ui.select', 'angularFileUpload','angularTrix','ui.grid', 'ui.grid.exporter','ui.grid.resizeColumns'])
 /*Constants regarding user login defined here*/
 .constant('USER_ROLES', {
 	all : '*',
@@ -43,6 +43,9 @@ eduwebApp.filter('numeric', [ '$filter', function($filter) {
 			return value;
 		}
     };
+}]);
+eduwebApp.filter('makePositive', [ '$filter', function() {
+    return function(num) { return Math.abs(num); }
 }]);
 eduwebApp.filter('titlecase', [function() {
     return function(s) {

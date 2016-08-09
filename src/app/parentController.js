@@ -140,7 +140,10 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'view': true,
 							'add': true,
 							'edit': true,
-						},						
+						},
+						'class_analysis': {
+							'view': true,
+						},
 					},
 					'communications':{
 						'send_email' : {
@@ -191,7 +194,10 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'view': true,
 							'add': true,
 							'edit': true,
-						},						
+						},
+						'class_analysis': {
+							'view': true,
+						},
 					},
 					'communications':{
 						'blog_posts': {

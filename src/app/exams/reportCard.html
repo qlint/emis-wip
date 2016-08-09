@@ -233,6 +233,7 @@
 									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>	
 								</td>
+								<td>
 									<p class="form-control-static" ng-show="isPrinting">{{comments.head_teacher_name}}</p>
 									<input ng-show="!isPrinting" type="text" name="head_teacher_name" class="form-control" ng-model="comments.head_teacher_name" ng-change="updateReport()" />
 									

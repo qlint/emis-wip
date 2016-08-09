@@ -83,7 +83,7 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 
 $app->get('/getPaymentsDue(/:startDate/:endDate)', function ($startDate=null,$endDate=null) {
     // Get all payment due for given date range
-	
+	// TO DO: not using start and end dates, only pulling the current month
 	$app = \Slim\Slim::getInstance();
  
     try 
@@ -92,7 +92,7 @@ $app->get('/getPaymentsDue(/:startDate/:endDate)', function ($startDate=null,$en
        $sth = $db->prepare("SELECT student_id,  
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 									total_due as amount, total_paid, balance,  due_date
-							FROM app.invoice_balances
+							FROM app.invoice_balances2
 							INNER JOIN app.students using (student_id)
 							WHERE date_trunc('month',due_date) = date_trunc('month', now())
 							AND balance < 0");
@@ -119,20 +119,20 @@ $app->get('/getPaymentsDue(/:startDate/:endDate)', function ($startDate=null,$en
 
 });
 
-$app->get('/getPaymentsPastDue', function () {
+$app->get('/getPaymentsPastDue(/:student_id)', function ($studentId=null) {
     // Get all payment due for given date range
-	
+	// TO DO: do I need to keep the student ID or can this be removed?
 	$app = \Slim\Slim::getInstance();
  
     try 
     {
         $db = getDB();
-       $sth = $db->prepare("SELECT student_id,  
+       $sth = $db->prepare("SELECT invoice_balances2.student_id,  
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 									balance,  due_date
-							FROM app.invoice_balances
-							INNER JOIN app.students using (student_id)
-							WHERE due_date < now() - interval '1 mon' 
+							FROM app.invoice_balances2
+							INNER JOIN app.students on invoice_balances2.student_id = students.student_id
+							WHERE due_date < now() /* - interval '1 mon' */
 							AND balance < 0 ");
 		$sth->execute(); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -167,17 +167,17 @@ $app->get('/getTotalsForTerm', function () {
         $db = getDB();
 		// replacement payments do not have invoices, need to select these in addition to invoice payments to add to total paid amount
        $sth = $db->prepare("SELECT 
-							sum(total_due) as total_due, 
-							sum(total_paid) as total_paid,
-							sum(balance) as total_balance
+							coalesce(sum(total_due),0) as total_due, 
+							coalesce(sum(total_paid),0) as total_paid,
+							coalesce(sum(balance),0) as total_balance
 						FROM (
-							SELECT total_due, total_paid,balance
-							FROM app.invoice_balances
+							SELECT total_due, total_paid, balance
+							FROM app.invoice_balances2
 							WHERE due_date between (select start_date from app.current_term) and coalesce((select start_date - interval '1 day' from app.next_term), (select end_date from app.current_term)) 
 							AND canceled = false
 
 							UNION
-							SELECT 0 as total_due, amount as total_paid,0 as balance
+							SELECT 0 as total_due, amount as total_paid, amount as balance
 							FROM app.payments
 							WHERE payment_date between (select start_date from app.current_term) and coalesce((select start_date - interval '1 day' from app.next_term), (select end_date from app.current_term)) 
 							AND replacement_payment is true
@@ -220,13 +220,13 @@ $app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true
 								class_name, class_id, class_cat_id,
 								sum(total_due) as total_due, sum(total_paid) as total_paid, sum(balance) as balance,
 								(SELECT to_char(amount, '999,999,999.99') || ' - ' || to_char(payment_date,'Mon DD, YYYY')  FROM app.payments WHERE student_id = students.student_id ORDER BY payment_date desc LIMIT 1 ) as last_payment,
-								(SELECT to_char(total_due, '999,999,999.99') || ' - ' || to_char(due_date,'Mon DD, YYYY')   FROM app.invoice_balances WHERE student_id = students.student_id AND due_date > now() ORDER BY due_date asc LIMIT 1 ) as next_payment
-							FROM app.invoice_balances
+								(SELECT to_char(total_due, '999,999,999.99') || ' - ' || to_char(due_date,'Mon DD, YYYY')   FROM app.invoice_balances2 WHERE student_id = students.student_id AND due_date > now() ORDER BY due_date asc LIMIT 1 ) as next_payment
+							FROM app.invoice_balances2
 							INNER JOIN app.students
 								INNER JOIN app.classes
 								ON students.current_class = classes.class_id
-							ON invoice_balances.student_id = students.student_id
-							WHERE invoice_balances.due_date < now()
+							ON invoice_balances2.student_id = students.student_id
+							WHERE invoice_balances2.due_date < now()
 							AND date_part('year', due_date) = :year
 							AND students.active = :status
 							AND canceled = false
@@ -297,15 +297,14 @@ $app->post('/addPayment', function () use($app) {
 	$paymentMethod = 		( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
 	$slipChequeNo = 		( isset($allPostVars['slip_cheque_no']) ? $allPostVars['slip_cheque_no']: null);
 	$replacementPayment = 	( isset($allPostVars['replacement_payment']) ? $allPostVars['replacement_payment']: null);
-	$invId = 				( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
 	$lineItems =			( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
 	$replacementItems =		( isset($allPostVars['replacement_items']) ? $allPostVars['replacement_items']: null);
 	
     try 
     {
         $db = getDB();
-        $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, inv_id, created_by) 
-									VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :invId, :userId)");
+        $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by) 
+									VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId)");
 		if( count($lineItems) > 0 )
 		{	
 			$paymentItems = $db->prepare("INSERT INTO app.payment_inv_items(payment_id, inv_id, inv_item_id, amount, created_by)
@@ -326,7 +325,6 @@ $app->post('/addPayment', function () use($app) {
 								 ':paymentMethod' => $paymentMethod, 
 								 ':slipChequeNo' => $slipChequeNo, 
 								 ':replacementPayment' => $replacementPayment, 
-								 ':invId' => $invId, 
 								 ':userId' => $userId ) );
 		
 		if( count($lineItems) > 0 )
@@ -334,7 +332,8 @@ $app->post('/addPayment', function () use($app) {
 			foreach( $lineItems as $lineItem )
 			{
 				$invItemId = ( isset($lineItem['inv_item_id']) ? $lineItem['inv_item_id']: null);
-				$amount = ( isset($lineItem['amount']) ? $lineItem['amount']: null);
+				$amount =   ( isset($lineItem['amount']) ? $lineItem['amount']: null);
+				$invId = 	( isset($lineItem['inv_id']) ? $lineItem['inv_id']: null);
 				
 				$paymentItems->execute( array(':invId' => $invId, 
 										   ':invItemId' => $invItemId, 
@@ -383,8 +382,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 	
 		// get payment data
        $sth = $db->prepare("SELECT payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
-									payments.student_id, replacement_payment, reversed, reversed_date,
-									payments.inv_id
+									payments.student_id, replacement_payment, reversed, reversed_date --,payments.inv_id
 							FROM app.payments							
 							WHERE payment_id = :paymentId
 	   ");
@@ -394,7 +392,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 		// get what the payment was applied to
 		$sth2 = $db->prepare("SELECT payment_inv_item_id, payment_inv_items.inv_item_id,
 									fee_item,
-									payment_inv_items.amount as line_item_amount
+									payment_inv_items.amount as line_item_amount, invoice_line_items.inv_id
 							FROM app.payment_inv_items							
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
@@ -406,7 +404,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 							UNION
 							SELECT payment_replace_item_id, payment_replacement_items.student_fee_item_id,
 									fee_item,
-									payment_replacement_items.amount as line_item_amount
+									payment_replacement_items.amount as line_item_amount, null
 							FROM app.payment_replacement_items							
 							INNER JOIN app.student_fee_items
 								INNER JOIN app.fee_items
@@ -417,27 +415,42 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 		$sth2->execute( array(':paymentId' => $paymentId) ); 
         $results2 = $sth2->fetchAll(PDO::FETCH_OBJ);
 		
+		// Loop through and get unique inv_ids for next query 
+		$invIds = array();
+		foreach($results2 as $result2){
+			if( !in_array( $result2->inv_id, $invIds ) ) $invIds[] = $result2->inv_id;
+		}		
+		$invIdStr = '{' . implode(',', $invIds) . '}';
+		
 		// get the invoice details that payment was applied to
-		$sth3 = $db->prepare("SELECT invoice_balances.inv_id,								
-								inv_date,	
-								total_due,								
-								balance,
+		$sth3 = $db->prepare("SELECT invoices.inv_id,								
+								inv_date,
+								(select coalesce(sum(amount),0) - invoices.total_amount from app.payment_inv_items where inv_id = invoices.inv_id) as overall_balance,
+								invoice_line_items.amount,								
+								coalesce((select sum(amount) from app.payment_inv_items where inv_item_id = invoice_line_items.inv_item_id),0) as total_paid,
+								coalesce((select sum(amount) from app.payment_inv_items where inv_item_id = invoice_line_items.inv_item_id),0) - invoice_line_items.amount as balance,
 								due_date,
-								inv_item_id,
+								invoice_line_items.inv_item_id,
 								fee_item,
 								invoice_line_items.amount as line_item_amount,
-								(select term_name from app.terms where due_date between start_date and end_date) as term_name
-							FROM app.invoice_balances
+								(select term_name from app.terms where due_date between start_date and end_date) as term_name,
+								invoices.canceled
+							FROM app.invoices
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
 									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
-							ON invoice_balances.inv_id = invoice_line_items.inv_id
-							INNER JOIN app.payments ON invoice_balances.inv_id = payments.inv_id
-							WHERE payment_id = :paymentId
+								/*
+								LEFT JOIN app.payment_inv_items
+									INNER JOIN app.payments
+									ON payment_inv_items.payment_id = payments.payment_id AND payments.reversed IS FALSE
+								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id		
+								*/								
+							ON invoices.inv_id = invoice_line_items.inv_id
+							WHERE invoices.inv_id = any(:invIds)
 							ORDER BY due_date, fee_item");
-		$sth3->execute( array(':paymentId' => $paymentId) ); 
+		$sth3->execute( array(':invIds' => $invIdStr) ); 
         $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);	
 		
 		$results = new Stdclass();
@@ -476,7 +489,7 @@ $app->put('/updatePayment', function() use($app){
 	$paymentMethod = 		( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
 	$slipChequeNo = 		( isset($allPostVars['slip_cheque_no']) ? $allPostVars['slip_cheque_no']: null);
 	$replacementPayment = 	( isset($allPostVars['replacement_payment']) ? $allPostVars['replacement_payment']: null);
-	$invId = 				( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
+	//$invId = 				( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
 	$lineItems =			( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
 	$replacementItems =		( isset($allPostVars['replacement_items']) ? $allPostVars['replacement_items']: null);
 	
@@ -490,7 +503,6 @@ $app->put('/updatePayment', function() use($app){
 											payment_method = :paymentMethod,
 											slip_cheque_no = :slipChequeNo,
 											replacement_payment = :replacementPayment,
-											inv_id = :invId,
 											modified_date = now(),
 											modified_by = :userId
 										WHERE payment_id = :paymentId");
@@ -553,7 +565,6 @@ $app->put('/updatePayment', function() use($app){
 						':paymentMethod' => $paymentMethod,
 						':slipChequeNo' => $slipChequeNo,
 						':replacementPayment' => $replacementPayment,
-						':invId' => $invId,
 						':userId' => $userId
 		) );	
 		
@@ -564,7 +575,8 @@ $app->put('/updatePayment', function() use($app){
 			foreach( $lineItems as $lineItem )
 			{
 				$amount = 			( isset($lineItem['amount']) ? $lineItem['amount']: null);
-				$paymentInvItemId = ( isset($lineItem['payment_inv_item_id']) ? $lineItem['payment_inv_item_id']: null);				
+				$paymentInvItemId = ( isset($lineItem['payment_inv_item_id']) ? $lineItem['payment_inv_item_id']: null);		
+				$invId = 			( isset($lineItem['inv_id']) ? $lineItem['inv_id']: null);
 				$invItemId = 		( isset($lineItem['inv_item_id']) ? $lineItem['inv_item_id']: null);
 				
 				// this item exists, update it, else insert

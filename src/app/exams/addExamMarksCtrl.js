@@ -297,7 +297,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		{
 			$uibModalInstance.close();
 			var msg = ($scope.edit ? 'Exam mark was updated.' : 'Exam marks were added.');
-			$rootScope.$emit('examMarksAdded', {'msg' : msg, 'clear' : true});
+			if( data.viewing !== undefined && data.viewing == 'report')  $rootScope.$emit('examMarksAdded2', {'msg' : msg, 'clear' : true});
+			else $rootScope.$emit('examMarksAdded', {'msg' : msg, 'clear' : true});
 		}
 		else
 		{

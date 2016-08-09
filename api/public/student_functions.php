@@ -271,7 +271,7 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 		// get total amount of student fee items
 		// calculate the amount due and due date
 		// calculate the balance owing
-		$sth = $db->prepare("SELECT fee_item, payment_method,
+		$sth = $db->prepare("SELECT fee_item, student_fee_items.payment_method,
 									sum(invoice_line_items.amount) AS total_due, 
 									COALESCE(sum(payment_inv_items.amount), 0) AS total_paid, 
 									COALESCE(sum(payment_inv_items.amount), 0) - sum(invoice_line_items.amount) AS balance        
@@ -282,23 +282,24 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id AND student_fee_items.active = true
 								LEFT JOIN app.payment_inv_items
+									INNER JOIN app.payments
+									ON payment_inv_items.payment_id = payments.payment_id AND reversed is false
 								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id
 							ON invoices.inv_id = invoice_line_items.inv_id
 							WHERE invoices.student_id = :studentID
 							AND invoices.canceled = false
 							--AND invoices.due_date < now()
-							GROUP BY fee_item, payment_method
+							GROUP BY fee_item, student_fee_items.payment_method
 							");
         $sth->execute( array(':studentID' => $studentId)); 
         $fees = $sth->fetchAll(PDO::FETCH_OBJ);
-		
 		
 		if( $fees )
 		{
 		
 			$sth2 = $db->prepare("SELECT 
-									(SELECT due_date FROM app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
-									(SELECT balance from app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
+									(SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
+									(SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
 									(
 										SELECT sum(diff) FROM (
 											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
@@ -325,11 +326,15 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 				$feeSummary->within30days = ( $diff < 30 ? true : false ); 	
 			}
 			
-			$balanceQry = $db->prepare("SELECT sum(total_due) as total_due, sum(total_paid) as total_paid, sum(balance) as balance
-										FROM app.invoice_balances
+			$balanceQry = $db->prepare("SELECT coalesce(sum(total_due),0) as total_due, 
+											   coalesce(sum(total_paid),0) as total_paid, 
+											   coalesce(sum(balance),0) as balance,
+											   past_due
+										FROM app.invoice_balances2
 									    WHERE student_id = :studentID
-										AND due_date < now()::date
-										AND canceled = false");
+										AND date_part('year', due_date) = date_part('year',now())  -- < now()::date
+										AND canceled = false
+										GROUP BY past_due");
 			$balanceQry->execute( array(':studentID' => $studentId)); 
 			$balance = $balanceQry->fetch(PDO::FETCH_OBJ);
 			//var_dump($balance);
@@ -337,7 +342,7 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 			$feeSummary->total_due = ($balance ? $balance->total_due : 0);
 			$feeSummary->total_paid = ($balance ? $balance->total_paid : 0);
 			$feeSummary->balance = ($balance ? $balance->balance : 0);
-			
+			$feeSummary->past_due = ($balance ? $balance->past_due : false);
 			
 			$results = new stdClass();
 			$results->fee_summary = $feeSummary;
@@ -345,7 +350,7 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 			
 		}
 		
-        if($fees) {			
+        if( $fees ) {			
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));
@@ -375,7 +380,7 @@ $app->get('/getStudentInvoices/:studentId', function ($studentId) {
 		
 		// get invoices
 		// TO DO: I only want invoices for this school year?	
-		$sth = $db->prepare("SELECT * FROM app.invoice_balances WHERE student_id = :studentId ORDER BY inv_date");
+		$sth = $db->prepare("SELECT * FROM app.invoice_balances2 WHERE student_id = :studentId ORDER BY inv_date");
 		$sth->execute( array(':studentId' => $studentId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
@@ -410,30 +415,31 @@ $app->get('/getOpenInvoices/:studentId', function ($studentId) {
         $db = getDB();
        $sth = $db->prepare("SELECT 
 								students.student_id,
-								invoice_balances.inv_id,
+								invoices.inv_id,
 								first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 								class_name, class_id, class_cat_id,
 								inv_date,
-								total_due,
-								total_paid,
-								balance,
+								(select coalesce(sum(amount),0) - invoices.total_amount from app.payment_inv_items where inv_id = invoices.inv_id) as overall_balance,
+								invoice_line_items.amount,								
+								coalesce((select sum(amount) from app.payment_inv_items where inv_item_id = invoice_line_items.inv_item_id),0) as total_paid,
+								coalesce((select sum(amount) from app.payment_inv_items where inv_item_id = invoice_line_items.inv_item_id),0) - invoice_line_items.amount as balance,
 								due_date,
 								inv_item_id,
 								fee_item,
 								invoice_line_items.amount as line_item_amount
-							FROM app.invoice_balances
+							FROM app.invoices
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
 									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
-							ON invoice_balances.inv_id = invoice_line_items.inv_id
+							ON invoices.inv_id = invoice_line_items.inv_id
 							INNER JOIN app.students
 								INNER JOIN app.classes
 								ON students.current_class = classes.class_id
-							ON invoice_balances.student_id = students.student_id
+							ON invoices.student_id = students.student_id
 							WHERE students.student_id = :studentId
-							AND balance < 0
+							AND (select coalesce(sum(amount),0) - invoices.total_amount from app.payment_inv_items where inv_id = invoices.inv_id) < 0
 							AND canceled = false
 							ORDER BY due_date, fee_item");
 		$sth->execute( array(':studentId' => $studentId) ); 

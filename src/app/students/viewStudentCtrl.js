@@ -35,7 +35,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var rowTemplate = function() 
 	{
-		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.balance>0, \'alert-success\':row.entity.balance==0, \'canceled\': row.entity.canceled}">' +
+		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.balance<0 && row.entity.past_due, \'alert-success\':row.entity.balance==0, \'canceled\': row.entity.canceled}">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
@@ -43,7 +43,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var rowTemplate2 = function() 
 	{
-		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.balance>0, \'alert-success\':row.entity.balance==0, \'alert-warning\': row.entity.replacement_payment}">' +
+		return '<div class="clickable" ng-class="{\'alert-warning\': row.entity.replacement_payment, \'canceled\': row.entity.reversed }">' +
+		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'</div>';
+	}
+	var rowTemplate3 = function() 
+	{
+		return '<div ng-class="{\'alert-success\':row.entity.balance==0 }">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
@@ -53,7 +60,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.feesGrid = {
 		enableSorting: true,
-		rowTemplate: rowTemplate2(),
+		rowTemplate: rowTemplate3(),
 		rowHeight:24,
 		columnDefs: [
 			{ name: 'Item', field: 'fee_item', enableColumnMenu: false},
@@ -708,6 +715,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	
 	}
+	
 	$scope.getInvoice = function(invoice)
 	{
 		// open up invoice
@@ -719,6 +727,26 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoice.html','invoiceCtrl',data,{size: 'md',backdrop:'static'});
 		
 		//$scope.openModal('fees', 'invoice', 'md',data);
+	}
+	
+	$scope.printStatement = function()
+	{
+		/*
+		var data = {
+			student: $scope.student,
+			invoices: $scope.invoices
+		}
+		var domain = window.location.host;
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/printStatement.html','printStatementCtrl',data,{size: 'md',backdrop:'static'});
+		*/
+		var criteria = {
+			student : $scope.student,
+			invoices: $scope.invoices,
+		}
+
+		var domain = window.location.host;
+		var newWindowRef = window.open('http://' + domain + '/#/fees/statement/print');
+		newWindowRef.printCriteria = criteria;
 	}
 	
 	var loadPayments = function(response,status)
@@ -792,7 +820,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		payment.student_id = $scope.student.student_id;
 		payment.student_name = $scope.student.student_name;
-		$rootScope.modalLoading = true;
+		//$rootScope.modalLoading = true;
 		var domain = window.location.host;
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentDetails.html','paymentDetailsCtrl',payment,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(payment){

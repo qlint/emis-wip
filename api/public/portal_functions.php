@@ -475,7 +475,7 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 		// get total amount of student fee items
 		// calculate the amount due and due date
 		// calculate the balance owing
-		$sth = $db->prepare("SELECT fee_item, payment_method,
+		$sth = $db->prepare("SELECT fee_item, student_fee_items.payment_method,
 									sum(invoice_line_items.amount) AS total_due, 
 									COALESCE(sum(payment_inv_items.amount), 0) AS total_paid, 
 									COALESCE(sum(payment_inv_items.amount), 0) - sum(invoice_line_items.amount) AS balance        
@@ -486,12 +486,14 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id AND student_fee_items.active = true
 								LEFT JOIN app.payment_inv_items
+									INNER JOIN app.payments
+									ON payment_inv_items.payment_id = payments.payment_id AND reversed is false
 								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id
 							ON invoices.inv_id = invoice_line_items.inv_id
 							WHERE invoices.student_id = :studentID
 							AND invoices.canceled = false
-							AND invoices.due_date < now()
-							GROUP BY fee_item, payment_method
+							--AND invoices.due_date < now()
+							GROUP BY fee_item, student_fee_items.payment_method
 							");
         $sth->execute( array(':studentID' => $studentId)); 
         $fees = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -501,8 +503,8 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 		{
 		
 			$sth2 = $db->prepare("SELECT 
-									(SELECT due_date FROM app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
-									(SELECT balance from app.invoice_balances WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
+									(SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
+									(SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
 									(
 										SELECT sum(diff) FROM (
 											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
@@ -530,7 +532,7 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 			}
 			
 			$balanceQry = $db->prepare("SELECT sum(total_due) as total_due, sum(total_paid) as total_paid, sum(balance) as balance
-										FROM app.invoice_balances
+										FROM app.invoice_balances2
 									    WHERE student_id = :studentID
 										AND due_date < now()::date
 										AND canceled = false");
@@ -579,8 +581,8 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
 		
 		// get invoices
 		// TO DO: I only want invoices for this school year?	
-		$sth = $db->prepare("SELECT invoice_balances.*, (select term_name from app.terms where due_date between start_date and end_date) as term_name
-								FROM app.invoice_balances 
+		$sth = $db->prepare("SELECT invoice_balances2.*, (select term_name from app.terms where due_date between start_date and end_date) as term_name
+								FROM app.invoice_balances2
 								WHERE student_id = :studentId 
 								AND canceled is false ORDER BY inv_date");
 		$sth->execute( array(':studentId' => $studentId));
@@ -1043,8 +1045,7 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
 	
 		// get payment data
        $sth = $db->prepare("SELECT payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
-									payments.student_id, replacement_payment, reversed, reversed_date,
-									payments.inv_id
+									payments.student_id, replacement_payment, reversed, reversed_date --,payments.inv_id
 							FROM app.payments							
 							WHERE payment_id = :paymentId
 	   ");
@@ -1078,24 +1079,27 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
         $results2 = $sth2->fetchAll(PDO::FETCH_OBJ);
 		
 		// get the invoice details that payment was applied to
-		$sth3 = $db->prepare("SELECT invoice_balances.inv_id,								
+		$sth3 = $db->prepare("SELECT invoice_balances2.inv_id,								
 								inv_date,	
 								total_due,								
 								balance,
 								due_date,
-								inv_item_id,
+								invoice_line_items.inv_item_id,
 								fee_item,
 								invoice_line_items.amount as line_item_amount,
 								(select term_name from app.terms where due_date between start_date and end_date) as term_name
-							FROM app.invoice_balances
+							FROM app.invoice_balances2
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
 									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
-							ON invoice_balances.inv_id = invoice_line_items.inv_id
-							INNER JOIN app.payments ON invoice_balances.inv_id = payments.inv_id
-							WHERE payment_id = :paymentId
+								LEFT JOIN app.payment_inv_items
+									INNER JOIN app.payments
+									ON payment_inv_items.payment_id = payments.payment_id AND payments.reversed IS FALSE
+								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id								
+							ON invoice_balances2.inv_id = invoice_line_items.inv_id
+							WHERE payment_inv_items.payment_id = :paymentId
 							ORDER BY due_date, fee_item");
 		$sth3->execute( array(':paymentId' => $paymentId) ); 
         $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);	

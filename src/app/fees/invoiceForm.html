@@ -38,7 +38,7 @@
 					</p>
 				</div>
 			
-				<div class="col-sm-4" ng-show="invoice.creation_method=='automatic'">
+				<div class="col-sm-4" ng-show="selectedStudent !== undefined && invoice.creation_method=='automatic'">
 					<!-- term -->
 					<label for="student">Timeframe</label>
 					<p>
@@ -49,40 +49,34 @@
 			</div>				
 			
 			
-			<div class="" ng-show="invoice.creation_method=='manual'">
+			<div class="" ng-show="selectedStudent !== undefined && invoice.creation_method=='manual'">
 				<div class="row">	
-					<div class="col-sm-12">
-
-						<!-- student -->
-						<div class="form-group">		
-							<label class="col-sm-3 control-label">Student</label>
-							<div class="col-sm-7">
-								<p class="form-control-static">{{selectedStudent.student_name}}</p>
-							</div>	
-						</div>
-						<!-- invoice date -->
-						<div class="form-group">		
-							<label for="inv_date" class="col-sm-3 control-label">Invoice Date</label>
-							<div class="col-sm-3">
-								<div class="input-group" >
-									<input type="text" name="inv_date" date-range-picker class="form-control date-picker input-sm" ng-model="invoice.date" options="{singleDatePicker: true,autoApply: true}" />
-									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
-								</div>
-							</div>	
-						</div>
-						
-						<!-- due date -->
-						<div class="form-group">		
-							<label for="due_date" class="col-sm-3 control-label">Due Date</label>
-							<div class="col-sm-3">
-								<div class="input-group">
-									<input type="text" name="due_date" date-range-picker class="form-control date-picker input-sm" ng-model="invoice.due_date" options="{singleDatePicker: true,autoApply: true}" />
-									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
-								</div>
-							</div>	
+				
+					<!-- student -->
+					<div class="col-sm-4" >		
+						<label>Student</label>
+						<p class="form-control-static">{{selectedStudent.student_name}}</p>
+					</div>
+					
+					<!-- invoice date -->
+					<div class="col-sm-4" >		
+						<label>Invoice Date</label>
+						<div class="input-group">
+							<input type="text" name="inv_date" date-range-picker id="inv_date" class="form-control date-picker input-sm" ng-model="invoice.date" options="{singleDatePicker: true,autoApply: true}" >
+							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 						</div>
 					</div>
+					
+					<!-- due date -->
+					<div class="col-sm-4" >		
+						<label>Due Date</label>
+						<div class="input-group">
+							<input type="text" name="due_date" date-range-picker id="due_date" class="form-control date-picker input-sm" ng-model="invoice.due_date" options="{singleDatePicker: true,autoApply: true}" >
+							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+						</div>
 
+					</div>
+					
 				</div>
 
 				<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
@@ -115,15 +109,23 @@
 								<button type="button" class="btn btn-sm btn-success" ng-click="addRow()">Add Line Item</button>
 							</td>
 						</tr>
-						<tr>
-							<th colspan="2" class="rightalign">Balance Due ({{currency}})</th>
-							<th class="rightalign">{{totals.balance|numeric}}</th>
-						</tr>
+						<tr ng-show="hasOverPayment">
+									<th colspan="2" class="rightalign">Invoice Total ({{currency}})</th>
+									<th class="rightalign">{{totals.invoice|numeric}}</th>
+								</tr>
+								<tr ng-show="hasOverPayment" class="text-success">
+									<th colspan="2" class="rightalign">Overpayment ({{currency}})</th>
+									<th class="rightalign">{{overpayment|numeric}}</th>
+								</tr>
+								<tr class="text-danger">
+									<th colspan="2" class="rightalign">Balance Due ({{currency}})</th>
+									<th class="rightalign">{{totals.balance|numeric}}</th>
+								</tr>
 					</tfoot>
 				</table>
 			</div>
 			
-			<div class="" ng-show="invoice.creation_method=='automatic' && invoice.term!==undefined">
+			<div class="" ng-show="selectedStudent !== undefined && invoice.creation_method=='automatic' && invoice.term!==undefined">
 				
 				<h2>Invoice Preview</h2>				
 				<button type="button" class="btn btn-sm btn-link pull-right" ng-click="viewStudent(student.selected)" ng-show="!selectedStudent"><i class="glyphicon glyphicon-user"></i> View Student Details</button>
@@ -140,29 +142,23 @@
 									
 					<div class="subtab-content clearfix">
 						<!-- invoice date -->
-						<h2><strong>Invoice Date:</strong> {{activeInvoice}}</h2>
+						<div class="col-sm-4" >		
+							<label>Invoice Date</label>
+							<div class="input-group">
+								<input type="text" name="inv_date" date-range-picker id="inv_date" class="form-control date-picker input-sm" ng-model="invoiceLineItems[0].inv_date" options="{singleDatePicker: true,autoApply: true}" >
+								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+							</div>
+						</div>
 						
 						<!-- invoice date -->
-						<div class="form-group">		
-							<label for="inv_date" class="col-sm-2 control-label">Invoice Date</label>
-							<div class="col-sm-3">
-								<div class="input-group" >
-									<input type="text" name="inv_date" date-range-picker class="form-control date-picker input-sm" ng-model="invoiceLineItems[0].inv_date" options="{singleDatePicker: true,autoApply: true}" />
-									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
-								</div>
-							</div>	
+						<div class="col-sm-4" >		
+							<label>Due Date</label>
+							<div class="input-group">
+								<input type="text" name="due_date" date-range-picker id="due_date" class="form-control date-picker input-sm" ng-model="invoiceLineItems[0].due_date" options="{singleDatePicker: true,autoApply: true}" >
+								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+							</div>
 						</div>
 						
-						<!-- due date -->
-						<div class="form-group">	
-							<label for="due_date" class="col-sm-2 control-label">Due Date</label>
-							<div class="col-sm-3">
-								<div class="input-group">
-									<input type="text" name="due_date" date-range-picker class="form-control date-picker input-sm" ng-model="invoiceLineItems[0].due_date" options="{singleDatePicker: true,autoApply: true}" />
-									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
-								</div>
-							</div>	
-						</div>
 					
 						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
 							<thead>
@@ -194,7 +190,15 @@
 										<button type="button" class="btn btn-sm btn-success" ng-click="addRow()">Add Line Item</button>
 									</td>
 								</tr>
-								<tr>
+								<tr ng-show="hasOverPayment">
+									<th colspan="2" class="rightalign">Invoice Total ({{currency}})</th>
+									<th class="rightalign">{{totals.invoice|numeric}}</th>
+								</tr>
+								<tr ng-show="hasOverPayment" class="text-success">
+									<th colspan="2" class="rightalign">Overpayment ({{currency}})</th>
+									<th class="rightalign">{{overpayment|numeric}}</th>
+								</tr>
+								<tr class="text-warning">
 									<th colspan="2" class="rightalign">Balance Due ({{currency}})</th>
 									<th class="rightalign">{{totals.balance|numeric}}</th>
 								</tr>
@@ -210,7 +214,7 @@
 		<div class="modal-footer">
 			<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
 			
-			<button type="submit" class="btn btn-success" ng-show="results.length>0 || invoice.creation_method=='manual'">
+			<button type="submit" class="btn btn-success" ng-show="selectedStudent !== undefined && (results.length>0 || invoice.creation_method=='manual')">
 				<span ng-hide="saving">Create Invoice(s)</span>
 				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
 			</button>

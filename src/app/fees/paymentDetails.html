@@ -1,7 +1,7 @@
 <form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-			<h4 class="modal-title">{{ (edit ? 'Adjust ':'')}}Payment: {{ student_name}}</h4>
+			<h4 class="modal-title">{{ (edit ? 'Adjust ':'')}}Payment {{selectedPayment.payment_id}}: {{ student_name}}</h4>
 		</div>
 		<div class="modal-body">
 	
@@ -57,7 +57,7 @@
 							<p class="form-control-static" ng-show="!edit">{{selectedPayment.payment_date}}</p>
 							<div class="col-sm-4" ng-show="edit">
 								<div class="input-group">
-									<input type="text" name="payment_date" date-range-picker id="payment_date" class="form-control date-picker input-sm" ng-model="selectedPayment.payment_date" options="{singleDatePicker: true,autoApply: true}" />
+									<input type="text" name="payment_date" date-range-picker id="payment_date" class="form-control date-picker input-sm" ng-model="payment_date" options="{singleDatePicker: true,autoApply: true}" />
 									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 								</div>
 								<p ng-show="paymentForm.payment_date.$invalid && (paymentForm.payment_date.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Payment Date is required.</p>
@@ -113,6 +113,7 @@
 						<!-- applied to -->
 						<div class="form-group" ng-show="selectedPayment.replacement_payment==false">	
 
+							<!--
 							<label class="col-sm-3 control-label nopad">Applied To</label>
 							<div class="col-sm-9">
 								<p>
@@ -123,6 +124,7 @@
 									<button type="button" ng-show="selectedInvoice!==undefined" class="btn btn-sm" ng-click="unapplyInvoice()"><i class="glyphicon glyphicon-trash"></i> Un-apply this Invoice</button>
 								</p>
 							</div>
+							
 							
 							<div class="col-sm-12" ng-show="selectedInvoice!==undefined && !changingInvoice">
 								<table class="display dataTable" cellspacing="0" width="100%">
@@ -157,10 +159,127 @@
 									</tbody>
 								</table>
 							</div>
-						
+							-->
+							<label class="col-sm-3 control-label nopad">Applied To</label>
+							<div class="col-sm-9">
+								
+								<div class="well lesspad" ng-repeat="invoice in selectedInvoice track by $index">
+									<div class="row alert-danger" ng-show="invoice.canceled">
+										<div class="col-sm-12">
+											This invoice has been marked canceled.
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-sm-3">
+											<label>Inv No.</label>
+											<p>{{invoice.inv_id}} </p>
+										</div>
+										<div class="col-sm-5">
+											<label>Bal.</label>
+											<p class="nowrap">{{invoice.overall_balance|numeric}} Ksh </p>
+										</div>
+										<div class="col-sm-4">
+											<label>Due Date</label>
+											<p>{{invoice.due_date|date}} </p>
+										</div>
+									</div>
+								
+									<table class="display dataTable" cellspacing="0" width="100%">
+										<thead>
+											<tr>
+												<th class="center">
+													<input type="checkbox" name="apply_to_all" ng-model="payment.apply_to_all[$index]" ng-click="selectAllItems($index,invoice)" ng-value="true" ng-disabled="!edit"  />
+												</th>
+												<th>Fee Item</th>
+												<th>Balance</th>
+												<th>Paying</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr ng-repeat="feeitem in invoice.fee_items" ng-class="{'alert-success': feeitem.isPaid && !feeitem.modifiable}">
+												<td class="center">
+												 <input
+														type="checkbox"
+														name="selected_invoices[]"
+														value="{{item.inv_item_id}}"
+														ng-checked="feeItemsSelection.indexOf(feeitem) > -1"
+														ng-click="toggleFeeItems(feeitem)"
+														ng-disabled="!edit || !feeitem.modifiable"
+														ng-hide="!feeitem.modifiable"
+													  >
+												</td>
+												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
+												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance|numeric}}</td>
+												<td>
+													<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!edit || !feeitem.modifiable" />
+													<i ng-show="feeitem.isPaid && !feeitem.modifiable">Paid</i>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							
+							<label class="col-sm-3 control-label nopad">Other Open Invoices</label>
+							<div class="col-sm-9">
+								<div class="" ng-show="invoices.length==0">
+									There are no other open invoices.
+								</div>
+								<div class="well lesspad" ng-repeat="invoice in invoices track by $index">
+
+									<div class="row">
+										<div class="col-sm-3">
+											<label>Inv No.</label>
+											<p>{{invoice.inv_id}} </p>
+										</div>
+										<div class="col-sm-5">
+											<label>Bal.</label>
+											<p class="nowrap">{{invoice.balance|numeric}} Ksh </p>
+										</div>
+										<div class="col-sm-4">
+											<label>Due Date</label>
+											<p>{{invoice.due_date|date}} </p>
+										</div>
+									</div>
+								
+									<table class="display dataTable" cellspacing="0" width="100%">
+										<thead>
+											<tr>
+												<th class="center">
+													<input type="checkbox" name="apply_to_all" ng-model="payment.apply_to_all[$index]" ng-click="selectAllItems($index,invoice)" ng-value="true" ng-disabled="!edit"  />
+												</th>
+												<th>Fee Item</th>
+												<th>Balance</th>
+												<th>Paying</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr ng-repeat="feeitem in invoice.fee_items" ng-class="{'alert-success': feeitem.isPaid && !feeitem.modifiable}">
+												<td class="center">
+												 <input
+														type="checkbox"
+														name="selected_invoices[]"
+														value="{{item.inv_item_id}}"
+														ng-checked="feeItemsSelection.indexOf(feeitem) > -1"
+														ng-click="toggleFeeItems(feeitem)"
+														ng-disabled="!edit || !feeitem.modifiable"
+														ng-hide="!feeitem.modifiable"
+													  >
+												</td>
+												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
+												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance|numeric}}</td>
+												<td>
+													<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!edit || !feeitem.modifiable" />
+													<i ng-show="feeitem.isPaid && !feeitem.modifiable">Paid</i>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
 						</div>
 						
-						<!-- change to -->
+						<!-- change to
 						<div class="form-group" ng-show="changingInvoice">	
 
 							<label class="col-sm-3 control-label">Change To</label>
@@ -204,7 +323,7 @@
 									</table>
 							</div>
 						</div>
-							
+						 -->	
 						<div class="form-group" ng-show="selectedPayment.replacement_payment==true">	
 							<label class="col-sm-3 control-label">Apply To</label>
 							<div class="col-sm-9">

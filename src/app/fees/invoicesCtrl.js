@@ -24,7 +24,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.gridFilter.filterValue  = '';
 
 	var start_date = moment().format('YYYY-01-01');
-	var end_date = moment().format('YYYY-MM-DD');
+	var end_date = moment().format('YYYY-12-31');
 	$scope.date = {startDate: start_date, endDate: end_date};
 	var lastQueriedDateRange = angular.copy($scope.date);
 	var requery = false;

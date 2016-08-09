@@ -9,6 +9,10 @@
 				{{errMsg}}
 			</p>
 			
+			<div class="watermark canceled" ng-show="invoice.canceled">
+				<p>CANCELED</p>
+			</div>
+			
 			<img ng-if="useLetterhead" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
 			
 			<div class="row" ng-if="!useLetterhead">
@@ -91,7 +95,7 @@
 					<label>Outstanding Balance:</label>
 				</div>
 				<div class="col-xs-9">
-					<p class="form-control-static">{{invoice.balance|numeric}}</p>
+					<p class="form-control-static"><b>{{invoice.balance|numeric}}</b></p>
 				</div>
 			</div>
 			

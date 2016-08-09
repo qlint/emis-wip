@@ -119,7 +119,7 @@ body {
 	height:98%;
 }
 .nopad{
-	padding:0;
+	padding:0!important;
 }
 .nopad-left{
 	padding-left:0;
@@ -130,6 +130,9 @@ body {
 .lesspad{
 	padding-left:5px;
 	padding-right:5px;
+}
+.well.lesspad{
+	padding:5px;
 }
 
 a{
@@ -144,6 +147,23 @@ a{
 .note{
 	font-style:italic;
 	color:#777;
+}
+
+.watermark{
+	position: absolute;
+    top: 50%;
+    left: 0;
+    margin: 0 auto;
+    right: 0;
+    text-align: center;
+	
+	p{
+		@include rounded(5px);
+		@include rotate(-45);
+		background-color:rgba(238, 238, 238, 0.75);
+		font-size:40px;
+		padding:15px 100px;
+	}
 }
 
 /********************** Branding Styles ******************************/
@@ -931,7 +951,9 @@ table.clickable{
 		cursor:pointer;
 	}
 }
-
+.nowrap{
+	white-space : nowrap;
+}
 .td-form-control-add-on{
 	white-space : nowrap;
 	
@@ -1058,7 +1080,7 @@ table.clickable{
 	}
 	
 	.subtab-content{
-		padding:0 10px 10px;
+		padding:10px 10px;
 		border:1px solid #ddd;
 		border-top:none;
 		

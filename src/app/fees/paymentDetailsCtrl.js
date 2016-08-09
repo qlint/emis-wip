@@ -11,7 +11,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.student = {};
 	$scope.payment = {};	
 	$scope.selectedPayment = data || undefined;
-	$scope.selectedPayment.payment_date = {startDate: $scope.selectedPayment.payment_date};
+	$scope.payment_date = {startDate: $scope.selectedPayment.payment_date};
 
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	$scope.invoiceSelection = [];
@@ -112,60 +112,79 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			var results = ( result.nodata ? {} : result.data );
 			
 			$scope.selectedPayment = results.payment;
-			$scope.selectedInvoice = ( results.invoice.length > 0 ? formatInvoices(results.invoice)[0] : undefined);
-
+			$scope.selectedInvoice = ( results.invoice.length > 0 ? formatInvoices(results.invoice) : undefined);
+			$scope.paymentItems = results.paymentItems;
+			
 			apiService.getOpenInvoices($scope.student_id, loadInvoices, apiError);
 			
 			// if there is an associated invoice, set the line items
 			if( $scope.selectedInvoice !== undefined )
 			{
 				// need to loop through the selected invoice and check off what is associated with payment			
-				angular.forEach( $scope.selectedInvoice.fee_items, function(item, key){
+				angular.forEach( $scope.selectedInvoice, function(item0,key0){
+				
+					angular.forEach(item0.fee_items, function(item, key){
 					
-					angular.forEach( results.paymentItems, function(item2,key2)
-					{
-						if( item.inv_item_id == item2.inv_item_id)
+						// if a invoice item is fully paid mark it not modifiable
+						// below we check if the item was paid with this payment
+						// if so, then we allow modifiable
+						// can not modify items that are fully paid by other payments
+					
+						angular.forEach( $scope.paymentItems, function(item2,key2)
 						{
-							item.amount = item2.line_item_amount;
-							item.payment_inv_item_id = item2.payment_inv_item_id;
-							$scope.feeItemsSelection.push(item);
-						}
-					});						
+							if( item.inv_item_id == item2.inv_item_id)
+							{
+								item.amount = item2.line_item_amount;
+								item.payment_inv_item_id = item2.payment_inv_item_id;
+								item.modifiable = true;
+								$scope.feeItemsSelection.push(item);
+							}
+						});						
+					});
 				});
 
 			}
+			//console.log($scope.selectedInvoice);
 			
 			// if its a replacement payment, set the selected replacement items
 			if( $scope.selectedPayment.replacement_payment )
 			{
-				apiService.getReplaceableFeeItems($scope.student_id,function(response,status){		
-					var result = angular.fromJson(response);							
-					if( result.response == 'success')
-					{
-						$scope.replaceableFeeItems = angular.copy(result.data);
-						
-						angular.forEach( $scope.replaceableFeeItems, function(item, key){
-				
-							angular.forEach( results.paymentItems, function(item2,key2)
-							{
-								if( item.student_fee_item_id == item2.inv_item_id )
-								{
-									item.paying_amount = item2.line_item_amount;
-									item.payment_replace_item_id = item2.payment_inv_item_id;
-									$scope.feeItemsSelection2.push(item);
-								}
-							});						
-						});
-
-						
-					}
-				},apiError);
+				getReplaceableFeeItems();
 			}
 		}
 		else
 		{
 			$scope.error = true;
 			$scope.errMsg = result.data;
+		}
+	}
+	
+	var getReplaceableFeeItems = function()
+	{
+		if( $scope.replaceableFeeItems === undefined )
+		{
+			apiService.getReplaceableFeeItems($scope.student_id,function(response,status){		
+				var result = angular.fromJson(response);							
+				if( result.response == 'success')
+				{
+					$scope.replaceableFeeItems = angular.copy(result.data);
+					
+					angular.forEach( $scope.replaceableFeeItems, function(item, key){
+			
+						angular.forEach( $scope.paymentItems, function(item2,key2)
+						{
+							if( item.student_fee_item_id == item2.inv_item_id )
+							{
+								item.paying_amount = item2.line_item_amount;
+								item.payment_replace_item_id = item2.payment_inv_item_id;
+								$scope.feeItemsSelection2.push(item);
+							}
+						});						
+					});
+
+					
+				}
+			},apiError);
 		}
 	}
 	
@@ -176,58 +195,71 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				
 		if( result.response == 'success') 
 		{
-			$scope.invoices = ( result.nodata ? [] : formatInvoices(angular.copy(result.data)));	
-			//setTimeout(initInvoicesDataGrid,10);
+			var invoices = ( result.nodata ? [] : formatInvoices(angular.copy(result.data)));	
+			
+			// filter out invoices already showing in Applied To
+			$scope.invoices = invoices.filter(function(item){
+				var isMatch = $scope.selectedInvoice.filter(function(item2){
+					if( item.inv_id == item2.inv_id ) return item2;
+				})[0];
+				if( isMatch === undefined ) return item;
+			});
 		}
 	}
 	
 	var formatInvoices = function(invoiceData)
 	{
+		//console.log(invoiceData);
+		var currentInvoice = {};
+		var currentItem = {};
+		var invoices = [];
+		var feeItems = []
+		angular.forEach( invoiceData, function(item,key){
 		
-			var currentInvoice = {};
-			var currentItem = {};
-			var invoices = [];
-			var feeItems = []
-			angular.forEach( invoiceData, function(item,key){
-			
-				if( key > 0 && currentInvoice != item.inv_id )
-				{
-					// store row
-					$scope.invoices.push({
-						inv_id: currentItem.inv_id,
-						inv_date: currentItem.inv_date,
-						due_date: currentItem.due_date,
-						balance: currentItem.balance,
-						total_due: currentItem.total_due,
-						fee_items: feeItems,
-					});
-					
-					// reset
-					feeItems = [];
-				}
-				
-				feeItems.push({
-					fee_item_id: item.fee_item_id,
-					fee_item: item.fee_item,
-					balance: item.line_item_amount,
-					inv_item_id: item.inv_item_id,
-					amount: null
+			if( key > 0 && currentInvoice != item.inv_id )
+			{
+				// store row
+				invoices.push({
+					inv_id: currentItem.inv_id,
+					inv_date: currentItem.inv_date,
+					due_date: currentItem.due_date,
+					balance: currentItem.balance,
+					overall_balance: currentItem.overall_balance,
+					total_due: currentItem.total_due,
+					fee_items: feeItems,
 				});
 				
-				currentInvoice = item.inv_id;
-				currentItem = item;				
+				// reset
+				feeItems = [];
+			}
+			
+			feeItems.push({
+				fee_item_id: item.fee_item_id,
+				fee_item: item.fee_item,
+				balance: item.balance,
+				inv_item_id: item.inv_item_id,
+				inv_id: item.inv_id,
+				payment_id: item.payment_id,
+				amount: null,
+				isPaid: parseInt(item.balance) === 0 ? true : false,
+				modifiable: parseInt(item.balance) === 0 ? false : true,
 			});
-			// push in last row
-			invoices.push({
-				inv_id: currentItem.inv_id,
-				inv_date: currentItem.inv_date,
-				due_date: currentItem.due_date,
-				balance: currentItem.balance,
-				total_due: currentItem.total_due,
-				fee_items: feeItems,
-			});
-
-			return invoices;
+			
+			currentInvoice = item.inv_id;
+			currentItem = item;				
+		});
+		// push in last row
+		invoices.push({
+			inv_id: currentItem.inv_id,
+			inv_date: currentItem.inv_date,
+			due_date: currentItem.due_date,
+			balance: currentItem.balance,
+			overall_balance: currentItem.overall_balance,
+			total_due: currentItem.total_due,
+			fee_items: feeItems,
+		});
+		//console.log(invoices);
+		return invoices;
 	}
 	
 	var loadFeeBalance = function(response,status)
@@ -326,7 +358,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			if( newVal )
 			{
 				angular.forEach($scope.selectedNewInvoice.fee_items, function(feeitem,key){
-					feeitem.amount = feeitem.balance;
+					feeitem.amount = Math.abs(feeitem.balance);
 					$scope.feeItemsSelection.push(feeitem);
 				});
 			}
@@ -343,7 +375,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			if( newVal )
 			{
 				angular.forEach($scope.selectedInvoice.fee_items, function(feeitem,key){
-					feeitem.amount = feeitem.balance;
+					feeitem.amount = Math.abs(feeitem.balance);
 					$scope.feeItemsSelection.push(feeitem);
 				});
 			}
@@ -360,8 +392,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	
 	$scope.$watch('selectedPayment.replacement_payment', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-
-		
+		if( newVal ) getReplaceableFeeItems();
 	});
 	
 	$scope.viewStudent = function(student)
@@ -401,7 +432,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 
 		// is newly selected
 		else {
-			feeitem.amount = feeitem.balance;
+			feeitem.amount = Math.abs(feeitem.balance);
 			$scope.feeItemsSelection.push(feeitem);
 		}
 	};
@@ -479,7 +510,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				user_id: $scope.currentUser.user_id,
 				payment_id : $scope.selectedPayment.payment_id,
 				student_id : $scope.student_id,
-				payment_date : moment($scope.selectedPayment.payment_date.startDate).format('YYYY-MM-DD'),
+				payment_date : moment($scope.payment_date.startDate).format('YYYY-MM-DD'),
 				amount: $scope.selectedPayment.amount,
 				payment_method : $scope.selectedPayment.payment_method,
 				slip_cheque_no: $scope.selectedPayment.slip_cheque_no,
@@ -494,6 +525,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				lineItems.push({
 					payment_inv_item_id: item.payment_inv_item_id,
 					inv_item_id: item.inv_item_id,
+					inv_id: item.inv_id,
 					amount: item.amount
 				});
 			});
@@ -502,17 +534,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				user_id: $scope.currentUser.user_id,
 				payment_id : $scope.selectedPayment.payment_id,
 				student_id : $scope.student_id,
-				payment_date : moment($scope.selectedPayment.payment_date.startDate).format('YYYY-MM-DD'),
+				payment_date : moment($scope.payment_date.startDate).format('YYYY-MM-DD'),
 				amount: $scope.selectedPayment.amount,
 				payment_method : $scope.selectedPayment.payment_method,
 				slip_cheque_no: $scope.selectedPayment.slip_cheque_no,
 				replacement_payment: ($scope.selectedPayment.replacement_payment == 'true' ? 't' : 'f' ),
-				inv_id : ($scope.selectedPayment.invoice !== undefined ? $scope.selectedPayment.invoice.inv_id : ($scope.selectedInvoice !== undefined ? $scope.selectedInvoice.inv_id : null)),
+				//inv_id : ($scope.selectedPayment.invoice !== undefined ? $scope.selectedPayment.invoice.inv_id : ($scope.selectedInvoice !== undefined ? $scope.selectedInvoice.inv_id : null)),
 				line_items: lineItems
 			};
 			
 		}
-
+		console.log(data);
 		apiService.updatePayment(data,createCompleted,apiError);
 		
 	}

@@ -227,6 +227,9 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 	$rootScope.$on('examMarksAdded', function(event, args) {
         $rootScope.$broadcast('refreshExamMarks', args);
     });
+	$rootScope.$on('examMarksAdded2', function(event, args) {
+        $rootScope.$broadcast('refreshExamMarks2', args);
+    });
 	
 	$rootScope.$on('gradingAdded', function(event, args) {
         $rootScope.$broadcast('refreshGrades', args);

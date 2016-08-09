@@ -33,7 +33,7 @@ body {
   height: 98%; }
 
 .nopad {
-  padding: 0; }
+  padding: 0 !important; }
 
 .nopad-left {
   padding-left: 0; }
@@ -44,6 +44,9 @@ body {
 .lesspad {
   padding-left: 5px;
   padding-right: 5px; }
+
+.well.lesspad {
+  padding: 5px; }
 
 a {
   cursor: pointer; }
@@ -57,6 +60,26 @@ a {
 .note {
   font-style: italic;
   color: #777; }
+
+.watermark {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  margin: 0 auto;
+  right: 0;
+  text-align: center; }
+  .watermark p {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -moz-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    background-color: rgba(238, 238, 238, 0.75);
+    font-size: 40px;
+    padding: 15px 100px; }
 
 /********************** Branding Styles ******************************/
 .navbar-brand {
@@ -713,6 +736,9 @@ div.canceled div.ui-grid-cell {
 table.clickable tr {
   cursor: pointer; }
 
+.nowrap {
+  white-space: nowrap; }
+
 .td-form-control-add-on {
   white-space: nowrap; }
   .td-form-control-add-on input {
@@ -815,7 +841,7 @@ table.clickable tr {
       -moz-border-radius: 0;
       border-radius: 0; }
   .modal-content .subtab-content {
-    padding: 0 10px 10px;
+    padding: 10px 10px;
     border: 1px solid #ddd;
     border-top: none; }
     .modal-content .subtab-content .tab-header {

@@ -42,9 +42,9 @@
 						Amount Paid
 						<p>{{totals.total_paid|currency:""}} <span>{{currency}}</span></p>
 					</div>
-					<div class="info-box">
+					<div class="info-box" ng-class="{'alert-success':totals.total_balance>=0, 'text-warning' : totals.total_balance<0 && gracePeriod, 'text-danger': totals.total_balance<0}">
 						Balance
-						<p ng-class="{'alert-success':totals.total_balance>=0, 'text-warning' : totals.total_balance<0 && gracePeriod, 'text-danger': totals.total_balance<0}">{{totals.total_balance|numeric}} <span>{{currency}}</span></p>						
+						<p>{{totals.total_balance|numeric}} <span>{{currency}}</span></p>						
 					</div>
 				</div>
 			</div>
@@ -80,7 +80,7 @@
 							<button class="btn btn-xs " ng-click="clearFilterDataTable('1')">Clear</button>
 						</div>
 					
-						<div id="grid1" ui-grid="gridOptions1" class="myGrid">
+						<div id="grid1" ui-grid="gridOptions1" ui-grid-resize-columns class="myGrid">
 							<div ng-if="gridOptions1.data.length==0" class="no-results">No results found.</div>
 						</div>
 						<!--
@@ -113,7 +113,7 @@
 				<div class="dashboard-panel alert alert-warning">					
 					<div class="dashboard-panel-header clearfix">
 						<h2 class="pull-left">Invoices Due This Month</h2>
-						<span class="totalSum pull-right">{{paymentsDueTotal|currency:""}} {{currency}}</span>
+						<span class="totalSum pull-right">{{paymentsDueTotal|numeric}} {{currency}}</span>
 					</div>
 					<div class="dashboard-panel-body">
 						<div class="loading-indicator" ng-show="invoicesLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
@@ -124,7 +124,7 @@
 							<button class="btn btn-xs " ng-click="clearFilterDataTable('2')">Clear</button>
 						</div>
 					
-						<div id="grid2" ui-grid="gridOptions2" class="myGrid">
+						<div id="grid2" ui-grid="gridOptions2" ui-grid-resize-columns class="myGrid">
 							<div ng-if="gridOptions2.data.length==0" class="no-results">No results found.</div>
 						</div>
 						<!--
@@ -168,7 +168,7 @@
 							<button class="btn btn-xs " ng-click="clearFilterDataTable('3')">Clear</button>
 						</div>
 					
-						<div id="grid3" ui-grid="gridOptions3" class="myGrid">
+						<div id="grid3" ui-grid="gridOptions3" ui-grid-resize-columns class="myGrid">
 							<div ng-if="gridOptions3.data.length==0" class="no-results">No results found.</div>
 						</div>
 						<!--

@@ -111,6 +111,14 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
+	.state('fees/statement/print', {
+      url: "/fees/statement/print",
+	  templateUrl: 'app/fees/statement.html',
+	  controller: 'printStatementCtrl',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
 	.state('school/departments', {
       url: "/school/departments",
 	  templateUrl: 'app/school/departments.html',
@@ -140,7 +148,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
       url: "/school/subjects",
 	  templateUrl: 'app/school/subjects.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('school/grading', {
@@ -168,21 +176,21 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
       url: "/exams",
 	  templateUrl: 'app/exams/listExams.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('exams/exam_types', {
       url: "/exams/exam_types",
 	  templateUrl: 'app/exams/examTypes.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('exams/report_cards', {
       url: "/exams/report_cards",
 	  templateUrl: 'app/exams/listReportCards.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('exams/report_card/print', {
@@ -190,7 +198,14 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/exams/reportCard.html',
 	  controller: 'printReportCardCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
+	.state('exams/class_analysis', {
+      url: "/exams/class_analysis",
+	  templateUrl: 'app/exams/classAnalysisReport.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('school_settings', {
@@ -257,10 +272,6 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  params: {
 		action: 'edit',
 		post: null,
-		//class_id: null,
-		//class_subject_id: null,
-		//selectedClass: null,
-		//selectedClassSubject: null
 	  },
 	  templateUrl: 'app/communications/postForm.html',
       data: {

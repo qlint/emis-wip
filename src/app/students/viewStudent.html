@@ -513,7 +513,7 @@
 							</div>	
 							
 							<!-- amount overdue -->
-							<div class="form-group text-danger" ng-show="feeSummary.balance>0">		
+							<div class="form-group text-danger" ng-show="feeSummary.past_due">		
 								<label for="payment_method" class="col-sm-5 control-label">Amount Overdue</label>
 								<div class="col-sm-7">
 									<p class="form-control-static">{{feeSummary.balance|numeric}} {{currency}}</p>
@@ -532,7 +532,7 @@
 								Amount Paid
 								<p>{{feeSummary.total_paid|currency:""}}<span>{{currency}}</span></p>
 							</div>
-							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning' : feeSummary.balance<0 && gracePeriod, 'alert-danger': feeSummary.balance<0}">
+							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning' : feeSummary.balance<0 && !feeSummary.past_due, 'alert-danger': feeSummary.past_due}">
 								Balance
 								<p>{{ feeSummary.balance|numeric}}<span>{{currency}}</span></p>
 							</div>
@@ -555,6 +555,7 @@
 				<div class="row">
 					<div class="col-xs-12">
 						<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
+						<button ng-show="permissions.fees.invoices.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addInvoice()"><i class="glyphicon glyphicon-plus-sign"></i> Add Invoice</button>
 					</div>
 				</div>
 				<div class="row">
@@ -595,6 +596,7 @@
 					<div class="col-xs-12">		
 						<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
 						<button ng-show="permissions.fees.invoices.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addInvoice()"><i class="glyphicon glyphicon-plus-sign"></i> Add Invoice</button>
+						<button ng-show="permissions.fees.invoices.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="printStatement()"><i class="glyphicon glyphicon-print"></i> Print Statement</button>
 					</div>
 				</div>
 				<div class="row">

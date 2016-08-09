@@ -104,7 +104,7 @@
 				<div class="col-sm-10">
 				<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 				
-				<div id="grid1" ui-grid="gridOptions" ui-grid-exporter class="myGrid">
+				<div id="grid1" ui-grid="gridOptions" ui-grid-exporter ui-grid-resize-columns class="myGrid">
 					<div ng-if="!gridOptions.data.length" class="no-results">No results found.</div>
 				</div>
 				<!--
