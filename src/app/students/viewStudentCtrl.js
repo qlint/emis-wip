@@ -1427,6 +1427,8 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		$scope.add = ( data.action == 'add' ? true : false );
 		$scope.readOnly = ( data.action == 'view' ? true : false );
 		
+		$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
+		
 		var relationships = $rootScope.currentUser.settings['Guardian Relationships'];
 		$scope.relationships = relationships.split(',');
 		
@@ -1869,7 +1871,8 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								'</div>	' +
 							'</div>	' +
 						'</div>' +
-					
+						
+						'<div ng-if="parentPortalAcitve">' +
 						'<h3>Parent Portal Login (optional)</h3>' +
 						'<div ng-if="hasLogin">' +
 							'<!-- username -->' +
@@ -1931,6 +1934,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								'</div>' +
 							'</div>' +
 							'<div ng-show="readOnly"><p>This parent does not have a parent portal login.</div>' +	
+						'</div>' +
 						'</div>' +
 					'</div>' +
 				'</div>' +	
