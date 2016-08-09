@@ -172,6 +172,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				}
 				
 				$scope.examMarks = result.data;
+				$scope.totalStudents = result.data.length;
 				
 				/* loop through the first exam mark result to build the table columns */
 				$scope.tableHeader = [];
@@ -264,6 +265,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				// total up marks
 				
 				var total = 0;
+				// need to total up each subject for total marks in footer
+				$scope.totalMarks = {};
+				$scope.grandTotal = 0;
 				angular.forEach($scope.examMarks, function(item){
 					var total = 0;
 					angular.forEach(item, function(value,key){
@@ -274,18 +278,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 								parentSubject = subjectDetails[1];
 							
 							if( parentSubject == '' ) total += value;
+							
+							if( $scope.totalMarks[key] === undefined ) $scope.totalMarks[key] = 0; 
+							$scope.totalMarks[key] = $scope.totalMarks[key] + value;
 						}
 					});
 					item.total = Math.round(total);
-					
+					$scope.grandTotal += item.total;
 				});
-				console.log($scope.examMarks);
-				
-				
-				// need to total up each subject for total marks in footer
-				// also need to calculate the mean score
-				
-				
+
 				$scope.getReport = "examsTable";
 				$timeout(initDataGrid,100);
 			}
@@ -299,17 +300,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	
 	$scope.displayMark = function(index, key)
 	{
-		return $parse("examMarks[" + index + "][\"" + key + "\"]" )($scope) || '-' ;
+		return $scope.examMarks[index][key] || '-';
+		//return $parse("examMarks[" + index + "][\"" + key + "\"]" )($scope) || '-' ;
 	}
 	
-	$scope.displayTotalMark = function(index, key)
+	$scope.displayTotalMark = function(key)
 	{
-		return $parse("totalMarks[" + index + "][\"" + key + "\"]" )($scope) || '-' ;
+		return $scope.totalMarks[key] || '-' ;
 	}
 	
-	$scope.displayMeanScore = function(index, key)
+	$scope.displayMeanScore = function(key)
 	{
-		return $parse("meanScores[" + index + "][\"" + key + "\"]" )($scope) || '-' ;
+		return Math.round($scope.totalMarks[key]/$scope.totalStudents,1) || '-' ;
 	}
 	
 	var initDataGrid = function() 

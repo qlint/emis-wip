@@ -100,14 +100,14 @@
 					</tbody>
 					<tfoot>
 						<tr>
-							<th>TOTAL MARKS</th>
-							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayTotalMark($parent.$index, col.key)"></th>
-							<th></th>
+							<th class="right">TOTAL MARKS</th>
+							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayTotalMark(col.key)"></th>
+							<th class="center strong"></th>
 							<th></th>
 						</tr>
 						<tr>
-							<th>MEAN SCORE</th>
-							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMeanScore($parent.$index, col.key)"></th>
+							<th class="right">MEAN SCORE</th>
+							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMeanScore(col.key)"></th>
 							<th></th>
 							<th></th>
 						</tr>

@@ -821,6 +821,9 @@ form .select2-chosen button {
 .center{
 	text-align:center;
 }
+.right{
+	text-align:right;
+}
 img.center{
 	display:block;
 	margin:0 auto;
@@ -1886,7 +1889,7 @@ table.clickable{
 		padding-top:90px
 	}
 	
-	table.dataTable tbody th, table.dataTable tbody td{
+	table.dataTable tbody th, table.dataTable tbody td, table.dataTable tfoot th{
 		padding:2px 18px 2px 2px;
 	}
 	table.dataTable.nosort tbody th, 
