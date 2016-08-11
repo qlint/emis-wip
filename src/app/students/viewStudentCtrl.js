@@ -673,7 +673,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.feeSummary = angular.copy(result.data.fee_summary);
 				// need to add any unapplied payments to total_paid
 				$scope.feeSummary.grand_total_paid = parseFloat($scope.feeSummary.total_paid) + parseFloat($scope.feeSummary.unapplied_payments);
-				$scope.feeSummary.grand_total_balance = parseFloat($scope.feeSummary.total_due) - $scope.feeSummary.grand_total_paid;
+				$scope.feeSummary.grand_total_balance = $scope.feeSummary.grand_total_paid - parseFloat($scope.feeSummary.total_due);
 				$scope.fees = angular.copy(result.data.fees);
 				$scope.nofeeSummary = false;
 			}

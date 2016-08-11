@@ -48,9 +48,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		columnDefs: [
 			{ name: 'Name', field: 'student_name', enableColumnMenu: false,},
 			{ name: 'Class', field: 'class_name', enableColumnMenu: false,},
-			{ name: names[0], field: 'total_due', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_due|currency:""}}</div>'},
-			{ name: names[1], field: 'total_paid', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_paid|currency:""}}</div>'},
-			{ name: names[2], field: 'balance', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.balance|numeric}}</div>'},
+			{ name: names[0], field: 'total_due', enableColumnMenu: false, type:'number', cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_due|currency:""}}</div>'},
+			{ name: names[1], field: 'total_paid', enableColumnMenu: false, type:'number', cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.total_paid|currency:""}}</div>'},
+			{ name: names[2], field: 'balance', enableColumnMenu: false, type:'number', sort: {direction: 'desc', priority: 1}, cellTemplate:'<div class="ui-grid-cell-contents">{{row.entity.balance|numeric}}</div>'},
 			{ name: 'Last Payment', field: 'last_payment', enableColumnMenu: false},
 			{ name: 'Next Payment Due', field: 'next_payment', enableColumnMenu: false},
 		],
