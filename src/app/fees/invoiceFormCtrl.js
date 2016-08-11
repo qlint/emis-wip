@@ -88,14 +88,21 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 					$scope.feeSummary = angular.copy(result.data.fee_summary);
 					$scope.fees = angular.copy(result.data.fees);
 					
+					
 					// if there is any outstanding balances, add as first line item
 					if( $scope.feeSummary &&  parseFloat($scope.feeSummary.balance) < 0 )
 					{
+						$scope.hasArrears = true;
+					$scope.underpayment = parseFloat($scope.feeSummary.balance);
+				
+						/*
 						$scope.invoiceLineItems.unshift({
 							fee_item: 'Outstanding Balance from previous invoice',
 							amount: Math.abs(parseFloat($scope.feeSummary.balance))
 						});
+						*/
 					}
+					
 					// is there an overpayment?
 					if( $scope.feeSummary &&  parseFloat($scope.feeSummary.balance) > 0 )
 					{
