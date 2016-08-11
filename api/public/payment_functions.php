@@ -18,7 +18,7 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 								 WHERE payment_id = payments.payment_id
 								 )
 						 ELSE
-							(SELECT array_agg(fee_item) 
+							(SELECT array_agg(fee_item || ' (Inv #' || invoices.inv_id || ')' ) 
 								 FROM app.payment_inv_items 
 								 INNER JOIN app.invoices on payment_inv_items.inv_id  = invoices.inv_id and canceled = false
 								 INNER JOIN app.invoice_line_items using (inv_item_id)

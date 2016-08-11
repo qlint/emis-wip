@@ -108,7 +108,7 @@ function($scope, $rootScope, apiService ){
 			return sum;
 		},0);
 		
-		$scope.grandTotalBalance = Math.abs( $scope.totalBalance - $scope.totalCredit );
+		$scope.grandTotalBalance = Math.abs( $scope.totalBalance + $scope.totalCredit );
 		$scope.hasCredit = ( $scope.totalCredit > 0 ? true : false);
 		
 		setTimeout( function(){
