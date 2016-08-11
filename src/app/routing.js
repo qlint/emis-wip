@@ -208,6 +208,14 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
+	.state('exams/analysis/print', {
+      url: "/exams/analysis/print",
+	  templateUrl: 'app/exams/printClassAnalysis.html',
+	  controller: 'printClassAnalysisCtrl',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
 	.state('school_settings', {
       url: "/school_settings",
 	  templateUrl: 'app/school/settings.html',

@@ -12,3 +12,22 @@
 
 ALTER TABLE app.invoice_balances2
   OWNER TO postgres;
+
+CREATE TABLE app.credits
+(
+  credit_id serial NOT NULL,
+  student_id integer NOT NULL,
+  amount numeric NOT NULL,
+  applied boolean DEFAULT false NOT NULL,
+  creation_date timestamp without time zone NOT NULL DEFAULT now(),
+  created_by integer,
+  modified_date timestamp without time zone,
+  modified_by integer,
+  CONSTRAINT "PK_credit_id" PRIMARY KEY (credit_id ),
+  CONSTRAINT "FK_credit_student" FOREIGN KEY (student_id)
+      REFERENCES app.students (student_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+  OIDS=FALSE
+);

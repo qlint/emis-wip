@@ -95,7 +95,8 @@ $app->get('/getPaymentsDue(/:startDate/:endDate)', function ($startDate=null,$en
 							FROM app.invoice_balances2
 							INNER JOIN app.students using (student_id)
 							WHERE date_trunc('month',due_date) = date_trunc('month', now())
-							AND balance < 0");
+							AND balance < 0
+							AND canceled is false");
 		$sth->execute(); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  
@@ -133,7 +134,8 @@ $app->get('/getPaymentsPastDue(/:student_id)', function ($studentId=null) {
 							FROM app.invoice_balances2
 							INNER JOIN app.students on invoice_balances2.student_id = students.student_id
 							WHERE due_date < now() /* - interval '1 mon' */
-							AND balance < 0 ");
+							AND balance < 0
+							AND canceled is false ");
 		$sth->execute(); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  

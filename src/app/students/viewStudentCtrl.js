@@ -280,7 +280,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// go get fee data
 			$scope.loading = true;		
 			$scope.currentFeeTab = "Fee Summary";
-			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
+			getStudentBalance();
 		}
 		else if( tab == 'Exams' )
 		{
@@ -637,13 +637,28 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		{
 			$scope.loading = true;			
 			// TO DO: ability to send invoice canceled status
-			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
+			getInvoices();
 		}
 		else if( tab == 'Payments Received' )
 		{
 			$scope.loading = true;			
-			apiService.getStudentPayments($scope.student.student_id, loadPayments, apiError);
+			getPayments();
 		}
+	}
+	
+	var getStudentBalance = function()
+	{
+		apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
+	}
+	
+	var getInvoices = function()
+	{
+		apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
+	}
+	
+	var getPayments = function()
+	{
+		apiService.getStudentPayments($scope.student.student_id, loadPayments, apiError);
 	}
 	
 	var loadFeeBalance = function(response,status)
@@ -656,6 +671,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			if( result.nodata === undefined )
 			{
 				$scope.feeSummary = angular.copy(result.data.fee_summary);
+				// need to add any unapplied payments to total_paid
+				$scope.feeSummary.grand_total_paid = parseFloat($scope.feeSummary.total_paid) + parseFloat($scope.feeSummary.unapplied_payments);
+				$scope.feeSummary.grand_total_balance = parseFloat($scope.feeSummary.total_due) - $scope.feeSummary.grand_total_paid;
 				$scope.fees = angular.copy(result.data.fees);
 				$scope.nofeeSummary = false;
 			}
@@ -689,8 +707,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceForm.html','invoiceFormCtrl',{selectedStudent:$scope.student},{size: 'md',backdrop:'static'});
 		dlg.result.then(function(invoice){
 			// update invoices
-			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
-			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
+			getStudentBalance();
+			getInvoices();
 		},function(){
 			if(angular.equals($scope.invoice,''))
 				$scope.errMsg = 'You did not enter an invoice!';
@@ -705,13 +723,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceDetails.html','invoiceDetailsCtrl',item,{size: 'md',backdrop:'static'});
 		dlg.result.then(function(invoice){
 			// update invoices
-			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
-			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
+			getStudentBalance();
+			getInvoices();
 			
 		},function(){
 			// update invoices
-			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
-			apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
+			getStudentBalance();
+			getInvoices();
 		});
 	
 	}
@@ -739,9 +757,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var domain = window.location.host;
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/printStatement.html','printStatementCtrl',data,{size: 'md',backdrop:'static'});
 		*/
+		
 		var criteria = {
 			student : $scope.student,
 			invoices: $scope.invoices,
+			payments: $scope.payments
 		}
 
 		var domain = window.location.host;
@@ -797,8 +817,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentForm.html','paymentFormCtrl',{selectedStudent:$scope.student},{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(payment){
 			// update payments
-			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
-			apiService.getStudentPayments($scope.student.student_id, loadPayments, apiError);
+			getStudentBalance();
+			getPayments();
 		},function(){
 			if(angular.equals($scope.payment,''))
 				$scope.errMsg = 'You did not enter a payment!';
@@ -825,13 +845,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/paymentDetails.html','paymentDetailsCtrl',payment,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(payment){
 			// update invoices
-			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
-			apiService.getStudentPayments($scope.student.student_id, loadInvoices, apiError);
+			getStudentBalance();
+			getPayments();
 			
 		},function(){
 			// update invoices
-			apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
-			apiService.getStudentPayments($scope.student.student_id, loadInvoices, apiError);
+			getStudentBalance();
+			getPayments();
 		});
 		
 	}
@@ -1374,7 +1394,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			if( $scope.currentTab == 'Fees' )
 			{
 				// update the fee data
-				apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
+				getStudentBalance();
 			}
 
 			// refresh the main student list

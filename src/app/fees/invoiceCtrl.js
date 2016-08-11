@@ -9,8 +9,21 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 
 	var initializeController = function()
 	{	
-		var params =  $scope.invoice.inv_id;
-		apiService.getInvoiceDetails(params, loadInvoiceDetails, apiError);
+		apiService.getStudentBalance($scope.invoice.student_id, function(response,status)
+		{
+			$scope.loading = false;		
+			var result = angular.fromJson(response);
+					
+			if( result.response == 'success') 
+			{
+				if( result.nodata === undefined )
+				{
+					$scope.feeSummary = angular.copy(result.data.fee_summary);
+				}			
+			}
+			var params =  $scope.invoice.inv_id;
+			apiService.getInvoiceDetails(params, loadInvoiceDetails, apiError);
+		}, apiError);
 	}
 	setTimeout(initializeController,1);
 	
@@ -42,6 +55,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			var amt = ( String(totalAmt).indexOf('.') > -1 ? String(totalAmt).split('.') : [totalAmt,'00']);
 			$scope.totalAmtKsh = amt[0];
 			$scope.totalAmtCts = amt[1];
+			
+			console.log($scope.invoice);
+			// is there an overpayment?
+			if( $scope.feeSummary && $scope.feeSummary.unapplied_payments > 0 )
+			{
+				$scope.hasOverPayment = true;
+				$scope.overpayment = parseFloat($scope.feeSummary.unapplied_payments);
+				$scope.invoice.balance = -(Math.abs($scope.invoice.balance) - $scope.overpayment);
+			}
 			
 		}
 		else

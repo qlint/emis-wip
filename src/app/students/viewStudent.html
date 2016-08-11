@@ -530,11 +530,11 @@
 							</div>
 							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning': feeSummary.balance<0 && feeSummary.total_paid>0, 'alert-danger': feeSummary.balance<0 && feeSummary.total_paid==0}">
 								Amount Paid
-								<p>{{feeSummary.total_paid|currency:""}}<span>{{currency}}</span></p>
+								<p>{{feeSummary.grand_total_paid|currency:""}}<span>{{currency}}</span></p>
 							</div>
 							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning' : feeSummary.balance<0 && !feeSummary.past_due, 'alert-danger': feeSummary.past_due}">
 								Balance
-								<p>{{ feeSummary.balance|numeric}}<span>{{currency}}</span></p>
+								<p>{{ feeSummary.grand_total_balance|numeric}}<span>{{currency}}</span></p>
 							</div>
 						</div>
 						
@@ -707,7 +707,6 @@
 											value="{{item.fee_item_id}}"
 											ng-checked="feeItemSelection.indexOf(item) > -1"
 											ng-click="toggleFeeItem(item,'required')"
-											ng-disabled="item.payment_made>0"
 										  > {{item.fee_item}}
 										</label>										
 									</td>

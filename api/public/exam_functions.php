@@ -476,8 +476,16 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 		$db = getDB();
 		$queryParams = array();
 		$query = "SELECT student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name, class_id, class_name,
-							round(total_mark/denominator) as total_mark, 
-							round(total_grade_weight/denominator) as total_grade_weight, 
+							case when denominator > 1 then
+								round(total_mark/denominator)
+							else
+								total_mark
+							end as total_mark, 
+							case when denominator > 1 then
+								round(total_grade_weight/denominator) 
+							else
+								'500'
+							end as total_grade_weight, 
 							rank, percentage, 
 							(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 							position_out_of

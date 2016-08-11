@@ -35,7 +35,7 @@
 			</div>
 			<div class="row">
 				<div class="col-xs-2 nopad-right">
-					<label>Invoice For:</label>
+					<label>Statement For:</label>
 				</div>
 				<div class="col-xs-9 lesspad">
 					<p class="form-control-static">{{student.student_name}}</p>
@@ -75,11 +75,12 @@
 					<label>Outstanding Balance:</label>
 				</div>
 				<div class="col-xs-9">
-					<p class="form-control-static"><b>{{totalBalance|numeric}}</b></p>
+					<p class="form-control-static"><b>{{grandTotalBalance|numeric}} <span ng-show="hasCredit">credit</span></b></p>
 				</div>
 			</div>
 			
 			<div class="">
+				<h4>Invoice Summary</h4>
 				<table class="display dataTable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
@@ -110,8 +111,43 @@
 						</tr>
 					</tfoot>
 				</table>
-				
-
+				<h4>Payments Summary</h4>
+				<table class="display dataTable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th>Receipt Id</th>
+							<th>Date</th>
+							<th>Method</th>
+							<th class="center">Amount ({{currency}})</th>
+							<th>Applied To</th>
+							<th class="center">Amount Unapplied</th>
+							<th class="center">Replacement?</th>
+							<th class="center">Reversed?</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in payments track by $index">
+							<td class="center" id="{{item.payment_id}}">{{item.receipt_number}}</td>
+							<td>{{item.payment_date|date}}</td>
+							<td>{{item.payment_method}}</td>
+							<td class="center">{{item.amount|currency:""}}</td>
+							<td>{{item.applied_to|arrayToList}}</td>
+							<td class="center">{{item.unapplied_amount|currency:""}}</td>
+							<td class="center">{{item.replacement}}</td>
+							<td class="center">{{item.reverse}}</td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="3"><b class="pull-right">Total Paid:</b></td>
+							<td class="center">{{totalPayments|currency:""}}</td>
+							<td><b class="pull-right">Total Credit:</b></td>
+							<td class="center">{{totalCredit|currency:""}}</td>
+							<td colspan="2" class="center"></td>
+						</tr>
+					</tfoot>
+				</table>
+			
 			</div>
 			
 		</div>

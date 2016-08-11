@@ -50,8 +50,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			
 			if( invoiceItems.length > 0 )
 			{
-				var invoiceTotal = invoiceItems[0].total_due;
-				$scope.balanceDue = invoiceTotal - $scope.payment.amount;
+			
+				var invoiceTotal = invoiceItems.reduce(function(sum,item){
+					sum += parseFloat(item.line_item_amount);
+					return sum;
+				},0);
+				$scope.balanceDue = $scope.payment.amount - invoiceTotal;
+				$scope.hasCredit = ($scope.balanceDue > 0 ? true : false);
 			}
 
 		}

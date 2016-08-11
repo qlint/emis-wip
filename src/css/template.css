@@ -1007,8 +1007,11 @@ table.clickable tr {
     .receipt table tr td:last-child,
     .receipt table tr th:last-child {
       border-right: none; }
+    .receipt table thead th,
+    .receipt table tbody td,
     .receipt table tfoot td {
-      padding: 2px 18px 2px 2px;
+      padding: 2px; }
+    .receipt table tfoot td {
       border-top: 2px solid #000 !important;
       font-weight: bold; }
 

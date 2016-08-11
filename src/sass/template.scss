@@ -1329,8 +1329,12 @@ table.clickable{
 		tr th:last-child{
 			border-right:none;
 		}
+		thead th,
+		tbody td,
 		tfoot td{
-			padding:2px 18px 2px 2px;
+			padding:2px;
+		}
+		tfoot td{
 			border-top:2px solid #000!important;			
 			font-weight:bold;
 		}

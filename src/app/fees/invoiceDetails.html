@@ -24,7 +24,7 @@
 				</div>
 				
 				<div class="col-sm-4">
-					<div class="alert alert-success invoice-status" ng-show="invoice.balance==0 && !invoice.canceled">
+					<div class="alert alert-success invoice-status" ng-show="invoice.balance>=0 && !invoice.canceled">
 						Paid in Full
 					</div>
 					<div class="alert alert-warning invoice-status" ng-show="invoice.balance<0 && invoice.total_paid>0 && !invoice.canceled">
@@ -81,7 +81,7 @@
 				</thead>	
 				<tbody>
 					<tr ng-repeat="item in invoiceLineItems track by $index">
-						<td width="25" ng-click="removeLineItem($index)"><span class="glyphicon glyphicon-trash text-danger clickable" ng-show="!invoice.canceled"></span></td>
+						<td width="25"><span ng-click="removeLineItem($index)" class="glyphicon glyphicon-trash text-danger clickable" ng-show="edit || item.amount==undefined"></span></td>
 						<td width="90%">							
 							<span ng-show="edit && item.fee_item==undefined">
 								<select ng-options="feeitem.fee_item for feeitem in studentFeeItems track by feeitem.student_fee_item_id"  ng-model="invoice.newItem">

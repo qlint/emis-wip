@@ -78,7 +78,7 @@
 					<label>Outstanding Balance:</label>
 				</div>
 				<div class="col-xs-9">
-					<p class="form-control-static">{{balanceDue|numeric}}</p>
+					<p class="form-control-static">{{balanceDue|numeric}} <span ng-show="hasCredit">credit</span></p>
 				</div>
 			</div>
 			<div class="">

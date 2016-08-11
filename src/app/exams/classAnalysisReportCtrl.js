@@ -123,6 +123,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		if( newVal == oldVal ) return;
 
 		$scope.filters.class_id = newVal.class_id;
+		$scope.selectedClass = newVal.class_name;
 
 		apiService.getExamTypes(newVal.class_cat_id, function(response){
 			var result = angular.fromJson(response);				
@@ -438,6 +439,30 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.exportData = function()
 	{
 		$rootScope.wipNotice();
+	}
+	
+	$scope.printReport = function()
+	{
+		var selectedTerm = $scope.terms.filter(function(item){
+			if( item.term_id == $scope.filters.term_id ) return item;
+		})[0];
+		var selectedExam =  $scope.examTypes.filter(function(item){
+			if( item.exam_type_id == $scope.filters.exam_type_id ) return item;
+		})[0];
+		
+		var data = {
+			criteria: {
+				class_name: $scope.selectedClass,
+				term: selectedTerm.term_name,
+				exam_type: selectedExam.exam_type
+			},
+			tableHeader: $scope.tableHeader,
+			examMarks: $scope.examMarks,
+			totalMarks: $scope.totalMarks
+		}
+		var domain = window.location.host;
+		var newWindowRef = window.open('http://' + domain + '/#/exams/analysis/print');
+		newWindowRef.printCriteria = data;
 	}
 	
 	$scope.$on('refreshExamMarks2', function(event, args) {
