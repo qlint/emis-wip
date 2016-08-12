@@ -2025,7 +2025,11 @@ table.clickable{
 		padding-top:90px
 	}
 	
-	table.dataTable tbody th, table.dataTable tbody td, table.dataTable tfoot th{
+	table.dataTable tbody th, 
+	table.dataTable tbody td, 
+	table.dataTable tfoot th,
+	table.dataTable tfoot td
+	{
 		padding:2px 18px 2px 2px;
 	}
 	table.dataTable.nosort tbody th, 
@@ -2064,7 +2068,8 @@ table.clickable{
 	}
 	.navbar-fixed-top,
 	.modal-header,
-	.modal-footer{
+	.modal-footer,
+	.footer{
 		display:none;
 	}
 	

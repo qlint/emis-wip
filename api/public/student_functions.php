@@ -337,10 +337,11 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 			$sth2 = $db->prepare("SELECT 
 									(SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
 									(SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
+									(SELECT sum(amount) from app.credits WHERE student_id = :studentID AND amount - amount_applied > 0 ) AS total_credit,
 									COALESCE((
 										SELECT sum(diff) FROM (
 											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
-											FROM app.payments as p	
+											FROM app.payments as p
 											WHERE student_id = :studentID
 											AND reversed is false
 											AND replacement_payment is false
@@ -356,22 +357,25 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 				$feeSummary = new Stdclass();
 				$feeSummary->next_due_date = $details->next_due_date;
 				$feeSummary->next_amount = $details->next_amount;
-				$feeSummary->unapplied_payments = $details->unapplied_payments;				
+				$feeSummary->unapplied_payments = $details->unapplied_payments;	
+				$feeSummary->total_credit = $details->total_credit;	
 				
 				// is the next due date within 30 days?
 				$diff = dateDiff("now", $details->next_due_date);
 				$feeSummary->within30days = ( $diff < 30 ? true : false ); 	
 			}
 			
-			$balanceQry = $db->prepare("SELECT coalesce(sum(total_due),0) as total_due, 
-											   coalesce(sum(total_paid),0) as total_paid, 
-											   coalesce(sum(balance),0) as balance,
-											   past_due
-										FROM app.invoice_balances2
-									    WHERE student_id = :studentID
-										AND date_part('year', due_date) = date_part('year',now())  -- < now()::date
-										AND canceled = false
-										GROUP BY past_due");
+			$balanceQry = $db->prepare("SELECT total_due, total_paid, total_paid - total_due as balance,
+												case when (select count(*) from app.invoice_balances2 where student_id = 58 and past_due is true) > 0 then true else false end as past_due
+										FROM (
+											SELECT 
+												coalesce(sum(total_amount),0) as total_due, 
+												coalesce((select sum(amount) from app.payments where payment_method != 'Credit' and student_id = :studentID),0) as total_paid
+											FROM app.invoices
+											WHERE student_id = :studentID
+											AND date_part('year', due_date) = date_part('year',now())
+											AND canceled = false
+										)q");
 			$balanceQry->execute( array(':studentID' => $studentId)); 
 			$balance = $balanceQry->fetch(PDO::FETCH_OBJ);
 			//var_dump($balance);
@@ -655,6 +659,44 @@ $app->get('/getStudentPayments/:studentId', function ($studentId) {
 				$result->applied_to = pg_array_parse($result->applied_to);
 			}
 			
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+ 
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getStudentCredits/:studentId', function ($studentId) {
+    // Return students credits
+	
+	$app = \Slim\Slim::getInstance();
+ 
+    try 
+    {
+        $db = getDB();
+		
+		// get credits
+
+		$sth = $db->prepare("SELECT credit_id, amount, amount_applied, amount - amount_applied as amount_available, creation_date::date, payment_id
+								FROM app.credits						
+								WHERE student_id = :studentID");
+		$sth->execute( array(':studentID' => $studentId));
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+ 
+        if($results) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));

@@ -230,8 +230,16 @@ $app->post('/createInvoice', function () use($app) {
 		$lineItems = $db->prepare("INSERT INTO app.invoice_line_items(inv_id, student_fee_item_id, amount, created_by)
 									VALUES(currval('app.invoices_inv_id_seq'), :studentFeeItemId, :amount, :userId)");
  
- 
+		$getInvoice = $db->prepare("SELECT inv_id, inv_item_id, fee_item , invoice_line_items.amount, invoice_line_items.amount as balance
+								FROM app.invoice_line_items
+								INNER JOIN app.student_fee_items 
+									INNER JOIN app.fee_items
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id
+								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+								WHERE inv_id = currval('app.invoices_inv_id_seq')");
+		
 		$db->beginTransaction();
+
 		foreach( $invoices as $invoice )
 		{
 			$studentId = ( isset($invoice['student_id']) ? $invoice['student_id']: null);
@@ -255,11 +263,15 @@ $app->post('/createInvoice', function () use($app) {
 				$lineItems->execute( array(':studentFeeItemId' => $studentFeeItemId, ':amount' => $amount, ':userId' => $userId ) );
 			}
 		}
+		
+		$getInvoice->execute();
+		$newInvoice = $getInvoice->fetchAll(PDO::FETCH_OBJ);
 		$db->commit();
+		
 	
 		$app->response->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-		echo json_encode(array("response" => "success", "code" => 1));
+		echo json_encode(array("response" => "success", "data" => $newInvoice));
 		$db = null; 
 	} catch(PDOException $e) {
 		$app->response()->setStatus(404);

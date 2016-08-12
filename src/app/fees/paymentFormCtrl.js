@@ -129,7 +129,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				$scope.feeItemsSelection = [];
 			});
 		}
-
 	}
 	
 	$scope.viewStudent = function(student)
@@ -350,6 +349,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	
 	$scope.save = function()
 	{
+		$scope.saveCredit = false;
+		
 		// make sure that the fee items selected do not total up to more than the payment amount
 		var totalFeeItems = $scope.feeItemsSelection.reduce(function(sum,item){
 			sum = sum + parseFloat(item.amount);
@@ -361,16 +362,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		{
 			if( totalFeeItems > $scope.payment.amount )
 			{
-				var dlg = $dialogs.error('Amount Inconsistency','<p>You have entered <strong>' + $filter('number')(totalFeeItems) + ' Ksh</strong> towards fee items, however to total payment amount enterd was <strong>' + $filter('number')($scope.payment.amount) + ' Ksh</strong>.</p><p>Please correct, the total amount applied to fee items can not exceed the total payment amount.</p>', {size:'sm'});
+				var dlg = $dialogs.error('Amount Inconsistency','<p>You have entered <strong>' + $filter('number')(totalFeeItems) + ' Ksh</strong> towards fee items, however to total payment amount entered was <strong>' + $filter('number')($scope.payment.amount) + ' Ksh</strong>.</p><p>Please correct, the total amount applied to fee items can not exceed the total payment amount.</p>', {size:'sm'});
 			}
 			else if ( totalFeeItems < $scope.payment.amount )
 			{
-				var dlg = $dialogs.confirm('Unapplied Payment','<p>You have <strong>' +  $filter('number')(($scope.payment.amount - totalFeeItems)) + ' Ksh</strong> that has not been applied to fee items, do you wish to continue?</p>', {size:'sm'});
+				$scope.creditAmt = $scope.payment.amount - totalFeeItems;
+				var dlg = $dialogs.confirm('Unapplied Payment','<p>You have <strong>' +  $filter('number')(($scope.creditAmt)) + ' Ksh</strong> that has not been applied to fee items, do you wish to continue and add this amount as a credit?</p>', {size:'sm'});
 				dlg.result.then(function(btn){
 					 // save the form
+					 $scope.saveCredit = true;
 					 savePayment();
 					 
 				},function(btn){
+					$scope.saveCredit = false;
 				});
 			}
 			else
@@ -408,7 +412,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				slip_cheque_no: $scope.payment.slip_cheque_no,
 				replacement_payment: ($scope.payment.replacement_payment ? 't' : 'f' ),
 				inv_id : ($scope.payment.invoice !== undefined ? $scope.payment.invoice.inv_id : null),
-				replacement_items: replacementItems
+				replacement_items: replacementItems,
+				hasCredit: $scope.saveCredit,
+				creditAmt: $scope.creditAmt
 			};
 		}
 		else{
@@ -430,7 +436,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				slip_cheque_no: $scope.payment.slip_cheque_no,
 				replacement_payment: ($scope.payment.replacement_payment == 'true' ? 't' : 'f' ),
 			//	inv_id : $scope.payment.invoice.inv_id,
-				line_items: lineItems
+				line_items: lineItems,
+				hasCredit: $scope.saveCredit,
+				creditAmt: $scope.creditAmt
 			};
 			
 		}

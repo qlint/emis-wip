@@ -98,7 +98,7 @@
 					<tbody>
 						<tr ng-repeat="item in invoiceLineItems track by $index">
 							<td width="25" ng-click="removeLineItem($index)"><span class="glyphicon glyphicon-trash text-danger clickable"></span></td>
-							<td width="80%">							
+							<td width="70%">							
 								<span ng-show="item.fee_item==undefined">
 									<select ng-options="feeitem.fee_item for feeitem in studentFeeItems track by feeitem.student_fee_item_id" ng-model="invoice.newItem">
 										<option value="">-- select a fee item -- </select>
@@ -111,26 +111,42 @@
 							</td>
 						</tr>
 					</tbody>
-					<tfoot>
-						<tr>
-							<td colspan="3">
-								<button type="button" class="btn btn-sm btn-success" ng-click="addRow()">Add Line Item</button>
-							</td>
-						</tr>
-						<tr ng-show="hasOverPayment">
-									<th colspan="2" class="rightalign">Invoice Total ({{currency}})</th>
-									<th class="rightalign">{{totals.invoice|numeric}}</th>
-								</tr>
-								<tr ng-show="hasOverPayment" class="text-success">
-									<th colspan="2" class="rightalign">Overpayment ({{currency}})</th>
-									<th class="rightalign">{{overpayment|numeric}}</th>
-								</tr>
-								<tr class="text-danger">
-									<th colspan="2" class="rightalign">Balance Due ({{currency}})</th>
-									<th class="rightalign">{{totals.balance|numeric}}</th>
-								</tr>
-					</tfoot>
 				</table>
+				<button type="button" class="btn btn-sm btn-success" ng-click="addRow()">Add Line Item</button>
+				
+				<div class="row">
+							<div class="col-sm-6">
+								<div ng-show="hasCredit" class="alert alert-info" style="margin:15px 0">
+									<label class="checkbox-inline">										
+									  <input
+										type="checkbox"
+										name="apply_credit"
+										value="true"
+										ng-checked="creditApplied"
+										ng-click="applyCredit()"
+									  > This student has a credit of <b>{{credit|numeric}}</b>. Do you want to apply this credit to this invoice?
+									</label>
+								</div>
+							</div>
+							
+							<div class="col-sm-6">
+								<div>
+									<label class="col-sm-8 control-label">Invoice Total</label>
+									<p class="form-control-static right" ng-show="!edit">{{totals.invoice|numeric}}</p>
+								</div>
+								
+								<div ng-show="creditApplied">
+									<label class="col-sm-8 control-label">Credit</label>
+									<p class="form-control-static right" ng-show="!edit">{{credit|numeric}}</p>
+								</div>
+								
+								<div>
+									<label class="col-sm-8 control-label">Balance Due ({{currency}})</label>
+									<p class="form-control-static right" ng-show="!edit">{{totals.balance|numeric}}</p>
+								</div>
+							</div>
+						</div>	
+				
 			</div>
 			
 			<div class="" ng-if="loadSystem">
@@ -179,7 +195,7 @@
 							<tbody>
 								<tr ng-repeat="item in invoiceLineItems track by $index">
 									<td width="25" ng-click="removeLineItem($index)"><span class="glyphicon glyphicon-trash text-danger clickable"></span></td>
-									<td width="80%">
+									<td width="70%">
 										<span ng-show="item.fee_item==undefined">
 											<select ng-options="feeitem.fee_item for feeitem in studentFeeItems track by feeitem.student_fee_item_id"  ng-model="invoice.newItem">
 												<option value="">-- select a fee item -- </select>
@@ -192,26 +208,43 @@
 									</td>
 								</tr>
 							</tbody>
-							<tfoot>
-								<tr>
-									<td colspan="3">
-										<button type="button" class="btn btn-sm btn-success" ng-click="addRow()">Add Line Item</button>
-									</td>
-								</tr>
-								<tr ng-show="hasOverPayment">
-									<th colspan="2" class="rightalign">Invoice Total ({{currency}})</th>
-									<th class="rightalign">{{totals.invoice|numeric}}</th>
-								</tr>
-								<tr ng-show="hasOverPayment" class="text-success">
-									<th colspan="2" class="rightalign">Overpayment ({{currency}})</th>
-									<th class="rightalign">{{overpayment|numeric}}</th>
-								</tr>
-								<tr class="text-warning">
-									<th colspan="2" class="rightalign">Balance Due ({{currency}})</th>
-									<th class="rightalign">{{totals.balance|numeric}}</th>
-								</tr>
-							</tfoot>
+
 						</table>
+						
+						<button type="button" class="btn btn-sm btn-success" ng-click="addRow()">Add Line Item</button>
+						
+						<div class="row">
+							<div class="col-sm-6">
+								<div ng-show="hasCredit" class="alert alert-info" style="margin:15px 0">
+									<label class="checkbox-inline">
+									  <input
+										type="checkbox"
+										name="apply_credit"
+										value="true"
+										ng-checked="creditApplied"
+										ng-click="applyCredit()"
+									  > This student has a credit of <b>{{credit|numeric}}</b>. Do you want to apply this credit to this invoice?
+									</label>
+								</div>
+							</div>
+							
+							<div class="col-sm-6">
+								<div>
+									<label class="col-sm-8 control-label">Invoice Total</label>
+									<p class="form-control-static right" ng-show="!edit">{{totals.invoice|numeric}}</p>
+								</div>
+								
+								<div ng-show="creditApplied">
+									<label class="col-sm-8 control-label">Credit</label>
+									<p class="form-control-static right" ng-show="!edit">{{credit|numeric}}</p>
+								</div>
+								
+								<div>
+									<label class="col-sm-8 control-label">Balance Due ({{currency}})</label>
+									<p class="form-control-static right" ng-show="!edit">{{totals.balance|numeric}}</p>
+								</div>
+							</div>
+						</div>
 
 					</div>
 					

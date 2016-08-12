@@ -41,6 +41,7 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 					INNER JOIN app.students ON payments.student_id = students.student_id
 					INNER JOIN app.classes ON students.current_class = classes.class_id
 					WHERE payment_date between :startDate and :endDate
+					AND payments.payment_method != 'Credit'
 					AND reversed = :reversed
 							";
 		$queryParams = array(':startDate' => $startDate, ':endDate' => $endDate, ':reversed' => $paymentStatus);
@@ -168,23 +169,19 @@ $app->get('/getTotalsForTerm', function () {
     {
         $db = getDB();
 		// replacement payments do not have invoices, need to select these in addition to invoice payments to add to total paid amount
-       $sth = $db->prepare("SELECT 
-							coalesce(sum(total_due),0) as total_due, 
-							coalesce(sum(total_paid),0) as total_paid,
-							coalesce(sum(balance),0) as total_balance
-						FROM (
-							SELECT total_due, total_paid, balance
-							FROM app.invoice_balances2
-							WHERE due_date between (select start_date from app.current_term) and coalesce((select start_date - interval '1 day' from app.next_term), (select end_date from app.current_term)) 
-							AND canceled = false
-
-							UNION
-							SELECT 0 as total_due, amount as total_paid, amount as balance
-							FROM app.payments
-							WHERE payment_date between (select start_date from app.current_term) and coalesce((select start_date - interval '1 day' from app.next_term), (select end_date from app.current_term)) 
-							AND replacement_payment is true
-
-						) q");
+       $sth = $db->prepare("SELECT total_due, total_paid, total_paid - total_due as total_balance
+							FROM (
+								SELECT 
+									coalesce(sum(total_amount),0) as total_due, 
+									coalesce((select sum(amount)
+											from app.payments where payment_method != 'Credit' 
+											and payment_date between (select start_date from app.current_term) and 
+										coalesce((select start_date - interval '1 day' from app.next_term), (select end_date from app.current_term)) ),0) as total_paid
+								FROM app.invoices
+								WHERE due_date between (select start_date from app.current_term) and 
+										coalesce((select start_date - interval '1 day' from app.next_term), (select end_date from app.current_term)) 		
+								AND canceled = false
+							)q");
 		$sth->execute(); 
         $results = $sth->fetch(PDO::FETCH_OBJ);
  
@@ -228,8 +225,8 @@ $app->get('/getStudentBalances/:year(/:status)', function ($year, $status = true
 								INNER JOIN app.classes
 								ON students.current_class = classes.class_id
 							ON invoice_balances2.student_id = students.student_id
-							WHERE invoice_balances2.due_date < now()
-							AND date_part('year', due_date) = :year
+							WHERE/* invoice_balances2.due_date < now()
+							AND */date_part('year', due_date) = :year
 							AND students.active = :status
 							AND canceled = false
 							GROUP BY students.student_id, class_name, class_id, class_cat_id, first_name, middle_name, last_name");
@@ -301,12 +298,33 @@ $app->post('/addPayment', function () use($app) {
 	$replacementPayment = 	( isset($allPostVars['replacement_payment']) ? $allPostVars['replacement_payment']: null);
 	$lineItems =			( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
 	$replacementItems =		( isset($allPostVars['replacement_items']) ? $allPostVars['replacement_items']: null);
+	$hasCredit =			( isset($allPostVars['hasCredit']) ? $allPostVars['hasCredit']: false);
+	$creditAmt =			( isset($allPostVars['creditAmt']) ? $allPostVars['creditAmt']: null);
+	$updateCredit =			( isset($allPostVars['updateCredit']) ? $allPostVars['updateCredit']: false);
+	$amtApplied =			( isset($allPostVars['amtApplied']) ? $allPostVars['amtApplied']: null);
 	
     try 
     {
         $db = getDB();
         $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by) 
 									VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId)");
+		
+		$credit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount, created_by) 
+									VALUES(:studentId, currval('app.payments_payment_id_seq'), :creditAmt, :userId)");
+		
+		$getCredits = $db->prepare("SELECT credit_id, amount, amount_applied, amount - amount_applied as credit_available
+									FROM app.credits 
+									WHERE student_id = :studentId 
+									AND amount - amount_applied > 0 
+									ORDER BY creation_date");
+		
+		$updateCreditQry = $db->prepare("UPDATE app.credits
+										SET amount_applied = :amtApplied,
+											modified_date = now(),
+											modified_by = :userId
+										WHERE credit_id = :creditId");
+
+										
 		if( count($lineItems) > 0 )
 		{	
 			$paymentItems = $db->prepare("INSERT INTO app.payment_inv_items(payment_id, inv_id, inv_item_id, amount, created_by)
@@ -355,6 +373,51 @@ $app->post('/addPayment', function () use($app) {
 										   ':amount' => $amount,
 										   ':userId' => $userId ) );
 			}
+		}
+		
+		if( $hasCredit )
+		{
+			$credit->execute(array(':studentId' => $studentId,
+									':creditAmt' => $creditAmt,
+									':userId' => $userId ) );
+		}
+		if( $updateCredit )
+		{
+			// since we displayed a sum of credit to the user, we don't know what credit to use
+			// so we will need to pull all open credit, compare the amount available with the creditAmt
+			// then update the credit records with the difference
+			// if 0
+			
+			$getCredits->execute( array(':studentId' => $studentId) );
+			$creditRows = $getCredits->fetchAll(PDO::FETCH_OBJ);
+			
+			$creditRemaining = $amtApplied;
+			$curCredit = $creditRemaining;
+			foreach($creditRows as $row)
+			{
+				// what is amount of credit applied
+				$creditRemaining = $creditRemaining - $row->credit_available;
+				if( $creditRemaining > 0 )
+				{
+					// still amtApplied remaining, update this record to 0 and continue
+					// update amount_applied to full amount of credit (0 available)
+					$updateCreditQry->execute(array(':creditId' => $row->credit_id,
+									':amtApplied' => $row->amount,
+									':userId' => $userId ) );
+					break;
+				}
+				else
+				{
+					// still some credit left, update $row->credit_available
+					$newAmtApplied = $row->amount_applied + $creditRemaining;
+					$updateCreditQry->execute(array(':creditId' => $row->credit_id,
+									':amtApplied' => $curCredit,
+									':userId' => $userId ) );
+				}
+				$curCredit = $creditRemaining;
+			}
+			
+			
 		}
 		
 		$db->commit();

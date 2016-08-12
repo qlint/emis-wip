@@ -98,8 +98,8 @@
 						-->
 						<label class="col-sm-3 control-label nopad">Apply To</label>
 						<div class="col-sm-9">
-							
-							<div class="well lesspad" ng-repeat="invoice in invoices track by $index">
+							<div ng-show="invoices.length==0">This student does not have any open invoices.</div>
+							<div ng-show="invoices.length>0" class="well lesspad" ng-repeat="invoice in invoices track by $index">
 								<div class="row">
 									<div class="col-sm-3">
 										<label>Inv No.</label>

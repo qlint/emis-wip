@@ -17,13 +17,17 @@ CREATE TABLE app.credits
 (
   credit_id serial NOT NULL,
   student_id integer NOT NULL,
+  payment_id integer,
   amount numeric NOT NULL,
-  applied boolean DEFAULT false NOT NULL,
+  amount_applied numeric NOT NULL DEFAULT 0,
   creation_date timestamp without time zone NOT NULL DEFAULT now(),
   created_by integer,
   modified_date timestamp without time zone,
   modified_by integer,
   CONSTRAINT "PK_credit_id" PRIMARY KEY (credit_id ),
+  CONSTRAINT "FK_credit_payment" FOREIGN KEY (payment_id)
+      REFERENCES app.payments (payment_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT "FK_credit_student" FOREIGN KEY (student_id)
       REFERENCES app.students (student_id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
@@ -31,3 +35,4 @@ CREATE TABLE app.credits
 WITH (
   OIDS=FALSE
 );
+

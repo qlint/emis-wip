@@ -112,16 +112,12 @@
 						</td>
 					</tr>
 					<tr>
-						<th colspan="2" class="rightalign">Total Amount ({{currency}})</th>
+						<th colspan="2" class="rightalign">Total Amount</th>
 						<th class="rightalign">{{totals.total_due|currency:""}}</th>
 					</tr>
 					<tr>
-						<th colspan="2" class="rightalign">Total Paid ({{currency}})</th>
+						<th colspan="2" class="rightalign">Total Paid</th>
 						<th class="rightalign">{{invoice.total_paid|currency:""}}</th>
-					</tr>
-					<tr ng-show="hasOverPayment">
-						<th colspan="2" class="rightalign">Overpayment ({{currency}})</th>
-						<th class="rightalign">{{overpayment|numeric}}</th>
 					</tr>
 					<tr>
 						<th colspan="2" class="rightalign">Balance Due ({{currency}})</th>

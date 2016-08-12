@@ -62,12 +62,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.totalAmtKsh = amt[0];
 			$scope.totalAmtCts = amt[1];
 			
-			// is there an overpayment?
-			if( $scope.feeSummary && $scope.feeSummary.unapplied_payments > 0 )
+			console.log($scope.invoice);
+			// is there a credit
+			if( $scope.feeSummary &&  parseFloat($scope.feeSummary.total_credit) > 0 )
 			{
-				$scope.hasOverPayment = true;
-				$scope.overpayment = parseFloat($scope.feeSummary.unapplied_payments);
-				$scope.invoice.balance = -(Math.abs($scope.invoice.balance) - $scope.overpayment);
+				$scope.hasCredit = true;
+				$scope.credit = parseFloat($scope.feeSummary.total_credit);
 			}
 			
 		}

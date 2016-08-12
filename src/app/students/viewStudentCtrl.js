@@ -1,12 +1,12 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('viewStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', '$timeout', 'data',
-function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, $timeout, data){
+controller('viewStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', '$timeout', '$filter', 'data',
+function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, $timeout, $filter, data){
 	
 	$rootScope.modalLoading = false;
 	$scope.tabs = ( $rootScope.currentUser.user_type == 'TEACHER' ? ['Details','Family','Medical History','Exams','Report Cards'] : ['Details','Family','Medical History','Fees','Exams','Report Cards'] );
-	$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
+	$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Credits','Fee Items'];
 	$scope.currentTab = $scope.tabs[0];
 	$scope.currentFeeTab = $scope.feeTabs[0];
 	$scope.hasChanges = false;
@@ -57,7 +57,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		'</div>';
 	}
 	
-	var names = ['Amount ( ' + $scope.currency + ' )', 'Paid ( ' + $scope.currency + ' )', 'Balance ( ' + $scope.currency + ' )'];
+	var names = ['Amount ( ' + $scope.currency + ' )', 'Paid ( ' + $scope.currency + ' )', 'Balance ( ' + $scope.currency + ' )', 'Amount Applied ( ' + $scope.currency + ' )', 'Amount Available ( ' + $scope.currency + ' )' ];
 	
 	$scope.feesGrid = {
 		enableSorting: true,
@@ -111,6 +111,25 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{ name: 'Amount Unapplied', field: 'unapplied_amount', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)" ng-class="{\'alert-danger\': row.entity.unapplied_amount>0}">{{row.entity.unapplied_amount|currency:""}}</div>'},
 			{ name: 'Replacement?', field: 'replacement', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.replacement}}</div>'},
 			{ name: 'Reversed?', field: 'reverse', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.reverse}}</div>'},
+		],
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
+	
+	$scope.creditGrid = {
+		enableSorting: true,
+		rowTemplate: rowTemplate3(),
+		rowHeight:34,
+		columnDefs: [
+			{ name: 'Payment Date', field: 'creation_date', enableColumnMenu: false , type: 'date', sort: {direction: 'desc' }},
+			{ name: 'Payment No.', field: 'receipt_number', enableColumnMenu: false },
+			{ name: names[0], field: 'amount', cellFilter:'currency:""', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center'},
+			{ name: names[3], field: 'amount_applied', cellFilter:'currency:""', enableColumnMenu: false, headerCellClass: 'center', cellClass:'center'},
+			{ name: names[4], field: 'amount_available', cellFilter:'currency:""', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-class="{\'alert-success\': row.entity.amount_available>0}">{{row.entity.amount_available|currency:""}}</div>'},
 		],
 		onRegisterApi: function(gridApi){
 		  $scope.gridApi = gridApi;
@@ -645,6 +664,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.loading = true;			
 			getPayments();
 		}
+		else if( tab == 'Credits' )
+		{
+			$scope.loading = true;			
+			getCredits();
+		}
 	}
 	
 	var getStudentBalance = function()
@@ -662,6 +686,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		apiService.getStudentPayments($scope.student.student_id, loadPayments, apiError);
 	}
 	
+	var getCredits = function()
+	{
+		apiService.getStudentCredits($scope.student.student_id, loadCredits, apiError);
+	}
+	
 	var loadFeeBalance = function(response,status)
 	{
 		$scope.loading = false;		
@@ -673,8 +702,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{
 				$scope.feeSummary = angular.copy(result.data.fee_summary);
 				// need to add any unapplied payments to total_paid
-				$scope.feeSummary.grand_total_paid = parseFloat($scope.feeSummary.total_paid) + parseFloat($scope.feeSummary.unapplied_payments);
-				$scope.feeSummary.grand_total_balance = $scope.feeSummary.grand_total_paid - parseFloat($scope.feeSummary.total_due);
+				//$scope.feeSummary.grand_total_paid = parseFloat($scope.feeSummary.total_paid) + parseFloat($scope.feeSummary.unapplied_payments);
+				//$scope.feeSummary.grand_total_balance = $scope.feeSummary.grand_total_paid - parseFloat($scope.feeSummary.total_due);
 				$scope.fees = angular.copy(result.data.fees);
 				$scope.nofeeSummary = false;
 			}
@@ -762,9 +791,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var criteria = {
 			student : $scope.student,
 			invoices: $scope.invoices,
-			payments: $scope.payments
+			payments: $scope.payments,
+			credits: $scope.credits
 		}
-
+		console.log(criteria);
 		var domain = window.location.host;
 		var newWindowRef = window.open('http://' + domain + '/#/fees/statement/print');
 		newWindowRef.printCriteria = criteria;
@@ -790,6 +820,23 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 	
+	var loadCredits = function(response,status)
+	{
+		$scope.loading = false;		
+		var result = angular.fromJson(response);
+				
+		if( result.response == 'success') 
+		{
+			var credits = ( result.nodata ? [] : angular.copy(result.data) );
+			$scope.credits = credits.map(function(item){
+				item.creation_date = $filter('date')(item.creation_date);
+				item.receipt_number = $rootScope.zeroPad(item.payment_id,5);
+				return item;
+			});
+			if( $scope.currentFeeTab == 'Credits' ) initCreditsDataGrid($scope.credits);
+		}
+	}
+	
 	var initFeesDataGrid = function(data) 
 	{
 		$scope.feesGrid.data = data;
@@ -807,6 +854,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	var initPaymentsDataGrid = function(data) 
 	{
 		$scope.paidGrid.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
+	}
+	
+	var initCreditsDataGrid = function(data) 
+	{
+		$scope.creditGrid.data = data;
 		$scope.loading = false;
 		$rootScope.loading = false;
 	}
@@ -2596,9 +2650,6 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			'</div>' +
 			'</form>'
 		);
-}])
-
-
-;
+}]);
 
 

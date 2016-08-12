@@ -465,8 +465,8 @@
 			
 			<script type="text/ng-template" id="Fees">
 				<h2>Fees</h2>
-				<div ng-show="feeSummary.unapplied_payments>0" class="alert alert-danger">
-					<i class="glyphicon glyphicon-info-sign"></i> This student has a payment of {{feeSummary.unapplied_payments|currency:""}} {{currency}} that has not been applied to a fee item.
+				<div ng-show="feeSummary.total_credit>0" class="alert alert-info">
+					<i class="glyphicon glyphicon-info-sign"></i> This student has a {{feeSummary.total_credit|currency:""}} {{currency}} credit.
 				</div>
 				<div class="row">
 					<div class="col-sm-6">
@@ -530,11 +530,11 @@
 							</div>
 							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning': feeSummary.balance<0 && feeSummary.total_paid>0, 'alert-danger': feeSummary.balance<0 && feeSummary.total_paid==0}">
 								Amount Paid
-								<p>{{feeSummary.grand_total_paid|currency:""}}<span>{{currency}}</span></p>
+								<p>{{feeSummary.total_paid|currency:""}}<span>{{currency}}</span></p>
 							</div>
 							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning' : feeSummary.balance<0 && !feeSummary.past_due, 'alert-danger': feeSummary.past_due}">
 								Balance
-								<p>{{ feeSummary.grand_total_balance|numeric}}<span>{{currency}}</span></p>
+								<p>{{ feeSummary.balance|numeric}}<span>{{currency}}</span></p>
 							</div>
 						</div>
 						
@@ -646,6 +646,23 @@
 						</div>
 					</div>
 				</div>
+			</script>
+			
+			<script type="text/ng-template" id="Credits">
+			
+				<div class="row">
+					<div class="col-xs-12">		
+						<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-12">
+						<div id="grid1" ui-grid="creditGrid" class="myGrid">
+							<div ng-if="!creditGrid.data.length" class="no-results">No results found.</div>
+						</div>
+					</div>
+				</div>
+
 			</script>
 			
 			<script type="text/ng-template" id="Fee Items">

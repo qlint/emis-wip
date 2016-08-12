@@ -11,7 +11,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	$scope.edit = ( $scope.permissions.fees.invoices.edit !== undefined ? $scope.permissions.fees.invoices.edit  : false);
 	var allLineItems = undefined;
 	$scope.totals = {};
-	$scope.overpayment = 0;
 
 	
 	// can no longer edit an invoice if it is fully paid
@@ -54,13 +53,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 					$scope.totals.balance = angular.copy($scope.invoice.balance);
 					$scope.totals.total_due = angular.copy($scope.invoice.total_due);
 					
-					// is there an overpayment?
-					if( $scope.feeSummary && $scope.feeSummary.unapplied_payments > 0 )
+					// is there a credit
+					if( $scope.feeSummary && parseFloat($scope.feeSummary.total_credit) > 0 )
 					{
-						$scope.hasOverPayment = true;
-						$scope.overpayment = parseFloat($scope.feeSummary.unapplied_payments);
-						$scope.totals.balance = Math.abs($scope.totals.balance) - $scope.overpayment;
-						$scope.invoice.balance = angular.copy($scope.totals.balance);
+						$scope.hasCredit = true;
+						$scope.credit = parseFloat($scope.feeSummary.total_credit);
 					}
 					
 				}
@@ -153,7 +150,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			sum = sum + parseFloat(item.amount);
 			return sum;
 		},0);
-		$scope.totals.balance = ($scope.invoice.total_paid + $scope.overpayment) - $scope.totals.total_due;
+		$scope.totals.balance = $scope.invoice.total_paid - $scope.totals.total_due;
 		$scope.invoice.balance = angular.copy($scope.totals.balance);
 		$scope.changes = true;
 	}
