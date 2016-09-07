@@ -8,8 +8,6 @@ function($scope, $rootScope, $uibModalInstance, data){
 	$scope.post = angular.copy(data.post);
 	if( $scope.post.details === undefined ) $scope.post.details = data.post;
 	
-	console.log($scope.post);	
-	
 	$scope.cancel = function()
 	{
 		$uibModalInstance.dismiss('canceled');  
