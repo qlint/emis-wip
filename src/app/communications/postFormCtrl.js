@@ -654,9 +654,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				parent_full_name : $scope.selectedParent,
 				posted_by: ( $scope.isTeacher ? $rootScope.currentUser.full_name : ($scope.theemployee.selected !== undefined ? $scope.theemployee.selected.employee_name : ''))
 			}
-			
-			
-			
 		}
 
 		var data = {
@@ -789,7 +786,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 					uploader.queue[0].file.name = moment() + '_' + uploader.queue[0].file.name;
 					uploader.uploadAll();
 					
-					if( $scope.isHomework ) $scope.post.attachment = ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null);
+					if( $scope.isHomework || $scope.isEmail ) $scope.post.attachment = ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null);
 					else $scope.post.feature_image = ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : null);
 				}
 				

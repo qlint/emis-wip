@@ -5,7 +5,10 @@ controller('previewPostCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'dat
 function($scope, $rootScope, $uibModalInstance, data){
 
 	$scope.type = data.type;
-	$scope.post = data.post;		
+	$scope.post = angular.copy(data.post);
+	if( $scope.post.details === undefined ) $scope.post.details = data.post;
+	
+	console.log($scope.post);	
 	
 	$scope.cancel = function()
 	{
