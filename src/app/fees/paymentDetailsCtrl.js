@@ -151,6 +151,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			{
 				getReplaceableFeeItems();
 			}
+			
+			$scope.sumPayment();
 		}
 		else
 		{
@@ -353,6 +355,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		$scope.changeInvoice( false );
 	}
 	
+	$scope.$watch('payment.amount', function(newVal,oldVal){
+		if( newVal == oldVal ) return;
+		$scope.totalCredit = ( newVal - $scope.totalApplied > 0 ? newVal - $scope.totalApplied : 0) ;
+	});
+	
+	/*
 	$scope.$watch('selectedPayment.apply_to_all', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 		
@@ -393,6 +401,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 		
 	});
+	*/
 	
 	$scope.$watch('selectedPayment.replacement_payment', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
@@ -424,12 +433,36 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		$scope.selectedNewInvoice = newVal;
 	});
 	
+	$scope.selectAllItems = function(key, invoice)
+	{
+		$scope.apply_to_all[key] = !$scope.apply_to_all[key];
+
+		if( $scope.apply_to_all[key] )
+		{
+			angular.forEach(invoice.fee_items, function(feeitem,key){
+				feeitem.amount = Math.abs(feeitem.balance);
+				$scope.totalApplied += parseInt(feeitem.amount);
+				$scope.feeItemsSelection.push(feeitem);
+			});
+		}
+		else
+		{
+			angular.forEach(invoice.fee_items, function(feeitem,key){
+				feeitem.amount = undefined;
+				$scope.totalApplied = 0;
+				$scope.feeItemsSelection = [];
+			});
+		}
+		$scope.totalCredit = ( $scope.selectedPayment.amount - $scope.totalApplied > 0 ? $scope.selectedPayment.amount - $scope.totalApplied : 0) ;
+	}
+	
 	$scope.toggleFeeItems = function(feeitem) 
 	{
 		var id = $scope.feeItemsSelection.indexOf(feeitem);
 
 		// is currently selected
 		if (id > -1) {
+			$scope.totalApplied = $scope.totalApplied - feeitem.amount;
 			feeitem.amount = undefined;
 			$scope.feeItemsSelection.splice(id, 1);
 		}
@@ -437,8 +470,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		// is newly selected
 		else {
 			feeitem.amount = Math.abs(feeitem.balance);
+			$scope.totalApplied += parseFloat(feeitem.amount);
 			$scope.feeItemsSelection.push(feeitem);
 		}
+		
+		$scope.totalCredit = ( $scope.selectedPayment.amount - $scope.totalApplied > 0 ? $scope.selectedPayment.amount - $scope.totalApplied : 0) ;
 	};
 	$scope.toggleFeeItems2 = function(feeitem) 
 	{
@@ -465,8 +501,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			return sum;
 		},0);
 
-		
-		
 		if( $scope.selectedPayment.replacement_payment !== true )
 		{
 			if( totalFeeItems > $scope.selectedPayment.amount )
@@ -523,7 +557,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				replacement_items: replacementItems
 			};
 		}
-		else{
+		else
+		{
 			var lineItems = [];
 			angular.forEach($scope.feeItemsSelection, function(item,key){
 				lineItems.push({
@@ -608,6 +643,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
+	}
+	
+	$scope.sumPayment = function()
+	{
+		$scope.totalApplied = $scope.feeItemsSelection.reduce(function(sum,item){
+			if( item.amount == '' ) item.amount = 0;
+			sum = sum + parseFloat(item.amount);
+			return sum;
+		},0);
+		$scope.totalCredit = ( $scope.selectedPayment.amount - $scope.totalApplied > 0 ? $scope.selectedPayment.amount - $scope.totalApplied : 0);
 	}
 	
 } ]);

@@ -85,17 +85,6 @@
 					
 					<!-- apply to -->
 					<div class="form-group" ng-show="payment.replacement_payment==false">	
-						<!--
-						<label class="col-sm-3 control-label nopad">Apply To</label>
-						<div class="col-sm-9">
-						
-							<p ng-show="invoices.length==0">This student do not have any open invoices.</p>
-																		
-							<select ng-show="invoices.length>0" name="invoice" class="form-control" ng-options="'Bal: ' + invoice.balance + ' Ksh Due: ' + invoice.due_date for invoice in invoices track by invoice.inv_id" ng-model="payment.invoice">
-								<option value="">--select invoice--</option>
-							</select>							
-						</div>
-						-->
 						<label class="col-sm-3 control-label nopad">Apply To</label>
 						<div class="col-sm-9">
 							<div ng-show="invoices.length==0">This student does not have any open invoices.</div>
@@ -142,7 +131,7 @@
 											<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
 											<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance|numeric}}</td>
 											<td>
-												<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!feeitem.modifiable" />
+												<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!feeitem.modifiable" ng-change="sumPayment()" />
 												<i ng-show="feeitem.isPaid && !feeitem.modifiable">Paid</i>
 											</td>
 										</tr>
@@ -150,8 +139,15 @@
 								</table>
 							</div>
 						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<span><b>Amount Paid: </b>{{payment.amount|currency:""}}</span> | 
+								<span ng-class="{'text-danger': totalApplied>payment.amount}"><b>Amount Applied:</b> {{totalApplied|currency:""}}</span> | 
+								<span ng-class="{'text-success': totalCredit>0}"><b>Credit:</b> {{totalCredit|currency:""}}</span>
+							</div>
+						</div>
 					</div>
-					
+										
 					<div class="form-group" ng-show="payment.replacement_payment==true">	
 						<label class="col-sm-3 control-label">Apply To</label>
 						<div class="col-sm-9">

@@ -9,6 +9,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.showSelect =  ( data.selectedStudent !== undefined ? false : true );
 	$scope.student.selected = $scope.selectedStudent;
 	$scope.payment = {};
+	$scope.payment.amount = 0;
 	$scope.payment.payment_date = {startDate: moment().format('YYYY-MM-DD')};
 	$scope.payment.replacement_payment = false;
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
@@ -16,6 +17,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.feeItemsSelection = [];
 	$scope.feeItemsSelection2 = [];
 	$scope.apply_to_all = [];
+	$scope.totalApplied = 0;
+	$scope.totalCredit = 0;
 	
 	var initializeController = function()
 	{
@@ -119,6 +122,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		{
 			angular.forEach(invoice.fee_items, function(feeitem,key){
 				feeitem.amount = Math.abs(feeitem.balance);
+				$scope.totalApplied += parseInt(feeitem.amount);
 				$scope.feeItemsSelection.push(feeitem);
 			});
 		}
@@ -126,9 +130,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		{
 			angular.forEach(invoice.fee_items, function(feeitem,key){
 				feeitem.amount = undefined;
+				$scope.totalApplied = 0;
 				$scope.feeItemsSelection = [];
 			});
 		}
+		$scope.totalCredit = ( $scope.payment.amount - $scope.totalApplied > 0 ? $scope.payment.amount - $scope.totalApplied : 0) ;
 	}
 	
 	$scope.viewStudent = function(student)
@@ -289,6 +295,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		$scope.errMsg = result.data;
 	}
 	
+	$scope.$watch('payment.amount', function(newVal,oldVal){
+		if( newVal == oldVal ) return;
+		$scope.totalCredit = ( newVal - $scope.totalApplied > 0 ? newVal - $scope.totalApplied : 0) ;
+	});
+	
 	$scope.$watch('payment.invoice', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 		
@@ -320,6 +331,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 
 		// is currently selected
 		if (id > -1) {
+			$scope.totalApplied = $scope.totalApplied - feeitem.amount;
 			feeitem.amount = undefined;
 			$scope.feeItemsSelection.splice(id, 1);
 		}
@@ -327,9 +339,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		// is newly selected
 		else {
 			feeitem.amount = Math.abs(feeitem.balance);
+			$scope.totalApplied += parseFloat(feeitem.amount);
 			$scope.feeItemsSelection.push(feeitem);
 		}
+		
+		$scope.totalCredit = ( $scope.payment.amount - $scope.totalApplied > 0 ? $scope.payment.amount - $scope.totalApplied : 0) ;
 	};
+	
 	$scope.toggleFeeItems2 = function(feeitem) 
 	{
 		var id = $scope.feeItemsSelection2.indexOf(feeitem);
@@ -463,4 +479,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 	}
 	
+	$scope.sumPayment = function()
+	{
+		$scope.totalApplied = $scope.feeItemsSelection.reduce(function(sum,item){
+			if( item.amount == '' ) item.amount = 0;
+			sum = sum + parseFloat(item.amount);
+			return sum;
+		},0);
+		$scope.totalCredit = ( $scope.payment.amount - $scope.totalApplied > 0 ? $scope.payment.amount - $scope.totalApplied : 0);
+	}
 } ]);

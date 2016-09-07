@@ -112,54 +112,6 @@
 							
 						<!-- applied to -->
 						<div class="form-group" ng-show="selectedPayment.replacement_payment==false">	
-
-							<!--
-							<label class="col-sm-3 control-label nopad">Applied To</label>
-							<div class="col-sm-9">
-								<p>
-									<span ng-show="selectedInvoice!==undefined">Invoice #:{{selectedInvoice.inv_id}} {{selectedInvoice.total_due}} Ksh Due: {{selectedInvoice.due_date}} </span>
-									<span ng-show="selectedInvoice===undefined">None</span>
-									
-									<button ng-show="invoices.length>0" type="button" class="btn btn-sm btn-info" ng-click="changeInvoice(true)"><i class="glyphicon glyphicon-pencil"></i> Change Invoice</button>
-									<button type="button" ng-show="selectedInvoice!==undefined" class="btn btn-sm" ng-click="unapplyInvoice()"><i class="glyphicon glyphicon-trash"></i> Un-apply this Invoice</button>
-								</p>
-							</div>
-							
-							
-							<div class="col-sm-12" ng-show="selectedInvoice!==undefined && !changingInvoice">
-								<table class="display dataTable" cellspacing="0" width="100%">
-									<thead>
-										<tr>
-											<th class="center">
-												<input type="checkbox" name="apply_to_all" ng-model="selectedPayment.apply_to_all" ng-value="true" ng-disabled="!edit"  >
-											</th>
-											<th>Fee Item</th>
-											<th>Balance</th>
-											<th>Paying</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr ng-repeat="feeitem in selectedInvoice.fee_items ">
-											<td class="center">
-											 <input
-													type="checkbox"
-													name="selected_invoices[]"
-													value="{{item.inv_item_id}}"
-													ng-checked="feeItemsSelection.indexOf(feeitem) > -1"
-													ng-click="toggleFeeItems(feeitem)"
-													ng-disabled="!edit"
-												  >
-											</td>
-											<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
-											<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance}}</td>
-											<td>
-												<input type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance}}">
-											</td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-							-->
 							<label class="col-sm-3 control-label nopad">Applied To</label>
 							<div class="col-sm-9">
 								
@@ -211,7 +163,7 @@
 												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
 												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance|numeric}}</td>
 												<td>
-													<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!edit || !feeitem.modifiable" />
+													<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!edit || !feeitem.modifiable" ng-change="sumPayment()" />
 													<i ng-show="feeitem.isPaid && !feeitem.modifiable">Paid</i>
 												</td>
 											</tr>
@@ -269,12 +221,20 @@
 												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
 												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance|numeric}}</td>
 												<td>
-													<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!edit || !feeitem.modifiable" />
+													<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!edit || !feeitem.modifiable" ng-change="sumPayment()" />
 													<i ng-show="feeitem.isPaid && !feeitem.modifiable">Paid</i>
 												</td>
 											</tr>
 										</tbody>
 									</table>
+								</div>
+							</div>
+							
+							<div class="row">
+								<div class="col-sm-12">
+									<span><b>Amount Paid: </b>{{selectedPayment.amount|currency:""}}</span> | 
+									<span ng-class="{'text-danger': totalApplied>payment.amount}"><b>Amount Applied:</b> {{totalApplied|currency:""}}</span> | 
+									<span ng-class="{'text-success': totalCredit>0}"><b>Credit:</b> {{totalCredit|currency:""}}</span>
 								</div>
 							</div>
 						</div>
