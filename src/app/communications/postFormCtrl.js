@@ -744,7 +744,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete this post? <b>This can not be undone</b>.',{size:'sm'});
 		dlg.result.then(function(btn){
 			if( $scope.isHomework )  apiService.deleteHomework($scope.post.post_id,createCompleted,apiError);
-			if( $scope.isEmail )  apiService.deleteDraftEmail($scope.post.post_id,createCompleted,apiError);
+			if( $scope.isEmail )  apiService.deleteCommunication($scope.post.post_id,createCompleted,apiError);
 			else apiService.deletePost($scope.post.post_id,createCompleted,apiError);
 		});
 		
@@ -758,8 +758,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		{
 			$scope.saving = true;
 			if( $scope.setupBlog )
-			{
-				
+			{				
 				var data = {
 					teacher_id: $rootScope.currentUser.emp_id,
 					blog_name: $scope.blog.blog_name,
@@ -844,7 +843,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 
 					apiService.addPost(data,createCompleted,apiError);
 				}
-								
+				
 			}
 		}
 

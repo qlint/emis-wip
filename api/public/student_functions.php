@@ -1,5 +1,5 @@
 <?php
-$app->get('/getAllStudents(/:status)', function ($status=true) {
+$app->get('/getAllStudents/:status(/:startDate/:endDate)', function ($status,$startDate=null,$endDate=null) {
     //Show all students
 	
 	$app = \Slim\Slim::getInstance();
@@ -8,13 +8,27 @@ $app->get('/getAllStudents(/:status)', function ($status=true) {
     {
         $db = getDB();
 		
-		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
+		if( $startDate !== null )
+		{
+			$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
 									classes.teacher_id as class_teacher_id
-							 FROM app.students 
-							 INNER JOIN app.classes ON students.current_class = classes.class_id
-							 WHERE students.active = :status 
-							 ORDER BY first_name, middle_name, last_name");
-		$sth->execute( array(':status' => $status)); 
+								 FROM app.students 
+								 INNER JOIN app.classes ON students.current_class = classes.class_id
+								 WHERE students.active = :status 
+								 AND admission_date between :startDate and :endDate
+								 ORDER BY first_name, middle_name, last_name");
+			$sth->execute( array(':status' => $status, ':startDate' => $startDate, ':endDate' => $endDate) );
+		}
+		else
+		{
+			$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
+									classes.teacher_id as class_teacher_id
+								 FROM app.students 
+								 INNER JOIN app.classes ON students.current_class = classes.class_id
+								 WHERE students.active = :status 
+								 ORDER BY first_name, middle_name, last_name");
+			$sth->execute( array(':status' => $status));
+		}
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
         if($results) {
@@ -83,7 +97,7 @@ $app->get('/getAllParents', function () {
 
 });
 
-$app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $status=true) {
+$app->get('/getTeacherStudents/:teacher_id/:status(/:startDate/:endDate)', function ($teacherId, $status,$startDate=null,$endDate=null) {
     //Show teacher students
 	
 	$app = \Slim\Slim::getInstance();
@@ -92,7 +106,28 @@ $app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $st
     {
         $db = getDB();
 		
-		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
+		if( $startDate !== null )
+		{
+			$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
+									classes.teacher_id as class_teacher_id
+							 FROM app.students 
+							 INNER JOIN app.classes 
+								INNER JOIN app.class_subjects
+									INNER JOIN app.subjects
+									ON class_subjects.subject_id = subjects.subject_id
+								ON classes.class_id = class_subjects.class_id
+							 ON students.current_class = classes.class_id
+							 WHERE students.active = :status
+							 AND admission_date between :startDate and :endDate
+							 AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
+							 GROUP BY students.student_id, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
+							 ORDER BY first_name, middle_name, last_name");
+			$sth->execute( array(':status' => $status, ':startDate' => $startDate, ':endDate' => $endDate) );
+		}
+		else
+		{
+		
+			$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
 									classes.teacher_id as class_teacher_id
 							 FROM app.students 
 							 INNER JOIN app.classes 
@@ -105,7 +140,9 @@ $app->get('/getTeacherStudents/:teacher_id(/:status)', function ($teacherId, $st
 							 AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
 							 GROUP BY students.student_id, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type
 							 ORDER BY first_name, middle_name, last_name");
-		$sth->execute( array(':status' => $status, ':teacherId' => $teacherId)); 
+			$sth->execute( array(':status' => $status, ':teacherId' => $teacherId)); 
+		}
+		
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
         if($results) {

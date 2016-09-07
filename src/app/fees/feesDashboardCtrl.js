@@ -89,9 +89,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			{
 				$scope.currentTerm = result.data;
 				$scope.currentTermTitle = $scope.currentTerm.term_name + ' ' + $scope.currentTerm.year;
-				var end_date = moment().add(1,'day').format('YYYY-MM-DD');
-				$scope.date = {startDate: $scope.currentTerm.start_date, endDate: end_date};
-				getPaymentsReceived($scope.currentTerm.start_date, end_date);
+				//var end_date = moment().add(1,'day').format('YYYY-MM-DD');
+				$scope.date = {startDate: $scope.currentTerm.start_date, endDate: $scope.currentTerm.end_date};
+				getPaymentsReceived($scope.currentTerm.start_date, $scope.currentTerm.end_date);
 				
 			}
 		},apiError);

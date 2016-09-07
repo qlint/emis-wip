@@ -8,6 +8,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.filters = {};
 	$scope.filters.status = 'true';
 	
+	var lastQueriedDateRange = null;
+	var requery = false;
+	
+	$scope.filters.date = {startDate:null, endDate:null};	
+	
 
 	$scope.students = [];
 	$scope.filterShowing = false;
@@ -39,6 +44,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			{ name: 'Name', field: 'student_name', enableColumnMenu: false, sort: {direction:'asc'}},
 			{ name: 'Class', field: 'class_name', enableColumnMenu: false,},
 			{ name: 'Admission Number', field: 'admission_number', enableColumnMenu: false,},
+			{ name: 'Admission Date', field: 'admission_date', type:'date', cellFilter:'date', enableColumnMenu: false,},
 		],
 		exporterCsvFilename: 'students.csv',
 		onRegisterApi: function(gridApi){
@@ -49,6 +55,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		  });
 		}
 	};
+	
+	$scope.$watch('filters.date', function(newVal,oldVal){
+		if(newVal == oldVal) return;
+		if( newVal !== lastQueriedDateRange ) requery = true;
+		else requery = false;
+		lastQueriedDateRange = newVal;
+	});
+	
+	var setTermRanges = function(terms)
+	{
+		$scope.termRanges = {};
+		angular.forEach(terms, function(item,key){
+			$scope.termRanges[item.term_year_name] = [item.start_date, item.end_date];
+		});
+	}
 	
 	var initializeController = function () 
 	{
@@ -153,6 +174,26 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			}
 		}
 		
+		// get terms
+		if( $rootScope.terms === undefined )
+		{
+			var year = moment().format('YYYY');
+			apiService.getTerms(year, function(response){
+				var result = angular.fromJson(response);				
+				if( result.response == 'success')
+				{ 
+					$scope.terms = result.data;	
+					$rootScope.terms = result.data;
+					setTermRanges(result.data);
+				}		
+			}, function(){});
+		}
+		else
+		{
+			$scope.terms  = $rootScope.terms;
+			setTermRanges($scope.terms );
+		}
+		
 		setTimeout(function(){
 			var height = $('.full-height.datagrid').height();
 			$('#grid1').css('height', height);
@@ -163,15 +204,25 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$timeout(initializeController,1);
 	
 	var getStudents = function(status, filtering)
-	{		
+	{
+		var filters = angular.copy($scope.filters);
+
+		if( filters.date.startDate !== null )
+		{
+			var dateRange = moment(filters.date.startDate).format('YYYY-MM-DD') + '/' + moment(filters.date.endDate).format('YYYY-MM-DD');
+		}
+		
 		if ( $scope.isTeacher )
 		{
 			var params = $rootScope.currentUser.emp_id + '/' + status;
+			if( dateRange ) params += '/' + dateRange;
 			apiService.getTeacherStudents(params, loadStudents, apiError, {filtering:filtering});
 		}
 		else
 		{
-			apiService.getAllStudents(status, loadStudents, apiError, {filtering:filtering,status:status});
+			var params = status;
+			if( dateRange ) params += '/' + dateRange;
+			apiService.getAllStudents(params, loadStudents, apiError, {filtering:filtering,status:status});
 		}
 		
 	}
@@ -343,6 +394,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		{
 			// we need to fetch inactive students first
 			getStudents('false', true);			
+		}
+		else if( requery )
+		{
+			// need to get fresh data, most likely because the user selected a new year
+			getStudents(currentStatus, true);		
 		}
 		else
 		{

@@ -46,6 +46,16 @@
 							<option value="">All Classes</option>
 						</select>
 					</div>		
+					
+					<!-- date range -->
+					<div class="form-group">
+						<label for="class">Date Range</label>	
+						<!-- date range picker -->				
+						<div class="input-group">
+							<input type="text" name="dob" date-range-picker class="form-control date-picker input-sm" ng-model="filters.date" options="{ranges:termRanges}" />
+							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+						</div>
+					</div>
 
 					<!-- status select -->
 					<div class="form-group">

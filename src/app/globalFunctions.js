@@ -184,6 +184,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			item.other_medical_conditions_str = ( item.other_medical_conditions ? 'Yes' : 'No');
 			item.hospitalized_str = ( item.hospitalized ? 'Yes' : 'No');
 			item.current_medical_treatment_str = ( item.current_medical_treatment ? 'Yes' : 'No');
+			item.admission_date = (item.admission_date !== null ? moment(item.admission_date).format('YYYY-MM-DD') : '');
 			
 			return item;
 		});
