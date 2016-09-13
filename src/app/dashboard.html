@@ -93,8 +93,8 @@
 							<li ng-repeat="item in empCats">
 								<a ui-sref="staff({ category: item.emp_cat_id })">{{item.emp_cat_name}}</a>
 									<ul class="stripped">
-										<li ng-repeat="dept in deptCats | filter: {category : item.emp_cat_name}">
-											<a ui-sref="staff({ category: item.emp_cat_id, dept:dept.dept_id })">{{dept.dept_name}} ({{dept.num_staff}})</a>													
+										<li ng-repeat="dept in deptCats | filter: {category : item.emp_cat_name}:true">
+											<a ui-sref="staff({ category: item.emp_cat_id, dept:dept.dept_id })">{{dept.dept_name}} ({{dept.num_staff}}) {{category}}</a>													
 										</li>
 									</ul>
 							</li>

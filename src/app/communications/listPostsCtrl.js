@@ -29,7 +29,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 		columnDefs: [
 			{ name: 'Title', field: 'title', enableColumnMenu: false, sort: {direction:'asc'}, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.title}}</div>'},
 			{ name: 'Class', field: 'class_name', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.class_name}}</div>'},
-			{ name: 'Date', field: 'creation_date', type: 'date', cellFilter: 'date', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.creation_date}}</div>'},
+			{ name: 'Date', field: 'creation_date', type: 'date', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.creation_date|date:"MMM d yyyy, h:mm a}}</div>'},
 			{ name: 'Status', field: 'post_status', width:75, enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.post_status}}</div>'},
 			{ name: 'View', field: '', cellClass:'center', width:40, headerCellClass:'center', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.preview(row.entity)"><i class="fa fa-eye"></i></div>'},
 			
@@ -127,7 +127,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				$scope.posts = ( result.nodata ? [] : result.data );	
 
 				$scope.posts = $scope.posts.map(function(item){
-					item.creation_date = moment(item.creation_date).format('MMM Do YYYY, h:mm a');
+					item.creation_date =  new Date(item.creation_date); //moment(item.creation_date).format('MMM Do YYYY, h:mm a');
 					return item;
 				});
 				initDataGrid($scope.posts);

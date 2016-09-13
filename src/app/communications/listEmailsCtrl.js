@@ -29,7 +29,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 		rowTemplate: rowTemplate(),
 		rowHeight:24,
 		columnDefs: [
-			{ name: 'Date', field: 'creation_date', type:'date', cellFilter:'date', enableColumnMenu: false, sort: {direction:'asc'}, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.creation_date|date}}</div>'},
+			{ name: 'Date', field: 'creation_date', type:'date', enableColumnMenu: false, sort: {direction:'asc'}, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.creation_date|date:"MMM d yyyy, h:mm a"}}</div>'},
 			{ name: 'Type', field: 'com_type', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.com_type}}</div>'},
 			{ name: 'Recipient', field: 'audience', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.audience}}</div>'},
 			{ name: 'Subject', field: 'subject', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.subject}}</div>'},
@@ -154,7 +154,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			$scope.emails = ( result.nodata ? [] : result.data );	
 
 			$scope.emails = $scope.emails.map(function(item){
-				item.creation_date = moment(item.creation_date).format('MMM Do YYYY, h:mm a');
+				item.creation_date = new Date(item.creation_date);
 				item.send_method = (item.send_as_sms ? 'sms' : 'email');
 				item.message_truncated = ( item.message.length > 100 ? item.message.substring(0,100) + '...' : item.message );
 				item.body = item.message;
