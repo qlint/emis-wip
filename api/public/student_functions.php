@@ -1260,21 +1260,25 @@ $app->put('/updateStudent', function () use($app) {
 											active = true,
 											modified_date = now(),
 											modified_by = :userID
-										WHERE student_id = :studentID
+										WHERE student_id = :studentId
 										AND fee_item_id = :feeItemId");
 			
 			$feesInsert = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by) 
-										VALUES(:studentID,:feeItemID,:amount,:paymentMethod,:userId);"); 
+										VALUES(:studentId,:feeItemID,:amount,:paymentMethod,:userId);"); 
 			
-			$feeItemCheck = $db->prepare("SELECT coalesce(sum(inv_item_id),0) as total_invoices,  
-												 coalesce(sum(payment_replace_item_id),0) as total_payments
+			$feeItemCheck = $db->prepare("SELECT  count(invoice_line_items.inv_item_id) as num_invoices,
+												count(payment_inv_items.amount) as num_payments, 
+												count(payment_replacement_items.amount) as num_replacement_payments
 											FROM app.student_fee_items
-											LEFT JOIN app.invoice_line_items 
+											LEFT JOIN app.invoice_line_items
+												left join app.payment_inv_items 
+												on invoice_line_items.inv_item_id = payment_inv_items.inv_item_id
 											ON student_fee_items.student_fee_item_id = invoice_line_items.student_fee_item_id
 											LEFT JOIN app.payment_replacement_items 
 											ON student_fee_items.student_fee_item_id = payment_replacement_items.student_fee_item_id
-											WHERE student_id = :studentId
-											AND fee_item_id = :feeItemId");
+											WHERE student_id = :studentId 
+											AND student_fee_items.student_fee_item_id = :studentFeeItemId
+											");
 											
 			$deleteItem = $db->prepare("DELETE FROM app.student_fee_items WHERE student_id = :studentId AND fee_item_id = :feeItemId");
 			
@@ -1295,11 +1299,10 @@ $app->put('/updateStudent', function () use($app) {
 			);
 			
 			
-			// get what is already set of this student
-			$query = $db->prepare("SELECT fee_item_id FROM app.student_fee_items WHERE student_id = :studentID");
-			$query->execute( array('studentID' => $studentId) );
+			// get what is already set for this student
+			$query = $db->prepare("SELECT fee_item_id, student_fee_item_id FROM app.student_fee_items WHERE student_id = :studentId");
+			$query->execute( array('studentId' => $studentId) );
 			$currentFeeItems = $query->fetchAll(PDO::FETCH_OBJ);
-						
 		
 		}
 		
@@ -1390,29 +1393,19 @@ $app->put('/updateStudent', function () use($app) {
 					// this fee item exists, update it, else insert
 					if( $studentFeeItemID !== null && !empty($studentFeeItemID) )
 					{
-						// need to update all terms, current and future of this year
-						// leaving previous terms as they were
+						// TO DO: if we are changing the amount to less the current amount
+						// and the item is on an invoice and already paid
+						// we need to create a credit for difference
 						$feesUpdate->execute(array(':amount' => $amount, 
 													':paymentMethod' => $paymentMethod, 
 													':userID' => $userId, 
-													':studentID' => $studentId, 
+													':studentId' => $studentId, 
 													':feeItemId' => $feeItemId ));
-
 					}
 					else
 					{
-						// check if was previously added, if so, reactivate
-						// else fee items is new, add it
-						// needs to be added once term term if per term fee item
-						/*
-						$feeData = new stdClass();
-						$feeData->studentId = $studentId;
-						$feeData->userId = $userId;
-						$feeData->feeItem = $feeItems[$i];
-						insertFeeItem($feeData, $feesInsert);
-						*/
 						$feesInsert->execute( array(
-							':studentID' => $studentId,
+							':studentId' => $studentId,
 							':feeItemID' => $feeItem['fee_item_id'],
 							':amount' => $feeItem['amount'],
 							':paymentMethod' => $feeItem['payment_method'],
@@ -1425,7 +1418,6 @@ $app->put('/updateStudent', function () use($app) {
 			
 			if( count($optFeeItems) > 0 )
 			{
-							
 				// loop through and add or update
 				foreach( $optFeeItems as $optFeeItem )
 				{
@@ -1437,24 +1429,16 @@ $app->put('/updateStudent', function () use($app) {
 					// this fee item exists, update it, else insert
 					if( $studentFeeItemID !== null && !empty($studentFeeItemID) )
 					{
-						// need to update all terms, current and future of this year
-						// leaving previous terms as they were
-						$feesUpdate->execute(array(':amount' => $amount, ':paymentMethod' => $paymentMethod, ':userID' => $userId, ':studentID' => $studentId, ':feeItemId' => $feeItemId ));
+						// TO DO: if we are changing the amount to less the curernt amount
+						// and the item is on an invoice and already paid
+						// we need to create a credit for difference
+						$feesUpdate->execute(array(':amount' => $amount, ':paymentMethod' => $paymentMethod, ':userID' => $userId, ':studentId' => $studentId, ':feeItemId' => $feeItemId ));
 
 					}
 					else
 					{
-						// fee items is new, add it
-						// needs to be added once term term if per term fee item
-						/*
-						$feeData = new stdClass();
-						$feeData->studentId = $studentId;
-						$feeData->userId = $userId;
-						$feeData->feeItem = $optFeeItems[$i];
-						insertFeeItem($feeData, $feesInsert);
-						*/
 						$feesInsert->execute( array(
-							':studentID' => $studentId,
+							':studentId' => $studentId,
 							':feeItemID' => $optFeeItem['fee_item_id'],
 							':amount' => $optFeeItem['amount'],
 							':paymentMethod' => $optFeeItem['payment_method'],
@@ -1462,8 +1446,6 @@ $app->put('/updateStudent', function () use($app) {
 						);
 					}
 				}
-							
-					
 			}
 
 			// look for fee items to remove
@@ -1489,14 +1471,15 @@ $app->put('/updateStudent', function () use($app) {
 				
 				if( $deleteMe )
 				{
+					
 					// if there is a payment, mark inactive
 					// if there is an invoice item, mark inactive
 					// if no payments or invoice, delete
 					
-					$feeItemCheck->execute( array(':studentId' => $studentId, ':feeItemId' => $currentFeeItem->fee_item_id) );
+					$feeItemCheck->execute( array(':studentId' => $studentId, ':studentFeeItemId' => $currentFeeItem->student_fee_item_id) );
 					$checkResults = $feeItemCheck->fetch(PDO::FETCH_OBJ);
 					
-					if( $checkResults->total_invoices > 0 || $checkResults->total_payments > 0 )
+					if( $checkResults->num_invoices > 0 || $checkResults->num_payments > 0 || $checkResults->num_replacement_payments > 0 )
 					{
 						$inactivate->execute(array(':studentId' => $studentId, ':feeItemId' => $currentFeeItem->fee_item_id, ':userId' => $userId));
 					}
@@ -1505,12 +1488,8 @@ $app->put('/updateStudent', function () use($app) {
 						// no invoices or payments, delete
 						$deleteItem->execute( array(':studentId' => $studentId, ':feeItemId' => $currentFeeItem->fee_item_id) );
 					}
-					
-					
 				}
 			}
-			
-			
 		}
 		
 		$db->commit();

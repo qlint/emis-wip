@@ -779,22 +779,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.printStatement = function()
 	{
-		/*
-		var data = {
-			student: $scope.student,
-			invoices: $scope.invoices
-		}
-		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/fees/printStatement.html','printStatementCtrl',data,{size: 'md',backdrop:'static'});
-		*/
-		
 		var criteria = {
 			student : $scope.student,
 			invoices: $scope.invoices,
 			payments: $scope.payments,
 			credits: $scope.credits
 		}
-		console.log(criteria);
+
 		var domain = window.location.host;
 		var newWindowRef = window.open('http://' + domain + '/#/fees/statement/print');
 		newWindowRef.printCriteria = criteria;
@@ -874,9 +865,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// update payments
 			getStudentBalance();
 			getPayments();
+			getInvoices();
 		},function(){
-			if(angular.equals($scope.payment,''))
-				$scope.errMsg = 'You did not enter a payment!';
 		});
 	}
 	
@@ -1386,6 +1376,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	/************************************* Update Function ***********************************************/
 	$scope.save = function(theForm, tab)
 	{
+		$scope.error = false;
 		if( !theForm.$invalid )
 		{
 			// going to only send data that is on the current tab

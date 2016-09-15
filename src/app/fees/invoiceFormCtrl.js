@@ -715,7 +715,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,data){
 			'</div>'+
 			'<div class="modal-footer">' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
-				'<button type="submit" class="btn btn-danger">Save</button>' +
+				'<button type="submit" class="btn btn-success">Save</button>' +
 			'</div>' +
 			'</form>'
 		);

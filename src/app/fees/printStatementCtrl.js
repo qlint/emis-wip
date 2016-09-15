@@ -136,7 +136,7 @@ function($scope, $rootScope, apiService ){
 		
 		$scope.grandTotalBalance = $scope.totalAmt - $scope.totalPayments;
 		
-		/*
+		
 		setTimeout( function(){
 			window.print();
 			
@@ -144,8 +144,8 @@ function($scope, $rootScope, apiService ){
 				$rootScope.isPrinting = false;
 				window.close();
 			}, 100);
-		}, 100);
-		*/
+		}, 500);
+		
 	}
 	
 	var getCredits = function()

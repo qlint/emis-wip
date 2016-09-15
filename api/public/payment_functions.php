@@ -446,10 +446,11 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
        $db = getDB();
 	
 		// get payment data
-       $sth = $db->prepare("SELECT payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
-									payments.student_id, replacement_payment, reversed, reversed_date --,payments.inv_id
+       $sth = $db->prepare("SELECT payments.payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
+									payments.student_id, replacement_payment, reversed, reversed_date, credit_id --,payments.inv_id
 							FROM app.payments
-							WHERE payment_id = :paymentId
+							LEFT JOIN app.credits ON payments.payment_id = credits.payment_id
+							WHERE payments.payment_id = :paymentId
 	   ");
 		$sth->execute( array(':paymentId' => $paymentId) ); 
         $results1 = $sth->fetch(PDO::FETCH_OBJ);
@@ -554,6 +555,9 @@ $app->put('/updatePayment', function() use($app){
 	//$invId = 				( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
 	$lineItems =			( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
 	$replacementItems =		( isset($allPostVars['replacement_items']) ? $allPostVars['replacement_items']: null);
+	$hasCredit =			( isset($allPostVars['hasCredit']) ? $allPostVars['hasCredit']: false);
+	$creditAmt =			( isset($allPostVars['creditAmt']) ? $allPostVars['creditAmt']: null);
+	$creditId =				( isset($allPostVars['creditId']) ? $allPostVars['creditId']: null);
 	
 	try 
     {
@@ -569,7 +573,15 @@ $app->put('/updatePayment', function() use($app){
 											modified_by = :userId
 										WHERE payment_id = :paymentId");
 		
+		$credit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount, created_by) 
+									VALUES(:studentId, :paymentId, :creditAmt, :userId)");
 		
+		$updateCreditQry = $db->prepare("UPDATE app.credits
+										SET amount = :creditAmt,
+											modified_date = now(),
+											modified_by = :userId
+										WHERE credit_id = :creditId");
+										
 		// prepare the possible statements
 		if( count($lineItems) > 0 ) 
 		{
@@ -609,12 +621,12 @@ $app->put('/updatePayment', function() use($app){
 			$deleteReplaceLines = $db->prepare("DELETE FROM app.payment_replacement_items WHERE payment_id = :paymentId");
 		}
 		
-		// get what is already set of this payment
+		// get what is already set for this payment
 		$query = $db->prepare("SELECT payment_replace_item_id FROM app.payment_replacement_items WHERE payment_id = :paymentId");
 		$query->execute( array('paymentId' => $paymentId) );
 		$currentReplaceItems = $query->fetchAll(PDO::FETCH_OBJ);
 		
-		// get what is already set of this payment
+		// get what is already set for this payment
 		$query = $db->prepare("SELECT payment_inv_item_id FROM app.payment_inv_items WHERE payment_id = :paymentId");
 		$query->execute( array('paymentId' => $paymentId) );
 		$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);	
@@ -755,6 +767,23 @@ $app->put('/updatePayment', function() use($app){
 		else
 		{
 			$deleteReplaceLines->execute(array('paymentId' => $paymentId));
+		}
+		
+		if( $hasCredit )
+		{
+			if( $creditId !== null )
+			{
+				$updateCreditQry->execute(array(':creditId' => $creditId,
+										':creditAmt' => $creditAmt,
+										':userId' => $userId ) );
+			}
+			else
+			{
+				$credit->execute(array(':studentId' => $studentId,
+									':paymentId' => $paymentId,
+									':creditAmt' => $creditAmt,
+									':userId' => $userId ) );
+			}
 		}
 		
 		$db->commit();

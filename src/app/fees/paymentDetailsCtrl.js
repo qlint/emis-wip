@@ -579,7 +579,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				slip_cheque_no: $scope.selectedPayment.slip_cheque_no,
 				replacement_payment: ($scope.selectedPayment.replacement_payment == 'true' ? 't' : 'f' ),
 				//inv_id : ($scope.selectedPayment.invoice !== undefined ? $scope.selectedPayment.invoice.inv_id : ($scope.selectedInvoice !== undefined ? $scope.selectedInvoice.inv_id : null)),
-				line_items: lineItems
+				line_items: lineItems,
+				hasCredit: ($scope.totalCredit > 0 ? true : false ),
+				creditAmt: $scope.totalCredit,
+				creditId: $scope.selectedPayment.credit_id || null
 			};
 			
 		}
