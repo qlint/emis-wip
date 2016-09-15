@@ -617,7 +617,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		dlg.result.then(function(btn){
 			var data = {
 				user_id: $scope.currentUser.user_id,
-				payment_id:$scope.selectedPayment.payment_id
+				student_id: $scope.student_id,
+				payment_id:$scope.selectedPayment.payment_id,
+				hasCredit: ($scope.totalCredit > 0 ? true : false ),
+				creditAmt: $scope.totalCredit 
 			};
 		
 			apiService.reactivatePayment(data,  function(response){

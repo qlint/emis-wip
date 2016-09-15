@@ -820,11 +820,14 @@ $app->put('/reversePayment', function () use($app) {
 											modified_date = now(),
 											modified_by = :userId
 										WHERE payment_id = :paymentId");
+		$removeCredit = $db->prepare("DELETE FROM app.credits WHERE payment_id = :paymentId");
 		
-	
+		$db->beginTransaction();
 		$updatePayment->execute( array(':paymentId' => $paymentId,
 						':userId' => $userId
 		) );	
+		$removeCredit->execute( array(':paymentId' => $paymentId) );
+		$db->commit();
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -844,8 +847,12 @@ $app->put('/reversePayment', function () use($app) {
 $app->put('/reactivatePayment', function() use($app) {
 	// update payment to not reversed
 	$allPostVars = json_decode($app->request()->getBody(),true);
+	$studentId = ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
 	$paymentId = ( isset($allPostVars['payment_id']) ? $allPostVars['payment_id']: null);
-	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$hasCredit = ( isset($allPostVars['hasCredit']) ? $allPostVars['hasCredit']: false);
+	$creditAmt = ( isset($allPostVars['creditAmt']) ? $allPostVars['creditAmt']: null);
+	$userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	
 	try 
     {
         $db = getDB();
@@ -857,10 +864,18 @@ $app->put('/reactivatePayment', function() use($app) {
 											modified_date = now(),
 											modified_by= :userId
 										WHERE payment_id = :paymentId");		
-	
+		$credit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount, created_by) 
+									VALUES(:studentId, :paymentId, :creditAmt, :userId)");
+		
+		$db->beginTransaction();
 		$updatePayment->execute( array(':paymentId' => $paymentId,
 						':userId' => $userId
 		) );	
+		$credit->execute(array(':studentId' => $studentId,
+									':paymentId' => $paymentId,
+									':creditAmt' => $creditAmt,
+									':userId' => $userId ) );
+		$db->commit();
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
