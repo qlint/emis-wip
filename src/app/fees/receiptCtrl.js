@@ -10,7 +10,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 	
 	
 	var initializeController = function()
-	{
+	{		
 		apiService.getPaymentDetails($scope.payment.payment_id, loadPaymentDetails, apiError);
 	}
 	setTimeout(initializeController,1);
@@ -37,10 +37,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			var amt;
 			angular.forEach( $scope.paymentDetails, function(item,key){
 				amt = item.line_item_amount.split('.'),
-				$scope.paymentItems[item.fee_item] = {
+				$scope.paymentItems.push( {
+					fee_item: item.fee_item,
 					ksh: amt[0],
 					cts: amt[1]
-				};
+				});
 				totalAmt += parseFloat(item.line_item_amount);
 			});
 

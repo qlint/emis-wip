@@ -199,10 +199,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			
 			// filter out invoices already showing in Applied To
 			$scope.invoices = invoices.filter(function(item){
-				var isMatch = $scope.selectedInvoice.filter(function(item2){
-					if( item.inv_id == item2.inv_id ) return item2;
-				})[0];
+				if( $scope.selectedInvoice )
+				{
+					var isMatch = $scope.selectedInvoice.filter(function(item2){
+						if( item.inv_id == item2.inv_id ) return item2;
+					})[0];
+				}
 				if( isMatch === undefined ) return item;
+				
 			});
 		}
 	}

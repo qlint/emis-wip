@@ -91,15 +91,10 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="item in feeItems">
+						<tr ng-repeat="item in paymentItems">
 							<td>{{item.fee_item}}</td>
-							<td class="center">{{paymentItems[item.fee_item].ksh|number}}</td>
-							<td class="center">{{paymentItems[item.fee_item].cts}}</td>
-						</tr>
-						<tr>
-							<td>Other</td>
-							<td class="center"></td>
-							<td class="center"></td>
+							<td class="center">{{item.ksh|number}}</td>
+							<td class="center">{{item.cts}}</td>
 						</tr>
 					</tbody>
 					<tfoot>
