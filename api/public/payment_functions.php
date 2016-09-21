@@ -29,14 +29,12 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 						 END as applied_to,
 						 class_name, class_id, class_cat_id, students.active as status, replacement_payment, reversed,
 						 (
-									SELECT sum(diff) FROM (
-										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
-										FROM app.payments as p
-										WHERE p.payment_id = payments.payment_id
-										AND reversed is false
-										AND replacement_payment is false
-									) AS q
-								) AS unapplied_amount
+							amount - coalesce((select coalesce(sum(amount),0) + coalesce((select sum(amount_applied) from app.credits where payment_id = payments.payment_id ),0) as sum
+												from app.payment_inv_items 
+												inner join app.invoices using (inv_id) 
+												 where payment_id = payments.payment_id 
+												 and canceled = false ),0)
+						) AS unapplied_amount
 					FROM app.payments
 					INNER JOIN app.students ON payments.student_id = students.student_id
 					INNER JOIN app.classes ON students.current_class = classes.class_id
@@ -891,5 +889,39 @@ $app->put('/reactivatePayment', function() use($app) {
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 });
+
+$app->delete('/deletePayment/payment_id', function ($paymentId){
+	// delete payment
+	$app = \Slim\Slim::getInstance();
+	try 
+  {
+    $db = getDB();
+		$removePaymentItems = $db->prepare("DELETE FROM app.payment_inv_items WHERE payment_id = :paymentId");
+		$removePayment = $db->prepare("DELETE FROM app.payments	WHERE payment_id = :paymentId");
+		$removeCredit = $db->prepare("DELETE FROM app.credits WHERE payment_id = :paymentId");
+		$removeReplacment = $db->prepare("DELETE FROM app.payment_replacement_items WHERE payment_id = :paymentId");
+		
+		$db->beginTransaction();
+		$removePaymentItems->execute( array(':paymentId' => $paymentId) );	
+		$removePayment->execute( array(':paymentId' => $paymentId) );	
+		$removeCredit->execute( array(':paymentId' => $paymentId) );
+		$removeReplacment->execute( array(':paymentId' => $paymentId) );
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
+		$db->rollBack();
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+});
+
 
 ?>

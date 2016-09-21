@@ -525,6 +525,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPut(request, path + "/reactivatePayment", successFunction, errorFunction, params);
 	};
 	
+	this.deletePayment = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deletePayment/" + param, successFunction, errorFunction, params);
+	};
+	
 	/*********** invoices ***********/	
 	this.getInvoices = function (param, successFunction, errorFunction, params) {      
 		ajaxService.AjaxGet(path + "/getInvoices/" + param, successFunction, errorFunction, params);
@@ -556,6 +560,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	
 	this.reactivateInvoice = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPut(request, path + "/reactivateInvoice", successFunction, errorFunction, params);
+	};
+	
+	this.deleteInvoice = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deleteInvoice/" + param, successFunction, errorFunction, params);
 	};
 	
 	/*********** users ***********/	

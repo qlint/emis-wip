@@ -107,40 +107,7 @@
 				<div id="grid1" ui-grid="gridOptions" ui-grid-exporter ui-grid-resize-columns class="myGrid">
 					<div ng-if="!gridOptions.data.length" class="no-results">No results found.</div>
 				</div>
-				<!--
-				<table id="resultsTable" class="display clickable" cellspacing="0" width="100%" ng-show="!loading">
-					<thead>
-						<tr>
-							<th></th>
-							<th class="center">Receipt</th>
-							<th>Name</th>
-							<th>Class</th>
-							<th>Payment Date</th>
-							<th>Payment Method</th>
-							<th class="center">Amount ({{currency}})</th>
-							<th>Applied To</th>
-							<th class="center">Amount Unapplied</th>
-							<th class="center">Replacement?</th>
-							<th class="center">Reversed?</th>
-						</tr>
-					</thead>	
-					<tbody>
-						<tr ng-repeat="item in payments track by $index" ng-class="{'alert-warning': item.replacement_payment}">
-							<td></td>
-							<td class="center" ng-click="getReceipt(item)"><i class="glyphicon glyphicon-file"></i> {{item.receipt_number}}</td>
-							<td id="{{item.inv_id}}" class="inv_id" ng-click="viewStudent(item)">{{item.student_name}}</td>
-							<td ng-click="viewStudent(item)">{{item.class_name}}</td>
-							<td ng-click="viewPayment(item)" data-order="{{item.payment_date}}">{{item.payment_date|date}}</td>
-							<td ng-click="viewPayment(item)">{{item.payment_method}}</td>
-							<td ng-click="viewPayment(item)" class="center">{{item.amount|currency:""}}</td>
-							<td ng-click="viewPayment(item)">{{item.applied_to|arrayToList}}</td>
-							<td ng-click="viewPayment(item)" class="center" ng-class="{'alert-danger': item.unapplied_amount>0}">{{item.unapplied_amount|currency:""}}</td>
-							<td ng-click="viewPayment(item)" class="center">{{item.replacement}}</td>
-							<td ng-click="viewPayment(item)" class="center">{{item.reverse}}</td>
-						</tr>
-					</tbody>
-				</table>
-				-->
+
 			</div>
 			<div class="col-sm-2">
 				<div class="info-boxes clearfix">

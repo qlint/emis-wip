@@ -359,12 +359,14 @@
 		<div class="modal-footer">
 		
 			<div class="pull-left">
+				<button type="button" class="btn btn-danger" ng-click="deletePayment()" ng-show="permissions.fees.payments_received.delete"><i class="fa fa-trash"></i> Delete Payment</button>
+				
 				<button type="button" class="btn btn-danger" ng-click="reversePayment()" ng-show="permissions.fees.payments_received.delete && !selectedPayment.reversed">Reverse Payment</button>
 				<button type="button" class="btn btn-success" ng-click="reactivatePayment()" ng-show="permissions.fees.payments_received.edit && selectedPayment.reversed">Reactivate Payment</button>
 				<button type="button" class="btn btn-link" ng-click="revertPayment()" ng-show="changes">Undo Changes</button>
 			</div>
 			
-			<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>
 			
 			<button type="submit" class="btn btn-success">
 				<span ng-hide="saving">Save</span>

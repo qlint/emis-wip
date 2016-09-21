@@ -636,14 +636,12 @@ $app->get('/getStudentPayments/:studentId', function ($studentId) {
 										 )
 								 END as applied_to,
 								  (
-									SELECT sum(diff) FROM (
-										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
-										FROM app.payments as p
-										WHERE p.payment_id = payments.payment_id
-										AND reversed is false
-										AND replacement_payment is false
-									) AS q
-								) AS unapplied_amount,
+										amount - coalesce((select coalesce(sum(amount),0) + coalesce((select sum(amount_applied) from app.credits where payment_id = payments.payment_id ),0) as sum
+															from app.payment_inv_items 
+															inner join app.invoices using (inv_id) 
+															 where payment_id = payments.payment_id 
+															 and canceled = false ),0)
+									) AS unapplied_amount,
 								 reversed, reversed_date, replacement_payment, slip_cheque_no
 								FROM app.payments						
 								WHERE student_id = :studentID");

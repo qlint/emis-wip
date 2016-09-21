@@ -130,6 +130,8 @@
 		<div class="modal-footer">
 			
 			<div class="pull-left">
+				<button type="button" class="btn btn-danger" ng-click="deleteInvoice()" ng-show="permissions.fees.invoices.delete"><i class="fa fa-trash"></i> Delete Invoice</button>
+				
 				<button type="button" class="btn btn-danger" ng-click="cancelInvoice()" ng-show="permissions.fees.invoices.delete && !invoice.canceled && invoice.total_paid==0">Cancel Invoice</button>
 				<button type="button" class="btn btn-success" ng-click="reactivateInvoice()" ng-show="permissions.fees.invoices.edit && invoice.canceled">Reactivate Invoice</button>
 				<button type="button" class="btn btn-success" ng-click="printInvoice()"><i class="glyphicon glyphicon-print"></i> Print</button>	

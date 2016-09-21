@@ -636,6 +636,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		});
 	}
 	
+	$scope.deletePayment = function()
+	{
+		var dlg = $dialogs.confirm('Delete Payment', 'Are you sure you want to <strong>DELETE</strong> this payment? (This CAN NOT be undone)', {size:'sm'});
+		dlg.result.then(function(btn){
+
+			apiService.deletePayment($scope.selectePayment.payment_id,  function(response){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success')
+				{
+					$rootScope.$emit('paymentAdded', {'msg' : 'Payment deleted.', 'clear' : true});
+					$uibModalInstance.close();
+				}
+				
+			}, apiError);	
+		});
+	}
+	
 	var createCompleted = function(response,status)
 	{
 		var result = angular.fromJson( response );

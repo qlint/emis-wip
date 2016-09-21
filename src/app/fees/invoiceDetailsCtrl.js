@@ -130,6 +130,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		});
 	}
 	
+	$scope.deleteInvoice = function()
+	{
+		var dlg = $dialogs.confirm('Delete Invoice', 'Are you sure you want to <strong>DELETE</strong> this invoice? (This CAN NOT be undone)', {size:'sm'});
+		dlg.result.then(function(btn){
+
+			apiService.deleteInvoice($scope.invoice.inv_id,  function(response){
+				var result = angular.fromJson(response);
+				
+				if( result.response == 'success')
+				{
+					$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice deleted.', 'clear' : true});
+					$uibModalInstance.close();
+				}
+				
+			}, apiError);	
+		});
+	}
+	
 	$scope.removeLineItem = function(index)
 	{
 		$scope.invoiceLineItems.splice(index,1);
