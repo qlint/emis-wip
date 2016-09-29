@@ -13,7 +13,11 @@
 				<p>REVERSED</p>
 			</div>
 			
-			<img ng-if="useLetterhead" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+			<div class="receipt-header-letterhead" ng-if="useLetterhead">
+				<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+				<h2 class="receipt-title">Official Receipt</h2>
+			</div>
+			
 			
 			<div class="row" ng-if="!useLetterhead">
 				<div class="col-xs-2">
@@ -41,8 +45,14 @@
 				<div class="col-xs-2 nopad-right">
 					<label>Received From:</label>
 				</div>
-				<div class="col-xs-9 lesspad">
+				<div class="col-xs-4 lesspad">
 					<p class="form-control-static">{{student.student_name}}</p>
+				</div>
+				<div class="col-xs-2 nopad-right">
+					<label>Payment Date:</label>
+				</div>
+				<div class="col-xs-4 lesspad">
+					<p class="form-control-static">{{payment.payment_date}}</p>
 				</div>
 			</div>
 			<div class="row">
@@ -62,7 +72,7 @@
 					<label>Term:</label>
 				</div>
 				<div class="col-xs-2 nopad-left">
-					<p class="form-control-static">{{term_name}}</p>
+					<p class="form-control-static">{{term_name}} {{term_year}}</p>
 				</div>
 			</div>
 			<div class="row">

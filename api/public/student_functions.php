@@ -415,25 +415,39 @@ $app->get('/getStudentInvoices/:studentId', function ($studentId) {
     {
         $db = getDB();
 		
-		// get invoices
-		// TO DO: I only want invoices for this school year?	
-		$sth = $db->prepare("SELECT * FROM app.invoice_balances2 WHERE student_id = :studentId ORDER BY inv_date");
-		$sth->execute( array(':studentId' => $studentId));
-		$results = $sth->fetchAll(PDO::FETCH_OBJ);
-		
- 
-        if($results) {			
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
+			// get invoices
+			// TO DO: I only want invoices for this school year?	
+			$sth = $db->prepare("SELECT invoice_balances2.*, ARRAY(select fee_item || ' (' || invoice_line_items.amount || ')'
+																		from app.invoice_line_items 
+																		inner join app.student_fee_items
+																		inner join app.fee_items
+																		on student_fee_items.fee_item_id = fee_items.fee_item_id
+																		on invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+																		where inv_id = invoice_balances2.inv_id) as invoice_items 
+													FROM app.invoice_balances2 
+													WHERE student_id = :studentId ORDER BY inv_date");
+			$sth->execute( array(':studentId' => $studentId));
+			$results = $sth->fetchAll(PDO::FETCH_OBJ);
+			
+			if($results) {		
+			
+				foreach( $results as $result)
+				{
+					$result->invoice_line_items = pg_array_parse($result->invoice_items);
+				}
+			
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+			} 
+			else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+			}
+	 
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');

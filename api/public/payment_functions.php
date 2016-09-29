@@ -436,6 +436,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 								fee_item,
 								invoice_line_items.amount as line_item_amount,
 								(select term_name from app.terms where due_date between start_date and end_date) as term_name,
+								(select date_part('year',start_date) from app.terms where due_date between start_date and end_date) as term_year,
 								invoices.canceled
 							FROM app.invoices
 							INNER JOIN app.invoice_line_items
@@ -453,7 +454,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 							WHERE invoices.inv_id = any(:invIds)
 							ORDER BY due_date, fee_item");
 		$sth3->execute( array(':invIds' => $invIdStr) ); 
-        $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);	
+    $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);	
 		
 		$results = new Stdclass();
 		$results->payment = $results1;

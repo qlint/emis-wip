@@ -8,7 +8,18 @@ function($scope, $rootScope, apiService ){
 	var initializeController = function()
 	{
 		var data = window.printCriteria;
-		$scope.student = angular.fromJson(data.student);	
+		$scope.student = angular.fromJson(data.student);
+		
+		// get current term
+		apiService.getCurrentTerm({},function(response){
+			var result = angular.fromJson(response);
+			
+			if( result.response == 'success') 
+			{
+				$scope.currentTerm = result.data;
+				$scope.currentTermTitle = $scope.currentTerm.term_name + ' ' + $scope.currentTerm.year;				
+			}
+		},apiError);
 
 		if( $scope.invoices === undefined )
 		{
@@ -119,6 +130,7 @@ function($scope, $rootScope, apiService ){
 				window.close();
 			}, 100);
 		}, 100);
+		
 	}
 
 	var apiError = function (response, status) 

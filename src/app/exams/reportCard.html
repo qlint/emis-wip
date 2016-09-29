@@ -60,7 +60,10 @@
 			
 			<div ng-show="showReportCard">
 			
-				<img ng-if="useLetterhead" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+				<div class="receipt-header-letterhead" ng-if="useLetterhead">
+					<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+					<h2 class="receipt-title">Progress Report</h2>
+				</div>
 			
 				<div class="row progress-report-header"  ng-if="!useLetterhead">
 					<div class="col-xs-2">
@@ -285,7 +288,7 @@
 								<label>Term:</label>
 							</div>
 							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{report.term}}</p>
+								<p class="form-control-static">{{report.term}} {{report.year}}</p>
 							</div>
 						</div>
 						<div class="row">
@@ -318,7 +321,7 @@
 					<div class="progress-report-remarks">
 						<h3>Remarks</h3>
 						<table width="100%">
-							<tr ng-show="isClassTeacher">
+							<tr ng-show="isAdmin || isClassTeacher">
 								<td width="75%">
 									<label>CLASS TEACHER'S COMMENTS:</label>
 									<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>

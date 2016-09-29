@@ -1268,7 +1268,7 @@ table.clickable{
 	margin-bottom:20px;
 	
 	h2{
-	    color: #fff;
+	   color: #fff;
 		background: #000;
 		display: inline;
 		padding: 3px 5px;
@@ -1285,6 +1285,13 @@ table.clickable{
 		}
 	}
 }
+.receipt-header-letterhead{
+	text-align:center;
+	h2{
+		padding: 3px 5px;
+		text-transform:uppercase;
+	}
+}
 .receipt{
 	margin-bottom:50px;
 	
@@ -1298,12 +1305,13 @@ table.clickable{
 		padding: 0 3px 0 3px !important;
 		height: 14px!important;
 		min-height: 16px!important;
-		font-size: 16px;
+		font-size: 14px;
 		margin-bottom: 5px;
 		text-align: left;
 		margin-top: 1px;
 		line-height: 10px;
 	}
+	
 	label{
 		
 	}

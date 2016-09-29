@@ -31,6 +31,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.paymentDetails = results.paymentItems;
 			var invoiceItems = results.invoice;
 			$scope.term_name = (invoiceItems.length > 0 ? invoiceItems[0].term_name : '');
+			$scope.term_year = (invoiceItems.length > 0 ? invoiceItems[0].term_year : '');
 			
 			$scope.paymentItems = [];
 			var totalAmt = 0;
@@ -75,6 +76,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			payment: $scope.payment,
 			paymentItems : $scope.paymentItems,
 			termName: $scope.term_name,
+			termYear: $scope.term_year,
 			totals : {
 				totalAmtKsh: $scope.totalAmtKsh,
 				totalAmtCts: $scope.totalAmtCts,

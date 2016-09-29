@@ -8,8 +8,11 @@
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
-						
-			<img ng-if="useLetterhead" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+			
+			<div class="receipt-header-letterhead" ng-if="useLetterhead">
+				<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+				<h2 class="receipt-title">Official Statement</h2>
+			</div>
 			
 			<div class="row" ng-if="!useLetterhead">
 				<div class="col-xs-2">
@@ -59,7 +62,7 @@
 					<label>Term:</label>
 				</div>
 				<div class="col-xs-2 nopad-left">
-					<p class="form-control-static">{{invoice.term_name}}</p>
+					<p class="form-control-static">{{currentTermTitle}}</p>
 				</div>
 			</div>
 			<div class="row">
@@ -88,6 +91,7 @@
 							<th>Date</th>
 							<th>Due Date</th>
 							<th class="center">Amount ({{currency}})</th>
+							<th>Invoice Items</th>
 							<th class="center">Paid ({{currency}})</th>
 							<th class="center">Balance ({{currency}})</th>
 						</tr>
@@ -98,6 +102,9 @@
 							<td>{{item.inv_date}}</td>
 							<td>{{item.due_date}}</td>
 							<td class="center">{{item.total_due|currency:""}}</td>
+							<td>
+								<div ng-repeat="fee_item in item.invoice_line_items">{{fee_item}}</div>
+							</td>
 							<td class="center">{{item.total_paid|currency:""}}</td>
 							<td class="center">{{item.balance|numeric}}</td>
 						</tr>
@@ -106,6 +113,7 @@
 						<tr>
 							<td colspan="3"></td>
 							<td class="center">{{totalAmt|currency:""}}</td>
+							<td></td>
 							<td class="center">{{totalPaid|currency:""}}</td>
 							<td class="center">{{totalBalance|numeric}}</td>
 						</tr>

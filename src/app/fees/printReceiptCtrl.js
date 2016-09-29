@@ -15,6 +15,7 @@ function($scope, $rootScope){
 		$scope.totalAmtCts = data.totals.totalAmtCts;
 		$scope.balanceDue = data.totals.balanceDue;
 		$scope.term_name = data.termName;
+		$scope.term_year = data.termYear;
 		
 		$scope.loading = false;
 		
