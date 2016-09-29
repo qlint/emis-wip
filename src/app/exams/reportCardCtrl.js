@@ -186,7 +186,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		
 		$scope.currentFilters = angular.copy($scope.filters);
-		console.log($scope.currentFilters);
 		$scope.report.class_name = $scope.currentFilters.class.class_name;
 		$scope.report.class_id = $scope.currentFilters.class.class_id;
 		$scope.report.term = $scope.currentFilters.term.term_name;
