@@ -1079,15 +1079,16 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
         $results2 = $sth2->fetchAll(PDO::FETCH_OBJ);
 		
 		// get the invoice details that payment was applied to
-		$sth3 = $db->prepare("SELECT invoice_balances2.inv_id,								
-								inv_date,	
-								total_due,								
+		$sth3 = $db->prepare("SELECT invoice_balances2.inv_id,
+								inv_date,
+								total_due,
 								balance,
 								due_date,
 								invoice_line_items.inv_item_id,
 								fee_item,
 								invoice_line_items.amount as line_item_amount,
-								(select term_name from app.terms where due_date between start_date and end_date) as term_name
+								(select term_name from app.terms where due_date between start_date and end_date) as term_name,
+								(select date_part('year',start_date) from app.terms where due_date between start_date and end_date) as term_year
 							FROM app.invoice_balances2
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
@@ -1102,7 +1103,7 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
 							WHERE payment_inv_items.payment_id = :paymentId
 							ORDER BY due_date, fee_item");
 		$sth3->execute( array(':paymentId' => $paymentId) ); 
-        $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);	
+		$results3 = $sth3->fetchAll(PDO::FETCH_OBJ);	
 		
 		$results = new Stdclass();
 		$results->payment = $results1;
