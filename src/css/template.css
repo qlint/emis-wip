@@ -979,7 +979,9 @@ table.clickable tr {
   text-align: center; }
   .receipt-header-letterhead h2 {
     padding: 3px 5px;
-    text-transform: uppercase; }
+    text-transform: uppercase;
+    margin: 0 0 15px 0;
+    font-size: 15px; }
 
 .receipt {
   margin-bottom: 50px; }
