@@ -397,7 +397,7 @@ $app->get('/getStudent/:school/:studentId', function ($school, $studentId) {
         $db = setDBConnection($school);
         $sth = $db->prepare("SELECT students.student_id, first_name, middle_name, last_name, admission_number, admission_date,
 									student_category, gender, dob, student_image, classes.class_name, 
-								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' ' || payment_interval2 || '(s) apart)' as payment_plan_name,
+								payment_plan_name,
 								emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual,
 								other_medical_conditions, other_medical_conditions_description,
 								medical_conditions, hospitalized, current_medical_treatment, hospitalized_description,
