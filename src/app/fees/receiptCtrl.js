@@ -30,7 +30,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			
 			$scope.paymentDetails = results.paymentItems;
 			var invoiceItems = results.invoice;
-			$scope.term_name = (invoiceItems.length > 0 ? invoiceItems[0].term_name : '');
+			var termName = invoiceItems[0].term_name;
+			// we only want the number
+			termName = termName.split(' ');
+			$scope.term_name = (invoiceItems.length > 0 ? termName[1] : '');
 			$scope.term_year = (invoiceItems.length > 0 ? invoiceItems[0].term_year : '');
 			
 			$scope.paymentItems = [];

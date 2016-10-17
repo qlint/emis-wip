@@ -541,13 +541,13 @@
 					</div>
 				</div>
 				
-				<div class="modal-tabs sub-tabs">					
+				<div class="modal-tabs sub-tabs">
 					<ul class="nav nav-tabs">
 						<li ng-class="{active: currentFeeTab==item}" ng-repeat="item in feeTabs"><a class="clickable" ng-click="getFeeTabContent(item)">{{item}}</a></li>
-					</ul>						
+					</ul>
 				</div>
 				
-				<div class="subtab-content clearfix" ng-include="currentFeeTab"></div>				
+				<div class="subtab-content clearfix" ng-include="currentFeeTab"></div>
 					
 			</script>
 			
@@ -708,7 +708,7 @@
 											ng-checked="feeItemSelection.indexOf(item) > -1"
 											ng-click="toggleFeeItem(item,'required')"
 										  > {{item.fee_item}}
-										</label>										
+										</label>
 									</td>
 									<td width="70">
 										<input type="text" name="fee_item_amount[]" ng-model="item.amount" class="form-control" placeholder="{{item.default_amount}}">
@@ -802,7 +802,7 @@
 						<label for="term">Exam</label>	
 						<select id="term" class="form-control" ng-model="filters.exam_type_id" ignore-dirty>
 							<option value="">All Exams</option>
-							<option value="{{exam.exam_type_id}}" ng-repeat="exam in examTypes">{{exam.exam_type}}</option>							
+							<option value="{{exam.exam_type_id}}" ng-repeat="exam in examTypes">{{exam.exam_type}}</option>
 						</select>
 					</div>	
 					

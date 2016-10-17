@@ -42,8 +42,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 		{	
 			$('.fixedHeader-floating').remove();
 			$scope.dataGrid.clear();
-			$scope.dataGrid.destroy();				
-		}		
+			$scope.dataGrid.destroy();
+		}
 		
 		if ( $scope.isTeacher )
 		{
@@ -53,7 +53,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				
 				if( result.response == 'success')
 				{	
-					$scope.classes = ( result.nodata ? [] : result.data );	
+					$scope.classes = ( result.nodata ? [] : result.data );
 					
 					//$rootScope.allClasses = $scope.classes
 					
@@ -77,7 +77,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				
 				if( result.response == 'success')
 				{	
-					$scope.classes = ( result.nodata ? [] : result.data );	
+					$scope.classes = ( result.nodata ? [] : result.data );
 					
 					//$rootScope.allClasses = $scope.classes
 					
@@ -98,7 +98,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.loadFilter = function()
 	{
 		$scope.loading = true;
-		getClasses($scope.filters.class_cat_id);		
+		getClasses($scope.filters.class_cat_id);
 	}
 		
 	var initDataGrid = function() 

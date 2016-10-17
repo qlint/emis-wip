@@ -234,7 +234,7 @@
 								<td>
 									<label>Head Teacher Comments:</label>
 									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
-									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>	
+									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>
 								</td>
 								<td>
 									<p class="form-control-static" ng-show="isPrinting">{{comments.head_teacher_name}}</p>
@@ -247,21 +247,21 @@
 						<table width="100%">
 							<tr>
 								<td>
-									<label>Closing Date:</label>	
-									<p class="form-control-static">{{currentTermEndDate|date}}</p>	
+									<label>Closing Date:</label>
+									<p class="form-control-static">{{currentTermEndDate|date}}</p>
 								</td>
 								<td>
-									<label>Next Term Begins:</label>	
-									<p class="form-control-static">{{nextTermStartDate|date}}</p>	
+									<label>Next Term Begins:</label>
+									<p class="form-control-static">{{nextTermStartDate|date}}</p>
 								</td>
 							</tr>
 						</table>
-					</div>				
+					</div>
 				</script>
 				
 				<script type="text/ng-template" id="Kindergarten">
-				<div class="progress-report-student">
-						<!-- name and adm number -->	
+					<div class="progress-report-student">
+						<!-- name and adm number -->
 						<div class="row">
 							<div class="col-xs-1 nopad-right">
 								<label>Name:</label>
@@ -288,7 +288,7 @@
 								<label>Term:</label>
 							</div>
 							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{report.term}} {{report.year}}</p>
+								<p class="form-control-static">{{report.term}}, {{report.year}}</p>
 							</div>
 						</div>
 						<div class="row">
@@ -298,7 +298,7 @@
 							<div class="col-xs-5 lesspad">
 								<p class="form-control-static">{{report.date|date}}</p>
 							</div>
-						</div>						
+						</div>
 					</div>
 					<table class="display dataTable" cellspacing="0" width="100%">
 						<thead>
@@ -335,20 +335,157 @@
 								<td>
 									<label>HEAD TEACHER</label>
 									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
-									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>	
+									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>
 								</td>
 								<td>
+									<p class="form-control-static" ng-show="isPrinting">{{comments.head_teacher_name}}</p>
+									<input ng-show="!isPrinting" type="text" name="head_teacher_name" class="form-control" ng-model="comments.head_teacher_name" ng-change="updateReport()" />
+									
 									<label>Sign:</label>
 								</td>
 							</tr>
 							<tr>
 								<td colspan="2">
 									<label>Next term begins on:</label>	
-									<p class="form-control-static">{{nextTermStartDate}}</p>	
+									<p class="form-control-static">{{nextTermStartDate}}</p>
 								</td>
 							</tr>
 						</table>
-					</div>				
+					</div>
+					
+					
+				</script>
+				
+				<script type="text/ng-template" id="Playgroup">
+					<div class="progress-report-student">
+						<!-- name and adm number -->
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>Name:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{student.student_name}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Class:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{report.class_name}}</p>
+							</div>
+						</div>
+						<!-- class, term and year -->
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>Class Teacher:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{report.teacher_name}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Term:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{report.term}}, {{report.year}}</p>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>Date:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static">{{report.date|date}}</p>
+							</div>
+						</div>
+					</div>
+					<table class="display dataTable" cellspacing="0" width="100%">
+						<thead>
+							<tr>
+								<th class="center">Subject</th>
+								<th class="center">Very Good</th>
+								<th class="center">Good</th>
+								<th class="center">Emerging</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="item in reportData.subjects track by $index">
+								<td style="vertical-align:top" ng-class="{'strong uppercase': item.parent_subject_name===null, 'indent' : item.parent_subject_name!==null}">{{item.subject_name}}</td>
+								<td class="center">
+									<span ng-if="isPrinting"><i class="fa fa-check" ng-show="item.skill_level=='Very Good'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+										<input
+											type="radio" 
+											name="{{'skill_level[' + $index + ']'}}"
+											value="Very Good"
+											ng-model="item.skill_level"
+											id="{{'option1[' + $index + ']'}}"
+											/>
+											<label for="{{'option1[' + $index + ']'}}" title="Click to check this option"><span class="checkbox-span"></span></label>
+										</div>
+								</td>
+								<td class="center">
+									<span ng-if="isPrinting"><i class="fa fa-check" ng-show="item.skill_level=='Good'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting" 
+										type="radio" 
+										name="{{'skill_level[' + $index + ']'}}"
+										value="Good"
+										ng-model="item.skill_level"
+										id="{{'option2[' + $index + ']'}}"
+										/>
+										<label for="{{'option2[' + $index + ']'}}" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+								</td>
+								<td class="center">
+									<span ng-if="isPrinting"><i class="fa fa-check" ng-show="item.skill_level=='Emerging'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting" 
+										type="radio" 
+										name="{{'skill_level[' + $index + ']'}}"
+										value="Emerging"
+										ng-model="item.skill_level"
+										id="{{'option3[' + $index + ']'}}"
+										/>
+										<label for="{{'option3[' + $index + ']'}}" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					
+					<div class="progress-report-remarks">
+						<h3>Remarks</h3>
+						<table width="100%">
+							<tr ng-show="isAdmin || isClassTeacher">
+								<td width="75%">
+									<label>CLASS TEACHER'S COMMENTS:</label>
+									<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{comments.teacher_comments}}</p>
+								</td>
+								<td>
+									<label>Sign:</label>
+								</td>
+							</tr>
+							<tr ng-show="isAdmin">
+								<td>
+									<label>HEAD TEACHER</label>
+									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>
+								</td>
+								<td>
+									<p class="form-control-static" ng-show="isPrinting">{{comments.head_teacher_name}}</p>
+									<input ng-show="!isPrinting" type="text" name="head_teacher_name" class="form-control" ng-model="comments.head_teacher_name" ng-change="updateReport()" />
+									
+									<label>Sign:</label>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2">
+									<label>Next term begins on:</label>	
+									<p class="form-control-static">{{nextTermStartDate}}</p>
+								</td>
+							</tr>
+						</table>
+					</div>
 					
 					
 				</script>
@@ -360,7 +497,7 @@
 				
 			</div>
 		</div>
-		<div class="modal-footer">		
+		<div class="modal-footer">
 			<div class="pull-left" ng-show="canDelete">
 				<button type="button" class="btn btn-danger" ng-click="deleteReportCard()">Delete</button>	
 			</div>

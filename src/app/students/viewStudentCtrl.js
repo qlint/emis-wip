@@ -1198,7 +1198,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						i++;
 
 					}
-					reports[item.term_name] = item.report_data;
+					reports[item.term_name] = {
+						term_id : item.term_id,
+						data: item.report_data
+					};
 					
 					lastClass = item.class_name;
 					lastTerm = item.term_name;
@@ -1207,7 +1210,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.reportCards.classes[(i-1)].reports = reports;
 
 			}
-			
+			console.log($scope.reportCards);
 		}
 		else
 		{
@@ -1237,19 +1240,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$scope.getReportCard = function(item, term_name, reportData)
 	{
+		console.log(item);
 		var data = {
 			student : $scope.student,
 			report_card_id: item.report_card_id,
 			class_name : item.class_name,
-			class_id : item.class_id,			
-			term_id: item.term_id,
+			class_id : item.class_id,
+			term_id: reportData.term_id,
 			term_name : term_name,
 			year: item.year,
 			report_card_type: item.report_card_type,
 			teacher_id: item.teacher_id,
 			teacher_name: item.teacher_name,
 			date: item.date,
-			reportData: reportData,
+			reportData: reportData.data,
 			adding: false,
 			filters:{
 				term:{

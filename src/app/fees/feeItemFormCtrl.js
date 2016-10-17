@@ -86,7 +86,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 		if ( !form.$invalid ) 
 		{
-			var data = $scope.item;			
+			var data = $scope.item;
 			data.new_student_only = ( data.new_student_only ? 't' : 'f' );
 			data.optional = ( data.optional ? 't' : 'f' );
 			data.replaceable = ( data.replaceable ? 't' : 'f' );
@@ -135,9 +135,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
-			$uibModalInstance.close();
+			$uibModalInstance.close(result.data);
 			var msg = ($scope.deleted ? 'Fee Item was deleted.' : ( $scope.edit ? 'Fee Item was updated' :  'Fee Item was added.'));
-			$rootScope.$emit('feeItemAdded', {'msg' : msg, 'clear' : true});
+			$rootScope.$emit('feeItemAdded', {'msg' : msg, 'clear' : true, 'data': result.data});
 		}
 		else
 		{

@@ -110,6 +110,9 @@ $app->post('/addFeeItem', function () use($app) {
         $db = getDB();
         $sth = $db->prepare("INSERT INTO app.fee_items(fee_item, default_amount, frequency, class_cats_restriction, optional, new_student_only, replaceable, created_by) 
 							 VALUES(:feeItem, :defaultAmount, :frequency, :classCats, :optional, :newStudent, :replaceable, :userId)"); 
+				$sth2 = $db->query("SELECT * FROM app.fee_items WHERE fee_item_id = CURRVAL('app.fee_items_fee_item_id_seq') ");
+				
+				$db->beginTransaction();
         $sth->execute( array(':feeItem' => $feeItem, 
 							 ':defaultAmount' => $defaultAmount,
 							 ':frequency' => $frequency,
@@ -119,10 +122,13 @@ $app->post('/addFeeItem', function () use($app) {
 							 ':replaceable' => $replaceable,
 							 ':userId' => $userId
 					) );
+				$sth2->execute();
+				$results = $sth2->fetch(PDO::FETCH_OBJ);
+				$db->commit();
  
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
+        echo json_encode(array("response" => "success", "data" => $results ));
         $db = null;
  
  

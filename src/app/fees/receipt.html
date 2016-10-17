@@ -18,7 +18,6 @@
 				<h2 class="receipt-title">Official Receipt</h2>
 			</div>
 			
-			
 			<div class="row" ng-if="!useLetterhead">
 				<div class="col-xs-2">
 					<img src="{{'assets/schools/' + currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" /> 
@@ -41,61 +40,20 @@
 					</div>
 				</div>
 			</div>
-			<div class="row">
-				<div class="col-xs-2 nopad-right">
-					<label>Received From:</label>
-				</div>
-				<div class="col-xs-4 lesspad">
-					<p class="form-control-static">{{student.student_name}}</p>
-				</div>
-				<div class="col-xs-2 nopad-right">
-					<label>Payment Date:</label>
-				</div>
-				<div class="col-xs-4 lesspad">
-					<p class="form-control-static">{{payment.payment_date}}</p>
-				</div>
+			
+			<div>
+				<span class="text-group"><strong>Received:</strong> {{payment.payment_date|date}}</span>
+				<span class="text-group"><strong>Student:</strong> {{student.student_name}}</span>
+				<span class="text-group"><strong>Admission No:</strong> {{student.admission_number}}</span>
+				<span class="text-group"><strong>Class:</strong> {{student.class_name}}</span>
+				<span class="text-group"><strong>Term:</strong> {{term_name}} {{term_year}}</span>
 			</div>
-			<div class="row">
-				<div class="col-xs-2 nopad-right">
-					<label>Admission No:</label>
-				</div>
-				<div class="col-xs-3 lesspad">
-					<p class="form-control-static">{{student.admission_number}}</p>
-				</div>
-				<div class="col-xs-1 nopad">
-					<label>Class:</label>
-				</div>
-				<div class="col-xs-3 lesspad">
-					<p class="form-control-static">{{student.class_name}}</p>
-				</div>
-				<div class="col-xs-1 nopad">
-					<label>Term:</label>
-				</div>
-				<div class="col-xs-2 nopad-left">
-					<p class="form-control-static">{{term_name}} {{term_year}}</p>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-3 nopad-right">
-					<label>The sum of Kshs:</label>
-				</div>
-				<div class="col-xs-9">
-					<p class="form-control-static">{{payment.amount|numeric}}</p>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-3 nopad-right">
-					<label>Outstanding Balance:</label>
-				</div>
-				<div class="col-xs-9">
-					<p class="form-control-static">{{balanceDue|numeric}} <span ng-show="hasCredit">credit</span></p>
-				</div>
-			</div>
+
 			<div class="">
 				<table class="display dataTable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
-							<th class="center">Being Payment of</th>
+							<th class="center">Item</th>
 							<th class="center">Kshs</th>
 							<th class="center">Cts</th>
 						</tr>
@@ -119,27 +77,18 @@
 					</tfoot>
 				</table>
 				
-				<div class="row">
-					<div class="col-xs-4 nopad-right">
-						<label>Cash/Deposit Slip/Cheque No:</label>
-					</div>
-					<div class="col-xs-8 nopad-left">
-						<p class="form-control-static">{{payment.slip_cheque_no}}</p>
-					</div>
-				</div>
-			
-				<div class="row">
-					<div class="col-xs-3 nopad-right">
-						<label>Official Stamp:</label>
-					</div>
-
+				<div>
+					<p class="text-group"><strong>Amount Paid:</strong> {{payment.amount|numeric}}</p>
+					<p class="text-group"><strong>Outstanding Balance:</strong> {{balanceDue|numeric}} <span ng-show="hasCredit">credit</span></p>
+					<p class="text-group"><strong>Cash/Deposit Slip/Cheque No:</strong> {{payment.slip_cheque_no}}</p>
+					<p class="text-group"><strong>Official Stamp:</strong></p>
 				</div>
 
 			</div>
 			
 		</div>
-		<div class="modal-footer">				
-			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>			
-			<button type="button" class="btn btn-success" ng-click="print()"><i class="glyphicon glyphicon-print"></i> Print</button>			
+		<div class="modal-footer">
+			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>
+			<button type="button" class="btn btn-success" ng-click="print()"><i class="glyphicon glyphicon-print"></i> Print</button>
 		</div>
 </form>

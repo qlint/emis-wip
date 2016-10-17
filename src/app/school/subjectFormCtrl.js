@@ -60,6 +60,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		{
 			var data = $scope.subject;
 			data.user_id = $rootScope.currentUser.user_id;
+			data.use_for_grading = (data.use_for_grading ? 't' : 'f');
 			
 			if( $scope.edit )
 			{

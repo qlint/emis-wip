@@ -30,7 +30,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			loggedIn = true;
 			$rootScope.loggedIn = true;
 			$rootScope.currentUser = JSON.parse($window.sessionStorage["userInfo"]);
-			Session.create($rootScope.currentUser);					
+			Session.create($rootScope.currentUser);
 			
 			$rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
 			

@@ -27,11 +27,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	
 	var initializeController = function()
 	{
-		if( $scope.reportCardType != 'Kindergarten' )
+		if( $scope.reportCardType == 'Standard' )
 		{
 			// get exam types
 			apiService.getExamTypes($scope.filters.class.class_cat_id, function(response){
-				var result = angular.fromJson(response);				
+				var result = angular.fromJson(response);
 				if( result.response == 'success')
 				{ 
 					$scope.rawExamTypes = result.data;
@@ -67,17 +67,21 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	
 	var initReportCard = function()
 	{
-
 		if( data.reportData !== undefined )
 		{
-			/* passing in a report to view, load it */			
+			/* passing in a report to view, load it */
 			$scope.savedReportData = angular.fromJson(data.reportData);
 			$scope.originalData = angular.copy($scope.savedReportData);
 			
 			$scope.report.report_card_id = data.report_card_id;
 			$scope.report.class_name = data.class_name;
 			$scope.report.class_id = data.class_id;
-			$scope.report.term = data.term_name;
+			
+			var termName = data.term_name;
+			// we only want the number
+			termName = termName.split(' ');
+			$scope.report.term = termName[1];
+
 			$scope.report.term_id = data.term_id;
 			$scope.report.year = data.year;
 			$scope.reportCardType = data.report_card_type;
@@ -88,6 +92,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.report.date = data.date;
 			$scope.nextTermStartDate = $scope.savedReportData.nextTerm;
 			$scope.currentTermEndDate = $scope.savedReportData.closingDate;
+			$scope.overallLastTerm = data.overallLastTerm;
 			
 			$scope.savedReport = true;
 			$scope.canPrint = true;
@@ -132,7 +137,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		
 		$scope.reportCardType = newVal.report_card_type;
 		
-		if( $scope.reportCardType != 'Kindergarten' )
+		if( $scope.reportCardType == 'Standard' )
 		{
 			// get exam types
 			apiService.getExamTypes(newVal.class_cat_id, function(response){
@@ -173,7 +178,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.reportData = undefined;
 	};
 	
-	
 	$scope.getProgressReport = function(recreate)
 	{
 		$scope.showReportCard = false;
@@ -188,7 +192,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.currentFilters = angular.copy($scope.filters);
 		$scope.report.class_name = $scope.currentFilters.class.class_name;
 		$scope.report.class_id = $scope.currentFilters.class.class_id;
-		$scope.report.term = $scope.currentFilters.term.term_name;
+		
+		var termName = $scope.currentFilters.term.term_name;
+		// we only want the number
+		termName = termName.split(' ');
+		$scope.report.term = termName[1];
+
 		$scope.report.term_id = $scope.currentFilters.term.term_id;
 		$scope.report.year = $scope.currentFilters.term.year;
 		$scope.report.teacher_id = $scope.currentFilters.class.teacher_id;
@@ -215,11 +224,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		
 	}	
 	
-	
 	var getExamMarksforReportCard = function()
 	{
-		if( $scope.reportCardType == 'Kindergarten' )
+		if( $scope.reportCardType == 'Standard' )
 		{
+			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
+			if( $scope.isTeacher && !$scope.isClassTeacher ) params += '/' + $rootScope.currentUser.emp_id;
+			apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
+			
+		}
+		else
+		{
+			// Kindergarten and Playgroup, get subjects
 			// set date to now 
 			$scope.report.date = moment().format('YYYY-MM-DD');
 			
@@ -227,12 +243,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params = $scope.filters.class.class_cat_id + '/true/' + $rootScope.currentUser.emp_id;
 			else  params = $scope.filters.class.class_cat_id + '/true/0';
 			apiService.getAllSubjects(params, loadSubjects, apiError);
-		}
-		else
-		{
-			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
-			if( $scope.isTeacher && !$scope.isClassTeacher ) params += '/' + $rootScope.currentUser.emp_id;
-			apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
 		}
 	}
 	
@@ -257,7 +267,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				if( $scope.savedReportData === undefined )
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id
-					apiService.getStudentReportCard(params,loadReportCard, apiError);				
+					apiService.getStudentReportCard(params,loadReportCard, apiError);
 				}
 				else
 				{
@@ -271,11 +281,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						var orgData = $scope.savedReportData.subjects.filter(function(newItem){
 							if( newItem.subject_name == item.subject_name ) return newItem;
 						})[0];
-						if( orgData !== undefined ) 	item.remarks = angular.copy(orgData.remarks);
+						if( orgData !== undefined )
+						{
+							if( $scope.reportCardType == 'Kindergarten') item.remarks = angular.copy(orgData.remarks);
+							else item.skill_level = angular.copy(orgData.skill_level);
+						}
 					});
-					
-		
-					//diffExamMarks($scope.latestExamMarks, $scope.savedReportData);
+
 				}
 
 			}
@@ -300,7 +312,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 				$scope.showReportCard = true;
 				
-				buildReportBody(result.data);	
+				buildReportBody(result.data);
 				
 				/* look for saved report card data, if it was not passed in  */
 				if( $scope.savedReportData === undefined )
@@ -332,17 +344,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.examMarks = data.details;
 		$scope.overallSubjectMarks = data.subjectOverall;
 		$scope.overall = data.overall;
-		$scope.overallLastTerm = data.overallLastTerm;	
+		$scope.overallLastTerm = data.overallLastTerm;
 				
 		/* remove any exam types that have not been used for this report card */
-		$scope.examTypes = $scope.rawExamTypes.filter(function(item){						
+		$scope.examTypes = $scope.rawExamTypes.filter(function(item){
 			var found = $scope.examMarks.filter(function(item2){
 				if( item.exam_type == item2.exam_type ) return item2;
 			})[0];
 			if( found !== undefined ) return item;
 		});		
 		 
-		/* group the results by subject */				
+		/* group the results by subject */
 		$scope.reportData = {};
 		$scope.reportData.subjects = groupExamMarks( $scope.examMarks );
 		$scope.latestExamMarks = angular.copy($scope.reportData);
@@ -367,19 +379,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				total_grade_weight += parseInt(overall.total_grade_weight);
 			}
 			
-		});					
+		});
 		
 		
 		// set totals, only add up parent subjects
 		$scope.totals = {};
 		angular.forEach( $scope.reportData.subjects, function(item,key)
-		{						
+		{
 			angular.forEach( item.marks, function(item2,key)
-			{			
+			{
 				if( $scope.totals[key] === undefined ) $scope.totals[key] = {total_mark:0, total_grade_weight:0};
 				if( item.parent_subject_name == null ) $scope.totals[key].total_mark += item2.mark;
 				if( item.parent_subject_name == null ) $scope.totals[key].total_grade_weight += item2.grade_weight;
-			});						
+			});
 		});
 		
 		
@@ -460,7 +472,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.canDelete = ( $scope.isTeacher ? false : true);
 		
 				$scope.report = result.data;
-				$scope.report.term = $scope.report.term_name;
+				var termName = $scope.report.term_name;
+				// we only want the number
+				termName = termName.split(' ');
+				$scope.report.term = termName[1];
 				$scope.savedReportData = ( result.data.report_data !== null ? angular.fromJson(result.data.report_data) : []);
 				$scope.originalData = angular.copy($scope.savedReportData);
 						
@@ -470,7 +485,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				
 				/* look for adjustments to exam marks */
 
-				if( $scope.reportCardType != 'Kindergarten' )
+				if( $scope.reportCardType == 'Standard' )
 				{
 					diffExamMarks($scope.latestExamMarks, $scope.savedReportData);
 					//var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
@@ -590,7 +605,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	}
 	
 	$scope.setReportCardData = function(data)
-	{		
+	{
 
 		$scope.canPrint = true;
 		$scope.showReportCard = true;
@@ -677,8 +692,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						$scope.overallLastTerm = {};
 						$scope.reportData = undefined;
 						$scope.comments = {};
-						$scope.recreated = false;		
-						$scope.canDelete = false;					
+						$scope.recreated = false;
+						$scope.canDelete = false;
 					}
 					else
 					{
@@ -744,7 +759,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			report_data : JSON.stringify(reportData)
 		}
 
-		apiService.addReportCard(data,createCompleted,apiError);			
+		apiService.addReportCard(data,createCompleted,apiError);
 		
 	}
 	

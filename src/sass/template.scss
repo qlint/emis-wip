@@ -1427,11 +1427,11 @@ table.clickable{
 			border-left:none;
 		}
 		tfoot td{
-			border-top:3px double #000!important;			
+			border-top:3px double #000!important;
 			font-weight:bold;
 		}
 		tfoot th{
-			border-top:3px double #aaa!important;			
+			border-top:3px double #aaa!important;
 			font-weight:bold;
 		}
 		
@@ -1448,6 +1448,55 @@ table.clickable{
 		}
 		
 	}
+	
+	.checklist-option{
+		height:20px;
+		
+		label{
+			position:relative;
+			height:20px;
+			width:100%;
+			cursor:pointer;
+		}
+		
+		span::before,
+		span::after {
+			content: '';
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left:39%;
+			margin: auto;
+		}
+		
+		span::before {
+			width: 20px;
+			height: 20px;
+			/*
+			background-color: #eee;
+			border: 1px solid #ddd;
+			transition: border-color .2s;
+			*/
+		}
+		span:hover::before {
+			/*border: 2px solid rgba(0, 188, 212, 0.57);*/
+		}
+		span::after {
+			content: '\f00c';
+			font-family: 'FontAwesome';
+			top: 4px;
+			left:42%;
+			color: transparent;
+			transition: color .2s;
+		}
+		input[type="radio"]{
+			display: none;
+		}
+		input[type="radio"]:checked + label span::after {
+			color: #62AFFF;
+		}
+	}
+		
 	.progress-report-remarks{
 		table{
 			border:none;
@@ -1945,6 +1994,24 @@ table.clickable{
 	.modal-footer{
 		display:none;
 	}
+	
+	.receipt{
+		font-family:monospace;
+		font-size:7pt;
+		
+		h1{
+			font-size:12pt;
+		}
+		h2{
+			font-size:10pt;
+			margin-bottom:2pt;
+		}
+		
+		.text-group{
+			margin:0 10pt 1pt 0;
+		}
+	}
+	
 	.progress-report{
 		
 		img{

@@ -74,25 +74,27 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
 									WHERE student_id = :studentId");
 			$sth3->execute(array(':studentId' => $student->student_id));
 			$details = $sth3->fetch(PDO::FETCH_OBJ);
-			$details->school = $student->subdomain;								
+			$details->school = $student->subdomain;
 			
-			$studentDetails[] = $details;
-			$curSubDomain = $student->subdomain;
-			
-			/* build an array for grabbing news */
-			$studentsBySchool[$curSubDomain][] = $student->student_id;
-								
+			if( $details->student_id !== null )
+			{
+				$studentDetails[] = $details;
+				$curSubDomain = $student->subdomain;
+				
+				/* build an array for grabbing news */
+				$studentsBySchool[$curSubDomain][] = $student->student_id;
+			}
 		}
 		
 		/* get news for students, only want new once per school, and student specific news */
 		
 		$news = Array();
 		foreach( $studentsBySchool as $school => $students )
-		{			
+		{
 			if( $db !== null ) $db = null;
 			$db = setDBConnection($school);
 			
-			$sth5 = $db->prepare("SELECT 									
+			$sth5 = $db->prepare("SELECT
 									com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms, 
 									employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
 									audience, attachment, reply_to,
@@ -101,11 +103,11 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
 									communications.guardian_id, communications.student_id, classes.class_name, post_status,
 									sent, sent_date, message_from,
 									case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method
-								FROM app.communications 	
+								FROM app.communications
 								LEFT JOIN app.students ON communications.student_id = students.student_id
 								LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
 								LEFT JOIN app.classes ON communications.class_id = classes.class_id
-								INNER JOIN app.employees ON communications.message_from = employees.emp_id							
+								INNER JOIN app.employees ON communications.message_from = employees.emp_id
 								INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
 								INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
 								INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id

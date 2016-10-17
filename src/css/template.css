@@ -1093,6 +1093,42 @@ table.clickable tr {
     border-left: 3px double #aaa; }
   .progress-report table .no-border {
     border-left: none; }
+.progress-report .checklist-option {
+  height: 20px; }
+  .progress-report .checklist-option label {
+    position: relative;
+    height: 20px;
+    width: 100%;
+    cursor: pointer; }
+  .progress-report .checklist-option span::before,
+  .progress-report .checklist-option span::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 39%;
+    margin: auto; }
+  .progress-report .checklist-option span::before {
+    width: 20px;
+    height: 20px;
+    /*
+    background-color: #eee;
+    border: 1px solid #ddd;
+    transition: border-color .2s;
+    */ }
+  .progress-report .checklist-option span:hover::before {
+    /*border: 2px solid rgba(0, 188, 212, 0.57);*/ }
+  .progress-report .checklist-option span::after {
+    content: '\f00c';
+    font-family: 'FontAwesome';
+    top: 4px;
+    left: 42%;
+    color: transparent;
+    transition: color .2s; }
+  .progress-report .checklist-option input[type="radio"] {
+    display: none; }
+  .progress-report .checklist-option input[type="radio"]:checked + label span::after {
+    color: #62AFFF; }
 .progress-report .progress-report-remarks table {
   border: none; }
   .progress-report .progress-report-remarks table tr td {
@@ -1423,6 +1459,17 @@ table.clickable tr {
   .modal-header,
   .modal-footer {
     display: none; }
+
+  .receipt {
+    font-family: monospace;
+    font-size: 7pt; }
+    .receipt h1 {
+      font-size: 12pt; }
+    .receipt h2 {
+      font-size: 10pt;
+      margin-bottom: 2pt; }
+    .receipt .text-group {
+      margin: 0 10pt 1pt 0; }
 
   .progress-report img {
     height: 60px; }

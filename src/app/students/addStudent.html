@@ -7,7 +7,7 @@
 					 			
 			<div class="row clearfix">
 				<div class="col-sm-12 clearfix">
-					<div class="modal-tabs main-tabs">					
+					<div class="modal-tabs main-tabs">
 						<ul class="nav nav-tabs">
 							<li ng-class="{active: currentTab==item}" ng-repeat="item in tabs"><a class="clickable" ng-click="getTabContent(item, studentForm)">{{item}} <span class="error-indicator" ng-show="hasErrors(item)" ng-bind="getErrorCount(item)"></span></a></li>
 						</ul>						
@@ -82,7 +82,7 @@
 							<div class="col-sm-8">
 								<select name="current_class" class="form-control" ng-options="class.class_name for class in allClasses" ng-model="student.current_class" required>
 									<option value="">--select class--</option>
-							    </select>								
+							    </select>
 								<p ng-show="(studentForm.$submitted || studentForm.current_class.$dirty ) && studentForm.current_class.$invalid && studentForm.current_class.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Current Class is required.</p>
 							</div>	
 						</div>
@@ -479,7 +479,7 @@
 											ng-checked="feeItemSelection.indexOf(item) > -1"
 											ng-click="toggleFeeItem(item,'required')"
 										  > {{item.fee_item}}
-										</label>										
+										</label>
 									</td>
 									<td width="70">
 										<input type="text" name="fee_item_amount[]" ng-model="item.amount" class="form-control" placeholder="{{item.default_amount}}">

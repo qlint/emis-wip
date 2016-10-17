@@ -77,7 +77,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			
 		}, function(){});
 		
-		
+		// get classes
+		apiService.getAllClasses({}, function(response){
+				var result = angular.fromJson(response);
+				if( result.response == 'success') $scope.allClasses = result.data;
+			}, function(){});
 	}
 	setTimeout(initializeController,10);
 	
@@ -306,7 +310,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	}
 	
 	$scope.save = function(theForm)
-	{	
+	{
 		$scope.forms[$scope.currentTab] = angular.copy(theForm);
 		$scope.submitted = true;
 		$scope.error = false;
@@ -360,7 +364,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	}
 		
 	var countErrors = function()
-	{		
+	{
 		$scope.detailsErrors = 0;
 		$scope.guardianErrors = 0;
 		$scope.feeErrors = 0;
@@ -387,9 +391,21 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		// open dialog
 		var domain = window.location.host;
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/feeItemForm.html','feeItemFormCtrl',undefined,{size: 'md',backdrop:'static'});
-		dlg.result.then(function(){
+		dlg.result.then(function(result){
 			// update fee items
-			getFeeItems(true);
+			//getFeeItems(true);
+			
+			// instead of updating the list, just add the new item
+			// so it doesn't mess up what may have already been entered
+			if( result.optional == 't' )
+			{
+				$scope.optFeeItems.push(result)
+			}
+			else
+			{
+				$scope.feeItems.push(result);
+			}
+			
 		},function(){
 				
 		});

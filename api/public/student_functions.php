@@ -2110,14 +2110,20 @@ $app->get('/checkAdmNumber/:admission_number', function ($admissionNumber) {
 });
 
 $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$studentId) {
-    // delete student and all associated records
+	// delete student and all associated records
 	
 	$app = \Slim\Slim::getInstance();
-    try 
-    {
+	try 
+	{
 		if( $secret == 'G8sJvT8Qs5gHFBVQ' )
 		{
 			$db = getDB();
+			// get students school name and guardian ids for deleting from parents portal tables
+			$studentDetails = $db->prepare("SELECT guardian_id, id_number,
+																			 (SELECT value FROM app.settings WHERE name = 'School Name') as school_name
+																		FROM app.student_guardians
+																		WHERE student_id = :studentId");
+
 			/* delete payments */
 			$d1 = $db->prepare("DELETE FROM app.payment_inv_items
 									WHERE inv_id in (select inv_id 
@@ -2141,19 +2147,22 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
 			$d5 = $db->prepare("DELETE FROM app.invoices WHERE student_id = :studentId");
 			
 			/* delete report cards and exam marks */
-			$d6 = $db->prepare("DELETE FROM app.report_cards WHERE student_id = :studentId");	
-			$d7 = $db->prepare("DELETE FROM app.exam_marks WHERE student_id = :studentId");	
+			$d6 = $db->prepare("DELETE FROM app.report_cards WHERE student_id = :studentId");
+			$d7 = $db->prepare("DELETE FROM app.exam_marks WHERE student_id = :studentId");
 			
 			/* delete student data */
-			$d8 = $db->prepare("DELETE FROM app.student_class_history WHERE student_id = :studentId");	
-			$d9 = $db->prepare("DELETE FROM app.student_fee_items WHERE student_id = :studentId");	
-			$d10 = $db->prepare("DELETE FROM app.student_guardians WHERE student_id = :studentId");	
-			$d11 = $db->prepare("DELETE FROM app.student_medical_history WHERE student_id = :studentId");	
-			$d12 = $db->prepare("DELETE FROM app.students WHERE student_id = :studentId");	
+			$d8 = $db->prepare("DELETE FROM app.student_class_history WHERE student_id = :studentId");
+			$d9 = $db->prepare("DELETE FROM app.student_fee_items WHERE student_id = :studentId");
+			$d10 = $db->prepare("DELETE FROM app.student_guardians WHERE student_id = :studentId");
+			$d11 = $db->prepare("DELETE FROM app.student_medical_history WHERE student_id = :studentId");
+			$d12 = $db->prepare("DELETE FROM app.students WHERE student_id = :studentId");
 			
 			$params = array(':studentId' => $studentId);
-											
+			
 			$db->beginTransaction();
+			$studentDetails->execute($params);
+			$guardians = $studentDetails->fetchAll(PDO::FETCH_OBJ);
+			
 			$d1->execute( $params );
 			$d2->execute( $params );
 			$d3->execute( $params );
@@ -2167,6 +2176,40 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
 			$d11->execute( $params );
 			$d12->execute( $params );
 			$db->commit();
+			
+			// check if guardian is associated with other students, if not, delete
+			$guardianCheck = $db->prepare("SELECT * FROM app.student_guardians WHERE guardian_id = :guardianId");
+			$deleteGuardian = $db->prepare("DELETE FROM app.guardians WHERE guardian_id = :guardianId");
+			forEach($guardians as $guardian)
+			{
+				$guardianCheck->execute( array(':guardianId' => $guardian->guardian_id) );
+				$students = $guardianCheck->fetchAll(PDO::FETCH_OBJ);
+				if(!$students)
+				{
+					$deleteGuardian->execute( array(':guardianId' => $guardian->guardian_id) );
+				}
+			}
+			$db = null;
+			
+			/* delete from eduweb_mis */
+			$db = getLoginDB();
+			
+			$schoolName = $guardians[0]->school_name;
+			$d1 = $db->prepare("DELETE FROM parent_students WHERE subdomain = :schoolName AND student_id = :studentId");
+			$d1->execute( array(':schoolName' => $schoolName, ':studentId' => $studentId) );
+			
+			// check if guardian is still associated with other students, if not, delete
+			$d2 = $db->prepare("SELECT * FROM parent_students WHERE subdomain = :schoolName AND guardian_id = :guardianId");
+			$d3 = $db->prepare("DELETE FROM parents WHERE id_number = :idNumber");
+			forEach($guardians as $guardian)
+			{
+				$d2->execute( array(':schoolName' => $schoolName, ':guardianId' => $guardian->guardian_id) );
+				$students = $d2->fetchAll(PDO::FETCH_OBJ);
+				if(!$students)
+				{
+					$d3->execute( array(':idNumber' => $guardian->id_number) );
+				}
+			}
 	 
 			$app->response->setStatus(200);
 			$app->response()->headers->set('Content-Type', 'application/json');
@@ -2179,12 +2222,12 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
 			$app->response()->headers->set('Content-Type', 'application/json');
 			echo json_encode(array("response" => "failed", "code" => 2));
 		}
-    } catch(PDOException $e) {
+	} catch(PDOException $e) {
 		
-        $app->response()->setStatus(404);
+		$app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 });
 
 ?>

@@ -11,7 +11,7 @@ $app->get('/getAllSubjects/:classCatId(/:status/:teacher_id)', function ($classC
 	if( $status === 'all' )
 	{
 		$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
-								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
+								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active, use_for_grading,
 								parent_subject_id, sort_order,
 								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
 								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
@@ -26,7 +26,7 @@ $app->get('/getAllSubjects/:classCatId(/:status/:teacher_id)', function ($classC
 	{
 		$params = array(':classCatId' => $classCatId, ':status' => $status);
 		$query = "SELECT subjects.subject_id, subject_name, subjects.class_cat_id, class_cat_name,
-								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
+								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active, use_for_grading,
 								parent_subject_id, sort_order,
 								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
 								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
@@ -80,7 +80,7 @@ $app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($
 	if( $status === 'all' )
 	{
 		$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
-								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
+								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active, use_for_grading,
 								parent_subject_id, sort_order,
 								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
 								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
@@ -95,7 +95,7 @@ $app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($
 	else
 	{
 		$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
-								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
+								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active, use_for_grading,
 								parent_subject_id, sort_order,
 								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
 								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
@@ -189,6 +189,7 @@ $app->post('/addSubject', function () use($app) {
 	$teacherId =		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
 	$parentSubjectId =	( isset($allPostVars['parent_subject_id']) ? $allPostVars['parent_subject_id']: null);
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$forGrading =			( isset($allPostVars['use_for_grading']) ? $allPostVars['use_for_grading']: false);
 
 	try 
 	{
@@ -198,8 +199,8 @@ $app->post('/addSubject', function () use($app) {
 
 	$sortOrder = $db->prepare("SELECT max(sort_order) as sort_order FROM app.subjects WHERE class_cat_id = :classCatId AND active is true");
 
-	$sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by, parent_subject_id, sort_order) 
-	VALUES(:subjectName, :classCatId, :teacherId, :userId, :parentSubjectId, :sortOrder)");
+	$sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by, parent_subject_id, sort_order, use_for_grading) 
+	VALUES(:subjectName, :classCatId, :teacherId, :userId, :parentSubjectId, :sortOrder, :forGrading)");
 
 
 	$db->beginTransaction();
@@ -210,7 +211,8 @@ $app->post('/addSubject', function () use($app) {
 
 			$sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, 
 						 ':teacherId' => $teacherId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId,
-						 ':sortOrder' => $sortOrder) );
+						 ':sortOrder' => $sortOrder,
+						 ':forGrading' => $forGrading) );
 						 
 	$db->commit();
 
@@ -238,27 +240,29 @@ $app->put('/updateSubject', function () use($app) {
 	$teacherId =		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
 	$parentSubjectId =	( isset($allPostVars['parent_subject_id']) ? $allPostVars['parent_subject_id']: null);
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+	$forGrading =			( isset($allPostVars['use_for_grading']) ? $allPostVars['use_for_grading']: 'f');
 
 	try 
 	{
-			$db = getDB();
-			$sth = $db->prepare("UPDATE app.subjects
-		SET subject_name = :subjectName,
-			class_cat_id = :classCatId,
-			teacher_id = :teacherId,
-			parent_subject_id = :parentSubjectId,
-			modified_date = now(),
-			modified_by = :userId
-					WHERE subject_id = :subjectId");
+		$db = getDB();
+		$sth = $db->prepare("UPDATE app.subjects
+												SET subject_name = :subjectName,
+													class_cat_id = :classCatId,
+													teacher_id = :teacherId,
+													parent_subject_id = :parentSubjectId,
+													use_for_grading = :forGrading,
+													modified_date = now(),
+													modified_by = :userId
+												WHERE subject_id = :subjectId");
 
-			$sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId, 
-						 ':subjectId' => $subjectId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId,
-						 ) );
+		$sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId, 
+					 ':subjectId' => $subjectId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId, ':forGrading' => $forGrading
+					 ) );
 
-	$app->response->setStatus(200);
-			$app->response()->headers->set('Content-Type', 'application/json');
-			echo json_encode(array("response" => "success", "code" => 1));
-			$db = null;
+		$app->response->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
 
 
 	} catch(PDOException $e) {
@@ -433,7 +437,7 @@ $app->get('/getTeacherSubjects/:teacher_id(/:status)', function ($teacherId, $st
 	try 
 	{
 			$db = getDB();
-	$sth = $db->prepare("SELECT subjects.subject_id, subject_name, subjects.teacher_id, subjects.active, subjects.class_cat_id, class_cat_name,
+	$sth = $db->prepare("SELECT subjects.subject_id, subject_name, subjects.teacher_id, subjects.active, subjects.class_cat_id, class_cat_name, use_for_grading,
 				first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, class_subjects.class_id, class_name,
 				(select count(*) 
 							from app.class_subjects 
@@ -486,7 +490,7 @@ $app->get('/getTeacherClassSubjects/:teacher_id', function ($teacherId) {
 	try 
 	{
 			$db = getDB();
-	$sth = $db->prepare("SELECT class_subject_id, class_name, subject_name, classes.class_id, subjects.subject_id, 
+	$sth = $db->prepare("SELECT class_subject_id, class_name, subject_name, classes.class_id, subjects.subject_id, use_for_grading,
 								classes.sort_order as class_order, subjects.sort_order as subject_order
 									FROM app.class_subjects
 									INNER JOIN app.classes

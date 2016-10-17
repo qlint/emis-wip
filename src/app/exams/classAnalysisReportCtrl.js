@@ -126,8 +126,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.selectedClass = newVal.class_name;
 
 		apiService.getExamTypes(newVal.class_cat_id, function(response){
-			var result = angular.fromJson(response);				
-			if( result.response == 'success'){ 
+			var result = angular.fromJson(response);
+			if( result.response == 'success' && !result.nodata ){ 
 				$scope.examTypes = result.data;
 				$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
 				$timeout(setSearchBoxPosition,10);

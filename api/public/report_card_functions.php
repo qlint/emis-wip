@@ -147,7 +147,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 		
 		// get exam marks by exam type
 		$params = array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId);
-		$query = "SELECT subject_name, mark, grade_weight, exam_type, rank, grade, parent_subject_name, teacher_id,initials
+		$query = "SELECT subject_name, mark, grade_weight, exam_type, rank, grade, parent_subject_name, teacher_id,initials, use_for_grading
 					FROM (
 						SELECT class_subjects.class_id
 							  ,subject_name      
@@ -161,7 +161,8 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 							  exam_types.exam_type_id,
 							  (select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
 							  subjects.teacher_id,
-							  employees.initials
+							  employees.initials,
+								use_for_grading
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types
@@ -198,7 +199,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 
 		// get overall marks per subjects, only use parent subjects
 		$sth2 = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, rank, percentage, 
-									(select grade from app.grading where percentage >= min_mark and  percentage <= max_mark) as grade
+									(select grade from app.grading where percentage >= min_mark and  percentage <= max_mark) as grade, use_for_grading
 							FROM (
 							SELECT
 								class_id, subject_id
@@ -209,6 +210,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 										  ,round(total_mark::float/total_grade_weight::float*100) as percentage
 										  ,dense_rank() over w as rank
 										  ,sort_order
+											,use_for_grading
 							FROM (
 									SELECT class_id
 									      ,class_subjects.subject_id
@@ -219,8 +221,9 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 													end),0) as total_mark
 										  ,coalesce(sum(case when subjects.parent_subject_id is null then
 														grade_weight
-													end),0) as total_grade_weight										  
+													end),0) as total_grade_weight
 										  ,subjects.sort_order
+											,use_for_grading
 									FROM app.exam_marks
 									INNER JOIN app.class_subject_exams 
 									INNER JOIN app.exam_types
@@ -233,9 +236,9 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 									WHERE class_subjects.class_id = :classId
 									AND term_id = :termId
 									AND subjects.parent_subject_id is null
-									GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order
+									GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading
 								) a
-								WINDOW w AS (PARTITION BY subject_id ORDER BY sort_order, total_mark desc)								
+								WINDOW w AS (PARTITION BY subject_id ORDER BY sort_order, total_mark desc)
 							 ) q
 							 where student_id = :studentId
 							 ORDER BY sort_order");
@@ -243,14 +246,14 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 		$subjectOverall = $sth2->fetchAll(PDO::FETCH_OBJ);
 		
 		// get overall position
-		$sth3 = $db->prepare("SELECT total_mark, total_grade_weight, rank, percentage, 
+		$sth3 = $db->prepare("SELECT total_mark/num_exam_types as total_mark, total_grade_weight/num_exam_types as total_grade_weight, rank, percentage, 
 									(select grade from app.grading where percentage >= min_mark and  percentage <= max_mark) as grade,
 									position_out_of
 								FROM (
 									SELECT
 										student_id, total_mark, total_grade_weight, 
 										round(total_mark::float/total_grade_weight::float*100) as percentage,
-										dense_rank() over w as rank, position_out_of
+										dense_rank() over w as rank, position_out_of, num_exam_types
 									FROM (
 										SELECT    
 											  student_id
@@ -259,8 +262,20 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 													end),0) as total_mark
 											  , coalesce(sum(case when subjects.parent_subject_id is null then
 														grade_weight
-													end),0) as total_grade_weight											  
+													end),0) as total_grade_weight
 											  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+												,(SELECT COUNT(*) FROM (
+													SELECT DISTINCT exam_type_id 
+													FROM app.exam_marks
+													INNER JOIN app.class_subject_exams 
+														INNER JOIN app.class_subjects
+														ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+													ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+													WHERE student_id = :studentId
+													AND class_subjects.class_id = :classId
+													AND term_id = :termId
+												) AS temp) as num_exam_types,
+												use_for_grading
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams 
 										INNER JOIN app.exam_types
@@ -273,23 +288,25 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 										WHERE class_subjects.class_id = :classId
 										AND term_id = :termId
 										AND subjects.parent_subject_id is null
+										AND subjects.use_for_grading is true
 										GROUP BY exam_marks.student_id
 									) a
-									WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)									
+									WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)
 								 ) q
 								 where student_id = :studentId");
 		$sth3->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
 		$overall = $sth3->fetch(PDO::FETCH_OBJ);
 		
 		// get overall position last term
-		$sth4 = $db->prepare("SELECT total_mark, total_grade_weight, rank, percentage, 
-									(select grade from app.grading where percentage >= min_mark and  percentage <= max_mark) as grade,
-									position_out_of
+		$sth4 = $db->prepare("SELECT total_mark/num_exam_types as total_mark, total_grade_weight/num_exam_types as total_grade_weight, 
+																 rank, percentage, 
+																(select grade from app.grading where percentage >= min_mark and  percentage <= max_mark) as grade,
+																position_out_of
 								FROM (
 									SELECT
 										student_id, total_mark, total_grade_weight, 
 										round(total_mark::float/total_grade_weight::float*100) as percentage,
-										dense_rank() over w as rank, position_out_of
+										dense_rank() over w as rank, position_out_of, num_exam_types
 									FROM (
 										SELECT    
 											  student_id
@@ -298,8 +315,19 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 													end),0) as total_mark
 											  ,coalesce(sum(case when subjects.parent_subject_id is null then
 														grade_weight
-													end),0) as total_grade_weight											  
+													end),0) as total_grade_weight
 											  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+												,(SELECT COUNT(*) FROM (
+													SELECT DISTINCT exam_type_id 
+													FROM app.exam_marks
+													INNER JOIN app.class_subject_exams 
+														INNER JOIN app.class_subjects
+														ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+													ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+													WHERE student_id = :studentId
+													AND class_subjects.class_id = :classId
+													AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+												) AS temp) as num_exam_types
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams 
 										INNER JOIN app.exam_types
@@ -312,9 +340,10 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 										WHERE class_subjects.class_id = :classId
 										AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 										AND subjects.parent_subject_id is null
+										AND subjects.use_for_grading is true
 										GROUP BY exam_marks.student_id
 									) a
-									WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)									
+									WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)
 								 ) q
 								 where student_id = :studentId");
 		$sth4->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
@@ -325,18 +354,18 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 		$results->subjectOverall = $subjectOverall;
 		$results->overall = $overall;
 		$results->overallLastTerm = $overallLastTerm;
-        
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
  
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
