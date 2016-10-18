@@ -1,4 +1,4 @@
-<div ng-controller="classAnalysisReportCtrl">	
+<div ng-controller="classAnalysisReportCtrl2">	
 	
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 		
@@ -20,7 +20,7 @@
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
 					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
-				</div>			
+				</div>
 			</div>
 			
 			<div class="clearfix">
@@ -28,21 +28,21 @@
 			</div>
 			
 			<!-- search form -->
-			<div class="dataFilterForm">	
+			<div class="dataFilterForm">
 				<h4 ng-show="!isSmallScreen">Filters</h4>
 				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
 				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
 					<!-- class select -->
 					<div class="form-group">
-						<label for="class">Class</label>	
+						<label for="class">Class</label>
 						<select name="class" id="class" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
 							<option value="">--select class--</option>
 						</select>
-					</div>		
+					</div>
 
 					<!-- term select -->
 					<div class="form-group">
-						<label for="term">Term</label>	
+						<label for="term">Term</label>
 						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" >
 							<option value="">--select term--</option>
 						</select>	
@@ -50,11 +50,11 @@
 					
 					<!-- exam select -->
 					<div class="form-group">
-						<label for="term">Exam</label>	
+						<label for="term">Exam</label>
 						<select id="term" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" >
-							<option value="">-- select exam --</option>				
+							<option value="">-- select exam --</option>
 						</select>
-					</div>	
+					</div>
 					
 					<!-- search btn -->
 					<div class="form-group submit-btn">
@@ -70,8 +70,6 @@
 			
 		</div>
 		
-		
-		
 		<div class="full-height datagrid main-datagrid" >
 			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 			<p ng-show="marksNotFound" class="error alert alert-danger">
@@ -82,43 +80,10 @@
 			
 			<script type="text/ng-template" id="examsTable">
 				
-				<div id="grid1" ui-grid="gridOptions" ui-grid-exporter class="myGrid">
+				<div class="myGrid" id="grid1" ui-grid="gridOptions" ui-grid-exporter ui-grid-pinning>
 					<div ng-if="!gridOptions.data.length" class="no-results">No results found.</div>
 				</div>
-				<!--
-				<table id="resultsTable" class="display dataTable" cellspacing="0" width="100%" ng-show="!loading">
-					<thead>
-						<tr>
-							<th>Student</th>
-							<th class="center" ng-repeat="col in tableHeader">{{col.title}}</th>
-							<th>G.TOT</th>
-							<th>POS</th>
-						</tr>
-					</thead>	
-					<tbody>
-						<tr ng-repeat="item in examMarks track by $index">
-							<td id="{{item.student_id}}">{{item.student_name}}</td>
-							<td class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMark($parent.$index, col.key)"></td>
-							<td class="center strong">{{item.total}}</td>
-							<td class="center strong">{{item.rank}}</td>
-						</tr>
-					</tbody>
-					<tfoot>
-						<tr>
-							<th class="right">TOTAL MARKS</th>
-							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayTotalMark(col.key)"></th>
-							<th class="center strong"></th>
-							<th></th>
-						</tr>
-						<tr>
-							<th class="right">MEAN SCORE</th>
-							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMeanScore(col.key)"></th>
-							<th></th>
-							<th></th>
-						</tr>
-					</tfoot>
-				</table>
-				-->
+				
 			</script>
 		</div>
 	</div>

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('classAnalysisReportCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse', 'uiGridConstants',
+controller('classAnalysisReportCtrl2', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse', 'uiGridConstants',
 function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, uiGridConstants){
 
 	var initialLoad = true;
@@ -110,7 +110,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, uiGridCo
 		{
 			apiService.getTerms(undefined, function(response,status)
 			{
-				var result = angular.fromJson(response);				
+				var result = angular.fromJson(response);
 				if( result.response == 'success')
 				{ 
 					$scope.terms = result.data;	
@@ -149,8 +149,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, uiGridCo
 		$scope.filters.class_id = newVal.class_id;
 
 		apiService.getExamTypes(newVal.class_cat_id, function(response){
-			var result = angular.fromJson(response);				
-			if( result.response == 'success'){ 
+			var result = angular.fromJson(response);
+			if( result.response == 'success' && !result.nodata ){ 
 				$scope.examTypes = result.data;
 				$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
 				$timeout(setSearchBoxPosition,10);
@@ -197,7 +197,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, uiGridCo
 				*/
 				
 				$scope.gridOptions.columnDefs = [
-					{ name: 'Student', field: 'student_name', enableColumnMenu: false, footerCellFilter: '<div class="ui-grid-cell-contents right">TOTAL MARKS<br>MEAN SCORE</div>'},
+					{ name: 'Student', field: 'student_name', enableColumnMenu: false, pinnedLeft:true, footerCellFilter: '<div class="ui-grid-cell-contents right">TOTAL MARKS<br>MEAN SCORE</div>'},
 				];
 				
 				$scope.examMarks = result.data;
@@ -254,7 +254,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, uiGridCo
 							subjectsObj[parentSubject].children.push({
 								subjectName:subjectName
 							});
-						}						
+						}
 					}
 				});
 
@@ -334,6 +334,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, uiGridCo
 						field: 'total', 
 						enableColumnMenu: false,
 						cellClass: 'strong',
+						pinnedRight:true
 					},
 					{
 						name: 'Pos', 
@@ -341,6 +342,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, uiGridCo
 						enableColumnMenu: false,
 						cellClass: 'strong',
 						sort: {direction:'asc'},
+						pinnedRight:true
 					}
 				);
 
@@ -526,7 +528,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, uiGridCo
 		$rootScope.wipNotice();
 	}
 	
-	$scope.$on('refreshExamMarks2', function(event, args) {
+	$scope.$on('refreshExamMarks3', function(event, args) {
 
 		$scope.loading = true;
 		$rootScope.loading = true;

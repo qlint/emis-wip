@@ -303,11 +303,11 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 			
 			$query = "select app.colpivot('_exam_marks', 'SELECT first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name
 							 ,classes.class_id
-							  ,subject_name     
+							  ,subject_name
 							  ,coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name
 							  ,exam_type
 							  ,exam_marks.student_id
-							  ,mark          
+							  ,mark
 							  ,grade_weight
 							  ,subjects.sort_order
 						FROM app.exam_marks
@@ -323,7 +323,7 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 						INNER JOIN app.students ON exam_marks.student_id = students.student_id
 						WHERE class_subjects.class_id = $classId
-						AND term_id = $termId						
+						AND term_id = $termId
 						AND class_subject_exams.exam_type_id = $examTypeId
 						";
 		if( $teacherId !== null )
@@ -361,7 +361,7 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 												AND class_subject_exams.exam_type_id = $examTypeId
 												GROUP BY exam_marks.student_id
 											) a
-											WINDOW w AS (ORDER BY total_mark desc)	
+											WINDOW w AS (ORDER BY total_mark desc)
 										) q
 										WHERE student_id = _exam_marks.student_id
 									) as rank
@@ -375,26 +375,26 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 			$sth2->execute();
 			$results = $sth2->fetchAll(PDO::FETCH_OBJ);
 			$db->commit();
-		}			
+		}
 		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+			if($results) {
+					$app->response->setStatus(200);
+					$app->response()->headers->set('Content-Type', 'application/json');
+					echo json_encode(array('response' => 'success', 'data' => $results ));
+					$db = null;
+			} else {
+					$app->response->setStatus(200);
+					$app->response()->headers->set('Content-Type', 'application/json');
+					echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+					$db = null;
+			}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        //echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-		 echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
-    }
+		} catch(PDOException $e) {
+				$app->response()->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				//echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+				echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
+		}
 
 });
 

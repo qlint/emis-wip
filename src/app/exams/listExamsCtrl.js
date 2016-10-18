@@ -132,12 +132,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.filters.class_id = newVal.class_id;
 
 		apiService.getExamTypes(newVal.class_cat_id, function(response){
-			var result = angular.fromJson(response);				
-			if( result.response == 'success'){ 
+			var result = angular.fromJson(response);
+			if( result.response == 'success' && !result.nodata ){ 
 				$scope.examTypes = result.data;
 				$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
 				$timeout(setSearchBoxPosition,10);
-			}			
+			}
 		}, apiError);
 		
 		
@@ -181,7 +181,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				/* loop through the first exam mark result to build the table columns */
 				$scope.tableHeader = [];
 				var ignoreCols = ['student_id','student_name','rank','exam_type'];
-				var subjectsArray = {};				
+				var subjectsArray = {};
 				angular.forEach($scope.examMarks[0], function(value,key){
 					if( ignoreCols.indexOf(key) === -1 )
 					{
@@ -195,16 +195,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							subjectName = subjectDetails[2],
 							gradeWeight = subjectDetails[3];
 						
-						colRow = subjectName + ' / ' + gradeWeight;
+						//colRow = subjectName + ' / ' + gradeWeight;
 						
 						/* each subject group needs to scored out of 100, if a subject does not have a parent, add 100 for grand total
 						   if a subject has a parent, add 100 for each parent subject
-						*/						
+						*/
 						if( parentSubject == '' ) subjectsArray[subjectName] = 100; // no parent
 						else subjectsArray[parentSubject] = 100; // has parent, use parents subject name
 						
 						$scope.tableHeader.push({
-							title: colRow,
+							title: subjectName,
+							weight:gradeWeight,
 							key: key,
 							isParent: (parentSubject == '' ? true : false)
 						});
@@ -223,14 +224,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				
 				/* loop through all exam mark results and calculate the students total score */
 				/* only total up the parent subjects */
-				// total up marks				
+				// total up marks
 				
 				var total = 0;
 				angular.forEach($scope.examMarks, function(item){
 					var total = 0;
 					angular.forEach(item, function(value,key){
 						if( ignoreCols.indexOf(key) === -1 )
-						{							
+						{
 							var colRow = key.replace(/["']/g, "");
 							var subjectDetails = colRow.split(', '),
 								parentSubject = subjectDetails[1],
@@ -238,7 +239,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 								gradeWeight = subjectDetails[3];
 							
 							if( parentSubject == '' ) total += value;	
-						}							
+						}
 						
 					});
 					item.total = Math.round(total);

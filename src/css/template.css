@@ -757,6 +757,9 @@ table.clickable tr {
     font-size: 11px;
     line-height: 14px; }
 
+.compactHeader thead th {
+  font-size: 9px; }
+
 /********************** Modal Styles ******************************/
 .error-indicator {
   background-color: #A94442;

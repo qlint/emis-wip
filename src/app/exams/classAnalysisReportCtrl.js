@@ -226,7 +226,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							subjectsObj[parentSubject].children.push({
 								subjectName:subjectName
 							});
-						}						
+						}
 					}
 				});
 
@@ -241,9 +241,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							subjectName = subjectDetails[2];
 						
 						var hasChildren = ( parentSubject == '' && subjectsObj[subjectName].children.length > 0 ? true : false );
-							
+						
 						$scope.tableHeader.push({
-							title: (hasChildren ? ( subjectName == 'Kiswahili' ? 'Juml' : 'TOT') : subjectName),
+							title: (hasChildren ? ( subjectName == 'Kiswahili' ? 'Juml' : 'TOT') : formatTitle(subjectName)),
 							key: key,
 							isParent: (parentSubject == '' ? true : false)
 						});
@@ -297,6 +297,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.marksNotFound = true;
 			$scope.errMsg = result.data;
 		}
+	}
+	
+	var formatTitle = function(title)
+	{
+		var titleArray = title.split(' ');
+		var numWords = titleArray.length;
+		var i = 0;
+		var result = [];
+		for( i = 0; i < numWords; i++)
+		{
+			var seg = ( titleArray[i].length > 9 ? titleArray[i].substr(0,9) + '...' : titleArray[i]);
+			if( seg !== '-' ) result.push(seg);
+		}
+		return result.join(" ");
 	}
 	
 	$scope.displayMark = function(index, key)

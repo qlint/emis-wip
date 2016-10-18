@@ -88,9 +88,9 @@
 						<tr>
 							<th></th>
 							<th>Student</th>
-							<th>Position</th>
-							<th>Total / {{totalGradeWeight}}</th>							
-							<th class="center" ng-repeat="col in tableHeader">{{col.title}}</th>
+							<th class="center">Pos</th>
+							<th class="center">Total<br>/{{totalGradeWeight}}</th>
+							<th class="center" ng-repeat="col in tableHeader">{{ col.title | limitTo: 9 }}{{col.title.length > 9 ? '...' : ''}}<br>/{{col.weight}}</th>
 						</tr>
 					</thead>	
 					<tbody>
@@ -98,7 +98,7 @@
 							<td></td>
 							<td id="{{item.student_id}}">{{item.student_name}}</td>
 							<td class="center strong">{{item.rank}}</td>
-							<td class="center strong">{{item.total}}</td>							
+							<td class="center strong">{{item.total}}</td>
 							<td class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMark($parent.$index, col.key)"></td>
 						</tr>
 					</tbody>
