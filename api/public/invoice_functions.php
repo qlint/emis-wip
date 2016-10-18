@@ -18,7 +18,8 @@ $app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($sta
 								balance,
 								due_date,
 								case when now()::date > due_date and balance < 0 then now()::date - due_date else 0 end as days_overdue,
-								(select term_name from app.terms where due_date between start_date and end_date) as term_name
+								(select term_name from app.terms where due_date between start_date and end_date) as term_name,
+								date_part('year', due_date) as year
 							FROM app.invoice_balances2
 							INNER JOIN app.students
 								INNER JOIN app.classes
@@ -55,9 +56,9 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		$params = array();
 		$termStatement = (  $term == 'current'  ? 'app.current_term' : 'app.next_term' );
 		$nextTermStatement = (  $term == 'current'  ? 'app.next_term' : 'app.term_after_next' );
@@ -72,7 +73,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 									round(yearly_amount/num_payments,2)
 								end
 							ELSE
-								round(yearly_amount,2)				
+								round(yearly_amount,2)
 						END),0) AS invoice_amount,
 						
 						CASE WHEN payment_method = 'Installments' THEN
@@ -82,7 +83,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 								term_start_date
 							end 
 							 ELSE
-							term_start_date								
+							term_start_date
 						END as due_date,
 						
 						coalesce(round((select sum(amount)  
@@ -122,7 +123,7 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 										  ELSE 0 
 									 END
 								ELSE
-									-- are there any installments due this term						
+									-- are there any installments due this term
 									(SELECT count(*) FROM (
 										SELECT
 										generate_series(date_last_invoice, date_last_invoice + ((payment_interval*(num_per_pay_period-1)) || payment_interval2)::interval, (payment_interval::text || payment_interval2)::interval)::date as due_date
@@ -166,10 +167,10 @@ $app->get('/generateInvoices/:term(/:studentId)', function ($term, $studentId = 
 					INNER JOIN app.invoices ON invoice_line_items.inv_id = invoices.inv_id 
 					WHERE canceled = false 
 					AND student_fee_item_id = student_fee_items.student_fee_item_id) as num_invoices
-			FROM app.students									
+			FROM app.students
 			INNER JOIN app.student_fee_items
 				INNER JOIN app.fee_items
-				ON student_fee_items.fee_item_id = fee_items.fee_item_id AND fee_items.active is true									
+				ON student_fee_items.fee_item_id = fee_items.fee_item_id AND fee_items.active is true
 			ON students.student_id = student_fee_items.student_id AND student_fee_items.active = true
 			LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
 			WHERE students.active = true
@@ -190,27 +191,27 @@ WHERE total_amount_invoiced < invoice_amount
 
 		$query .= " ORDER BY student_id, due_date, fee_item";
 		
-        $sth = $db->prepare($query);
+		$sth = $db->prepare($query);
 		$sth->execute( $params ); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
  
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+	} catch(PDOException $e) {
+			$app->response()->setStatus(200);
+	$app->response()->headers->set('Content-Type', 'application/json');
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 

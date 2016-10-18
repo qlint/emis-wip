@@ -385,7 +385,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 		// get payment data
        $sth = $db->prepare("SELECT payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
 									payments.student_id, replacement_payment, reversed, reversed_date --,payments.inv_id
-							FROM app.payments							
+							FROM app.payments
 							WHERE payment_id = :paymentId
 	   ");
 		$sth->execute( array(':paymentId' => $paymentId) ); 
@@ -395,24 +395,24 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 		$sth2 = $db->prepare("SELECT payment_inv_item_id, payment_inv_items.inv_item_id,
 									fee_item,
 									payment_inv_items.amount as line_item_amount, invoice_line_items.inv_id
-							FROM app.payment_inv_items							
+							FROM app.payment_inv_items
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
 									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
-							ON payment_inv_items.inv_item_id = invoice_line_items.inv_item_id			
-							WHERE payment_id = :paymentId								
+							ON payment_inv_items.inv_item_id = invoice_line_items.inv_item_id
+							WHERE payment_id = :paymentId
 							UNION
 							SELECT payment_replace_item_id, payment_replacement_items.student_fee_item_id,
 									fee_item,
 									payment_replacement_items.amount as line_item_amount, null
-							FROM app.payment_replacement_items							
+							FROM app.payment_replacement_items
 							INNER JOIN app.student_fee_items
 								INNER JOIN app.fee_items
 								ON student_fee_items.fee_item_id = fee_items.fee_item_id
-							ON payment_replacement_items.student_fee_item_id = student_fee_items.student_fee_item_id						
-							WHERE payment_id = :paymentId							
+							ON payment_replacement_items.student_fee_item_id = student_fee_items.student_fee_item_id
+							WHERE payment_id = :paymentId
 							");
 		$sth2->execute( array(':paymentId' => $paymentId) ); 
         $results2 = $sth2->fetchAll(PDO::FETCH_OBJ);
@@ -425,10 +425,10 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 		$invIdStr = '{' . implode(',', $invIds) . '}';
 		
 		// get the invoice details that payment was applied to
-		$sth3 = $db->prepare("SELECT invoices.inv_id,								
+		$sth3 = $db->prepare("SELECT invoices.inv_id,
 								inv_date,
 								(select coalesce(sum(amount),0) - invoices.total_amount from app.payment_inv_items where inv_id = invoices.inv_id) as overall_balance,
-								invoice_line_items.amount,								
+								invoice_line_items.amount,
 								coalesce((select sum(amount) from app.payment_inv_items where inv_item_id = invoice_line_items.inv_item_id),0) as total_paid,
 								coalesce((select sum(amount) from app.payment_inv_items where inv_item_id = invoice_line_items.inv_item_id),0) - invoice_line_items.amount as balance,
 								due_date,
@@ -449,12 +449,12 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 									INNER JOIN app.payments
 									ON payment_inv_items.payment_id = payments.payment_id AND payments.reversed IS FALSE
 								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id		
-								*/								
+								*/
 							ON invoices.inv_id = invoice_line_items.inv_id
 							WHERE invoices.inv_id = any(:invIds)
 							ORDER BY due_date, fee_item");
 		$sth3->execute( array(':invIds' => $invIdStr) ); 
-    $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);	
+    $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);
 		
 		$results = new Stdclass();
 		$results->payment = $results1;

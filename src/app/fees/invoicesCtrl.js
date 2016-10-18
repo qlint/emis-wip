@@ -29,7 +29,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	var lastQueriedDateRange = angular.copy($scope.date);
 	var requery = false;
 	
-	$scope.filters.date = $scope.date;			
+	$scope.filters.date = $scope.date;
 			
 
 	var rowTemplate = function() 
@@ -119,7 +119,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	}
 	$timeout(initializeController,1);
 
-	
 	var setTermRanges = function(terms)
 	{
 		$scope.termRanges = {};
@@ -429,7 +428,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	$scope.viewInvoice = function(item)
 	{
-		$scope.openModal('fees', 'invoiceDetails', 'md', item);	
+		$scope.openModal('fees', 'invoiceDetails', 'md', item);
 	}
 	
 	$scope.$on('refreshInvoices', function(event, args) {

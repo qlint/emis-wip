@@ -11,34 +11,36 @@
 			
 			<!-- search form -->
 			<div ng-hide="isPrinting || !adding" class="row header">
-			<div class="modalDataFilter clearfix">	
+			<div class="modalDataFilter clearfix">
 				
-				<!-- student -->		
-				<div class="form-group" ng-class="{ 'has-error' : reportForm.student.$invalid && (!reportForm.student.$pristine || reportForm.$submitted) }">					
+				<!-- student -->
+				<div class="form-group" ng-class="{ 'has-error' : reportForm.student.$invalid && (!reportForm.student.$pristine || reportForm.$submitted) }">
 					<label for="student">Student</label>
 					<div ng-show="!showSelect"><p class="">{{student.student_name}}</p></div>
 					<div ng-show="showSelect">
 						<ui-select ng-model="thestudent.selected" theme="select2" class="form-control" name="student" required> 
 						  <ui-select-match placeholder="Select or search a student...">
 							<span>{{$select.selected.student_name}}</span>
-							<button type="button" class="clear text-danger" ng-click="clearSelect($event)"><span class="glyphicon glyphicon-remove"></span></button>	  
+							<button type="button" class="clear text-danger" ng-click="clearSelect($event)"><span class="glyphicon glyphicon-remove"></span></button>
 						  </ui-select-match>
 						  <ui-select-choices repeat="item in students | filter: $select.search">
 							<span ng-bind-html="item.student_name | highlight: $select.search"></span>
 						  </ui-select-choices>
 						</ui-select>
-						<p ng-show="reportForm.student.$invalid && (!reportForm.student.$pristine || reportForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a student.</p>
+						<p ng-show="reportForm.student.$invalid && (!reportForm.student.$pristine || reportForm.$submitted)" class="help-block">
+							<i class="fa fa-exclamation-triangle"></i> You must choose a student.</p>
 					</div>
 				</div>
 				
 				<!-- class select -->
-				<div class="form-group" ng-class="{ 'has-error' : reportForm.class_id.$invalid && (!reportForm.class_id.$pristine || reportForm.$submitted) }">	
+				<div class="form-group" ng-class="{ 'has-error' : reportForm.class_id.$invalid && (!reportForm.class_id.$pristine || reportForm.$submitted) }">
 					<label for="class">Class</label>	
 					<select name="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
 						<option value="">--select class--</option>
 					</select>	
-					<p ng-show="reportForm.class_id.$invalid && (!reportForm.class_id.$pristine || reportForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a class.</p>
-				</div>		
+					<p ng-show="reportForm.class_id.$invalid && (!reportForm.class_id.$pristine || reportForm.$submitted)" class="help-block">
+						<i class="fa fa-exclamation-triangle"></i> You must choose a class.</p>
+				</div>
 
 				<!-- term select -->
 				<div class="form-group" ng-class="{ 'has-error' : reportForm.term.$invalid && (!reportForm.term.$pristine || reportForm.$submitted) }">	
@@ -46,14 +48,15 @@
 					<select name="term" class="form-control" ng-options="item.term_year_name for item in terms track by item.term_id" ng-model="filters.term" required>
 						<option value="">--select term--</option>
 					</select>	
-					<p ng-show="reportForm.term.$invalid && (!reportForm.term.$pristine || reportForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a term.</p>
-				</div>		
+					<p ng-show="reportForm.term.$invalid && (!reportForm.term.$pristine || reportForm.$submitted)" class="help-block">
+						<i class="fa fa-exclamation-triangle"></i> You must choose a term.</p>
+				</div>
 				
 				<!-- search btn -->
 				<div class="form-group submit-btn">
 					<input type="button" class="btn btn-sm btn-info" ng-click="getProgressReport()" value="Load" />
 					<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
-				</div>					
+				</div>
 			</div>
 			</div>
 			<!-- // end search form -->

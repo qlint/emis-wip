@@ -13,7 +13,7 @@ $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
 									admission_number, report_cards.class_id, class_cat_id,
 									class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
-									report_cards.creation_date::date as date									
+									report_cards.creation_date::date as date
 							FROM app.report_cards
 							INNER JOIN app.students ON report_cards.student_id = students.student_id
 							INNER JOIN app.classes ON report_cards.class_id = classes.class_id
@@ -137,23 +137,23 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
 });
 
 $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', function ($studentId,$classId,$termId,$teacherId=null) {
-    //Get student exam marks
-	
+	//Get student exam marks
+
 	$app = \Slim\Slim::getInstance();
- 
-    try 
-    {
-        $db = getDB();
+
+	try 
+	{
+			$db = getDB();
 		
 		// get exam marks by exam type
 		$params = array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId);
 		$query = "SELECT subject_name, mark, grade_weight, exam_type, rank, grade, parent_subject_name, teacher_id,initials, use_for_grading
 					FROM (
 						SELECT class_subjects.class_id
-							  ,subject_name      
+							  ,subject_name
 							  ,exam_type
 							  ,student_id
-							  ,mark          
+							  ,mark
 							  ,grade_weight
 							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
 							  ,dense_rank() over w as rank,
@@ -274,8 +274,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 													WHERE student_id = :studentId
 													AND class_subjects.class_id = :classId
 													AND term_id = :termId
-												) AS temp) as num_exam_types,
-												use_for_grading
+												) AS temp) as num_exam_types
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams 
 										INNER JOIN app.exam_types
@@ -367,11 +366,11 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 				$db = null;
 		}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+	} catch(PDOException $e) {
+			$app->response()->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 

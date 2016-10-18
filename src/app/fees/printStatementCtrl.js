@@ -17,7 +17,11 @@ function($scope, $rootScope, apiService ){
 			if( result.response == 'success') 
 			{
 				$scope.currentTerm = result.data;
-				$scope.currentTermTitle = $scope.currentTerm.term_name + ' ' + $scope.currentTerm.year;				
+				var termName = $scope.currentTerm.term_name;
+				// we only want the number
+				termName = termName.split(' ');
+				$scope.currentTerm.term_name = termName[1];
+				$scope.currentTermTitle = $scope.currentTerm.term_name  + ', ' + $scope.currentTerm.year;
 			}
 		},apiError);
 

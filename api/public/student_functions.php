@@ -337,7 +337,7 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 			$sth2 = $db->prepare("SELECT 
 									(SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
 									(SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
-									(
+									COALESCE((
 										SELECT sum(diff) FROM (
 											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
 											FROM app.payments as p	
@@ -345,7 +345,7 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 											AND reversed is false
 											AND replacement_payment is false
 										) AS q
-									) AS unapplied_payments");
+									),0) AS unapplied_payments");
 			$sth2->execute( array(':studentID' => $studentId)); 
 			$details = $sth2->fetch(PDO::FETCH_OBJ);
 			
@@ -423,13 +423,15 @@ $app->get('/getStudentInvoices/:studentId', function ($studentId) {
 																		inner join app.fee_items
 																		on student_fee_items.fee_item_id = fee_items.fee_item_id
 																		on invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
-																		where inv_id = invoice_balances2.inv_id) as invoice_items 
+																		where inv_id = invoice_balances2.inv_id) as invoice_items,
+																		(select term_name from app.terms where due_date between start_date and end_date) as term_name,
+																		date_part('year', due_date) as year
 													FROM app.invoice_balances2 
 													WHERE student_id = :studentId ORDER BY inv_date");
 			$sth->execute( array(':studentId' => $studentId));
 			$results = $sth->fetchAll(PDO::FETCH_OBJ);
 			
-			if($results) {		
+			if($results) {
 			
 				foreach( $results as $result)
 				{

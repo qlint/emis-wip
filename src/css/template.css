@@ -1469,7 +1469,8 @@ table.clickable tr {
       font-size: 10pt;
       margin-bottom: 2pt; }
     .receipt .text-group {
-      margin: 0 10pt 1pt 0; }
+      margin: 0 10pt 1pt 0;
+      white-space: nowrap; }
 
   .progress-report img {
     height: 60px; }

@@ -188,7 +188,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.comments = {};
 		$scope.recreated = false;
 
-		
 		$scope.currentFilters = angular.copy($scope.filters);
 		$scope.report.class_name = $scope.currentFilters.class.class_name;
 		$scope.report.class_id = $scope.currentFilters.class.class_id;
@@ -231,7 +230,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params += '/' + $rootScope.currentUser.emp_id;
 			apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
-			
 		}
 		else
 		{
@@ -318,21 +316,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				if( $scope.savedReportData === undefined )
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id
-					apiService.getStudentReportCard(params,loadReportCard, apiError);				
+					apiService.getStudentReportCard(params,loadReportCard, apiError);
 				}
 				else
 				{
 					diffExamMarks($scope.latestExamMarks, $scope.savedReportData);
 				}
-				/*
-				$scope.report.class_name = $scope.currentFilters.class.class_name;
-				$scope.report.class_id = $scope.currentFilters.class.class_id;
-				$scope.report.term = $scope.currentFilters.term.term_name;
-				$scope.report.term_id = $scope.currentFilters.term.term_id;
-				$scope.report.year = $scope.currentFilters.term.year;
-				$scope.report.teacher_id = $scope.currentFilters.class.teacher_id;
-				$scope.report.teacher_name = $scope.currentFilters.class.teacher_name;
-				*/
 				
 			}
 		}
@@ -345,14 +334,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.overallSubjectMarks = data.subjectOverall;
 		$scope.overall = data.overall;
 		$scope.overallLastTerm = data.overallLastTerm;
-				
+
 		/* remove any exam types that have not been used for this report card */
 		$scope.examTypes = $scope.rawExamTypes.filter(function(item){
 			var found = $scope.examMarks.filter(function(item2){
 				if( item.exam_type == item2.exam_type ) return item2;
 			})[0];
 			if( found !== undefined ) return item;
-		});		
+		});
 		 
 		/* group the results by subject */
 		$scope.reportData = {};
@@ -362,21 +351,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		// set overall
 		var total_marks = 0;
 		var total_grade_weight = 0;
-		//$scope.total_overall_mark = 0;
-		angular.forEach( $scope.reportData.subjects, function(item,key){
 
-			var overall = $scope.overallSubjectMarks.filter(function(item2){
-				if( item.subject_name == item2.subject_name ) return item2;
-			})[0];
-			
-			if( overall )
+		angular.forEach( $scope.reportData.subjects, function(item,key){
+			if( item.use_for_grading )
 			{
-				item.overall_mark = overall.percentage;
-				item.overall_grade = overall.grade;
-				item.position = overall.rank;
 				
-				total_marks += parseInt(overall.total_mark);
-				total_grade_weight += parseInt(overall.total_grade_weight);
+				var overall = $scope.overallSubjectMarks.filter(function(item2){
+					if( item.subject_name == item2.subject_name ) return item2;
+				})[0];
+				
+				if( overall )
+				{
+					item.overall_mark = overall.percentage;
+					item.overall_grade = overall.grade;
+					item.position = overall.rank;
+					
+					total_marks += parseInt(overall.total_mark);
+					total_grade_weight += parseInt(overall.total_grade_weight);
+				}
 			}
 			
 		});
@@ -386,12 +378,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.totals = {};
 		angular.forEach( $scope.reportData.subjects, function(item,key)
 		{
-			angular.forEach( item.marks, function(item2,key)
+			if( item.use_for_grading )
 			{
-				if( $scope.totals[key] === undefined ) $scope.totals[key] = {total_mark:0, total_grade_weight:0};
-				if( item.parent_subject_name == null ) $scope.totals[key].total_mark += item2.mark;
-				if( item.parent_subject_name == null ) $scope.totals[key].total_grade_weight += item2.grade_weight;
-			});
+				angular.forEach( item.marks, function(item2,key)
+				{
+					if( $scope.totals[key] === undefined ) $scope.totals[key] = {total_mark:0, total_grade_weight:0};
+					if( item.parent_subject_name == null ) $scope.totals[key].total_mark += item2.mark;
+					if( item.parent_subject_name == null ) $scope.totals[key].total_grade_weight += item2.grade_weight;
+				});
+			}
 		});
 		
 		
@@ -432,7 +427,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						subject_name: item.subject_name,
 						parent_subject_name: item.parent_subject_name,
 						teacher_id: item.teacher_id,
-						initials: item.initials
+						initials: item.initials,
+						use_for_grading: item.use_for_grading
 					}
 				);
 				

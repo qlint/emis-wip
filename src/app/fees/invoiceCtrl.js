@@ -3,15 +3,20 @@
 angular.module('eduwebApp').
 controller('invoiceCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, data){
-
+	console.log(data.invoice);
 	$scope.invoice = data.invoice;
 	$scope.student = data.student;
+	
+	var termName = $scope.invoice.term_name;
+	// we only want the number
+	termName = termName.split(' ');
+	$scope.invoice.term_name = termName[1];
 
 	var initializeController = function()
-	{	
+	{
 		apiService.getStudentBalance($scope.invoice.student_id, function(response,status)
 		{
-			$scope.loading = false;		
+			$scope.loading = false;
 			var result = angular.fromJson(response);
 					
 			if( result.response == 'success') 
@@ -19,7 +24,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 				if( result.nodata === undefined )
 				{
 					$scope.feeSummary = angular.copy(result.data.fee_summary);
-				}			
+				}
 			}
 			var params =  $scope.invoice.inv_id;
 			apiService.getInvoiceDetails(params, loadInvoiceDetails, apiError);
