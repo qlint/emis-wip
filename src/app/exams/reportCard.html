@@ -34,7 +34,7 @@
 				
 				<!-- class select -->
 				<div class="form-group" ng-class="{ 'has-error' : reportForm.class_id.$invalid && (!reportForm.class_id.$pristine || reportForm.$submitted) }">
-					<label for="class">Class</label>	
+					<label for="class">Class</label>
 					<select name="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
 						<option value="">--select class--</option>
 					</select>	
@@ -43,8 +43,8 @@
 				</div>
 
 				<!-- term select -->
-				<div class="form-group" ng-class="{ 'has-error' : reportForm.term.$invalid && (!reportForm.term.$pristine || reportForm.$submitted) }">	
-					<label for="term">Term</label>	
+				<div class="form-group" ng-class="{ 'has-error' : reportForm.term.$invalid && (!reportForm.term.$pristine || reportForm.$submitted) }">
+					<label for="term">Term</label>
 					<select name="term" class="form-control" ng-options="item.term_year_name for item in terms track by item.term_id" ng-model="filters.term" required>
 						<option value="">--select term--</option>
 					</select>	
@@ -72,7 +72,7 @@
 					<div class="col-xs-2">
 						<img src="assets/schools/{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" /> 
 					</div>
-					<div class="col-xs-8">					
+					<div class="col-xs-8">
 						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
 						<div class="school-address">
 							<p>{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
@@ -103,7 +103,7 @@
 						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
 					</div>
 					<div class="progress-report-student">
-						<!-- name and adm number -->	
+						<!-- name and adm number -->
 						<div class="row">
 							<div class="col-xs-1 nopad-right">
 								<label class="">Name:</label>
