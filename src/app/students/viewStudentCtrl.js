@@ -704,7 +704,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.addInvoice = function()
 	{
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceForm.html','invoiceFormCtrl',{selectedStudent:$scope.student},{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceForm.html','invoiceFormCtrl',{selectedStudent:$scope.student},{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(invoice){
 			// update invoices
 			getStudentBalance();

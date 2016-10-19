@@ -74,6 +74,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			
 		}, apiError);
 		
+		apiService.getTerms(undefined, function(response,status)
+		{
+			var result = angular.fromJson(response);
+			if( result.response == 'success' && !result.nodata )
+			{
+				$scope.terms = result.data;
+			}
+		}, apiError);
 	}
 	$scope.initializeController();
 	
@@ -225,7 +233,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		
 		var lineItems = [];
 
-		angular.forEach($scope.invoiceLineItems, function(item,key){		
+		angular.forEach($scope.invoiceLineItems, function(item,key){
 			lineItems.push({
 				student_fee_item_id: item.student_fee_item_id,
 				inv_item_id: item.inv_item_id,
@@ -239,7 +247,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			total_amount: $scope.totals.total_due,
 			inv_date: moment($scope.date.startDate).format('YYYY-MM-DD'),
 			due_date: moment($scope.due_date.startDate).format('YYYY-MM-DD'),
-			line_items: lineItems
+			line_items: lineItems,
+			term_id: $scope.invoice.term_id
 		};
 		
 		

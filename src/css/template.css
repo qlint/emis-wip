@@ -81,6 +81,18 @@ a {
     font-size: 40px;
     padding: 15px 100px; }
 
+.gridView h2 {
+  margin: 0 -15px; }
+.gridView .row > div {
+  border-right: 1px solid #eee; }
+.gridView .row {
+  border-bottom: 1px solid #eee; }
+.gridView label {
+  padding-top: 10px; }
+.gridView p {
+  padding-top: 0;
+  min-height: auto; }
+
 /********************** Branding Styles ******************************/
 .navbar-brand {
   padding: 5px;
@@ -827,7 +839,8 @@ table.clickable tr {
     background: #eee;
     margin-top: -15px;
     padding-top: 15px;
-    margin-bottom: 10px; }
+    margin-bottom: 10px;
+    padding-bottom: 10px; }
   .modal-content .modal-tabs.main-tabs {
     margin: 0 -14px; }
     .modal-content .modal-tabs.main-tabs .nav > li > a {
@@ -1154,6 +1167,42 @@ table.clickable tr {
   padding-left: 10px !important; }
 .progress-report .strong {
   font-weight: 700; }
+
+.radio-option {
+  margin-left: 22px; }
+  .radio-option label {
+    position: relative; }
+  .radio-option input[type="radio"] {
+    display: none; }
+  .radio-option span::before,
+  .radio-option span::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto; }
+  .radio-option span:hover {
+    cursor: pointer; }
+  .radio-option span::before {
+    width: 15px;
+    height: 15px;
+    background-color: #fff;
+    left: -22px;
+    box-sizing: border-box;
+    border: 3px solid transparent;
+    transition: border-color .2s; }
+  .radio-option span::after {
+    content: '\f00c';
+    font-family: 'FontAwesome';
+    left: -21px;
+    top: 2px;
+    color: transparent;
+    transition: color .2s; }
+  .radio-option input[type="radio"]:checked + label span::after {
+    color: #62AFFF; }
+
+.btn.shift-down {
+  margin-top: 20px; }
 
 /********************** Blog Styles ******************************/
 .blog-title {

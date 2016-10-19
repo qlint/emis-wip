@@ -9,66 +9,75 @@
 				{{errMsg}}
 			</p>			
 
-			<div class="row compact">
-			
-				<!-- invoice number -->
-				<div class="col-sm-4" >		
-					<label>Invoice Number</label>
-					<p class="form-control-static">{{invoice.inv_id}}</p>
-				</div>
-						
-				<!-- student -->
-				<div class="col-sm-4" >		
-					<label>Student</label>
-					<p class="form-control-static">{{invoice.student_name}}</p>
-				</div>
+			<div class="gridView">
+				<div class="row compact">
 				
-				<div class="col-sm-4">
-					<div class="alert alert-success invoice-status" ng-show="invoice.balance>=0 && !invoice.canceled">
-						Paid in Full
+					<!-- invoice number -->
+					<div class="col-sm-4" >
+						<label>Invoice Number</label>
+						<p class="form-control-static">{{invoice.inv_id}}</p>
 					</div>
-					<div class="alert alert-warning invoice-status" ng-show="invoice.balance<0 && invoice.total_paid>0 && !invoice.canceled">
-						Partial Paid
+							
+					<!-- student -->
+					<div class="col-sm-4" >
+						<label>Student</label>
+						<p class="form-control-static">{{invoice.student_name}}</p>
 					</div>
-					<div class="alert alert-danger invoice-status" ng-show="invoice.canceled">
-						Canceled!
-					</div>
-				</div>
-				
-			</div>
-			
-			
-			<div class="row compact">	
-				<!-- invoice date -->
-				<div class="col-sm-4" >		
-					<label>Invoice Date</label>
-					<p class="form-control-static" ng-show="!edit">{{invoice.inv_date}}</p>
-					<div ng-show="edit">
-						<div class="input-group">
-							<input type="text" name="inv_date" date-range-picker id="inv_date" class="form-control date-picker input-sm" ng-model="date" options="{singleDatePicker: true,autoApply: true}" >
-							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
-						</div>
-					</div>
-				</div>
-				
-				<!-- due date -->
-				<div class="col-sm-4" >		
-					<label>Due Date</label>
-					<p class="form-control-static" ng-show="!edit">{{invoice.due_date}}</p>
-					<div ng-show="edit">
-						<div class="input-group">
-							<input type="text" name="due_date" date-range-picker id="due_date" class="form-control date-picker input-sm" ng-model="due_date" options="{singleDatePicker: true,autoApply: true}" >
-							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
-						</div>
-					</div>
-				</div>
 					
-				<!-- balance -->
-				<div class="col-sm-4" >		
-					<label>Balance</label>
-					<p class="form-control-static"><strong>{{totals.balance|numeric}} {{currency}}</strong></p>
+					
+					<div class="col-sm-4">
+						<div class="alert alert-success invoice-status" ng-show="invoice.balance>=0 && !invoice.canceled">
+							Paid in Full
+						</div>
+						<div class="alert alert-warning invoice-status" ng-show="invoice.balance<0 && invoice.total_paid>0 && !invoice.canceled">
+							Partial Paid
+						</div>
+						<div class="alert alert-danger invoice-status" ng-show="invoice.canceled">
+							Canceled!
+						</div>
+					</div>
+					
 				</div>
+				
+				
+				<div class="row compact">
+					<!-- invoice date -->
+					<div class="col-sm-4" >
+						<label>Invoice Date</label>
+						<p class="form-control-static" ng-show="!edit">{{invoice.inv_date}}</p>
+						<div ng-show="edit">
+							<div class="input-group">
+								<input type="text" name="inv_date" date-range-picker id="inv_date" class="form-control date-picker input-sm" ng-model="date" options="{singleDatePicker: true,autoApply: true}" >
+								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+							</div>
+						</div>
+					</div>
+					
+					<!-- due date -->
+					<div class="col-sm-4" >		
+						<label>Due Date</label>
+						<p class="form-control-static" ng-show="!edit">{{invoice.due_date}}</p>
+						<div ng-show="edit">
+							<div class="input-group">
+								<input type="text" name="due_date" date-range-picker id="due_date" class="form-control date-picker input-sm" ng-model="due_date" options="{singleDatePicker: true,autoApply: true}" >
+								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+							</div>
+						</div>
+					</div>
+						
+					<!-- term -->
+					<div class="col-sm-4" >
+						<label>Term</label>
+						<p class="form-control-static" ng-show="!edit">{{invoice.term_name}}</p>
+						<div ng-show="edit">
+							<div class="input-group">
+								<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="invoice.term_id" >
+								</select>
+							</div>
+						</div>
+					</div>
 
+				</div>
 			</div>
 
 			<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">

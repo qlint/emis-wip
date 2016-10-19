@@ -44,7 +44,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 		if( result.response == 'success')
 		{
 			$scope.invoiceLineItems = ( result.nodata ? {} : result.data );
-						
+			
 			$scope.lineItems = [];
 			var totalAmt = 0;
 			var amt;

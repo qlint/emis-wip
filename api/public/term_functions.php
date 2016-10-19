@@ -11,12 +11,12 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 		if( $year == null )
 		{
 			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name, start_date, end_date,
-										  case when term_id = (select term_id from app.current_term) then true else false end as current_term, date_part('year',start_date) as year,
-										  (select count(*) from app.exam_marks where term_id = terms.term_id) as has_exams
+										case when term_id = (select term_id from app.current_term) then true else false end as current_term, date_part('year',start_date) as year,
+										(select count(*) from app.exam_marks where term_id = terms.term_id) as has_exams
 										FROM app.terms
 										--WHERE date_part('year',start_date) <= date_part('year',now())
 										ORDER BY date_part('year',start_date), term_name");
-			$query->execute();	
+			$query->execute();
 		}
 		else
 		{
@@ -27,7 +27,7 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 										FROM app.terms
 										WHERE date_part('year',start_date) = :year
 										ORDER BY date_part('year',start_date), term_name");
-			$query->execute(array(':year' => $year));			
+			$query->execute(array(':year' => $year));
 		}
  
         $results = $query->fetchAll(PDO::FETCH_ASSOC);

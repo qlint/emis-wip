@@ -87,7 +87,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		{
 			apiService.getTerms(undefined, function(response,status)
 			{
-				var result = angular.fromJson(response);				
+				var result = angular.fromJson(response);
 				if( result.response == 'success')
 				{ 
 					$scope.terms = result.data;	
