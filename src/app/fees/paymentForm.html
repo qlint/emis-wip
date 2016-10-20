@@ -1,4 +1,4 @@
-<form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+<form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(paymentForm)">
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 			<h4 class="modal-title">Make Payment: {{ selectedStudent.student_name}}</h4>
@@ -11,8 +11,8 @@
 			
 			<div class="clearfix">
 				<div class="col-sm-6">
-					<!-- student -->		
-					<div class="form-group" ng-class="{ 'has-error' : invoiceForm.student.$invalid && (!invoiceForm.student.$pristine || invoiceForm.$submitted) }">					
+					<!-- student -->
+					<div class="form-group" ng-class="{ 'has-error' : invoiceForm.student.$invalid && (!invoiceForm.student.$pristine || invoiceForm.$submitted) }">
 						<label for="student" class="col-sm-3 control-label nopad">Student</label>
 						<div class="col-sm-9" ng-show="!showSelect"><p class="form-control-static">{{selectedStudent.student_name}}</p></div>
 						<div class="col-sm-9" ng-show="showSelect">
@@ -42,7 +42,7 @@
 					</div>
 					
 					<!-- amount -->
-					<div class="form-group" ng-class="{ 'has-error' : paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted) }">		
+					<div class="form-group" ng-class="{ 'has-error' : paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted) }">
 						<label for="amount" class="col-sm-3 control-label nopad">Amount</label>
 						<div class="col-sm-4">
 							<div class="input-group">
@@ -57,7 +57,7 @@
 					<div class="form-group" ng-class="{ 'has-error' : paymentForm.payment_method.$invalid && (paymentForm.payment_method.$touched || paymentForm.$submitted) }">
 						<label for="payment_method" class="col-sm-3 control-label nopad">Payment Method</label>
 						<div class="col-sm-8">
-							<select name="payment_method" ng-model="payment.payment_method" class="form-control">
+							<select name="payment_method" ng-model="payment.payment_method" class="form-control" required>
 								<option value="">--select payment method--</option>
 								<option value="{{item}}" ng-repeat="item in paymentMethods">{{item}}</option>
 							</select>
@@ -66,15 +66,15 @@
 					</div>
 					
 					<!-- slip/cheque no -->
-					<div class="form-group">		
+					<div class="form-group">
 						<label for="slip_cheque_no" class="col-sm-3 control-label nopad">Slip/Cheque No.</label>
 						<div class="col-sm-5">
-							<input type="text" name="slip_cheque_no" ng-model="payment.slip_cheque_no" class="form-control"  >	
+							<input type="text" name="slip_cheque_no" ng-model="payment.slip_cheque_no" class="form-control"  >
 						</div>	
 					</div>
 					
 					<!-- replacement? -->
-					<div class="form-group">		
+					<div class="form-group">
 						<label class="col-sm-3 control-label"></label>
 						<div class="col-sm-9">
 							<label class="checkbox-inline">
@@ -148,7 +148,7 @@
 						</div>
 					</div>
 										
-					<div class="form-group" ng-show="payment.replacement_payment==true">	
+					<div class="form-group" ng-show="payment.replacement_payment==true">
 						<label class="col-sm-3 control-label">Apply To</label>
 						<div class="col-sm-9">
 							<table class="display dataTable" cellspacing="0" width="100%">
@@ -217,7 +217,7 @@
 							</tr>
 						</tbody>
 					</table>
-				</div>				
+				</div>
 			</div>
 			
 			

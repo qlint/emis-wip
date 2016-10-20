@@ -1,15 +1,15 @@
-<form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+<form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(paymentForm)">
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-			<h4 class="modal-title">{{ (edit ? 'Adjust ':'')}}Payment {{selectedPayment.payment_id}}: {{ student_name}}</h4>
+			<h4 class="modal-title">{{ (edit ? 'Adjust ':'')}} {{ (isCredit ? 'Credit' : 'Payment') }} {{selectedPayment.payment_id}}: {{ student_name}}</h4>
 		</div>
-		<div class="modal-body">
+		<div class="modal-body" ng-class="{'static': !edit || !editPayment}">
 	
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
 			
-			<div class="row header" ng-if="makeSelection">			
+			<div class="row header" ng-if="makeSelection">
 				<div class="form-group" ng-class="{ 'has-error' : invoiceForm.student.$invalid && (!invoiceForm.student.$pristine || invoiceForm.$submitted) }">
 					<!-- student -->
 					<label for="student" class="col-sm-3 control-label">Student</label>
@@ -17,7 +17,7 @@
 						<ui-select ng-model="student.selected" theme="select2" class="form-control" name="student" required> 
 						  <ui-select-match placeholder="Select or search a student...">
 							<span>{{$select.selected.student_name}}</span>
-							<button type="button" class="clear text-danger" ng-click="clearSelect('student',$event)"><span class="glyphicon glyphicon-remove"></span></button>	  
+							<button type="button" class="clear text-danger" ng-click="clearSelect('student',$event)"><span class="glyphicon glyphicon-remove"></span></button> 
 						  </ui-select-match>
 						  <ui-select-choices repeat="item in students | filter: $select.search">
 							<span ng-bind-html="item.student_name | highlight: $select.search"></span>
@@ -54,10 +54,10 @@
 						<!-- date -->
 						<div class="form-group" ng-class="{ 'has-error' : paymentForm.payment_date.$invalid && (paymentForm.payment_date.$touched || paymentForm.$submitted) }">
 							<label for="payment_date" class="col-sm-3 control-label nopad">Date</label>
-							<p class="form-control-static" ng-show="!edit">{{selectedPayment.payment_date}}</p>
-							<div class="col-sm-4" ng-show="edit">
+							<p class="col-sm-8 form-control-static" ng-show="!edit || !editPayment">{{selectedPayment.payment_date}}</p>
+							<div class="col-sm-4" ng-show="edit && editPayment">
 								<div class="input-group">
-									<input type="text" name="payment_date" date-range-picker id="payment_date" class="form-control date-picker input-sm" ng-model="payment_date" options="{singleDatePicker: true,autoApply: true}" />
+									<input type="text" name="payment_date" date-range-picker id="payment_date" class="form-control date-picker input-sm" ng-model="dates.payment_date" options="{singleDatePicker: true,autoApply: true}" />
 									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 								</div>
 								<p ng-show="paymentForm.payment_date.$invalid && (paymentForm.payment_date.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Payment Date is required.</p>
@@ -65,12 +65,12 @@
 						</div>
 							
 						<!-- amount -->
-						<div class="form-group" ng-class="{ 'has-error' : paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted) }">		
+						<div class="form-group" ng-class="{ 'has-error' : paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted) }">
 							<label for="amount" class="col-sm-3 control-label nopad">Amount</label>
-							<p class="form-control-static" ng-show="!edit">{{selectedPayment.amount}}</p>
-							<div class="col-sm-4" ng-show="edit">
+							<p class="col-sm-8 form-control-static" ng-show="!edit || !editPayment">{{selectedPayment.amount|currency:""}} {{currency}}</p>
+							<div class="col-sm-4" ng-show="edit && editPayment">
 								<div class="input-group">
-									<input type="text" name="amount" ng-model="selectedPayment.amount" class="form-control"  >	
+									<input type="text" name="amount" ng-model="selectedPayment.amount" class="form-control"  >
 									<div class="input-group-addon">{{currency}}</div>
 								</div>
 								<p ng-show="paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Last Name is required.</p>
@@ -80,9 +80,9 @@
 						<!-- payment method -->
 						<div class="form-group" ng-class="{ 'has-error' : paymentForm.payment_method.$invalid && (paymentForm.payment_method.$touched || paymentForm.$submitted) }">
 							<label for="payment_method" class="col-sm-3 control-label nopad">Payment Method</label>
-							<p class="form-control-static" ng-show="!edit">{{selectedPayment.payment_method}}</p>
-							<div class="col-sm-8" ng-show="edit">
-								<select name="payment_method" ng-model="selectedPayment.payment_method" class="form-control">
+							<p class="col-sm-8 form-control-static" ng-show="!edit || !editPayment">{{selectedPayment.payment_method}}</p>
+							<div class="col-sm-8" ng-show="edit && editPayment">
+								<select name="payment_method" ng-model="selectedPayment.payment_method" class="form-control" required>
 									<option value="">--select payment method--</option>
 									<option value="{{item}}" ng-repeat="item in paymentMethods">{{item}}</option>
 								</select>
@@ -91,88 +91,93 @@
 						</div>
 							
 						<!-- slip/cheque no -->
-						<div class="form-group">		
+						<div class="form-group">
 							<label for="slip_cheque_no" class="col-sm-3 control-label nopad">Slip/Cheque No.</label>
-							<p class="form-control-static" ng-show="!edit">{{selectedPayment.slip_cheque_no}}</p>
-							<div class="col-sm-5" ng-show="edit">
-								<input type="text" name="slip_cheque_no" ng-model="selectedPayment.slip_cheque_no" class="form-control"  >	
+							<p class="col-sm-8 form-control-static" ng-show="!edit || !editPayment">{{selectedPayment.slip_cheque_no || '-'}}</p>
+							<div class="col-sm-5" ng-show="edit && editPayment">
+								<input type="text" name="slip_cheque_no" ng-model="selectedPayment.slip_cheque_no" class="form-control"  >
 							</div>	
 						</div>
 							
 						<!-- replacement? -->
-						<div class="form-group">		
-							<label class="col-sm-3 control-label"></label>
-							<p class="form-control-static" ng-show="!edit">{{selectedPayment.replacement_payment}}</p>
-							<div class="col-sm-9" ng-show="edit">
+						<div class="form-group">
+							<label class="col-sm-3 control-label nopad"><span ng-show="!edit || !editPayment">Replacement</span></label>
+							<p class="col-sm-8 form-control-static" ng-show="!edit || !editPayment">{{selectedPayment.replacement_payment}}</p>
+							<div class="col-sm-9" ng-show="edit && editPayment">
 								<label class="checkbox-inline">
 								<input type="checkbox" name="replacement_payment" ng-model="selectedPayment.replacement_payment" ng-value="true"  > This is a replacement payment
 								</label>
-							</div>	
+							</div>
 						</div>
 							
 						<!-- applied to -->
-						<div class="form-group" ng-show="selectedPayment.replacement_payment==false">	
-							<label class="col-sm-3 control-label nopad">Applied To</label>
-							<div class="col-sm-9">
-								
-								<div class="well lesspad" ng-repeat="invoice in selectedInvoice track by $index">
-									<div class="row alert-danger" ng-show="invoice.canceled">
-										<div class="col-sm-12">
-											This invoice has been marked canceled.
+						<div class="form-group" ng-show="selectedPayment.replacement_payment==false">
+							
+							<div ng-if="selectedInvoice">
+								<label class="col-sm-3 control-label nopad">Applied To</label>
+								<div class="col-sm-9">
+									
+									<div class="well lesspad" ng-repeat="invoice in selectedInvoice track by $index">
+										<div class="row alert-danger" ng-show="invoice.canceled">
+											<div class="col-sm-12">
+												This invoice has been marked canceled.
+											</div>
 										</div>
+										<div class="row">
+											<div class="col-sm-3">
+												<label>Inv No.</label>
+												<p>{{invoice.inv_id}} </p>
+											</div>
+											<div class="col-sm-5">
+												<label>Bal.</label>
+												<p class="nowrap">{{invoice.overall_balance|numeric}} Ksh </p>
+											</div>
+											<div class="col-sm-4">
+												<label>Due Date</label>
+												<p>{{invoice.due_date|date}} </p>
+											</div>
+										</div>
+									
+										<table class="display dataTable" cellspacing="0" width="100%">
+											<thead>
+												<tr>
+													<th class="center">
+														<input type="checkbox" name="apply_to_all" ng-model="payment.apply_to_all[$index]" ng-click="selectAllItems($index,invoice)" ng-value="true" ng-disabled="!edit"  />
+													</th>
+													<th>Fee Item</th>
+													<th>Balance</th>
+													<th>Paying</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr ng-repeat="feeitem in invoice.fee_items" ng-class="{'alert-success': feeitem.isPaid && !feeitem.modifiable}">
+													<td class="center">
+													 <input
+															type="checkbox"
+															name="selected_invoices[]"
+															value="{{item.inv_item_id}}"
+															ng-checked="feeItemsSelection.indexOf(feeitem) > -1"
+															ng-click="toggleFeeItems(feeitem)"
+															ng-disabled="!edit || !feeitem.modifiable"
+															ng-hide="!feeitem.modifiable"
+															>
+													</td>
+													<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
+													<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance|numeric}}</td>
+													<td>
+														<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!edit || !feeitem.modifiable" ng-change="sumPayment()" />
+														<i ng-show="feeitem.isPaid && !feeitem.modifiable">Paid</i>
+													</td>
+												</tr>
+											</tbody>
+										</table>
 									</div>
-									<div class="row">
-										<div class="col-sm-3">
-											<label>Inv No.</label>
-											<p>{{invoice.inv_id}} </p>
-										</div>
-										<div class="col-sm-5">
-											<label>Bal.</label>
-											<p class="nowrap">{{invoice.overall_balance|numeric}} Ksh </p>
-										</div>
-										<div class="col-sm-4">
-											<label>Due Date</label>
-											<p>{{invoice.due_date|date}} </p>
-										</div>
-									</div>
-								
-									<table class="display dataTable" cellspacing="0" width="100%">
-										<thead>
-											<tr>
-												<th class="center">
-													<input type="checkbox" name="apply_to_all" ng-model="payment.apply_to_all[$index]" ng-click="selectAllItems($index,invoice)" ng-value="true" ng-disabled="!edit"  />
-												</th>
-												<th>Fee Item</th>
-												<th>Balance</th>
-												<th>Paying</th>
-											</tr>
-										</thead>
-										<tbody>
-											<tr ng-repeat="feeitem in invoice.fee_items" ng-class="{'alert-success': feeitem.isPaid && !feeitem.modifiable}">
-												<td class="center">
-												 <input
-														type="checkbox"
-														name="selected_invoices[]"
-														value="{{item.inv_item_id}}"
-														ng-checked="feeItemsSelection.indexOf(feeitem) > -1"
-														ng-click="toggleFeeItems(feeitem)"
-														ng-disabled="!edit || !feeitem.modifiable"
-														ng-hide="!feeitem.modifiable"
-													  >
-												</td>
-												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
-												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance|numeric}}</td>
-												<td>
-													<input ng-show="feeitem.modifiable" type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance|makePositive}}" ng-disabled="!edit || !feeitem.modifiable" ng-change="sumPayment()" />
-													<i ng-show="feeitem.isPaid && !feeitem.modifiable">Paid</i>
-												</td>
-											</tr>
-										</tbody>
-									</table>
 								</div>
 							</div>
 							
-							<label class="col-sm-3 control-label nopad">Other Open Invoices</label>
+							<label class="col-sm-3 control-label nopad">
+								{{ (isCredit ? 'Apply To' : 'Open Invoices') }}
+							</label>
 							<div class="col-sm-9">
 								<div class="" ng-show="invoices.length==0">
 									There are no other open invoices.
@@ -230,61 +235,9 @@
 								</div>
 							</div>
 							
-							<div class="row">
-								<div class="col-sm-12">
-									<span><b>Amount Paid: </b>{{selectedPayment.amount|currency:""}}</span> | 
-									<span ng-class="{'text-danger': totalApplied>payment.amount}"><b>Amount Applied:</b> {{totalApplied|currency:""}}</span> | 
-									<span ng-class="{'text-success': totalCredit>0}"><b>Credit:</b> {{totalCredit|currency:""}}</span>
-								</div>
-							</div>
 						</div>
 						
-						<!-- change to
-						<div class="form-group" ng-show="changingInvoice">	
-
-							<label class="col-sm-3 control-label">Change To</label>
-							<div class="col-sm-9">						
-								<p ng-show="invoices.length==0">This student do not have any open invoices.</p>
-								
-								<select ng-show="invoices.length>0" name="invoice" class="form-control" ng-options="'Bal: ' + invoice.balance + ' Ksh Due: ' + invoice.due_date for invoice in invoices track by invoice.inv_id" ng-model="selectedPayment.invoice">
-									<option value="">--select invoice--</option>
-								</select>	
-								<button ng-show="changingInvoice" type="button" class="btn btn-sm btn-link" ng-click="changeInvoice(false)">Cancel Invoice Change</button>
-							</div>
-												
-							<div class="col-sm-12" ng-show="selectedNewInvoice!==undefined">
-								<table class="display dataTable" cellspacing="0" width="100%">
-										<thead>
-											<tr>
-												<th class="center"><input type="checkbox" name="apply_to_all" ng-model="selectedPayment.apply_to_all" ng-value="true"  ></th>
-												<th>Fee Item</th>
-												<th>Balance</th>
-												<th>Paying</th>
-											</tr>
-										</thead>
-										<tbody>
-											<tr ng-repeat="feeitem in selectedNewInvoice.fee_items ">
-												<td class="center">
-												 <input
-														type="checkbox"
-														name="selected_invoices[]"
-														value="{{item.inv_item_id}}"
-														ng-checked="feeItemsSelection.indexOf(feeitem) > -1"
-														ng-click="toggleFeeItems(feeitem)"
-													  >
-												</td>
-												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.fee_item}}</td>
-												<td ng-click="toggleFeeItems(feeitem)">{{feeitem.balance}}</td>
-												<td>
-													<input type="text" name="fee_item_amount[]" ng-model="feeitem.amount" class="form-control" placeholder="{{feeitem.balance}}">
-												</td>
-											</tr>
-										</tbody>
-									</table>
-							</div>
-						</div>
-						 -->	
-						<div class="form-group" ng-show="selectedPayment.replacement_payment==true">	
+						<div class="form-group" ng-show="selectedPayment.replacement_payment==true">
 							<label class="col-sm-3 control-label">Apply To</label>
 							<div class="col-sm-9">
 								<table class="display dataTable" cellspacing="0" width="100%">
@@ -315,6 +268,13 @@
 								</table>
 							</div>
 						</div>						
+					
+						<!-- summary -->
+						<div class="alert alert-info">
+							<span><b>Amount Paid: </b>{{selectedPayment.amount|currency:""}}</span> | 
+							<span ng-class="{'text-danger': totalApplied>payment.amount}"><b>Amount Applied:</b> {{totalApplied|currency:""}}</span> | 
+							<span ng-class="{'text-success': totalCredit>0}"><b>Credit:</b> {{totalCredit|currency:""}}</span>
+						</div>
 					</div>
 				</div>
 				<div class="col-sm-6 well lesspad" ng-show="selectedPayment!==undefined">
@@ -331,6 +291,10 @@
 							Balance
 							<p>{{ feeSummary.balance|numeric}}<span>{{currency}}</span></p>
 						</div>
+						<div class="info-box alert alert-success">
+							Credit
+							<p>{{ feeSummary.total_credit|currency:""}}<span>{{currency}}</span></p>
+						</div>
 					</div>
 					<h3>Fee Summary</h3>
 					<table id="resultsTable3" class="display" cellspacing="0" width="100%">
@@ -342,7 +306,7 @@
 								<th class="center">Paid ({{currency}})</th>
 								<th class="center">Balance ({{currency}})</th>
 							</tr>
-						</thead>	
+						</thead>
 						<tbody>
 							<tr ng-repeat="item in fees track by $index" ng-class="{'alert-danger': item.balance>0, 'alert-success':item.balance==0}">
 								<td></td>
@@ -353,17 +317,16 @@
 							</tr>
 						</tbody>
 					</table>
-				</div>			
+				</div>
 			</div>
 		</div>
 		<div class="modal-footer">
 		
 			<div class="pull-left">
-				<button type="button" class="btn btn-danger" ng-click="deletePayment()" ng-show="permissions.fees.payments_received.delete"><i class="fa fa-trash"></i> Delete Payment</button>
+				<button type="button" class="btn btn-danger" ng-click="deletePayment()" ng-show="permissions.fees.payments_received.delete"><i class="fa fa-trash"></i> Delete {{(isCredit ? 'Credit' : 'Payment')}}</button>
 				
-				<button type="button" class="btn btn-danger" ng-click="reversePayment()" ng-show="permissions.fees.payments_received.delete && !selectedPayment.reversed">Reverse Payment</button>
-				<button type="button" class="btn btn-success" ng-click="reactivatePayment()" ng-show="permissions.fees.payments_received.edit && selectedPayment.reversed">Reactivate Payment</button>
-				<button type="button" class="btn btn-link" ng-click="revertPayment()" ng-show="changes">Undo Changes</button>
+				<button type="button" class="btn btn-danger" ng-click="reversePayment()" ng-show="!isCredit && editPayment && edit && !selectedPayment.reversed">Reverse Payment</button>
+				<button type="button" class="btn btn-success" ng-click="reactivatePayment()" ng-show="!isCredit && editPayment && edit && selectedPayment.reversed">Reactivate Payment</button>
 			</div>
 			
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>

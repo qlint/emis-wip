@@ -80,11 +80,11 @@
 							</div>
 							
 							<!-- middle name -->
-							<div class="col-sm-4">	
+							<div class="col-sm-4">
 								<label for="middle_name">Middle Name</label>
 								<p class="form-control-static" ng-show="!edit">{{student.middle_name}}</p>
 								<div ng-show="edit">
-									<input type="text" name="middle_name" ng-model="student.middle_name" class="form-control"  >	
+									<input type="text" name="middle_name" ng-model="student.middle_name" class="form-control"  >
 								</div>
 							</div>
 							
@@ -118,7 +118,7 @@
 							</div>	
 						
 							<!-- dob -->
-							<div class="col-sm-4"  ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.dob.$dirty ) && studentForm.dob.$invalid && studentForm.dob.$error.required }">		
+							<div class="col-sm-4"  ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.dob.$dirty ) && studentForm.dob.$invalid && studentForm.dob.$error.required }">
 								<label for="dob">Date of Birth</label>
 								<p class="form-control-static" ng-show="!edit">{{student.dob}}</p>
 								<div ng-show="edit">
@@ -137,7 +137,7 @@
 										<option value="{{item.countries_name}}" ng-repeat="item in countries">{{item.countries_name}}</option>
 									</select>
 									<p ng-show="(studentForm.$submitted || studentForm.nationality.$dirty ) && studentForm.nationality.$invalid && studentForm.nationality.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Nationality is required.</p>
-								</div>	
+								</div>
 							</div>
 							
 						</div>
@@ -177,8 +177,8 @@
 									  <input type="radio" name="status" ng-model="student.active" ng-value="false" required> In-active
 									</label>
 									<p ng-show="(studentForm.$submitted || studentForm.status.$dirty ) && studentForm.status.$invalid && studentForm.status.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Status is required.</p>
-								</div>	
-							</div>	
+								</div>
+							</div>
 						
 						</div>
 						
@@ -187,7 +187,7 @@
 							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.new_student.$dirty ) && studentForm.new_student.$invalid && studentForm.new_student.$error.required }">
 								<label for="new_student">New Student?</label>
 								<p class="form-control-static" ng-show="!edit">{{student.new_student}}</p>
-								<div ng-show="edit">				
+								<div ng-show="edit">
 									<label class="radio-inline">
 									  <input type="radio" name="new_student" ng-model="student.new_student" ng-value="true" required> Yes
 									</label>
@@ -196,7 +196,7 @@
 									</label>
 									<p ng-show="(studentForm.$submitted || studentForm.new_student.$dirty ) && studentForm.new_student.$invalid && studentForm.new_student.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> New Student selection is required.</p>
 								</div>
-							</div>	
+							</div>
 						</div>
 					
 					
@@ -263,7 +263,7 @@
 							<label for="emergency_relationship" class="col-sm-4 control-label">Contact Relationship</label>
 							<p class="form-control-static" ng-show="!edit">{{student.emergency_relationship}}</p>
 							<div ng-show="edit" class="col-sm-8">
-								<input type="text" name="emergency_relationship" ng-model="student.emergency_relationship" class="form-control" required />	
+								<input type="text" name="emergency_relationship" ng-model="student.emergency_relationship" class="form-control" required />
 								<p ng-show="(studentForm.$submitted || studentForm.emergency_relationship.$dirty ) && studentForm.emergency_relationship.$invalid && studentForm.emergency_relationship.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Relationship is required.</p>
 							</div>	
 						</div>
@@ -273,7 +273,7 @@
 							<label for="emergency_telephone" class="col-sm-4 control-label">Contact Telephone</label>
 							<p class="form-control-static" ng-show="!edit">{{student.emergency_telephone}}</p>
 							<div ng-show="edit" class="col-sm-8">
-								<input type="text" name="emergency_telephone" ng-model="student.emergency_telephone" class="form-control" required numeric-only />	
+								<input type="text" name="emergency_telephone" ng-model="student.emergency_telephone" class="form-control" required numeric-only />
 								<p ng-show="(studentForm.$submitted || studentForm.emergency_telephone.$dirty ) && studentForm.emergency_telephone.$invalid && studentForm.emergency_telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Telephone is required.</p>
 							</div>
 						</div>
@@ -281,11 +281,11 @@
 						<h3>Drop Off/Pick Up Individual</h3>
 						
 						<!-- pick_up_drop_off_individual -->
-						<div class="form-group">		
+						<div class="form-group">
 							<label for="pick_up_drop_off_individual" class="col-sm-4 control-label">Name</label>
 							<p class="form-control-static" ng-show="!edit">{{student.pick_up_drop_off_individual}}</p>
 							<div ng-show="edit"  class="col-sm-8">
-								<input type="text" name="pick_up_drop_off_individual" ng-model="student.pick_up_drop_off_individual" class="form-control"  >	
+								<input type="text" name="pick_up_drop_off_individual" ng-model="student.pick_up_drop_off_individual" class="form-control"  >
 							</div>	
 						</div>
 						
@@ -306,16 +306,16 @@
 						</div>
 						
 						<!-- age separated -->
-						<div class="form-group" ng-if="student.marial_status_parents=='Divorced' || student.marial_status_parents=='Separated'">		
+						<div class="form-group" ng-if="student.marial_status_parents=='Divorced' || student.marial_status_parents=='Separated'">
 							<label for="marital_separation_age" class="col-sm-5 control-label">Age When Separated</label>
 							<p class="form-control-static" ng-show="!edit">{{student.marital_separation_age}}</p>
 							<div ng-show="edit" class="col-sm-7">
-								<input type="text" name="marital_separation_age" ng-model="student.marital_separation_age" class="form-control"  >	
+								<input type="text" name="marital_separation_age" ng-model="student.marital_separation_age" class="form-control"  >
 							</div>	
 						</div>
 						
 						<!-- adopted -->
-						<div class="form-group" ng-class="{ 'has-error' : studentForm.adopted.$invalid && (studentForm.adopted.$touched || studentForm.$submitted) }">					
+						<div class="form-group" ng-class="{ 'has-error' : studentForm.adopted.$invalid && (studentForm.adopted.$touched || studentForm.$submitted) }">
 							<label for="adopted"  class="col-sm-5 control-label">Adopted?</label>
 							<p class="form-control-static" ng-show="!edit">{{student.adoptedStr}}</p>
 							<div ng-show="edit" class="col-sm-7">
@@ -330,16 +330,16 @@
 						</div>	
 						
 						<!-- age adopted -->
-						<div class="form-group" ng-if="student.adopted=='true'">		
+						<div class="form-group" ng-if="student.adopted=='true'">
 							<label for="adopted_age" class="col-sm-5 control-label">Age When Adopted</label>
 							<p class="form-control-static" ng-show="!edit">{{student.adopted_age}}</p>
 							<div ng-show="edit" class="col-sm-7">
-								<input type="text" name="adopted_age" ng-model="student.adopted_age" class="form-control"  >	
+								<input type="text" name="adopted_age" ng-model="student.adopted_age" class="form-control"  >
 							</div>	
 						</div>
 						
 						<!-- aware of adoption -->
-						<div class="form-group" ng-if="student.adopted=='true'">		
+						<div class="form-group" ng-if="student.adopted=='true'">
 							<label for="adoption_aware" class="col-sm-5 control-label">Does the child know?</label>
 							<p class="form-control-static" ng-show="!edit">{{student.adoptionAwareStr}}</p>
 							<div ng-show="edit" class="col-sm-7">
@@ -349,11 +349,10 @@
 								<label class="radio-inline">
 								  <input type="radio" name="adoption_aware" ng-model="student.adoption_aware" ng-value="false"> No
 								</label>
-							</div>	
+							</div>
 						</div>
 					</div>
-					
-				</div>			
+				</div>
 
 			</script>
 			
@@ -404,7 +403,7 @@
 						<label for="other_medical_conditions_description">What illness?</label>
 						<p class="form-control-static" ng-show="!edit">{{student.other_medical_conditions_description}}</p>
 						<div ng-show="edit">
-							<input type="text" name="other_medical_conditions_description" ng-model="student.other_medical_conditions_description" class="form-control"  >	
+							<input type="text" name="other_medical_conditions_description" ng-model="student.other_medical_conditions_description" class="form-control"  >
 						</div>
 					</div>
 				</div>
@@ -423,11 +422,11 @@
 					</div>
 					
 					<!-- hospitalized description -->
-					<div ng-if="student.hospitalized">		
+					<div ng-if="student.hospitalized">
 						<label for="hospitalized_description">Please describe</label>
 						<p class="form-control-static" ng-show="!edit">{{student.hospitalized_description}}</p>
 						<div ng-show="edit">
-							<input type="text" name="hospitalized_description" ng-model="student.hospitalized_description" class="form-control"  >	
+							<input type="text" name="hospitalized_description" ng-model="student.hospitalized_description" class="form-control"  >
 						</div>
 					</div>
 				</div>
@@ -446,11 +445,11 @@
 					</div>
 					
 					<!-- current illness description -->
-					<div ng-if="student.current_medical_treatment">		
+					<div ng-if="student.current_medical_treatment">
 						<label for="current_medical_treatment_description">For what condition is the child being treated?</label>
 						<p class="form-control-static" ng-show="!edit">{{student.current_medical_treatment}}</p>
 						<div ng-show="edit">
-							<input type="text" name="current_medical_treatment_description" ng-model="student.current_medical_treatment_description" class="form-control"  >	
+							<input type="text" name="current_medical_treatment_description" ng-model="student.current_medical_treatment_description" class="form-control"  >
 						</div>
 					</div>
 				</div>
@@ -465,17 +464,15 @@
 			
 			<script type="text/ng-template" id="Fees">
 				<h2>Fees</h2>
-				<div ng-show="feeSummary.total_credit>0" class="alert alert-info">
-					<i class="glyphicon glyphicon-info-sign"></i> This student has a {{feeSummary.total_credit|currency:""}} {{currency}} credit.
-				</div>
+
 				<div class="row">
-					<div class="col-sm-6">
+					<div class="col-sm-5">
 						<div class="row">
 							
 							<!-- preferred payment method -->
 							<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.payment_method.$dirty ) && studentForm.payment_method.$invalid && studentForm.payment_method.$error.required }">				
-								<label for="payment_method" class="col-sm-5 control-label">Preferred Payment Method</label>
-								<div class="col-sm-7">
+								<label for="payment_method" class="col-sm-7 control-label">Preferred Payment Method</label>
+								<div class="col-sm-5">
 									<p class="form-control-static" ng-show="!edit">{{student.payment_method}}</p>
 									<div ng-show="edit">
 										<select name="payment_method" ng-model="student.payment_method" class="form-control" required>
@@ -484,13 +481,13 @@
 										</select>
 										<p ng-show="(studentForm.$submitted || studentForm.payment_method.$dirty ) && studentForm.payment_method.$invalid && studentForm.payment_method.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
 									</div>	
-								</div>	
-							</div>	
+								</div>
+							</div>
 							
 							<!-- installment plan -->
 							<div class="form-group" ng-show="student.payment_method=='Installments'" ng-show="student.payment_method=='Installments'"  ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.installment_option.$dirty ) && studentForm.installment_option.$invalid && studentForm.installment_option.$error.required }">					
-								<label for="installment_option" class="col-sm-5 control-label">Installment Option</label>
-								<div class="col-sm-7">
+								<label for="installment_option" class="col-sm-7 control-label">Installment Option</label>
+								<div class="col-sm-5">
 									<p class="form-control-static" ng-show="!edit">{{student.payment_plan_name}}</p>
 									<div ng-show="edit">
 										<select name="installment_option" class="form-control" ng-options="item.installment_id as item.payment_plan_name for item in installmentOptions"  ng-model="student.installment_option_id" ng-required="student.payment_method=='Installments'">
@@ -499,30 +496,30 @@
 										<p ng-show="(studentForm.$submitted || studentForm.installment_option.$dirty ) && studentForm.installment_option.$invalid && studentForm.installment_option.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Preferred Payment Method is required.</p>
 									</div>
 								</div>
-							</div>	
+							</div>
 						</div>
 						<div class="row" ng-show="!nofeeSummary">
 							
 							<!-- next payment due -->
-							<div class="form-group">		
-								<label for="payment_method" class="col-sm-5 control-label">Next Invoice</label>
-								<div class="col-sm-7">
-									<p class="form-control-static" ng-show="feeSummary.next_due_date===null"><i>This students next invoice has not been generated.</i></p>
+							<div class="form-group">
+								<label for="payment_method" class="col-sm-7 control-label">Next Invoice</label>
+								<div class="col-sm-5">
+									<p class="form-control-static" ng-show="feeSummary.next_due_date===null"><i>Next invoice not generated.</i></p>
 									<p class="form-control-static" ng-show="feeSummary.next_due_date!==null" ng-class="{'text-warning': feeSummary.within30days}"><b> {{feeSummary.next_amount|numeric}} {{currency}} due {{feeSummary.next_due_date|date}}</b></p>
-								</div>	
-							</div>	
+								</div>
+							</div>
 							
 							<!-- amount overdue -->
-							<div class="form-group text-danger" ng-show="feeSummary.past_due">		
-								<label for="payment_method" class="col-sm-5 control-label">Amount Overdue</label>
-								<div class="col-sm-7">
+							<div class="form-group text-danger" ng-show="feeSummary.past_due">
+								<label for="payment_method" class="col-sm-7 control-label">Amount Overdue</label>
+								<div class="col-sm-5">
 									<p class="form-control-static">{{feeSummary.balance|numeric}} {{currency}}</p>
-								</div>	
-							</div>	
+								</div>
+							</div>
 							
 						</div>
 					</div>
-					<div class="col-sm-6">
+					<div class="col-sm-7">
 						<div class="info-boxes pull-right" ng-show="!nofeeSummary">
 							<div class="info-box alert alert-info">
 								Amount Due
@@ -533,8 +530,12 @@
 								<p>{{feeSummary.total_paid|currency:""}}<span>{{currency}}</span></p>
 							</div>
 							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning' : feeSummary.balance<0 && !feeSummary.past_due, 'alert-danger': feeSummary.past_due}">
-								Balance
-								<p>{{ feeSummary.balance|numeric}}<span>{{currency}}</span></p>
+								Balance Due
+								<p>{{ ( feeSummary.balance > 0 ? 0 : feeSummary.balance|numeric) }}<span>{{currency}}</span></p>
+							</div>
+							<div class="info-box alert" ng-class="{'alert-success': feeSummary.total_credit > 0, 'alert-default': feeSummary.total_credit==0}">
+								Credit
+								<p>{{ feeSummary.total_credit|currency:""}}<span>{{currency}}</span></p>
 							</div>
 						</div>
 						
@@ -564,36 +565,12 @@
 							<div ng-if="!feesGrid.data.length" class="no-results">No results found.</div>
 						</div>
 					</div>
-				</div>		
-				<!--
-				<table id="resultsTable2" class="display nowrap" cellspacing="0" width="100%">
-					<thead>
-						<tr>
-							<th></th>
-							<th>Item</th>
-							<th>Payment Method</th>
-							<th class="center">Opening Balance ({{currency}})</th>
-							<th class="center">Amount Paid ({{currency}})</th>
-							<th class="center">Balance ({{currency}})</th>
-						</tr>
-					</thead>	
-					<tbody>
-						<tr ng-repeat="item in fees track by $index" ng-class="{'alert-danger': item.balance>0, 'alert-success':item.balance==0}">
-							<td></td>
-							<td id="{{item.fee_item_id}}">{{item.fee_item}}</td>
-							<td>{{item.payment_method}}</td>
-							<td class="center">{{item.total_due|currency:""}}</td>
-							<td class="center">{{item.total_paid|currency:""}}</td>
-							<td class="center" data-order="{{item.balance}}">{{item.balance|numeric}}</td>
-						</tr>
-					</tbody>
-				</table>
-				-->
+				</div>
 			</script>
 			
 			<script type="text/ng-template" id="Invoices">
 				<div class="row">
-					<div class="col-xs-12">		
+					<div class="col-xs-12">
 						<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
 						<button ng-show="permissions.fees.invoices.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addInvoice()"><i class="glyphicon glyphicon-plus-sign"></i> Add Invoice</button>
 						<button ng-show="permissions.fees.invoices.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="printStatement()"><i class="glyphicon glyphicon-print"></i> Print Statement</button>
@@ -606,36 +583,12 @@
 						</div>
 					</div>
 				</div>
-				<!--
-				<table id="resultsTable2" class="display nowrap clickable" cellspacing="0" width="100%">
-					<thead>
-						<tr>
-							<th></th>
-							<th>Invoice Date</th>
-							<th>Due Date</th>
-							<th class="center">Amount ({{currency}})</th>
-							<th class="center">Amount Paid ({{currency}})</th>
-							<th class="center">Balance ({{currency}})</th>							
-						</tr>
-					</thead>	
-					<tbody>
-						<tr ng-repeat="item in invoices track by $index" ng-class="{'alert-danger': item.balance>0, 'alert-success':item.balance==0, 'canceled': item.canceled}">
-							<td></td>
-							<td ng-click="viewInvoice(item)" id="{{item.fee_item_id}}" data-order="{{item.inv_date}}">{{item.inv_date|date}}</td>
-							<td ng-click="viewInvoice(item)" data-order="{{item.due_date}}">{{item.due_date|date}}</td>
-							<td ng-click="viewInvoice(item)" class="center">{{item.total_due|currency:""}}</td>
-							<td ng-click="viewInvoice(item)" class="center">{{item.total_paid|currency:""}}</td>
-							<td ng-click="viewInvoice(item)" class="center">{{item.balance|numeric}}</td>							
-						</tr>
-					</tbody>
-				</table>
-				-->
 			</script>
 			
 			<script type="text/ng-template" id="Payments Received">
 			
 				<div class="row">
-					<div class="col-xs-12">		
+					<div class="col-xs-12">
 						<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
 					</div>
 				</div>
@@ -651,7 +604,7 @@
 			<script type="text/ng-template" id="Credits">
 			
 				<div class="row">
-					<div class="col-xs-12">		
+					<div class="col-xs-12">
 						<button ng-show="permissions.fees.payments_received.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addPayment()"><i class="glyphicon glyphicon-plus-sign"></i> Make Payment</button>
 					</div>
 				</div>
@@ -732,7 +685,7 @@
 											ng-checked="optFeeItemSelection.indexOf(item) > -1"
 											ng-click="toggleFeeItem(item,'optional')"
 										  > {{item.fee_item}}
-										</label>	
+										</label>
 
 										<div ng-if="item.fee_item == 'Transport'">
 											<select ng-show="showTransport" name="transport_route" class="form-control" ng-options="route.route for route in transportRoutes" ng-model="student.transport_route">

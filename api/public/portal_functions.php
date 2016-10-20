@@ -786,43 +786,6 @@ $app->get('/getStudentCreditsPortal/:student/:studentId', function ($school, $st
 
 });
 
-$app->get('/getStudentCreditsPortal/:student/:studentId', function ($school, $studentId) {
-    // Return students credits
-	
-	$app = \Slim\Slim::getInstance();
- 
-    try 
-    {
-        $db = setDBConnection($school);
-		
-		// get credits	
-		$sth = $db->prepare("SELECT credit_id, amount, amount_applied, amount - amount_applied as amount_available, creation_date::date, payment_id
-								FROM app.credits						
-								WHERE student_id = :studentID");
-		$sth->execute( array(':studentID' => $studentId));
-		$results = $sth->fetchAll(PDO::FETCH_OBJ);
-		
- 
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
 $app->get('/getStudentFeeItemsPortal/:school/:studentId', function ($school, $studentId) {
     // Get all students replaceable fee items
 	

@@ -23,8 +23,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	var initializeController = function()
 	{
 		var paymentMethods = $rootScope.currentUser.settings['Payment Methods'];
-		$scope.paymentMethods = paymentMethods.split(',');	
-				
+		$scope.paymentMethods = paymentMethods.split(',');
+		
+		
 		if( $scope.selectedStudent === undefined )
 		{
 			apiService.getAllStudents(true, function(response){
@@ -151,7 +152,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	
 	var loadInvoices = function(response,status)
 	{
-		$scope.loading = false;		
+		$scope.loading = false;
 		var result = angular.fromJson(response);
 				
 		if( result.response == 'success') 
@@ -167,6 +168,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		var currentItem = {};
 		var invoices = [];
 		var feeItems = []
+		var overallBalance = 0;
 		angular.forEach( invoiceData, function(item,key){
 		
 			if( key > 0 && currentInvoice != item.inv_id )
@@ -177,13 +179,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					inv_date: currentItem.inv_date,
 					due_date: currentItem.due_date,
 					balance: currentItem.balance,
-					overall_balance: currentItem.overall_balance,
+					overall_balance: overallBalance,
 					total_due: currentItem.total_due,
 					fee_items: feeItems,
 				});
 				
 				// reset
 				feeItems = [];
+				overallBalance = 0;
 			}
 			
 			feeItems.push({
@@ -197,9 +200,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				isPaid: parseInt(item.balance) === 0 ? true : false,
 				modifiable: parseInt(item.balance) < 0 ? true : false,
 			});
+			overallBalance += parseFloat(item.balance);
 			
 			currentInvoice = item.inv_id;
-			currentItem = item;				
+			currentItem = item;
 		});
 		// push in last row
 		invoices.push({
@@ -207,7 +211,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			inv_date: currentItem.inv_date,
 			due_date: currentItem.due_date,
 			balance: currentItem.balance,
-			overall_balance: currentItem.overall_balance,
+			overall_balance: overallBalance,
 			total_due: currentItem.total_due,
 			fee_items: feeItems,
 		});
@@ -363,44 +367,47 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 	};
 	
-	$scope.save = function()
+	$scope.save = function(theForm)
 	{
-		$scope.saveCredit = false;
-		
-		// make sure that the fee items selected do not total up to more than the payment amount
-		var totalFeeItems = $scope.feeItemsSelection.reduce(function(sum,item){
-			sum = sum + parseFloat(item.amount);
-			return sum;
-		},0);
-		
-		
-		if( $scope.payment.replacement_payment !== true )
+		if( !theForm.$invalid )
 		{
-			if( totalFeeItems > $scope.payment.amount )
+			$scope.saveCredit = false;
+			
+			// make sure that the fee items selected do not total up to more than the payment amount
+			var totalFeeItems = $scope.feeItemsSelection.reduce(function(sum,item){
+				sum = sum + parseFloat(item.amount);
+				return sum;
+			},0);
+			
+			
+			if( $scope.payment.replacement_payment !== true )
 			{
-				var dlg = $dialogs.error('Amount Inconsistency','<p>You have entered <strong>' + $filter('number')(totalFeeItems) + ' Ksh</strong> towards fee items, however to total payment amount entered was <strong>' + $filter('number')($scope.payment.amount) + ' Ksh</strong>.</p><p>Please correct, the total amount applied to fee items can not exceed the total payment amount.</p>', {size:'sm'});
-			}
-			else if ( totalFeeItems < $scope.payment.amount )
-			{
-				$scope.creditAmt = $scope.payment.amount - totalFeeItems;
-				var dlg = $dialogs.confirm('Unapplied Payment','<p>You have <strong>' +  $filter('number')(($scope.creditAmt)) + ' Ksh</strong> that has not been applied to fee items, do you wish to continue and add this amount as a credit?</p>', {size:'sm'});
-				dlg.result.then(function(btn){
-					 // save the form
-					 $scope.saveCredit = true;
-					 savePayment();
-					 
-				},function(btn){
-					$scope.saveCredit = false;
-				});
+				if( totalFeeItems > $scope.payment.amount )
+				{
+					var dlg = $dialogs.error('Amount Inconsistency','<p>You have entered <strong>' + $filter('number')(totalFeeItems) + ' Ksh</strong> towards fee items, however to total payment amount entered was <strong>' + $filter('number')($scope.payment.amount) + ' Ksh</strong>.</p><p>Please correct, the total amount applied to fee items can not exceed the total payment amount.</p>', {size:'sm'});
+				}
+				else if ( totalFeeItems < $scope.payment.amount )
+				{
+					$scope.creditAmt = $scope.payment.amount - totalFeeItems;
+					var dlg = $dialogs.confirm('Adding Credit','<p>You have <strong>' +  $filter('number')(($scope.creditAmt)) + ' Ksh</strong> that has not been applied to fee items, do you wish to add this as a credit?</p>', {size:'sm'});
+					dlg.result.then(function(btn){
+						 // save the form
+						 $scope.saveCredit = true;
+						 savePayment();
+						 
+					},function(btn){
+						$scope.saveCredit = false;
+					});
+				}
+				else
+				{
+					savePayment();
+				}
 			}
 			else
 			{
 				savePayment();
 			}
-		}
-		else
-		{
-			savePayment();
 		}
 	}
 	

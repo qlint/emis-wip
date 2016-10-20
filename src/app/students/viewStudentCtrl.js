@@ -49,9 +49,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
 	}
+	
 	var rowTemplate3 = function() 
 	{
-		return '<div ng-class="{\'alert-success\':row.entity.balance==0 }">' +
+		return '<div class="clickable"  ng-class="{\'canceled\':row.entity.amount_available==0 }">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
@@ -107,7 +108,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{ name: 'Payment Date', field: 'payment_date', enableColumnMenu: false , type: 'date', sort: {direction: 'desc' }, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_date|date}}</div>'},
 			{ name: 'Payment Method', field: 'payment_method', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_method}}</div>'},
 			{ name: names[0], field: 'amount', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.amount|currency:""}}</div>'},
-			{ name: 'Applied To', field: 'applied_to', enableColumnMenu: false , width:200, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.applied_to|arrayToList}}</div>'},
+			{ name: 'Applied To', field: 'applied_to', enableColumnMenu: false , width:200, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)" ng-bind-html="row.entity.applied_to"></div>'},
 			{ name: 'Amount Unapplied', field: 'unapplied_amount', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)" ng-class="{\'alert-danger\': row.entity.unapplied_amount>0}">{{row.entity.unapplied_amount|currency:""}}</div>'},
 			{ name: 'Replacement?', field: 'replacement', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.replacement}}</div>'},
 			{ name: 'Reversed?', field: 'reverse', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.reverse}}</div>'},
@@ -125,11 +126,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		rowTemplate: rowTemplate3(),
 		rowHeight:34,
 		columnDefs: [
-			{ name: 'Payment Date', field: 'creation_date', enableColumnMenu: false , type: 'date', sort: {direction: 'desc' }},
-			{ name: 'Payment No.', field: 'receipt_number', enableColumnMenu: false },
-			{ name: names[0], field: 'amount', cellFilter:'currency:""', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center'},
-			{ name: names[3], field: 'amount_applied', cellFilter:'currency:""', enableColumnMenu: false, headerCellClass: 'center', cellClass:'center'},
-			{ name: names[4], field: 'amount_available', cellFilter:'currency:""', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-class="{\'alert-success\': row.entity.amount_available>0}">{{row.entity.amount_available|currency:""}}</div>'},
+			{ name: 'Receipt', field: 'payment_id', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false , width:60, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.getReceipt(row.entity)"><i class="glyphicon glyphicon-file"></i><br>{{row.entity.receipt_number}}</div>'},
+			{ name: 'Payment Date', field: 'payment_date', enableColumnMenu: false , type: 'date', sort: {direction: 'desc' }, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_date|date}}</div>'},
+			{ name: 'Payment Method', field: 'payment_method', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_method}}</div>'},
+			{ name: names[0], field: 'amount', cellFilter:'currency:""', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.amount|currency:""}}</div>'},
+			{ name: names[3], field: 'amount_applied', cellFilter:'currency:""', enableColumnMenu: false, headerCellClass: 'center', cellClass:'center', cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.amount_applied|currency:""}}</div>'},
+			{ name: names[4], field: 'amount_available', cellFilter:'currency:""', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)" ng-class="{\'alert-success\': row.entity.amount_available>0}">{{row.entity.amount_available|currency:""}}</div>'},
 		],
 		onRegisterApi: function(gridApi){
 		  $scope.gridApi = gridApi;
@@ -655,18 +657,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 		else if( tab == 'Invoices' )
 		{
-			$scope.loading = true;			
+			$scope.loading = true;
 			// TO DO: ability to send invoice canceled status
 			getInvoices();
 		}
 		else if( tab == 'Payments Received' )
 		{
-			$scope.loading = true;			
+			$scope.loading = true;
 			getPayments();
 		}
 		else if( tab == 'Credits' )
 		{
-			$scope.loading = true;			
+			$scope.loading = true;
 			getCredits();
 		}
 	}
@@ -693,7 +695,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var loadFeeBalance = function(response,status)
 	{
-		$scope.loading = false;		
+		$scope.loading = false;
 		var result = angular.fromJson(response);
 				
 		if( result.response == 'success') 
@@ -793,7 +795,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var loadPayments = function(response,status)
 	{
-		$scope.loading = false;		
+		$scope.loading = false;
 		var result = angular.fromJson(response);
 				
 		if( result.response == 'success') 
@@ -807,20 +809,25 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				return item;
 			});
 			
+			// remove credit only payments, as these appear under credit section
+			$scope.payments = $scope.payments.filter(function(item){
+				if( item.applied_to !== 'Credit' ) return item;
+			});
+			
 			if( $scope.currentFeeTab == 'Payments Received' ) initPaymentsDataGrid($scope.payments);
 		}
 	}
 	
 	var loadCredits = function(response,status)
 	{
-		$scope.loading = false;		
+		$scope.loading = false;
 		var result = angular.fromJson(response);
 				
 		if( result.response == 'success') 
 		{
 			var credits = ( result.nodata ? [] : angular.copy(result.data) );
 			$scope.credits = credits.map(function(item){
-				item.creation_date = $filter('date')(item.creation_date);
+				item.payment_date = $filter('date')(item.payment_date);
 				item.receipt_number = $rootScope.zeroPad(item.payment_id,5);
 				return item;
 			});
@@ -892,7 +899,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// update invoices
 			getStudentBalance();
 			getPayments();
-			
+			getCredits();
 		},function(){
 			// update invoices
 			getStudentBalance();

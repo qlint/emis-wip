@@ -87,11 +87,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				
 		apiService.getStudentBalance($scope.selectedStudent.student_id, function(response,status)
 		{
-			$scope.loading = false;		
+			$scope.loading = false;
 			var result = angular.fromJson(response);
 					
 			if( result.response == 'success') 
-			{				
+			{
 				if( result.nodata === undefined )
 				{
 					$scope.feeSummary = angular.copy(result.data.fee_summary);
@@ -115,14 +115,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 						$scope.hasCredit = true;
 						$scope.credit = parseFloat($scope.feeSummary.total_credit);
 					}
-				}			
+				}
 			}
 			
 			// get student fee items if not already set
 			if( $scope.selectedStudent !== undefined && $scope.studentFeeItems === undefined )
 			{
-				apiService.getStudentFeeItems($scope.selectedStudent.student_id,function(response,status){			
-					var result = angular.fromJson(response);							
+				apiService.getStudentFeeItems($scope.selectedStudent.student_id,function(response,status){
+					var result = angular.fromJson(response);
 					if( result.response == 'success')  $scope.studentFeeItems = angular.copy(result.data);
 				
 				},apiError);
@@ -322,7 +322,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	{
 		$scope.activeInvoice = key;
 		$scope.invoiceLineItems = $scope.invoices[key];
-		$scope.totals.balance = $scope.invoiceTotal[key];
+		$scope.totals.balance = angular.copy($scope.invoiceTotal[key]);
 		$scope.sumInvoice();
 	}
 	
@@ -351,7 +351,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		
 		
 		// sum all totals if automatic
-		if( $scope.filters.method == 'automatic' )
+		if( $scope.filters.method == 'system' )
 		{
 			$scope.invoiceTotal = {};
 			angular.forEach($scope.invoices, function(item,key){
@@ -391,31 +391,33 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	$scope.applyCredit = function()
 	{
 		$scope.creditApplied = !$scope.creditApplied;
+		var invoiceTotal = angular.copy($scope.totals.invoice);
 		
 		// credit is applied
 		if( $scope.creditApplied )
 		{
 			// if credit is larger than the invoice total, only apply as much as invoice
-			if( $scope.totals.invoice < $scope.credit )
+			if( invoiceTotal < $scope.credit )
 			{
-				$scope.appliedCreditAmt = angular.copy($scope.totals.invoice);
-				$scope.creditAvailable = $scope.credit - $scope.totals.invoice;
-				$scope.totals.balance = $scope.totals.invoice - $scope.appliedCreditAmt;
+				$scope.appliedCreditAmt = invoiceTotal;
+				$scope.creditAvailable = $scope.credit - invoiceTotal;
+				$scope.totals.balance = invoiceTotal - $scope.appliedCreditAmt;
 			}
 			else
 			{
 				$scope.appliedCreditAmt = $scope.credit;
 				$scope.creditAvailable = 0;
-				$scope.totals.balance = $scope.totals.invoice - $scope.credit;
+				$scope.totals.balance = invoiceTotal - $scope.credit;
 			}
 		}
 		else
 		{
 			// credit is not applied
-			$scope.totals.balance = $scope.totals.invoice;
+			$scope.totals.balance = invoiceTotal;
 			$scope.creditAvailable = $scope.credit;
 			$scope.appliedCreditAmt = 0;
 		}
+		console.log($scope.invoiceTotal);
 
 	}
 
@@ -431,8 +433,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		var lineItems = [];
 		
 		
-		if( $scope.filters.method == 'automatic' )
+		if( $scope.filters.method == 'system' )
 		{
+			console.log($scope.invoiceTotal);
+			
 			angular.forEach($scope.invoices, function(items,key){
 				lineItems = [];
 				angular.forEach(items, function(item,key2){
@@ -488,7 +492,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			
 			if( $scope.creditApplied )
 			{
-				showCreditApplyForm(result.data);					
+				showCreditApplyForm(result.data);
 			}
 			else
 			{

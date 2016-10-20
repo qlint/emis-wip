@@ -952,7 +952,7 @@ table.dataTable tbody tr.alert-info td,
 table.dataTable tbody tr.canceled td,
 div.canceled div.ui-grid-cell{
 	text-decoration:line-through;
-	background-color:#ccc!important;
+	/*background-color:#ccc!important;*/
 	color:#aaa!important;
 }
 
@@ -1177,6 +1177,19 @@ table.clickable{
 			padding-left:25px;
 		}
 
+	}
+	.form-horizontal{
+		.static{
+			.form-group{
+				border-bottom:1px solid #eee;
+				margin-right:0;
+			}
+			.form-control-static{
+				padding:0 5px;
+				min-height: 15px;
+				height:15px;
+			}
+		}
 	}
 	
 	.modal-tabs.main-tabs{
@@ -1857,7 +1870,7 @@ table.clickable{
 		}
 	}
 	
-	.info-boxes{	
+	.info-boxes{
 		
 		.info-box{
 			padding:8px;
@@ -1870,7 +1883,7 @@ table.clickable{
 			
 			p{
 				display:block;
-				font-size:20px;
+				font-size:15px;
 				font-weight:bold;
 				
 				span{

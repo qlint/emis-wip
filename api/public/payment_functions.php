@@ -1,12 +1,12 @@
 <?php
 $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStatus)', function ($startDate,$endDate, $paymentStatus = false, $studentStatus = null) {
-    // Get all payment received for given date range
+	// Get all payment received for given date range
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+			$db = getDB();
 		$query = "SELECT payments.student_id, 
 						 payment_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 						 amount, payment_date, payments.payment_method,
@@ -52,31 +52,31 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 		}
 		
 		
-        $sth = $db->prepare($query);
+		$sth = $db->prepare($query);
 		$sth->execute( $queryParams ); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
  
-        if($results) {
+		if($results) {
 			foreach( $results as $result)
 			{
 				$result->applied_to = pg_array_parse($result->applied_to);
 			}
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+	} catch(PDOException $e) {
+			$app->response()->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
@@ -284,7 +284,7 @@ $app->get('/getInstallmentOptions', function () {
 });
 
 $app->post('/addPayment', function () use($app) {
-    // create payment	
+	// create payment
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
 	$userId = 				( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
@@ -301,10 +301,10 @@ $app->post('/addPayment', function () use($app) {
 	$updateCredit =			( isset($allPostVars['updateCredit']) ? $allPostVars['updateCredit']: false);
 	$amtApplied =			( isset($allPostVars['amtApplied']) ? $allPostVars['amtApplied']: null);
 	
-    try 
-    {
-        $db = getDB();
-        $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by) 
+	try 
+	{
+		$db = getDB();
+		$payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by) 
 									VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId)");
 		
 		$credit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount, created_by) 
@@ -322,19 +322,19 @@ $app->post('/addPayment', function () use($app) {
 											modified_by = :userId
 										WHERE credit_id = :creditId");
 
-										
+		
 		if( count($lineItems) > 0 )
-		{	
+		{
 			$paymentItems = $db->prepare("INSERT INTO app.payment_inv_items(payment_id, inv_id, inv_item_id, amount, created_by)
 									VALUES(currval('app.payments_payment_id_seq'), :invId, :invItemId, :amount, :userId)");
 		}
 		if( count($replacementItems) > 0 )
 		{
 			$replaceItems = $db->prepare("INSERT INTO app.payment_replacement_items(payment_id, student_fee_item_id, amount, created_by)
-									VALUES(currval('app.payments_payment_id_seq'), :studenFeeItemId, :amount, :userId)");							
+									VALUES(currval('app.payments_payment_id_seq'), :studenFeeItemId, :amount, :userId)");
 		}
  
-		$db->beginTransaction();	
+		$db->beginTransaction();
 		
 			
 		$payment->execute( array(':studentId' => $studentId, 
@@ -397,61 +397,56 @@ $app->post('/addPayment', function () use($app) {
 				$creditRemaining = $creditRemaining - $row->credit_available;
 				if( $creditRemaining > 0 )
 				{
-					// still amtApplied remaining, update this record to 0 and continue
-					// update amount_applied to full amount of credit (0 available)
+					// the credit we are applying is greater than this credit entry
+					// set its amount_applied value equal to its amount, to mark is as all applied
 					$updateCreditQry->execute(array(':creditId' => $row->credit_id,
 									':amtApplied' => $row->amount,
 									':userId' => $userId ) );
-					break;
 				}
 				else
 				{
-					// still some credit left, update $row->credit_available
-					$newAmtApplied = $row->amount_applied + $creditRemaining;
+					// if the credit entry has more credit than we are applying
+					// need to update the amount_applied to the amount of credit left
 					$updateCreditQry->execute(array(':creditId' => $row->credit_id,
 									':amtApplied' => $curCredit,
 									':userId' => $userId ) );
 				}
 				$curCredit = $creditRemaining;
 			}
-			
-			
 		}
 		
 		$db->commit();
 	
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
-    // Get all payment details
+	// Get all payment details
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-       $db = getDB();
+	try 
+	{
+		 $db = getDB();
 	
 		// get payment data
-       $sth = $db->prepare("SELECT payments.payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
+		$sth = $db->prepare("SELECT payments.payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
 									payments.student_id, replacement_payment, reversed, reversed_date, credit_id --,payments.inv_id
 							FROM app.payments
 							LEFT JOIN app.credits ON payments.payment_id = credits.payment_id
 							WHERE payments.payment_id = :paymentId
-	   ");
+		");
 		$sth->execute( array(':paymentId' => $paymentId) ); 
-        $results1 = $sth->fetch(PDO::FETCH_OBJ);
+		$results1 = $sth->fetch(PDO::FETCH_OBJ);
 		
 		// get what the payment was applied to
 		$sth2 = $db->prepare("SELECT payment_inv_item_id, payment_inv_items.inv_item_id,
@@ -475,15 +470,16 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 								ON student_fee_items.fee_item_id = fee_items.fee_item_id
 							ON payment_replacement_items.student_fee_item_id = student_fee_items.student_fee_item_id
 							WHERE payment_id = :paymentId
+							ORDER BY inv_id
 							");
 		$sth2->execute( array(':paymentId' => $paymentId) ); 
-        $results2 = $sth2->fetchAll(PDO::FETCH_OBJ);
+		$results2 = $sth2->fetchAll(PDO::FETCH_OBJ);
 		
 		// Loop through and get unique inv_ids for next query 
 		$invIds = array();
 		foreach($results2 as $result2){
 			if( !in_array( $result2->inv_id, $invIds ) ) $invIds[] = $result2->inv_id;
-		}		
+		}
 		$invIdStr = '{' . implode(',', $invIds) . '}';
 		
 		// get the invoice details that payment was applied to
@@ -510,7 +506,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 							INNER JOIN app.terms
 							ON invoices.term_id = terms.term_id
 							WHERE invoices.inv_id = any(:invIds)
-							ORDER BY due_date, fee_item");
+							ORDER BY inv_id, due_date, fee_item");
 		$sth3->execute( array(':invIds' => $invIdStr) ); 
     $results3 = $sth3->fetchAll(PDO::FETCH_OBJ);
 		
@@ -519,28 +515,28 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 		$results->paymentItems = $results2;
 		$results->invoice = $results3;
  
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->put('/updatePayment', function() use($app){
-	 // Update payment	
+	 // Update payment
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	$paymentId = 			( isset($allPostVars['payment_id']) ? $allPostVars['payment_id']: null);
 	$userId = 				( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
@@ -558,8 +554,8 @@ $app->put('/updatePayment', function() use($app){
 	$creditId =				( isset($allPostVars['creditId']) ? $allPostVars['creditId']: null);
 	
 	try 
-    {
-        $db = getDB();
+	{
+		$db = getDB();
 		
 		$updatePayment = $db->prepare("UPDATE app.payments
 										SET payment_date = :paymentDate,
@@ -580,6 +576,8 @@ $app->put('/updatePayment', function() use($app){
 											modified_by = :userId
 										WHERE credit_id = :creditId");
 										
+		$deleteCredit = $db->prepare("DELETE FROM app.credits WHERE credit_id = :creditId");
+		
 		// prepare the possible statements
 		if( count($lineItems) > 0 ) 
 		{
@@ -609,7 +607,7 @@ $app->put('/updatePayment', function() use($app){
 										WHERE payment_replace_item_id = :paymentReplaceItemId");
 			
 			$replaceItemInsert = $db->prepare("INSERT INTO app.payment_replacement_items(payment_id, student_fee_item_id, amount, created_by)
-										VALUES(:paymentId, :studentFeeItemId, :amount, :userId)");	
+										VALUES(:paymentId, :studentFeeItemId, :amount, :userId)");
 			
 
 			$replaceDeleteLine = $db->prepare("DELETE FROM app.payment_replacement_items WHERE payment_replace_item_id = :paymentReplaceItemId");
@@ -627,7 +625,7 @@ $app->put('/updatePayment', function() use($app){
 		// get what is already set for this payment
 		$query = $db->prepare("SELECT payment_inv_item_id FROM app.payment_inv_items WHERE payment_id = :paymentId");
 		$query->execute( array('paymentId' => $paymentId) );
-		$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);	
+		$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);
 		
 		$db->beginTransaction();
 	
@@ -638,16 +636,16 @@ $app->put('/updatePayment', function() use($app){
 						':slipChequeNo' => $slipChequeNo,
 						':replacementPayment' => $replacementPayment,
 						':userId' => $userId
-		) );	
+		) );
 		
-		if( count($lineItems) > 0 ) 
-		{		
+		if( count($lineItems) > 0 )
+		{
 	
 			// loop through and add or update
 			foreach( $lineItems as $lineItem )
 			{
 				$amount = 			( isset($lineItem['amount']) ? $lineItem['amount']: null);
-				$paymentInvItemId = ( isset($lineItem['payment_inv_item_id']) ? $lineItem['payment_inv_item_id']: null);		
+				$paymentInvItemId = ( isset($lineItem['payment_inv_item_id']) ? $lineItem['payment_inv_item_id']: null);
 				$invId = 			( isset($lineItem['inv_id']) ? $lineItem['inv_id']: null);
 				$invItemId = 		( isset($lineItem['inv_item_id']) ? $lineItem['inv_item_id']: null);
 				
@@ -679,9 +677,9 @@ $app->put('/updatePayment', function() use($app){
 			
 		
 			// look for items to remove
-			// compare to what was passed in			
+			// compare to what was passed in
 			foreach( $currentLineItems as $currentLineItem )
-			{	
+			{
 				$deleteMe = true;
 				// if found, do not delete
 				foreach( $lineItems as $lineItem )
@@ -705,13 +703,13 @@ $app->put('/updatePayment', function() use($app){
 		}
 		
 		if( count($replacementItems) > 0 ) 
-		{					
+		{
 			
 			// loop through and add or update
 			foreach( $replacementItems as $replacementItem )
 			{
 				$amount = 				( isset($replacementItem['amount']) ? $replacementItem['amount']: null);
-				$paymentReplaceItemId = ( isset($replacementItem['payment_replace_item_id']) ? $replacementItem['payment_replace_item_id']: null);				
+				$paymentReplaceItemId = ( isset($replacementItem['payment_replace_item_id']) ? $replacementItem['payment_replace_item_id']: null);
 				$studentFeeItemId = 	( isset($replacementItem['student_fee_item_id']) ? $replacementItem['student_fee_item_id']: null);
 				
 				// this item exists, update it, else insert
@@ -741,7 +739,7 @@ $app->put('/updatePayment', function() use($app){
 			
 		
 			// look for items to remove
-			// compare to what was passed in			
+			// compare to what was passed in
 			foreach( $currentReplaceItems as $currentReplaceItem )
 			{	
 				$deleteMe = true;
@@ -771,9 +769,16 @@ $app->put('/updatePayment', function() use($app){
 		{
 			if( $creditId !== null )
 			{
-				$updateCreditQry->execute(array(':creditId' => $creditId,
+				if( $creditAmt > 0 )
+				{
+					$updateCreditQry->execute(array(':creditId' => $creditId,
 										':creditAmt' => $creditAmt,
 										':userId' => $userId ) );
+				}
+				else
+				{
+					$deleteCredit->execute(array(':creditId' => $creditId));
+				}
 			}
 			else
 			{
@@ -787,18 +792,15 @@ $app->put('/updatePayment', function() use($app){
 		$db->commit();
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-		
-		$db->rollBack();
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+	} catch(PDOException $e) {
+		$db->rollBack();
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
@@ -890,37 +892,37 @@ $app->put('/reactivatePayment', function() use($app) {
     }
 });
 
-$app->delete('/deletePayment/payment_id', function ($paymentId){
+$app->delete('/deletePayment/:payment_id', function ($paymentId){
 	// delete payment
 	$app = \Slim\Slim::getInstance();
 	try 
-  {
-    $db = getDB();
+	{
+
+		$db = getDB();
 		$removePaymentItems = $db->prepare("DELETE FROM app.payment_inv_items WHERE payment_id = :paymentId");
-		$removePayment = $db->prepare("DELETE FROM app.payments	WHERE payment_id = :paymentId");
+		$removePayment = $db->prepare("DELETE FROM app.payments WHERE payment_id = :paymentId");
 		$removeCredit = $db->prepare("DELETE FROM app.credits WHERE payment_id = :paymentId");
 		$removeReplacment = $db->prepare("DELETE FROM app.payment_replacement_items WHERE payment_id = :paymentId");
 		
 		$db->beginTransaction();
-		$removePaymentItems->execute( array(':paymentId' => $paymentId) );	
-		$removePayment->execute( array(':paymentId' => $paymentId) );	
+		$removePaymentItems->execute( array(':paymentId' => $paymentId) );
+		$removePayment->execute( array(':paymentId' => $paymentId) );
 		$removeCredit->execute( array(':paymentId' => $paymentId) );
 		$removeReplacment->execute( array(':paymentId' => $paymentId) );
 		$db->commit();
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+		
+	} catch(PDOException $e) {
 		
 		$db->rollBack();
-        $app->response()->setStatus(404);
+		$app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 });
 
 

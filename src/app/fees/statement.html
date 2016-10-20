@@ -78,7 +78,7 @@
 					<label>Outstanding Balance:</label>
 				</div>
 				<div class="col-xs-9">
-					<p class="form-control-static"><b>{{grandTotalBalance|numeric}}  {{currency}}
+					<p class="form-control-static"><b>{{( grandTotalBalance < 0 ? '0' : grandTotalBalance|numeric) }}  {{currency}}
 						<span ng-show="hasCredit"> Credit of {{totalCredits|currency:""}}  {{currency}}</span></b>
 					</p>
 				</div>

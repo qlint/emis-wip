@@ -30,11 +30,22 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			
 			$scope.paymentDetails = results.paymentItems;
 			var invoiceItems = results.invoice;
-			var termName = invoiceItems[0].term_name;
-			// we only want the number
-			termName = termName.split(' ');
-			$scope.term_name = (invoiceItems.length > 0 ? termName[1] : '');
-			$scope.term_year = (invoiceItems.length > 0 ? invoiceItems[0].term_year : '');
+			
+			if( invoiceItems.length > 0 )
+			{
+				var termName = invoiceItems[0].term_name;
+				// we only want the number
+				termName = termName.split(' ');
+				$scope.term_name = (invoiceItems.length > 0 ? termName[1] : '');
+				$scope.term_year = (invoiceItems.length > 0 ? invoiceItems[0].term_year : '');
+				
+				var invoiceTotal = invoiceItems.reduce(function(sum,item){
+					sum += parseFloat(item.line_item_amount);
+					return sum;
+				},0);
+				$scope.balanceDue = $scope.payment.amount - invoiceTotal;
+				$scope.hasCredit = ($scope.balanceDue > 0 ? true : false);
+			}
 			
 			$scope.paymentItems = [];
 			var totalAmt = 0;
@@ -42,6 +53,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			angular.forEach( $scope.paymentDetails, function(item,key){
 				amt = item.line_item_amount.split('.'),
 				$scope.paymentItems.push( {
+					inv_id: item.inv_id,
 					fee_item: item.fee_item,
 					ksh: amt[0],
 					cts: amt[1]
@@ -52,17 +64,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			var amt = ( String(totalAmt).indexOf('.') > -1 ? String(totalAmt).split('.') : [totalAmt,'00']);
 			$scope.totalAmtKsh = amt[0];
 			$scope.totalAmtCts = amt[1];
-			
-			if( invoiceItems.length > 0 )
-			{
-			
-				var invoiceTotal = invoiceItems.reduce(function(sum,item){
-					sum += parseFloat(item.line_item_amount);
-					return sum;
-				},0);
-				$scope.balanceDue = $scope.payment.amount - invoiceTotal;
-				$scope.hasCredit = ($scope.balanceDue > 0 ? true : false);
-			}
 
 		}
 		else
