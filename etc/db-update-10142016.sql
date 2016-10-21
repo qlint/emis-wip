@@ -1,4 +1,5 @@
-﻿ALTER TABLE app.subjects ADD COLUMN use_for_grading boolean NOT NULL DEFAULT true;
+﻿BEGIN;
+ALTER TABLE app.subjects ADD COLUMN use_for_grading boolean NOT NULL DEFAULT true;
 ALTER TABLE app.invoices ADD COLUMN term_id integer;
 
 CREATE OR REPLACE FUNCTION app.set_invoice_term()
@@ -19,7 +20,6 @@ end;
 $BODY$
   LANGUAGE plpgsql VOLATILE;
 
-select * from app.set_invoice_term();
 
 CREATE OR REPLACE VIEW app.invoice_balances2 AS 
  SELECT invoices.student_id, invoices.inv_id, invoices.inv_date, max(invoices.total_amount) AS total_due, COALESCE(sum(payment_inv_items.amount), 0::numeric) AS total_paid, COALESCE(sum(payment_inv_items.amount), 0::numeric) - max(invoices.total_amount) AS balance, invoices.due_date, 
@@ -32,3 +32,5 @@ CREATE OR REPLACE VIEW app.invoice_balances2 AS
    LEFT JOIN (app.payment_inv_items
    JOIN app.payments ON payment_inv_items.payment_id = payments.payment_id AND payments.reversed IS FALSE) ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id) ON invoices.inv_id = invoice_line_items.inv_id
   GROUP BY invoices.student_id, invoices.inv_id;
+COMMIT;
+select * from app.set_invoice_term();

@@ -109,7 +109,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				
 				$scope.rawReportCards = result.data;
 					
-				$scope.reportCards = {};				
+				$scope.reportCards = {};
 				
 				// group the reports by student
 				$scope.reportCards.students = [];
@@ -171,7 +171,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			student_id :item.student_id,
 			student_name : item.student_name,
 			admission_number: item.admission_number,
-			class_teacher_id: item.teacher_id
+			class_teacher_id: item.teacher_id,
+			report_card_type: item.report_card_type
 		}
 		var data = {
 			student : student,
@@ -327,8 +328,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 		$scope.openModal('exams', 'reportCard', 'lg', data);
 	}
-	
-
 	
 	$scope.$on('refreshReportCards', function(event, args) {
 

@@ -6,6 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$rootScope.isPrinting = false;
 	$scope.student = data.student || undefined;
+	console.log($scope.student);
 	$scope.reportCardType = ($scope.student !== undefined ? $scope.student.report_card_type : undefined);
 	$scope.showSelect = ( $scope.student === undefined ? true : false );
 	$scope.classes = data.classes || [];
@@ -27,6 +28,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	
 	var initializeController = function()
 	{
+		console.log($scope.reportCardType);
 		if( $scope.reportCardType == 'Standard' )
 		{
 			// get exam types
