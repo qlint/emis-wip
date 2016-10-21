@@ -435,8 +435,8 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 								invoice_line_items.inv_item_id,
 								fee_item,
 								invoice_line_items.amount as line_item_amount,
-								(select term_name from app.terms where due_date between start_date and end_date) as term_name,
-								(select date_part('year',start_date) from app.terms where due_date between start_date and end_date) as term_year,
+								term_name,
+								date_part('year',terms.start_date) as term_year,
 								invoices.canceled
 							FROM app.invoices
 							INNER JOIN app.invoice_line_items
@@ -444,6 +444,8 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+							INNER JOIN app.terms
+							ON invoices.term_id = terms.term_id
 								/*
 								LEFT JOIN app.payment_inv_items
 									INNER JOIN app.payments

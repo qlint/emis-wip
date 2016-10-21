@@ -583,8 +583,11 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
 		
 		// get invoices
 		// TO DO: I only want invoices for this school year?	
-		$sth = $db->prepare("SELECT invoice_balances2.*, (select term_name from app.terms where due_date between start_date and end_date) as term_name
+		$sth = $db->prepare("SELECT invoice_balances2.*, 
+												term_name
 								FROM app.invoice_balances2
+								INNER JOIN app.terms
+								ON invoice_balances2.term_id = terms.term_id
 								WHERE student_id = :studentId 
 								AND canceled is false ORDER BY inv_date");
 		$sth->execute( array(':studentId' => $studentId));
@@ -1089,8 +1092,8 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
 								invoice_line_items.inv_item_id,
 								fee_item,
 								invoice_line_items.amount as line_item_amount,
-								(select term_name from app.terms where due_date between start_date and end_date) as term_name,
-								(select date_part('year',start_date) from app.terms where due_date between start_date and end_date) as term_year
+								term_name,
+								date_part('year',terms.start_date) as term_year
 							FROM app.invoice_balances2
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
@@ -1102,6 +1105,8 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
 									ON payment_inv_items.payment_id = payments.payment_id AND payments.reversed IS FALSE
 								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id								
 							ON invoice_balances2.inv_id = invoice_line_items.inv_id
+							INNER JOIN app.terms
+							ON invoice_balances2.term_id = terms.term_id
 							WHERE payment_inv_items.payment_id = :paymentId
 							ORDER BY due_date, fee_item");
 		$sth3->execute( array(':paymentId' => $paymentId) ); 

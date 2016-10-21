@@ -424,9 +424,11 @@ $app->get('/getStudentInvoices/:studentId', function ($studentId) {
 																		on student_fee_items.fee_item_id = fee_items.fee_item_id
 																		on invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
 																		where inv_id = invoice_balances2.inv_id) as invoice_items,
-																		(select term_name from app.terms where due_date between start_date and end_date) as term_name,
-																		date_part('year', due_date) as year
+																		term_name,
+																		date_part('year', terms.start_date) as year
 													FROM app.invoice_balances2 
+													INNER JOIN app.terms
+													ON invoice_balances2.term_id = terms.term_id
 													WHERE student_id = :studentId ORDER BY inv_date");
 			$sth->execute( array(':studentId' => $studentId));
 			$results = $sth->fetchAll(PDO::FETCH_OBJ);
