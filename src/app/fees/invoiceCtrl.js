@@ -6,6 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 	console.log(data.invoice);
 	$scope.invoice = data.invoice;
 	$scope.student = data.student;
+	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	
 	var termName = $scope.invoice.term_name;
 	// we only want the number

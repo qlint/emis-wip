@@ -64,6 +64,7 @@
 							<thead>
 								<tr>
 									<th>Student</th>
+									<th>Plan</th>
 									<th class="center">Amount</th>
 									<th>Fee Items</th>
 								</tr>
@@ -71,6 +72,7 @@
 							<tbody>
 								<tr ng-repeat="item in invoices[activeMonth] track by $index">
 									<td>{{item.student_name}}</td>
+									<td>{{item.payment_plan_name}}</td>
 									<td class="center">{{item.total_amount|currency:""}}</td>
 									<td>{{item.fee_items|arrayToList}}</td>
 								</tr>

@@ -444,15 +444,9 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+							ON invoices.inv_id = invoice_line_items.inv_id
 							INNER JOIN app.terms
 							ON invoices.term_id = terms.term_id
-								/*
-								LEFT JOIN app.payment_inv_items
-									INNER JOIN app.payments
-									ON payment_inv_items.payment_id = payments.payment_id AND payments.reversed IS FALSE
-								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id		
-								*/
-							ON invoices.inv_id = invoice_line_items.inv_id
 							WHERE invoices.inv_id = any(:invIds)
 							ORDER BY due_date, fee_item");
 		$sth3->execute( array(':invIds' => $invIdStr) ); 

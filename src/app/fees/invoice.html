@@ -13,7 +13,12 @@
 				<p>CANCELED</p>
 			</div>
 			
-			<img ng-if="useLetterhead" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+			<div class="receipt-header-letterhead" ng-if="useLetterhead">
+				<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+				<h2 class="receipt-title">Invoice</h2>
+			</div>
+			
+			
 			
 			<div class="row" ng-if="!useLetterhead">
 				<div class="col-xs-2">
@@ -27,76 +32,20 @@
 						<p>Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
 						<p>Email: {{currentUser.settings['Email Address']}}</p>
 					</div>
-					<div class="row">
-						<div class="col-xs-8 nopad">
-							<label class="pull-right">Invoice No.:</label>
-						</div>
-						<div class="col-xs-4">
-							<p class="form-control-static">{{invoice.inv_id}}</p>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xs-8 nopad">
-							<label class="pull-right">Invoice Date:</label>
-						</div>
-						<div class="col-xs-4">
-							<p class="form-control-static">{{invoice.inv_date|date}}</p>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xs-8 nopad">
-							<label class="pull-right">Due Date:</label>
-						</div>
-						<div class="col-xs-4">
-							<p class="form-control-static">{{invoice.due_date|date}}</p>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-2 nopad-right">
-					<label>Invoice For:</label>
-				</div>
-				<div class="col-xs-9 lesspad">
-					<p class="form-control-static">{{student.student_name}}</p>
 				</div>
 			</div>
 			
-			<div class="row">
-				<div class="col-xs-2 nopad-right">
-					<label>Admission No:</label>
-				</div>
-				<div class="col-xs-3 lesspad">
-					<p class="form-control-static">{{student.admission_number}}</p>
-				</div>
-				<div class="col-xs-1 nopad">
-					<label>Class:</label>
-				</div>
-				<div class="col-xs-3 lesspad">
-					<p class="form-control-static">{{student.class_name}}</p>
-				</div>
-				<div class="col-xs-1 nopad">
-					<label>Term:</label>
-				</div>
-				<div class="col-xs-2 nopad-left">
-					<p class="form-control-static">{{invoice.term_name}}, {{invoice.year}}</p>
-				</div>
+			<div>
+				<span class="text-group"><strong>Invoice No:</strong> {{invoice.inv_id}}</span>
+				<span class="text-group"><strong>Invoice Date:</strong> {{invoice.inv_date|date}}</span>
+				<span class="text-group"><strong>Due Date:</strong> {{invoice.due_date|date}}</span>
 			</div>
-			<div class="row">
-				<div class="col-xs-3 nopad-right">
-					<label>The sum of Kshs:</label>
-				</div>
-				<div class="col-xs-9">
-					<p class="form-control-static">{{invoice.total_due|numeric}}</p>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-3 nopad-right">
-					<label>Outstanding Balance:</label>
-				</div>
-				<div class="col-xs-9">
-					<p class="form-control-static"><b>{{invoice.balance|numeric}}</b></p>
-				</div>
+			
+			<div>
+				<span class="text-group"><strong>Invoice For:</strong> {{student.student_name}}</span>
+				<span class="text-group"><strong>Admission No:</strong> {{student.admission_number}}</span>
+				<span class="text-group"><strong>Class:</strong> {{student.class_name}}</span>
+				<span class="text-group"><strong>Term:</strong> {{invoice.term_name}}, {{invoice.year}}</span>
 			</div>
 			
 			<div class="">
@@ -123,10 +72,16 @@
 						</tr>
 					</tfoot>
 				</table>
+				<div>
+					<p class="text-group"><strong>Invoice Total:</strong> {{invoice.total_due|currency:""}} {{currency}}</p>
+					<p class="text-group"><strong>Amount Paid:</strong> {{invoice.total_paid|currency:""}} {{currency}}</p>
+					<p class="text-group" ng-show="overpayment>0"><strong>OverPayment:</strong> {{overpayment|currency:""}} {{currency}}</p>
+					<p class="text-group"><strong>Outstanding Balance:</strong> {{ ( invoice.balance > 0 ? '0' : invoice.balance)|numeric }} {{currency}}</p>
+				</div>
 			</div>
 			
 		</div>
-		<div class="modal-footer">				
+		<div class="modal-footer">
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>	
 			<button type="button" class="btn btn-success" ng-click="print()"><i class="glyphicon glyphicon-print"></i> Print</button>					
 		</div>

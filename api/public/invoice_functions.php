@@ -78,8 +78,8 @@ $app->get('/generateInvoices/:termId(/:studentId)', function ($termId, $studentI
 									
 									CASE WHEN payment_method = 'Installments' THEN
 										case when num_payments_this_term > 1 THEN
-											generate_series(date_last_invoice, 
-																			date_last_invoice + ((payment_interval*(num_payments_this_term-1)) || payment_interval2)::interval, 
+											generate_series(term_start_date, 
+																			term_start_date + ((payment_interval*(num_payments_this_term-1)) || payment_interval2)::interval, 
 																			(payment_interval::text || payment_interval2)::interval)::date
 										else
 											term_start_date
@@ -97,7 +97,8 @@ $app->get('/generateInvoices/:termId(/:studentId)', function ($termId, $studentI
 										)/num_payments_this_term,2) ,0)
 									 as total_amount_invoiced,
 									
-									num_payments_this_term
+									num_payments_this_term,
+									payment_plan_name
 						
 							FROM (
 								SELECT
@@ -125,11 +126,11 @@ $app->get('/generateInvoices/:termId(/:studentId)', function ($termId, $studentI
 											-- are there any installments due this term
 											(SELECT count(*) FROM (
 												SELECT
-												generate_series(date_last_invoice, 
-																				date_last_invoice + ((payment_interval*(num_per_pay_period-1)) || payment_interval2)::interval, 
+												generate_series(term_start_date, 
+																				term_start_date + ((payment_interval*(num_per_pay_period-1)) || payment_interval2)::interval, 
 																				(payment_interval::text || payment_interval2)::interval)::date as inv_date
 												)q2
-												WHERE inv_date >= date_last_invoice and inv_date < start_next_term
+												WHERE inv_date >= term_start_date and inv_date < start_next_term
 											)
 										END
 									ELSE
@@ -139,7 +140,6 @@ $app->get('/generateInvoices/:termId(/:studentId)', function ($termId, $studentI
 										ELSE 0 
 										END
 									END::integer AS num_payments_this_term,
-									date_last_invoice,
 									num_invoices,
 									num_per_pay_period
 								FROM (
@@ -163,11 +163,6 @@ $app->get('/generateInvoices/:termId(/:studentId)', function ($termId, $studentI
 										) as start_next_term,
 
 										(select min(start_date) from app.terms where date_part('year',start_date) = date_part('year', (select start_date from app.terms where term_id = :termId))) as year_start_date,
-
-										coalesce( 
-											(select start_date from app.invoices inner join app.terms on invoices.term_id = terms.term_id where invoices.student_id = students.student_id order by start_date desc limit 1),
-											(select start_date from app.terms where term_id = :termId)
-										) as date_last_invoice,
 										
 										(SELECT count(*) FROM app.invoice_line_items 
 											INNER JOIN app.invoices ON invoice_line_items.inv_id = invoices.inv_id 

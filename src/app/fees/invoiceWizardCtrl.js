@@ -88,7 +88,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 						due_date: moment(currentItem.inv_date).add(1,'month').format('YYYY-MM-DD'),
 						fee_items: feeItems,
 						line_items: lineItems,
-						total_amount: total
+						total_amount: total,
+						payment_plan_name: currentItem.payment_plan_name
 					});
 					
 					// reset
@@ -112,7 +113,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				due_date: moment(currentItem.inv_date).add(1,'month').format('YYYY-MM-DD'),
 				fee_items: feeItems,
 				line_items: lineItems,
-				total_amount: total
+				total_amount: total,
+				payment_plan_name: currentItem.payment_plan_name
 			});
 			
 			
@@ -120,8 +122,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			$scope.invoices = $scope.results.reduce(function(sum, item) {
 				var date = angular.copy(item.inv_date); // store it to use as our key
 				var month = moment(date).format('MMM');
-				item.inv_date = {startDate:item.inv_date}; // put into object for date selector
-				item.due_date = {startDate: moment(item.inv_date).add(1,'month').format('YYYY-MM-DD')};
+				item.inv_date = {startDate: item.inv_date}; // put into object for date selector
+				item.due_date = {startDate: item.due_date};
 				
 				if( sum[month] === undefined ) sum[month] = [];	
 				sum[month].push( item );
@@ -180,10 +182,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				data.invoices.push( {
 					inv_date: moment( invoices[0].inv_date.startDate ).format('YYYY-MM-DD'),
 					student_id: invoice.student_id,
-					due_date: moment( invoices[0].due_date.startDate ).format('YYYY-MM-DD'),
+					due_date: moment(invoices[0].inv_date.startDate).add(1,'month').format('YYYY-MM-DD'),
 					total_amount: invoice.total_amount,
 					line_items:lineItems,
-					term_id: $scope.termId
+					term_id: $scope.termId,
+					payment_plan_name: invoice.payment_plan_name
 				});
 				
 			});
