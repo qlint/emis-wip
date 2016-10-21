@@ -93,6 +93,11 @@ a {
   padding-top: 0;
   min-height: auto; }
 
+.fixed-height-box {
+  max-height: 300px;
+  overflow: auto;
+  margin-bottom: 10px; }
+
 /********************** Branding Styles ******************************/
 .navbar-brand {
   padding: 5px;
@@ -908,7 +913,8 @@ table.clickable tr {
     margin-right: 0; }
   .modal-content .form-horizontal .static .form-control-static {
     padding: 0 5px;
-    min-height: 15px; }
+    min-height: 15px;
+    height: 15px; }
   .modal-content .modal-tabs.main-tabs {
     margin: -15px;
     background: #eee; }

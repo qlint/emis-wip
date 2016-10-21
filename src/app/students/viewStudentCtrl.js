@@ -6,7 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	$rootScope.modalLoading = false;
 	$scope.tabs = ( $rootScope.currentUser.user_type == 'TEACHER' ? ['Details','Family','Medical History','Exams','Report Cards'] : ['Details','Family','Medical History','Fees','Exams','Report Cards'] );
-	$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Credits','Fee Items'];
+	$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
 	$scope.currentTab = $scope.tabs[0];
 	$scope.currentFeeTab = $scope.feeTabs[0];
 	$scope.hasChanges = false;
@@ -52,7 +52,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var rowTemplate3 = function() 
 	{
-		return '<div class="clickable"  ng-class="{\'canceled\':row.entity.amount_available==0 }">' +
+		return '<div class="clickable"  ng-class="{\'canceled\':row.entity.amount==0 }">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
@@ -130,8 +130,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{ name: 'Payment Date', field: 'payment_date', enableColumnMenu: false , type: 'date', sort: {direction: 'desc' }, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_date|date}}</div>'},
 			{ name: 'Payment Method', field: 'payment_method', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_method}}</div>'},
 			{ name: names[0], field: 'amount', cellFilter:'currency:""', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.amount|currency:""}}</div>'},
-			{ name: names[3], field: 'amount_applied', cellFilter:'currency:""', enableColumnMenu: false, headerCellClass: 'center', cellClass:'center', cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.amount_applied|currency:""}}</div>'},
-			{ name: names[4], field: 'amount_available', cellFilter:'currency:""', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)" ng-class="{\'alert-success\': row.entity.amount_available>0}">{{row.entity.amount_available|currency:""}}</div>'},
 		],
 		onRegisterApi: function(gridApi){
 		  $scope.gridApi = gridApi;
@@ -703,9 +701,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			if( result.nodata === undefined )
 			{
 				$scope.feeSummary = angular.copy(result.data.fee_summary);
-				// need to add any unapplied payments to total_paid
-				//$scope.feeSummary.grand_total_paid = parseFloat($scope.feeSummary.total_paid) + parseFloat($scope.feeSummary.unapplied_payments);
-				//$scope.feeSummary.grand_total_balance = $scope.feeSummary.grand_total_paid - parseFloat($scope.feeSummary.total_due);
+				$scope.balanceDue = $scope.feeSummary.balance;
+				$scope.totalPaid = $scope.feeSummary.total_paid;
+				
+				/*
+				if( parseFloat($scope.feeSummary.total_credit) > 0 )
+				{
+					$scope.hasCredit = true;
+					$scope.balanceDue = -(Math.abs($scope.balanceDue) - parseFloat($scope.feeSummary.total_credit));
+					$scope.totalPaid = parseFloat($scope.feeSummary.total_paid) + parseFloat($scope.feeSummary.total_credit);
+				}
+				*/
+
 				$scope.fees = angular.copy(result.data.fees);
 				$scope.nofeeSummary = false;
 			}
@@ -809,10 +816,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				return item;
 			});
 			
+			/*
 			// remove credit only payments, as these appear under credit section
 			$scope.payments = $scope.payments.filter(function(item){
 				if( item.applied_to !== 'Credit' ) return item;
 			});
+			*/
 			
 			if( $scope.currentFeeTab == 'Payments Received' ) initPaymentsDataGrid($scope.payments);
 		}

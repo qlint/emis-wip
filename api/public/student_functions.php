@@ -1,12 +1,12 @@
 <?php
 $app->get('/getAllStudents/:status(/:startDate/:endDate)', function ($status,$startDate=null,$endDate=null) {
-    //Show all students
+	//Show all students
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		
 		if( $startDate !== null )
 		{
@@ -31,34 +31,34 @@ $app->get('/getAllStudents/:status(/:startDate/:endDate)', function ($status,$st
 		}
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+	} catch(PDOException $e) {
+			$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getAllParents', function () {
-    //Show parents associated with teacher's students
+	//Show parents associated with teacher's students
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		
 		$sth = $db->prepare("SELECT guardians.guardian_id, 
 									guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name AS parent_full_name,
@@ -77,34 +77,34 @@ $app->get('/getAllParents', function () {
 		$sth->execute(); 
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getTeacherStudents/:teacher_id/:status(/:startDate/:endDate)', function ($teacherId, $status,$startDate=null,$endDate=null) {
-    //Show teacher students
+	//Show teacher students
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		
 		if( $startDate !== null )
 		{
@@ -145,34 +145,33 @@ $app->get('/getTeacherStudents/:teacher_id/:status(/:startDate/:endDate)', funct
 		
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getTeacherParents/:teacher_id', function ($teacherId) {
-    //Show parents associated with teacher's students
+	//Show parents associated with teacher's students
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		
 		$sth = $db->prepare("SELECT guardians.guardian_id, 
 									guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name AS parent_full_name,
@@ -192,35 +191,35 @@ $app->get('/getTeacherParents/:teacher_id', function ($teacherId) {
 		$sth->execute( array(':teacherId' => $teacherId)); 
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getStudentDetails/:studentId', function ($studentId) {
-    //Show all students
+	//Show all students
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
-        $sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
+	try 
+	{
+		$db = getDB();
+		$sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
 								payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' ' || payment_interval2 || '(s) apart)' as payment_plan_name,
 								classes.teacher_id as class_teacher_id
 							 FROM app.students 
@@ -228,10 +227,10 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
 							 LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
 							 WHERE student_id = :studentID 
 							 ORDER BY first_name, middle_name, last_name");
-        $sth->execute( array(':studentID' => $studentId)); 
-        $results = $sth->fetch(PDO::FETCH_OBJ);
- 
-        if($results) {
+		$sth->execute( array(':studentID' => $studentId)); 
+		$results = $sth->fetch(PDO::FETCH_OBJ);
+
+		if($results) {
 			
 			// get parents
 			$sth2 = $db->prepare("SELECT *
@@ -255,8 +254,8 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
 
 			$results->medical_history = $results3;
 			
-			// get fee items		
-			// TO DO: I only want fee items for this school year?	
+			// get fee items
+			// TO DO: I only want fee items for this school year?
 			$sth4 = $db->prepare("SELECT 
 									student_fee_item_id, 
 									student_fee_items.fee_item_id, 
@@ -277,22 +276,20 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
 			$results4 = $sth4->fetchAll(PDO::FETCH_OBJ);
 
 			$results->fee_items = $results4;
-
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
@@ -337,7 +334,7 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
 			$sth2 = $db->prepare("SELECT 
 									(SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
 									(SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
-									COALESCE((SELECT sum(amount) from app.credits WHERE student_id = :studentID AND amount - amount_applied > 0 ),0) AS total_credit");
+									COALESCE((SELECT sum(amount) from app.credits WHERE student_id = :studentID  ),0) AS total_credit");
 			$sth2->execute( array(':studentID' => $studentId)); 
 			$details = $sth2->fetch(PDO::FETCH_OBJ);
 			
@@ -443,11 +440,11 @@ $app->get('/getStudentInvoices/:studentId', function ($studentId) {
 				$db = null;
 			}
 	 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+	} catch(PDOException $e) {
+			$app->response()->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
@@ -510,15 +507,15 @@ $app->get('/getOpenInvoices/:studentId', function ($studentId) {
 });
 
 $app->get('/getStudentFeeItems/:studentId', function ($studentId) {
-    // Get all students replaceable fee items
+	// Get all students replaceable fee items
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		// TO DO: I only want fee items for this school year?	
-       $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount, 
+	 $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount, 
 									CASE WHEN frequency = 'per term' THEN 3 
 									     ELSE 1
 									END as frequency
@@ -528,37 +525,37 @@ $app->get('/getStudentFeeItems/:studentId', function ($studentId) {
 							AND student_fee_items.active = true
 							ORDER BY fee_item");
 		$sth->execute( array(':studentId' => $studentId) ); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
  
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+
+} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
 
 });
 
 $app->get('/getReplaceableFeeItems/:studentId', function ($studentId) {
-    // Get all students replaceable fee items
+	// Get all students replaceable fee items
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		// TO DO: I only want fee items for this school year?	
-       $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount
+		 $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount
 							FROM app.student_fee_items
 							INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id AND fee_items.active is true
 							WHERE student_id = :studentId
@@ -566,25 +563,25 @@ $app->get('/getReplaceableFeeItems/:studentId', function ($studentId) {
 							AND replaceable = true
 							ORDER BY fee_item");
 		$sth->execute( array(':studentId' => $studentId) ); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
- 
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+
+} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
 
 });
 
@@ -595,7 +592,7 @@ $app->get('/getStudentPayments/:studentId', function ($studentId) {
  
 	try 
 	{
-			$db = getDB();
+		$db = getDB();
 		
 		// get payments
 		// TO DO: I only want payments for this school year?
@@ -631,7 +628,7 @@ $app->get('/getStudentPayments/:studentId', function ($studentId) {
 										 )
 								END, 'Credit') as applied_to,
 							 COALESCE((
-									amount - coalesce((select coalesce(sum(amount),0) + coalesce((select sum(amount_applied) from app.credits where payment_id = payments.payment_id ),0) as sum
+									amount - coalesce((select coalesce(sum(amount),0) as sum
 														from app.payment_inv_items 
 														inner join app.invoices using (inv_id) 
 														where payment_id = payments.payment_id 
@@ -670,16 +667,16 @@ $app->get('/getStudentCredits/:studentId', function ($studentId) {
  
 	try 
 	{
-			$db = getDB();
+		$db = getDB();
 		
 		// get credits
 
-		$sth = $db->prepare("SELECT credit_id, credits.amount, amount_applied, credits.amount - amount_applied as amount_available, 
-																credits.creation_date::date as payment_date, credits.payment_id, payment_method
+		$sth = $db->prepare("SELECT credit_id, credits.amount, payment_date, credits.payment_id, payment_method, slip_cheque_no
 								FROM app.credits
 								INNER JOIN app.payments ON credits.payment_id = payments.payment_id
 								WHERE credits.student_id = :studentID
-								ORDER BY credits.creation_date");
+								AND reversed is false
+								ORDER BY payment_date");
 		$sth->execute( array(':studentID' => $studentId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
  
@@ -707,10 +704,10 @@ $app->get('/getStudentClasses/:studentId', function ($studentId) {
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
-       $sth = $db->prepare("SELECT 1 as ord, student_id, class_id, class_name,
+	try 
+	{
+		$db = getDB();
+		$sth = $db->prepare("SELECT 1 as ord, student_id, class_id, class_name,
 								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 1') then true else false end as term_1,
 								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 2') then true else false end as term_2,
 								case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
@@ -725,30 +722,30 @@ $app->get('/getStudentClasses/:studentId', function ($studentId) {
 							AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId)
 							ORDER BY ord");
 		$sth->execute( array(':studentId' => $studentId) ); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
- 
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->post('/addStudent', function () use($app) {
-    // Add student	
+	// Add student
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
 	$admissionNumber =				( isset($allPostVars['admission_number']) ? $allPostVars['admission_number']: null);
@@ -803,11 +800,11 @@ $app->post('/addStudent', function () use($app) {
 	$hasFeeItems = false;
 	$hasOptFeeItems = false;
 	
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 				
-        $studentInsert = $db->prepare("INSERT INTO app.students(admission_number, gender, first_name, middle_name, last_name, dob, student_category, nationality,
+		$studentInsert = $db->prepare("INSERT INTO app.students(admission_number, gender, first_name, middle_name, last_name, dob, student_category, nationality,
 																student_image, current_class, payment_method, active, created_by, admission_date, marial_status_parents, 
 																adopted, adopted_age, marital_separation_age, adoption_aware, comments, medical_conditions, hospitalized,
 																hospitalized_description, current_medical_treatment, current_medical_treatment_description,
@@ -822,7 +819,7 @@ $app->post('/addStudent', function () use($app) {
 											VALUES(currval('app.students_student_id_seq'),:currentClass,:createdBy);");
 											
 		$query = $db->prepare("SELECT currval('app.students_student_id_seq') as student_id");
-        $query2 = $db->prepare("SELECT currval('app.students_student_id_seq') as student_id, currval('app.guardians_guardian_id_seq') as guardian_id");
+		$query2 = $db->prepare("SELECT currval('app.students_student_id_seq') as student_id, currval('app.guardians_guardian_id_seq') as guardian_id");
 		
 		if( $guardianData !== null && count($guardianData) > 0 )
 		{
@@ -980,14 +977,12 @@ $app->post('/addStudent', function () use($app) {
 					) );
 					$guardianInsert2->execute(array(':guardianRelationship' => $guardianRelationship, ':createdBy' => $createdBy));
 				}
-
 			}
 			
 		}
 			
 		if( $hasMedical )
-		{
-        
+		{ 
 			foreach($medicalConditions as $medicalCondition )
 			{
 				$conditionInsert->execute( array($medicalCondition['medical_condition'],
@@ -1056,17 +1051,17 @@ $app->post('/addStudent', function () use($app) {
 		
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-		$db->rollBack();
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+
+
+	} catch(PDOException $e) {
+		$db->rollBack();
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
@@ -1311,7 +1306,7 @@ $app->put('/updateStudent', function () use($app) {
 							':newStudent' => $newStudent,
 							':admissionDate' => $admissionDate,
 							':admissionNumber' => $admissionNumber,
-							':userId' => $userId							
+							':userId' => $userId
 			) );
 			if( $updateClass )
 			{
@@ -1319,7 +1314,7 @@ $app->put('/updateStudent', function () use($app) {
 				$classInsert2->execute(array('studentId' => $studentId, ':currentClass' => $currentClass,':createdBy' => $userId));
 				
 				if( $currentClassCatId != $previousClassCatId )
-				{				
+				{
 					$feeItemUpdate->execute( array(':previousClassCatId' => $previousClassCatId, ':userId' => $userId) );
 				}
 			}
@@ -1338,7 +1333,7 @@ $app->put('/updateStudent', function () use($app) {
 							':emergencyRelationship' => $emergencyRelation,
 							':emergencyTelephone' => $emergencyPhone,
 							':pickUpIndividual' => $pickUpIndividual,
-							':userId' => $userId							
+							':userId' => $userId
 			) );
 		}
 		
@@ -1352,7 +1347,7 @@ $app->put('/updateStudent', function () use($app) {
 							':currentMedicalTreatmentDesc' => $currentMedicalTreatmentDesc,
 							':otherMedicalConditions' => $otherMedicalConditions,
 							':otherMedicalConditionsDesc' => $otherMedicalConditionsDesc,
-							':userId' => $userId							
+							':userId' => $userId
 			) );
 		}
 		
@@ -1435,7 +1430,7 @@ $app->put('/updateStudent', function () use($app) {
 			}
 
 			// look for fee items to remove
-			// compare to what was passed in			
+			// compare to what was passed in
 			foreach( $currentFeeItems as $currentFeeItem )
 			{	
 				$deleteMe = true;
@@ -1507,42 +1502,41 @@ $app->put('/updateStudent', function () use($app) {
 });
 
 $app->get('/getAllGuardians(/:status)', function ($status=true) {
-    // Get all guardians
+	// Get all guardians
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
-       $sth = $db->prepare("SELECT *, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name
+	try 
+	{
+		$db = getDB();
+		$sth = $db->prepare("SELECT *, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name
 							FROM app.guardians 
 							WHERE active = :status 
 							ORDER BY first_name, middle_name, last_name");
 		$sth->execute( array(':status' => $status) ); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
- 
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->post('/addGuardian', function () use($app) {
-    // Add guardian	
+	// Add guardian	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
 	$studentId =			( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
@@ -1568,10 +1562,10 @@ $app->post('/addGuardian', function () use($app) {
 	$createdBy = 			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	$login = 				( isset($allPostVars['guardian']['login']) ? $allPostVars['guardian']['login']: null);
 	
-	
-    try 
-    {
-        $db = getDB();
+
+	try 
+	{
+		$db = getDB();
 		
 		
 		if( $guardianId !== null )
@@ -1608,7 +1602,7 @@ $app->post('/addGuardian', function () use($app) {
 							':IdNumber' => $IdNumber,
 							':Address' => $Address,
 							':Telephone' => $Telephone,
-							':Email' => $Email,							
+							':Email' => $Email,
 							':MaritalStatus' => $MaritalStatus, 
 							':Occupation' => $Occupation,
 							':Employer' => $Employer,
@@ -1628,7 +1622,7 @@ $app->post('/addGuardian', function () use($app) {
 												marital_status, occupation, employer, employer_address, work_email, work_phone, created_by)
 									VALUES(:FirstName, :MiddleName, :LastName, :Title, :IdNumber, :Address, 
 											:Telephone, :Email, :MaritalStatus, :Occupation, :Employer, :EmployerAddress, :WorkEmail, 
-											:WorkPhone, :createdBy);");		
+											:WorkPhone, :createdBy);");
 			
 			$insert2 = $db->prepare("INSERT INTO app.student_guardians(student_id, guardian_id, relationship, created_by)
 											VALUES(:studentId, currval('app.guardians_guardian_id_seq'), :Relationship, :createdBy)");
@@ -1644,7 +1638,7 @@ $app->post('/addGuardian', function () use($app) {
 							':IdNumber' => $IdNumber,
 							':Address' => $Address,
 							':Telephone' => $Telephone,
-							':Email' => $Email,							
+							':Email' => $Email,
 							':MaritalStatus' => $MaritalStatus, 
 							':Occupation' => $Occupation,
 							':Employer' => $Employer,
@@ -1671,23 +1665,20 @@ $app->post('/addGuardian', function () use($app) {
 		}
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "data" => $guardian_id));
-       
- 
- 
-    } catch(PDOException $e) {
-		
-		$db->rollBack();
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "data" => $guardian_id));
+	 
+	} catch(PDOException $e) {
+		$db->rollBack();
+		$app->response()->setStatus(404);
+	$app->response()->headers->set('Content-Type', 'application/json');
+	echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->put('/updateGuardian', function () use($app) {
-    // update guardian	
+	// update guardian
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
 	$guardianId =			( isset($allPostVars['guardian']['guardian_id']) ? $allPostVars['guardian']['guardian_id']: null);
@@ -1713,9 +1704,9 @@ $app->put('/updateGuardian', function () use($app) {
 	$userId = 				( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	$login = 				( isset($allPostVars['guardian']['login']) ? $allPostVars['guardian']['login']: null);
 
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 
 		$sth1 = $db->prepare("UPDATE app.guardians
 								SET first_name = :FirstName, 
@@ -1735,12 +1726,12 @@ $app->put('/updateGuardian', function () use($app) {
 									modified_date = now(),
 									modified_by = :userId
 								WHERE guardian_id = :guardianId"
-								);		
+								);
 		$sth2 = $db->prepare("UPDATE app.student_guardians
 								SET relationship= :Relationship,
 									modified_date = now(),
 									modified_by = :userId
-							   WHERE student_id = :studentId	
+							   WHERE student_id = :studentId
 							   AND guardian_id = :guardianId");
 										
 		$db->beginTransaction();
@@ -1773,29 +1764,28 @@ $app->put('/updateGuardian', function () use($app) {
 		}
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-       
- 
- 
-    } catch(PDOException $e) {
-		
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+	 
+
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->delete('/deleteGuardian/:student_id/:guardian_id', function ($studentId,$guardianId) {
-    // delete guardian
+	// delete guardian
 	
 	$app = \Slim\Slim::getInstance();
 
-    try 
-    {
+	try 
+	{
 		// remove from client database
-        $db = getDB();
+		$db = getDB();
 		$sth = $db->prepare("DELETE FROM app.student_guardians WHERE guardian_id = :guardianId AND student_id = :studentId");					
 		$sth->execute( array(':guardianId' => $guardianId, ':studentId' => $studentId) );
 		$db = null;
@@ -1808,22 +1798,18 @@ $app->delete('/deleteGuardian/:student_id/:guardian_id', function ($studentId,$g
 		$db2 = null;
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        
- 
- 
-    } catch(PDOException $e) {
-		
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->post('/addMedicalConditions', function () use($app) {
-    // Add medical conditions	
+	// Add medical conditions	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
 	$studentId =	( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
@@ -1832,9 +1818,9 @@ $app->post('/addMedicalConditions', function () use($app) {
 	// medical fields
 	$medicalConditions = ( isset($allPostVars['medicalConditions']) ? $allPostVars['medicalConditions']: null);
 	
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 
 		$studentUpdate = $db->prepare("UPDATE app.students SET medical_conditions = true WHERE student_id = :studentId");
 		$conditionInsert = $db->prepare("INSERT INTO app.student_medical_history(student_id, illness_condition, age, comments, created_by) 
@@ -1842,7 +1828,7 @@ $app->post('/addMedicalConditions', function () use($app) {
 		$query = $db->prepare("SELECT currval('app.student_medical_history_medical_id_seq') as medical_id, now() as date_medical_added");
 		
 		
-        $results = array();
+		$results = array();
 		// loop through the medical conditions and insert
 		// place the resulting id in array for return
 		foreach( $medicalConditions as $medicalCondition )
@@ -1855,7 +1841,7 @@ $app->post('/addMedicalConditions', function () use($app) {
 						$medicalCondition['age'],
 						$medicalCondition['comments'],
 						$userId
-			) );			
+			) );
 			$query->execute();
 			$db->commit();
 			
@@ -1864,23 +1850,20 @@ $app->post('/addMedicalConditions', function () use($app) {
 		}
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "data" => $results));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-		
-		$db->rollBack();
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "data" => $results));
+		$db = null;
+	} catch(PDOException $e) {
+		$db->rollBack();
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->put('/updateMedicalConditions', function () use($app) {
-    // update medical condition	
+	// update medical condition	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
 	$medicalId =		( isset($allPostVars['medicalCondition']['medical_id']) ? $allPostVars['medicalCondition']['medical_id']: null);
@@ -1889,9 +1872,9 @@ $app->put('/updateMedicalConditions', function () use($app) {
 	$comments = 		( isset($allPostVars['medicalCondition']['comments']) ? $allPostVars['medicalCondition']['comments']: null);
 	$userId = 			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 
 		$sth = $db->prepare("UPDATE app.student_medical_history
 								SET illness_condition = :illnessCondition, 
@@ -1910,223 +1893,215 @@ $app->put('/updateMedicalConditions', function () use($app) {
 		) );
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-		
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
 
 });
 
 $app->delete('/deleteMedicalCondition/:medical_id', function ($medicalId) {
-    // delete guardian
+	// delete guardian
 	
 	$app = \Slim\Slim::getInstance();
 
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 
 		$sth = $db->prepare("DELETE FROM app.student_medical_history WHERE medical_id = :medicalId");		
 										
 		$sth->execute( array(':medicalId' => $medicalId) );
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-		
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getGuardiansChildren/:guardian_id', function ($guardianId) {
-    // Get all children associated with a guardian
+	// Get all children associated with a guardian
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
-        $sth = $db->prepare("SELECT students.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name
+	try 
+	{
+			$db = getDB();
+			$sth = $db->prepare("SELECT students.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name
 							FROM app.student_guardians 
 							INNER JOIN app.students ON student_guardians.student_id = students.student_id
 							WHERE guardian_id = :guardianId 
 							ORDER BY students.first_name, students.middle_name, students.last_name");
 		$sth->execute( array(':guardianId' => $guardianId) ); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
  
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+
+} catch(PDOException $e) {
+	$app->response()->setStatus(200);
+	$app->response()->headers->set('Content-Type', 'application/json');
+	echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
 
 });
 
 $app->get('/getMISLogin/:id_number', function ($idNumber) {
-    // Get mis login for id number
+	// Get mis login for id number
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getLoginDB();
-        $sth = $db->prepare("SELECT parent_id, first_name, middle_name, last_name, email, id_number, active as login_active, username,
+	try 
+	{
+		$db = getLoginDB();
+		$sth = $db->prepare("SELECT parent_id, first_name, middle_name, last_name, email, id_number, active as login_active, username,
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name,
 									(SELECT array_agg(student_id) FROM parent_students WHERE parent_id = parents.parent_id) as student_ids
 							FROM parents
 							WHERE id_number = :idNumber");
 		$sth->execute( array(':idNumber' => $idNumber) ); 
-        $results = $sth->fetch(PDO::FETCH_OBJ);
+		$results = $sth->fetch(PDO::FETCH_OBJ);
  
-        if($results) {
+		if($results) {
 		
-			// convert pgarray to php array			
+			// convert pgarray to php array
 			$results->student_ids = pg_array_parse($results->student_ids);
 			
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+	} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+	}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/checkUsername/:username', function ($username) {
-    // Check that username is unique
+	// Check that username is unique
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getLoginDB();
-        $sth = $db->prepare("SELECT parent_id
+	try 
+	{
+		$db = getLoginDB();
+		$sth = $db->prepare("SELECT parent_id
 							FROM parents
 							WHERE username = :username");
 		$sth->execute( array(':username' => $username) ); 
-        $results = $sth->fetch(PDO::FETCH_OBJ);
- 
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		$results = $sth->fetch(PDO::FETCH_OBJ);
+
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/checkIdNumber/:id_number', function ($idNumber) {
-    // Check that id number is unique
+	// Check that id number is unique
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
-        $sth = $db->prepare("SELECT guardian_id
+	try 
+	{
+		$db = getDB();
+		$sth = $db->prepare("SELECT guardian_id
 							FROM app.guardians
 							WHERE id_number = :idNumber");
 		$sth->execute( array(':idNumber' => $idNumber) ); 
-        $results = $sth->fetch(PDO::FETCH_OBJ);
- 
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		$results = $sth->fetch(PDO::FETCH_OBJ);
+
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/checkAdmNumber/:admission_number', function ($admissionNumber) {
-    // Check that admission number is unique
+	// Check that admission number is unique
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
-        $sth = $db->prepare("SELECT student_id
+	try 
+	{
+		$db = getDB();
+		$sth = $db->prepare("SELECT student_id
 							FROM app.students
 							WHERE admission_number = :admissionNumber");
 		$sth->execute( array(':admissionNumber' => $admissionNumber) ); 
-        $results = $sth->fetch(PDO::FETCH_OBJ);
- 
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		$results = $sth->fetch(PDO::FETCH_OBJ);
+
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 

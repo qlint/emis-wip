@@ -185,6 +185,12 @@ a{
 	}
 }
 
+.fixed-height-box{
+	max-height: 300px;
+	overflow: auto;
+	margin-bottom: 10px;
+}
+
 /********************** Branding Styles ******************************/
 .navbar-brand{
 	padding:5px;

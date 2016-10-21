@@ -72,8 +72,9 @@
 				</table>
 				
 				<div>
-					<p class="text-group"><strong>Amount Paid:</strong> {{payment.amount|numeric}}</p>
-					<p class="text-group"><strong>Outstanding Balance:</strong> {{balanceDue|numeric}} <span ng-show="hasCredit">credit</span></p>
+					<p class="text-group"><strong>Amount Paid:</strong> {{payment.amount|currency:""}} {{currency}}</p>
+					<p class="text-group"><strong>Outstanding Balance:</strong> {{ ( balanceDue > 0 ? '0' : balanceDue)|numeric }} {{currency}}</p>
+					<p ng-show="hasCredit" class="text-group"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
 					<p class="text-group"><strong>Cash/Deposit Slip/Cheque No:</strong> {{payment.slip_cheque_no}}</p>
 					<p class="text-group"><strong>Official Stamp:</strong></p>
 				</div>

@@ -29,7 +29,7 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
 						 END as applied_to,
 						 class_name, class_id, class_cat_id, students.active as status, replacement_payment, reversed,
 						 (
-							amount - coalesce((select coalesce(sum(amount),0) + coalesce((select sum(amount_applied) from app.credits where payment_id = payments.payment_id ),0) as sum
+							amount - coalesce((select coalesce(sum(amount),0) + coalesce((select sum(amount) from app.credits where payment_id = payments.payment_id ),0) as sum
 												from app.payment_inv_items 
 												inner join app.invoices using (inv_id) 
 												 where payment_id = payments.payment_id 
@@ -310,18 +310,18 @@ $app->post('/addPayment', function () use($app) {
 		$credit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount, created_by) 
 									VALUES(:studentId, currval('app.payments_payment_id_seq'), :creditAmt, :userId)");
 		
-		$getCredits = $db->prepare("SELECT credit_id, amount, amount_applied, amount - amount_applied as credit_available
+		$getCredits = $db->prepare("SELECT credit_id, amount, amount  as credit_available
 									FROM app.credits 
 									WHERE student_id = :studentId 
-									AND amount - amount_applied > 0 
 									ORDER BY creation_date");
 		
 		$updateCreditQry = $db->prepare("UPDATE app.credits
-										SET amount_applied = :amtApplied,
+										SET amount = :amtApplied,
 											modified_date = now(),
 											modified_by = :userId
 										WHERE credit_id = :creditId");
-
+		
+		$deleteCredit = $db->prepare("DELETE FROM app.credits WHERE credit_id = :creditId");
 		
 		if( count($lineItems) > 0 )
 		{
@@ -384,7 +384,7 @@ $app->post('/addPayment', function () use($app) {
 			// since we displayed a sum of credit to the user, we don't know what credit to use
 			// so we will need to pull all open credit, compare the amount available with the creditAmt
 			// then update the credit records with the difference
-			// if 0
+			// if 0, delete record
 			
 			$getCredits->execute( array(':studentId' => $studentId) );
 			$creditRows = $getCredits->fetchAll(PDO::FETCH_OBJ);
@@ -398,17 +398,20 @@ $app->post('/addPayment', function () use($app) {
 				if( $creditRemaining > 0 )
 				{
 					// the credit we are applying is greater than this credit entry
-					// set its amount_applied value equal to its amount, to mark is as all applied
+					// credit is all used, delete
+					$deleteCredit->execute(array(':creditId' => $row->credit_id));
+					/*
 					$updateCreditQry->execute(array(':creditId' => $row->credit_id,
 									':amtApplied' => $row->amount,
 									':userId' => $userId ) );
+					*/
 				}
 				else
 				{
 					// if the credit entry has more credit than we are applying
 					// need to update the amount_applied to the amount of credit left
 					$updateCreditQry->execute(array(':creditId' => $row->credit_id,
-									':amtApplied' => $curCredit,
+									':amount' => $curCredit,
 									':userId' => $userId ) );
 				}
 				$curCredit = $creditRemaining;

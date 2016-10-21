@@ -68,6 +68,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			{
 				$scope.hasCredit = true;
 				$scope.credit = parseFloat($scope.feeSummary.total_credit);
+				//$scope.invoice.balance = -(Math.abs($scope.invoice.balance) - $scope.credit);
 			}
 			
 		}

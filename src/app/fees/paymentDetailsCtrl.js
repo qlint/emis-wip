@@ -11,7 +11,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.student = {};
 	$scope.payment = {};
 	$scope.selectedPayment = data || undefined;
-	$scope.editPayment =  ($scope.selectedPayment.payment_method == 'Credit' ? false : true );
+	$scope.editPayment =  ($scope.selectedPayment.payment_method == 'Credit' || data.noEdit ? false : true );
 
 	$scope.dates = {};
 	$scope.dates.payment_date = {startDate: $scope.selectedPayment.payment_date};
@@ -20,7 +20,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.invoiceSelection = [];
 	$scope.feeItemsSelection = [];
 	$scope.feeItemsSelection2 = [];
+	$scope.apply_to_all = [];
 	
+	$scope.notice = (data.message !== undefined ? true : false );
+	$scope.message = data.message;
 	
 	var initializeController = function()
 	{
@@ -226,6 +229,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		var currentItem = {};
 		var invoices = [];
 		var feeItems = []
+		var overallBalance = 0;
 		angular.forEach( invoiceData, function(item,key){
 		
 			if( key > 0 && currentInvoice != item.inv_id )
@@ -236,13 +240,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					inv_date: currentItem.inv_date,
 					due_date: currentItem.due_date,
 					balance: currentItem.balance,
-					overall_balance: currentItem.overall_balance,
+					overall_balance: overallBalance,
 					total_due: currentItem.total_due,
 					fee_items: feeItems,
 				});
 				
 				// reset
 				feeItems = [];
+				overallBalance = 0;
 			}
 			
 			feeItems.push({
@@ -256,9 +261,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				isPaid: parseInt(item.balance) === 0 ? true : false,
 				modifiable: parseInt(item.balance) === 0 ? false : true,
 			});
+			overallBalance += parseFloat(item.balance);
 			
 			currentInvoice = item.inv_id;
-			currentItem = item;				
+			currentItem = item;
 		});
 		// push in last row
 		invoices.push({
@@ -266,7 +272,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			inv_date: currentItem.inv_date,
 			due_date: currentItem.due_date,
 			balance: currentItem.balance,
-			overall_balance: currentItem.overall_balance,
+			overall_balance: overallBalance,
 			total_due: currentItem.total_due,
 			fee_items: feeItems,
 		});

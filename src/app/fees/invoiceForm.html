@@ -61,13 +61,13 @@
 				<div class="row">
 				
 					<!-- student -->
-					<div class="col-sm-4" >		
+					<div class="col-sm-4" >
 						<label>Student</label>
 						<p class="form-control-static">{{selectedStudent.student_name}}</p>
 					</div>
 					
 					<!-- invoice date -->
-					<div class="col-sm-4" >		
+					<div class="col-sm-4" >
 						<label>Invoice Date</label>
 						<div class="input-group">
 							<input type="text" name="inv_date" date-range-picker id="inv_date" class="form-control date-picker input-sm" ng-model="invoice.date" options="{singleDatePicker: true,autoApply: true}" >
@@ -76,7 +76,7 @@
 					</div>
 					
 					<!-- due date -->
-					<div class="col-sm-4" >		
+					<div class="col-sm-4" >
 						<label>Due Date</label>
 						<div class="input-group">
 							<input type="text" name="due_date" date-range-picker id="due_date" class="form-control date-picker input-sm" ng-model="invoice.due_date" options="{singleDatePicker: true,autoApply: true}" >
@@ -98,13 +98,13 @@
 					<tbody>
 						<tr ng-repeat="item in invoiceLineItems track by $index">
 							<td width="25" ng-click="removeLineItem($index)"><span class="glyphicon glyphicon-trash text-danger clickable"></span></td>
-							<td width="70%">							
+							<td width="70%">
 								<span ng-show="item.fee_item==undefined">
 									<select ng-options="feeitem.fee_item for feeitem in studentFeeItems track by feeitem.student_fee_item_id" ng-model="invoice.newItem">
 										<option value="">-- select a fee item -- </select>
 									</select> <button type="button" class="btn btn-sm btn-link" ng-click="viewStudent(selectedStudent,$index)">Add Fee Item to Student</button>
 								</span>	
-								<span ng-show="item.fee_item!==undefined">{{item.fee_item}}</span>						
+								<span ng-show="item.fee_item!==undefined">{{item.fee_item}}</span>
 							</td>
 							<td class="rightalign">
 								<input type="text" class="form-control" ng-model="item.amount" ng-change="sumInvoice()" />
@@ -117,7 +117,7 @@
 				<div class="row">
 							<div class="col-sm-6">
 								<div ng-show="hasCredit" class="alert alert-info" style="margin:15px 0">
-									<label class="checkbox-inline">										
+									<label class="checkbox-inline">
 									  <input
 										type="checkbox"
 										name="apply_credit"
@@ -137,7 +137,7 @@
 								
 								<div ng-show="creditApplied">
 									<label class="col-sm-8 control-label">Credit</label>
-									<p class="form-control-static right" ng-show="!edit">{{credit|numeric}}</p>
+									<p class="form-control-static right" ng-show="!edit">{{appliedCreditAmt|numeric}}</p>
 								</div>
 								
 								<div>
@@ -231,12 +231,12 @@
 							<div class="col-sm-6">
 								<div>
 									<label class="col-sm-8 control-label">Invoice Total</label>
-									<p class="form-control-static right" ng-show="!edit">{{totals.invoice|numeric}}</p>
+									<p class="form-control-static right" ng-show="!edit">{{totals.invoice|currency:""}}</p>
 								</div>
 								
 								<div ng-show="creditApplied">
 									<label class="col-sm-8 control-label">Credit</label>
-									<p class="form-control-static right" ng-show="!edit">{{credit|numeric}}</p>
+									<p class="form-control-static right" ng-show="!edit">{{ appliedCreditAmt|currency:"" }}</p>
 								</div>
 								
 								<div>

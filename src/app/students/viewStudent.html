@@ -525,13 +525,13 @@
 								Amount Due
 								<p>{{feeSummary.total_due|currency:""}}<span>{{currency}}</span></p>
 							</div>
-							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning': feeSummary.balance<0 && feeSummary.total_paid>0, 'alert-danger': feeSummary.balance<0 && feeSummary.total_paid==0}">
+							<div class="info-box alert" ng-class="{'alert-success':balanceDue>=0, 'alert-warning': balanceDue<0 && totalPaid>0, 'alert-danger': balanceDue<0 && totalPaid==0}">
 								Amount Paid
-								<p>{{feeSummary.total_paid|currency:""}}<span>{{currency}}</span></p>
+								<p>{{totalPaid|currency:""}}<span>{{currency}}</span></p>
 							</div>
-							<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning' : feeSummary.balance<0 && !feeSummary.past_due, 'alert-danger': feeSummary.past_due}">
+							<div class="info-box alert" ng-class="{'alert-success':balanceDue>=0, 'alert-warning' : balanceDue<0 && !feeSummary.past_due, 'alert-danger': balanceDue<0 && feeSummary.past_due}">
 								Balance Due
-								<p>{{ ( feeSummary.balance > 0 ? 0 : feeSummary.balance|numeric) }}<span>{{currency}}</span></p>
+								<p>{{ ( balanceDue > 0 ? 0 : balanceDue|numeric) }}<span>{{currency}}</span></p>
 							</div>
 							<div class="info-box alert" ng-class="{'alert-success': feeSummary.total_credit > 0, 'alert-default': feeSummary.total_credit==0}">
 								Credit

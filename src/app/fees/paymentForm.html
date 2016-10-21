@@ -86,7 +86,7 @@
 					<!-- apply to -->
 					<div class="form-group" ng-show="payment.replacement_payment==false">	
 						<label class="col-sm-3 control-label nopad">Apply To</label>
-						<div class="col-sm-9">
+						<div class="col-sm-9 fixed-height-box">
 							<div ng-show="invoices.length==0">This student does not have any open invoices.</div>
 							<div ng-show="invoices.length>0" class="well lesspad" ng-repeat="invoice in invoices track by $index">
 								<div class="row">
@@ -194,6 +194,10 @@
 						<div class="info-box alert" ng-class="{'alert-success':feeSummary.balance>=0, 'alert-warning' : feeSummary.balance<0 && gracePeriod, 'alert-danger': feeSummary.balance<0}">
 							Balance
 							<p>{{ feeSummary.balance|numeric}}<span>{{currency}}</span></p>
+						</div>
+						<div class="info-box alert alert-success">
+							Credit
+							<p>{{ feeSummary.total_credit|currency:""}}<span>{{currency}}</span></p>
 						</div>
 					</div>
 					<h3>Fee Summary</h3>

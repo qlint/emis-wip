@@ -164,7 +164,7 @@ function($scope, $rootScope, apiService ){
 			
 			// only show credit available
 			$scope.credits = credits.filter(function(item){
-				if( parseFloat(item.amount_available) > 0 ) return item;
+				if( parseFloat(item.amount) > 0 ) return item;
 			});
 			
 			setCreditTotals();
@@ -174,7 +174,7 @@ function($scope, $rootScope, apiService ){
 	var setCreditTotals = function()
 	{
 		$scope.totalCredits = $scope.credits.reduce(function(sum,item){
-			sum += parseFloat(item.amount_available);
+			sum += parseFloat(item.amount);
 			return sum;
 		},0);
 		
