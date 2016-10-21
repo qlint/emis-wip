@@ -62,7 +62,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.totalAmtKsh = amt[0];
 			$scope.totalAmtCts = amt[1];
 			
-			console.log($scope.invoice);
 			// is there an overpayment?
 			if( $scope.feeSummary && $scope.feeSummary.unapplied_payments > 0 )
 			{

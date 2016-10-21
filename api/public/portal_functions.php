@@ -533,11 +533,15 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 				$feeSummary->within30days = ( $diff < 30 ? true : false ); 	
 			}
 			
-			$balanceQry = $db->prepare("SELECT sum(total_due) as total_due, sum(total_paid) as total_paid, sum(balance) as balance
+			$balanceQry = $db->prepare("SELECT coalesce(sum(total_due),0) as total_due, 
+											   coalesce(sum(total_paid),0) as total_paid, 
+											   coalesce(sum(balance),0) as balance,
+											   past_due
 										FROM app.invoice_balances2
 									    WHERE student_id = :studentID
-										AND due_date < now()::date
-										AND canceled = false");
+										AND date_part('year', due_date) = date_part('year',now())  -- < now()::date
+										AND canceled = false
+										GROUP BY past_due");
 			$balanceQry->execute( array(':studentID' => $studentId)); 
 			$balance = $balanceQry->fetch(PDO::FETCH_OBJ);
 			//var_dump($balance);
@@ -545,7 +549,7 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 			$feeSummary->total_due = ($balance ? $balance->total_due : 0);
 			$feeSummary->total_paid = ($balance ? $balance->total_paid : 0);
 			$feeSummary->balance = ($balance ? $balance->balance : 0);
-			
+			$feeSummary->past_due = ($balance ? $balance->past_due : false);
 			
 			$results = new stdClass();
 			$results->fee_summary = $feeSummary;
@@ -583,13 +587,19 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
 		
 		// get invoices
 		// TO DO: I only want invoices for this school year?	
-		$sth = $db->prepare("SELECT invoice_balances2.*, 
-												term_name
-								FROM app.invoice_balances2
-								INNER JOIN app.terms
-								ON invoice_balances2.term_id = terms.term_id
-								WHERE student_id = :studentId 
-								AND canceled is false ORDER BY inv_date");
+		$sth = $db->prepare("SELECT invoice_balances2.*, ARRAY(select fee_item || ' (' || invoice_line_items.amount || ')'
+																		from app.invoice_line_items 
+																		inner join app.student_fee_items
+																		inner join app.fee_items
+																		on student_fee_items.fee_item_id = fee_items.fee_item_id
+																		on invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+																		where inv_id = invoice_balances2.inv_id) as invoice_items,
+																		term_name,
+																		date_part('year', terms.start_date) as year
+													FROM app.invoice_balances2 
+													INNER JOIN app.terms
+													ON invoice_balances2.term_id = terms.term_id
+													WHERE student_id = :studentId ORDER BY inv_date");
 		$sth->execute( array(':studentId' => $studentId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
