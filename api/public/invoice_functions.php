@@ -189,7 +189,7 @@ $app->get('/generateInvoices/:termId(/:studentId)', function ($termId, $studentI
 			$params['studentId'] = $studentId;
 		}
 
-		$query .= " ORDER BY student_id, inv_date, fee_item";
+		$query .= " ORDER BY student_name, student_id, inv_date, fee_item";
 		
 		$sth = $db->prepare($query);
 		$sth->execute( $params ); 
