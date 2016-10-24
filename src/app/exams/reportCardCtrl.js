@@ -366,7 +366,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					item.overall_mark = overall.percentage;
 					item.overall_grade = overall.grade;
-					item.position = overall.rank;
+					//item.position = overall.rank;
 					
 					total_marks += parseInt(overall.total_mark);
 					total_grade_weight += parseInt(overall.total_grade_weight);
@@ -442,9 +442,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			marks[item.exam_type] = {
 				mark: item.mark,
 				grade_weight: item.grade_weight,
-				position: item.rank,
-				grade: item.grade							
-			}							
+				//position: item.rank,
+				grade: item.grade
+			}
 			
 			
 			lastSubject = item.subject_name;
