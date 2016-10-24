@@ -147,12 +147,12 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 		
 		// get exam marks by exam type
 		$params = array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId);
-		$query = "SELECT subject_name 
-								mark,
+		$query = "SELECT mark,
 								grade_weight,
 								exam_type,
 								(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade,
 								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
+								subject_name,
 								subjects.teacher_id,
 								employees.initials,
 								use_for_grading
