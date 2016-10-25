@@ -3,7 +3,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	var domain = window.location.host;
 	var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'http://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1  ? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost'));
 		
-	/*********** class categories ***********/	
+	/*********** class categories ***********/
 	this.getClassCats = function (param, successFunction, errorFunction, params) {      
 		if( param === undefined ) ajaxService.AjaxGet(path + "/getClassCats", successFunction, errorFunction, params);
 		else ajaxService.AjaxGet(path + "/getClassCats/" + param, successFunction, errorFunction, params);
@@ -19,6 +19,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	
 	this.updateClassCat = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPut(request, path + "/updateClassCat", successFunction, errorFunction, params);
+	};
+	
+	this.updateExamClass = function (request, successFunction, errorFunction, params) {          
+		ajaxService.AjaxPut(request, path + "/updateExamClass", successFunction, errorFunction, params);
 	};
 	
 	this.setClassCatStatus = function (request, successFunction, errorFunction, params) {          

@@ -1,4 +1,4 @@
-<form name="studentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(studentForm)">		
+<form name="studentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(studentForm)">
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 			<h4 class="modal-title">Student: {{student.student_name}}</h4>
@@ -11,10 +11,10 @@
 				 			
 			<div class="row">
 				<div class="col-sm-12 clearfix">
-					<div class="modal-tabs main-tabs">					
+					<div class="modal-tabs main-tabs">
 						<ul class="nav nav-tabs">
 							<li ng-class="{active: currentTab==item}" ng-repeat="item in tabs"><a class="clickable" ng-click="getTabContent(item,studentForm)">{{item}}</a></li>
-						</ul>						
+						</ul>
 					</div>
 				</div>
 			</div>
@@ -151,17 +151,17 @@
 								<div ng-show="edit">
 									<select name="current_class" class="form-control" ng-options="class.class_name for class in allClasses track by class.class_id" ng-model="student.current_class" required>
 										<option value="">--select class--</option>
-									</select>									
+									</select>
 									<p ng-show="(studentForm.$submitted || studentForm.current_class.$dirty ) && studentForm.current_class.$invalid && studentForm.current_class.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Current Class is required.</p>
 								</div>	
 							</div>
 							
 							<!-- pic -->
-							<div class="col-sm-4">					
+							<div class="col-sm-4">
 								<label for="student-image">Student Image</label>
 								<p class="form-control-static" ng-show="!edit">{{student.student_image}}</p>
 								<div ng-show="edit">
-									<input type="file" nv-file-select="" uploader="uploader" />						
+									<input type="file" nv-file-select="" uploader="uploader" />
 								</div>	
 							</div>
 														
@@ -646,46 +646,15 @@
 						</div>
 					</div>
 				</div>
-				
-				<!--
-				<table id="resultsTable2" class="display clickable" cellspacing="0" width="100%">
-					<thead>
-						<tr>
-							<th></th>
-							<th class="center">Receipt</th>
-							<th>Payment Date</th>
-							<th>Payment Method</th>
-							<th class="center">Amount ({{currency}})</th>
-							<th>Applied To</th>
-							<th class="center">Amount Unapplied</th>
-							<th class="center">Replacement?</th>
-							<th class="center">Reversed?</th>
-						</tr>
-					</thead>	
-					<tbody>
-						<tr ng-repeat="item in payments track by $index" ng-class="{'alert-warning': item.replacement_payment}">
-							<td></td>
-							<td ng-click="getReceipt(item)" class="center" id="{{item.payment_id}}"><span class="glyphicon glyphicon-file"></span></td>
-							<td ng-click="viewPayment(item)">{{item.payment_date|date}}</td>
-							<td ng-click="viewPayment(item)">{{item.payment_method}}</td>
-							<td ng-click="viewPayment(item)" class="center">{{item.amount|currency:""}}</td>
-							<td ng-click="viewPayment(item)">{{item.applied_to|arrayToList}}</td>
-							<td ng-click="viewPayment(item)" class="center" ng-class="{'alert-danger': item.unapplied_amount>0}">{{item.unapplied_amount|currency:""}}</td>
-							<td ng-click="viewPayment(item)" class="center">{{item.replacement}}</td>
-							<td ng-click="viewPayment(item)" class="center">{{item.reverse}}</td>
-						</tr>
-					</tbody>
-				</table>
-				-->
 			</script>
 			
 			<script type="text/ng-template" id="Fee Items">
 				<div class="row">
-					<div class="col-xs-12">		
+					<div class="col-xs-12">
 						<button ng-show="permissions.fees.fee_structure.add" type="button" class="btn btn-sm btn-link btn-success pull-right" ng-click="addFeeItem()"><i class="glyphicon glyphicon-plus-sign"></i> Add Fee Item</button>
 					</div>
 				</div>
-				<div class="row">				
+				<div class="row">
 					<div class="col-sm-6">
 						<h3>School Fees</h3>
 						<table class="display nosort dataTable">
@@ -752,7 +721,7 @@
 											<select ng-show="showTransport" name="transport_route" class="form-control" ng-options="route.route for route in transportRoutes" ng-model="student.transport_route">
 												<option value="">-- select a route --</option>
 											</select>
-										</div>										
+										</div>
 									</td>
 									<td width="70">
 										<input type="text" name="fee_item_amount[]" ng-model="item.amount" class="form-control" placeholder="{{item.default_amount}}">
@@ -771,12 +740,12 @@
 				</div>
 			</script>
 			
-			<script type="text/ng-template" id="Exams">				
+			<script type="text/ng-template" id="Exams">
 				<h2>Exams</h2>
 				<button type="button" class="pull-right btn btn-link" ng-click="addExamMarks()"><i class="glyphicon glyphicon-plus-sign"></i> Add/Update Exam Marks</button>
 				
 				<!-- search form -->
-				<div class="modalDataFilter clearfix">	
+				<div class="modalDataFilter clearfix">
 					<!-- category select -->
 					<div class="form-group">
 						<label for="category">Category</label>
@@ -785,39 +754,43 @@
 					</div>
 					<!-- class select -->
 					<div class="form-group">
-						<label for="class">Class</label>	
+						<label for="class">Class</label>
 						<select class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" ignore-dirty>
-						</select>	
-					</div>		
+						</select>
+					</div>
 
 					<!-- term select -->
 					<div class="form-group">
-						<label for="term">Term</label>	
+						<label for="term">Term</label>
 						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" ignore-dirty>
-						</select>	
-					</div>	
+						</select>
+					</div>
 					
 					<!-- exam select -->
 					<div class="form-group">
-						<label for="term">Exam</label>	
+						<label for="term">Exam</label>
 						<select id="term" class="form-control" ng-model="filters.exam_type_id" ignore-dirty>
 							<option value="">All Exams</option>
 							<option value="{{exam.exam_type_id}}" ng-repeat="exam in examTypes">{{exam.exam_type}}</option>
 						</select>
-					</div>	
+					</div>
 					
 					<!-- search btn -->
 					<div class="form-group submit-btn">
 						<input type="button" class="btn btn-sm btn-info" ng-click="getExams()" value="Load" />
 						<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
-					</div>					
+					</div>
 				</div>
 				<!-- // end search form -->
-				
 				
 				<p ng-show="marksNotFound" class="error alert alert-danger">
 					{{errMsg}}
 				</p>
+				
+				<div ng-show="notice" class="alert alert-warning">
+					<p ng-bind-html="noticeMsg"></p>
+					<button type="button" class="btn btn-sm btn-primary" ng-click="updateExams()">Yes, Update</button>
+				</div>
 				
 				<table ng-show="!marksNotFound" id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
 					<thead>
@@ -825,7 +798,7 @@
 							<th>Exam</th>
 							<th class="center" ng-repeat="examType in examMarks.types">{{examType}}</th>
 						</tr>
-					</thead>	
+					</thead>
 					<tbody>
 						<tr ng-repeat="item in examMarks.subjects track by $index">
 							<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" id="{{item.exam_id}}">{{item.subject_name}}</td>
@@ -850,7 +823,7 @@
 							<th>Class</th>
 							<th class="center" ng-repeat="item in reportCards.terms">{{item}}</th>
 						</tr>
-					</thead>	
+					</thead>
 					<tbody>
 						<tr ng-repeat="item in reportCards.classes track by $index">
 							<td width="75">{{item.class_name}} ({{item.year}})</td>

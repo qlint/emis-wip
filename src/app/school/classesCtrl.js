@@ -17,7 +17,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.loading = true;
 	
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
-	
 
 	var initializeController = function () 
 	{
@@ -53,10 +52,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				
 				if( result.response == 'success')
 				{	
-					$scope.classes = ( result.nodata ? [] : result.data );
-					
-					//$rootScope.allClasses = $scope.classes
-					
+					$scope.classes = ( result.nodata ? [] : result.data );					
 					$timeout(initDataGrid,10);
 				}
 				else
@@ -204,12 +200,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	
 	$scope.addClass = function()
 	{
-		$scope.openModal('school', 'classForm', 'lg');
+		$scope.openModal('school', 'classForm', 'lg',{'classes': $scope.classes});
 	}
 	
 	$scope.viewClass = function(item)
 	{
-		$scope.openModal('school', 'classForm', 'lg',item);
+		$scope.openModal('school', 'classForm', 'lg',{'selectedClass':item});
 	}
 	
 	$scope.exportItems = function()

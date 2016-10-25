@@ -1043,7 +1043,7 @@ $app->post('/addStudent', function () use($app) {
 });
 
 $app->put('/updateStudent', function () use($app) {
-    // Update student	
+	// Update student	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
 	$updateDetails = false;
@@ -1113,9 +1113,9 @@ $app->put('/updateStudent', function () use($app) {
 	}
 	
 
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		
 		if( $updateDetails )
 		{
@@ -1472,20 +1472,30 @@ $app->put('/updateStudent', function () use($app) {
 		}
 		
 		$db->commit();
+		
+		$results = new Stdclass();
+		if( $previousClass != $currentClass )
+		{
+			// updating class could impact previously entered exam marks for this year
+			// check if any are entered
+			$examCheck = $db->prepare("SELECT exam_id
+									  FROM app.exam_marks 
+										WHERE student_id = :studentId
+										AND (select date_part('year',start_date) from app.terms where terms.term_id = exam_marks.term_id) = date_part('year', now())");
+			$examCheck->execute( array('studentId' => $studentId) );
+			$results = $examCheck->fetchAll(PDO::FETCH_OBJ);
+		}
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-		
-		$db->rollBack();
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "data" => $results));
+		$db = null;
+	} catch(PDOException $e) {
+		$db->rollBack();
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 

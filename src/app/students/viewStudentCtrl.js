@@ -177,11 +177,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				var student = $rootScope.formatStudentData([result.data]);
 				
 				// set current class to full class object
-				var currentClass = $rootScope.allClasses.filter(function(item){
+				$scope.currentClass = $rootScope.allClasses.filter(function(item){
 					if( item.class_id == student[0].class_id ) return item;
 				});
 				
-				student[0].current_class = currentClass[0];
+				student[0].current_class = $scope.currentClass[0];
 
 				$scope.student = student[0];
 				$scope.student.admission_date = {startDate: $scope.student.admission_date};
@@ -1020,9 +1020,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		// /:student_id/:class/:term/:type
 		$scope.examMarks = {};
 		$scope.marksNotFound = false;
-
+		$scope.notice = false;
+		
 		var request = $scope.student.student_id + '/' + $scope.filters.class_id + '/' + $scope.filters.term_id;
 		if( $scope.filters.exam_type_id != "" && $scope.filters.exam_type_id !== undefined ) request += '/' + $scope.filters.exam_type_id;
+		var selectedTerm = $scope.terms.filter(function(item){
+			if( item.term_id == $scope.filters.term_id ) return item;
+		})[0];
+		if( selectedTerm ) $scope.selectedYear = selectedTerm.year;
+		$scope.selectedClass = $scope.classes.filter(function(item){
+			if( item.class_id == $scope.filters.class_id ) return item;
+		})[0];
+		
 		apiService.getStudentExamMarks(request, loadMarks, apiError);
 	}
 	
@@ -1040,8 +1049,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			else
 			{
 				$scope.rawExamMarks = result.data;
-				
 				$scope.examMarks = {};
+				
+				// we want to show a notice if the selected year is current year and selected class is different then the students current class
+				var currentYear = moment().format('YYYY');
+				console.log($scope.selectedClass);
+				console.log($scope.currentClass);
+				if( currentYear == $scope.selectedYear && $scope.selectedClass.class_id != $scope.currentClass[0].class_id )
+				{
+					$scope.notice = true;
+					$scope.noticeMsg = $scope.student.student_name  + ' is currently associated with <strong>' + $scope.currentClass[0].class_name + '</strong>, however ' +
+															'these exam marks are associated with <strong>' + $scope.filters.class.class_name + '</strong>.<br>' +
+															
+															'Would you like to move these marks from ' + $scope.filters.class.class_name +  ' to ' + $scope.currentClass[0].class_name + '?<br><br>';
+				}
 				
 				// get unique exam types
 				$scope.examMarks.types = result.data.reduce(function(sum,item){
@@ -1085,7 +1106,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					marks[item.exam_type] = {
 						mark: item.mark,
 						grade_weight: item.grade_weight,
-						position: item.rank,
+						//position: item.rank,
 						grade: item.grade							
 					}
 
@@ -1103,6 +1124,26 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.marksNotFound = true;
 			$scope.errMsg = result.data;
 		}
+	}
+	
+	$scope.updateExams = function()
+	{
+		var ids = [];
+		angular.forEach($scope.rawExamMarks, function(item){
+			ids.push(item.exam_id);
+		});
+		
+	 // update exams
+	 var data = {
+		class_id: $scope.currentClass[0].class_id,
+		exam_ids: ids
+	 };
+		apiService.updateExamClass(data,function(response){
+			// update class filer and load
+			$scope.filters.class = $scope.currentClass[0];
+			$scope.filters.class_id = $scope.currentClass[0].class_id;
+			$scope.getExams();
+		}, apiError);
 	}
 	
 	$scope.addExamMarks = function()
@@ -1135,7 +1176,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	/************************************* Report Card Functions ***********************************************/
 	$scope.getStudentReportCards = function()
-	{		
+	{
 		$scope.reportsNotFound = false;
 		apiService.getStudentReportCards($scope.student.student_id, loadReportCards, apiError);
 	}
@@ -1282,7 +1323,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		if( !theForm.$invalid )
 		{
-			// going to only send data that is on the current tab		
+			// going to only send data that is on the current tab
 			if( $scope.currentTab == 'Details' )
 			{
 				if( uploader.queue[0] !== undefined )
@@ -1377,7 +1418,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	
 	var createCompleted = function ( response, status, params ) 
 	{
-
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
@@ -1387,22 +1427,37 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			
 			// saved, update the originalData
-			//originalData = angular.copy($scope.student);
+			// originalData = angular.copy($scope.student);
 			// repull the student details
 			$scope.getStudentDetails($scope.student.student_id);
-			
-			
-			// if moving tabs, continue
-			if( params.tab !== undefined ) goToTab(params.tab);
-			
-			if( $scope.currentTab == 'Fees' )
+		
+			// if the class changed, update will return any previous exam marks that are affected
+			// ask if they want to transfer these marks to the new class
+			if( result.data.length > 0  )
 			{
-				// update the fee data
-				getStudentBalance();
+				var dlg = $dialogs.confirm('Update Previous Exam Marks?','This student has exam marks entered this year that are associated with another class. Do you want to associate these marks with their new class?<br><br><i>This can also be done at a later date on the student exams section.</i>', {size:'sm'});
+				dlg.result.then(function(btn){
+					var ids = [];
+					angular.forEach(result.data, function(item){
+						ids.push(item.exam_id);
+					});
+				 // update exams
+				 var data = {
+					class_id: $scope.student.class_id,
+					exam_ids: ids
+				 };
+					apiService.updateExamClass(data,function(response){
+						completeUpdate(params);
+					}, apiError);
+				 
+				},function(btn){
+					completeUpdate(params);
+				});
 			}
-
-			// refresh the main student list
-			$rootScope.$emit('studentAdded', {'msg' : 'Student was updated.', 'clear' : true});
+			else
+			{
+				completeUpdate(params);
+			}
 			
 		}
 		else
@@ -1412,11 +1467,32 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 	
+	var completeUpdate = function(params)
+	{
+		// if moving tabs, continue
+		if( params.tab !== undefined ) goToTab(params.tab);
+		
+		if( $scope.currentTab == 'Fees' )
+		{
+			// update the fee data
+			getStudentBalance();
+		}
+
+		// refresh the main student list
+		$rootScope.$emit('studentAdded', {'msg' : 'Student was updated.', 'clear' : true});
+		
+	}
+	
 	var apiError = function (response, status) 
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
 		$scope.errMsg = result.data;
+	}
+	
+	var checkForExamMarks = function()
+	{
+	
 	}
 	
 	var uploader = $scope.uploader = new FileUploader({
@@ -1690,12 +1766,12 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			'<div class="modal-header dialog-header-form">'+
 				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> {{(edit ? \'Update\' : \'Add\')}} Parent/Guardian</h4>' +
 			'</div>' +
-			'<div class="modal-body cleafix">' +				
+			'<div class="modal-body cleafix">' +
 					'<div ng-show="error" class="alert alert-danger">' +
 						'{{errMsg}}'+
 					'</div>' +
 					'<!-- relationship -->' +
-					'<div class="form-group">		' +
+					'<div class="form-group">' +
 						'<label for="relationship" class="col-sm-2 control-label">Relationship</label>' +
 						'<div class="col-sm-4">' +
 							'<p class="form-control-static" ng-show="readOnly">{{guardian.relationship}}</p>' +
@@ -1704,9 +1780,9 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 									'<option value="">--select relationship--</option>' +
 									'<option value="{{item}}" ng-repeat="item in relationships">{{item}}</option>' +
 								'</select>' +
-							'</div>	' +
-						'</div>	' +
-					'</div>' +	
+							'</div>' +
+						'</div>' +
+					'</div>' +
 					'<!-- existing parent -->' +
 					'<div class="form-group" ng-show="!edit && !readOnly">' +
 						'<label for="guardian_id" class="col-sm-2 control-label">Use Existing Parent</label>' +
@@ -1739,7 +1815,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'<label for="last_name" class="col-sm-3 control-label">Last Name</label>' +
 							'<div class="col-sm-9">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.last_name}}</p>' +
-								'<div ng-show="edit||add">' +							
+								'<div ng-show="edit||add">' +
 									'<input type="text" name="last_name" ng-model="guardian.last_name" class="form-control" required />' +
 									'<p ng-show="(parentForm.$submitted || parentForm.last_name.$dirty ) && parentForm.last_name.$invalid && parentForm.last_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Last Name is required.</p>' +
 								'</div>' +
@@ -1753,21 +1829,21 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								'<div ng-show="edit||add">' +
 									'<input type="text" name="first_name" ng-model="guardian.first_name" class="form-control" required />' +
 									'<p ng-show="(parentForm.$submitted || parentForm.first_name.$dirty ) && parentForm.first_name.$invalid && parentForm.first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>' +
-								'</div>	' +
-							'</div>	' +
+								'</div>' +
+							'</div>' +
 						'</div>' +
 						'<!-- middle name -->' +
-						'<div class="form-group">' +	
+						'<div class="form-group">' +
 							'<label for="middle_name" class="col-sm-3 control-label">Middle Name</label>' +
 							'<div class="col-sm-9">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.middle_name}}</p>' +
 								'<div ng-show="edit||add">' +
-									'<input type="text" name="middle_name" ng-model="guardian.middle_name" class="form-control" />	' +
-								'</div>	' +
-							'</div>	' +
+									'<input type="text" name="middle_name" ng-model="guardian.middle_name" class="form-control" />' +
+								'</div>' +
+							'</div>' +
 						'</div>' +
 						'<!-- name title -->' +
-						'<div class="form-group" >' +	
+						'<div class="form-group" >' +
 							'<label for="title" class="col-sm-3 control-label">Title</label>' +
 							'<div class="col-sm-9">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.title}}</p>' +
@@ -1775,9 +1851,9 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 									'<select name="title" ng-model="guardian.title" class="form-control">' +
 										'<option value="{{title}}" ng-repeat="title in titles">{{title}}</option>' +
 									'</select>' +
-								'</div>	' +
-							'</div>	' +
-						'</div>	' +
+								'</div>' +
+							'</div>' +
+						'</div>' +
 						'<!-- id number -->' +
 						'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.id_number.$dirty ) && parentForm.id_number.$invalid && parentForm.id_number.$error.required }">' +
 							'<label for="id_number" class="col-sm-3 control-label">ID Number</label>' +
@@ -1790,10 +1866,10 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'</div>' +
 							'<div class="col-sm-5" ng-show="uniqueIdNumber===false">' +
 								'<p class="form-control-static alert alert-danger"><i class="glyphicon glyphicon-remove pull-left"></i> Already exists.</p>' +	
-							'</div>	' +
+							'</div>' +
 							'<div class="col-sm-2" ng-show="uniqueIdNumber===true">' +
 								'<p class="form-control-static alert alert-success icon-only"><i class="glyphicon glyphicon-ok"></i></p>' +	
-							'</div>	' +
+							'</div>' +
 						'</div>' +
 						'<!-- address -->' +
 						'<div class="form-group">' +
@@ -1830,7 +1906,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'</div>	' +
 						'</div>' +
 						'<!-- marital status -->' +
-						'<div class="form-group">		' +
+						'<div class="form-group">' +
 							'<label for="marital_status" class="col-sm-3 control-label">Marital Status</label>' +
 							'<div class="col-sm-9">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.marital_status}}</p>' +
@@ -1846,22 +1922,22 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					'<div class="col-sm-6">' +
 						'<h3>Employment Info</h3>' +
 						'<!-- occupation -->' +
-						'<div class="form-group">	' +	
+						'<div class="form-group">' +
 							'<label for="occupation" class="col-sm-3 control-label">Occupation</label>' +
 							'<div class="col-sm-9">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.occupation}}</p>' +
 								'<div ng-show="edit||add">' +
-									'<input type="text" name="occupation" ng-model="guardian.occupation" class="form-control"  >	' +
+									'<input type="text" name="occupation" ng-model="guardian.occupation" class="form-control"  >' +
 								'</div>	' +
 							'</div>	' +
 						'</div>' +
 						'<!-- employer -->' +
-						'<div class="form-group">	' +	
+						'<div class="form-group">' +
 							'<label for="employer" class="col-sm-3 control-label">Employer</label>' +
 							'<div class="col-sm-9">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.employer}}</p>' +
 								'<div ng-show="edit||add">' +
-									'<input type="text" name="employer" ng-model="guardian.employer" class="form-control"  >	' +
+									'<input type="text" name="employer" ng-model="guardian.employer" class="form-control"  >' +
 								'</div>	' +
 							'</div>	' +
 						'</div>' +
@@ -1871,7 +1947,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'<div class="col-sm-9">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.employer_address}}</p>' +
 								'<div ng-show="edit||add">' +
-									'<input type="text" name="employer_address" ng-model="guardian.employer_address" class="form-control"  >	' +
+									'<input type="text" name="employer_address" ng-model="guardian.employer_address" class="form-control"  >' +
 								'</div>	' +
 							'</div>	' +
 						'</div>' +
@@ -1882,8 +1958,8 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.work_phone}}</p>' +
 								'<div ng-show="edit||add">' +
 									'<input type="text" name="work_phone" ng-model="guardian.work_phone" class="form-control" numeric-only />	' +
-								'</div>	' +
-							'</div>	' +
+								'</div>' +
+							'</div>' +
 						'</div>' +
 						'<!-- work_email -->' +
 						'<div class="form-group">' +
@@ -1903,45 +1979,45 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'<div class="form-group">' +
 								'<label for="username" class="col-sm-3 control-label">Username</label>' +
 								'<div class="col-sm-9">' +
-									'<p class="form-control-static">{{guardian.login.username}}</p>' +			
-								'</div>	' +
+									'<p class="form-control-static">{{guardian.login.username}}</p>' +
+								'</div>' +
 							'</div>' +
 							'<!-- active -->' +
 							'<div class="form-group">' +
 								'<label for="login_active" class="col-sm-3 control-label">Login Active</label>' +
 								'<div class="col-sm-9">' +
 									'<p class="form-control-static" ng-show="readOnly">{{guardian.login_active}}</p>' +
-									'<div ng-show="edit||add">' +								
+									'<div ng-show="edit||add">' +
 										'<label class="radio-inline">' +
 										  '<input type="radio" name="login_active" ng-model="guardian.login.login_active" value="true" > Active' +
 										'</label>' +
 										'<label class="radio-inline">' +
 										  '<input type="radio" name="login_active" ng-model="guardian.login.login_active" value="false" > In-active' +
-										'</label>' +			
-									'</div>	' +
-								'</div>	' +
+										'</label>' +
+									'</div>' +
+								'</div>' +
 							'</div>' +
 						'</div>' +
-						'<div ng-if="!hasLogin">' +	
-							'<div ng-show="!readOnly">' +	
+						'<div ng-if="!hasLogin">' +
+							'<div ng-show="!readOnly">' +
 								'<!-- username -->' +
 								'<div class="form-group">' +
 									'<label for="username" class="col-sm-3 control-label">Username</label>' +
 									'<div class="col-sm-4 nopad-right">' +
-										'<input type="text" name="username" ng-model="guardian.login.username" class="form-control" ng-model-options="{ debounce: 1000 }" >' +										
+										'<input type="text" name="username" ng-model="guardian.login.username" class="form-control" ng-model-options="{ debounce: 1000 }" >' +
 									'</div>	' +
 									'<div class="col-sm-5" ng-show="uniqueUsername===false">' +
-										'<span class="alert alert-danger"><i class="glyphicon glyphicon-remove"></i> Already taken.</span>' +	
+										'<span class="alert alert-danger"><i class="glyphicon glyphicon-remove"></i> Already taken.</span>' +
 									'</div>	' +
 									'<div class="col-sm-2" ng-show="uniqueUsername===true">' +
-										'<p class="form-control-static alert alert-success icon-only"><i class="glyphicon glyphicon-ok"></i></p>' +	
+										'<p class="form-control-static alert alert-success icon-only"><i class="glyphicon glyphicon-ok"></i></p>' +
 									'</div>	' +
 								'</div>' +
 								'<!-- password -->' +
 								'<div class="form-group">' +
 									'<label for="password" class="col-sm-3 control-label">Password</label>' +
 									'<div class="col-sm-9">' +
-										'<input type="text" name="password" ng-model="guardian.login.password" class="form-control"  >' +			
+										'<input type="text" name="password" ng-model="guardian.login.password" class="form-control"  >' +
 									'</div>	' +
 								'</div>' +
 								'<!-- active -->' +
@@ -1953,7 +2029,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 										'</label>' +
 										'<label class="radio-inline">' +
 										  '<input type="radio" name="login_active" ng-model="guardian.login.login_active" value="false" > In-active' +
-										'</label>' +			
+										'</label>' +
 									'</div>	' +
 								'</div>' +
 							'</div>' +
@@ -2382,7 +2458,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Exam Marks</h4>' +
 			'</div>' +
 			'<div class="modal-body cleafix">' +
-				'<form name="examForm" class="form-horizontal modalForm" novalidate role="form">' +									
+				'<form name="examForm" class="form-horizontal modalForm" novalidate role="form">' +
 					'<div ng-show="error" class="alert alert-danger">' +
 						'{{errMsg}}'+
 					'</div>' +
@@ -2398,7 +2474,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'</div>	' +
 							'<!-- Term -->' +
 							'<div class="form-group">' +
-								'<label for="term">Term</label>	' +
+								'<label for="term">Term</label>' +
 								'<select name="term_id" class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" required>' +
 									'<option value="">--select term--</option>' +
 								'</select>' +
@@ -2408,7 +2484,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'<div class="form-group">' +
 								'<label for="exam_type">Exam</label>' +
 								'<select name="exam_type" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" required>' +
-									'<option value="">-- select exam --</option>' +		
+									'<option value="">-- select exam --</option>' +
 								'</select>' +
 								'<p ng-show="examForm.exam_type.$invalid && (examForm.exam_type.$touched || examForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Exam Type is required.</p>' +
 							'</div>' +
@@ -2431,7 +2507,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								'<div class="input-group-addon"> / {{item.grade_weight}}</div>' +
 							'</div>' +
 						'</div>' +
-					'</div>' +							
+					'</div>' +
 				'</form>' +
 			'</div>'+
 			'<div class="modal-footer">' +
@@ -2453,7 +2529,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		}; // end cancel
 		
 		$scope.done = function(theForm)
-		{			
+		{
 
 			if( !theForm.$invalid )
 			{
@@ -2491,7 +2567,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			'<div class="modal-header dialog-header-confirm">'+
 				'<h4 class="modal-title">Delete Student</h4>' +
 			'</div>' +
-			'<div class="modal-body cleafix">' +				
+			'<div class="modal-body cleafix">' +
 					'<p >' +
 						'Are you sure you want to delete this student and all their associated invoices and payments?<br><strong>THIS CAN NOT BE UNDONE.</strong>' +
 					'</p>' +
@@ -2501,7 +2577,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					'</div>' +
 					'<div ng-show="error" class="alert alert-danger">' +
 						'{{errMsg}}'+
-					'</div>' +				
+					'</div>' +
 			'</div>'+
 			'<div class="modal-footer">' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +

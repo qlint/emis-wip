@@ -39,13 +39,13 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
 });
 
 $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $status=true) {
-    //Show classes for specific class category
+	//Show classes for specific class category
 	
 	$app = \Slim\Slim::getInstance();
- 
-    try 
-    {
-        $db = getDB();
+
+	try 
+	{
+		$db = getDB();
 		$params = array(':status' => $status);
 		$query = "SELECT class_id, class_name, classes.class_cat_id, teacher_id, classes.active, class_cat_name,
 					classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, report_card_type,
@@ -61,7 +61,7 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $s
             FROM app.classes
 			INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 			LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
-            WHERE classes.active = :status
+			WHERE classes.active = :status
 			";
 			
 		if( $classCatid != 'ALL' )
@@ -72,34 +72,32 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $s
 		
 		$query .= " ORDER BY sort_order";
 		
-        $sth = $db->prepare($query);
-        $sth->execute( $params );
- 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
- 
-        if($results) {
+		$sth = $db->prepare($query);
+		$sth->execute( $params );
+
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($results) {
 		
 			foreach( $results as $result)
 			{
 				$result->subjects = pg_array_parse($result->subjects);
 			}
-			
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-             $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-			$app->response()->setStatus(404);
+			$app->response->setStatus(200);
 			$app->response()->headers->set('Content-Type', 'application/json');
-			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));        
-    }
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			 $app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));        
+	}
 
 });
 

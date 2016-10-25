@@ -8,18 +8,39 @@
 					<div ng-show="error" class="alert alert-danger">
 						{{errMsg}}
 					</div>
+					
+					<!-- clone -->
+					<div class="form-group" ng-show="!edit">
+						<label for="clone" class="col-sm-2 control-label">Clone Class</label>
+						<div class="col-sm-10">
+							<div class="row">
+								<div class="col-sm-4">
+									<select name="clone" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="clonedClass">
+										<option value="">--select class--</option>
+									</select>
+								</div>
+								<div class="col-sm-4 nopad-left">
+									<button type="button" class="btn btn-sm btn-primary" ng-click="cloneClass()"><i class="fa fa-clone"></i> Load</button>
+								</div>
+								<div class="col-sm-12">
+									<p class="help-block note">To quickly create a new class based on another, select the class above and click load.</p>
+								</div>
+						</div>
+						</div>
+					</div>
+					
 					<!-- class category -->
-					<div class="form-group" ng-class="{ 'has-error' : classForm.class_cat.$invalid && (classForm.class_cat.$touched || classForm.$submitted) }">		
+					<div class="form-group" ng-class="{ 'has-error' : classForm.class_cat.$invalid && (classForm.class_cat.$touched || classForm.$submitted) }">
 						<label for="class_cat" class="col-sm-2 control-label">Class Category</label>
 						<div class="col-sm-3">
 							<select name="class_cat" class="form-control" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats"  ng-model="theClass.class_cat_id" required ng-disabled="!canEditClass">
 								<option value="">--select class category--</option>
-							</select>							
+							</select>
 							<p ng-show="classForm.class_cat.$invalid && (classForm.class_cat.$touched || classForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Category is required.</p>
-						</div>	
-						<div class="col-sm-4">
-							<button type="button" class="btn btn-sm btn-link" ng-click="addClassCat()" ng-hide="isTeacher"><i class="glyphicon glyphicon-plus"></i> Add class category</button>					
-						</div>	
+						</div>
+						<div class="col-sm-4 nopad-left">
+							<button type="button" class="btn btn-sm btn-link" ng-click="addClassCat()" ng-hide="isTeacher"><i class="glyphicon glyphicon-plus"></i> Add class category</button>
+						</div>
 					</div>
 					
 					<!-- class name -->
@@ -32,22 +53,22 @@
 					</div>
 					
 					<!-- teacher -->
-					<div class="form-group">		
+					<div class="form-group">
 						<label for="teacher_id" class="col-sm-2 control-label">Teacher</label>
 						<div class="col-sm-5">
 							<select name="teacher_id" class="form-control" ng-options="teacher.teacher_id as teacher.teacher_name for teacher in teachers"  ng-model="theClass.teacher_id" ng-disabled="!canEditClass">
 								<option value="">--select teacher--</option>
-							</select>						
+							</select>
 						</div>	
 					</div>
 					
 					<!-- report card type -->
-					<div class="form-group">		
+					<div class="form-group">
 						<label for="report_card_type" class="col-sm-2 control-label">Report Card Type</label>
 						<div class="col-sm-5">
 							<select name="report_card_type" class="form-control" ng-options="type for type in reportCardTypes"  ng-model="theClass.report_card_type" ng-disabled="!canEditClass">
 								<option value="">--select report card type--</option>
-							</select>						
+							</select>
 						</div>	
 					</div>
 

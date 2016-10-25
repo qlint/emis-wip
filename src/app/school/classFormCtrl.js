@@ -4,9 +4,10 @@ angular.module('eduwebApp').
 controller('classFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
-	
-	$scope.theClass = ( data !== undefined ? data : {} );
+	$scope.theClass = ( data.selectedClass !== undefined ? data.selectedClass : {} );
 	$scope.deleted = false;
+	$scope.clonedClass = {};
+	$scope.classes = data.classes;
 	
 	$scope.subjectSelection = [];
 	$scope.subjectExamSelection = {};
@@ -45,14 +46,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		apiService.getAllClassExams(params,setClassDetails, apiError);
 	}
 	
-	
 	var setClassDetails = function(response,status)
 	{
 		var result = angular.fromJson(response);
 		if( result.response == 'success')
 		{
 			// build the subject and exams array
-			$scope.classDetails = ( result.nodata ? [] : angular.copy(result.data) );	;
+			$scope.classDetails = ( result.nodata ? [] : angular.copy(result.data) );
 	
 			angular.forEach($scope.classDetails , function(item,key){
 				if( $scope.subjectSelection.indexOf(item.subject_id) === -1 ) $scope.subjectSelection.push(item.subject_id);
@@ -67,13 +67,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 				}
 				
 			});
-					
 			
 			getSubjects($scope.theClass.class_cat_id);
 		
 			apiService.getExamTypes($scope.theClass.class_cat_id, function(response){
-				var result = angular.fromJson(response);				
-				if( result.response == 'success'){ $scope.examTypes = result.data;}			
+				var result = angular.fromJson(response);
+				if( result.response == 'success'){ $scope.examTypes = result.data;}
 			}, apiError);
 		}
 	}
@@ -83,7 +82,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		apiService.getAllTeachers(true,function(response){
 			var result = angular.fromJson(response);
 			if( result.response == 'success') $scope.teachers = result.data;
-		},apiError);	
+		},apiError);
 
 		if( $scope.edit )
 		{
@@ -105,7 +104,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	}
 	setTimeout(initializeController,1);
 	
-	
 	$scope.$watch('theClass.class_cat_id',function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 
@@ -124,6 +122,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		$uibModalInstance.dismiss('canceled');  
 	}; // end cancel
 	
+	$scope.cloneClass = function()
+	{
+		// fetch all details about selected class and populate form
+		$scope.theClass = angular.copy($scope.clonedClass);
+		getClassDetails($scope.theClass.class_id);
+	}
+	
 	$scope.save = function(form)
 	{
 
@@ -140,7 +145,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 				{
 					// only send the teachers subject(s)
 					
-					angular.forEach( $scope.subjectSelection, function(subject_id,key){						
+					angular.forEach( $scope.subjectSelection, function(subject_id,key){
 						var examsArray = [];
 						var class_subject_id = undefined;
 						
@@ -188,7 +193,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 				}
 				else
 				{
-					angular.forEach( $scope.subjectSelection, function(subject_id,key){						
+					angular.forEach( $scope.subjectSelection, function(subject_id,key){
 						var examsArray = [];
 						var class_subject_id = undefined;
 						
@@ -239,7 +244,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 				angular.forEach( $scope.subjectSelection, function(subject_id,key){
 					
 					var examsArray = [];
-					angular.forEach($scope.subjectExamSelection[subject_id], function(exam_type_id,key2){				
+					angular.forEach($scope.subjectExamSelection[subject_id], function(exam_type_id,key2){
 						examsArray.push({
 							exam_type_id: exam_type_id,
 							grade_weight: ( $scope.gradeWeight[subject_id + '-' + exam_type_id] !== undefined ? $scope.gradeWeight[subject_id + '-' + exam_type_id].grade_weight : 0)

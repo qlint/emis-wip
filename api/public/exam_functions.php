@@ -1,13 +1,13 @@
 <?php
 $app->get('/getExamTypes/:class_cat_id', function ($classCatId) {
 
-    // Get all exam types
+	// Get all exam types
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		
 		$sth = $db->prepare("SELECT exam_type_id, exam_type, exam_types.class_cat_id, class_cat_name
 							FROM app.exam_types 
@@ -18,28 +18,28 @@ $app->get('/getExamTypes/:class_cat_id', function ($classCatId) {
 		$sth->execute(array(':classCatId' => $classCatId)); 
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
  
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->post('/addExamType', function () use($app) {
-    // Add exam type
+	// Add exam type
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
@@ -47,9 +47,9 @@ $app->post('/addExamType', function () use($app) {
 	$classCatId =	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 
 		$sth0 = $db->prepare("SELECT max(sort_order) as sort_order FROM app.exam_types WHERE class_cat_id = :classCatId");
 		/* get the next number for sort order */		
@@ -57,7 +57,6 @@ $app->post('/addExamType', function () use($app) {
 								VALUES(:examType, :classCatId, :sortOrder, :userId)"); 
 		$sth2 = $db->prepare("SELECT * FROM app.exam_types WHERE exam_type_id = currval('app.exam_types_exam_type_id_seq')");
 
-						
 		$db->beginTransaction();
 		$sth0->execute( array(':classCatId' => $classCatId) );
 		$sort = $sth0->fetch(PDO::FETCH_OBJ);
@@ -72,55 +71,49 @@ $app->post('/addExamType', function () use($app) {
 		$app->response()->headers->set('Content-Type', 'application/json');
 		echo json_encode(array("response" => "success", "data" => $results));
 		$db = null;
- 
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->delete('/deleteExamType/:exam_type_id', function ($examTypeId) {
-    // delete exam type
+	// delete exam type
 	
 	$app = \Slim\Slim::getInstance();
 
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 
 		$sth = $db->prepare("DELETE FROM app.exam_types WHERE exam_type_id = :examTypeId");		
-										
 		$sth->execute( array(':examTypeId' => $examTypeId) );
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-		
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->put('/setExamTypeSortOrder', function () use($app) {
-    // Update exam type sort order
+	// Update exam type sort order
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	$sortData =		( isset($allPostVars['data']) ? $allPostVars['data']: null);
 
-    try 
-    {
-        $db = getDB();
-        $sth = $db->prepare("UPDATE app.exam_types
+	try 
+	{
+		$db = getDB();
+		$sth = $db->prepare("UPDATE app.exam_types
 							SET sort_order = :sortOrder,
 								modified_date = now(),
 								modified_by = :userId 
@@ -140,43 +133,34 @@ $app->put('/setExamTypeSortOrder', function () use($app) {
 		$db->commit();
  
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($studentId,$classId,$termId,$examTypeId=null) {
-    //Get student exam marks
+	//Get student exam marks
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+			$db = getDB();
 		
 		// get exam marks by exam type
 		$queryArray = array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId);
-		$query = "SELECT subject_name, parent_subject_name, mark, grade_weight, exam_type, rank, grade
-					FROM (
-						SELECT class_id
-							  ,subject_name  
-							  ,(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
-							  ,exam_type
-							  ,student_id
-							  ,mark          
+		$query = "SELECT subject_name, (select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
+							  ,exam_id
+								,exam_type
+							  ,mark
 							  ,grade_weight
 							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
-							  ,dense_rank() over w as rank,
-							  subjects.sort_order,
-							  exam_types.exam_type_id
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types
@@ -186,55 +170,51 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-						WHERE class_subjects.class_id = :classId						
+						WHERE class_subjects.class_id = :classId
 						AND term_id = :termId
+						AND student_id = :studentId
 						";
 						
 		if( $examTypeId !== null )
 		{
 			$query .= "AND class_subject_exams.exam_type_id = :examTypeId ";
-								
 			$queryArray[':examTypeId'] = $examTypeId; 
 		}
 		
-		$query .= "WINDOW w AS (PARTITION BY class_subjects.subject_id, class_subject_exams.exam_type_id ORDER BY  subjects.sort_order, exam_types.exam_type_id)
-				 ) q
-				 where student_id = :studentId
-				 ORDER BY sort_order,exam_type_id ";
+		$query .= "ORDER BY subjects.sort_order, exam_types.exam_type_id ";
 		
 		$sth = $db->prepare($query);
 		$sth->execute( $queryArray ); 
-        
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id(/:teacher_id)', function ($classId, $termId, $examTypeId, $teacherId=null) {
-    //Show exam marks for all students in class
+	//Show exam marks for all students in class
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		$params = array(':classId' => $classId, ':termId' => $termId, ':examTypeId' => $examTypeId);
 		$query = "SELECT q.student_id, student_name, subject_name, q.class_sub_exam_id, mark, exam_marks.term_id, grade_weight, sort_order, parent_subject_id, subject_id, is_parent
 							FROM (
@@ -246,12 +226,12 @@ $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id(/:teacher_id)', f
 									INNER JOIN app.class_subjects 
 										INNER JOIN app.subjects
 										ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-										INNER JOIN app.class_subject_exams																	
-										ON class_subjects.class_subject_id = class_subject_exams.class_subject_id		
-									ON classes.class_id = class_subjects.class_id									
-								ON students.current_class = classes.class_id					
+										INNER JOIN app.class_subject_exams
+										ON class_subjects.class_subject_id = class_subject_exams.class_subject_id
+									ON classes.class_id = class_subjects.class_id
+								ON students.current_class = classes.class_id
 								WHERE current_class = :classId
-								AND exam_type_id = :examTypeId							
+								AND exam_type_id = :examTypeId
 							";
 		if( $teacherId !== null )
 		{
@@ -262,40 +242,39 @@ $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id(/:teacher_id)', f
 		$query .= ") q
 							LEFT JOIN app.exam_marks 
 								INNER JOIN app.terms 
-								ON exam_marks.term_id = terms.term_id															
+								ON exam_marks.term_id = terms.term_id
 							ON q.class_sub_exam_id = exam_marks.class_sub_exam_id AND exam_marks.term_id = :termId AND exam_marks.student_id = q.student_id
 							ORDER BY student_name, sort_order, subject_name";
 		
-        $sth = $db->prepare($query);
-        $sth->execute($params); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
-		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
+		$sth = $db->prepare($query);
+		$sth->execute($params); 
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($classId,$termId,$examTypeId,$teacherId=null) {
-    //Get all student exam marks
+	//Get all student exam marks
 	$app = \Slim\Slim::getInstance();
 	
-    try 
-    {
+	try 
+	{
 		// need to make sure class, term and type are integers
 		if( is_numeric($classId) && is_numeric($termId)  && is_numeric($examTypeId) )
 		{
@@ -344,7 +323,7 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 												total_mark,
 												dense_rank() over w as rank
 											FROM (
-												SELECT student_id, 
+												SELECT exam_marks.student_id, 
 													coalesce(sum(case when subjects.parent_subject_id is null then
 														mark
 													end),0) as total_mark
@@ -357,9 +336,12 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 														ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 													ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 												ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+												INNER JOIN app.students
+												ON exam_marks.student_id = students.student_id
 												WHERE class_subjects.class_id = $classId
 												AND term_id = $termId
 												AND class_subject_exams.exam_type_id = $examTypeId
+												AND students.active is true
 												GROUP BY exam_marks.student_id
 											) a
 											WINDOW w AS (ORDER BY total_mark desc)
@@ -378,38 +360,38 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 			$db->commit();
 		}
 		
-			if($results) {
-					$app->response->setStatus(200);
-					$app->response()->headers->set('Content-Type', 'application/json');
-					echo json_encode(array('response' => 'success', 'data' => $results ));
-					$db = null;
-			} else {
-					$app->response->setStatus(200);
-					$app->response()->headers->set('Content-Type', 'application/json');
-					echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-					$db = null;
-			}
- 
-		} catch(PDOException $e) {
-				$app->response()->setStatus(200);
-				$app->response()->headers->set('Content-Type', 'application/json');
-				//echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-				echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
 		}
+ 
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		//echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
+	}
 
 });
 
 $app->post('/addExamMarks', function () use($app) {
-    // Add exam type
+	// Add exam mark
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
 	$examMarks =	( isset($allPostVars['exam_marks']) ? $allPostVars['exam_marks']: null);
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
-    try 
-    {
-        $db = getDB();
+	try 
+	{
+		$db = getDB();
 		
 		$getExam = $db->prepare("SELECT exam_id FROM app.exam_marks WHERE student_id = :studentId AND class_sub_exam_id = :classSubExamId AND term_id = :termId");
 		
@@ -449,30 +431,26 @@ $app->post('/addExamMarks', function () use($app) {
 			}
 		}
 		
-		
-		
 		$db->commit();
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
-    //Get all top 3 students for each class, or requested class
+	//Get all top 3 students for each class, or requested class
 	
 	$app = \Slim\Slim::getInstance();
 	
-    try 
-    {
+	try 
+	{
 		
 		$db = getDB();
 		$queryParams = array();
@@ -505,7 +483,7 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 									  ,dense_rank() over w as rank
 									  ,position_out_of
 							FROM (
-								SELECT    
+								SELECT
 									 exam_marks.student_id
 									  ,first_name
 									  ,middle_name
@@ -517,7 +495,7 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 										end),0) as total_mark
 									  ,coalesce(sum(case when subjects.parent_subject_id is null then
 										grade_weight
-									   end),0) as total_grade_weight									  
+									   end),0) as total_grade_weight
 									  ,(select count(*) from app.students where active is true and current_class = students.current_class) as position_out_of
 								FROM app.exam_marks
 								INNER JOIN app.students
@@ -533,6 +511,7 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 								WHERE term_id = (select term_id from app.current_term)
+								AND students.active is true
 					";
 			
 		if( $classId !== null  )
@@ -543,7 +522,7 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 		
 		$query .= " 	GROUP BY exam_marks.student_id, first_name, middle_name, last_name, class_subjects.class_id, class_name
 					) a
-								WINDOW w AS (PARTITION BY class_id ORDER BY class_id desc, total_mark desc)								
+								WINDOW w AS (PARTITION BY class_id ORDER BY class_id desc, total_mark desc)
 							 ) q
 							 WHERE rank < 4";
 		
@@ -553,36 +532,34 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 		$sth->execute($queryParams); 
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 
-					
 		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-        //echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		//echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
 		$app->response()->headers->set('Content-Type', 'application/json');
-		 echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
-    }
+		echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
+	}
 
 });
 
 $app->get('/getTeacherTopStudents/:teacher_id(/:class_id)', function ($teacherId, $classId=null) {
-    //Get all top 3 students for each class, or requested class
+	//Get all top 3 students for each class, or requested class
 	
 	$app = \Slim\Slim::getInstance();
 	
-    try 
-    {
+	try 
+	{
 		
 		$db = getDB();
 		$queryParams = array(':teacherId' => $teacherId);
@@ -619,7 +596,7 @@ $app->get('/getTeacherTopStudents/:teacher_id(/:class_id)', function ($teacherId
 										end),0) as total_mark
 									  ,coalesce(sum(case when subjects.parent_subject_id is null then
 										grade_weight
-									   end),0) as total_grade_weight									  
+									   end),0) as total_grade_weight
 									  ,(select count(*) from app.students where active is true and current_class = students.current_class) as position_out_of
 								FROM app.exam_marks
 								INNER JOIN app.students
@@ -636,6 +613,7 @@ $app->get('/getTeacherTopStudents/:teacher_id(/:class_id)', function ($teacherId
 								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 								WHERE term_id = (select term_id from app.current_term)
 								AND (subjects.teacher_id = :teacherId OR classes.teacher_id = :teacherId)
+								AND students.active is true
 					";
 			
 		if( $classId !== null  )
@@ -646,7 +624,7 @@ $app->get('/getTeacherTopStudents/:teacher_id(/:class_id)', function ($teacherId
 		
 		$query .= " 	GROUP BY exam_marks.student_id, first_name, middle_name, last_name, class_subjects.class_id, class_name
 					) a
-								WINDOW w AS (PARTITION BY class_id ORDER BY class_id desc, total_mark desc)								
+								WINDOW w AS (PARTITION BY class_id ORDER BY class_id desc, total_mark desc)
 							 ) q
 							 WHERE rank < 4";
 		
@@ -656,26 +634,84 @@ $app->get('/getTeacherTopStudents/:teacher_id(/:class_id)', function ($teacherId
 		$sth->execute($queryParams); 
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 
-					
 		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-        //echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		//echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
 		$app->response()->headers->set('Content-Type', 'application/json');
-		 echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
-    }
+		echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
+	}
 
+});
+
+$app->put('/updateExamClass', function () use($app) {
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	
+	$examIds =	( isset($allPostVars['exam_ids']) ? $allPostVars['exam_ids']: null);
+	$classId =	( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+	
+	try 
+	{
+		$db = getDB();
+		
+		$getIds = $db->prepare("SELECT exam_type_id, subject_id
+															FROM app.exam_marks
+															INNER JOIN app.class_subject_exams
+																INNER JOIN app.class_subjects
+																ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+															ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+															WHERE exam_id = :examId");
+		
+		$getNewId = $db->prepare("SELECT class_sub_exam_id
+																FROM app.class_subject_exams
+																INNER JOIN app.class_subjects
+																ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+																WHERE subject_id = :subjectId
+																AND class_id = :classId
+																AND exam_type_id = :examTypeId");
+		
+		$updateExam = $db->prepare("UPDATE app.exam_marks
+													SET class_sub_exam_id = :newId
+													WHERE exam_id = :examId");
+		
+		$db->beginTransaction();
+		
+		foreach( $examIds as $examId )
+		{
+			// determine the subject and exam type ids
+			$getIds->execute(array(':examId' => $examId));
+			$ids = $getIds->fetch(PDO::FETCH_OBJ);
+			
+			// use to get the new class subject exam id using new class id
+			$getNewId->execute(array(':subjectId' => $ids->subject_id, ':examTypeId' => $ids->exam_type_id, ':classId' => $classId ));
+			$newId = $getNewId->fetch(PDO::FETCH_OBJ);
+		
+			// update exam to new class subject exam id
+			$updateExam->execute(array('newId' => $newId->class_sub_exam_id, ':examId' => $examId));
+			
+		}
+		$db->commit();
+		
+		$app->response->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 });
 ?>

@@ -746,19 +746,11 @@ $app->get('/getStudentExamMarksPortal/:school/:student_id/:class/:term', functio
         $db = setDBConnection($school);
 		
 		// get exam marks by exam type
-		$sth = $db->prepare("SELECT subject_name, parent_subject_name, mark, grade_weight, exam_type, rank, grade
-					FROM (
-						SELECT class_id
-							  ,subject_name  
-							  ,(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
+		$sth = $db->prepare("SELECT subject_name, (select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
 							  ,exam_type
-							  ,student_id
-							  ,mark          
+							  ,mark
 							  ,grade_weight
 							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
-							  ,dense_rank() over w as rank,
-							  subjects.sort_order,
-							  exam_types.exam_type_id
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types
@@ -768,12 +760,11 @@ $app->get('/getStudentExamMarksPortal/:school/:student_id/:class/:term', functio
 							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-						WHERE class_subjects.class_id = :classId						
+						WHERE class_subjects.class_id = :classId
 						AND term_id = :termId
-						WINDOW w AS (PARTITION BY class_subjects.subject_id, class_subject_exams.exam_type_id ORDER BY  subjects.sort_order, exam_types.exam_type_id)
-				 ) q
-				 where student_id = :studentId
-				 ORDER BY sort_order,exam_type_id ");
+						AND student_id = :studentId
+						ORDER BY subjects.sort_order, exam_types.exam_type_id
+						");
 		$sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) ); 
         
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
