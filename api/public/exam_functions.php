@@ -305,6 +305,7 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 						AND term_id = $termId
 						AND class_subject_exams.exam_type_id = $examTypeId
 						AND subjects.use_for_grading is true
+						AND students.active is true
 						";
 		if( $teacherId !== null )
 		{
