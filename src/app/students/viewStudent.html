@@ -828,13 +828,18 @@
 						<tr ng-repeat="item in reportCards.classes track by $index">
 							<td width="75">{{item.class_name}} ({{item.year}})</td>
 							<td class="center" ng-repeat="term in reportCards.terms track by $index">
-								<span ng-show="item.reports[term]" ng-click="getReportCard(item, term, item.reports[term])" class="glyphicon glyphicon-file icon-lg"></span>
+								<span ng-show="item.reports[term]" ng-click="getReportCard(item, term, item.reports[term])" class="glyphicon glyphicon-file icon-lg">
+									<sup ng-show="parentPortalAcitve && !item.reports[term].published" class="text-muted" title="Not Published">*</sup>
+								</span>
 								<span ng-show="!item.reports[term]" >-</span>
 							</td>
 						</tr>
 					</tbody>
 				</table>
 				
+				<p class="note" ng-show="parentPortalAcitve" style="margin-top:10px;border-top:1px solid #eee;padding-top:10px">
+					<sup>*</sup> The asterisk indicates that a report card is NOT published and not accessible to parents via the parent portal.
+				</p>
 			</script>
 			
 			<script type="text/ng-template" id="News">

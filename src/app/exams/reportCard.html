@@ -493,6 +493,14 @@
 					
 				</script>
 				
+				<div ng-if="isAdmin && parentPortalAcitve">
+					<label>Publish this Report Card?</label>
+					<p>
+						<input type="checkbox" name="publish" value="true" ng-model="report.published" id="publish" ng-change="updateReport()" /> 
+						<label for="publish">Yes, allow parents access on parent site</label>
+					</p>
+				</div>
+				
 				
 				<div ng-show="saved && (isAdmin || isClassTeacher)" class="alert alert-success">
 					Report card has been saved! Click the 'Print' button below.
@@ -502,11 +510,11 @@
 		</div>
 		<div class="modal-footer">
 			<div class="pull-left" ng-show="canDelete">
-				<button type="button" class="btn btn-danger" ng-click="deleteReportCard()">Delete</button>	
+				<button type="button" class="btn btn-danger" ng-click="deleteReportCard()">Delete</button>
 			</div>
-			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>			
-			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint && (isAdmin || isClassTeacher)"><i class="glyphicon glyphicon-print"></i> Print</button>		
-			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && adding">Save</button>		
-			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && !adding&&modified">Update</button>				
+			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>
+			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint && (isAdmin || isClassTeacher)"><i class="glyphicon glyphicon-print"></i> Print</button>
+			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && adding">Save</button>
+			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && !adding && modified">Update</button>
 		</div>
 </form>

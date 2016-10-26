@@ -40,6 +40,47 @@ $app->post('/parentLogin', function () use($app) {
 	}
 });
 
+$app->put('/updatePassword', function () use($app) {
+	// update password
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$userId = $allPostVars['parent_id'];
+	$oldPwd = $allPostVars['user_pwd'];
+	$newPwd = $allPostVars['new_password'];
+	
+	//$hash = password_hash($pwd, PASSWORD_BCRYPT);
+ 
+	try 
+	{
+		$db = getLoginDB();
+		
+		$sth1 = $db->prepare("SELECT * FROM parents WHERE parent_id = :userId and password = :oldPwd");
+		$sth1->execute( array(':userId' => $userId, ':oldPwd' => $oldPwd) );
+		$result = $sth1->fetch(PDO::FETCH_OBJ);
+		if( $result )
+		{
+			$sth2 = $db->prepare("UPDATE parents SET password = :newPwd WHERE parent_id = :userId");
+			$sth2->execute( array(':userId' => $userId, ':newPwd' => $newPwd) );
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array("response" => "success", "code" => 1));
+		}
+		else
+		{
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array("response" => "error", "data" => "Current password is incorrect."));
+		}
+		
+		
+		$db = null;
+ 
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+});
+
 $app->get('/getParentStudents/:parent_id', function ($parentId){
 	// Log parents' students details, notices and news
 	$app = \Slim\Slim::getInstance();
@@ -466,13 +507,13 @@ $app->get('/getStudent/:school/:studentId', function ($school, $studentId) {
 });
 
 $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $studentId) {
-    // Return students fee summary
+	// Return students fee summary
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = setDBConnection($school);
+	try 
+	{
+			$db = setDBConnection($school);
 		
 		// get total amount of student fee items
 		// calculate the amount due and due date
@@ -480,7 +521,7 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 		$sth = $db->prepare("SELECT fee_item, student_fee_items.payment_method,
 									sum(invoice_line_items.amount) AS total_due, 
 									COALESCE(sum(payment_inv_items.amount), 0) AS total_paid, 
-									COALESCE(sum(payment_inv_items.amount), 0) - sum(invoice_line_items.amount) AS balance        
+									COALESCE(sum(payment_inv_items.amount), 0) - sum(invoice_line_items.amount) AS balance
 							FROM app.invoices
 							INNER JOIN app.invoice_line_items 
 								INNER JOIN app.student_fee_items
@@ -503,45 +544,39 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 		
 		if( $fees )
 		{
-		
 			$sth2 = $db->prepare("SELECT 
 									(SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
 									(SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
-									(
-										SELECT sum(diff) FROM (
-											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
-											FROM app.payments as p	
-											WHERE student_id = :studentID
-											AND reversed is false
-											AND replacement_payment is false
-										) AS q
-									) AS unapplied_payments");
+									COALESCE((SELECT sum(amount) from app.credits WHERE student_id = :studentID ),0) AS total_credit");
 			$sth2->execute( array(':studentID' => $studentId)); 
 			$details = $sth2->fetch(PDO::FETCH_OBJ);
 			
 			
 			if( $details )
-			{			
+			{
 				//  set the next due summary
 				$feeSummary = new Stdclass();
 				$feeSummary->next_due_date = $details->next_due_date;
 				$feeSummary->next_amount = $details->next_amount;
-				$feeSummary->unapplied_payments = $details->unapplied_payments;				
+				//$feeSummary->unapplied_payments = $details->unapplied_payments;
+				$feeSummary->total_credit = $details->total_credit;
 				
 				// is the next due date within 30 days?
 				$diff = dateDiff("now", $details->next_due_date);
 				$feeSummary->within30days = ( $diff < 30 ? true : false ); 	
 			}
 			
-			$balanceQry = $db->prepare("SELECT coalesce(sum(total_due),0) as total_due, 
-											   coalesce(sum(total_paid),0) as total_paid, 
-											   coalesce(sum(balance),0) as balance,
-											   past_due
-										FROM app.invoice_balances2
-									    WHERE student_id = :studentID
-										AND date_part('year', due_date) = date_part('year',now())  -- < now()::date
-										AND canceled = false
-										GROUP BY past_due");
+			$balanceQry = $db->prepare("SELECT total_due, total_paid, total_paid - total_due as balance,
+																	case when (select count(*) from app.invoice_balances2 where student_id = :studentID and past_due is true) > 0 then true else false end as past_due
+																FROM (
+																	SELECT 
+																		coalesce(sum(total_amount),0) as total_due, 
+																		coalesce((select sum(payment_inv_items.amount) from app.payments inner join app.payment_inv_items on payments.payment_id = payment_inv_items.payment_id where student_id = 58),0) as total_paid
+																	FROM app.invoices
+																	WHERE student_id = :studentID
+																	AND date_part('year', due_date) = date_part('year',now())
+																	AND canceled = false
+																)q");
 			$balanceQry->execute( array(':studentID' => $studentId)); 
 			$balance = $balanceQry->fetch(PDO::FETCH_OBJ);
 			//var_dump($balance);
@@ -577,16 +612,16 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 });
 
 $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $studentId) {
-    // Return students invoices
+	// Return students invoices
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-       $db = setDBConnection($school);
+	try 
+	{
+		 $db = setDBConnection($school);
 		
 		// get invoices
-		// TO DO: I only want invoices for this school year?	
+		// TO DO: I only want invoices for this school year?
 		$sth = $db->prepare("SELECT invoice_balances2.*, ARRAY(select fee_item || ' (' || invoice_line_items.amount || ')'
 																		from app.invoice_line_items 
 																		inner join app.student_fee_items
@@ -599,103 +634,145 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
 													FROM app.invoice_balances2 
 													INNER JOIN app.terms
 													ON invoice_balances2.term_id = terms.term_id
-													WHERE student_id = :studentId ORDER BY inv_date");
+													WHERE student_id = :studentId 
+													ORDER BY inv_date");
 		$sth->execute( array(':studentId' => $studentId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
  
-        if($results) {			
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+	if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+	} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+	}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getStudentPaymentsPortal/:student/:studentId', function ($school, $studentId) {
-    // Return students payments
+	// Return students payments
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-        $db = setDBConnection($school);
+	try 
+	{
+		$db = setDBConnection($school);
 		
 		// get payments
-		// TO DO: I only want payments for this school year?	
-		$sth = $db->prepare("SELECT payment_id,
+		// TO DO: I only want payments for this school year?
+		$sth = $db->prepare("SELECT payments.payment_id,
 								payment_date,
 								payment_method,
 								amount,
+								reversed, 
+								reversed_date, 
+								replacement_payment, 
+								slip_cheque_no,
+								COALESCE(
 								CASE WHEN replacement_payment = true THEN
-								 (SELECT array_agg(fee_item || ' Replacement') 
+								 (SELECT string_agg(fee_item || ' Replacement', ',') 
 										 FROM app.payment_replacement_items 
 										 INNER JOIN app.student_fee_items using (student_fee_item_id)
 										 INNER JOIN app.fee_items using (fee_item_id) 
 										 WHERE payment_id = payments.payment_id
 										 )
 								 ELSE
-									(SELECT array_agg(fee_item || ' (Inv #' || invoices.inv_id || ')' ) 
+									(SELECT 
+										string_agg(item, '<br>')
+									FROM (
+										select 'Inv #' || payment_inv_items.inv_id || ' (' || string_agg(fee_item, ', ' order by fee_item) || ')' as item
 										 FROM app.payment_inv_items 
 										 INNER JOIN app.invoices on payment_inv_items.inv_id  = invoices.inv_id and canceled = false
 										 INNER JOIN app.invoice_line_items using (inv_item_id)
 										 INNER JOIN app.student_fee_items using (student_fee_item_id)
 										 INNER JOIN app.fee_items using (fee_item_id) 
 										 WHERE payment_id = payments.payment_id
+										 group by payment_inv_items.inv_id
+									) q
 										 )
-								 END as applied_to,
-								  (
-									SELECT sum(diff) FROM (
-										SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
-										FROM app.payments as p
-										WHERE p.payment_id = payments.payment_id
-										AND reversed is false
-										AND replacement_payment is false
-									) AS q
-								) AS unapplied_amount,
-								 reversed, reversed_date, replacement_payment, slip_cheque_no
-								FROM app.payments						
-								WHERE student_id = :studentID");
+								END, 'Credit') as applied_to,
+							 COALESCE((
+									amount - coalesce((select coalesce(sum(amount),0)  as sum
+														from app.payment_inv_items 
+														inner join app.invoices using (inv_id) 
+														where payment_id = payments.payment_id 
+														and canceled = false ),0)
+								),0) AS unapplied_amount
+								FROM app.payments
+								WHERE student_id = :studentID
+								GROUP BY payments.payment_id");
 		$sth->execute( array(':studentID' => $studentId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
  
-        if($results) {			
-			// convert pgarray to php array
-			
-			foreach( $results as $result)
-			{
-				$result->applied_to = pg_array_parse($result->applied_to);
-			}
-			
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
+
+$app->get('/getStudentCreditsPortal/:student/:studentId', function ($school, $studentId) {
+	// Return students credits
+	
+	$app = \Slim\Slim::getInstance();
+ 
+	try 
+	{
+			$db = setDBConnection($school);
+		
+		// get credits
+		$sth = $db->prepare("SELECT credit_id, credits.amount, credits.amount as amount_available, 
+																credits.creation_date::date as payment_date, credits.payment_id, payment_method
+								FROM app.credits
+								INNER JOIN app.payments ON credits.payment_id = payments.payment_id
+								WHERE credits.student_id = :studentID
+								ORDER BY credits.creation_date");
+		$sth->execute( array(':studentID' => $studentId));
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+		
+ 
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+ 
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
@@ -917,13 +994,13 @@ $app->get('/getTerms/:school(/:year)', function ($school, $year = null) {
 });
 
 $app->get('/getStudentReportCards/:school/:student_id', function ($school, $studentId) {
-    //Get student report cards
+	//Get student report cards
 	
 	$app = \Slim\Slim::getInstance();
- 
-    try 
-    {
-        $db = setDBConnection($school);
+
+	try 
+	{
+		$db = setDBConnection($school);
 		
 		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
 									date_part('year', start_date) as year, report_data, report_cards.report_card_type, class_cat_id,
@@ -935,29 +1012,29 @@ $app->get('/getStudentReportCards/:school/:student_id', function ($school, $stud
 					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
 					LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
 					WHERE report_cards.student_id = :studentId
+					AND published is true
 					ORDER BY report_card_id");
 		$sth->execute( array(':studentId' => $studentId) ); 
 		
-        
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 		
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
  
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
@@ -1050,10 +1127,11 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
         $db = setDBConnection($school);
 	
 		// get payment data
-       $sth = $db->prepare("SELECT payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
-									payments.student_id, replacement_payment, reversed, reversed_date --,payments.inv_id
-							FROM app.payments							
-							WHERE payment_id = :paymentId
+       $sth = $db->prepare("SELECT payments.payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, 
+									payments.student_id, replacement_payment, reversed, reversed_date, credit_id --,payments.inv_id
+							FROM app.payments
+							LEFT JOIN app.credits ON payments.payment_id = credits.payment_id
+							WHERE payments.payment_id = :paymentId
 	   ");
 		$sth->execute( array(':paymentId' => $paymentId) ); 
         $results1 = $sth->fetch(PDO::FETCH_OBJ);
@@ -1061,92 +1139,101 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
 		// get what the payment was applied to
 		$sth2 = $db->prepare("SELECT payment_inv_item_id, payment_inv_items.inv_item_id,
 									fee_item,
-									payment_inv_items.amount as line_item_amount
-							FROM app.payment_inv_items							
+									payment_inv_items.amount as line_item_amount, invoice_line_items.inv_id
+							FROM app.payment_inv_items
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
 									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
-							ON payment_inv_items.inv_item_id = invoice_line_items.inv_item_id			
-							WHERE payment_id = :paymentId								
+							ON payment_inv_items.inv_item_id = invoice_line_items.inv_item_id
+							WHERE payment_id = :paymentId
 							UNION
 							SELECT payment_replace_item_id, payment_replacement_items.student_fee_item_id,
 									fee_item,
-									payment_replacement_items.amount as line_item_amount
-							FROM app.payment_replacement_items							
+									payment_replacement_items.amount as line_item_amount, null
+							FROM app.payment_replacement_items
 							INNER JOIN app.student_fee_items
 								INNER JOIN app.fee_items
 								ON student_fee_items.fee_item_id = fee_items.fee_item_id
-							ON payment_replacement_items.student_fee_item_id = student_fee_items.student_fee_item_id						
-							WHERE payment_id = :paymentId							
+							ON payment_replacement_items.student_fee_item_id = student_fee_items.student_fee_item_id
+							WHERE payment_id = :paymentId
+							ORDER BY inv_id
 							");
 		$sth2->execute( array(':paymentId' => $paymentId) ); 
         $results2 = $sth2->fetchAll(PDO::FETCH_OBJ);
 		
+		// Loop through and get unique inv_ids for next query 
+		$invIds = array();
+		foreach($results2 as $result2){
+			if( !in_array( $result2->inv_id, $invIds ) ) $invIds[] = $result2->inv_id;
+		}		
+		$invIdStr = '{' . implode(',', $invIds) . '}';
+		
 		// get the invoice details that payment was applied to
-		$sth3 = $db->prepare("SELECT invoice_balances2.inv_id,
+
+		$sth3 = $db->prepare("SELECT invoices.inv_id,
 								inv_date,
-								total_due,
-								balance,
+								(select coalesce(sum(amount),0) - invoices.total_amount from app.payment_inv_items where inv_id = invoices.inv_id) as overall_balance,
+								invoice_line_items.amount,
+								coalesce((select sum(amount) from app.payment_inv_items where inv_item_id = invoice_line_items.inv_item_id),0) as total_paid,
+								coalesce((select sum(amount) from app.payment_inv_items where inv_item_id = invoice_line_items.inv_item_id),0) - invoice_line_items.amount as balance,
 								due_date,
 								invoice_line_items.inv_item_id,
 								fee_item,
 								invoice_line_items.amount as line_item_amount,
 								term_name,
 								date_part('year',terms.start_date) as term_year
-							FROM app.invoice_balances2
+								invoices.canceled
+							FROM app.invoices
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
 									INNER JOIN app.fee_items
 									ON student_fee_items.fee_item_id = fee_items.fee_item_id
 								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
-								LEFT JOIN app.payment_inv_items
-									INNER JOIN app.payments
-									ON payment_inv_items.payment_id = payments.payment_id AND payments.reversed IS FALSE
-								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id								
-							ON invoice_balances2.inv_id = invoice_line_items.inv_id
+							ON invoices.inv_id = invoice_line_items.inv_id
 							INNER JOIN app.terms
-							ON invoice_balances2.term_id = terms.term_id
-							WHERE payment_inv_items.payment_id = :paymentId
-							ORDER BY due_date, fee_item");
-		$sth3->execute( array(':paymentId' => $paymentId) ); 
-		$results3 = $sth3->fetchAll(PDO::FETCH_OBJ);	
+							ON invoices.term_id = terms.term_id
+							WHERE invoices.inv_id = any(:invIds)
+							ORDER BY inv_id, due_date, fee_item");
+
+		$sth3->execute( array(':invIds' => $invIdStr) ); 
+		$results3 = $sth3->fetchAll(PDO::FETCH_OBJ);
+
 		
 		$results = new Stdclass();
 		$results->payment = $results1;
 		$results->paymentItems = $results2;
 		$results->invoice = $results3;
  
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 
 $app->get('/getInvoiceDetails/:school/:inv_id', function ($school,$invId) {
-    // Get all invoice details
+	// Get all invoice details
 	
 	$app = \Slim\Slim::getInstance();
  
-    try 
-    {
-       $db = setDBConnection($school);
-       $sth = $db->prepare("SELECT *, amount - total_paid as balance
+	try 
+	{
+		 $db = setDBConnection($school);
+		 $sth = $db->prepare("SELECT *, amount - total_paid as balance
 							FROM (
 							SELECT 
 								invoices.inv_id,
@@ -1175,25 +1262,25 @@ $app->get('/getInvoiceDetails/:school/:inv_id', function ($school,$invId) {
 							ORDER BY fee_item
 							) q");
 		$sth->execute( array(':invId' => $invId) ); 
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
  
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
 
 });
 

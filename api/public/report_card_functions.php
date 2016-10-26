@@ -13,7 +13,7 @@ $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
 									admission_number, report_cards.class_id, class_cat_id,
 									class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
-									report_cards.creation_date::date as date
+									report_cards.creation_date::date as date, published
 							FROM app.report_cards
 							INNER JOIN app.students ON report_cards.student_id = students.student_id
 							INNER JOIN app.classes ON report_cards.class_id = classes.class_id
@@ -58,7 +58,7 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
 		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
 									date_part('year', start_date) as year, report_data, report_cards.report_card_type, class_cat_id,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
-									report_cards.creation_date::date as date
+									report_cards.creation_date::date as date, published
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
 					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
@@ -103,7 +103,7 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
 		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, class_name, classes.class_id, term_name, report_cards.term_id, 
 									date_part('year', start_date) as year, report_data, report_cards.report_card_type,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
-									report_cards.creation_date::date as date
+									report_cards.creation_date::date as date, published
 					FROM app.report_cards
 					INNER JOIN app.students ON report_cards.student_id = students.student_id
 					INNER JOIN app.classes ON report_cards.class_id = classes.class_id 
@@ -372,6 +372,7 @@ $app->post('/addReportCard', function () use($app) {
 	$teacherId =		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	$reportData =		( isset($allPostVars['report_data']) ? $allPostVars['report_data']: null);
+	$published =		( isset($allPostVars['published']) ? $allPostVars['published']: 'f');
 	
     try 
     {
@@ -379,11 +380,12 @@ $app->post('/addReportCard', function () use($app) {
 		
 		$getReport = $db->prepare("SELECT report_card_id FROM app.report_cards WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId");
 		
-		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by, report_card_type, teacher_id) 
-								VALUES(:studentId, :classId, :termId, :reportData, :userId, :reportCardType, :teacherId)"); 
+		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by, report_card_type, teacher_id, published) 
+								VALUES(:studentId, :classId, :termId, :reportData, :userId, :reportCardType, :teacherId, :published)"); 
 		
 		$updateReport = $db->prepare("UPDATE app.report_cards
 									SET report_data = :reportData,
+											published = :published,
 										modified_date = now(),
 										modified_by = :userId
 									WHERE report_card_id = :reportCardId"); 
@@ -396,7 +398,7 @@ $app->post('/addReportCard', function () use($app) {
 		
 		if( $reportCardId )
 		{
-			$updateReport->execute( array(':reportData' => $reportData, ':userId' => $userId, ':reportCardId' => $reportCardId->report_card_id ) );
+			$updateReport->execute( array(':reportData' => $reportData, ':userId' => $userId, ':reportCardId' => $reportCardId->report_card_id, ':published' => $published ) );
 		}
 		else
 		{
@@ -406,7 +408,8 @@ $app->post('/addReportCard', function () use($app) {
 											':termId' => $termId, 
 											':reportData' => $reportData, 
 											':teacherId' => $teacherId,
-											':userId' => $userId
+											':userId' => $userId,
+											':published' => $published
 											) );
 		}
 		

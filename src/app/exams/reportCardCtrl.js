@@ -3,7 +3,7 @@
 angular.module('eduwebApp').
 controller('reportCardCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$timeout','$window','$parse',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window, $parse){
-
+	console.log(data);
 	$rootScope.isPrinting = false;
 	$scope.student = data.student || undefined;
 	$scope.reportCardType = ($scope.student !== undefined ? $scope.student.report_card_type : undefined);
@@ -15,10 +15,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.thestudent = {};
 	$scope.examTypes = {};
 	$scope.comments = {};
+	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 	
 	$scope.canPrint = false;
 	
 	$scope.report = {};
+	$scope.report.published = false;
 	
 	$scope.showReportCard = false;
 	
@@ -84,6 +86,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 			$scope.report.term_id = data.term_id;
 			$scope.report.year = data.year;
+			$scope.report.published = data.published;
 			$scope.reportCardType = data.report_card_type;
 			$scope.report.teacher_id = data.teacher_id;
 			$scope.report.teacher_name = data.teacher_name;
@@ -200,6 +203,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		$scope.report.term_id = $scope.currentFilters.term.term_id;
 		$scope.report.year = $scope.currentFilters.term.year;
+		$scope.report.published = false;
 		$scope.report.teacher_id = $scope.currentFilters.class.teacher_id;
 		$scope.report.teacher_name = $scope.currentFilters.class.teacher_name;
 		$scope.comments.teacher_name = $scope.currentFilters.class.teacher_name;
@@ -672,6 +676,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		newWindowRef.printCriteria = criteria;
 	}
 	
+	
 	$scope.deleteReportCard = function()
 	{
 		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete this report card? <br><br><b><i>(THIS CAN NOT BE UNDONE)</i></b>',{size:'sm'});
@@ -725,7 +730,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		/* if subject teacher, and there is an existing report card, need to update only the subject they are associated with */
 		if( $scope.isTeacher && !$scope.isClassTeacher )
 		{
-			
 			var reportData = angular.copy($scope.reportData);
 			var addIt = false;
 			angular.forEach( $scope.originalData.subjects, function(item,key){
@@ -752,7 +756,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			class_id : $scope.report.class_id,
 			report_card_type : $scope.reportCardType,
 			teacher_id : $scope.report.teacher_id,
-			report_data : JSON.stringify(reportData)
+			report_data : JSON.stringify(reportData),
+			published: $scope.report.published || 'f'
 		}
 
 		apiService.addReportCard(data,createCompleted,apiError);
