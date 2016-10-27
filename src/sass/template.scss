@@ -2108,7 +2108,7 @@ table.clickable{
 			.school-address{
 				font-size:7pt;
 				margin-bottom:0;
-			}			
+			}
 			
 		}
 		
@@ -2169,7 +2169,20 @@ table.clickable{
 				min-height: auto!important;
 					
 			}
-		}	
+		}
+	}
+	
+	.progress-report.kindergarten{
+		table{
+			td{
+				font-size:10pt!important;
+			}
+		}
+		.progress-report-remarks{
+			p.form-control-static{
+				font-size:10pt;
+			}
+		}
 	}
 	
 }

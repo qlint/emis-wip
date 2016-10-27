@@ -1573,6 +1573,11 @@ table.clickable tr {
     line-height: 10pt;
     padding: 0 !important;
     height: auto !important;
-    min-height: auto !important; } }
+    min-height: auto !important; }
+
+  .progress-report.kindergarten table td {
+    font-size: 10pt !important; }
+  .progress-report.kindergarten .progress-report-remarks p.form-control-static {
+    font-size: 10pt; } }
 
 /*# sourceMappingURL=template.css.map */

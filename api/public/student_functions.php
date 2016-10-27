@@ -2133,8 +2133,7 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
 		{
 			$db = getDB();
 			// get students school name and guardian ids for deleting from parents portal tables
-			$studentDetails = $db->prepare("SELECT guardian_id, id_number,
-																			 (SELECT value FROM app.settings WHERE name = 'School Name') as school_name
+			$studentDetails = $db->prepare("SELECT guardian_id, (SELECT value FROM app.settings WHERE name = 'School Abbr') as subdomain
 																		FROM app.student_guardians
 																		WHERE student_id = :studentId");
 
@@ -2189,7 +2188,7 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
 			$d10->execute( $params );
 			$d11->execute( $params );
 			$d12->execute( $params );
-			$db->commit();
+			
 			
 			// check if guardian is associated with other students, if not, delete
 			$guardianCheck = $db->prepare("SELECT * FROM app.student_guardians WHERE guardian_id = :guardianId");
@@ -2203,28 +2202,36 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
 					$deleteGuardian->execute( array(':guardianId' => $guardian->guardian_id) );
 				}
 			}
+			$db->commit();
 			$db = null;
+			
 			
 			/* delete from eduweb_mis */
 			$db = getLoginDB();
 			
-			$schoolName = $guardians[0]->school_name;
-			$d1 = $db->prepare("DELETE FROM parent_students WHERE subdomain = :schoolName AND student_id = :studentId");
-			$d1->execute( array(':schoolName' => $schoolName, ':studentId' => $studentId) );
+			$subdomain = $guardians[0]->subdomain;
 			
-			// check if guardian is still associated with other students, if not, delete
-			$d2 = $db->prepare("SELECT * FROM parent_students WHERE subdomain = :schoolName AND guardian_id = :guardianId");
-			$d3 = $db->prepare("DELETE FROM parents WHERE id_number = :idNumber");
+			$getParent = $db->prepare("SELECT parent_id FROM parent_students WHERE subdomain = :subdomain AND guardian_id = :guardianId");
+			$deleteParentStudent = $db->prepare("DELETE FROM parent_students WHERE subdomain = :subdomain AND student_id = :studentId");
+			$deleteParent = $db->prepare("DELETE FROM parents WHERE parent_id = :parentId");
+			
+			$db->beginTransaction();
 			forEach($guardians as $guardian)
 			{
-				$d2->execute( array(':schoolName' => $schoolName, ':guardianId' => $guardian->guardian_id) );
-				$students = $d2->fetchAll(PDO::FETCH_OBJ);
-				if(!$students)
+				// grab parent id of guardian
+				$getParent->execute( array(':subdomain' => $subdomain, ':guardianId' => $guardian->guardian_id) );
+				$parents = $getParent->fetchAll(PDO::FETCH_OBJ);
+				
+				$deleteParentStudent->execute( array(':subdomain' => $subdomain, ':studentId' => $studentId) );
+				
+				if( $parents && count($parents) == 1 )
 				{
-					$d3->execute( array(':idNumber' => $guardian->id_number) );
+					// only one student, delete and delete parent record
+					$deleteParent->execute( array(':parentId' => $parents[0]->parent_id) );
 				}
 			}
-	 
+			$db->commit();
+			
 			$app->response->setStatus(200);
 			$app->response()->headers->set('Content-Type', 'application/json');
 			echo json_encode(array("response" => "success", "code" => 1));

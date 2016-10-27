@@ -11,10 +11,10 @@ function($scope, $rootScope){
 		var data = window.printCriteria;
 		$rootScope.isPrinting = true;
 		$scope.showReportCard = true;
-		$scope.student = angular.fromJson(data.student);	
-		$scope.report = angular.fromJson(data.report);	
-		$scope.overall = angular.fromJson(data.overall);		
-		$scope.overallLastTerm = angular.fromJson(data.overallLastTerm);	
+		$scope.student = angular.fromJson(data.student);
+		$scope.report = angular.fromJson(data.report);
+		$scope.overall = angular.fromJson(data.overall);
+		$scope.overallLastTerm = angular.fromJson(data.overallLastTerm);
 		$scope.examTypes = angular.fromJson(data.examTypes);
 		$scope.reportData = angular.fromJson(data.reportData);
 		$scope.totals = angular.fromJson(data.totals);

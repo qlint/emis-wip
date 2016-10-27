@@ -3,7 +3,7 @@
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 			<h4 class="modal-title">Report Card for {{student.student_name}} - {{term.term_name}}</h4>
 		</div>
-		<div class="modal-body progress-report">
+		<div class="modal-body progress-report {{reportCardType|lowercase}}">
 	
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
