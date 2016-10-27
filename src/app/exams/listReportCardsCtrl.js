@@ -137,7 +137,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 								term_id: item.term_id,
 								date: item.date,
 								year: item.year,
-								admission_number: item.admission_number
+								admission_number: item.admission_number,
+								published: item.published
 							}
 						);
 						
@@ -145,7 +146,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						i++;
 
 					}
-					reports[item.term_name] = item.report_data;
+					reports[item.term_name] = {
+						term_id : item.term_id,
+						year: item.year,
+						published : item.published,
+						report_card_id: item.report_card_id,
+						report_card_type: item.report_card_type,
+						class_name: item.class_name,
+						class_id: item.class_id,
+						teacher_id: item.teacher_id,
+						teacher_name: item.teacher_name,
+						date: item.date,
+						data: item.report_data
+					};
 					
 					lastStudent = item.student_id;
 					
@@ -176,17 +189,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 		var data = {
 			student : student,
-			report_card_id: item.report_card_id,
-			class_name : item.class_name,
-			class_id : item.class_id,
-			term_id: item.term_id,
+			report_card_id: reportData.report_card_id,
+			class_name : reportData.class_name,
+			class_id : reportData.class_id,
+			published: reportData.published,
+			term_id: reportData.term_id,
 			term_name : term_name,
-			year: item.year,
-			report_card_type: item.report_card_type,
-			teacher_id: item.teacher_id,
-			teacher_name: item.teacher_name,
-			date: item.date,
-			reportData: reportData,
+			year: reportData.year,
+			report_card_type: reportData.report_card_type,
+			teacher_id: reportData.teacher_id,
+			teacher_name: reportData.teacher_name,
+			date: reportData.date,
+			reportData: reportData.data,
 			adding: false,
 			filters:{
 				term:{
@@ -198,7 +212,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					class_cat_id: item.class_cat_id
 				}
 			}
-		}
+		};
 
 		$scope.openModal('exams', 'reportCard', 'lg', data);
 		

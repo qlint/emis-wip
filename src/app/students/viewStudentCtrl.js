@@ -1317,7 +1317,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					class_cat_id: item.class_cat_id
 				}
 			}
-		}
+		};
 
 		var domain = window.location.host;
 		var dlg = $dialogs.create('http://' + domain + '/app/exams/reportCard.html','reportCardCtrl',data,{size: 'lg',backdrop:'static'});
