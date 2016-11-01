@@ -412,6 +412,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getStudentCredits/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getStudentArrears = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getStudentArrears/" + param, successFunction, errorFunction, params);
+	};
+	
 	this.getStudentExamMarks = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getStudentExamMarks/" + param, successFunction, errorFunction, params);
 	};

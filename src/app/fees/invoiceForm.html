@@ -132,20 +132,25 @@
 							<div class="col-sm-6">
 								<div>
 									<label class="col-sm-8 control-label">Invoice Total</label>
-									<p class="form-control-static right" ng-show="!edit">{{totals.invoice|numeric}}</p>
+									<p class="form-control-static right">{{totals.invoice|numeric}}</p>
 								</div>
 								
 								<div ng-show="creditApplied">
 									<label class="col-sm-8 control-label">Credit</label>
-									<p class="form-control-static right" ng-show="!edit">{{appliedCreditAmt|numeric}}</p>
+									<p class="form-control-static right">{{appliedCreditAmt|numeric}}</p>
 								</div>
 								
 								<div>
 									<label class="col-sm-8 control-label">Balance Due ({{currency}})</label>
-									<p class="form-control-static right" ng-show="!edit">{{totals.balance|numeric}}</p>
+									<p class="form-control-static right">{{totals.balance|numeric}}</p>
+								</div>
+								
+								<div>
+									<label class="col-sm-8 control-label" ng-show="hasArrears">Arrears ({{currency}})</label>
+									<p class="form-control-static right">{{arrears|numeric}}</p>
 								</div>
 							</div>
-						</div>	
+						</div>
 				
 			</div>
 			
@@ -166,7 +171,7 @@
 									
 					<div class="subtab-content clearfix">
 						<!-- invoice date -->
-						<div class="col-sm-4" >		
+						<div class="col-sm-4" >
 							<label>Invoice Date</label>
 							<div class="input-group">
 								<input type="text" name="inv_date" date-range-picker id="inv_date" class="form-control date-picker input-sm" ng-model="invoiceLineItems[0].inv_date" options="{singleDatePicker: true,autoApply: true}" >
@@ -191,7 +196,7 @@
 									<th>Fee Item</th>
 									<th class="rightalign">Amount</th>
 								</tr>
-							</thead>	
+							</thead>
 							<tbody>
 								<tr ng-repeat="item in invoiceLineItems track by $index">
 									<td width="25" ng-click="removeLineItem($index)"><span class="glyphicon glyphicon-trash text-danger clickable"></span></td>
@@ -231,17 +236,22 @@
 							<div class="col-sm-6">
 								<div>
 									<label class="col-sm-8 control-label">Invoice Total</label>
-									<p class="form-control-static right" ng-show="!edit">{{totals.invoice|currency:""}}</p>
+									<p class="form-control-static right">{{totals.invoice|currency:""}}</p>
 								</div>
 								
 								<div ng-show="creditApplied">
 									<label class="col-sm-8 control-label">Credit</label>
-									<p class="form-control-static right" ng-show="!edit">{{ appliedCreditAmt|currency:"" }}</p>
+									<p class="form-control-static right">{{ appliedCreditAmt|currency:"" }}</p>
 								</div>
 								
 								<div>
 									<label class="col-sm-8 control-label">Balance Due ({{currency}})</label>
-									<p class="form-control-static right" ng-show="!edit">{{totals.balance|numeric}}</p>
+									<p class="form-control-static right">{{totals.balance|numeric}}</p>
+								</div>
+								
+								<div ng-show="hasArrears">
+									<label class="col-sm-8 control-label text-danger" >Arrears ({{currency}})</label>
+									<p class="form-control-static right text-danger">{{arrears|numeric}}</p>
 								</div>
 							</div>
 						</div>

@@ -15,21 +15,34 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 
 	var initializeController = function()
 	{
-		apiService.getStudentBalance($scope.invoice.student_id, function(response,status)
+		var params = $scope.invoice.student_id + '/' + moment($scope.invoice.inv_date).format('YYYY-MM-DD');
+		apiService.getStudentArrears(params, function(response)
+		{
+			var result = angular.fromJson(response);
+			if( result.response == 'success' && result.nodata === undefined )
+			{
+				$scope.arrears = result.data.balance;
+				$scope.hasArrears = true;
+			}
+		}, apiError);
+		
+		apiService.getStudentCredits($scope.invoice.student_id, function(response,status)
 		{
 			$scope.loading = false;
 			var result = angular.fromJson(response);
-					
-			if( result.response == 'success') 
+			if( result.response == 'success' && result.nodata === undefined )
 			{
-				if( result.nodata === undefined )
-				{
-					$scope.feeSummary = angular.copy(result.data.fee_summary);
-				}
+				$scope.availableCredits = result.data;
+				$scope.hasCredit = true;
+				// sum of available credit
+				$scope.credit = $scope.availableCredits.reduce(function(sum,item){
+					return sum += parseFloat(item.amount);
+				},0);
 			}
-			var params =  $scope.invoice.inv_id;
-			apiService.getInvoiceDetails(params, loadInvoiceDetails, apiError);
 		}, apiError);
+		
+		apiService.getInvoiceDetails($scope.invoice.inv_id, loadInvoiceDetails, apiError);
+		
 	}
 	setTimeout(initializeController,1);
 	
@@ -61,16 +74,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			var amt = ( String(totalAmt).indexOf('.') > -1 ? String(totalAmt).split('.') : [totalAmt,'00']);
 			$scope.totalAmtKsh = amt[0];
 			$scope.totalAmtCts = amt[1];
-			
-			console.log($scope.invoice);
-			// is there a credit
-			if( $scope.feeSummary &&  parseFloat($scope.feeSummary.total_credit) > 0 )
-			{
-				$scope.hasCredit = true;
-				$scope.credit = parseFloat($scope.feeSummary.total_credit);
-				//$scope.invoice.balance = -(Math.abs($scope.invoice.balance) - $scope.credit);
-			}
-			
 		}
 		else
 		{

@@ -61,13 +61,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
 	var getTerms = function(year)
 	{
-
+		var year = year == '' ? undefined : year;
 		apiService.getTerms(year, function(response,status,params){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
 			{	
-				$scope.dates = ( result.nodata ? [] : result.data );	
+				$scope.dates = ( result.nodata ? [] : result.data );
 
 				initDataGrid($scope.dates);
 			}

@@ -28,7 +28,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				
 				if( result.response == 'success')
 				{
-					$scope.students = ( result.nodata ? {} : $rootScope.formatStudentData(result.data) );				
+					$scope.students = ( result.nodata ? {} : $rootScope.formatStudentData(result.data) );
 				}
 				else
 				{
@@ -102,9 +102,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			$scope.errMsg = '';
 			$scope.hasCredit = undefined;
 			$scope.credit = undefined; 
-			
-			$scope.hasOverPayment = undefined;
-			$scope.overpayment = undefined; 
+			$scope.hasArrears = undefined;
+			$scope.arrears = undefined; 
 			
 			$scope.loadManual = false;
 			$scope.loadSystem = false;
@@ -142,6 +141,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				{
 					var params = $scope.termId + '/' + $scope.selectedStudent.student_id;
 					apiService.generateInvoices(params, displayInvoice, apiError);
+				}
+			}, apiError);
+			
+			var params = $scope.selectedStudent.student_id + '/' + moment().format('YYYY-MM-DD');
+			apiService.getStudentArrears(params, function(response){
+				var result = angular.fromJson(response);
+				if( result.response == 'success' && result.nodata === undefined )
+				{
+					$scope.arrears = result.data.balance;
+					$scope.hasArrears = true;
 				}
 			}, apiError);
 			
@@ -487,7 +496,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 }])
 .controller('applyCreditCtrl',['$scope','$rootScope','$uibModalInstance','dialogs','$filter','apiService','data',
 function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
-		
+		console.log(data);
 		//-- Variables --//
 		$scope.student = data.selectedStudent;
 		$scope.invoiceData = data.invoiceData;
@@ -674,7 +683,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 			'<div class="modal-body cleafix">' +
 				'<div class="alert alert-info">Select where you would like to apply the credit of <b>{{appliedCreditAmt|currency:""}}</b> Ksh.</div>' +
 				'<div class="row">'+
-					'<div class="col-sm-6" ng-repeat="payment in payments track by $index">'+
+					'<div ng-class="{\'col-sm-6\': payments.length>1, \'col-sm-12\': payments.length<=1}" ng-repeat="payment in payments track by $index">'+
 						'<div class="well">'+
 						'<div class="row">'+
 							'<div class="col-sm-4">'+

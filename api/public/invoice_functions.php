@@ -389,6 +389,14 @@ $app->put('/updateInvoice', function() use($app){
 		$query = $db->prepare("SELECT inv_item_id FROM app.invoice_line_items WHERE inv_id = :invId");
 		$query->execute( array('invId' => $invId) );
 		$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);
+		
+		$getInvoice = $db->prepare("SELECT inv_id, inv_item_id, fee_item , invoice_line_items.amount, invoice_line_items.amount as balance
+								FROM app.invoice_line_items
+								INNER JOIN app.student_fee_items 
+									INNER JOIN app.fee_items
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id
+								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+								WHERE inv_id = :invId");
 			
 		
 		$db->beginTransaction();
@@ -460,11 +468,13 @@ $app->put('/updateInvoice', function() use($app){
 			$deleteAllLine->execute(array('invId' => $invId));
 		}
 		
+		$getInvoice->execute( array(':invId' => $invId) );
+		$newInvoice = $getInvoice->fetchAll(PDO::FETCH_OBJ);
 		$db->commit();
  
 		$app->response->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-		echo json_encode(array("response" => "success", "code" => 1));
+		echo json_encode(array("response" => "success", "data" => $newInvoice));
 		$db = null;
 	} catch(PDOException $e) {
 		$db->rollBack();

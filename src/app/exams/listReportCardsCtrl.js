@@ -11,7 +11,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.filterShowing = false;
 	$scope.toolsShowing = false;
 	var currentStatus = true;
-	var isFiltered = false;	
+	var isFiltered = false;
 	$rootScope.modalLoading = false;
 	$scope.alert = {};
 	$scope.refreshing = false;

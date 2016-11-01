@@ -87,44 +87,72 @@
 						<th>Fee Item</th>
 						<th class="rightalign">Amount</th>
 					</tr>
-				</thead>	
+				</thead>
 				<tbody>
 					<tr ng-repeat="item in invoiceLineItems track by $index">
-						<td width="25"><span ng-click="removeLineItem($index)" class="glyphicon glyphicon-trash text-danger clickable" ng-show="edit || item.amount==undefined"></span></td>
-						<td width="90%">							
-							<span ng-show="edit && item.fee_item==undefined">
+						<td width="25">
+							<span ng-click="removeLineItem($index)" class="glyphicon glyphicon-trash text-danger clickable" ng-show="edit || item.adding || item.amount==undefined"></span>
+						</td>
+						<td width="70%">
+							<span ng-show="(edit && item.fee_item===undefined) || item.notselected">
 								<select ng-options="feeitem.fee_item for feeitem in studentFeeItems track by feeitem.student_fee_item_id"  ng-model="invoice.newItem">
 									<option value="">-- select a fee item -- </select>
 								</select> <button type="button" class="btn btn-sm btn-link" ng-click="viewStudent(invoice,$index)">Add Fee Item to Student</button>
-							</span>	
-							<span ng-show="!edit || item.fee_item!==undefined">{{item.fee_item}}</span>							
+							</span>
+							<span ng-show="!edit || item.fee_item!==undefined">{{item.fee_item}}</span>
 						</td>
 						<td class="rightalign">
-							<input type="text" ng-show="edit || item.amount==undefined" class="form-control" ng-model="item.amount" ng-change="sumInvoice()" />
-							<span ng-show="!edit">{{item.amount|currency:""}}</span>
+							<input type="text" ng-show="edit || item.adding || item.amount==undefined" class="form-control" ng-model="item.amount" ng-change="sumInvoice()" />
+							<span ng-show="!edit && !item.adding">{{item.amount|currency:""}}</span>
 						</td>
 					</tr>
 				</tbody>
-				<tfoot class="compact">
-					<tr>
-						<td colspan="3">
-							<button type="button" class="btn btn-sm btn-success" ng-click="addRow()" ng-show="!invoice.canceled">Add Line Item</button>
-						</td>
-					</tr>
-					<tr>
-						<th colspan="2" class="rightalign">Total Amount</th>
-						<th class="rightalign">{{totals.total_due|currency:""}}</th>
-					</tr>
-					<tr>
-						<th colspan="2" class="rightalign">Total Paid</th>
-						<th class="rightalign">{{invoice.total_paid|currency:""}}</th>
-					</tr>
-					<tr>
-						<th colspan="2" class="rightalign">Balance Due ({{currency}})</th>
-						<th class="rightalign">{{totals.balance|numeric}}</th>
-					</tr>
-				</tfoot>
 			</table>
+			
+			<button type="button" class="btn btn-sm btn-success" ng-click="addRow()" ng-show="!invoice.canceled">Add Line Item</button>
+			
+			<div class="row">
+				<div class="col-sm-6">
+					<div ng-show="hasCredit && invoice.balance<0 && !invoice.canceled" class="alert alert-info" style="margin:15px 0">
+						<label class="checkbox-inline">
+							<input
+							type="checkbox"
+							name="apply_credit"
+							value="true"
+							ng-checked="creditApplied"
+							ng-click="applyCredit()"
+							> This student has a credit of <b>{{credit|numeric}}</b>. Do you want to apply this credit to this invoice?
+						</label>
+					</div>
+				</div>
+				
+				<div class="col-sm-6">
+					<div>
+						<label class="col-sm-8 control-label">Invoice Total</label>
+						<p class="form-control-static right">{{totals.total_due|currency:""}}</p>
+					</div>
+					
+					<div>
+						<label class="col-sm-8 control-label">Total Paid</label>
+						<p class="form-control-static right">{{invoice.total_paid|currency:""}}</p>
+					</div>
+					
+					<div ng-show="creditApplied">
+						<label class="col-sm-8 control-label">Credit</label>
+						<p class="form-control-static right">{{ appliedCreditAmt|currency:"" }}</p>
+					</div>
+					
+					<div>
+						<label class="col-sm-8 control-label">Balance Due ({{currency}})</label>
+						<p class="form-control-static right">{{totals.balance|numeric}}</p>
+					</div>
+					
+					<div ng-show="hasArrears">
+						<label class="col-sm-8 control-label text-danger" >Arrears ({{currency}})</label>
+						<p class="form-control-static right text-danger">{{arrears|numeric}}</p>
+					</div>
+				</div>
+			</div>
 				
 		</div>
 		<div class="modal-footer">
