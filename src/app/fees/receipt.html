@@ -45,13 +45,15 @@
 				<table class="display dataTable" cellspacing="0" width="100%">
 					<thead>
 						<tr>
-							<th class="center">Item</th>
+							<th class="">Invoice No.</th>
+							<th class="" width="60%">Item</th>
 							<th class="center">Kshs</th>
 							<th class="center">Cts</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr ng-repeat="item in paymentItems">
+							<td>{{item.inv_id}}</td>
 							<td>{{item.fee_item}}</td>
 							<td class="center">{{item.ksh|number}}</td>
 							<td class="center">{{item.cts}}</td>
@@ -59,7 +61,7 @@
 					</tbody>
 					<tfoot>
 						<tr>
-							<td>
+							<td colspan="2">
 								No: {{payment.receipt_number}}
 								<div class="pull-right">TOTAL KSHS</div>
 							</td>
@@ -70,8 +72,9 @@
 				</table>
 				
 				<div>
-					<p class="text-group"><strong>Amount Paid:</strong> {{payment.amount|numeric}}</p>
-					<p class="text-group"><strong>Outstanding Balance:</strong> {{balanceDue|numeric}} <span ng-show="hasCredit">credit</span></p>
+					<p class="text-group"><strong>Amount Paid:</strong> {{payment.amount|currency:""}} {{currency}}</p>
+					<p class="text-group"><strong>Outstanding Balance:</strong> {{ ( balanceDue > 0 ? '0' : balanceDue)|numeric }} {{currency}}</p>
+					<p ng-show="hasCredit" class="text-group"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
 					<p class="text-group"><strong>Cash/Deposit Slip/Cheque No:</strong> {{payment.slip_cheque_no}}</p>
 					<p class="text-group"><strong>Official Stamp:</strong></p>
 				</div>

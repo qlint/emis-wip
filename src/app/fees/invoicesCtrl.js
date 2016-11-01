@@ -93,7 +93,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		{
 			var year = moment().format('YYYY');
 			apiService.getTerms(year, function(response){
-				var result = angular.fromJson(response);				
+				var result = angular.fromJson(response);
 				if( result.response == 'success')
 				{ 
 					$scope.terms = result.data;	

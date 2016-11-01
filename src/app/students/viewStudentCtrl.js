@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('viewStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', '$timeout', 'data',
-function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, $timeout, data){
-	
+controller('viewStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'FileUploader', '$timeout', '$filter', 'data',
+function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, $timeout, $filter, data){
+
 	$rootScope.modalLoading = false;
 	$scope.tabs = ( $rootScope.currentUser.user_type == 'TEACHER' ? ['Details','Family','Medical History','Exams','Report Cards'] : ['Details','Family','Medical History','Fees','Exams','Report Cards'] );
 	$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
@@ -14,51 +14,52 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	var originalData;
 	$scope.filters = {};
 	$scope.studentLoading = true;
-	
+
 	$scope.edit = ($rootScope.permissions.students.edit ? true : false );
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 
-	
+
 	$scope.feeItemSelection = [];
 	$scope.optFeeItemSelection = [];
 	$scope.conditionSelection = [];
-	
+
 	$scope.student = {};
 	$scope.student.admission_date = {};
 	$scope.initLoad = true;
-	
+
 	$scope.studentForm = {};
-	
+
 	$scope.gridFilter = {};
 	$scope.gridFilter.filterValue  = '';
-	
+
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false);
-	
-	var rowTemplate = function() 
+
+	var rowTemplate = function()
 	{
 		return '<div class="clickable" ng-class="{\'alert-danger\': row.entity.balance<0 && row.entity.past_due, \'alert-success\':row.entity.balance==0, \'canceled\': row.entity.canceled}">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
 	}
-	
-	var rowTemplate2 = function() 
+
+	var rowTemplate2 = function()
 	{
 		return '<div class="clickable" ng-class="{\'alert-warning\': row.entity.replacement_payment, \'canceled\': row.entity.reversed }">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
 	}
-	var rowTemplate3 = function() 
+
+	var rowTemplate3 = function()
 	{
-		return '<div ng-class="{\'alert-success\':row.entity.balance==0 }">' +
+		return '<div class="clickable"  ng-class="{\'canceled\':row.entity.amount==0 }">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
 	}
-	
-	var names = ['Amount ( ' + $scope.currency + ' )', 'Paid ( ' + $scope.currency + ' )', 'Balance ( ' + $scope.currency + ' )'];
-	
+
+	var names = ['Amount ( ' + $scope.currency + ' )', 'Paid ( ' + $scope.currency + ' )', 'Balance ( ' + $scope.currency + ' )', 'Amount Applied ( ' + $scope.currency + ' )', 'Amount Available ( ' + $scope.currency + ' )' ];
+
 	$scope.feesGrid = {
 		enableSorting: true,
 		rowTemplate: rowTemplate3(),
@@ -77,7 +78,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		  });
 		}
 	};
-	
+
 	$scope.invoiceGrid = {
 		enableSorting: true,
 		rowTemplate: rowTemplate(),
@@ -97,7 +98,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		  });
 		}
 	};
-	
+
 	$scope.paidGrid = {
 		enableSorting: true,
 		rowTemplate: rowTemplate2(),
@@ -107,7 +108,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{ name: 'Payment Date', field: 'payment_date', enableColumnMenu: false , type: 'date', sort: {direction: 'desc' }, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_date|date}}</div>'},
 			{ name: 'Payment Method', field: 'payment_method', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_method}}</div>'},
 			{ name: names[0], field: 'amount', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.amount|currency:""}}</div>'},
-			{ name: 'Applied To', field: 'applied_to', enableColumnMenu: false , width:200, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.applied_to|arrayToList}}</div>'},
+			{ name: 'Applied To', field: 'applied_to', enableColumnMenu: false , width:200, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)" ng-bind-html="row.entity.applied_to"></div>'},
 			{ name: 'Amount Unapplied', field: 'unapplied_amount', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)" ng-class="{\'alert-danger\': row.entity.unapplied_amount>0}">{{row.entity.unapplied_amount|currency:""}}</div>'},
 			{ name: 'Replacement?', field: 'replacement', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.replacement}}</div>'},
 			{ name: 'Reversed?', field: 'reverse', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.reverse}}</div>'},
@@ -119,30 +120,48 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		  });
 		}
 	};
-	
+
+	$scope.creditGrid = {
+		enableSorting: true,
+		rowTemplate: rowTemplate3(),
+		rowHeight:34,
+		columnDefs: [
+			{ name: 'Receipt', field: 'payment_id', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false , width:60, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.getReceipt(row.entity)"><i class="glyphicon glyphicon-file"></i><br>{{row.entity.receipt_number}}</div>'},
+			{ name: 'Payment Date', field: 'payment_date', enableColumnMenu: false , type: 'date', sort: {direction: 'desc' }, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_date|date}}</div>'},
+			{ name: 'Payment Method', field: 'payment_method', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_method}}</div>'},
+			{ name: names[0], field: 'amount', cellFilter:'currency:""', enableColumnMenu: false , headerCellClass: 'center', cellClass:'center', cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.amount|currency:""}}</div>'},
+		],
+		onRegisterApi: function(gridApi){
+		  $scope.gridApi = gridApi;
+		  $timeout(function() {
+			$scope.gridApi.core.handleWindowResize();
+		  });
+		}
+	};
+
 	var initializeController = function()
 	{
-		
+
 		$scope.getStudentDetails(data.student_id);
-	
+
 		var studentCats = $rootScope.currentUser.settings['Student Categories'];
-		$scope.studentCats = studentCats.split(',');	
-		
+		$scope.studentCats = studentCats.split(',');
+
 		var paymentOptions = $rootScope.currentUser.settings['Payment Options'];
-		$scope.paymentOptions = paymentOptions.split(',');	
-		
+		$scope.paymentOptions = paymentOptions.split(',');
+
 		var relationships = $rootScope.currentUser.settings['Guardian Relationships'];
-		$scope.relationships = relationships.split(',');	
-		
+		$scope.relationships = relationships.split(',');
+
 		var maritalStatuses = $rootScope.currentUser.settings['Marital Statuses'];
 		$scope.maritalStatuses = maritalStatuses.split(',');
-		
+
 		var titles = $rootScope.currentUser.settings['Titles'];
 		$scope.titles = titles.split(',');
-		
+
 		var medicalConditions = $rootScope.currentUser.settings['Medical Conditions'];
 		medicalConditions = medicalConditions.split(',');
-		
+
 		// map medicalConditions to an object to hold user entry fields
 		$scope.medicalConditions = medicalConditions.reduce(function(sum,item){
 			sum.push({
@@ -152,98 +171,98 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			});
 			return sum;
 		}, []);
-		
+
 		// get transport routes
 		apiService.getTansportRoutes({}, function(response){
 			var result = angular.fromJson(response);
-			
+
 			if( result.response == 'success')
 			{
 				$scope.transportRoutes = result.data;
 			}
-			
+
 		}, function(){});
-		
-		
+
+
 	}
 	setTimeout(initializeController,100);
-	
+
 	$scope.getStudentDetails = function(student_id)
 	{
 		apiService.getStudentDetails(student_id, function(response){
 			var result = angular.fromJson(response);
-			
+
 			if( result.response == 'success')
 			{
 				var student = $rootScope.formatStudentData([result.data]);
-				
+
 				// set current class to full class object
 				$scope.currentClass = $rootScope.allClasses.filter(function(item){
 					if( item.class_id == student[0].class_id ) return item;
 				});
-				
+
 				student[0].current_class = $scope.currentClass[0];
 
 				$scope.student = student[0];
 				$scope.student.admission_date = {startDate: $scope.student.admission_date};
 				originalData = angular.copy($scope.student);
-				
+
 				$scope.studentLoading = false;
-				
+
 				// set the form as pristine
 				$timeout(function(){
 					$scope.studentForm.$setUntouched();
 					$scope.studentForm.$setPristine();
 				},10);
-				
+
 				getFeeItems();
-				
+
 			}
 		});
 	}
-	
+
 	var getFeeItems = function()
 	{
 		// get fee items
 		apiService.getFeeItems(true, function(response){
 			var result = angular.fromJson(response);
-			
+
 			if( result.response == 'success')
 			{
-			
+
 				// set the required fee items
 				// format returned fee items for our needs
 				$scope.feeItems = formatFeeItems(result.data.required_items);
-				
-				// store unfiltered required fee items				
+
+				// store unfiltered required fee items
 				$scope.allFeeItems = $scope.feeItems;
-				
+
 				// remove any items that do not apply to this students class category
-				$scope.feeItems = filterFeeItems($scope.allFeeItems);				
-				
-				
+				$scope.feeItems = filterFeeItems($scope.allFeeItems);
+
+
 				// set the selected fee items based on what fee items are set for student
 				$scope.feeItemSelection = setSelectedFeeItems($scope.feeItems);
-				
-				
+
+
 				// repeat for optional fees
 				// convert the classCatsRestriction to array for future filtering
 				$scope.optFeeItems = formatFeeItems(result.data.optional_items);
-				
-				// store unfiltered required fee items				
+
+				// store unfiltered required fee items
 				$scope.allOptFeeItems = $scope.optFeeItems;
-				
+
 				// remove any items that do not apply to this students class category
-				$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);				
-				
+				$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);
+
 				// set the selected fee items based on what fee items are set for student
 				$scope.optFeeItemSelection = setSelectedFeeItems($scope.optFeeItems);
-				
-				
+
+
 				$scope.initLoad  = false;
-				
+
 			}
-			
+
 		}, function(){});
 	}
 
@@ -252,11 +271,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		if( !$scope.studentForm.$pristine )
 		{
 			var dlg = $dialogs.confirm('Changes Where Made','You have made changes to the data on this page. Did you want to save these changes?', {size:'sm'});
-			
+
 			dlg.result.then(function(btn){
 				 // save the form
 				 $scope.save($scope.studentForm, tab);
-				 
+
 			},function(btn){
 				// revert the changes and move on
 				$scope.student = angular.copy(originalData);
@@ -271,34 +290,34 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		{
 			goToTab(tab);
 		}
-		
+
 	}
-	
+
 	var goToTab = function(tab)
 	{
 		if( tab == 'Fees' )
 		{
 			// go get fee data
-			$scope.loading = true;		
+			$scope.loading = true;
 			$scope.currentFeeTab = "Fee Summary";
 			getStudentBalance();
 		}
 		else if( tab == 'Exams' )
 		{
 			// get data for filters
-			$scope.loading = true;	
-			
+			$scope.loading = true;
+
 			$scope.filters.class = $scope.student.current_class;
 			$scope.filters.class_cat_id = $scope.student.class_cat_id; // set the students current class category as default
-			$scope.filters.class_id = $scope.student.class_id; 
-	
+			$scope.filters.class_id = $scope.student.class_id;
+
 			// filter the classes based on class category
 			$scope.classes = $rootScope.allClasses.filter( function(item){
 				if( item.class_cat_id == $scope.filters.class_cat_id )
-				{			
+				{
 					return item;
 				}
-			});			
+			});
 
 			// get terms
 			if( $rootScope.terms === undefined )
@@ -314,36 +333,36 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.filters.term_id = currentTerm.term_id;
 				$scope.getExams();
 			}
-			
-			
-			// get exam types			
+
+
+			// get exam types
 			if( $rootScope.examTypes === undefined )
 			{
 				apiService.getExamTypes($scope.student.class_cat_id, function(response){
-					var result = angular.fromJson(response);				
-					if( result.response == 'success'){ $scope.examTypes = result.data;	$rootScope.examTypes = result.data;}			
+					var result = angular.fromJson(response);
+					if( result.response == 'success'){ $scope.examTypes = result.data;	$rootScope.examTypes = result.data;}
 				}, function(){});
 			}
 			else $scope.examTypes = $rootScope.examTypes;
-			
+
 		}
 		else if( tab == 'Report Cards' )
 		{
 			// get data for filters
-			$scope.loading = true;	
-			
+			$scope.loading = true;
+
 			$scope.filters.class = $scope.student.current_class;
 			$scope.filters.class_cat_id = $scope.student.class_cat_id; // set the students current class category as default
-			$scope.filters.class_id = $scope.student.class_id; 
-			
+			$scope.filters.class_id = $scope.student.class_id;
+
 			// filter the classes based on class category
 			$scope.classes = $rootScope.allClasses.filter( function(item){
 				if( item.class_cat_id == $scope.filters.class_cat_id )
-				{			
+				{
 					return item;
 				}
-			});	
-			
+			});
+
 			// get terms
 			if( $rootScope.terms === undefined )
 			{
@@ -358,37 +377,32 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				})[0];
 				$scope.filters.term_id = currentTerm.term_id;
 			}
-			
-			
-
-			$scope.getStudentReportCards();			
-
-			
+			$scope.getStudentReportCards();
 		}
 		$scope.currentTab = tab;
 	}
-	
+
 	var setTerms  = function(response,status)
 	{
-		var result = angular.fromJson(response);				
+		var result = angular.fromJson(response);
 		if( result.response == 'success')
-		{ 
-			$scope.terms = result.data;	
+		{
+			$scope.terms = result.data;
 			$rootScope.terms = result.data;
-			
+
 			var currentTerm = $scope.terms.filter(function(item){
 				if( item.current_term ) return item;
 			})[0];
 			$scope.filters.term_id = currentTerm.term_id;
-			
+
 			$scope.getExams();
-		}			
-				
+		}
+
 	}
 	/*
 	var initDataGrid = function(settings)
 	{
-	
+
 		var tableElement = $('#resultsTable2');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {
@@ -422,9 +436,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	*/
 	$scope.cancel = function()
 	{
-		$uibModalInstance.dismiss('canceled');  
+		$uibModalInstance.dismiss('canceled');
 	}; // end cancel
-	
+
 	/*
 	$scope.toggleNewFeeItems = function(newStudents)
 	{
@@ -432,7 +446,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.feeItems = filterFeeItems($scope.allFeeItems);
 	};
 	*/
-	
+
 	$scope.$watch('student.current_class', function(newVal, oldVal){
 		if( newVal == oldVal) return;
 
@@ -442,26 +456,26 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.student.class_cat_id = $scope.student.current_class.class_cat_id;
 		if( $scope.allFeeItems !== undefined )
 		{
-			$scope.feeItems = filterFeeItems($scope.allFeeItems);	
-			$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);	
+			$scope.feeItems = filterFeeItems($scope.allFeeItems);
+			$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);
 		}
 	});
-	
+
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){
 		// need to watch the uploaded and manually set form to dirty if changed
 		if( newVal === undefined) return;
 		$scope.studentForm.$setDirty();
 	});
-	
-	
+
+
 	$scope.$watch('student.admission_date', function(newVal, oldVal){
 		// need to watch the uploaded and manually set form to dirty if changed
 		if( newVal === undefined) return;
 		if( !$scope.initLoad ) $scope.studentForm.$setDirty();
 	});
-	
-	
-	
+
+
+
 	/************************************* Guardian Function ***********************************************/
 	$scope.addGuardian = function()
 	{
@@ -472,14 +486,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		};
 		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(parent){
-			
+
 			$scope.student.guardians.push(parent);
-			
+
 		},function(){
-			
+
 		});
 	}
-	
+
 	$scope.editGuardian = function(item)
 	{
 		// show small dialog with edit form
@@ -490,7 +504,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		};
 		var dlg = $dialogs.create('addParent.html','addParentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(guardian){
-			
+
 			// find guardian and update
 
 			angular.forEach( $scope.student.guardians, function(item,key){
@@ -500,13 +514,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					$scope.student.guardians[key] = guardian;
 				}
 			});
-			
+
 		},function(){
-			
+
 		});
-		
+
 	}
-	
+
 	$scope.deleteGuardian = function(student_id,item,index)
 	{
 
@@ -518,27 +532,27 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				{
 					// remove row
 					$scope.student.guardians.splice(params.index,1);
-				
+
 				}
 				else
 				{
 					$scope.error = true;
 					$scope.errMsg = result.data;
 				}
-				
+
 			}, apiError,{index:index});
 
 		});
-		
+
 	}
-	
+
 	$scope.sendMessage = function(item)
 	{
 		// show small dialog with message form
 	}
-	
+
 	/************************************* Medical History Function ***********************************************/
-	
+
 	$scope.addMedicalHistory = function()
 	{
 		// show small dialog with add form
@@ -549,16 +563,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		};
 		var dlg = $dialogs.create('addMedicalHistory.html','addMedicalHistoryCtrl',data,{size: 'md',backdrop:'static'});
 		dlg.result.then(function(medicalHistory){
-			
+
 			angular.forEach(medicalHistory, function(item,key){
 				$scope.student.medical_history.push(item);
 			});
-			
+
 		},function(){
-			
+
 		});
 	}
-	
+
 	$scope.editMedical = function(item)
 	{
 		/* only open this if can edit */
@@ -572,18 +586,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			};
 			var dlg = $dialogs.create('updateMedicalCondition.html','updateMedicalConditionCtrl',data,{size: 'md',backdrop:'static'});
 			dlg.result.then(function(medicalCondition){
-				
+
 				// find medical condition and update
 				angular.forEach( $scope.student.medical_history, function(item,key){
 					if( item.medical_id == medicalCondition.medical_id ) $scope.student.medical_history[key] = medicalCondition;
 				});
-				
+
 			},function(){
-				
+
 			});
 		}
 	}
-	
+
 	$scope.deleteMedical = function(item,index)
 	{
 		// show small dialog with add form
@@ -595,29 +609,29 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				{
 					// remove row
 					$scope.student.medical_history.splice(params.index,1);
-	
+
 				}
 				else
 				{
 					$scope.error = true;
 					$scope.errMsg = result.data;
 				}
-				
+
 			}, apiError,{index:index});
 
 		});
 	}
-	
+
 	/************************************* Fees Function ***********************************************/
-	
+
 	$scope.$watch('student.payment_method', function(newVal, oldVal){
 		if( newVal == oldVal) return;
-		
+
 		// want to set all selected fee item payment methods to this value
-		
-		
+
+
 	});
-	
+
 	$scope.$watch('student.transport_route', function(newVal, oldVal){
 		if( newVal == oldVal) return;
 
@@ -626,7 +640,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			if( feeItem.fee_item == 'Transport') feeItem.amount = newVal.amount;
 		});
 	});
-	
+
 	$scope.getFeeTabContent = function(tab)
 	{
 		$scope.currentFeeTab = tab;
@@ -636,45 +650,64 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 		else if( tab == 'Invoices' )
 		{
-			$scope.loading = true;			
+			$scope.loading = true;
 			// TO DO: ability to send invoice canceled status
 			getInvoices();
 		}
 		else if( tab == 'Payments Received' )
 		{
-			$scope.loading = true;			
+			$scope.loading = true;
 			getPayments();
 		}
+		else if( tab == 'Credits' )
+		{
+			$scope.loading = true;
+			getCredits();
+		}
 	}
-	
+
 	var getStudentBalance = function()
 	{
 		apiService.getStudentBalance($scope.student.student_id, loadFeeBalance, apiError);
 	}
-	
+
 	var getInvoices = function()
 	{
 		apiService.getStudentInvoices($scope.student.student_id, loadInvoices, apiError);
 	}
-	
+
 	var getPayments = function()
 	{
 		apiService.getStudentPayments($scope.student.student_id, loadPayments, apiError);
 	}
-	
+
+	var getCredits = function()
+	{
+		apiService.getStudentCredits($scope.student.student_id, loadCredits, apiError);
+	}
+
 	var loadFeeBalance = function(response,status)
 	{
-		$scope.loading = false;		
+		$scope.loading = false;
 		var result = angular.fromJson(response);
-				
-		if( result.response == 'success') 
+
+		if( result.response == 'success')
 		{
 			if( result.nodata === undefined )
 			{
 				$scope.feeSummary = angular.copy(result.data.fee_summary);
-				// need to add any unapplied payments to total_paid
-				$scope.feeSummary.grand_total_paid = parseFloat($scope.feeSummary.total_paid) + parseFloat($scope.feeSummary.unapplied_payments);
-				$scope.feeSummary.grand_total_balance = $scope.feeSummary.grand_total_paid - parseFloat($scope.feeSummary.total_due);
+				$scope.balanceDue = $scope.feeSummary.balance;
+				$scope.totalPaid = $scope.feeSummary.total_paid;
+
+				/*
+				if( parseFloat($scope.feeSummary.total_credit) > 0 )
+				{
+					$scope.hasCredit = true;
+					$scope.balanceDue = -(Math.abs($scope.balanceDue) - parseFloat($scope.feeSummary.total_credit));
+					$scope.totalPaid = parseFloat($scope.feeSummary.total_paid) + parseFloat($scope.feeSummary.total_credit);
+				}
+				*/
+
 				$scope.fees = angular.copy(result.data.fees);
 				$scope.nofeeSummary = false;
 			}
@@ -684,24 +717,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.fees = [];
 				$scope.nofeeSummary = true;
 			}
-			
+
 			if( $scope.currentFeeTab == 'Fee Summary' )	initFeesDataGrid($scope.fees);
 		}
 	}
-	
+
 	var loadInvoices = function(response,status)
 	{
-		$scope.loading = false;		
+		$scope.loading = false;
 		var result = angular.fromJson(response);
-				
-		if( result.response == 'success') 
+
+		if( result.response == 'success')
 		{
-			$scope.invoices = ( result.nodata ? {} : angular.copy(result.data) );		
-			
+			$scope.invoices = ( result.nodata ? {} : angular.copy(result.data) );
+
 			if( $scope.currentFeeTab == 'Invoices' )	initInvoicesDataGrid($scope.invoices);
 		}
 	}
-	
+
 	$scope.addInvoice = function()
 	{
 		var domain = window.location.host;
@@ -715,102 +748,125 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.errMsg = 'You did not enter an invoice!';
 		});
 	}
-	
+
 	$scope.viewInvoice = function(item)
 	{
-		item.student_name = $scope.student.student_name;		
-		
+		item.student_name = $scope.student.student_name;
+
 		var domain = window.location.host;
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceDetails.html','invoiceDetailsCtrl',item,{size: 'md',backdrop:'static'});
 		dlg.result.then(function(invoice){
 			// update invoices
 			getStudentBalance();
 			getInvoices();
-			
+
 		},function(){
 			// update invoices
 			getStudentBalance();
 			getInvoices();
 		});
-	
+
 	}
-	
+
 	$scope.getInvoice = function(invoice)
 	{
 		// open up invoice
 		var data = {
 			student: $scope.student,
 			invoice: invoice
-		}			
-		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoice.html','invoiceCtrl',data,{size: 'md',backdrop:'static'});
-		
-		//$scope.openModal('fees', 'invoice', 'md',data);
-	}
-	
-	$scope.printStatement = function()
-	{
-		/*
-		var data = {
-			student: $scope.student,
-			invoices: $scope.invoices
 		}
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/fees/printStatement.html','printStatementCtrl',data,{size: 'md',backdrop:'static'});
-		*/
-		
+		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoice.html','invoiceCtrl',data,{size: 'md',backdrop:'static'});
+
+		//$scope.openModal('fees', 'invoice', 'md',data);
+	}
+
+	$scope.printStatement = function()
+	{
 		var criteria = {
 			student : $scope.student,
 			invoices: $scope.invoices,
-			payments: $scope.payments
+			payments: $scope.payments,
+			credits: $scope.credits
 		}
 
 		var domain = window.location.host;
 		var newWindowRef = window.open('http://' + domain + '/#/fees/statement/print');
 		newWindowRef.printCriteria = criteria;
 	}
-	
+
 	var loadPayments = function(response,status)
 	{
-		$scope.loading = false;		
+		$scope.loading = false;
 		var result = angular.fromJson(response);
-				
-		if( result.response == 'success') 
+
+		if( result.response == 'success')
 		{
 			var payments = ( result.nodata ? [] : angular.copy(result.data) );
-			
+
 			$scope.payments = payments.map(function(item){
 				item.replacement = ( item.replacement_payment ? 'Yes' : 'No');
 				item.reverse = ( item.reversed ? 'Yes' : 'No');
 				item.receipt_number = $rootScope.zeroPad(item.payment_id,5);
 				return item;
 			});
-			
+
+			/*
+			// remove credit only payments, as these appear under credit section
+			$scope.payments = $scope.payments.filter(function(item){
+				if( item.applied_to !== 'Credit' ) return item;
+			});
+			*/
+
 			if( $scope.currentFeeTab == 'Payments Received' ) initPaymentsDataGrid($scope.payments);
 		}
 	}
-	
-	var initFeesDataGrid = function(data) 
+
+	var loadCredits = function(response,status)
+	{
+		$scope.loading = false;
+		var result = angular.fromJson(response);
+
+		if( result.response == 'success')
+		{
+			var credits = ( result.nodata ? [] : angular.copy(result.data) );
+			$scope.credits = credits.map(function(item){
+				item.payment_date = $filter('date')(item.payment_date);
+				item.receipt_number = $rootScope.zeroPad(item.payment_id,5);
+				return item;
+			});
+			if( $scope.currentFeeTab == 'Credits' ) initCreditsDataGrid($scope.credits);
+		}
+	}
+
+	var initFeesDataGrid = function(data)
 	{
 		$scope.feesGrid.data = data;
 		$scope.loading = false;
 		$rootScope.loading = false;
 	}
-	
-	var initInvoicesDataGrid = function(data) 
+
+	var initInvoicesDataGrid = function(data)
 	{
 		$scope.invoiceGrid.data = data;
 		$scope.loading = false;
 		$rootScope.loading = false;
 	}
-	
-	var initPaymentsDataGrid = function(data) 
+
+	var initPaymentsDataGrid = function(data)
 	{
 		$scope.paidGrid.data = data;
 		$scope.loading = false;
 		$rootScope.loading = false;
 	}
-	
+
+	var initCreditsDataGrid = function(data)
+	{
+		$scope.creditGrid.data = data;
+		$scope.loading = false;
+		$rootScope.loading = false;
+	}
+
 	$scope.addPayment = function()
 	{
 		// open dialog
@@ -820,12 +876,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// update payments
 			getStudentBalance();
 			getPayments();
+			getInvoices();
 		},function(){
-			if(angular.equals($scope.payment,''))
-				$scope.errMsg = 'You did not enter a payment!';
 		});
 	}
-	
+
 	$scope.getReceipt = function(payment)
 	{
 		var data = {
@@ -836,7 +891,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		var domain = window.location.host;
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/receipt.html','receiptCtrl',data,{size: 'md',backdrop:'static'});
 	}
-	
+
 	$scope.viewPayment = function(payment)
 	{
 		payment.student_id = $scope.student.student_id;
@@ -848,15 +903,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// update invoices
 			getStudentBalance();
 			getPayments();
-			
+			getCredits();
 		},function(){
 			// update invoices
 			getStudentBalance();
 			getPayments();
 		});
-		
+
 	}
-	
+
 	var formatFeeItems = function(feeItems)
 	{
 		// convert the classCatsRestriction to array for future filtering
@@ -869,14 +924,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			item.amount = undefined;
 			item.payment_method = undefined;
-			
+
 			return item;
 		});
 	}
-	
+
 	var setSelectedFeeItems = function(feeItems)
 	{
-	
+
 		return feeItems.filter(function(item){
 			return $scope.student.fee_items.filter(function(a){
 
@@ -889,10 +944,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					return item;
 				}
 			})[0];
-			
+
 		});
 	}
-	
+
 	var filterFeeItems = function(feesArray)
 	{
 
@@ -910,7 +965,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				if( !item.new_student_only ) return item;
 			});
 		}
-		
+
 		// now filter by selected class
 
 		if( $scope.student.current_class !== undefined )
@@ -923,16 +978,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 		return feeItems;
 	}
-	
-	$scope.toggleFeeItem = function(item,type) 
+
+	$scope.toggleFeeItem = function(item,type)
 	{
 		var selectionObj = ( type ==  'optional'  ? $scope.optFeeItemSelection : $scope.feeItemSelection);
-		
+
 		var id = selectionObj.indexOf(item);
 
 		// is currently selected
 		if (id > -1) {
-		
+
 			if( type == 'optional' && item.made_payment > 0 )
 			{
 				var dlg = $dialog.confirm('Payment Made for Current Term','This student has paid for this lesson for the current term, therefore they will be removed from this optional lesson for all remaining terms. Do you wish to continue?', {size:'sm'});
@@ -946,7 +1001,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				selectionObj.splice(id, 1);
 				$scope.studentForm.$setDirty();
 			}
-			
+
 			// clear out fields
 			//item.amount = undefined;
 			//item.payment_method = undefined;
@@ -955,12 +1010,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 		// is newly selected
 		else {
-		
+
 			// check the students fee items, was this set previously?
-			var previousItem = $scope.student.fee_items.filter(function(a){ 
+			var previousItem = $scope.student.fee_items.filter(function(a){
 				if( a.fee_item_id == item.fee_item_id  ) return item;
 			})[0];
-			
+
 			if( previousItem !== undefined )
 			{
 				item.amount = previousItem.amount;
@@ -974,13 +1029,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				item.amount = item.default_amount;
 				item.payment_method = $scope.student.payment_method;
 			}
-		
+
 			selectionObj.push(item);
 			$scope.studentForm.$setDirty();
 			if( item.fee_item == 'Transport' ) $scope.showTransport = true;
 		}
 	};
-	
+
 	$scope.addFeeItem = function()
 	{
 		// open dialog
@@ -990,39 +1045,39 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// update fee items
 			getFeeItems();
 		},function(){
-				
+
 		});
-		
-	
+
+
 	}
 	/************************************* Exam Functions ***********************************************/
 	$scope.$watch('filters.class_cat_id', function(newVal, oldVal){
 		if( newVal == oldVal) return;
-		
+
 		// filter the classes
 		$scope.classes = $rootScope.allClasses.filter( function(item){
 			if( item.class_cat_id == newVal ) return item;
 		});
 	});
-	
+
 	$scope.$watch('filters.class',function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		
+
 		$scope.filters.class_id = newVal.class_id;
 
 		apiService.getExamTypes(newVal.class_cat_id, function(response){
-			var result = angular.fromJson(response);				
-			if( result.response == 'success'){ $scope.examTypes = result.data;}			
+			var result = angular.fromJson(response);
+			if( result.response == 'success'){ $scope.examTypes = result.data;}
 		}, apiError);
 	});
-		
+
 	$scope.getExams = function()
 	{
 		// /:student_id/:class/:term/:type
 		$scope.examMarks = {};
 		$scope.marksNotFound = false;
 		$scope.notice = false;
-		
+
 		var request = $scope.student.student_id + '/' + $scope.filters.class_id + '/' + $scope.filters.term_id;
 		if( $scope.filters.exam_type_id != "" && $scope.filters.exam_type_id !== undefined ) request += '/' + $scope.filters.exam_type_id;
 		var selectedTerm = $scope.terms.filter(function(item){
@@ -1032,10 +1087,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.selectedClass = $scope.classes.filter(function(item){
 			if( item.class_id == $scope.filters.class_id ) return item;
 		})[0];
-		
+
 		apiService.getStudentExamMarks(request, loadMarks, apiError);
 	}
-	
+
 	var loadMarks = function(response,status)
 	{
 		$scope.loading = false;
@@ -1051,7 +1106,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{
 				$scope.rawExamMarks = result.data;
 				$scope.examMarks = {};
-				
+
 				// we want to show a notice if the selected year is current year and selected class is different then the students current class
 				var currentYear = moment().format('YYYY');
 				console.log($scope.selectedClass);
@@ -1061,16 +1116,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					$scope.notice = true;
 					$scope.noticeMsg = $scope.student.student_name  + ' is currently associated with <strong>' + $scope.currentClass[0].class_name + '</strong>, however ' +
 															'these exam marks are associated with <strong>' + $scope.filters.class.class_name + '</strong>.<br>' +
-															
+
 															'Would you like to move these marks from ' + $scope.filters.class.class_name +  ' to ' + $scope.currentClass[0].class_name + '?<br><br>';
 				}
-				
+
 				// get unique exam types
 				$scope.examMarks.types = result.data.reduce(function(sum,item){
 					if( sum.indexOf(item.exam_type) === -1 ) sum.push(item.exam_type);
 					return sum;
 				}, []);
-				
+
 				/*
 				// get unique exam subjects
 				$scope.examMarks.subjects = result.data.reduce(function(sum,item){
@@ -1078,19 +1133,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					return sum;
 				}, []);
 				*/
-				
+
 				// group the marks by subject
 				$scope.examMarks.subjects = [];
 				var lastSubject = '';
 				var marks = [];
 				var i = 0;
 				angular.forEach(result.data, function(item,key){
-					
+
 					if( item.subject_name != lastSubject )
 					{
 						// changing to new exam type, store the complied marks array
 						if( i > 0 ) $scope.examMarks.subjects[(i-1)].marks = marks;
-						
+
 						$scope.examMarks.subjects.push(
 							{
 								subject_name: item.subject_name,
@@ -1098,7 +1153,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 								marks: []
 							}
 						);
-						
+
 						// init marks array for this exam type
 						marks = {};
 						i++;
@@ -1108,16 +1163,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						mark: item.mark,
 						grade_weight: item.grade_weight,
 						//position: item.rank,
-						grade: item.grade							
+						grade: item.grade
 					}
 
-					
+
 					lastSubject = item.subject_name;
-					
-					
+
+
 				});
 				$scope.examMarks.subjects[(i-1)].marks = marks;
-				
+
 			}
 		}
 		else
@@ -1126,14 +1181,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.errMsg = result.data;
 		}
 	}
-	
+
 	$scope.updateExams = function()
 	{
 		var ids = [];
 		angular.forEach($scope.rawExamMarks, function(item){
 			ids.push(item.exam_id);
 		});
-		
+
 	 // update exams
 	 var data = {
 		class_id: $scope.currentClass[0].class_id,
@@ -1146,7 +1201,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.getExams();
 		}, apiError);
 	}
-	
+
 	$scope.addExamMarks = function()
 	{
 		var data = {
@@ -1161,27 +1216,27 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		dlg.result.then(function(examMarks){
 			$scope.getExams();
 		},function(){
-			
+
 		});
 	}
-	
+
 	$scope.importExamMarks = function()
 	{
 		$rootScope.wipNotice();
 	}
-	
+
 	$scope.exportData = function()
 	{
 		$rootScope.wipNotice();
 	}
-	
+
 	/************************************* Report Card Functions ***********************************************/
 	$scope.getStudentReportCards = function()
 	{
 		$scope.reportsNotFound = false;
 		apiService.getStudentReportCards($scope.student.student_id, loadReportCards, apiError);
 	}
-	
+
 	var loadReportCards = function(response,status)
 	{
 		$scope.loading = false;
@@ -1196,18 +1251,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			else
 			{
-				
+
 				$scope.rawReportCards = result.data;
-					
+
 				$scope.reportCards = {};
-				
+
 				// get unique terms
 				$scope.reportCards.terms = $scope.rawReportCards.reduce(function(sum,item){
 					if( sum.indexOf(item.term_name) === -1 ) sum.push(item.term_name);
 					return sum;
 				}, []);
-				
-				
+
+
 				// group the reports by class
 				$scope.reportCards.classes = [];
 				var lastClass = '';
@@ -1215,12 +1270,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				var reports = {};
 				var i = 0;
 				angular.forEach($scope.rawReportCards, function(item,key){
-					
+
 					if( item.class_name != lastClass )
 					{
 						// changing to new class, store the report
 						if( i > 0 ) $scope.reportCards.classes[(i-1)].reports = reports;
-						
+
 						$scope.reportCards.classes.push(
 							{
 								report_card_id: item.report_card_id,
@@ -1236,7 +1291,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 								published: item.published
 							}
 						);
-						
+
 						reports = {};
 						i++;
 
@@ -1254,10 +1309,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						date: item.date,
 						data: item.report_data
 					};
-					
+
 					lastClass = item.class_name;
 					lastTerm = item.term_name;
-					
+
 				});
 				$scope.reportCards.classes[(i-1)].reports = reports;
 
@@ -1270,7 +1325,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.errMsg = result.data;
 		}
 	}
-	
+
 	$scope.addReportCard = function()
 	{
 		var data = {
@@ -1289,7 +1344,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.getStudentReportCards();
 		});
 	}
-	
+
 	$scope.getReportCard = function(item, term_name, reportData)
 	{
 		var data = {
@@ -1327,11 +1382,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.getStudentReportCards();
 		});
 	}
-	
-	
+
+
 	/************************************* Update Function ***********************************************/
 	$scope.save = function(theForm, tab)
 	{
+		$scope.error = false;
 		if( !theForm.$invalid )
 		{
 			// going to only send data that is on the current tab
@@ -1344,10 +1400,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					uploader.queue[0].file.name = $scope.filename;
 					uploader.uploadAll();
 				}
-				
+
 				//postData.feeItems = $scope.feeItemSelection;
 
-				
+
 				var postData = {
 					student_id : $scope.student.student_id,
 					user_id : $rootScope.currentUser.user_id,
@@ -1426,8 +1482,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			apiService.updateStudent(postData, createCompleted, apiError, {tab:tab});
 		}
 	}
-	
-	var createCompleted = function ( response, status, params ) 
+
+	var createCompleted = function ( response, status, params )
 	{
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
@@ -1436,12 +1492,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{
 				$scope.student.student_image = $scope.filename;
 			}
-			
+
 			// saved, update the originalData
 			// originalData = angular.copy($scope.student);
 			// repull the student details
 			$scope.getStudentDetails($scope.student.student_id);
-		
+
 			// if the class changed, update will return any previous exam marks that are affected
 			// ask if they want to transfer these marks to the new class
 			if( result.data.length > 0  )
@@ -1460,7 +1516,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					apiService.updateExamClass(data,function(response){
 						completeUpdate(params);
 					}, apiError);
-				 
+
 				},function(btn){
 					completeUpdate(params);
 				});
@@ -1469,7 +1525,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{
 				completeUpdate(params);
 			}
-			
+
 		}
 		else
 		{
@@ -1477,12 +1533,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.errMsg = result.data;
 		}
 	}
-	
+
 	var completeUpdate = function(params)
 	{
 		// if moving tabs, continue
 		if( params.tab !== undefined ) goToTab(params.tab);
-		
+
 		if( $scope.currentTab == 'Fees' )
 		{
 			// update the fee data
@@ -1491,28 +1547,28 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 		// refresh the main student list
 		$rootScope.$emit('studentAdded', {'msg' : 'Student was updated.', 'clear' : true});
-		
+
 	}
-	
-	var apiError = function (response, status) 
+
+	var apiError = function (response, status)
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
 		$scope.errMsg = result.data;
 	}
-	
+
 	var checkForExamMarks = function()
 	{
-	
+
 	}
-	
+
 	var uploader = $scope.uploader = new FileUploader({
-            url: 'upload.php',
+						url: 'upload.php',
 			formData : [{
 				'dir': 'students'
 			}]
-    });
-	
+		});
+
 	$scope.adminDelete = function()
 	{
 		var dlg = $dialogs.create('adminDelete.html', 'adminDeleteCtrl', {student_id:$scope.student.student_id}, {size:'sm',backdrop:'static'});
@@ -1521,11 +1577,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			//$rootScope.$emit('studentAdded', {'msg' : 'Student was deleted.', 'clear' : true});
 			$uibModalInstance.dismiss('Canceled');
 		},function(btn){
-			
+
 		});
 	}
-	
-	
+
+
 } ])
 .controller('addParentCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
 function($scope,$rootScope,$uibModalInstance,apiService,data){
@@ -1537,25 +1593,25 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		$scope.edit = ( data.action == 'edit' ? true : false );
 		$scope.add = ( data.action == 'add' ? true : false );
 		$scope.readOnly = ( data.action == 'view' ? true : false );
-		
+
 		$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
-		
+
 		var relationships = $rootScope.currentUser.settings['Guardian Relationships'];
 		$scope.relationships = relationships.split(',');
-		
+
 		var maritalStatuses = $rootScope.currentUser.settings['Marital Statuses'];
 		$scope.maritalStatuses = maritalStatuses.split(',');
-		
+
 		var titles = $rootScope.currentUser.settings['Titles'];
 		$scope.titles = titles.split(',');
-				
+
 		$scope.existingGuardian = {};
 		$scope.uniqueUsername = undefined;
 		$scope.uniqueIdNumber = undefined;
 		$scope.checkID = true;
 
 		//-- Methods --//
-		
+
 		$scope.initializeController = function()
 		{
 			if( !$scope.edit )
@@ -1573,7 +1629,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			}
 		}
 		setTimeout( $scope.initializeController,10);
-		
+
 		$scope.getStudents = function( guardian_id )
 		{
 			apiService.getGuardiansChildren(guardian_id,function(response){
@@ -1588,7 +1644,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				}
 			},apiError);
 		}
-		
+
 		$scope.checkMISLogin = function( idNumber )
 		{
 			// this will query the eduweb_mis database for a login associated with id_number
@@ -1611,7 +1667,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							});
 							*/
 						}
-						
+
 						$scope.guardian.login.exists = ( existingRecord > -1 ? true : false);
 					}
 					else
@@ -1623,7 +1679,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				}
 			},apiError);
 		}
-		
+
 		$scope.checkUsername = function( username )
 		{
 			// this will query the eduweb_mis database to check if username is unique
@@ -1633,12 +1689,12 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					var result = angular.fromJson( response );
 					if( result.response == 'success' )
 					{
-						$scope.uniqueUsername = (result.nodata ? true : false);					
+						$scope.uniqueUsername = (result.nodata ? true : false);
 					}
 				},apiError);
 			}
 		}
-		
+
 		$scope.checkIdNumber = function( username )
 		{
 
@@ -1655,14 +1711,14 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					else
 					{
 						if( $scope.guardian !== undefined && result.data.guardian_id == $scope.guardian.guardian_id ) $scope.uniqueIdNumber = true;
-						else $scope.uniqueIdNumber = false;		
+						else $scope.uniqueIdNumber = false;
 					}
-							
+
 				}
 			},apiError);
 		}
-		
-		
+
+
 		$scope.$watch('existingGuardian.selected',function(newVal,oldVal){
 			if( newVal == oldVal || newVal === undefined ) return;
 			// populate form
@@ -1670,34 +1726,34 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			$scope.guardian = newVal;
 			$scope.guardian.relationship = relationship; // get cleared, reset it previous selection
 			$scope.getStudents( $scope.guardian.guardian_id );
-			
+
 		});
-		
+
 		$scope.$watch('guardian.id_number',function(newVal,oldVal){
 			if( newVal == oldVal || newVal === undefined ) return;
 			// populate form
 			$scope.checkMISLogin(newVal);
 			$scope.uniqueIdNumber = undefined;
 			$scope.checkIdNumber(newVal);
-		});	
-	
+		});
+
 		$scope.$watch('guardian.login.username',function(newVal,oldVal){
 			if( newVal == oldVal || newVal === undefined ) return;
 			// check if unique
 			$scope.uniqueUsername = undefined;
 			$scope.checkUsername(newVal);
-		});			
-		
+		});
+
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');
 		}; // end cancel
-		
+
 		$scope.save = function(theForm)
 		{
 
 			if( !theForm.$invalid && $scope.uniqueUsername !== false && $scope.uniqueIdNumber !== false )
 			{
-				if( $scope.edit ) 
+				if( $scope.edit )
 				{
 					$scope.update();
 				}
@@ -1722,7 +1778,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				}
 			}
 		}; // end save
-		
+
 		$scope.update = function()
 		{
 
@@ -1732,10 +1788,10 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				user_id: $rootScope.currentUser.user_id
 			}
 			apiService.updateGuardian(postData, createCompleted, apiError);
-			
-			
+
+
 		}; // end update
-		
+
 		var createCompleted = function(response,status)
 		{
 			var result = angular.fromJson( response );
@@ -1752,7 +1808,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				$scope.errMsg = msg;
 			}
 		}
-		
+
 		var apiError = function(response,status)
 		{
 			var result = angular.fromJson( response );
@@ -1760,19 +1816,19 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			$scope.errMsg = result.data;
 		}
 
-		$scope.clearSelect = function($event) 
+		$scope.clearSelect = function($event)
 		{
-			$event.stopPropagation(); 
+			$event.stopPropagation();
 			$scope.existingGuardian.selecte = undefined;
 			$scope.guardian = {};
 			$scope.childern = undefined;
 		};
-		
-		
-	
+
+
+
 	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
-  		$templateCache.put('addParent.html',
+			$templateCache.put('addParent.html',
 			'<form name="parentForm" class="form-horizontal modalForm" novalidate role="form" ng-submit="save(parentForm)">' +
 			'<div class="modal-header dialog-header-form">'+
 				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> {{(edit ? \'Update\' : \'Add\')}} Parent/Guardian</h4>' +
@@ -1801,7 +1857,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'<ui-select ng-model="existingGuardian.selected" theme="select2" class="form-control" name="existingGuardian" > ' +
 							  '<ui-select-match placeholder="Select or search a parent...">' +
 								'<span>{{$select.selected.parent_full_name}}</span>' +
-								'<button type="button" class="clear text-danger" ng-click="clearSelect($event)"><span class="glyphicon glyphicon-remove"></span></button>' +	  
+								'<button type="button" class="clear text-danger" ng-click="clearSelect($event)"><span class="glyphicon glyphicon-remove"></span></button>' +
 							 ' </ui-select-match>' +
 							  '<ui-select-choices repeat="item in guardians | filter: $select.search">' +
 								'<span ng-bind-html="item.parent_full_name | highlight: $select.search"></span>' +
@@ -1876,10 +1932,10 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								'</div>' +
 							'</div>' +
 							'<div class="col-sm-5" ng-show="uniqueIdNumber===false">' +
-								'<p class="form-control-static alert alert-danger"><i class="glyphicon glyphicon-remove pull-left"></i> Already exists.</p>' +	
+								'<p class="form-control-static alert alert-danger"><i class="glyphicon glyphicon-remove pull-left"></i> Already exists.</p>' +
 							'</div>' +
 							'<div class="col-sm-2" ng-show="uniqueIdNumber===true">' +
-								'<p class="form-control-static alert alert-success icon-only"><i class="glyphicon glyphicon-ok"></i></p>' +	
+								'<p class="form-control-static alert alert-success icon-only"><i class="glyphicon glyphicon-ok"></i></p>' +
 							'</div>' +
 						'</div>' +
 						'<!-- address -->' +
@@ -1892,7 +1948,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								'</div>' +
 							'</div>' +
 						'</div>' +
-						
+
 						'<!-- phone number -->' +
 						'<div class="form-group" ng-class="{ \'has-error\' : (parentForm.$submitted || parentForm.telephone.$dirty ) && parentForm.telephone.$invalid && parentForm.telephone.$error.required }">' +
 							'<label for="telephone" class="col-sm-3 control-label">Telephone</label>' +
@@ -1913,7 +1969,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 									'<input type="email" name="email" ng-model="guardian.email" class="form-control" required />	' +
 									'<p ng-show="(parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email is required.</p>' +
 									'<p ng-show="(parentForm.$submitted || parentForm.email.$dirty ) && parentForm.email.$invalid && parentForm.email.$error.email" class="help-block"><i class="fa fa-exclamation-triangle"></i> Invalid email</p>' +
-								'</div>	' +	
+								'</div>	' +
 							'</div>	' +
 						'</div>' +
 						'<!-- marital status -->' +
@@ -1928,7 +1984,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 									'</select>' +
 								'</div>	' +
 							'</div>	' +
-						'</div>' +	
+						'</div>' +
 					'</div>' +
 					'<div class="col-sm-6">' +
 						'<h3>Employment Info</h3>' +
@@ -1953,7 +2009,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'</div>	' +
 						'</div>' +
 						'<!-- employer address -->' +
-						'<div class="form-group">	' +	
+						'<div class="form-group">	' +
 							'<label for="employer_address" class="col-sm-3 control-label">Employer Address</label>' +
 							'<div class="col-sm-9">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.employer_address}}</p>' +
@@ -1963,7 +2019,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'</div>	' +
 						'</div>' +
 						'<!-- phone number -->' +
-						'<div class="form-group">	' +	
+						'<div class="form-group">	' +
 							'<label for="work_phone" class="col-sm-3 control-label">Work Phone</label>' +
 							'<div class="col-sm-9">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.work_phone}}</p>' +
@@ -1982,7 +2038,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								'</div>	' +
 							'</div>	' +
 						'</div>' +
-						
+
 						'<div ng-if="parentPortalAcitve">' +
 						'<h3>Parent Portal Login (optional)</h3>' +
 						'<div ng-if="hasLogin">' +
@@ -2044,11 +2100,11 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 									'</div>	' +
 								'</div>' +
 							'</div>' +
-							'<div ng-show="readOnly"><p>This parent does not have a parent portal login.</div>' +	
+							'<div ng-show="readOnly"><p>This parent does not have a parent portal login.</div>' +
 						'</div>' +
 						'</div>' +
 					'</div>' +
-				'</div>' +	
+				'</div>' +
 			'</div>'+
 			'<div class="modal-footer">' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
@@ -2059,20 +2115,20 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 }])
 .controller('addMedicalHistoryCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
 function($scope,$rootScope,$uibModalInstance,apiService,data){
-		
+
 		//-- Variables --//
-		
+
 		$scope.fullMedicalHistory =  data.medicalHistory || {};
-		
+
 		var medicalConditions = $rootScope.currentUser.settings['Medical Conditions'];
 		medicalConditions = medicalConditions.split(',');
-		
+
 		// build array of just the medical condition names for the student
 		var medicalHistory = $scope.fullMedicalHistory.reduce(function(sum,item){
 			sum.push(item.illness_condition);
 			return sum;
 		}, []);
-		
+
 		// map medicalConditions to an object to hold user entry fields
 		// remove medical conditions that are already set for the student
 		$scope.medicalConditions = medicalConditions.reduce(function(sum,item){
@@ -2089,11 +2145,11 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 
 
 		//-- Methods --//
-		
+
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');
 		}; // end cancel
-		
+
 		$scope.save = function()
 		{
 
@@ -2103,10 +2159,10 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				user_id: $rootScope.currentUser.user_id
 			}
 			apiService.postMedicalConditions(postData, createCompleted, apiError);
-			
-			
+
+
 		}; // end save
-		
+
 		var createCompleted = function(response,status)
 		{
 			var result = angular.fromJson( response );
@@ -2117,7 +2173,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					$scope.conditionSelection[key].medical_id = item.medical_id;
 					$scope.conditionSelection[key].date_medical_added = item.date_medical_added;
 				});
-				
+
 				$uibModalInstance.close($scope.conditionSelection);
 			}
 			else
@@ -2126,23 +2182,23 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				$scope.errMsg = result.data;
 			}
 		}
-		
+
 		var apiError = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
-		
+
 		$scope.hitEnter = function(evt){
 			if( angular.equals(evt.keyCode,13) )
 				$scope.save();
 		};
-		
+
 		$scope.conditionSelection = [];
-		$scope.toggleMedicalCondition = function(item) 
+		$scope.toggleMedicalCondition = function(item)
 		{
-		
+
 			var id = $scope.conditionSelection.indexOf(item);
 
 			// is currently selected
@@ -2155,10 +2211,10 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				$scope.conditionSelection.push(item);
 			}
 	};
-	
+
 	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
-  		$templateCache.put('addMedicalHistory.html',
+			$templateCache.put('addMedicalHistory.html',
 			'<div class="modal-header dialog-header-form">'+
 				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Medical History</h4>' +
 			'</div>' +
@@ -2207,18 +2263,18 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 }])
 .controller('updateMedicalConditionCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
 function($scope,$rootScope,$uibModalInstance,apiService,data){
-		
+
 		//-- Variables --//
-		
+
 		$scope.medicalCondition =  data.medicalCondition || {};
-		
-		
+
+
 		//-- Methods --//
-		
+
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');
 		}; // end cancel
-		
+
 		$scope.save = function()
 		{
 
@@ -2228,16 +2284,16 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				user_id: $rootScope.currentUser.user_id
 			}
 			apiService.updateMedicalConditions(postData, createCompleted, apiError);
-			
-			
+
+
 		}; // end save
-		
+
 		var createCompleted = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			if( result.response == 'success' )
 			{
-				// loop through results and add medical_id to each condition				
+				// loop through results and add medical_id to each condition
 				$uibModalInstance.close($scope.medicalCondition);
 			}
 			else
@@ -2246,23 +2302,23 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				$scope.errMsg = result.data;
 			}
 		}
-		
+
 		var apiError = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
-		
+
 		$scope.hitEnter = function(evt){
 			if( angular.equals(evt.keyCode,13) )
 				$scope.save();
 		};
-		
-	
+
+
 	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
-  		$templateCache.put('updateMedicalCondition.html',
+			$templateCache.put('updateMedicalCondition.html',
 			'<div class="modal-header dialog-header-form">'+
 				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Update Medical Condition : {{medicalCondition.illness_condition}}</h4>' +
 			'</div>' +
@@ -2295,7 +2351,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 }])
 .controller('addStudentExamMarksCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
 function($scope,$rootScope,$uibModalInstance,apiService,data){
-		
+
 		//-- Variables --//
 
 		$scope.student_id = data.student_id;
@@ -2303,23 +2359,23 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		$scope.classes = data.classes;
 		$scope.terms = data.terms;
 		$scope.examTypes = data.examTypes;
-		
+
 		//-- Methods --//
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');
 		}; // end cancel
-		
+
 		$scope.$watch('filters.class',function(newVal,oldVal){
 			if( newVal == oldVal ) return;
-			
+
 			$scope.filters.class_id = newVal.class_id;
 
 			apiService.getExamTypes(newVal.class_cat_id, function(response){
-				var result = angular.fromJson(response);				
-				if( result.response == 'success'){ $scope.examTypes = result.data;}			
+				var result = angular.fromJson(response);
+				if( result.response == 'success'){ $scope.examTypes = result.data;}
 			}, apiError);
 		});
-		
+
 		$scope.getStudentExams = function( theForm )
 		{
 
@@ -2329,7 +2385,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				$scope.examMarks = {};
 				$scope.marksNotFound = false;
 				$scope.currentFilters = angular.copy($scope.filters);
-				
+
 				var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id + '/0';
 				apiService.getAllClassExams(request, function(response){
 					$scope.loading = false;
@@ -2343,7 +2399,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 						else
 						{
 							var subjects = result.data;
-							
+
 							// populate any already entered exam marks
 							var request = $scope.student_id + '/' + $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
 							apiService.getStudentExamMarks(request, function(response){
@@ -2352,7 +2408,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								if( result.response == 'success' )
 								{
 									$scope.marks = (result.nodata ? [] : result.data);
-									
+
 									if( $scope.marks.length > 0 )
 									{
 										$scope.subjects = subjects.map(function(item){
@@ -2368,18 +2424,18 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 									{
 										$scope.subjects = subjects;
 									}
-									
+
 								}
 							}, apiError);
 						}
-						
-						
+
+
 					}
 				}, apiError);
 			}
-			
+
 		}
-		
+
 		$scope.calculateParentSubject = function(parent_id)
 		{
 			if( parent_id !== undefined )
@@ -2403,8 +2459,8 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				},0);
 				parent.mark = Math.round( (total/totalWeight)*100 ) ;
 			}
-		}		
-		
+		}
+
 		$scope.save = function()
 		{
 			var examMarks = [];
@@ -2417,22 +2473,22 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					parent_subject_id: item.parent_subject_id
 				});
 			});
-			
+
 			var data = {
 				user_id: $rootScope.currentUser.user_id,
 				exam_marks: examMarks
 			}
 
-			apiService.addExamMarks(data,createCompleted,apiError);				
-			
+			apiService.addExamMarks(data,createCompleted,apiError);
+
 		}; // end save
-		
+
 		var createCompleted = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			if( result.response == 'success' )
 			{
-				// loop through results and add medical_id to each condition				
+				// loop through results and add medical_id to each condition
 				$uibModalInstance.close($scope.subjects);
 			}
 			else
@@ -2441,30 +2497,30 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 				$scope.errMsg = result.data;
 			}
 		}
-		
+
 		var apiError = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
-		
+
 		$scope.hitEnter = function(evt){
 			if( angular.equals(evt.keyCode,13) )
 				$scope.save();
 		};
-		
-		var apiError = function (response, status) 
+
+		var apiError = function (response, status)
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
-	
-	
+
+
 	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
-  		$templateCache.put('addStudentExamMarks.html',
+			$templateCache.put('addStudentExamMarks.html',
 			'<div class="modal-header dialog-header-form">'+
 				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Exam Marks</h4>' +
 			'</div>' +
@@ -2473,7 +2529,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					'<div ng-show="error" class="alert alert-danger">' +
 						'{{errMsg}}'+
 					'</div>' +
-					'<div class="row header">' +		
+					'<div class="row header">' +
 						'<div class="modalDataFilter col-sm-12 clearfix">	' +
 							'<!-- Class -->' +
 							'<div class="form-group">' +
@@ -2529,23 +2585,23 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 }])
 .controller('adminDeleteCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
 function($scope,$rootScope,$uibModalInstance,apiService,data){
-		
+
 		//-- Variables --//
 		$scope.student_id = data.student_id;
 		$scope.adminPwd = '';
-		
+
 		//-- Methods --//
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');
 		}; // end cancel
-		
+
 		$scope.done = function(theForm)
 		{
 
 			if( !theForm.$invalid )
 			{
 				var params = $scope.adminPwd + '/' + $scope.student_id;
-				
+
 				apiService.adminDeleteStudent(params, function(response,status,params){
 					var result = angular.fromJson(response);
 					if( result.response == 'success')
@@ -2558,23 +2614,23 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 						$scope.error = true;
 						$scope.errMsg = "The password you entered was incorrect.";
 					}
-					
+
 				}, apiError);
 			}
 		}; // end save
-		
+
 		var apiError = function(response,status)
 		{
 			var result = angular.fromJson( response );
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
-		
-		
+
+
 	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
-  		$templateCache.put('adminDelete.html',
-			'<form name="deleteForm" class="form-horizontal modalForm" novalidate role="form" ng-submit="done(deleteForm)">' +	
+			$templateCache.put('adminDelete.html',
+			'<form name="deleteForm" class="form-horizontal modalForm" novalidate role="form" ng-submit="done(deleteForm)">' +
 			'<div class="modal-header dialog-header-confirm">'+
 				'<h4 class="modal-title">Delete Student</h4>' +
 			'</div>' +
@@ -2596,9 +2652,6 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			'</div>' +
 			'</form>'
 		);
-}])
-
-
-;
+}]);
 
 

@@ -93,6 +93,11 @@ a {
   padding-top: 0;
   min-height: auto; }
 
+.fixed-height-box {
+  max-height: 300px;
+  overflow: auto;
+  margin-bottom: 10px; }
+
 /********************** Branding Styles ******************************/
 .navbar-brand {
   padding: 5px;
@@ -738,7 +743,7 @@ table.dataTable tbody tr.alert-info td,
 table.dataTable tbody tr.canceled td,
 div.canceled div.ui-grid-cell {
   text-decoration: line-through;
-  background-color: #ccc !important;
+  /*background-color:#ccc!important;*/
   color: #aaa !important; }
 
 .compact p.form-control-static {
@@ -903,6 +908,13 @@ table.clickable tr {
     display: inline-block; }
   .modal-content .modalForm .indent {
     padding-left: 25px; }
+  .modal-content .form-horizontal .static .form-group {
+    border-bottom: 1px solid #eee;
+    margin-right: 0; }
+  .modal-content .form-horizontal .static .form-control-static {
+    padding: 0 5px;
+    min-height: 15px;
+    height: 15px; }
   .modal-content .modal-tabs.main-tabs {
     margin: -15px;
     background: #eee; }
@@ -1383,7 +1395,7 @@ table.clickable tr {
     margin-bottom: 2px; }
     .info-boxes .info-box p {
       display: block;
-      font-size: 20px;
+      font-size: 15px;
       font-weight: bold; }
       .info-boxes .info-box p span {
         font-size: 11px;
@@ -1484,7 +1496,10 @@ table.clickable tr {
   .school_settings .hasSubNav .main-datagrid {
     padding-top: 90px; }
 
-  table.dataTable tbody th, table.dataTable tbody td, table.dataTable tfoot th {
+  table.dataTable tbody th,
+  table.dataTable tbody td,
+  table.dataTable tfoot th,
+  table.dataTable tfoot td {
     padding: 2px 18px 2px 2px; }
 
   table.dataTable.nosort tbody th,
@@ -1509,7 +1524,8 @@ table.clickable tr {
 
   .navbar-fixed-top,
   .modal-header,
-  .modal-footer {
+  .modal-footer,
+  .footer {
     display: none; }
 
   .receipt {

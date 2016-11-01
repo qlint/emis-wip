@@ -70,7 +70,7 @@
 					<label>The sum of Kshs:</label>
 				</div>
 				<div class="col-xs-9">
-					<p class="form-control-static">{{totalAmt|currency:""}}</p>
+					<p class="form-control-static">{{totalAmt|currency:""}} {{currency}}</p>
 				</div>
 			</div>
 			<div class="row">
@@ -78,7 +78,9 @@
 					<label>Outstanding Balance:</label>
 				</div>
 				<div class="col-xs-9">
-					<p class="form-control-static"><b>{{grandTotalBalance|numeric}} <span ng-show="hasCredit">credit</span></b></p>
+					<p class="form-control-static"><b>{{( grandTotalBalance < 0 ? '0' : grandTotalBalance|numeric) }}  {{currency}}
+						<span ng-show="hasCredit"> Credit of {{totalCredits|currency:""}}  {{currency}}</span></b>
+					</p>
 				</div>
 			</div>
 			
@@ -149,9 +151,7 @@
 						<tr>
 							<td colspan="3"><b class="pull-right">Total Paid:</b></td>
 							<td class="center">{{totalPayments|currency:""}}</td>
-							<td><b class="pull-right">Total Credit:</b></td>
-							<td class="center">{{totalCredit|currency:""}}</td>
-							<td colspan="2" class="center"></td>
+							<td colspan="4" class="center"></td>
 						</tr>
 					</tfoot>
 				</table>

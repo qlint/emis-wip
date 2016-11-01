@@ -9,6 +9,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.showSelect =  ( data.selectedStudent !== undefined ? false : true );
 	$scope.student.selected = $scope.selectedStudent;
 	$scope.payment = {};
+	$scope.payment.amount = 0;
 	$scope.payment.payment_date = {startDate: moment().format('YYYY-MM-DD')};
 	$scope.payment.replacement_payment = false;
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
@@ -16,12 +17,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.feeItemsSelection = [];
 	$scope.feeItemsSelection2 = [];
 	$scope.apply_to_all = [];
+	$scope.totalApplied = 0;
+	$scope.totalCredit = 0;
 	
 	var initializeController = function()
 	{
 		var paymentMethods = $rootScope.currentUser.settings['Payment Methods'];
-		$scope.paymentMethods = paymentMethods.split(',');	
-				
+		$scope.paymentMethods = paymentMethods.split(',');
+		
+		
 		if( $scope.selectedStudent === undefined )
 		{
 			apiService.getAllStudents(true, function(response){
@@ -119,6 +123,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		{
 			angular.forEach(invoice.fee_items, function(feeitem,key){
 				feeitem.amount = Math.abs(feeitem.balance);
+				$scope.totalApplied += parseInt(feeitem.amount);
 				$scope.feeItemsSelection.push(feeitem);
 			});
 		}
@@ -126,10 +131,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		{
 			angular.forEach(invoice.fee_items, function(feeitem,key){
 				feeitem.amount = undefined;
+				$scope.totalApplied = 0;
 				$scope.feeItemsSelection = [];
 			});
 		}
-
+		$scope.totalCredit = ( $scope.payment.amount - $scope.totalApplied > 0 ? $scope.payment.amount - $scope.totalApplied : 0) ;
 	}
 	
 	$scope.viewStudent = function(student)
@@ -146,7 +152,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	
 	var loadInvoices = function(response,status)
 	{
-		$scope.loading = false;		
+		$scope.loading = false;
 		var result = angular.fromJson(response);
 				
 		if( result.response == 'success') 
@@ -162,6 +168,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		var currentItem = {};
 		var invoices = [];
 		var feeItems = []
+		var overallBalance = 0;
 		angular.forEach( invoiceData, function(item,key){
 		
 			if( key > 0 && currentInvoice != item.inv_id )
@@ -172,13 +179,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					inv_date: currentItem.inv_date,
 					due_date: currentItem.due_date,
 					balance: currentItem.balance,
-					overall_balance: currentItem.overall_balance,
+					overall_balance: overallBalance,
 					total_due: currentItem.total_due,
 					fee_items: feeItems,
 				});
 				
 				// reset
 				feeItems = [];
+				overallBalance = 0;
 			}
 			
 			feeItems.push({
@@ -192,9 +200,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				isPaid: parseInt(item.balance) === 0 ? true : false,
 				modifiable: parseInt(item.balance) < 0 ? true : false,
 			});
+			overallBalance += parseFloat(item.balance);
 			
 			currentInvoice = item.inv_id;
-			currentItem = item;				
+			currentItem = item;
 		});
 		// push in last row
 		invoices.push({
@@ -202,7 +211,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			inv_date: currentItem.inv_date,
 			due_date: currentItem.due_date,
 			balance: currentItem.balance,
-			overall_balance: currentItem.overall_balance,
+			overall_balance: overallBalance,
 			total_due: currentItem.total_due,
 			fee_items: feeItems,
 		});
@@ -290,6 +299,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		$scope.errMsg = result.data;
 	}
 	
+	$scope.$watch('payment.amount', function(newVal,oldVal){
+		if( newVal == oldVal ) return;
+		$scope.totalCredit = ( newVal - $scope.totalApplied > 0 ? newVal - $scope.totalApplied : 0) ;
+	});
+	
 	$scope.$watch('payment.invoice', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 		
@@ -321,6 +335,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 
 		// is currently selected
 		if (id > -1) {
+			$scope.totalApplied = $scope.totalApplied - feeitem.amount;
 			feeitem.amount = undefined;
 			$scope.feeItemsSelection.splice(id, 1);
 		}
@@ -328,9 +343,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		// is newly selected
 		else {
 			feeitem.amount = Math.abs(feeitem.balance);
+			$scope.totalApplied += parseFloat(feeitem.amount);
 			$scope.feeItemsSelection.push(feeitem);
 		}
+		
+		$scope.totalCredit = ( $scope.payment.amount - $scope.totalApplied > 0 ? $scope.payment.amount - $scope.totalApplied : 0) ;
 	};
+	
 	$scope.toggleFeeItems2 = function(feeitem) 
 	{
 		var id = $scope.feeItemsSelection2.indexOf(feeitem);
@@ -348,39 +367,47 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 	};
 	
-	$scope.save = function()
+	$scope.save = function(theForm)
 	{
-		// make sure that the fee items selected do not total up to more than the payment amount
-		var totalFeeItems = $scope.feeItemsSelection.reduce(function(sum,item){
-			sum = sum + parseFloat(item.amount);
-			return sum;
-		},0);
-		
-		
-		if( $scope.payment.replacement_payment !== true )
+		if( !theForm.$invalid )
 		{
-			if( totalFeeItems > $scope.payment.amount )
+			$scope.saveCredit = false;
+			
+			// make sure that the fee items selected do not total up to more than the payment amount
+			var totalFeeItems = $scope.feeItemsSelection.reduce(function(sum,item){
+				sum = sum + parseFloat(item.amount);
+				return sum;
+			},0);
+			
+			
+			if( $scope.payment.replacement_payment !== true )
 			{
-				var dlg = $dialogs.error('Amount Inconsistency','<p>You have entered <strong>' + $filter('number')(totalFeeItems) + ' Ksh</strong> towards fee items, however to total payment amount enterd was <strong>' + $filter('number')($scope.payment.amount) + ' Ksh</strong>.</p><p>Please correct, the total amount applied to fee items can not exceed the total payment amount.</p>', {size:'sm'});
-			}
-			else if ( totalFeeItems < $scope.payment.amount )
-			{
-				var dlg = $dialogs.confirm('Unapplied Payment','<p>You have <strong>' +  $filter('number')(($scope.payment.amount - totalFeeItems)) + ' Ksh</strong> that has not been applied to fee items, do you wish to continue?</p>', {size:'sm'});
-				dlg.result.then(function(btn){
-					 // save the form
-					 savePayment();
-					 
-				},function(btn){
-				});
+				if( totalFeeItems > $scope.payment.amount )
+				{
+					var dlg = $dialogs.error('Amount Inconsistency','<p>You have entered <strong>' + $filter('number')(totalFeeItems) + ' Ksh</strong> towards fee items, however to total payment amount entered was <strong>' + $filter('number')($scope.payment.amount) + ' Ksh</strong>.</p><p>Please correct, the total amount applied to fee items can not exceed the total payment amount.</p>', {size:'sm'});
+				}
+				else if ( totalFeeItems < $scope.payment.amount )
+				{
+					$scope.creditAmt = $scope.payment.amount - totalFeeItems;
+					var dlg = $dialogs.confirm('Adding Credit','<p>You have <strong>' +  $filter('number')(($scope.creditAmt)) + ' Ksh</strong> that has not been applied to fee items, do you wish to add this as a credit?</p>', {size:'sm'});
+					dlg.result.then(function(btn){
+						 // save the form
+						 $scope.saveCredit = true;
+						 savePayment();
+						 
+					},function(btn){
+						$scope.saveCredit = false;
+					});
+				}
+				else
+				{
+					savePayment();
+				}
 			}
 			else
 			{
 				savePayment();
 			}
-		}
-		else
-		{
-			savePayment();
 		}
 	}
 	
@@ -408,7 +435,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				slip_cheque_no: $scope.payment.slip_cheque_no,
 				replacement_payment: ($scope.payment.replacement_payment ? 't' : 'f' ),
 				inv_id : ($scope.payment.invoice !== undefined ? $scope.payment.invoice.inv_id : null),
-				replacement_items: replacementItems
+				replacement_items: replacementItems,
+				hasCredit: $scope.saveCredit,
+				creditAmt: $scope.creditAmt
 			};
 		}
 		else{
@@ -430,7 +459,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				slip_cheque_no: $scope.payment.slip_cheque_no,
 				replacement_payment: ($scope.payment.replacement_payment == 'true' ? 't' : 'f' ),
 			//	inv_id : $scope.payment.invoice.inv_id,
-				line_items: lineItems
+				line_items: lineItems,
+				hasCredit: $scope.saveCredit,
+				creditAmt: $scope.creditAmt
 			};
 			
 		}
@@ -455,4 +486,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 	}
 	
+	$scope.sumPayment = function()
+	{
+		$scope.totalApplied = $scope.feeItemsSelection.reduce(function(sum,item){
+			if( item.amount == '' ) item.amount = 0;
+			sum = sum + parseFloat(item.amount);
+			return sum;
+		},0);
+		$scope.totalCredit = ( $scope.payment.amount - $scope.totalApplied > 0 ? $scope.payment.amount - $scope.totalApplied : 0);
+	}
 } ]);

@@ -230,8 +230,16 @@ $app->post('/createInvoice', function () use($app) {
 		$lineItems = $db->prepare("INSERT INTO app.invoice_line_items(inv_id, student_fee_item_id, amount, created_by)
 									VALUES(currval('app.invoices_inv_id_seq'), :studentFeeItemId, :amount, :userId)");
  
- 
+		$getInvoice = $db->prepare("SELECT inv_id, inv_item_id, fee_item , invoice_line_items.amount, invoice_line_items.amount as balance
+								FROM app.invoice_line_items
+								INNER JOIN app.student_fee_items 
+									INNER JOIN app.fee_items
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id
+								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+								WHERE inv_id = currval('app.invoices_inv_id_seq')");
+		
 		$db->beginTransaction();
+
 		foreach( $invoices as $invoice )
 		{
 			$studentId = ( isset($invoice['student_id']) ? $invoice['student_id']: null);
@@ -255,11 +263,15 @@ $app->post('/createInvoice', function () use($app) {
 				$lineItems->execute( array(':studentFeeItemId' => $studentFeeItemId, ':amount' => $amount, ':userId' => $userId ) );
 			}
 		}
+		
+		$getInvoice->execute();
+		$newInvoice = $getInvoice->fetchAll(PDO::FETCH_OBJ);
 		$db->commit();
+		
 	
 		$app->response->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-		echo json_encode(array("response" => "success", "code" => 1));
+		echo json_encode(array("response" => "success", "data" => $newInvoice));
 		$db = null; 
 	} catch(PDOException $e) {
 		$app->response()->setStatus(404);
@@ -377,6 +389,14 @@ $app->put('/updateInvoice', function() use($app){
 		$query = $db->prepare("SELECT inv_item_id FROM app.invoice_line_items WHERE inv_id = :invId");
 		$query->execute( array('invId' => $invId) );
 		$currentLineItems = $query->fetchAll(PDO::FETCH_OBJ);
+		
+		$getInvoice = $db->prepare("SELECT inv_id, inv_item_id, fee_item , invoice_line_items.amount, invoice_line_items.amount as balance
+								FROM app.invoice_line_items
+								INNER JOIN app.student_fee_items 
+									INNER JOIN app.fee_items
+									ON student_fee_items.fee_item_id = fee_items.fee_item_id
+								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
+								WHERE inv_id = :invId");
 			
 		
 		$db->beginTransaction();
@@ -448,11 +468,13 @@ $app->put('/updateInvoice', function() use($app){
 			$deleteAllLine->execute(array('invId' => $invId));
 		}
 		
+		$getInvoice->execute( array(':invId' => $invId) );
+		$newInvoice = $getInvoice->fetchAll(PDO::FETCH_OBJ);
 		$db->commit();
  
 		$app->response->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
-		echo json_encode(array("response" => "success", "code" => 1));
+		echo json_encode(array("response" => "success", "data" => $newInvoice));
 		$db = null;
 	} catch(PDOException $e) {
 		$db->rollBack();
@@ -522,6 +544,58 @@ $app->put('/reactivateInvoice', function() use($app) {
 		$app->response()->setStatus(404);
 		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
 	}
+});
+
+$app->delete('/deleteInvoice/:inv_id', function ($invId){
+	// delete invoice
+	$app = \Slim\Slim::getInstance();
+	try 
+  {
+    $db = getDB();
+		
+		// the payment should go in as a credit
+		$getPayment = $db->prepare("SELECT sum(payment_inv_items.amount) as sum, payment_inv_items.payment_id, student_id
+																FROM app.payment_inv_items 
+																INNER JOIN app.payments
+																ON payment_inv_items.payment_id = payments.payment_id
+																WHERE payment_inv_items.inv_id = :invId
+																GROUP BY payment_inv_items.payment_id, student_id");
+		
+		$createCredit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount) 
+																VALUES(:studentId, :paymentId, :creditAmt)");
+		
+		$deletePayment = $db->prepare("DELETE FROM app.payment_inv_items WHERE inv_id = :invId");
+		$deleteInvoice = $db->prepare("DELETE FROM app.invoices WHERE inv_id = :invId");
+		$deleteInvoiceItems = $db->prepare("DELETE FROM app.invoice_line_items WHERE inv_id = :invId");
+			
+		$db->beginTransaction();
+		
+		$getPayment->execute(array(':invId' => $invId));
+		$payment = $getPayment->fetch(PDO::FETCH_OBJ);
+		
+		if( $payment ){
+			// there was a payment on the invoice, will be deleted, set as a credit
+			$createCredit ->execute( array(':studentId' => $payment->student_id, ':paymentId' => $payment->payment_id, ':creditAmt' => $payment->sum) );
+		}
+		
+		$deletePayment->execute( array(':invId' => $invId) );
+		$deleteInvoiceItems->execute( array(':invId' => $invId) );	
+		$deleteInvoice->execute( array(':invId' => $invId) );		
+		$db->commit();
+ 
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+ 
+ 
+    } catch(PDOException $e) {
+		
+		$db->rollBack();
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
 });
 
 ?>

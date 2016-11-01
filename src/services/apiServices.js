@@ -408,6 +408,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getStudentPayments/" + param, successFunction, errorFunction, params);
 	};
 	
+	this.getStudentCredits = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getStudentCredits/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getStudentArrears = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxGet(path + "/getStudentArrears/" + param, successFunction, errorFunction, params);
+	};
+	
 	this.getStudentExamMarks = function (param, successFunction, errorFunction, params) {          
 		ajaxService.AjaxGet(path + "/getStudentExamMarks/" + param, successFunction, errorFunction, params);
 	};
@@ -521,6 +529,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPut(request, path + "/reactivatePayment", successFunction, errorFunction, params);
 	};
 	
+	this.deletePayment = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deletePayment/" + param, successFunction, errorFunction, params);
+	};
+	
 	/*********** invoices ***********/	
 	this.getInvoices = function (param, successFunction, errorFunction, params) {      
 		ajaxService.AjaxGet(path + "/getInvoices/" + param, successFunction, errorFunction, params);
@@ -552,6 +564,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	
 	this.reactivateInvoice = function (request, successFunction, errorFunction, params) {          
 		ajaxService.AjaxPut(request, path + "/reactivateInvoice", successFunction, errorFunction, params);
+	};
+	
+	this.deleteInvoice = function (param, successFunction, errorFunction, params) {          
+		ajaxService.AjaxDelete(path + "/deleteInvoice/" + param, successFunction, errorFunction, params);
 	};
 	
 	/*********** users ***********/	

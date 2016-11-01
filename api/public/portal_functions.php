@@ -518,25 +518,32 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 		// get total amount of student fee items
 		// calculate the amount due and due date
 		// calculate the balance owing
-		$sth = $db->prepare("SELECT fee_item, student_fee_items.payment_method,
-									sum(invoice_line_items.amount) AS total_due, 
-									COALESCE(sum(payment_inv_items.amount), 0) AS total_paid, 
-									COALESCE(sum(payment_inv_items.amount), 0) - sum(invoice_line_items.amount) AS balance
-							FROM app.invoices
-							INNER JOIN app.invoice_line_items 
-								INNER JOIN app.student_fee_items
-									INNER JOIN app.fee_items
-									ON student_fee_items.fee_item_id = fee_items.fee_item_id
-								ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id AND student_fee_items.active = true
-								LEFT JOIN app.payment_inv_items
-									INNER JOIN app.payments
-									ON payment_inv_items.payment_id = payments.payment_id AND reversed is false
-								ON invoice_line_items.inv_item_id = payment_inv_items.inv_item_id
-							ON invoices.inv_id = invoice_line_items.inv_id
-							WHERE invoices.student_id = :studentID
-							AND invoices.canceled = false
-							--AND invoices.due_date < now()
-							GROUP BY fee_item, student_fee_items.payment_method
+		$sth = $db->prepare("SELECT fee_item, q.payment_method,
+													sum(invoice_total) AS total_due, 
+													sum(total_paid) AS total_paid, 
+													sum(total_paid) - sum(invoice_total) AS balance
+												FROM
+													( SELECT invoice_line_items.amount as invoice_total,
+														 fee_item, 
+														 student_fee_items.payment_method,
+														 inv_item_id,
+														 (SELECT COALESCE(sum(payment_inv_items.amount), 0)
+															FROM app.payment_inv_items
+															INNER JOIN app.payments
+															ON payment_inv_items.payment_id = payments.payment_id AND reversed is false
+															WHERE inv_item_id = invoice_line_items.inv_item_id) as total_paid
+														FROM app.invoices
+														INNER JOIN app.invoice_line_items 
+															INNER JOIN app.student_fee_items
+																INNER JOIN app.fee_items
+																ON student_fee_items.fee_item_id = fee_items.fee_item_id
+															ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id AND student_fee_items.active = true
+														ON invoices.inv_id = invoice_line_items.inv_id
+														WHERE invoices.student_id = :studentID
+														AND invoices.canceled = false
+														
+													) q
+												GROUP BY fee_item, q.payment_method
 							");
         $sth->execute( array(':studentID' => $studentId)); 
         $fees = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -547,7 +554,8 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 			$sth2 = $db->prepare("SELECT 
 									(SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
 									(SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
-									COALESCE((SELECT sum(amount) from app.credits WHERE student_id = :studentID ),0) AS total_credit");
+									COALESCE((SELECT sum(amount) from app.credits WHERE student_id = :studentID ),0) AS total_credit,
+									(SELECT sum(balance) from app.invoice_balances2 WHERE student_id = :studentID AND due_date <= now()::date AND canceled = false) AS arrears");
 			$sth2->execute( array(':studentID' => $studentId)); 
 			$details = $sth2->fetch(PDO::FETCH_OBJ);
 			
@@ -560,10 +568,11 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 				$feeSummary->next_amount = $details->next_amount;
 				//$feeSummary->unapplied_payments = $details->unapplied_payments;
 				$feeSummary->total_credit = $details->total_credit;
+				$feeSummary->arrears = $details->arrears;
 				
 				// is the next due date within 30 days?
 				$diff = dateDiff("now", $details->next_due_date);
-				$feeSummary->within30days = ( $diff < 30 ? true : false ); 	
+				$feeSummary->within30days = ( $diff < 30 ? true : false );
 			}
 			
 			$balanceQry = $db->prepare("SELECT total_due, total_paid, total_paid - total_due as balance,
@@ -571,7 +580,7 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 																FROM (
 																	SELECT 
 																		coalesce(sum(total_amount),0) as total_due, 
-																		coalesce((select sum(payment_inv_items.amount) from app.payments inner join app.payment_inv_items on payments.payment_id = payment_inv_items.payment_id where student_id = 58),0) as total_paid
+																		coalesce((select sum(payment_inv_items.amount) from app.payments inner join app.payment_inv_items on payments.payment_id = payment_inv_items.payment_id where student_id = :studentID),0) as total_paid
 																	FROM app.invoices
 																	WHERE student_id = :studentID
 																	AND date_part('year', due_date) = date_part('year',now())
