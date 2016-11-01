@@ -24,8 +24,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		rowTemplate: rowTemplate(),
 		rowHeight:24,
 		columnDefs: [
-			{ name: 'Term Name', field: 'term_name', enableColumnMenu: false, sort: {direction:'asc'},},
-			{ name: 'Start Date', field: 'start_date', type:'date', cellFilter:'date', enableColumnMenu: false,},
+			{ name: 'Term Name', field: 'term_name', enableColumnMenu: false},
+			{ name: 'Start Date', field: 'start_date', type:'date', cellFilter:'date', enableColumnMenu: false,sort: {direction:'asc'}},
 			{ name: 'End Date', field: 'end_date', type:'date', cellFilter:'date', enableColumnMenu: false,},
 		],
 		exporterCsvFilename: 'school-dates.csv',
