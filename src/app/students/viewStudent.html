@@ -510,10 +510,10 @@
 							</div>
 							
 							<!-- amount overdue -->
-							<div class="form-group text-danger" ng-show="feeSummary.past_due">
+							<div class="form-group text-danger" ng-show="feeSummary.arrears<0">
 								<label for="payment_method" class="col-sm-7 control-label">Amount Overdue</label>
 								<div class="col-sm-5">
-									<p class="form-control-static">{{feeSummary.balance|numeric}} {{currency}}</p>
+									<p class="form-control-static">{{feeSummary.arrears|numeric}} {{currency}}</p>
 								</div>
 							</div>
 							

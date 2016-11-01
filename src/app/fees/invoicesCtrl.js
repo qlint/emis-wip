@@ -96,16 +96,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				var result = angular.fromJson(response);
 				if( result.response == 'success')
 				{ 
-					$scope.terms = result.data;	
+					$scope.terms = result.data;
 					$rootScope.terms = result.data;
-					setTermRanges(result.data);
+					$rootScope.setTermRanges(result.data);
 				}		
 			}, function(){});
 		}
 		else
 		{
 			$scope.terms  = $rootScope.terms;
-			setTermRanges($scope.terms );
+			$rootScope.setTermRanges($scope.terms );
 		}
 		
 		setTimeout(function(){
@@ -118,14 +118,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 
 	}
 	$timeout(initializeController,1);
-
-	var setTermRanges = function(terms)
-	{
-		$scope.termRanges = {};
-		angular.forEach(terms, function(item,key){
-			$scope.termRanges[item.term_year_name] = [item.start_date, item.end_date];
-		});
-	}
 	
 	var getInvoices = function(status, filtering)
 	{

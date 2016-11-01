@@ -541,7 +541,6 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 														ON invoices.inv_id = invoice_line_items.inv_id
 														WHERE invoices.student_id = :studentID
 														AND invoices.canceled = false
-														
 													) q
 												GROUP BY fee_item, q.payment_method
 							");
@@ -583,7 +582,7 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 																		coalesce((select sum(payment_inv_items.amount) from app.payments inner join app.payment_inv_items on payments.payment_id = payment_inv_items.payment_id where student_id = :studentID),0) as total_paid
 																	FROM app.invoices
 																	WHERE student_id = :studentID
-																	AND date_part('year', due_date) = date_part('year',now())
+																	--AND date_part('year', due_date) = date_part('year',now())
 																	AND canceled = false
 																)q");
 			$balanceQry->execute( array(':studentID' => $studentId)); 

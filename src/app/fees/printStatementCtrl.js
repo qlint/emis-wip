@@ -11,19 +11,7 @@ function($scope, $rootScope, apiService ){
 		$scope.student = angular.fromJson(data.student);
 		
 		// get current term
-		apiService.getCurrentTerm({},function(response){
-			var result = angular.fromJson(response);
-			
-			if( result.response == 'success') 
-			{
-				$scope.currentTerm = result.data;
-				var termName = $scope.currentTerm.term_name;
-				// we only want the number
-				termName = termName.split(' ');
-				$scope.currentTerm.term_name = termName[1];
-				$scope.currentTermTitle = $scope.currentTerm.term_name  + ', ' + $scope.currentTerm.year;
-			}
-		},apiError);
+		$rootScope.getCurrentTerm();
 
 		if( $scope.invoices === undefined )
 		{

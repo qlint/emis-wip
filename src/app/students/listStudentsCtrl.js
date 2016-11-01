@@ -63,14 +63,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		lastQueriedDateRange = newVal;
 	});
 	
-	var setTermRanges = function(terms)
-	{
-		$scope.termRanges = {};
-		angular.forEach(terms, function(item,key){
-			$scope.termRanges[item.term_year_name] = [item.start_date, item.end_date];
-		});
-	}
-	
 	var initializeController = function () 
 	{
 		// if user is a teacher, we only want to give them class categories and classes that they are associated with
@@ -184,14 +176,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				{ 
 					$scope.terms = result.data;	
 					$rootScope.terms = result.data;
-					setTermRanges(result.data);
-				}		
+					$rootScope.setTermRanges(result.data);
+				}
 			}, function(){});
 		}
 		else
 		{
 			$scope.terms  = $rootScope.terms;
-			setTermRanges($scope.terms );
+			$rootScope.setTermRanges($scope.terms );
 		}
 		
 		setTimeout(function(){

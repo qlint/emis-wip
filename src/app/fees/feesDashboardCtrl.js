@@ -81,6 +81,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	
 	var initializeController = function () 
 	{
+		/*
 		// get current term
 		apiService.getCurrentTerm({},function(response){
 			var result = angular.fromJson(response);
@@ -95,7 +96,26 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				
 			}
 		},apiError);
+		*/
+		
+		// get terms
+		var year = moment().format('YYYY');
+		apiService.getTerms(undefined, function(response){
+			var result = angular.fromJson(response);
+			if( result.response == 'success')
+			{ 
+				$rootScope.terms = result.data;
+				$rootScope.setTermRanges(result.data);
 				
+				$scope.currentTerm = result.data.filter(function(item){
+					if( item.current_term ) return item;
+				})[0];
+				$scope.currentTermTitle = $scope.currentTerm.term_name + ' ' + $scope.currentTerm.year;
+				$scope.date = {startDate: $scope.currentTerm.start_date, endDate: $scope.currentTerm.end_date};
+				getPaymentsReceived($scope.currentTerm.start_date, $scope.currentTerm.end_date);
+			}
+		}, function(){});
+		
 		// get payments due this month
 		var start_date = moment().startOf('month').format('YYYY-MM-DD');
 		var end_date = moment().endOf('month').format('YYYY-MM-DD');

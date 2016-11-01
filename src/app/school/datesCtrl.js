@@ -66,9 +66,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			var result = angular.fromJson(response);
 			
 			if( result.response == 'success')
-			{	
+			{
 				$scope.dates = ( result.nodata ? [] : result.data );
-
+				$rootScope.terms = $scope.dates;
 				initDataGrid($scope.dates);
 			}
 			else
@@ -83,7 +83,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.loadFilter = function()
 	{
 		$scope.loading = true;
-		getTerms($scope.filters.year);		
+		getTerms($scope.filters.year);
 	}
 		
 	var initDataGrid = function(data) 

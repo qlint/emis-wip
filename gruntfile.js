@@ -74,7 +74,7 @@ module.exports = function(grunt) {
 												'src/components/angular-file-upload.min.js'],
 				'src/min/loadfirst.min.js': ['src/components/jquery.min.js',
 												'src/components/angular.min.js',
-												'src/components/angular-sanitize.min.js'],								
+												'src/components/angular-sanitize.min.js'],
 				'src/min/app.min.js': ['src/app/app.js',
 										'src/app/routing.js',
 										'src/services/authInterceptor.js',
