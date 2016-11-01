@@ -555,15 +555,6 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 									(SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
 									(SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
 									COALESCE((SELECT sum(amount) from app.credits WHERE student_id = :studentID ),0) AS total_credit,
-									(
-										SELECT sum(diff) FROM (
-											SELECT p.payment_id, p.amount, (p.amount - coalesce((select sum(amount) from app.payment_inv_items inner join app.invoices using (inv_id) where payment_id = p.payment_id and canceled = false ),0)) as diff
-											FROM app.payments as p	
-											WHERE student_id = :studentID
-											AND reversed is false
-											AND replacement_payment is false
-										) AS q
-									) AS unapplied_payments,
 									(SELECT sum(balance) from app.invoice_balances2 WHERE student_id = :studentID AND due_date <= now()::date AND canceled = false) AS arrears");
 			$sth2->execute( array(':studentID' => $studentId)); 
 			$details = $sth2->fetch(PDO::FETCH_OBJ);
@@ -575,7 +566,7 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
 				$feeSummary = new Stdclass();
 				$feeSummary->next_due_date = $details->next_due_date;
 				$feeSummary->next_amount = $details->next_amount;
-				$feeSummary->unapplied_payments = $details->unapplied_payments;
+				//$feeSummary->unapplied_payments = $details->unapplied_payments;
 				$feeSummary->total_credit = $details->total_credit;
 				$feeSummary->arrears = $details->arrears;
 				
