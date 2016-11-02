@@ -396,18 +396,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		$scope.changeInvoice( false );
 	}
 
-	$scope.viewStudent = function(student)
-	{
-		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/students/viewStudent.html','viewStudentCtrl',student,{size: 'lg',backdrop:'static'});
-		dlg.result.then(function(results){
-			// refresh invoice preview
-			$scope.generateInvoice();
-		},function(){
-			$scope.generateInvoice();
-		});
-	}
-
 	var apiError = function (response, status)
 	{
 		var result = angular.fromJson( response );

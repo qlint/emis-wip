@@ -58,7 +58,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	
 	$scope.cancel = function()
 	{
-		$uibModalInstance.dismiss('canceled');  
+		$uibModalInstance.dismiss($scope.updateFeeItems );  
 	}; // end cancel
 	
 	$scope.clearSelect = function(item, $event) 
@@ -80,9 +80,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	$scope.viewStudent = function(student)
 	{
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/students/viewStudent.html','viewStudentCtrl',student,{size: 'lg',backdrop:'static'});
+		var data = {
+			student: student,
+			section : 'fee_items'
+		};
+		var dlg = $dialogs.create('http://' + domain + '/app/students/viewStudent.html','viewStudentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(results){
 			// refresh invoice preview
+			$scope.updateFeeItems = results;
 			$scope.generateInvoice();
 		},function(){
 			$scope.generateInvoice();
@@ -298,7 +303,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			$scope.creditAvailable = $scope.credit;
 			$scope.appliedCreditAmt = 0;
 		}
-		console.log($scope.invoiceTotal);
+
 
 	}
 
@@ -374,7 +379,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			}
 			else
 			{
-				$uibModalInstance.close();
+				$uibModalInstance.close($scope.updateFeeItems);
 				$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice(s) created.', 'clear' : true});
 			}
 		}
@@ -392,70 +397,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		
 		var creditRemaining = $scope.appliedCreditAmt;
 		showPaymentForm(invoiceData);
-		
-		/*
-		var dlg = $dialogs.create('applyCredit.html','applyCreditCtrl',{selectedStudent:$scope.student, invoiceData:invoiceData, credit: $scope.appliedCreditAmt},{size: 'md',backdrop:'static'});
-		dlg.result.then(function(results){
-		
-			// save payment
-			// user has applied a credit
-			// need to send add payment for new invoice just created
-			// also need to update the credit
-			var invId = results.invId;
-			var feeItemsSelection = results.feeItemsSelection;
-			var lineItems = [];
-			angular.forEach(feeItemsSelection, function(item,key){
-				lineItems.push({
-					inv_item_id: item.inv_item_id,
-					inv_id : invId,
-					amount: item.amount
-				});
-			});
-		
-			var data = {
-				user_id: $scope.currentUser.user_id,
-				student_id : $scope.selectedStudent.student_id,
-				payment_date : moment().format('YYYY-MM-DD'),
-				amount: $scope.appliedCreditAmt,
-				payment_method : 'Credit',
-				slip_cheque_no: null,
-				replacement_payment: 'f',
-				line_items: lineItems,
-				hasCredit: false,
-				creditAmt: $scope.creditAvailable,
-				updateCredit: true,
-				amtApplied: $scope.appliedCreditAmt
-			};
-			apiService.addPayment(data,function(response,status){
-			
-				var result = angular.fromJson( response );
-				if( result.response == 'success' )
-				{
-					// saved, close it all down
-					$uibModalInstance.close();
-					$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice(s) created.', 'clear' : true});
-				}
-				else
-				{
-					$scope.error = true;
-					$scope.errMsg = result.data;
-				}
-			},apiError);
-			
-		},function(){
-			// user cancelled, now what?
-			// ask them if they do not wish to apply the credit?
-			var dlg2 = $dialogs.confirm('Cancel Credit?','Do you wish to cancel applying the credit to this invoice?', {size:'sm'});
-			dlg2.result.then(function(btn){
-				// they want to cancel, close window
-				$uibModalInstance.close();
-				$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice(s) created.', 'clear' : true});
-			},function(btn){
-				// if they so no, they need to select the fee items
-				showCreditApplyForm(data);
-			});
-		});
-		*/
 	}
 	
 	var showPaymentForm = function(invoiceData)
@@ -469,7 +410,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		var dlg = $dialogs.create('applyCredit.html','applyCreditCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(results){
 			// saved, close it all down
-				$uibModalInstance.close();
+				$uibModalInstance.close($scope.updateFeeItems);
 				$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice(s) created.', 'clear' : true});
 		},function(){
 			// user cancelled, now what?
@@ -477,7 +418,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			var dlg2 = $dialogs.confirm('Cancel Credit?','Do you wish to cancel applying the credit to this invoice?', {size:'sm'});
 			dlg2.result.then(function(btn){
 				// they want to cancel, close window
-				$uibModalInstance.close();
+				$uibModalInstance.close($scope.updateFeeItems);
 				$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice(s) created.', 'clear' : true});
 			},function(btn){
 				// if they so no, they need to select the fee items
@@ -496,7 +437,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 }])
 .controller('applyCreditCtrl',['$scope','$rootScope','$uibModalInstance','dialogs','$filter','apiService','data',
 function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
-		console.log(data);
+
 		//-- Variables --//
 		$scope.student = data.selectedStudent;
 		$scope.invoiceData = data.invoiceData;
@@ -519,7 +460,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 			$scope.totalApplied[key] = 0;
 			$scope.totalCredit[key] = item.amount;
 		});
-		console.log($scope.payments);
+
 		
 		//-- Methods --//
 		$scope.cancel = function(){
@@ -547,8 +488,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 				});
 			}
 			$scope.totalCredit[key] = ( payment.amount - $scope.totalApplied[key] > 0 ? payment.amount - $scope.totalApplied[key] : 0) ;
-			console.log(key);
-			console.log($scope.totalCredit);
+
 		}
 		
 		$scope.toggleFeeItems = function(key,feeitem,payment) 
@@ -571,9 +511,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 				$scope.feeItemsSelection[key].push(feeitem);
 			}
 			$scope.totalCredit[key] = ( payment.amount - $scope.totalApplied[key] > 0 ? payment.amount - $scope.totalApplied[key] : 0) ;
-			
-			console.log(key);
-			console.log($scope.totalCredit);
+
 		};
 	
 		$scope.done = function(theForm)
@@ -583,7 +521,6 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 			angular.forEach($scope.totalApplied, function(item){
 				grandTotalApplied += item;
 			});
-			console.log(grandTotalApplied);
 			
 			if( grandTotalApplied > $scope.appliedCreditAmt )
 			{
@@ -636,7 +573,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 						creditAmt: $scope.totalCredit[key],
 						creditId: item.credit_id || null
 					};
-					console.log(data);
+
 					apiService.updatePayment(data, updateComplete, apiError);
 				}
 			});

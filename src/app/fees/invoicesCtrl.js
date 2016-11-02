@@ -415,7 +415,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	
 	$scope.viewStudent = function(student)
 	{
-		$scope.openModal('students', 'viewStudent', 'lg',student);
+		var data = {
+			student: student
+		}
+		$scope.openModal('students', 'viewStudent', 'lg',data);
 	}
 	
 	$scope.viewInvoice = function(item)

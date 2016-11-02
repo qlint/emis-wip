@@ -138,18 +138,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		$scope.totalCredit = ( $scope.payment.amount - $scope.totalApplied > 0 ? $scope.payment.amount - $scope.totalApplied : 0) ;
 	}
 	
-	$scope.viewStudent = function(student)
-	{
-		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/students/viewStudent.html','viewStudentCtrl',student,{size: 'lg',backdrop:'static'});
-		dlg.result.then(function(results){
-			// refresh invoice preview
-			$scope.generateInvoice();
-		},function(){
-			$scope.generateInvoice();
-		});
-	}
-	
 	var loadInvoices = function(response,status)
 	{
 		$scope.loading = false;

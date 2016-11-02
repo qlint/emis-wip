@@ -39,19 +39,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	{
 		$uibModalInstance.dismiss('canceled');  
 	}; // end cancel
-
-	$scope.viewStudent = function(student)
-	{
-		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/students/viewStudent.html','viewStudentCtrl',student,{size: 'lg',backdrop:'static'});
-		dlg.result.then(function(results){
-			// refresh invoice preview
-			$scope.generateInvoice();
-		},function(){
-			$scope.generateInvoice();
-		});
-			
-	}
 	
 	$scope.generateInvoice = function()
 	{

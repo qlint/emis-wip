@@ -23,7 +23,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		
 		var index = $scope.invoiceLineItems.length - 1;
 		//newVal.amount = newVal.amount * newVal.frequency;
-		console.log(newVal);
 		newVal.adding = true;
 		$scope.invoiceLineItems[index] = newVal;
 
@@ -126,7 +125,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	
 	$scope.cancel = function()
 	{
-		$uibModalInstance.dismiss('canceled');  
+		$uibModalInstance.dismiss($scope.updateFeeItems);  
 	}; // end cancel
 	
 	$scope.cancelInvoice = function()
@@ -183,7 +182,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				if( result.response == 'success')
 				{
 					$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice deleted.', 'clear' : true});
-					$uibModalInstance.close();
+					$uibModalInstance.close($scope.updateFeeItems);
 				}
 				
 			}, apiError);	
@@ -246,12 +245,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		$scope.removeLineItem(index);
 				
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/students/viewStudent.html','viewStudentCtrl',student,{size: 'lg',backdrop:'static'});
+		var data = {
+			student: student,
+			section : 'fee_items'
+		};
+		var dlg = $dialogs.create('http://' + domain + '/app/students/viewStudent.html','viewStudentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(results){
 			// refresh invoice preview
+			$scope.updateFeeItems = results;
 			$scope.addRow(true);
 			
 		},function(){
+			$scope.updateFeeItems = results;
 			$scope.addRow(true);
 		});
 		
@@ -328,7 +333,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			}
 			else
 			{
-				$uibModalInstance.close();
+				$uibModalInstance.close($scope.updateFeeItems);
 				$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice updated.', 'clear' : true});
 			}
 
@@ -354,7 +359,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		var dlg = $dialogs.create('applyCredit.html','applyCreditCtrl',data,{size: size,backdrop:'static'});
 		dlg.result.then(function(results){
 			// saved, close it all down
-				$uibModalInstance.close();
+				$uibModalInstance.close($scope.updateFeeItems);
 				$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice updated.', 'clear' : true});
 		},function(){
 			// user cancelled, now what?
@@ -362,7 +367,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			var dlg2 = $dialogs.confirm('Cancel Credit?','Do you wish to cancel applying the credit to this invoice?', {size:'sm'});
 			dlg2.result.then(function(btn){
 				// they want to cancel, close window
-				$uibModalInstance.close();
+				$uibModalInstance.close($scope.updateFeeItems);
 				$rootScope.$emit('invoiceAdded', {'msg' : 'Invoice updated.', 'clear' : true});
 			},function(btn){
 				// if they so no, they need to select the fee items

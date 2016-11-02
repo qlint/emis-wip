@@ -5,10 +5,23 @@ controller('viewStudentCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'api
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUploader, $timeout, $filter, data){
 
 	$rootScope.modalLoading = false;
-	$scope.tabs = ( $rootScope.currentUser.user_type == 'TEACHER' ? ['Details','Family','Medical History','Exams','Report Cards'] : ['Details','Family','Medical History','Fees','Exams','Report Cards'] );
-	$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
+	
+	if( data.section === undefined )
+	{
+		$scope.tabs = ( $rootScope.currentUser.user_type == 'TEACHER' ? ['Details','Family','Medical History','Exams','Report Cards'] : ['Details','Family','Medical History','Fees','Exams','Report Cards'] );
+		$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
+		$scope.addingFeeItem = false;
+	}
+	else if( data.section == 'fee_items' )
+	{
+		$scope.tabs = ['Fees'];
+		$scope.feeTabs = ['Fee Items'];
+		$scope.addingFeeItem = true;
+	}
+	
 	$scope.currentTab = $scope.tabs[0];
 	$scope.currentFeeTab = $scope.feeTabs[0];
+	
 	$scope.hasChanges = false;
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	var originalData;
@@ -141,8 +154,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	var initializeController = function()
 	{
-
-		$scope.getStudentDetails(data.student_id);
+		$scope.getStudentDetails(data.student.student_id);
 
 		var studentCats = $rootScope.currentUser.settings['Student Categories'];
 		$scope.studentCats = studentCats.split(',');
@@ -209,14 +221,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 				$scope.studentLoading = false;
 
-				// set the form as pristine
-				$timeout(function(){
-					$scope.studentForm.$setUntouched();
-					$scope.studentForm.$setPristine();
-				},10);
+				if( $scope.addingFeeItem && $scope.saved )
+				{
+					$uibModalInstance.close($scope.student.fee_items);
+				}
+				else
+				{
+					// set the form as pristine
+					$timeout(function(){
+						$scope.studentForm.$setUntouched();
+						$scope.studentForm.$setPristine();
+					},10);
 
-				getFeeItems();
-
+					getFeeItems();
+				}
 			}
 		});
 	}
@@ -240,11 +258,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				// remove any items that do not apply to this students class category
 				$scope.feeItems = filterFeeItems($scope.allFeeItems);
 
-
-				// set the selected fee items based on what fee items are set for student
-				$scope.feeItemSelection = setSelectedFeeItems($scope.feeItems);
-
-
 				// repeat for optional fees
 				// convert the classCatsRestriction to array for future filtering
 				$scope.optFeeItems = formatFeeItems(result.data.optional_items);
@@ -255,15 +268,22 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				// remove any items that do not apply to this students class category
 				$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);
 
-				// set the selected fee items based on what fee items are set for student
-				$scope.optFeeItemSelection = setSelectedFeeItems($scope.optFeeItems);
-
+				setSelectedFeeItems();
 
 				$scope.initLoad  = false;
 
 			}
 
 		}, function(){});
+	}
+	
+	var setSelectedFeeItems = function()
+	{
+		// set the selected fee items based on what fee items are set for student
+		$scope.feeItemSelection = selectFeeItems($scope.feeItems);
+		
+		// set the selected fee items based on what fee items are set for student
+		$scope.optFeeItemSelection = selectFeeItems($scope.optFeeItems);
 	}
 
 	$scope.getTabContent = function(tab)
@@ -467,13 +487,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.studentForm.$setDirty();
 	});
 
-
 	$scope.$watch('student.admission_date', function(newVal, oldVal){
 		// need to watch the uploaded and manually set form to dirty if changed
 		if( newVal === undefined) return;
 		if( !$scope.initLoad ) $scope.studentForm.$setDirty();
 	});
-
 
 
 	/************************************* Guardian Function ***********************************************/
@@ -739,13 +757,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		var domain = window.location.host;
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceForm.html','invoiceFormCtrl',{selectedStudent:$scope.student},{size: 'lg',backdrop:'static'});
-		dlg.result.then(function(invoice){
+		dlg.result.then(function(result){
 			// update invoices
 			getStudentBalance();
 			getInvoices();
-		},function(){
-			if(angular.equals($scope.invoice,''))
-				$scope.errMsg = 'You did not enter an invoice!';
+			if( result !== undefined ) $scope.student.fee_items = result;
+			setSelectedFeeItems();
+		},function(result){
+			if( result !== undefined ) $scope.student.fee_items = result;
+			setSelectedFeeItems();
 		});
 	}
 
@@ -755,15 +775,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 		var domain = window.location.host;
 		var dlg = $dialogs.create('http://' + domain + '/app/fees/invoiceDetails.html','invoiceDetailsCtrl',item,{size: 'md',backdrop:'static'});
-		dlg.result.then(function(invoice){
+		dlg.result.then(function(result){
 			// update invoices
 			getStudentBalance();
 			getInvoices();
-
-		},function(){
+			if( result !== undefined ) $scope.student.fee_items = result;
+			setSelectedFeeItems();
+		},function(result){
 			// update invoices
 			getStudentBalance();
 			getInvoices();
+			if( result !== undefined ) $scope.student.fee_items = result;
+			setSelectedFeeItems();
 		});
 
 	}
@@ -929,9 +952,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	}
 
-	var setSelectedFeeItems = function(feeItems)
+	var selectFeeItems = function(feeItems)
 	{
-
 		return feeItems.filter(function(item){
 			return $scope.student.fee_items.filter(function(a){
 
@@ -1109,8 +1131,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 				// we want to show a notice if the selected year is current year and selected class is different then the students current class
 				var currentYear = moment().format('YYYY');
-				console.log($scope.selectedClass);
-				console.log($scope.currentClass);
+
 				if( currentYear == $scope.selectedYear && $scope.selectedClass.class_id != $scope.currentClass[0].class_id )
 				{
 					$scope.notice = true;
@@ -1317,7 +1338,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.reportCards.classes[(i-1)].reports = reports;
 
 			}
-			console.log($scope.reportCards);
 		}
 		else
 		{
@@ -1492,38 +1512,47 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{
 				$scope.student.student_image = $scope.filename;
 			}
-
-			// saved, update the originalData
-			// originalData = angular.copy($scope.student);
-			// repull the student details
-			$scope.getStudentDetails($scope.student.student_id);
-
-			// if the class changed, update will return any previous exam marks that are affected
-			// ask if they want to transfer these marks to the new class
-			if( result.data.length > 0  )
+			
+			if( $scope.addingFeeItem )
 			{
-				var dlg = $dialogs.confirm('Update Previous Exam Marks?','This student has exam marks entered this year that are associated with another class. Do you want to associate these marks with their new class?<br><br><i>This can also be done at a later date on the student exams section.</i>', {size:'sm'});
-				dlg.result.then(function(btn){
-					var ids = [];
-					angular.forEach(result.data, function(item){
-						ids.push(item.exam_id);
-					});
-				 // update exams
-				 var data = {
-					class_id: $scope.student.class_id,
-					exam_ids: ids
-				 };
-					apiService.updateExamClass(data,function(response){
-						completeUpdate(params);
-					}, apiError);
-
-				},function(btn){
-					completeUpdate(params);
-				});
+				$scope.saved = true;
+				// saved, update the originalData
+				// repull the student details
+				$scope.getStudentDetails($scope.student.student_id);
 			}
 			else
 			{
-				completeUpdate(params);
+				// saved, update the originalData
+				// repull the student details
+				$scope.getStudentDetails($scope.student.student_id);
+			
+				// if the class changed, update will return any previous exam marks that are affected
+				// ask if they want to transfer these marks to the new class
+				if( result.data.length > 0  )
+				{
+					var dlg = $dialogs.confirm('Update Previous Exam Marks?','This student has exam marks entered this year that are associated with another class. Do you want to associate these marks with their new class?<br><br><i>This can also be done at a later date on the student exams section.</i>', {size:'sm'});
+					dlg.result.then(function(btn){
+						var ids = [];
+						angular.forEach(result.data, function(item){
+							ids.push(item.exam_id);
+						});
+					 // update exams
+					 var data = {
+						class_id: $scope.student.class_id,
+						exam_ids: ids
+					 };
+						apiService.updateExamClass(data,function(response){
+							completeUpdate(params);
+						}, apiError);
+
+					},function(btn){
+						completeUpdate(params);
+					});
+				}
+				else
+				{
+					completeUpdate(params);
+				}
 			}
 
 		}

@@ -204,7 +204,7 @@
 										<span ng-show="item.fee_item==undefined">
 											<select ng-options="feeitem.fee_item for feeitem in studentFeeItems track by feeitem.student_fee_item_id"  ng-model="invoice.newItem">
 												<option value="">-- select a fee item -- </select>
-											</select> <button type="button" class="btn btn-sm btn-link" ng-click="viewStudent(invoice,$index)">Add Fee Item to Student</button>
+											</select> <button type="button" class="btn btn-sm btn-link" ng-click="viewStudent(selectedStudent,$index)">Add Fee Item to Student</button>
 										</span>	
 										<span ng-show="item.fee_item!==undefined">{{item.fee_item}}</span>
 									</td>
