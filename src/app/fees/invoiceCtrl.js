@@ -22,7 +22,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			if( result.response == 'success' && result.nodata === undefined )
 			{
 				$scope.arrears = result.data.balance;
-				$scope.hasArrears = true;
+				$scope.hasArrears = $scope.arrears == '0' || $scope.arrears === null ? false : true;
 			}
 		}, apiError);
 		
@@ -99,7 +99,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 				totalAmtKsh: $scope.totalAmtKsh,
 				totalAmtCts: $scope.totalAmtCts,
 			},
-			lineItems: $scope.lineItems
+			lineItems: $scope.lineItems,
+			credit: $scope.credit,
+			hasCredit: $scope.hasCredit,
+			arrears: $scope.arrears,
+			hasArrears: $scope.hasArrears
 		}
 
 		var domain = window.location.host;

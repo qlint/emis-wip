@@ -126,7 +126,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 				totalAmtCts: $scope.totalAmtCts,
 				balanceDue : $scope.balanceDue
 			},
-			feeItems: $scope.feeItems
+			feeItems: $scope.feeItems,
+			credit: $scope.credit,
+			hasCredit: $scope.hasCredit
 		}
 
 		var domain = window.location.host;
