@@ -501,7 +501,7 @@ $app->get('/getTeacherClassSubjects/:teacher_id', function ($teacherId) {
 									AND classes.active = true 
 									AND subjects.active = true
 						UNION
-						SELECT class_subject_id, class_name, subject_name, classes.class_id, subjects.subject_id, 
+						SELECT class_subject_id, class_name, subject_name, classes.class_id, subjects.subject_id, use_for_grading,
 								classes.sort_order as class_order, subjects.sort_order as subject_order
 									FROM app.subjects
 									INNER JOIN app.class_subjects

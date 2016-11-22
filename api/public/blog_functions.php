@@ -19,16 +19,12 @@ $app->get('/getClassPosts/:class_id/:status', function ($classId, $status) {
 								ON blog_posts.post_type_id = blog_post_types.post_type_id
 								INNER JOIN app.blog_post_statuses
 								ON blog_posts.post_status_id = blog_post_statuses.post_status_id
-							ON blogs.blog_id = blog_posts.blog_id			
+							ON blogs.blog_id = blog_posts.blog_id
 							INNER JOIN app.classes ON blogs.class_id = classes.class_id
 							WHERE blogs.class_id = :classId 
-							AND blog_posts.creation_date > coalesce((select end_date from app.terms 
-																	where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
-																	ORDER BY end_date desc LIMIT 1 ) , 
-																	(select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
-								AND blog_posts.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
+							AND date_trunc('year', blog_posts.creation_date) =  date_trunc('year', now())
 							";
-							
+
 		if( $status != 'All' )
 		{
 			$query .= "AND blog_posts.post_status_id = :status ";
@@ -384,10 +380,7 @@ $app->get('/getHomeworkPosts/:status/:class_subject_id(/:class_id/:teacher_id)',
 									INNER JOIN app.subjects
 									ON class_subjects.subject_id = subjects.subject_id
 								ON homework.class_subject_id = class_subjects.class_subject_id
-								WHERE (homework.creation_date > coalesce((select end_date from app.terms 
-																			where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
-																			ORDER BY end_date desc LIMIT 1 ) , (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
-									AND homework.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) )
+                WHERE date_trunc('year', homework.creation_date) =  date_trunc('year', now())
 							";
 							
 		if( $status != 'All' )
@@ -664,10 +657,7 @@ $app->get('/getTeacherCommunications/:teacherId', function ($teacherId) {
 							INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
 							INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
 							WHERE message_from = :teacherId
-							AND communications.creation_date > coalesce((select end_date from app.terms 
-																where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
-																ORDER BY end_date desc LIMIT 1 ) , (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
-								AND communications.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
+							AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
 							ORDER BY communications.creation_date desc" );
 		$sth->execute( array(':teacherId' => $teacherId) ); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
