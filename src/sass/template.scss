@@ -408,6 +408,28 @@ h1{
 	}
 }
 
+ul.table-view{
+  margin:0;
+  padding:0;
+  list-style:none;
+  
+  li{
+    padding:3px 5px;
+    border-bottom:1px solid #eee;
+    
+    input{
+      margin-right:5px;
+    }
+  }
+  li.list-header{
+    background-color:$dark-green;
+    color:#fff;
+    
+    label{
+      width:100%;
+    }
+  }
+}
 
 /********************** Dashboard Styles ******************************/
 .dashboard .dashboard-panel,
@@ -736,6 +758,13 @@ form .select2-chosen button {
 		margin: 0 -5px;
 		padding: 5px 15px 0 10px;
 	}
+  
+  select{
+    width:120px!important;
+  }
+  select:focus{
+    width: auto;
+  }
 }
 
 /********************** UI-Grid Styles ******************************/
@@ -2022,6 +2051,12 @@ table.clickable{
 			height:24px;
 			padding: 3px;
 		}
+    select{
+      width:120px!important;
+    }
+    select:focus{
+      width: auto;
+    }
 		.submit-btn{
 			margin-top:12px;
 		}

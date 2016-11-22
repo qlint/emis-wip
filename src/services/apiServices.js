@@ -494,6 +494,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.adminDeleteStudent = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxDelete(path + "/adminDeleteStudent/" + param, successFunction, errorFunction, params);
 	};
+  
+  this.promoteStudents = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/promoteStudents", successFunction, errorFunction, params);
+	};
 
 
 	/*********** payments ***********/

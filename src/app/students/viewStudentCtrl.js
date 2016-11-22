@@ -158,6 +158,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 		var studentCats = $rootScope.currentUser.settings['Student Categories'];
 		$scope.studentCats = studentCats.split(',');
+    
+    var studentTypes = $rootScope.currentUser.settings['Student Types'];
+		$scope.studentTypes = studentTypes.split(',');
 
 		var paymentOptions = $rootScope.currentUser.settings['Payment Options'];
 		$scope.paymentOptions = paymentOptions.split(',');
@@ -191,6 +194,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			if( result.response == 'success')
 			{
 				$scope.transportRoutes = result.data;
+        $scope.student.transport_route = $scope.transportRoutes.filter(function(item){
+           if( item.transport_id == $scope.student.transport_route_id ) return item;
+        })[0];
+        if( $scope.student.transport_route !== undefined ) $scope.showTransport = true;
 			}
 
 		}, function(){});
@@ -217,6 +224,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 				$scope.student = student[0];
 				$scope.student.admission_date = {startDate: $scope.student.admission_date};
+        
+        if( $scope.transportRoutes ) {
+          $scope.student.transport_route = $scope.transportRoutes.filter(function(item){
+             if( item.transport_id == $scope.student.transport_route_id ) return item;
+          })[0];
+          if( $scope.student.transport_route !== undefined ) $scope.showTransport = true;
+        }
 				originalData = angular.copy($scope.student);
 
 				$scope.studentLoading = false;
@@ -651,7 +665,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	});
 
 	$scope.$watch('student.transport_route', function(newVal, oldVal){
-		if( newVal == oldVal) return;
+		if( newVal == oldVal || newVal === undefined || newVal == '' ) return;
 
 		// use the amount and put it into the input box
 		angular.forEach($scope.optFeeItemSelection, function(feeItem,key){
@@ -716,16 +730,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.feeSummary = angular.copy(result.data.fee_summary);
 				$scope.balanceDue = $scope.feeSummary.balance;
 				$scope.totalPaid = $scope.feeSummary.total_paid;
-
-				/*
-				if( parseFloat($scope.feeSummary.total_credit) > 0 )
-				{
-					$scope.hasCredit = true;
-					$scope.balanceDue = -(Math.abs($scope.balanceDue) - parseFloat($scope.feeSummary.total_credit));
-					$scope.totalPaid = parseFloat($scope.feeSummary.total_paid) + parseFloat($scope.feeSummary.total_credit);
-				}
-				*/
-
 				$scope.fees = angular.copy(result.data.fees);
 				$scope.nofeeSummary = false;
 			}
@@ -1027,7 +1031,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// clear out fields
 			//item.amount = undefined;
 			//item.payment_method = undefined;
-			if( item.fee_item == 'Transport' ) $scope.showTransport = false;
+			if( item.fee_item == 'Transport' ){
+        $scope.showTransport = false;
+        $scope.student.transport_route = undefined;
+      }
 		}
 
 		// is newly selected
@@ -1493,6 +1500,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					fees : {
 						payment_method : $scope.student.payment_method,
 						installment_option: $scope.student.installment_option_id,
+            route_id: $scope.student.transport_route !== undefined ? $scope.student.transport_route.transport_id : null,
 						feeItems : $scope.feeItemSelection,
 						optFeeItems : $scope.optFeeItemSelection
 					}

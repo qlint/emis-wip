@@ -36,7 +36,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	var initializeController = function()
 	{
 		var studentCats = $rootScope.currentUser.settings['Student Categories'];
-		$scope.studentCats = studentCats.split(',');	
+		$scope.studentCats = studentCats.split(',');
+    
+    var studentTypes = $rootScope.currentUser.settings['Student Types'];
+		$scope.studentTypes = studentTypes.split(',');
 		
 		var paymentOptions = $rootScope.currentUser.settings['Payment Options'];
 		$scope.paymentOptions = paymentOptions.split(',');	
@@ -329,7 +332,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			
 			$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
-
+      
 			var postData = angular.copy($scope.student);
 			postData.admission_date = moment($scope.student.admission_date.startDate).format('YYYY-MM-DD');
 			postData.current_class = $scope.student.current_class.class_id;		
@@ -338,6 +341,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			postData.feeItems = $scope.feeItemSelection;
 			postData.optFeeItems = $scope.optFeeItemSelection;
 			postData.user_id = $rootScope.currentUser.user_id;
+      postData.route_id = $scope.student.transport_route !== undefined ? $scope.student.transport_route.transport_id : null;
 
 			
 			apiService.postStudent(postData, createCompleted, createError);

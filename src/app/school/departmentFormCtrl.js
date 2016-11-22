@@ -4,9 +4,9 @@ angular.module('eduwebApp').
 controller('departmentFormCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
-	$scope.edit = ( data.department !== undefined ? true : false );
-	$scope.department = ( data.department !== undefined ? data.department : {} );
-	if( !$scope.edit ) $scope.department.category = ( data.emp_cat_name !== undefined ? data.emp_cat_name : '');
+	$scope.edit = ( data && data.department !== undefined ? true : false );
+	$scope.department = ( data && data.department !== undefined ? data.department : {} );
+	if( !$scope.edit ) $scope.department.category = ( data && data.emp_cat_name !== undefined ? data.emp_cat_name : '');
 
 	
 	$scope.initializeController = function()

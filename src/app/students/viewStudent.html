@@ -56,7 +56,7 @@
 							<!-- student category -->
 							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.student_category.$dirty ) && studentForm.student_category.$invalid && studentForm.student_category.$error.required }">		
 								<label for="student_category">Student Category</label>
-								<p class="form-control-static" ng-show="!edit">{{student.admission_number}}</p>
+								<p class="form-control-static" ng-show="!edit">{{student.student_category}}</p>
 								<div ng-show="edit">
 									<select name="student_category" ng-model="student.student_category" class="form-control" required>
 										<option value="{{item}}" ng-repeat="item in studentCats">{{item}}</option>
@@ -197,6 +197,19 @@
 									<p ng-show="(studentForm.$submitted || studentForm.new_student.$dirty ) && studentForm.new_student.$invalid && studentForm.new_student.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> New Student selection is required.</p>
 								</div>
 							</div>
+              
+              <!-- student type -->
+							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.student_type.$dirty ) && studentForm.student_type.$invalid && studentForm.student_type.$error.required }">
+								<label for="new_student">Student Type</label>
+								<p class="form-control-static" ng-show="!edit">{{student.student_type}}</p>
+								<div ng-show="edit">
+									<select name="student_type" ng-model="student.student_type" class="form-control" required>
+                    <option value="{{item}}" ng-repeat="item in studentTypes">{{item}}</option>
+                  </select>
+									<p ng-show="(studentForm.$submitted || studentForm.student_type.$dirty ) && studentForm.student_type.$invalid && studentForm.student_type.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Student Type is required.</p>
+								</div>
+							</div>
+              
 						</div>
 					
 					

@@ -319,6 +319,24 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 	var goHome = function()
 	{
 		$rootScope.loggedIn = false;
+    $rootScope.currentUser = undefined;
+    $rootScope.postStatuses
+    $rootScope.comTypes = undefined;
+    $rootScope.comAudience = undefined;
+    $rootScope.classes = undefined;
+    $rootScope.classSubjects = undefined;
+    $rootScope.allClasses = undefined;
+    $rootScope.terms = undefined;
+    $rootScope.classCats = undefined;
+    $rootScope.permissions = undefined;   
+    $rootScope.manageUsers = undefined; 
+    $rootScope.useLetterhead = undefined; 
+    $rootScope.navItems = undefined; 
+    $rootScope.mainSubNavItems = undefined; 
+    $rootScope.empCats = undefined; 
+    $rootScope.allDepts = undefined;
+    $rootScope.examTypes = undefined;
+    
 		$state.go('index');
 	}
 	

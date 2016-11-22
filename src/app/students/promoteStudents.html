@@ -1,0 +1,69 @@
+<form name="promoteForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(promoteForm)">
+  <div class="modal-header dialog-header-form">
+    <button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Promote Students</h4>
+  </div>
+  <div class="modal-body cleafix">
+
+    <div ng-show="error" class="alert alert-danger">
+      {{errMsg}}
+    </div>
+
+    <div ng-if="showClassSelect">
+      <!-- select a class -->
+      <div class="form-group" ng-class="{ 'has-error' : promoteForm.class_id.$invalid && (promoteForm.class_id.$touched || promoteForm.$submitted) }">
+        <label for="class_id" class="col-sm-3 control-label">Class</label>
+        <div class="col-sm-9">
+          <select name="class" id="class" class="form-control" ng-options="class.class_id as class.class_name for class in classes" ng-model="promote.class_id">
+            <option value="">--SELECT ONE--</option>
+          </select>
+          <p ng-show="promoteForm.class_id.$invalid && (promoteForm.class_id.$touched || promoteForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class is required.</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-offset-3 col-sm-3">
+          <button type="button" ng-click="loadStudents(promoteForm)" class="btn btn-sm btn-success">Load</button>
+        </div>
+      </div>
+    </div>
+
+    <div ng-show="selectedClass">
+      <ul class="table-view">
+        <li class="list-header">
+          <label>
+            <input
+            type="checkbox"
+            value="all"
+            ng-checked="allSelected"
+            ng-click="toggleAll()"
+            > {{toggleStatus}}
+          </label>
+        </li>
+        <li ng-repeat="student in selectedStudents track by $index">
+          <label>
+            <input
+            type="checkbox"
+            value="{{student.student_id}}"
+            ng-checked="studentSelection.indexOf(student.student_id) > -1"
+            ng-click="toggleStudent(student.student_id)"
+            > {{student.student_name}}
+          </label>
+        </li>
+      </ul>
+      <!-- select a class -->
+      <div class="form-group" ng-show="studentSelection.length>0" ng-class="{ 'has-error' : promoteForm.to_class_id.$invalid && (promoteForm.to_class_id.$touched || promoteForm.$submitted) }">
+        <label for="to_class_id" class="col-sm-4 control-label">Promote To</label>
+        <div class="col-sm-12">
+          <select name="to_class_id" id="to_class_id" class="form-control" ng-options="class.class_id as class.class_name for class in classes" ng-model="promote.to_class_id">
+            <option value="">--SELECT ONE--</option>
+          </select>
+          <p ng-show="promoteForm.to_class_id.$invalid && (promoteForm.to_class_id.$touched || promoteForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Promote To Class is required.</p>
+        </div>
+      </div>
+     </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+    <button type="submit" class="btn btn-primary">Save</button>
+  </div>
+</form>

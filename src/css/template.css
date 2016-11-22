@@ -276,6 +276,21 @@ h1 {
         text-decoration: none;
         cursor: default; }
 
+ul.table-view {
+  margin: 0;
+  padding: 0;
+  list-style: none; }
+  ul.table-view li {
+    padding: 3px 5px;
+    border-bottom: 1px solid #eee; }
+    ul.table-view li input {
+      margin-right: 5px; }
+  ul.table-view li.list-header {
+    background-color: #1F3D26;
+    color: #fff; }
+    ul.table-view li.list-header label {
+      width: 100%; }
+
 /********************** Dashboard Styles ******************************/
 .dashboard .dashboard-panel,
 .school_settings .dashboard-panel {
@@ -545,6 +560,10 @@ form .select2-chosen button {
   .dataFilterForm form {
     margin: 0 -5px;
     padding: 5px 15px 0 10px; }
+  .dataFilterForm select {
+    width: 120px !important; }
+  .dataFilterForm select:focus {
+    width: auto; }
 
 /********************** UI-Grid Styles ******************************/
 .myGrid {
@@ -1484,6 +1503,10 @@ table.clickable tr {
     .dataFilterForm input, .dataFilterForm select {
       height: 24px;
       padding: 3px; }
+    .dataFilterForm select {
+      width: 120px !important; }
+    .dataFilterForm select:focus {
+      width: auto; }
     .dataFilterForm .submit-btn {
       margin-top: 12px; }
 

@@ -194,6 +194,10 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 				$rootScope.$broadcast('refreshStudents', args);
 		});
 
+  $rootScope.$on('studentsPromoted', function(event, args) {
+      $rootScope.$broadcast('refreshStudents', args);
+  });
+  
 	$rootScope.$on('invoiceAdded', function(event, args) {
 				$rootScope.$broadcast('refreshInvoices', args);
 		});
@@ -225,7 +229,8 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 	$rootScope.$on('examMarksAdded', function(event, args) {
 				$rootScope.$broadcast('refreshExamMarks', args);
 		});
-	$rootScope.$on('examMarksAdded2', function(event, args) {
+	
+  $rootScope.$on('examMarksAdded2', function(event, args) {
 				$rootScope.$broadcast('refreshExamMarks2', args);
 		});
 

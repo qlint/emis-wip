@@ -146,6 +146,17 @@
 								<p ng-show="(studentForm.$submitted || studentForm.student_category.$dirty ) && studentForm.student_category.$invalid && studentForm.student_category.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Student Category is required.</p>
 							</div>	
 						</div>
+            
+            <!-- student type -->
+						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.student_type.$dirty ) && studentForm.student_type.$invalid && studentForm.student_type.$error.required }">
+							<label for="student_type" class="col-sm-4 control-label">Student Type</label>
+							<div class="col-sm-8">
+								<select name="student_type" ng-model="student.student_type" class="form-control" required>
+									<option value="{{item}}" ng-repeat="item in studentTypes">{{item}}</option>
+								</select>
+								<p ng-show="(studentForm.$submitted || studentForm.student_type.$dirty ) && studentForm.student_type.$invalid && studentForm.student_type.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Student Type is required.</p>
+							</div>
+						</div>
 						
 						<!-- nationality -->
 						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.nationality.$dirty ) && studentForm.nationality.$invalid && studentForm.nationality.$error.required }">		
