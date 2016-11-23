@@ -344,7 +344,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			$scope.errMsg = result.data;
 		}
 	}
-	var showCreditApplyForm = function(data)
+	
+  var showCreditApplyForm = function(data)
 	{
 		// display the invoice line items for the user to choose for applying payment
 		var creditRemaining = $scope.appliedCreditAmt;

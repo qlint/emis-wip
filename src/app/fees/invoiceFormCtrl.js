@@ -463,7 +463,8 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 
 		
 		//-- Methods --//
-		$scope.cancel = function(){
+		$scope.cancel = function()
+    {
 			$uibModalInstance.dismiss('Canceled');
 		}; // end cancel
 		
@@ -516,7 +517,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 	
 		$scope.done = function(theForm)
 		{
-			// make sure they didnt enter more than the available credit
+			// make sure they didn't enter more than the available credit
 			var grandTotalApplied = 0;
 			angular.forEach($scope.totalApplied, function(item){
 				grandTotalApplied += item;
@@ -530,7 +531,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 			else if( grandTotalApplied < $scope.appliedCreditAmt )
 			{
 				// still some credit remaining...
-				var dlg = $dialogs.error('Credit Remaining','<p>You have entered <strong>' + $filter('number')(grandTotalApplied) + ' Ksh</strong> towards fee items, however to total credit amount entered was <strong>' + $filter('number')($scope.appliedCreditAmt) + ' Ksh</strong>.</p><p>Did you want to reduce the credit applied to this invoice to ' + $filter('number')(grandTotalApplied) + ' Ksh?</p>', {size:'sm'});
+				var dlg = $dialogs.confirm('Credit Remaining','<p>You have entered <strong>' + $filter('number')(grandTotalApplied) + ' Ksh</strong> towards fee items, however to total credit amount entered was <strong>' + $filter('number')($scope.appliedCreditAmt) + ' Ksh</strong>.</p><p>Did you want to reduce the credit applied to this invoice to ' + $filter('number')(grandTotalApplied) + ' Ksh?</p>', {size:'sm'});
 				dlg.result.then(function(btn){
 					 // save the form
 					 savePayment(); 
@@ -574,7 +575,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 						creditId: item.credit_id || null
 					};
 
-					apiService.updatePayment(data, updateComplete, apiError);
+					apiService.applyCredit(data, updateComplete, apiError);
 				}
 			});
 		}

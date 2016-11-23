@@ -336,7 +336,7 @@
 		<div class="modal-footer">
 		
 			<div class="pull-left">
-				<button type="button" class="btn btn-danger" ng-click="deletePayment()" ng-show="permissions.fees.payments_received.delete"><i class="fa fa-trash"></i> Delete {{(isCredit ? 'Credit' : 'Payment')}}</button>
+				<button type="button" class="btn btn-danger" ng-click="deletePayment()" ng-show="permissions.fees.payments_received.delete"><i class="fa fa-trash"></i> Delete Payment</button>
 				
 				<button type="button" class="btn btn-danger" ng-click="reversePayment()" ng-show="!isCredit && editPayment && edit && !selectedPayment.reversed">Reverse Payment</button>
 				<button type="button" class="btn btn-success" ng-click="reactivatePayment()" ng-show="!isCredit && editPayment && edit && selectedPayment.reversed">Reactivate Payment</button>

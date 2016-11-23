@@ -532,6 +532,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.updatePayment = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updatePayment", successFunction, errorFunction, params);
 	};
+  
+	this.applyCredit = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/applyCredit", successFunction, errorFunction, params);
+	};
 
 	this.reversePayment = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/reversePayment", successFunction, errorFunction, params);

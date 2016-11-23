@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('invoiceCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'data',
-function($scope, $rootScope, $uibModalInstance, apiService, data){
+controller('invoiceCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', '$q', 'data',
+function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 	console.log(data.invoice);
 	$scope.invoice = data.invoice;
 	$scope.student = data.student;
@@ -12,9 +12,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 	// we only want the number
 	termName = termName.split(' ');
 	$scope.invoice.term_name = termName[1];
+  var requests = [];
 
+  
 	var initializeController = function()
 	{
+    var deferredArrears = $q.defer();
+		requests.push(deferredArrears.promise);    
 		var params = $scope.invoice.student_id + '/' + moment($scope.invoice.inv_date).format('YYYY-MM-DD');
 		apiService.getStudentArrears(params, function(response)
 		{
@@ -22,10 +26,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			if( result.response == 'success' && result.nodata === undefined )
 			{
 				$scope.arrears = result.data.balance;
-				$scope.hasArrears = $scope.arrears == '0' || $scope.arrears === null ? false : true;
+				$scope.hasArrears = $scope.arrears == '0' || $scope.arrears === null ? false : true;        
 			}
-		}, apiError);
+      deferredArrears.resolve();
+		}, function(){deferredArrears.reject();});
 		
+    var deferredCredits = $q.defer();
+    requests.push(deferredCredits.promise);   
 		apiService.getStudentCredits($scope.invoice.student_id, function(response,status)
 		{
 			$scope.loading = false;
@@ -37,9 +44,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 				// sum of available credit
 				$scope.credit = $scope.availableCredits.reduce(function(sum,item){
 					return sum += parseFloat(item.amount);
-				},0);
+				},0);        
 			}
-		}, apiError);
+      deferredCredits.resolve();
+		}, function(){deferredCredits.reject();});
+    
+    $q.all(requests).then(function () {
+			// calcuate grand total
+      $scope.grandTotal = parseFloat($scope.invoice.balance) + (parseFloat($scope.arrears) || 0) + (parseFloat($scope.credit) || 0);
+		});
+    
 		
 		apiService.getInvoiceDetails($scope.invoice.inv_id, loadInvoiceDetails, apiError);
 		
@@ -103,7 +117,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			credit: $scope.credit,
 			hasCredit: $scope.hasCredit,
 			arrears: $scope.arrears,
-			hasArrears: $scope.hasArrears
+			hasArrears: $scope.hasArrears,
+      grandTotal: $scope.grandTotal
 		}
 
 		var domain = window.location.host;
