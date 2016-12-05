@@ -683,7 +683,7 @@ $app->get('/getTeacherCommunications/:teacherId', function ($teacherId) {
 });
 
 $app->get('/getSchoolCommunications', function () {
-    // Get all communications for current school year
+  // Get all communications for current school year
 	
 	$app = \Slim\Slim::getInstance();
  
@@ -735,7 +735,7 @@ $app->get('/getSchoolCommunications', function () {
 });
 
 $app->post('/addCommunication', function () use($app) {
-    // Add communication
+  // Add communication
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 
@@ -755,28 +755,135 @@ $app->post('/addCommunication', function () use($app) {
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
 	
-    try 
-    {
-        $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, post_status_id) 
+  try 
+  {
+    $db = getDB();
+    $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, post_status_id) 
 							 VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :postStatus)");
 
-		$sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message , 
+    
+    
+    // if published, make entries into tables for email/sms service
+    if( $postStatus === 1 ) 
+    {
+      // get list of receipients
+      $params = array();
+      if( $sendAsEmail === 't' )
+      {
+        if( $audienceId === 1 )
+        {
+          // school wide
+          $pullRecipients = $db-prepare("SELECT email FROM app.guardians WHERE active is true AND email is not null
+                                          UNION 
+                                          SELECT email FROM app.employees WHERE active is true AND email is not null");
+        }
+        else if( $audienceId === 2 )
+        {
+          // class specific
+          $pullRecipients = $db-prepare("SELECT email FROM app.guardians
+                                          INNER JOIN app.student_guardians 
+                                            INNER JOIN app.students
+                                            ON student_guardians.student_id = students.student_id AND students.active is true
+                                          ON guardians.guardian_id = student_guardians.guardian_id
+                                          WHERE guardians.active is true
+                                          AND current_class = :classId");
+          $params = array(':classId' => $classId);
+        }
+        else if( $audienceId === 3 )
+        {
+          // all staff
+          $pullRecipients = $db-prepare("SELECT email FROM app.employees WHERE active is true");
+        }
+        else if( $audienceId === 4 )
+        {
+          // all teachers
+          $pullRecipients = $db-prepare("SELECT email FROM app.employees WHERE emp_cat_id = 1 AND active is true");
+        }
+        else if( $audienceId === 5 )
+        {
+          // specific parent
+          $pullRecipients = $db-prepare("SELECT email FROM app.guardians WHERE guardian_id = :guardianId");
+          $params = array(':guardianId' => $guardianId);
+        }
+      
+        $insertEmail = $db->prepare("INSERT INTO app.communication_emails(com_id, email_address) VALUES(CURVAL('app.communications_com_id_seq', :email))");
+      }
+      else if( $sendAsSms === 't' )
+      {
+        // TODO: how do we know their telephone number is their mobile device and they want to receive SMS...
+        if( $audienceId === 1 )
+        {
+          // school wide
+          $pullRecipients = $db-prepare("SELECT telephone FROM app.guardians WHERE active is true AND telephone is not null
+                                          UNION 
+                                          SELECT telephone FROM app.employees WHERE active is true AND telephone is not null");
+        }
+        else if( $audienceId === 2 )
+        {
+          // class specific
+          $pullRecipients = $db-prepare("SELECT telephone FROM app.guardians
+                                          INNER JOIN app.student_guardians 
+                                            INNER JOIN app.students
+                                            ON student_guardians.student_id = students.student_id AND students.active is true
+                                          ON guardians.guardian_id = student_guardians.guardian_id
+                                          WHERE guardians.active is true
+                                          AND current_class = :classId");
+          $params = array(':classId' => $classId);
+        }
+        else if( $audienceId === 3 )
+        {
+          // all staff
+          $pullRecipients = $db-prepare("SELECT telephone FROM app.employees WHERE active is true");
+        }
+        else if( $audienceId === 4 )
+        {
+          // all teachers
+          $pullRecipients = $db-prepare("SELECT telephone FROM app.employees WHERE emp_cat_id = 1 AND active is true");
+        }
+        else if( $audienceId === 5 )
+        {
+          // specific parent
+          $pullRecipients = $db-prepare("SELECT telephone FROM app.guardians WHERE guardian_id = :guardianId");
+          $params = array(':guardianId' => $guardianId);
+        }
+      
+        $insertSMS = $db->prepare("INSERT INTO app.communication_sms(com_id, sim_number) VALUES(CURVAL('app.communications_com_id_seq', :mobileNumber))");
+      }
+    }
+ 
+    $db->beginTransaction();
+    $sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message , 
 							':attachment' => $attachment , ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
 							':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo,
 							':messageFrom' => $messageFrom, ':postStatus' => $postStatus) );
- 
-		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    if( $postStatus === 1 ) 
+    {
+      $pullRecipients->execute($params);
+      $results = $pullRecipients->fetchAll(PDO::FETCH_OBJ);
+      
+      foreach($results as $result){
+         if( $sendAsEmail === 't' )
+         {
+            $insertEmail->execute( array(':email' => $result->email) );
+         }
+         else if( $sendAsSms === 't' )
+         {
+           $insertSMS->execute( array(':mobileNumber' => $result->telephone) );
+         }
+      }
     }
+    $db->commit();
+    
+		$app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
+    $db = null;
+ 
+  } catch(PDOException $e) {
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
 
 });
 
@@ -898,6 +1005,89 @@ $app->delete('/deleteCommunication/:com_id', function ($comId) {
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
+});
+
+// this should be a get, but since there is no https.... i'm using a post
+$app->post('/emailsToSend/', function () use($app) {
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $token = ( isset($allPostVars['token']) ? $allPostVars['token']: null);
+  
+  try{
+    require('../lib/token.php');
+    if( $token === $_token )
+    {
+      $db = getMISDB();
+      
+      // get all clients
+      $sth = $db->query("SELECT subdomain FROM clients");
+      $results = $sth->fetchAll(PDO::FETCH_OBJ);
+      $db = null;
+      
+      $allEmails = array();
+      foreach( $results as $result )
+      {
+        // loop through clients and pull any emails that need to be sent
+        $db = setDBConnection($result->subdomain);
+        $getEmails = $db->query("SELECT '{$result->subdomain}' as school, email_id, email_address, subject, message, attachment, reply_to
+                                FROM app.communication_emails
+                                INNER JOIN app.communications USING (com_id)
+                                WHERE forwarded is false;");
+        $results = $getEmails->fetch(PDO::FETCH_OBJ);
+        if( $results ) $allEmails[] = $results;
+        $db = null;
+      }
+      
+      if( count($allEmails) > 0 ) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $allEmails ));
+      } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      }
+    }
+    else
+    {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'error', 'data' => '' ));
+    }
+  }
+  catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->put('/emailSent', function () use($app) {
+
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $school = ( isset($allPostVars['school']) ? $allPostVars['school']: null);  
+  $emailIds = ( isset($allPostVars['email_ids']) ? $allPostVars['email_ids']: null);
+  $dateSent = ( isset($allPostVars['send_date']) ? $allPostVars['send_date']: null);
+  
+  try{
+    $db = setDBConnection($school);
+
+    $updateEmails = $db->prepare("UPDATE app.communication_emails 
+                                  SET send_date = :dateSent, 
+                                      forwarded = true 
+                                  WHERE email_id in (:emailIds)");
+    $db->execute(array(':dateSent' => $dateSent, ':emailIds' => $emailIds));
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
+    $db = null;
+  }
+  catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+  
 });
 
 ?>

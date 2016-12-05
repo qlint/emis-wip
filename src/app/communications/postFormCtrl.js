@@ -822,8 +822,17 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 						user_id: $rootScope.currentUser.user_id,
 						post: $scope.post
 					}
-
-					apiService.addCommunication(data,createCompleted,apiError);
+          if( $scope.post.post_status_id === 1 )
+          {
+            var dlg = $dialogs.confirm('Publishing Communication', 'You have selected to publish this communication. This will cause the email/sms to be sent to the selected audience. You will no longer be able to edit this message. Do you wish to continue?');
+            dlg.result.then(function(btn){
+              apiService.addCommunication(data,createCompleted,apiError);
+            });
+          }
+          else
+          {
+            apiService.addCommunication(data,createCompleted,apiError);
+          }
 				}
 				else
 				{

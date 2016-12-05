@@ -1160,7 +1160,7 @@ $app->put('/updateStudent', function () use($app) {
     $lastName =       ( isset($allPostVars['details']['last_name']) ? $allPostVars['details']['last_name']: null);
     $dob =          ( isset($allPostVars['details']['dob']) ? $allPostVars['details']['dob']: null);
     $studentCat =       ( isset($allPostVars['details']['student_category']) ? $allPostVars['details']['student_category']: null);
-    $studentType =           ( isset($allPostVars['student_type']) ? $allPostVars['student_type']: null);
+    $studentType =           ( isset($allPostVars['details']['student_type']) ? $allPostVars['details']['student_type']: null);
     $nationality =      ( isset($allPostVars['details']['nationality']) ? $allPostVars['details']['nationality']: null);
     $currentClass =     ( isset($allPostVars['details']['current_class']) ? $allPostVars['details']['current_class']: null);
     $previousClass =    ( isset($allPostVars['details']['previous_class']) ? $allPostVars['details']['previous_class']: null);
@@ -2192,7 +2192,8 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
   $app = \Slim\Slim::getInstance();
   try
   {
-    if( $secret == 'G8sJvT8Qs5gHFBVQ' )
+    require('../lib/token.php');
+    if( $secret == $_studentDeleteToken )
     {
       $db = getDB();
       // get students school name and guardian ids for deleting from parents portal tables

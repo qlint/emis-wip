@@ -38,7 +38,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			{ name: 'View', field: '', cellClass:'center', width:40, headerCellClass:'center', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.preview(row.entity)"><i class="fa fa-eye"></i></div>'},
 			
 		],
-		exporterCsvFilename: 'school-departments.csv',
+		exporterCsvFilename: 'school-emails.csv',
 		onRegisterApi: function(gridApi){
 		  $scope.gridApi = gridApi;
 		  $scope.gridApi.grid.registerRowsProcessor( $scope.singleFilter, 200 );
@@ -279,7 +279,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	
 	$scope.viewEmail = function(item)
 	{
-		$state.go('communications/edit_post', {post: item, post_id: item.post_id, post_type: 'communication'});
+    if( item.post_status_id === 1 )
+    {
+        // communication has been published, can no longer edit
+        $scope.preview(item);
+    }
+    else
+    {
+      $state.go('communications/edit_post', {post: item, post_id: item.post_id, post_type: 'communication'});
+    }
 	}
 	
 	$scope.$on('refreshPosts', function(event, args) {

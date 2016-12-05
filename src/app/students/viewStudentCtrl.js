@@ -1452,6 +1452,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						admission_date: moment($scope.student.admission_date.startDate).format('YYYY-MM-DD'),
 						admission_number: $scope.student.admission_number,
 						new_student : ( $scope.student.new_student ? 't' : 'f' ),
+            student_type: $scope.student.student_type
 					}
 				}
 			}
@@ -1651,7 +1652,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 
 		$scope.initializeController = function()
 		{
-			if( !$scope.edit )
+			if( $scope.add )
 			{
 				// get list of existing guardians
 				apiService.getAllGuardians(true,function(response){
@@ -2137,15 +2138,16 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 									'</div>	' +
 								'</div>' +
 							'</div>' +
-							'<div ng-show="readOnly"><p>This parent does not have a parent portal login.</div>' +
-						'</div>' +
+							'<div ng-show="readOnly">' +
+                '<p>This parent does not have a parent portal login.</p>' +
+              '</div>' +
 						'</div>' +
 					'</div>' +
 				'</div>' +
 			'</div>'+
 			'<div class="modal-footer">' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
-				'<button type="submit" class="btn btn-primary">{{(edit ? \'Update\' : \'Save\')}} </button>' +
+				'<button ng-if="!readOnly" type="submit" class="btn btn-primary">{{(edit ? \'Update\' : \'Save\')}} </button>' +
 			'</div>' +
 			'</form>'
 		);

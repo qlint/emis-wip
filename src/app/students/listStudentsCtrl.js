@@ -452,7 +452,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
     if( $scope.activeFilters.student_type )
     {
       filteredResults = filteredResults.filter(function(item) {
-        if( item.student_type.toString() == $scope.activeFilters.student_type.toString() ) return item;
+        if( item.student_type && item.student_type.toString() == $scope.activeFilters.student_type.toString() ) return item;
       });
     }    
     if( $scope.activeFilters.course_id )
