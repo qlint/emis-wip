@@ -760,12 +760,12 @@ $app->post('/addCommunication', function () use($app) {
     $db = getDB();
     $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, post_status_id) 
 							 VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :postStatus)");
-
-    
     
     // if published, make entries into tables for email/sms service
+    
     if( $postStatus === 1 ) 
     {
+      
       // get list of receipients
       $params = array();
       if( $sendAsEmail === 't' )
@@ -773,14 +773,14 @@ $app->post('/addCommunication', function () use($app) {
         if( $audienceId === 1 )
         {
           // school wide
-          $pullRecipients = $db-prepare("SELECT email FROM app.guardians WHERE active is true AND email is not null
+          $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE active is true AND email is not null
                                           UNION 
                                           SELECT email FROM app.employees WHERE active is true AND email is not null");
         }
         else if( $audienceId === 2 )
         {
           // class specific
-          $pullRecipients = $db-prepare("SELECT email FROM app.guardians
+          $pullRecipients = $db->prepare("SELECT email FROM app.guardians
                                           INNER JOIN app.student_guardians 
                                             INNER JOIN app.students
                                             ON student_guardians.student_id = students.student_id AND students.active is true
@@ -792,21 +792,22 @@ $app->post('/addCommunication', function () use($app) {
         else if( $audienceId === 3 )
         {
           // all staff
-          $pullRecipients = $db-prepare("SELECT email FROM app.employees WHERE active is true");
+          $pullRecipients = $db->prepare("SELECT email FROM app.employees WHERE active is true");
         }
         else if( $audienceId === 4 )
         {
           // all teachers
-          $pullRecipients = $db-prepare("SELECT email FROM app.employees WHERE emp_cat_id = 1 AND active is true");
+          $pullRecipients = $db->prepare("SELECT email FROM app.employees WHERE emp_cat_id = 1 AND active is true");
         }
         else if( $audienceId === 5 )
         {
           // specific parent
-          $pullRecipients = $db-prepare("SELECT email FROM app.guardians WHERE guardian_id = :guardianId");
+          $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE guardian_id = :guardianId");
           $params = array(':guardianId' => $guardianId);
         }
       
         $insertEmail = $db->prepare("INSERT INTO app.communication_emails(com_id, email_address) VALUES(CURVAL('app.communications_com_id_seq', :email))");
+        
       }
       else if( $sendAsSms === 't' )
       {
@@ -814,14 +815,14 @@ $app->post('/addCommunication', function () use($app) {
         if( $audienceId === 1 )
         {
           // school wide
-          $pullRecipients = $db-prepare("SELECT telephone FROM app.guardians WHERE active is true AND telephone is not null
+          $pullRecipients = $db->prepare("SELECT telephone FROM app.guardians WHERE active is true AND telephone is not null
                                           UNION 
                                           SELECT telephone FROM app.employees WHERE active is true AND telephone is not null");
         }
         else if( $audienceId === 2 )
         {
           // class specific
-          $pullRecipients = $db-prepare("SELECT telephone FROM app.guardians
+          $pullRecipients = $db->prepare("SELECT telephone FROM app.guardians
                                           INNER JOIN app.student_guardians 
                                             INNER JOIN app.students
                                             ON student_guardians.student_id = students.student_id AND students.active is true
@@ -833,29 +834,32 @@ $app->post('/addCommunication', function () use($app) {
         else if( $audienceId === 3 )
         {
           // all staff
-          $pullRecipients = $db-prepare("SELECT telephone FROM app.employees WHERE active is true");
+          $pullRecipients = $db->prepare("SELECT telephone FROM app.employees WHERE active is true");
         }
         else if( $audienceId === 4 )
         {
           // all teachers
-          $pullRecipients = $db-prepare("SELECT telephone FROM app.employees WHERE emp_cat_id = 1 AND active is true");
+          $pullRecipients = $db->prepare("SELECT telephone FROM app.employees WHERE emp_cat_id = 1 AND active is true");
         }
         else if( $audienceId === 5 )
         {
           // specific parent
-          $pullRecipients = $db-prepare("SELECT telephone FROM app.guardians WHERE guardian_id = :guardianId");
+          $pullRecipients = $db->prepare("SELECT telephone FROM app.guardians WHERE guardian_id = :guardianId");
           $params = array(':guardianId' => $guardianId);
         }
       
         $insertSMS = $db->prepare("INSERT INTO app.communication_sms(com_id, sim_number) VALUES(CURVAL('app.communications_com_id_seq', :mobileNumber))");
       }
+      
     }
+    
  
     $db->beginTransaction();
     $sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message , 
 							':attachment' => $attachment , ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
 							':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo,
 							':messageFrom' => $messageFrom, ':postStatus' => $postStatus) );
+    /*
     if( $postStatus === 1 ) 
     {
       $pullRecipients->execute($params);
@@ -872,6 +876,7 @@ $app->post('/addCommunication', function () use($app) {
          }
       }
     }
+    */
     $db->commit();
     
 		$app->response->setStatus(200);
