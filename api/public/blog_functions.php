@@ -706,7 +706,7 @@ $app->get('/getSchoolCommunications', function () {
 							INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
 							INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
 							INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-							WHERE date_trunc('year', blog_posts.creation_date) =  date_trunc('year', now())
+							WHERE date_trunc('year', communications.creation_date) =  date_trunc('year', now())
 							ORDER BY communications.creation_date desc" );
 		$sth->execute(); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
