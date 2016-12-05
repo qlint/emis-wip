@@ -698,7 +698,7 @@ $app->get('/getSchoolCommunications', function () {
 									guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
 									communications.guardian_id, communications.student_id, classes.class_name, communications.class_id,communications.post_status_id, post_status,
 									sent, sent_date, message_from
-							FROM app.communications 	
+							FROM app.communications
 							LEFT JOIN app.students ON communications.student_id = students.student_id
 							LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
 							LEFT JOIN app.classes ON communications.class_id = classes.class_id
@@ -706,10 +706,7 @@ $app->get('/getSchoolCommunications', function () {
 							INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
 							INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
 							INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-							WHERE communications.creation_date > coalesce((select end_date from app.terms 
-																			where date_trunc('year', end_date) = date_trunc('year', now() - interval '1 year')
-																			ORDER BY end_date desc LIMIT 1 ) , (select start_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY start_date LIMIT 1))
-								AND communications.creation_date <= (select end_date from app.terms where date_trunc('year', end_date) = date_trunc('year', now()) ORDER BY end_date desc LIMIT 1 ) 
+							WHERE date_trunc('year', blog_posts.creation_date) =  date_trunc('year', now())
 							ORDER BY communications.creation_date desc" );
 		$sth->execute(); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
