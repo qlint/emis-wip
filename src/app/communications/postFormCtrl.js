@@ -208,16 +208,18 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	{
 		$scope.loadingPost = false;
 		/* if classes not yet set, get list of classes for drop down */
+    /*
 		if( $rootScope.classes !== undefined )
 		{	
 			$scope.classes = $rootScope.classes;
-			/* if a class id was passed in, set this as the active filter */
+			// if a class id was passed in, set this as the active filter
 			setInitalClass();
 			
 			$scope.loadingPost = false;
 		}
 		else
 		{
+     */
 			var params = $rootScope.currentUser.emp_id + '/true';
 			apiService.getTeacherClasses(params, function(response,status){
 				var result = angular.fromJson(response);
@@ -236,7 +238,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				$scope.loadingPost = false;
 				
 			}, apiError);
-		}
+		//}
 	}
 	
 	var getHomeworkOptions = function()

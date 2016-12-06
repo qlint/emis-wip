@@ -221,10 +221,10 @@ $app->get('/getSchoolContactInfo/:school', function ($school) {
 
 		try
 		{
-				$db = setDBConnection($school);
-				$sth = $db->prepare("SELECT name, value FROM app.settings");
-		$sth->execute();
-		$settings = $sth->fetchAll(PDO::FETCH_OBJ);
+      $db = setDBConnection($school);
+      $sth = $db->prepare("SELECT name, value FROM app.settings");
+      $sth->execute();
+      $settings = $sth->fetchAll(PDO::FETCH_OBJ);
 
 				if($settings) {
 						$app->response->setStatus(200);
@@ -660,7 +660,7 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
 
 });
 
-$app->get('/getStudentPaymentsPortal/:student/:studentId', function ($school, $studentId) {
+$app->get('/getStudentPaymentsPortal/:school/:studentId', function ($school, $studentId) {
 	// Return students payments
 
 	$app = \Slim\Slim::getInstance();
@@ -736,7 +736,7 @@ $app->get('/getStudentPaymentsPortal/:student/:studentId', function ($school, $s
 
 });
 
-$app->get('/getStudentCreditsPortal/:student/:studentId', function ($school, $studentId) {
+$app->get('/getStudentCreditsPortal/:school/:studentId', function ($school, $studentId) {
 	// Return students credits
 
 	$app = \Slim\Slim::getInstance();
@@ -775,7 +775,7 @@ $app->get('/getStudentCreditsPortal/:student/:studentId', function ($school, $st
 
 });
 
-$app->get('/getStudentArrearsPortal/:student/:studentId/:date', function ($school, $studentId, $date) {
+$app->get('/getStudentArrearsPortal/:school/:studentId/:date', function ($school, $studentId, $date) {
 	// Return students arrears
 
 	$app = \Slim\Slim::getInstance();
