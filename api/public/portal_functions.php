@@ -11,7 +11,7 @@ $app->post('/parentLogin', function () use($app) {
   {
     $db = getLoginDB();
     $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
-                  first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name
+                  first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id
                 FROM parents
                 INNER JOIN parent_students ON parents.parent_id = parent_students.parent_id
                 WHERE username= :username
@@ -23,7 +23,10 @@ $app->post('/parentLogin', function () use($app) {
     if($result) {
       
       // get the parents' students and add to result
-      $sth1 = $db->prepare("SELECT student_id, subdomain, dbusername, dbpassword FROM parent_students WHERE parent_id = :parentId ORDER BY subdomain");
+      $sth1 = $db->prepare("SELECT student_id, subdomain, dbusername, dbpassword 
+                            FROM parent_students 
+                            WHERE parent_id = :parentId 
+                            ORDER BY subdomain");
       $sth1->execute(array(':parentId' => $result->parent_id));
       $students = $sth1->fetchAll(PDO::FETCH_OBJ);
       $db = null;
@@ -148,6 +151,33 @@ $app->put('/updatePassword', function () use($app) {
     }
 
 
+    $db = null;
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->put('/updateDeviceUserId', function () use($app) {
+  // update users device id
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $parentId = $allPostVars['parent_id'];
+  $deviceUserId = $allPostVars['device_user_id'];
+
+  try
+  {
+    $db = getLoginDB();
+
+    $sth = $db->prepare("UPDATE parents SET device_user_id = :deviceUserId WHERE parent_id = :parentId");
+    $sth->execute( array(':parentId' => $parentId, ':deviceUserId' => $deviceUserId) );
+
+    $db = null;
+    
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
     $db = null;
 
   } catch(PDOException $e) {
