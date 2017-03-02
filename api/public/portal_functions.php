@@ -113,7 +113,7 @@ $app->post('/parentLogin', function () use($app) {
     }
 
   } catch(PDOException $e) {
-    $app->response()->setStatus(200);
+    $app->response()->setStatus(401);
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
@@ -435,9 +435,16 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
 
       $count = $sth1->fetch(PDO::FETCH_OBJ);
       $posts = $sth2->fetchAll(PDO::FETCH_OBJ);
+      
+      $pagination = new stdClass();
+      $pagination->page = $offset;
+      $pagination->perPage = $limit;
+      $pagination->pageCount = floor($count->num_posts / $limit);
+      $pagination->totalCount = $count->num_posts;
 
       $results = new stdClass();
       $results->count = $count->num_posts;
+      $results->pagination = $pagination;
       $results->posts = $posts;
     }
 
