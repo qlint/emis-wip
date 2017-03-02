@@ -440,7 +440,7 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
       $pagination->page = $offset + 1;
       $pagination->perPage = $limit;
       $pagination->pageCount = floor($count->num_posts / $limit) + 1;
-      $pagination->totalCount = int $count->num_posts;
+      $pagination->totalCount = (int) $count->num_posts;
 
       $results = new stdClass();
       $results->count = $count->num_posts;
