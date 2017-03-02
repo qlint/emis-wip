@@ -437,9 +437,9 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
       $posts = $sth2->fetchAll(PDO::FETCH_OBJ);
       
       $pagination = new stdClass();
-      $pagination->page = $offset;
+      $pagination->page = $offset + 1;
       $pagination->perPage = $limit;
-      $pagination->pageCount = floor($count->num_posts / $limit);
+      $pagination->pageCount = floor($count->num_posts / $limit) + 1;
       $pagination->totalCount = $count->num_posts;
 
       $results = new stdClass();
