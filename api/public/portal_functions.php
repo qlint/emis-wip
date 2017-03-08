@@ -495,8 +495,9 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
                 ON homework.class_subject_id = class_subjects.class_subject_id
                 WHERE student_id = :studentId
                 AND homework.post_status_id = 1
-                AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
-                AND assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date
+                --AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
+                AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date
+                  OR due_date > now() )
                 ORDER BY homework.assigned_date, subjects.sort_order
                 ");
     $sth->execute( array(':studentId' => $studentId) );
