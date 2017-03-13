@@ -627,7 +627,8 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
     $sth = $db->prepare("SELECT fee_item, q.payment_method,
                           sum(invoice_total) AS total_due,
                           sum(total_paid) AS total_paid,
-                          sum(total_paid) - sum(invoice_total) AS balance
+                          sum(total_paid) - sum(invoice_total) AS balance,
+                          (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                         FROM
                           ( SELECT invoice_line_items.amount as invoice_total,
                              fee_item,
@@ -744,7 +745,8 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
                                     on invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
                                     where inv_id = invoice_balances2.inv_id) as invoice_items,
                                     term_name,
-                                    date_part('year', terms.start_date) as year
+                                    date_part('year', terms.start_date) as year,
+                                    (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                           FROM app.invoice_balances2
                           INNER JOIN app.terms
                           ON invoice_balances2.term_id = terms.term_id
@@ -822,7 +824,8 @@ $app->get('/getStudentPaymentsPortal/:school/:studentId', function ($school, $st
                             inner join app.invoices using (inv_id)
                             where payment_id = payments.payment_id
                             and canceled = false ),0)
-                ),0) AS unapplied_amount
+                ),0) AS unapplied_amount,
+                (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                 FROM app.payments
                 WHERE student_id = :studentID
                 GROUP BY payments.payment_id");
@@ -860,7 +863,8 @@ $app->get('/getStudentCreditsPortal/:school/:studentId', function ($school, $stu
       $db = setDBConnection($school);
 
     // get credits
-    $sth = $db->prepare("SELECT credit_id, credits.amount, payment_date, credits.payment_id, payment_method, slip_cheque_no
+    $sth = $db->prepare("SELECT credit_id, credits.amount, payment_date, credits.payment_id, payment_method, slip_cheque_no,
+                        (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                 FROM app.credits
                 INNER JOIN app.payments ON credits.payment_id = payments.payment_id
                 WHERE credits.student_id = :studentID
@@ -899,7 +903,7 @@ $app->get('/getStudentArrearsPortal/:school/:studentId/:date', function ($school
       $db = setDBConnection($school);
 
     // get credits
-    $sth = $db->prepare("select sum(total_paid - total_amount) as balance
+    $sth = $db->prepare("select sum(total_paid - total_amount) as balance, (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                           from (
                             select invoices.inv_id, invoices.total_amount, coalesce(sum(amount),0) as total_paid
                             from app.invoices
@@ -942,7 +946,8 @@ $app->get('/getStudentFeeItemsPortal/:school/:studentId', function ($school, $st
     {
        $db = setDBConnection($school);
     // TO DO: I only want fee items for this school year?
-       $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount, frequency
+       $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount, frequency,
+                            (SELECT value FROM app.settings WHERE name = 'Currency') as currency
               FROM app.student_fee_items
               INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id AND fee_items.active is true
               WHERE student_id = :studentId
