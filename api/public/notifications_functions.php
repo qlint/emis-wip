@@ -82,7 +82,8 @@ function sendMessage ($message, $deviceIds) {
 
   $response = curl_exec($ch);
   curl_close($ch);
-
+  print("\nJSON response:\n");
+  print($response);
   return $response;
   
 }

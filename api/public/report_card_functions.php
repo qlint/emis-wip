@@ -412,7 +412,7 @@ $app->post('/addReportCard', function () use($app) {
 											':published' => $published
 											) );
 		}
-    
+    $db->commit();
     if( $published )
     { 
       // report card was published, need to add entry for notifications
@@ -422,7 +422,7 @@ $app->post('/addReportCard', function () use($app) {
                             WHERE student_id = :studentId");
       $studentName->execute(array(':studentId' => $studentId));
       $nameResult = $studentName->fetch(PDO::FETCH_OBJ);
-    
+      
       $db = null;
   
       // blog was published, need to add entry for notifications
@@ -461,7 +461,7 @@ $app->post('/addReportCard', function () use($app) {
       }
     }
 		
-		$db->commit();
+		
 		$app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
     echo json_encode(array("response" => "success", "code" => 1));
