@@ -443,7 +443,7 @@ $app->post('/addReportCard', function () use($app) {
       $deviceIds = array();
       foreach($results as $result) {
         $id = $result->device_user_id;
-        if( $id !== '' && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+        if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
       }
 
       if( count($deviceIds) > 0 ) {

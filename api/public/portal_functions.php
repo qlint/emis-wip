@@ -90,8 +90,9 @@ $app->post('/parentLogin', function () use($app) {
                   INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
                   WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
                   AND communications.post_status_id = 1
+                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
                   AND date_part('year',communications.creation_date) = date_part('year',now())
-                  ORDER BY com_date desc");
+                  ORDER BY com_date ascs");
 
         $studentsArray = "{" . implode(',',$students) . "}";
         $sth5->execute(array(':studentIds' => $studentsArray));
@@ -257,10 +258,11 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                 INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
                 INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
                 INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-                WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
+                WHERE (communications.student_id = any(:studentIds) OR communications.student_id is null)
                 AND communications.post_status_id = 1
+                AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
                 AND date_part('year',communications.creation_date) = date_part('year',now())
-                ORDER BY com_date desc");
+                ORDER BY com_date asc");
 
       $studentsArray = "{" . implode(',',$students) . "}";
       $sth5->execute(array(':studentIds' => $studentsArray));

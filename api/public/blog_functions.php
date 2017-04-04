@@ -281,7 +281,7 @@ $app->post('/addPost', function () use($app) {
                               WHERE blog_id = :blogId");
       $className->execute(array(':blogId' => $blogId));
       $classNameResult = $className->fetch(PDO::FETCH_OBJ);
-      var_dump($classNameResult);
+     // var_dump($classNameResult);
     
       $studentsInClass = $db->prepare("SELECT student_id 
                                         FROM app.students 
@@ -314,7 +314,7 @@ $app->post('/addPost', function () use($app) {
       $deviceIds = array();
       foreach($results as $result) {
         $id = $result->device_user_id;
-        if( $id !== '' && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+        if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
       }
 
       if( count($deviceIds) > 0 ) {
@@ -442,7 +442,7 @@ $app->put('/updatePost', function () use($app) {
       $deviceIds = array();
       foreach($results as $result) {
         $id = $result->device_user_id;
-        if( $id !== '' && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+        if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
       }
 
       if( count($deviceIds) > 0 ) {
@@ -699,7 +699,7 @@ $app->post('/addHomework', function () use($app) {
       $deviceIds = array();
       foreach($results as $result) {
         $id = $result->device_user_id;
-        if( $id !== '' && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+        if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
       }
 
       if( count($deviceIds) > 0 ) {
@@ -834,7 +834,7 @@ $app->put('/updateHomework', function () use($app) {
       $deviceIds = array();
       foreach($results as $result) {
         $id = $result->device_user_id;
-        if( $id !== '' && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+        if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
       }
 
       if( count($deviceIds) > 0 ) {
