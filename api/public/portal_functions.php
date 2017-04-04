@@ -92,7 +92,7 @@ $app->post('/parentLogin', function () use($app) {
                   AND communications.post_status_id = 1
                   AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
                   AND date_part('year',communications.creation_date) = date_part('year',now())
-                  ORDER BY com_date ascs");
+                  ORDER BY creation_date desc");
 
         $studentsArray = "{" . implode(',',$students) . "}";
         $sth5->execute(array(':studentIds' => $studentsArray));
@@ -262,7 +262,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                 AND communications.post_status_id = 1
                 AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
                 AND date_part('year',communications.creation_date) = date_part('year',now())
-                ORDER BY com_date asc");
+                ORDER BY creation_date desc");
 
       $studentsArray = "{" . implode(',',$students) . "}";
       $sth5->execute(array(':studentIds' => $studentsArray));
