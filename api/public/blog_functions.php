@@ -1059,25 +1059,40 @@ $app->post('/addCommunication', function () use($app) {
     $db = getDB();
     $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, post_status_id)
                VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :postStatus)");
-
-    // if published, make entries into tables for email/sms service
-
+    
     if( $postStatus === 1 )
     {
       // get list of receipients
+      $subdomain = getSubDomain();
+      $schoolNameQry = $db->query("SELECT value FROM app.settings where name='School Name'");
+      $schoolName = $schoolNameQry->fetch(PDO::FETCH_OBJ);
+      $schoolName = $schoolName->value;
+      
       $params = array();
       if( $sendAsEmail === 't' )
       {
         if( $audienceId === 1 )
         {
           // school wide
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
           $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE active is true AND email is not null
                                           UNION
                                           SELECT email FROM app.employees WHERE active is true AND email is not null");
+          $studentsToNotify = $db->prepare("SELECT student_id 
+                                        FROM app.students 
+                                        WHERE active is true");
         }
         else if( $audienceId === 2 )
         {
           // class specific
+          $className = $db->prepare("SELECT class_name 
+                                FROM app.classes 
+                              WHERE class_id = :classId");
+          $className->execute(array(':classId' => $classId));
+          $classNameResult = $className->fetch(PDO::FETCH_OBJ);
+          $className = $classNameResult->class_name;
+      
+          $notifyMsg = "News posted from " . $className. ": " . $subject;
           $pullRecipients = $db->prepare("SELECT email FROM app.guardians
                                           INNER JOIN app.student_guardians
                                             INNER JOIN app.students
@@ -1086,6 +1101,12 @@ $app->post('/addCommunication', function () use($app) {
                                           WHERE guardians.active is true
                                           AND current_class = :classId");
           $params = array(':classId' => $classId);
+          
+          $studentsToNotify = $db->prepare("SELECT student_id 
+                                        FROM app.students 
+                                        WHERE current_class = :classId
+                                        AND active is true");
+                                        
         }
         else if( $audienceId === 3 )
         {
@@ -1100,12 +1121,20 @@ $app->post('/addCommunication', function () use($app) {
         else if( $audienceId === 5 )
         {
           // specific parent
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
           $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE guardian_id = :guardianId");
           $params = array(':guardianId' => $guardianId);
+          
+          $studentsToNotify = $db->prepare("SELECT students.student_id 
+                                        FROM app.students 
+                                        INNER JOIN app.student_guardians
+                                        ON students.student_id = student_guardians.student_id
+                                        WHERE guardian_id = :guardianId
+                                        ");
         }
 
         $insertEmail = $db->prepare("INSERT INTO app.communication_emails(com_id, email_address)
-                                     VALUES(CURVAL('app.communications_com_id_seq', :email))");
+                                     VALUES(CURRVAL('app.communications_com_id_seq'), :email)");
 
       }
       else if( $sendAsSms === 't' )
@@ -1114,13 +1143,25 @@ $app->post('/addCommunication', function () use($app) {
         if( $audienceId === 1 )
         {
           // school wide
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
           $pullRecipients = $db->prepare("SELECT telephone FROM app.guardians WHERE active is true AND telephone is not null
                                           UNION
                                           SELECT telephone FROM app.employees WHERE active is true AND telephone is not null");
+          $studentsToNotify = $db->prepare("SELECT student_id 
+                                        FROM app.students 
+                                        WHERE active is true");
         }
         else if( $audienceId === 2 )
         {
           // class specific
+          $className = $db->prepare("SELECT class_name 
+                                FROM app.classes 
+                              WHERE class_id = :classId");
+          $className->execute(array(':classId' => $classId));
+          $classNameResult = $className->fetch(PDO::FETCH_OBJ);
+          $className = $classNameResult->class_name;
+          
+          $notifyMsg = "News posted from " . $className. ": " . $subject;
           $pullRecipients = $db->prepare("SELECT telephone FROM app.guardians
                                           INNER JOIN app.student_guardians
                                             INNER JOIN app.students
@@ -1129,6 +1170,11 @@ $app->post('/addCommunication', function () use($app) {
                                           WHERE guardians.active is true
                                           AND current_class = :classId");
           $params = array(':classId' => $classId);
+          
+          $studentsToNotify = $db->prepare("SELECT student_id 
+                                        FROM app.students 
+                                        WHERE current_class = :classId
+                                        AND active is true");
         }
         else if( $audienceId === 3 )
         {
@@ -1143,24 +1189,34 @@ $app->post('/addCommunication', function () use($app) {
         else if( $audienceId === 5 )
         {
           // specific parent
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
           $pullRecipients = $db->prepare("SELECT telephone FROM app.guardians WHERE guardian_id = :guardianId");
           $params = array(':guardianId' => $guardianId);
+          
+          $studentsToNotify = $db->prepare("SELECT students.student_id 
+                                        FROM app.students 
+                                        INNER JOIN app.student_guardians
+                                        ON students.student_id = student_guardians.student_id
+                                        WHERE guardian_id = :guardianId
+                                        ");
         }
 
-        $insertSMS = $db->prepare("INSERT INTO app.communication_sms(com_id, sim_number) VALUES(CURVAL('app.communications_com_id_seq', :mobileNumber))");
+        $insertSMS = $db->prepare("INSERT INTO app.communication_sms(com_id, sim_number) VALUES(CURRVAL('app.communications_com_id_seq'), :mobileNumber)");
       }
 
     }
-
-
+    
     $db->beginTransaction();
     $sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message ,
             ':attachment' => $attachment , ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
             ':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo,
             ':messageFrom' => $messageFrom, ':postStatus' => $postStatus) );
-    /*
+            
+    // if published, make entries into tables for email/sms service
+
     if( $postStatus === 1 )
     {
+
       $pullRecipients->execute($params);
       $results = $pullRecipients->fetchAll(PDO::FETCH_OBJ);
 
@@ -1174,10 +1230,56 @@ $app->post('/addCommunication', function () use($app) {
            $insertSMS->execute( array(':mobileNumber' => $result->telephone) );
          }
       }
-    }
-    */
-    $db->commit();
+      
+      // get the device ids to send a notification 
+      $studentsToNotify->execute($params);
+      $results = $studentsToNotify->fetchAll(PDO::FETCH_OBJ);
+      $studentIds = array();
+      foreach($results as $result) {
+        $studentIds[] = $result->student_id;
+      }
+      $studentIdStr = '{' . implode(',', $studentIds) . '}';
 
+      $db->commit();
+      $db = null;
+  
+      //  was published, need to add entry for notifications
+      $db = getMISDB();
+      
+      // get all device ids
+      $getDeviceIds = $db->prepare("SELECT device_user_id 
+                                    FROM parents
+                                    INNER JOIN parent_students 
+                                    ON parents.parent_id = parent_students.parent_id
+                                    WHERE subdomain = :subdomain
+                                    AND student_id = any(:studentIds)");
+      $getDeviceIds->execute( array(':studentIds' => $studentIdStr, ':subdomain' => $subdomain) );
+      $results = $getDeviceIds->fetchAll(PDO::FETCH_OBJ);
+      
+      $deviceIds = array();
+      foreach($results as $result) {
+        $id = $result->device_user_id;
+        if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+      }
+
+      if( count($deviceIds) > 0 ) {
+        $deviceIdStr = '{' . implode(',',$deviceIds) . '}';
+        
+        $add = $db->prepare("INSERT INTO notifications(subdomain, device_user_ids, message)
+                             VALUES(:subdomain, :deviceIds, :message)");
+        $add->execute( 
+          array(
+            ':subdomain' => $subdomain, 
+            ':deviceIds' => $deviceIdStr, 
+            ':message' => $notifyMsg
+          )
+        );
+      }
+    }
+    else {
+      $db-commit();
+    }
+    
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
     echo json_encode(array("response" => "success", "code" => 1));
