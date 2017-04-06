@@ -361,7 +361,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 });
 
 $app->post('/addReportCard', function () use($app) {
-    // Add report card
+  // Add report card
 	
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
@@ -374,9 +374,9 @@ $app->post('/addReportCard', function () use($app) {
 	$reportData =		( isset($allPostVars['report_data']) ? $allPostVars['report_data']: null);
 	$published =		( isset($allPostVars['published']) ? $allPostVars['published']: 'f');
 	
-    try 
-    {
-        $db = getDB();
+  try 
+  {
+    $db = getDB();
 		
 		$getReport = $db->prepare("SELECT report_card_id FROM app.report_cards WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId");
 		
@@ -412,18 +412,66 @@ $app->post('/addReportCard', function () use($app) {
 											':published' => $published
 											) );
 		}
+    $db->commit();
+    if( $published )
+    { 
+      // report card was published, need to add entry for notifications
+      // get student name
+      $studentName = $db->prepare("SELECT first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name 
+                            FROM app.students 
+                            WHERE student_id = :studentId");
+      $studentName->execute(array(':studentId' => $studentId));
+      $nameResult = $studentName->fetch(PDO::FETCH_OBJ);
+      
+      $db = null;
+  
+      // blog was published, need to add entry for notifications
+      $db = getMISDB();
+      $subdomain = getSubDomain();
+      $message = "New report card for " . $nameResult->student_name . '!';
+      
+      // get all device ids
+      $getDeviceIds = $db->prepare("SELECT device_user_id 
+                                    FROM parents
+                                    INNER JOIN parent_students 
+                                    ON parents.parent_id = parent_students.parent_id
+                                    WHERE subdomain = :subdomain
+                                    AND student_id = :studentId");
+      $getDeviceIds->execute( array(':studentId' => $studentId, ':subdomain' => $subdomain) );
+      $results = $getDeviceIds->fetchAll(PDO::FETCH_OBJ);
+      
+      $deviceIds = array();
+      foreach($results as $result) {
+        $id = $result->device_user_id;
+        if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+      }
+
+      if( count($deviceIds) > 0 ) {
+        $deviceIdStr = '{' . implode(',',$deviceIds) . '}';
+        
+        $add = $db->prepare("INSERT INTO notifications(subdomain, device_user_ids, message)
+                             VALUES(:subdomain, :deviceIds, :message)");
+        $add->execute( 
+          array(
+            ':subdomain' => $subdomain, 
+            ':deviceIds' => $deviceIdStr, 
+            ':message' => $message
+          )
+        );
+      }
+    }
 		
-		$db->commit();
+		
 		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1));
-        $db = null;
- 
- 
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
+    $db = null;
+
+    } 
+    catch(PDOException $e) {
+      $app->response()->setStatus(404);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
 });

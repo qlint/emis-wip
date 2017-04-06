@@ -11,7 +11,7 @@ $app->post('/parentLogin', function () use($app) {
   {
     $db = getLoginDB();
     $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
-                  first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name
+                  first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id
                 FROM parents
                 INNER JOIN parent_students ON parents.parent_id = parent_students.parent_id
                 WHERE username= :username
@@ -23,7 +23,10 @@ $app->post('/parentLogin', function () use($app) {
     if($result) {
       
       // get the parents' students and add to result
-      $sth1 = $db->prepare("SELECT student_id, subdomain, dbusername, dbpassword FROM parent_students WHERE parent_id = :parentId ORDER BY subdomain");
+      $sth1 = $db->prepare("SELECT student_id, subdomain, dbusername, dbpassword 
+                            FROM parent_students 
+                            WHERE parent_id = :parentId 
+                            ORDER BY subdomain");
       $sth1->execute(array(':parentId' => $result->parent_id));
       $students = $sth1->fetchAll(PDO::FETCH_OBJ);
       $db = null;
@@ -87,8 +90,9 @@ $app->post('/parentLogin', function () use($app) {
                   INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
                   WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
                   AND communications.post_status_id = 1
+                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
                   AND date_part('year',communications.creation_date) = date_part('year',now())
-                  ORDER BY com_date desc");
+                  ORDER BY creation_date desc");
 
         $studentsArray = "{" . implode(',',$students) . "}";
         $sth5->execute(array(':studentIds' => $studentsArray));
@@ -110,7 +114,7 @@ $app->post('/parentLogin', function () use($app) {
     }
 
   } catch(PDOException $e) {
-    $app->response()->setStatus(200);
+    $app->response()->setStatus(401);
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
@@ -148,6 +152,33 @@ $app->put('/updatePassword', function () use($app) {
     }
 
 
+    $db = null;
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->post('/updateDeviceUserId', function () use($app) {
+  // update users device id
+  $allPostVars = $app->request->post();
+  $parentId = $allPostVars['parent_id'];
+  $deviceUserId = $allPostVars['device_user_id'];
+
+  try
+  {
+    $db = getLoginDB();
+
+    $sth = $db->prepare("UPDATE parents SET device_user_id = :deviceUserId WHERE parent_id = :parentId");
+    $sth->execute( array(':parentId' => $parentId, ':deviceUserId' => $deviceUserId) );
+
+    $db = null;
+    
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
     $db = null;
 
   } catch(PDOException $e) {
@@ -227,10 +258,11 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                 INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
                 INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
                 INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-                WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
+                WHERE (communications.student_id = any(:studentIds) OR communications.student_id is null)
                 AND communications.post_status_id = 1
+                AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
                 AND date_part('year',communications.creation_date) = date_part('year',now())
-                ORDER BY com_date desc");
+                ORDER BY creation_date desc");
 
       $studentsArray = "{" . implode(',',$students) . "}";
       $sth5->execute(array(':studentIds' => $studentsArray));
@@ -405,9 +437,16 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
 
       $count = $sth1->fetch(PDO::FETCH_OBJ);
       $posts = $sth2->fetchAll(PDO::FETCH_OBJ);
+      
+      $pagination = new stdClass();
+      $pagination->page = $pageNumber;
+      $pagination->perPage = $limit;
+      $pagination->pageCount = floor($count->num_posts / $limit) + 1;
+      $pagination->totalCount = (int) $count->num_posts;
 
       $results = new stdClass();
       $results->count = $count->num_posts;
+      $results->pagination = $pagination;
       $results->posts = $posts;
     }
 
@@ -458,8 +497,9 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
                 ON homework.class_subject_id = class_subjects.class_subject_id
                 WHERE student_id = :studentId
                 AND homework.post_status_id = 1
-                AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
-                AND assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date
+                --AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
+                AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date
+                  OR due_date > now() )
                 ORDER BY homework.assigned_date, subjects.sort_order
                 ");
     $sth->execute( array(':studentId' => $studentId) );
@@ -589,7 +629,8 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
     $sth = $db->prepare("SELECT fee_item, q.payment_method,
                           sum(invoice_total) AS total_due,
                           sum(total_paid) AS total_paid,
-                          sum(total_paid) - sum(invoice_total) AS balance
+                          sum(total_paid) - sum(invoice_total) AS balance,
+                          (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                         FROM
                           ( SELECT invoice_line_items.amount as invoice_total,
                              fee_item,
@@ -622,7 +663,8 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
                   (SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
                   (SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
                   COALESCE((SELECT sum(amount) from app.credits WHERE student_id = :studentID ),0) AS total_credit,
-                  (SELECT sum(balance) from app.invoice_balances2 WHERE student_id = :studentID AND due_date <= now()::date AND canceled = false) AS arrears");
+                  (SELECT sum(balance) from app.invoice_balances2 WHERE student_id = :studentID AND due_date <= now()::date AND canceled = false) AS arrears,
+                  (SELECT value FROM app.settings WHERE name = 'Currency') as currency");
       $sth2->execute( array(':studentID' => $studentId));
       $details = $sth2->fetch(PDO::FETCH_OBJ);
 
@@ -706,7 +748,8 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
                                     on invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id
                                     where inv_id = invoice_balances2.inv_id) as invoice_items,
                                     term_name,
-                                    date_part('year', terms.start_date) as year
+                                    date_part('year', terms.start_date) as year,
+                                    (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                           FROM app.invoice_balances2
                           INNER JOIN app.terms
                           ON invoice_balances2.term_id = terms.term_id
@@ -784,7 +827,8 @@ $app->get('/getStudentPaymentsPortal/:school/:studentId', function ($school, $st
                             inner join app.invoices using (inv_id)
                             where payment_id = payments.payment_id
                             and canceled = false ),0)
-                ),0) AS unapplied_amount
+                ),0) AS unapplied_amount,
+                (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                 FROM app.payments
                 WHERE student_id = :studentID
                 GROUP BY payments.payment_id");
@@ -822,7 +866,8 @@ $app->get('/getStudentCreditsPortal/:school/:studentId', function ($school, $stu
       $db = setDBConnection($school);
 
     // get credits
-    $sth = $db->prepare("SELECT credit_id, credits.amount, payment_date, credits.payment_id, payment_method, slip_cheque_no
+    $sth = $db->prepare("SELECT credit_id, credits.amount, payment_date, credits.payment_id, payment_method, slip_cheque_no,
+                        (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                 FROM app.credits
                 INNER JOIN app.payments ON credits.payment_id = payments.payment_id
                 WHERE credits.student_id = :studentID
@@ -861,7 +906,7 @@ $app->get('/getStudentArrearsPortal/:school/:studentId/:date', function ($school
       $db = setDBConnection($school);
 
     // get credits
-    $sth = $db->prepare("select sum(total_paid - total_amount) as balance
+    $sth = $db->prepare("select sum(total_paid - total_amount) as balance, (SELECT value FROM app.settings WHERE name = 'Currency') as currency
                           from (
                             select invoices.inv_id, invoices.total_amount, coalesce(sum(amount),0) as total_paid
                             from app.invoices
@@ -904,7 +949,8 @@ $app->get('/getStudentFeeItemsPortal/:school/:studentId', function ($school, $st
     {
        $db = setDBConnection($school);
     // TO DO: I only want fee items for this school year?
-       $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount, frequency
+       $sth = $db->prepare("SELECT student_fee_item_id, fee_item, amount, frequency,
+                            (SELECT value FROM app.settings WHERE name = 'Currency') as currency
               FROM app.student_fee_items
               INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id AND fee_items.active is true
               WHERE student_id = :studentId

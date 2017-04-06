@@ -194,6 +194,9 @@ require('blog_functions.php');
 // ************** Parent Portal  ****************** //
 require('portal_functions.php');
 
+// ************** Notifications  ****************** //
+require('notifications_functions.php');
+
 // Run app
 $app->run();
 

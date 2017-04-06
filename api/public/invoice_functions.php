@@ -215,7 +215,7 @@ $app->get('/generateInvoices/:termId(/:studentId)', function ($termId, $studentI
 });
 
 $app->post('/createInvoice', function () use($app) {
-    // create invoice
+  // create invoice
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	
 	$userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);

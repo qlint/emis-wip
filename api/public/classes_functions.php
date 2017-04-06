@@ -132,7 +132,8 @@ $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $sta
 					ON classes.teacher_id = employees.emp_id
 					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
 					LEFT JOIN app.blogs 
-					ON classes.class_id = blogs.class_id AND classes.teacher_id = blogs.teacher_id
+					ON (classes.class_id = blogs.class_id AND classes.teacher_id = blogs.teacher_id) OR
+					   (class_subjects.class_id = blogs.class_id AND subjects.teacher_id = blogs.teacher_id)
 					WHERE (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
 					AND classes.active = :status
 					GROUP BY classes.class_id, class_name, classes.class_cat_id, classes.teacher_id, classes.active, class_cat_name,
