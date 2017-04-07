@@ -52,15 +52,18 @@ $app->post('/parentLogin', function () use($app) {
                     WHERE student_id = :studentId");
         $sth3->execute(array(':studentId' => $student->student_id));
         $details = $sth3->fetch(PDO::FETCH_OBJ);
-        $details->school = $student->subdomain;
+        
+        if( $details ) {
+          $details->school = $student->subdomain;
 
-        if( $details->student_id !== null )
-        {
-          $studentDetails[] = $details;
-          $curSubDomain = $student->subdomain;
+          if( $details->student_id !== null )
+          {
+            $studentDetails[] = $details;
+            $curSubDomain = $student->subdomain;
 
-          /* build an array for grabbing news */
-          $studentsBySchool[$curSubDomain][] = $student->student_id;
+            /* build an array for grabbing news */
+            $studentsBySchool[$curSubDomain][] = $student->student_id;
+          }
         }
       }
 
@@ -222,15 +225,17 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                   WHERE student_id = :studentId");
       $sth3->execute(array(':studentId' => $student->student_id));
       $details = $sth3->fetch(PDO::FETCH_OBJ);
-      $details->school = $student->subdomain;
+      if($details){      
+        $details->school = $student->subdomain;
 
-      if( $details->student_id !== null )
-      {
-        $studentDetails[] = $details;
-        $curSubDomain = $student->subdomain;
+        if( $details->student_id !== null )
+        {
+          $studentDetails[] = $details;
+          $curSubDomain = $student->subdomain;
 
-        /* build an array for grabbing news */
-        $studentsBySchool[$curSubDomain][] = $student->student_id;
+          /* build an array for grabbing news */
+          $studentsBySchool[$curSubDomain][] = $student->student_id;
+        }
       }
     }
 
