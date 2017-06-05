@@ -1710,11 +1710,14 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 					}
 					else
 					{
-						if( $scope.guardian.login === undefined ) $scope.guardian.login = {};
+						$scope.guardian.login = {};
 						$scope.guardian.login.login_active = 'false';
 					}
-;
 				}
+        else
+        {
+          $scope.hasLogin = false;
+        }
 			},apiError);
 		}
 
