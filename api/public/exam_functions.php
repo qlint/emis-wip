@@ -334,7 +334,7 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 													ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 													INNER JOIN app.class_subjects 
 														INNER JOIN app.subjects
-														ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+														ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
 													ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 												ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 												INNER JOIN app.students
@@ -506,7 +506,7 @@ $app->get('/getTopStudents(/:class_id)', function ($classId=null) {
 									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 									INNER JOIN app.class_subjects 
 										INNER JOIN app.subjects
-										ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+										ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND use_for_grading is true
 										INNER JOIN app.classes
 										ON class_subjects.class_id = classes.class_id AND classes.active is true 
 									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
@@ -607,7 +607,7 @@ $app->get('/getTeacherTopStudents/:teacher_id(/:class_id)', function ($teacherId
 									ON class_subject_exams.exam_type_id = exam_types.exam_type_id
 									INNER JOIN app.class_subjects 
 										INNER JOIN app.subjects
-										ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+										ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND use_for_grading is true
 										INNER JOIN app.classes
 										ON class_subjects.class_id = classes.class_id AND classes.active is true 
 									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
