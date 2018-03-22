@@ -44,14 +44,15 @@ $app->post('/addGrading', function () use($app) {
 	$markMin =	( isset($allPostVars['min_mark']) ? $allPostVars['min_mark']: null);
 	$markMax =	( isset($allPostVars['max_mark']) ? $allPostVars['max_mark']: null);
 	$comment =	( isset($allPostVars['comment']) ? $allPostVars['comment']: null);
+	$principal_comment =	( isset($allPostVars['principal_comment']) ? $allPostVars['principal_comment']: null);
 
     try
     {
         $db = getDB();
-        $sth = $db->prepare("INSERT INTO app.grading(grade, min_mark, max_mark, comment)
-            VALUES(:grade, :markMin, :markMax, :comment)");
+        $sth = $db->prepare("INSERT INTO app.grading(grade, min_mark, max_mark, comment, principal_comment)
+            VALUES(:grade, :markMin, :markMax, :comment, :principal_comment)");
 
-        $sth->execute( array(':grade' => $grade, ':markMin' => $markMin, ':markMax' => $markMax, ':comment' => $comment ) );
+        $sth->execute( array(':grade' => $grade, ':markMin' => $markMin, ':markMax' => $markMax, ':comment' => $comment, ':principal_comment' => $principal_comment ) );
 
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -76,6 +77,7 @@ $app->put('/updateGrading', function () use($app) {
 	$markMin =	( isset($allPostVars['min_mark']) ? $allPostVars['min_mark']: null);
 	$markMax =	( isset($allPostVars['max_mark']) ? $allPostVars['max_mark']: null);
 	$comment =	( isset($allPostVars['comment']) ? $allPostVars['comment']: null);
+	$principal_comment =	( isset($allPostVars['principal_comment']) ? $allPostVars['principal_comment']: null);
 
     try
     {
@@ -84,10 +86,11 @@ $app->put('/updateGrading', function () use($app) {
 			SET grade = :grade,
 				min_mark = :markMin,
 				max_mark = :markMax,
-				comment = :comment
+				comment = :comment,
+				principal_comment = :principal_comment
             WHERE grade_id = :gradeId");
 
-        $sth->execute( array(':grade' => $grade, ':markMin' => $markMin, ':markMax' => $markMax, ':comment' => $comment, ':gradeId' => $gradeId ) );
+        $sth->execute( array(':grade' => $grade, ':markMin' => $markMin, ':markMax' => $markMax, ':comment' => $comment, ':principal_comment' => $principal_comment, ':gradeId' => $gradeId ) );
 
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
