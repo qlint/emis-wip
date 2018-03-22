@@ -16,6 +16,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.thestudent = {};
 	$scope.examTypes = {};
 	$scope.comments = {};
+	$scope.principal_comment = {};
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 // console.log('sammy');
 // console.log( data);
@@ -478,7 +479,7 @@ $scope.entity_id = data.entity_id;
 		$scope.currentClassPosition = data.currentClassPosition[0];
 
 		// console.log("This percentage is overall for all exams -> ");
-		// console.log($scope.overall.percentage);
+		console.log($scope);
 
 
 			var school = window.location.host.split('.')[0];
