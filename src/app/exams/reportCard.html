@@ -14,7 +14,7 @@ function done(){
     var elem = document.getElementById('line1Chart');
     elem.parentNode.removeChild(elem);
 
-	var file_name = ''
+	var file_name = '';
 
 	$.ajax({
          type: "POST",
@@ -354,12 +354,12 @@ function getChartPath()
 								<p class="form-control-static inline">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{overallLastTerm.position_out_of||'--'}}</p>
 							</div>
 
-							<!-- <div class="col-xs-2 nopad-right">
-								<label></label>
+							<div class="col-xs-2 nopad-right">
+								<label>Current Term Marks:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline"></p><p class="form-control-static inline"></p>
-							</div> -->
+								<p class="form-control-static inline">{{overall.current_term_marks||'-'}}</p> / <p class="form-control-static inline">{{overall.current_term_marks_out_of||'-'}}</p>
+							</div>
 						</div>
 					</div>
 
@@ -462,9 +462,9 @@ function getChartPath()
 							</tr>
 							<tr ng-show="isAdmin">
 								<td>
-									<label>Head Teacher Comments:</label>
-									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
-									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>
+									<label>Principal Comments:</label>
+									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="overall.principal_comment" readonly style="background-color:#ffffff;"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{overall.principal_comment}}</p>
 								</td>
 								<td>
 									<p class="form-control-static" ng-show="isPrinting">{{comments.head_teacher_name}}</p>
@@ -695,13 +695,13 @@ function getChartPath()
 					<div class="progress-report-remarks">
 						<h3>Remarks</h3>
 						<table width="100%">
-							<tr>
+							<!-- <tr>
 								<td colspan="2">
 									<label>Extra Curricular Activities</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
 								</td>
-							</tr>
+							</tr> -->
 							<tr ng-show="isAdmin || isClassTeacher">
 								<td width="75%">
 									<label>Class Teacher Comments:</label>
@@ -715,9 +715,9 @@ function getChartPath()
 							</tr>
 							<tr ng-show="isAdmin">
 								<td>
-									<label>Head Teacher Comments:</label>
-									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
-									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>
+									<label>Principal Comments:</label>
+									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="overall.principal_comment" readonly style="background-color:#ffffff;"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{overall.principal_comment}}</p>
 								</td>
 								<td>
 									<p class="form-control-static" ng-show="isPrinting">{{comments.head_teacher_name}}</p>
@@ -940,7 +940,7 @@ function getChartPath()
 						</tfoot>
 					</table>
 
-					<img  class="col-sm-3"  style="width:568px;height:284px;" id="url"   src="{{chart_path}}"  />
+					<img  class="col-sm-3"  style="width:500px;height:250px;" id="url"   src="{{chart_path}}"  />
 
 
 
@@ -948,13 +948,13 @@ function getChartPath()
 					<div class="progress-report-remarks">
 						<h3>Remarks</h3>
 						<table width="100%">
-							<tr>
+							<!-- <tr>
 								<td colspan="2">
 									<label>Extra Curricular Activities</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
 								</td>
-							</tr>
+							</tr> -->
 							<tr ng-show="isAdmin || isClassTeacher">
 								<td width="75%">
 									<label>Class Teacher Comments:</label>
@@ -968,9 +968,9 @@ function getChartPath()
 							</tr>
 							<tr ng-show="isAdmin">
 								<td>
-									<label>Head Teacher Comments:</label>
-									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
-									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>
+									<label>Principal Comments:</label>
+									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="overall.principal_comment" readonly style="background-color:#ffffff;"></textarea>
+									<p ng-show="isPrinting" class="form-control-static">{{overall.principal_comment}}</p>
 								</td>
 								<td>
 									<p class="form-control-static" ng-show="isPrinting">{{comments.head_teacher_name}}</p>
