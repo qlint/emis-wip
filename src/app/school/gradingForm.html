@@ -41,6 +41,14 @@
 							<p ng-show="gradingForm.comment.$invalid && (gradingForm.comment.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Comment is required.</p>
 						</div>
 					</div>
+					<!-- principal comments -->
+					<div class="form-group" ng-class="{ 'has-error' : gradingForm.principal_comment.$invalid && (gradingForm.principal_comment.$touched || gradingForm.$submitted) }">
+						<label for="principal_comment" class="col-sm-4 nopad-right control-label">Princiapl Comment</label>
+						<div class="col-sm-7">
+							<textarea type="text" name="principal_comment" rows="2" ng-model="grading.principal_comment" class="form-control" required ></textarea>
+							<p ng-show="gradingForm.principal_comment.$invalid && (gradingForm.principal_comment.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Principal comment is required.</p>
+						</div>
+					</div>
 
 			</div>
 			<div class="modal-footer">
