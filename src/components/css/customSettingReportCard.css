@@ -8,8 +8,8 @@
     visibility: visible !important;
     display: block;
   }
-  #url{
-    max-height: 80% !important;
+  img#url{
+    max-height: 200px !important;
   }
 
 }
