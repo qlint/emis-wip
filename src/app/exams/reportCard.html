@@ -368,7 +368,7 @@ function getChartPath()
 							<tr>
 								<th rowspan="3" class="center">Subject</th>
 								<th class="center double-border" colspan="{{examTypes.length*3}}">Marks</th>
-								<th rowspan="2" colspan="2" class="center double-border">Overall</th>
+								<th rowspan="2" colspan="4" class="center double-border">Overall</th>
 								<th class="center double-border" rowspan="3" width="300">Remarks</th>
 								<th class="center" rowspan="3">Teacher<br>Int.</th>
 							</tr>
@@ -379,6 +379,8 @@ function getChartPath()
 								<th class="center double-border" ng-repeat-start="item in examTypes">Mark</th>
 								<th class="center">Out Of</th>
 								<th class="center" ng-repeat-end="">Grade</th>
+								<th class="center double-border">CT/30</th>
+								<th class="center double-border">ET/70</th>
 								<th class="center double-border">Avg</th>
 								<th class="center">Grade</th>
 							</tr>
@@ -389,6 +391,8 @@ function getChartPath()
 								<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
 								<td class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
 								<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
+								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td>
+								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td>
 								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
 								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
 								<td class="double-border">
@@ -405,6 +409,8 @@ function getChartPath()
 								<th class="center double-border" ng-repeat-start="examType in examTypes">{{totals[examType.exam_type].total_mark}}</th>
 								<th class="center">{{totals[examType.exam_type].total_grade_weight}}</th>
 								<th class="center" ng-repeat-end=""></th>
+								<th class="center"></th>
+								<th class="center"></th>
 								<th class="center double-border getpercentage">{{overall.percentage}}%</th>
 								<th class="center">{{overall.grade}}</th>
 								<th colspan="2" class="center double-border"></th>
@@ -414,7 +420,7 @@ function getChartPath()
 
 					<div class="row">
 						<div class="col-md-6">
-							<img  class="col-md-6"  style="width:450px;height:225px;" id="url"   src="{{chart_path}}"  />
+							<img  class="col-md-6"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  />
 						</div>
 						<div class="col-md-6">
 							<table id="avaragesTable" class="display dataTable" cellspacing="0" width="100%">
@@ -687,7 +693,7 @@ function getChartPath()
 						</tfoot>
 					</table>
 
-					<img  class="col-sm-12"  style="width:440px;height:220px;" id="url"   src="{{chart_path}}"  />
+					<img  class="col-sm-12"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  />
 
 
 
@@ -940,7 +946,7 @@ function getChartPath()
 						</tfoot>
 					</table>
 
-					<img  class="col-sm-3"  style="width:500px;height:250px;" id="url"   src="{{chart_path}}"  />
+					<img  class="col-sm-3"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  />
 
 
 
