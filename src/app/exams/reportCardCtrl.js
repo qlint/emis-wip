@@ -136,6 +136,8 @@ $scope.entity_id = data.entity_id;
 			$scope.currentTermEndDate = $scope.savedReportData.closingDate;
 			$scope.overallLastTerm = data.overallLastTerm;
 			$scope.subjectOverall = data.subjectOverall;
+			$scope.subjectOverallBySum = data.subjectOverallBySum;
+			$scope.subjectOverallByAvg = data.subjectOverallByAvg;
 			$scope.graphPoints = data.graphPoints;
 			$scope.currentClassPosition = data.currentClassPosition;
 
@@ -469,20 +471,26 @@ $scope.entity_id = data.entity_id;
 	var buildReportBody = function(data)
 	{
 
-
+		var school = window.location.host.split('.')[0];
 
 		$scope.examMarks = data.details;
-		$scope.overallSubjectMarks = data.subjectOverall;
+		// $scope.overallSubjectMarks = data.subjectOverall;
 		$scope.overall = data.overall;
 		$scope.overallLastTerm = data.overallLastTerm;
 		$scope.graphPoints = data.graphPoints;
 		$scope.currentClassPosition = data.currentClassPosition[0];
+		if (school == "karemeno"){
+			$scope.overallSubjectMarks = data.subjectOverallBySum;
+		}else if (school == "rongaiboys"){
+			$scope.overallSubjectMarks = data.subjectOverallByAvg;
+		}else{
+			$scope.overallSubjectMarks = data.subjectOverall;
+		}
 
-		// console.log("This percentage is overall for all exams -> ");
-		console.log($scope);
+		console.log("subject overalls variable ::>");
+		console.log($scope.overallSubjectMarks);
 
 
-			var school = window.location.host.split('.')[0];
 			if (school == "karemeno" && $scope.motto == ""){
 
 					var motto = "LIVE JESUS IN OUR HEARTS.......... FOREVER";
@@ -587,6 +595,8 @@ $scope.entity_id = data.entity_id;
 				{
 					item.overall_mark = overall.percentage;
 					item.overall_grade = overall.grade;
+					item.tot30 = overall.tot30;
+					item.tot70 = overall.tot70;
 					item.position = overall.rank;
 					item.comment = overall.comment;
 					console.log("Endterm percentage :: >>");
