@@ -290,6 +290,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 	}
 
+	// console.log();
+
 	var createCompleted = function ( response, status, params )
 	{
 
