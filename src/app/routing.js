@@ -12,7 +12,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 		return (window.innerWidth <= 768 ? true : false );
 	})();
 
-  // For any unmatched url, redirect to /
+  // For any unmatched url, redirect to homepage /
   $urlRouterProvider.otherwise("/");
 
   // Now set up the states
