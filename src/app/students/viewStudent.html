@@ -214,12 +214,11 @@
 								</div>
 							</div>
 							<!-- kcpe_marks -->
-							<div class="col-sm-3" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.kcpe_marks.$dirty ) && studentForm.kcpe_marks.$invalid && studentForm.kcpe_marks.$error.required }">
+							<div class="col-sm-3">
 								<label for="kcpe_marks">KCPE Marks</label>
 								<p class="form-control-static" ng-show="!edit">{{student.kcpe_marks}}</p>
 								<div ng-show="edit">
-									<input type="text" name="kcpe_marks" ng-model="student.kcpe_marks" class="form-control" required numeric-only />
-									<p ng-show="(studentForm.$submitted || studentForm.kcpe_marks.$dirty ) && studentForm.kcpe_marks.$invalid && studentForm.kcpe_marks.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> The KCPE marks are required.</p>
+									<input type="text" name="kcpe_marks" ng-model="student.kcpe_marks" class="form-control" numeric-only />
 								</div>
 							</div>
 							<!-- school_house -->
