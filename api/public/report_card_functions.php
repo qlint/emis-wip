@@ -296,39 +296,34 @@ FROM(
 
 		// get overall marks per subjects, only use parent subjects (overall determined by summation)
 			$sth2BySum = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, percentage, grade, comment, principal_comment, sort_order, grade as overall_grade2
-														FROM(
-															SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
-																(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
-																(select comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as comment,
-																(select principal_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as principal_comment, sort_order
-															FROM (
-																SELECT class_id,subject_id,subject_name,student_id,coalesce(sum(total_mark)) as total_mark,coalesce(sum(total_grade_weight)) as total_grade_weight,sort_order FROM (
-																	SELECT class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,
-																		coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-																		coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-																		subjects.sort_order,
-																		is_last_exam
-																	FROM app.exam_marks
-																	INNER JOIN app.class_subject_exams
-																	INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-																	INNER JOIN app.class_subjects
-																	INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-																				ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-																				ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-																	WHERE class_subjects.class_id = :classId
-																	AND term_id = :termId
-																	AND subjects.parent_subject_id is null
-																	AND subjects.use_for_grading is true
-																	AND student_id = :studentId
-																	AND mark IS NOT NULL
-																	GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, exam_types.is_last_exam
-																	ORDER BY sort_order ASC
-																)a
-																GROUP BY class_id,subject_id,subject_name,student_id,sort_order
-																ORDER BY sort_order ASC
-															) q
-															ORDER BY sort_order
-														)v ORDER BY sort_order");
+																	FROM(
+																		SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+																			(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
+																			(select comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as comment,
+																			(select principal_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as principal_comment, sort_order
+																		FROM (
+																			SELECT class_id,subject_id,subject_name,student_id,coalesce(sum(total_mark)) as total_mark,coalesce(sum(total_grade_weight)) as total_grade_weight,sort_order FROM (
+																				SELECT class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,
+																					coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+																					coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+																					subjects.sort_order
+																				FROM app.exam_marks
+																				INNER JOIN app.class_subject_exams
+																				INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+																				INNER JOIN app.class_subjects
+																				INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+																							ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+																							ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+																				WHERE class_subjects.class_id = :classId
+																				AND term_id = :termId AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND student_id = :studentId AND mark IS NOT NULL
+																				GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading
+																				ORDER BY sort_order ASC
+																			)a
+																			GROUP BY class_id,subject_id,subject_name,student_id,sort_order
+																			ORDER BY sort_order ASC
+																		) q
+																		ORDER BY sort_order
+																	)v ORDER BY sort_order");
 		$sth2BySum->execute(  array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) );
 		$subjectOverallBySum = $sth2BySum->fetchAll(PDO::FETCH_OBJ);
 
