@@ -1,0 +1,40 @@
+@media print {
+  body * {
+    /* visibility: hidden; */
+    /* width: 100% !important;
+    height: 100% !important; */
+  }
+
+  @page {
+    size: A3 landscape !important;
+    margin: 0;
+  }
+  page[size="A3 landscape"] {
+    margin: 0;
+  }
+  table#resultsTable2{
+    height: 100% !important;
+  }
+  table#resultsTable2 tbody tr td div.nowrap{
+    width: 10px !important;
+    word-spacing: unset !important;
+  }
+  table#resultsTable2 tbody tr td.adm{
+    width: 10px !important;
+    text-align: left !important;
+  }
+  table.tableSection tbody {
+    overflow-y: hidden !important;
+    height: 100% !important;
+}
+  table.dataTable td {
+    table-layout: fixed !important;
+  }
+  form table#resultsTable2 {
+    display: block;
+    margin-top: 0em;
+    page-break-inside:auto !important;
+  }
+
+
+}
