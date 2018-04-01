@@ -58,6 +58,7 @@
 							@import url("components/overviewFiles/css/main-addExamMarks.css");
 						  @import url("components/overviewFiles/css/jquery.dataTables.min.css");
 						  @import url("components/overviewFiles/css/buttons.dataTables.min.css");
+							@import url("components/overviewFiles/css/keyTable.dataTables.min.css");
 						</style>
 						<button type="button" class="btn btn-link" onclick="printThis()"><h4>Show Download Options</h4></button>
 						<div class='table100 ver1 m-b-110'>
@@ -115,6 +116,7 @@
 		      $('#resultsTable2').DataTable( {
 		          fixedHeader: true,
 							"scrollX": true,
+							keys: true,
 		          dom: 'Bfrtip',
 		          buttons: [
 		              // 'excelHtml5',
@@ -145,6 +147,7 @@
 		  <script src="components/overviewFiles/js/pdfmake.min.js"></script>
 		  <script src="components/overviewFiles/js/vfs_fonts.js"></script>
 		  <script src="components/overviewFiles/js/buttons.html5.min.js"></script>
+			<script src="components/overviewFiles/js/dataTables.keyTable.min.js"></script>
 			<script type="text/javascript">
 				function printT5his(){
 					$('.nowrap').css('width','10px !important');
