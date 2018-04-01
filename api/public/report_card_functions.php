@@ -153,6 +153,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 								exam_type,
 								(select grade from app.grading where round((mark::float/grade_weight::float)*100) between min_mark and max_mark) as grade,
 								(select comment from app.grading where round((mark::float/grade_weight::float)*100) between min_mark and max_mark) as comment,
+								(select kiswahili_comment from app.grading where round((mark::float/grade_weight::float)*100) between min_mark and max_mark) as kiswahili_comment,
 								(select principal_comment from app.grading where round((mark::float/grade_weight::float)*100) between min_mark and max_mark) as principal_comment,
 								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
 								subject_name,
@@ -190,11 +191,12 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 
 
 		// get overall marks per subjects, only use parent subjects
-			$sth2 = $db->prepare("SELECT subject_name, total_mark, tot30, tot70, total_grade_weight, percentage, grade, comment, principal_comment, sort_order, grade as overall_grade2
+			$sth2 = $db->prepare("SELECT subject_name, total_mark, tot30, tot70, total_grade_weight, percentage, grade, comment, kiswahili_comment, principal_comment, sort_order, grade as overall_grade2
 														FROM(
 															SELECT  subject_name, total_mark, tot30, tot70, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
 																(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 																(select comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as comment,
+																(select kiswahili_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as kiswahili_comment,
 																(select principal_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as principal_comment, sort_order
 															FROM (
 																SELECT class_id,subject_id,subject_name,student_id,coalesce(sum(total_mark)) as total_mark,coalesce(sum(total_grade_weight)) as total_grade_weight,coalesce(sum(tot30)) as tot30,coalesce(sum(tot70)) as tot70,sort_order FROM (
@@ -295,11 +297,12 @@ FROM(
 		$subjectOverall = $sth2->fetchAll(PDO::FETCH_OBJ);
 
 		// get overall marks per subjects, only use parent subjects (overall determined by summation)
-			$sth2BySum = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, percentage, grade, comment, principal_comment, sort_order, grade as overall_grade2
+			$sth2BySum = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, percentage, grade, comment, kiswahili_comment, principal_comment, sort_order, grade as overall_grade2
 																	FROM(
 																		SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
 																			(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 																			(select comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as comment,
+																			(select kiswahili_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as kiswahili_comment,
 																			(select principal_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as principal_comment, sort_order
 																		FROM (
 																			SELECT class_id,subject_id,subject_name,student_id,coalesce(sum(total_mark)) as total_mark,coalesce(sum(total_grade_weight)) as total_grade_weight,sort_order FROM (
@@ -328,11 +331,12 @@ FROM(
 		$subjectOverallBySum = $sth2BySum->fetchAll(PDO::FETCH_OBJ);
 
 		// get overall marks per subjects, only use parent subjects (overall determined by average)
-			$sth2ByAvg = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, percentage, grade, comment, principal_comment, sort_order, grade as overall_grade2
+			$sth2ByAvg = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, percentage, grade, comment, kiswahili_comment, principal_comment, sort_order, grade as overall_grade2
 																	FROM(
 																		SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
 																			(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 																			(select comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as comment,
+																			(select kiswahili_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as kiswahili_comment,
 																			(select principal_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as principal_comment, sort_order
 																		FROM (
 																			SELECT class_id,subject_id,subject_name,student_id,total_mark,total_grade_weight,sort_order FROM (
