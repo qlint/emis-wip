@@ -27,6 +27,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			{ name: 'Grade', field: 'grade', enableColumnMenu: false, sort: {direction:'asc'},},
 			{ name: 'Grade Marks Range', field: 'mark_range', type:'date', cellFilter:'date', enableColumnMenu: false,},
 			{ name: 'Comment', field: 'comment', enableColumnMenu: false,},
+			{ name: 'Kiswahili Comment', field: 'kiswahili_comment', enableColumnMenu: false,},
 			{ name: 'Principal Comment', field: 'principal_comment', enableColumnMenu: false,},
 		],
 		exporterCsvFilename: 'school-grading.csv',
