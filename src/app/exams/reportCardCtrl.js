@@ -18,9 +18,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.comments = {};
 	$scope.principal_comment = {};
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
-// console.log('sammy');
-// console.log( data);
-$scope.entity_id = data.entity_id;
+	$scope.entity_id = data.entity_id;
 	$scope.canPrint = false;
 
 	$scope.report = {};
@@ -141,16 +139,11 @@ $scope.entity_id = data.entity_id;
 			$scope.graphPoints = data.graphPoints;
 			$scope.currentClassPosition = data.currentClassPosition;
 
-
-			console.log($scope.subjectOverall);
-
 			$scope.savedReport = true;
 			$scope.canPrint = true;
 			$scope.canDelete = ( $scope.isTeacher ? false : true);
 			$scope.filters = data.filters;
 			$scope.isClassTeacher = ( $scope.student.class_teacher_id == $rootScope.currentUser.emp_id ? true : false);
-
-			// console.log(result.data.currentClassPosition);
 
 			// fetch the report cards subjects based on user type
 			getExamMarksforReportCard();
@@ -412,18 +405,15 @@ $scope.entity_id = data.entity_id;
 	var loadStreamPOsition = function(response, status)
 	{
 		var result = angular.fromJson(response);
-		// console.log("streamPosition - >");
+
 		// console.log(response);
 		$scope.streamRankPosition = result.data.streamRank[0].position;
 		$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
 
-			// console.log($scope.streamRankPosition);
-			// console.log($scope.streamRankOutOf);
 			localStorage.setItem('printStreamRank', $scope.streamRankPosition);
 			var getPrintRank = localStorage.getItem("printStreamRank");
 			localStorage.setItem('printStreamRankOutOf', $scope.streamRankOutOf);
 			var getStreamRankOutOf = localStorage.getItem("printStreamRankOutOf");
-			// console.log("printRank = " + getPrintRank);
 
 	}
 
@@ -598,7 +588,13 @@ $scope.entity_id = data.entity_id;
 					item.tot30 = overall.tot30;
 					item.tot70 = overall.tot70;
 					item.position = overall.rank;
-					item.comment = overall.comment;
+					var subjNm = item.subject_name;
+					if( subjNm == "KISWAHILI" ){
+						item.comment = overall.kiswahili_comment;
+					}else{
+						item.comment = overall.comment;
+					}
+					// item.comment = overall.comment;
 					console.log("Endterm percentage :: >>");
 					console.log(overall.percentage);
 
@@ -650,7 +646,12 @@ $scope.entity_id = data.entity_id;
 				var overall = $scope.overallSubjectMarks.filter(function(item2){
 					if( item.subject_name == item2.subject_name ) return item2;
 				})[0];
-				if( overall ) 	item.remarks = overall.comment;
+				if(item.subject_name == "KISWAHILI"){
+					if( overall ) 	item.remarks = overall.kiswahili_comment;
+				}else{
+					if( overall ) 	item.remarks = overall.comment;
+				}
+				// if( overall ) 	item.remarks = overall.comment;
 			});
 		}
 
