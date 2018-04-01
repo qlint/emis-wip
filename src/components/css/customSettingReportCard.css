@@ -1,15 +1,25 @@
 @media print {
+  @page {size: A4 landscape !important; }
+  table.display.dataTable{
+    width:75% !important;
+    float: left;
+  }
+  th.remarks, td.remarks{
+    width:20px !important;
+  }
   table#avaragesTable{
-    max-width: 30% !important;
+    width: 20% !important;
     float: right;
-    margin-top: -200px;
+    margin-top: -100px;
   }
   div#motto {
     visibility: visible !important;
     display: block;
   }
   img#url{
-    max-height: 200px !important;
+    float: right;
+    max-width: 240px !important;
+    max-height: 120px !important;
   }
 
 }
