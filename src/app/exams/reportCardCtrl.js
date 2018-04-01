@@ -944,7 +944,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			motto: $scope.motto
 		}
 
-		var domain = window.location.host;
+		var domain = 'localhost:8008/highschool';
 		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
 	}
