@@ -191,9 +191,13 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 
 
 		// get overall marks per subjects, only use parent subjects
-			$sth2 = $db->prepare("SELECT subject_name, total_mark, tot30, tot70, total_grade_weight, percentage, grade, comment, kiswahili_comment, principal_comment, sort_order, grade as overall_grade2
+			$sth2 = $db->prepare("SELECT subject_name, total_mark, tot30, tot70, total_grade_weight, percentage1, (tot30 + tot70) as percentage,
+															(select grade from app.grading where (tot30 + tot70) between min_mark and max_mark) as grade, 
+															(select comment from app.grading where (tot30 + tot70) between min_mark and max_mark) as comment,
+															(select kiswahili_comment from app.grading where (tot30 + tot70) between min_mark and max_mark) as kiswahili_comment,
+															(select principal_comment from app.grading where (tot30 + tot70) between min_mark and max_mark) as principal_comment, sort_order, grade as overall_grade2
 														FROM(
-															SELECT  subject_name, total_mark, tot30, tot70, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+															SELECT  subject_name, total_mark, tot30, tot70, total_grade_weight, round(total_mark::float/total_grade_weight::float*100) as percentage1,
 																(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 																(select comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as comment,
 																(select kiswahili_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as kiswahili_comment,
@@ -204,41 +208,39 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 																		/*coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,*/
 																		(CASE
 																			WHEN exam_types.is_last_exam is true THEN
-																			  coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
+																				coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
 
 																			WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.classes where class_id= :classId)) THEN
-																			  round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
+																				round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
 
 																			WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.classes where class_id= :classId)) THEN
-																			  coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
+																				coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
 
 																			--ELSE
-																			  --round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
+																				--round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
 																		END) as total_mark,
 																		(CASE
 																			WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.classes where class_id= :classId)) THEN
-																			  round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
-																		END) as tot30,
+																				round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
+																			END) as tot30,
 																		(CASE
 																			WHEN exam_types.is_last_exam is true THEN
-																			  round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
+																				round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
 																		END) as tot70,
 																		/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
 																		(CASE
 																			WHEN exam_types.is_last_exam is true THEN
-																			  coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
+																				coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
 
 																			WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.classes where class_id= :classId)) THEN
-																			  round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
+																				round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
 
 																			WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.classes where class_id= :classId)) THEN
-																			  coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
+																				coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
 
 																			--ELSE
-																			  --round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
-																		END) as total_grade_weight,
-																		subjects.sort_order,
-																		is_last_exam
+																				--round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
+																		END) as total_grade_weight,subjects.sort_order,is_last_exam
 																	FROM app.exam_marks
 																	INNER JOIN app.class_subject_exams
 																	INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
@@ -299,7 +301,7 @@ FROM(
 		// get overall marks per subjects, only use parent subjects (overall determined by summation)
 			$sth2BySum = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, percentage, grade, comment, kiswahili_comment, principal_comment, sort_order, grade as overall_grade2
 																	FROM(
-																		SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+																		SELECT  subject_name, total_mark, total_grade_weight, round(total_mark::float/total_grade_weight::float*100) as percentage,
 																			(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 																			(select comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as comment,
 																			(select kiswahili_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as kiswahili_comment,
@@ -333,7 +335,7 @@ FROM(
 		// get overall marks per subjects, only use parent subjects (overall determined by average)
 			$sth2ByAvg = $db->prepare("SELECT subject_name, total_mark, total_grade_weight, percentage, grade, comment, kiswahili_comment, principal_comment, sort_order, grade as overall_grade2
 																	FROM(
-																		SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+																		SELECT  subject_name, total_mark, total_grade_weight, round(total_mark::float/total_grade_weight::float*100) as percentage,
 																			(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 																			(select comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as comment,
 																			(select kiswahili_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as kiswahili_comment,
@@ -375,7 +377,7 @@ FROM(
 															(SELECT student_id, total_mark/num_exam_types as total_mark, total_grade_weight/num_exam_types as total_grade_weight, rank, percentage, (select grade from app.grading where percentage >= min_mark and  percentage <= max_mark) as grade, position_out_of FROM (
 																SELECT student_id, total_mark, total_grade_weight,
 																	round((SELECT trunc(cast(avg(a.percentage) as numeric),2) AS percentage FROM (
-																			SELECT  subject_name, avg(ceil(total_mark::float/total_grade_weight::float*100)) as percentage FROM (
+																			SELECT  subject_name, avg(round(total_mark::float/total_grade_weight::float*100)) as percentage FROM (
 																				SELECT subject_name, coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
 																					coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight, subjects.sort_order
 																				FROM app.exam_marks
@@ -425,7 +427,7 @@ FROM(
 															FULL OUTER JOIN
 															(SELECT student_id, round(avg(percentage)) AS percentage, (SELECT grade FROM app.grading WHERE round(avg(percentage)) between min_mark and max_mark) AS grade, (SELECT principal_comment FROM app.grading WHERE round(avg(percentage)) between min_mark and max_mark) AS principal_comment FROM (
 																SELECT subject_name, total_mark, total_grade_weight, percentage, sort_order, student_id FROM(
-																	SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage, sort_order, student_id FROM (
+																	SELECT  subject_name, total_mark, total_grade_weight, round(total_mark::float/total_grade_weight::float*100) as percentage, sort_order, student_id FROM (
 																		SELECT class_id,subject_id,subject_name,student_id,coalesce(sum(total_mark)) as total_mark,coalesce(sum(total_grade_weight)) as total_grade_weight,sort_order FROM (
 																			SELECT class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,
 																				/*coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,*/
@@ -502,7 +504,7 @@ FROM(
 																		END) as avg_out_of2,
 																		student_id
 																	FROM (
-																		SELECT  subject_name, total_mark, total_grade_weight, total_mark2, total_grade_weight2, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+																		SELECT  subject_name, total_mark, total_grade_weight, total_mark2, total_grade_weight2, round(total_mark::float/total_grade_weight::float*100) as percentage,
 																			(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
 																			sort_order, exam_type_id, student_id
 																		FROM (
@@ -511,7 +513,8 @@ FROM(
 																				coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
 																				(CASE
 																					WHEN exam_types.is_last_exam is true THEN
-																						coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
+																						/*coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*/
+																						round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
 
 																					WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.classes where class_id= :classId)) THEN
 																						round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
@@ -523,7 +526,8 @@ FROM(
 																				/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
 																				(CASE
 																					WHEN exam_types.is_last_exam is true THEN
-																						coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
+																						/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*/
+																						round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
 
 																					WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.classes where class_id= :classId)) THEN
 																						round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
@@ -769,7 +773,7 @@ FROM(
 		$sth6 = $db->prepare("SELECT position FROM (
               SELECT avg, student_id, rank() over(order by avg desc)  as position FROM (
                SELECT sum(total_mark)/count(*) AS avg, student_id FROM (
-                SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+                SELECT  subject_name, total_mark, total_grade_weight, round(total_mark::float/total_grade_weight::float*100) as percentage,
                  (SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
                  sort_order, exam_type_id, student_id
                 FROM (
@@ -880,7 +884,7 @@ $app->get('/getStreamPosition/:student_id/:entityId/:termId', function ($student
 								              SELECT avg, student_id, first_name, last_name, class_name, rank() over(order by avg desc) AS position,
 								              (SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = :entityId AND students.active is true) AS position_out_of FROM (
 								               SELECT sum(total_mark) AS avg, student_id, first_name, last_name, class_name FROM (
-								                SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+								                SELECT  subject_name, total_mark, total_grade_weight, round(total_mark::float/total_grade_weight::float*100) as percentage,
 								                 (SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
 								                 sort_order, exam_type_id, student_id, first_name, last_name, class_name
 								                FROM (
