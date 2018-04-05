@@ -46,6 +46,7 @@ function($scope, $rootScope){
 		$scope.currentClassPosition = data.currentClassPosition;
 		$scope.streamRankPosition = data.streamRankPosition;
 		$scope.streamRankOutOf = data.streamRankOutOf;
+		$scope.overallSubjectMarks = angular.fromJson(data.subjectOverall);
 		// $scope.currentClassPosition.position = getClassPos;
 		// $scope.streamRankPosition = getPrintRank;
 		// $scope.streamRankOutOf = getStreamRankOutOf;
