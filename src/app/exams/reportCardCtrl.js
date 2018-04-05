@@ -20,6 +20,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 	$scope.entity_id = data.entity_id;
 	$scope.canPrint = false;
+	$scope.isSchool = window.location.host.split('.')[0];
+	console.log($scope.isSchool);
 
 	$scope.report = {};
 	$scope.report.published = false;
@@ -144,6 +146,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.canDelete = ( $scope.isTeacher ? false : true);
 			$scope.filters = data.filters;
 			$scope.isClassTeacher = ( $scope.student.class_teacher_id == $rootScope.currentUser.emp_id ? true : false);
+			$scope.isSchool = ( window.location.host.split('.')[0] == "localhost:8008" ? true : false);
+			console.log("school = "+ window.location.host.split('.')[0] + " and isSchool = " + $scope.isSchool);
 
 			// fetch the report cards subjects based on user type
 			getExamMarksforReportCard();
@@ -595,8 +599,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						item.comment = overall.comment;
 					}
 					// item.comment = overall.comment;
-					console.log("Endterm percentage :: >>");
-					console.log(overall.percentage);
+					// console.log("Endterm percentage :: >>");
+					// console.log(overall.percentage);
 
 					total_marks += parseInt(overall.total_mark);
 					total_grade_weight += parseInt(overall.total_grade_weight);
@@ -941,7 +945,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			currentTermEndDate: $scope.currentTermEndDate,
 			report_card_type: $scope.reportCardType,
 			chart_path: $scope.chart_path,
-			motto: $scope.motto
+			motto: $scope.motto,
+			overallSubjectMarks: $scope.overallSubjectMarks
 		}
 
 		var domain = 'localhost:8008/highschool';
