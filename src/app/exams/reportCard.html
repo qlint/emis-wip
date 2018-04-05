@@ -246,7 +246,7 @@ function getChartPath()
 					<div class="receipt-header-letterhead row" ng-if="useLetterhead">
 						<img class="center col-sm-3" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
 						<h2 class="receipt-title col-sm-6">Termly Assesment Report</h2>
-						<img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-width:150px;" />
+						<!-- <img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-width:150px;" /> -->
 					</div>
 
 					<div class="row progress-report-header"  ng-if="!useLetterhead">
@@ -368,7 +368,8 @@ function getChartPath()
 							<tr>
 								<th rowspan="3" class="center">Subject</th>
 								<th class="center double-border" colspan="{{examTypes.length*3}}">Marks</th>
-								<th rowspan="2" colspan="4" class="center double-border">Overall</th>
+								<!-- <th rowspan="2" colspan="{{ isSchool ? '4' : '2'}}" class="center double-border isSchool">Overall</th> -->
+								<th rowspan="2" colspan="4" class="center double-border isSchool">Overall</th>
 								<th class="center double-border remarks" rowspan="3" width="300">Remarks</th>
 								<th class="center" rowspan="3">Teacher<br>Int.</th>
 							</tr>
@@ -379,8 +380,10 @@ function getChartPath()
 								<th class="center double-border" ng-repeat-start="item in examTypes">Mark</th>
 								<th class="center">Out Of</th>
 								<th class="center" ng-repeat-end="">Grade</th>
-								<th class="center double-border">CAT 30%</th>
-								<th class="center double-border">END 70%</th>
+								<th class="center double-border isSchool">CAT 30%</th>
+								<!-- <th ng-show="isSchool" class="center double-border isSchool">CAT 30%</th> -->
+								<th class="center double-border isSchool">END 70%</th>
+								<!-- <th ng-show="isSchool" class="center double-border isSchool">END 70%</th> -->
 								<th class="center double-border">Avg</th>
 								<th class="center">Grade</th>
 							</tr>
@@ -391,8 +394,10 @@ function getChartPath()
 								<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
 								<td class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
 								<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
-								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td>
-								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td>
+								<!-- <td ng-show="isSchool" class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td> -->
+								<td class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td>
+								<!-- <td ng-show="isSchool" class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td> -->
+								<td class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td>
 								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
 								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
 								<td class="remarks double-border">
@@ -409,8 +414,10 @@ function getChartPath()
 								<th class="center double-border" ng-repeat-start="examType in examTypes">{{totals[examType.exam_type].total_mark}}</th>
 								<th class="center">{{totals[examType.exam_type].total_grade_weight}}</th>
 								<th class="center" ng-repeat-end=""></th>
-								<th class="center"></th>
-								<th class="center"></th>
+								<!-- <th ng-show="isSchool" class="center isSchool"></th> -->
+								<th class="center isSchool"></th>
+								<!-- <th ng-show="isSchool" class="center isSchool"></th> -->
+								<th class="center isSchool"></th>
 								<th class="center double-border getpercentage">{{overall.percentage}}%</th>
 								<th class="center">{{overall.grade}}</th>
 								<th colspan="2" class="center double-border"></th>
@@ -529,7 +536,7 @@ function getChartPath()
 						<div class="receipt-header-letterhead row" ng-if="useLetterhead">
 							<img class="center col-sm-3" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
 							<h2 class="receipt-title col-sm-6">Termly Assesment Report</h2>
-							<img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-width:150px;" />
+							<!-- <img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-width:150px;" /> -->
 						</div>
 
 						<div class="row progress-report-header"  ng-if="!useLetterhead">
@@ -758,7 +765,7 @@ function getChartPath()
 							</tr>
 						</table>
 					</div>
-					<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif">{{motto}}</div>
+					<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif;visibility: visible !important;">{{motto}}</div>
 				</script>
 
 				<script type="text/ng-template" id="Standard-v.3">
@@ -1011,7 +1018,7 @@ function getChartPath()
 							</tr>
 						</table>
 					</div>
-					<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif">{{motto}}</div>
+					<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif;visibility: visible !important;">{{motto}}</div>
 				</script>
 
 				<script type="text/ng-template" id="Kindergarten">
@@ -1122,7 +1129,7 @@ function getChartPath()
 							</tr>
 						</table>
 					</div>
-					<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif">{{motto}}</div>
+					<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif;visibility: visible !important;">{{motto}}</div>
 
 				</script>
 
@@ -1271,7 +1278,7 @@ function getChartPath()
 							</tr>
 						</table>
 					</div>
-					<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif">{{motto}}</div>
+					<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif;visibility: visible !important;">{{motto}}</div>
 
 
 
