@@ -249,6 +249,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.showReportCard = false;
 		$scope.report = {};
 		$scope.overall = {};
+		$scope.overallByAverage = {};
 		$scope.overallLastTerm = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
@@ -262,6 +263,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.showReportCard = false;
 		$scope.report = {};
 		$scope.overall = {};
+		$scope.overallByAverage = {};
 		$scope.overallLastTerm = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
@@ -470,6 +472,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.examMarks = data.details;
 		// $scope.overallSubjectMarks = data.subjectOverall;
 		$scope.overall = data.overall;
+		if (school == "karemeno" || "rongaiboys"){
+			$scope.overall = data.overallByAverage;
+		}else{
+			$scope.overall = data.overall;
+		}
 		$scope.overallLastTerm = data.overallLastTerm;
 		$scope.graphPoints = data.graphPoints;
 		$scope.currentClassPosition = data.currentClassPosition[0];
@@ -480,9 +487,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}else{
 			$scope.overallSubjectMarks = data.subjectOverall;
 		}
-
+		$scope.thisTermMarks = data.overall.current_term_marks;
+		$scope.thisTermMarksOutOf = data.overall.current_term_marks_out_of;
 		console.log("subject overalls variable ::>");
 		console.log($scope.overallSubjectMarks);
+		console.log(data.overall.total_grade_weight);
 
 
 			if (school == "karemeno" && $scope.motto == ""){
@@ -946,10 +955,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			report_card_type: $scope.reportCardType,
 			chart_path: $scope.chart_path,
 			motto: $scope.motto,
-			overallSubjectMarks: $scope.overallSubjectMarks
+			overallSubjectMarks: $scope.overallSubjectMarks,
+			thisTermMarks: $scope.thisTermMarks,
+			thisTermMarksOutOf: $scope.thisTermMarksOutOf
 		}
 
-		var domain = 'localhost:8008/highschool';
+		var domain = "localhost:8008/highschool";
 		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
 	}
