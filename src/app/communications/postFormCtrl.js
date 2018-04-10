@@ -4,7 +4,6 @@ angular.module('eduwebApp').
 controller('postFormCtrl', ['$scope', '$rootScope', 'apiService', 'dialogs', 'FileUploader','$timeout','$state',
 function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $state){
 
-
 	$scope.loadingPost = true;
 	$scope.editingBlogName = false;
 
@@ -371,6 +370,87 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		}
 
 	}
+
+	var loadStudentCurrentClass = function(response)
+	{
+
+		var result = angular.fromJson(response);
+
+		if( result.response == 'success')
+		{
+			$scope.studentClassesData = ( result.nodata ? {} : result.data );
+		}
+		else
+		{
+			console.log("FAILED TO GET STUDENT CLASS DATA");
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+		console.log("class id = " + $scope.studentClassesData[0].class_id);
+
+		/* I've nested the api's to that all data is fetched in one go */
+		apiService.getCurrentTerm({},function(response){
+			var result = angular.fromJson(response);
+
+			if( result.response == 'success')
+			{
+				$rootScope.currentTerm = result.data;
+				$scope.term_id = $rootScope.currentTerm.term_id;
+				var termName = $rootScope.currentTerm.term_name;
+				// we only want the number
+				termName = termName.split(' ');
+				$rootScope.currentTerm.term_name = termName[1];
+				$rootScope.currentTermTitle = $rootScope.currentTerm.term_name  + ', ' + $rootScope.currentTerm.year;
+				// console.log($rootScope);
+			}
+
+			var loadStudentReportCard = function(response)
+			{
+				// $("#reportCardData").click(function () {
+				var result = angular.fromJson(response);
+
+				if( result.response == 'success')
+				{
+					$scope.studentData = ( result.nodata ? {} : result.data );
+					// $("#reportCardData").click(function () {
+						var allDataString = JSON.stringify($scope.studentData.report_data, null, "\t").replace(/[\[\]']+/g,'').replace(/[\{\}']+/g,'').replace(/[\"\"']+/g,'').replace(/[\\\\']+/g,'');
+						var firstReplaceStart = ",parent_subject_name"; var firstReplaceEnd = "overall_mark";
+						var strippedAllDataString1 = allDataString.replace(/parent_subject_name.*?overall_mark/g, 'overall_mark');
+						var strippedAllDataString2 = strippedAllDataString1.replace(/remarks.*?subject_name/g, 'subject_name');
+						var strippedAllDataString3 = strippedAllDataString2.replace(/position_last_term.*?teacher_name/g, 'teacher_name');
+						var strippedAllDataString4 = strippedAllDataString3.replace(/subject_name/g, 'sub').replace(/overall_grade/g, 'grd').replace(/overall_mark/g, 'mks').replace(/subjects:sub/, 'sub').replace(/principle_comments/, 'comment');
+						var strippedAllDataString5 = strippedAllDataString4.replace(/sub/g, '\nsub').replace(/position:total_mark/, '\ntotal').replace(/,total_grade_weight:/, '/').replace(/rank/, '\npos').replace(/comment/, '\ncomment').replace(/remarks.*?\ntotal/g, '\ntotal').split(",teacher_name")[0];
+						var strippedAllDataString6 = "REPORT CARD FOR TERM " + $rootScope.currentTermTitle + " " + strippedAllDataString5;
+						console.log($rootScope.currentTermTitle);
+						$("#textarea1").val(strippedAllDataString6);
+					// });
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+				// });
+			}
+
+			console.log("Student>" + $scope.post.student_id + " Class>" + $scope.studentClassesData[0].class_id + " Term>" + $scope.term_id);
+			var params = $scope.post.student_id + '/' + $scope.studentClassesData[0].class_id + '/' + $scope.term_id;
+			apiService.getStudentReportCard(params,loadStudentReportCard, apiError);
+		}, function(){});
+
+	}
+
+	$scope.studentCurrentClass = function()
+	{
+		$("#reportCardData").click(function () {
+      $(this).text(function(i, text){
+          return text === "LOAD REPORD CARD DATA" ? "DATA ALREADY LOADED" : "FOR NEW DATA - RELOAD PAGE";
+      })
+   });
+		var params = $scope.post.student_id;
+		apiService.getStudentClasses(params, loadStudentCurrentClass, apiError);
+	}
+
 	/*
 	var setInitalComType = function()
 	{
@@ -648,23 +728,8 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.selectedMethod =	angular.copy($scope.filters.send_method).toUpperCase();
 
 			/* set variables to post of selected criteria */
-			var studentIdsArray = [];
-			var parentIdsArray = [];
-			for (var i = 0; i < $scope.theparent.selected.length; i++){
-				studentIdsArray[i] = $scope.theparent.selected[i].student_id;
-				parentIdsArray[i] = $scope.theparent.selected[i].guardian_id;
-			}
-			var studentsJoinedArray = studentIdsArray.join();
-			var parentsJoinedArray = parentIdsArray.join();
-
-			console.log(studentIdsArray);
-			console.log(parentIdsArray);
-
-			// console.log(parentIdsArray.join(','));
-			// var parentIdsArrayJoined = parentIdsArray.join(',');
-			// console.log(JSON.stringify(parentIdsArray));
-			$scope.post.student_id = ( $scope.theparent.selected !== undefined ? studentIdsArray : undefined );
-			$scope.post.guardian_id = ( $scope.theparent.selected !== undefined ? parentIdsArray : undefined );
+			$scope.post.student_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.student_id) : undefined );
+			$scope.post.guardian_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.guardian_id) : undefined );
 			$scope.post.transport_id = ( $scope.theroute.selected !== undefined ? angular.copy($scope.theroute.selected.transport_id) : undefined );
 			$scope.post.fee_item = ( $scope.theactivity.selected !== undefined ? angular.copy($scope.theactivity.selected.fee_item) : undefined );
 			$scope.post.class_id = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_id) : undefined );
@@ -887,7 +952,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 					}
 				}
 				$scope.post.attachment = attachmentArray.join(',');
-				// console.log($scope.post.attachment);
+				console.log($scope.post.attachment);
 
 				if( $scope.isHomework )
 				{
