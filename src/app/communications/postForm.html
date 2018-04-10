@@ -1,3 +1,4 @@
+
 <div ng-controller="postFormCtrl">
 
 	<div id="body-content" class="row blog" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
@@ -94,9 +95,9 @@
 						<div class="col-sm-10">
 							<label for="parent">Select a parent:</label>
 							<div>
-								<ui-select ng-model="theparent.selected" theme="select2" class="form-control" name="parent" multiple required>
+								<ui-select ng-model="theparent.selected" theme="select2" class="form-control" name="parent" required>
 								  <ui-select-match placeholder="Select or search a parent...">
-									<span>{{$item.parent_full_name}} ({{$item.relationship}} of {{$item.student_name}}, {{$item.class_name}})</span>
+									<span>{{$select.selected.parent_full_name}} ({{$select.selected.relationship}} of {{$select.selected.student_name}}, {{$select.selected.class_name}})</span>
 								  </ui-select-match>
 								  <ui-select-choices repeat="item in parents | filter: $select.search">
 								    <span ng-bind-html="item.parent_full_name | highlight: $select.search"></span> -
@@ -268,6 +269,7 @@
 					<p ng-show="postForm.title.$invalid && (postForm.title.$touched || postForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Title is required.</p>
 				</div>
 
+				<style type="text/css"> @import url("components/css/customSettingCommunications.css"); </style>
 				<div ng-if="isEmail" ng-class="{ 'has-error' : postForm.title.$invalid && (postForm.title.$touched || postForm.$submitted) }">
 					<h4>{{( post.send_method == 'email' ? 'Subject' : 'Message' )}}</h4>
 					<script type="text/javascript" src="components/autosize.js"></script>
@@ -286,6 +288,7 @@
 							});
 							});
 				  </script>
+					<a id="reportCardData" ng-show="isStudentFeedback" ng-class="{{ isStudentFeedback ? 'isFeedback' : ''}}" class="btn btn-xs btn-primary" ng-click="studentCurrentClass()">LOAD REPORD CARD DATA</a>
 					<textarea id="textarea1" type="text" name="title" ng-model="post.title" class="form-control" placeholder="{{( post.send_method == 'email' ? 'Enter subject here' : 'Enter message here' )}}" required ></textarea>
 					<p>
 					    <span id="remaining">160 characters remaining</span>
