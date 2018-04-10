@@ -47,6 +47,11 @@ function($scope, $rootScope){
 		$scope.streamRankPosition = data.streamRankPosition;
 		$scope.streamRankOutOf = data.streamRankOutOf;
 		$scope.overallSubjectMarks = angular.fromJson(data.subjectOverall);
+		$scope.thisTermMarks = data.thisTermMarks;
+		$scope.thisTermMarksOutOf = data.thisTermMarksOutOf;
+		$scope.thisTermMarksOutOf = data.thisTermMarksOutOf;
+		$scope.thisTermGrade = data.thisTermGrade;
+		$scope.thisTermPercentage = data.thisTermPercentage;
 		// $scope.currentClassPosition.position = getClassPos;
 		// $scope.streamRankPosition = getPrintRank;
 		// $scope.streamRankOutOf = getStreamRankOutOf;
