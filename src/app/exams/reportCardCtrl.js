@@ -489,9 +489,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 		$scope.thisTermMarks = data.overall.current_term_marks;
 		$scope.thisTermMarksOutOf = data.overall.current_term_marks_out_of;
-		console.log("subject overalls variable ::>");
-		console.log($scope.overallSubjectMarks);
-		console.log(data.overall.total_grade_weight);
+		$scope.thisTermGrade = data.overall.grade;
+		$scope.thisTermPercentage = data.overall.percentage;
+		console.log("Overall data ::>");
+		console.log(data.overall.current_term_marks_out_of);
+		console.log(data.overall.current_term_marks);
 
 
 			if (school == "karemeno" && $scope.motto == ""){
@@ -957,7 +959,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			motto: $scope.motto,
 			overallSubjectMarks: $scope.overallSubjectMarks,
 			thisTermMarks: $scope.thisTermMarks,
-			thisTermMarksOutOf: $scope.thisTermMarksOutOf
+			thisTermMarksOutOf: $scope.thisTermMarksOutOf,
+			thisTermGrade: $scope.thisTermGrade,
+			thisTermPercentage: $scope.thisTermPercentage
 		}
 
 		var domain = "localhost:8008/highschool";
