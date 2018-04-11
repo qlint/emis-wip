@@ -4,7 +4,7 @@ angular.module('eduwebApp').
 controller('streamAnalysisReportCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse',
 function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
-	console.log($scope);
+	// console.log($scope);
 	var initialLoad = true;
 	$scope.filters = {};
 	$scope.filters.status = 'true';
@@ -37,12 +37,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					// store these as they do not change often
 					if( result.response == 'success')
 					{
+						// console.log("Success getting (all) classes :::");
 						$scope.classes = result.data || [];
 						$scope.filters.class = $scope.classes[0];
 						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
 						$scope.filters.entity_id = ( $scope.classes[0] ? $scope.classes[0].entity_id : null);
 						deferred.resolve();
-						console.log($scope.classes);
+						// console.log($scope.classes);
+						// console.log("(all) entities :::");
+						// console.log($scope.filters.entity_id);
 					}
 					else
 					{
@@ -65,8 +68,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						$scope.filters.class_cat_id = ( $scope.classes[0] ? $scope.classes[0].class_cat_id : null);
 						$scope.filters.entity_id = ( $scope.classes[0] ? $scope.classes[0].entity_id : null);
 						deferred.resolve();
-						console.log("Console 2 >");
-						console.log($scope.classes);
+						// console.log("This is before filter selection (all) >");
+						// console.log($scope.filters.entity_id);
 					}
 					else
 					{
@@ -78,14 +81,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 		else
 		{
+			// console.log("This is outside all classes");
 			$scope.classes = $rootScope.allClasses;
 			$scope.filters.class = $scope.classes[0];
 			$scope.filters.class_id = $scope.classes[0].class_id;
 			$scope.filters.class_cat_id = $scope.classes[0].class_cat_id;
 			$scope.filters.entity_id = $scope.classes[0].entity_id;
 			deferred.resolve();
-			console.log("Console 3 >");
-			console.log($scope.classes);
+			// console.log("Specific entity we need? >");
+			// console.log($scope.filters.entity_id);
 		}
 
 
@@ -147,18 +151,61 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 	});
 
+	$scope.getTheCount = function()
+	{
+		$scope.doneSubject = {};
+		$scope.countNotFound = false;
+
+		var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+		apiService.getDoneExamSubjectCount(request, loadCount, apiError);
+	}
+
+	var loadCount = function(response,status)
+	{
+		$scope.loading = false;
+		var result = angular.fromJson( response );
+		if( result.response == 'success' )
+		{
+			if( result.nodata )
+			{
+				$scope.countNotFound = true;
+				$scope.errMsg = "No count data found.";
+			}
+			else
+			{
+				$scope.doneSubject = result.data;
+				$scope.doneSubject.count = $scope.doneSubject.map(a => a.count);
+				$scope.uniqueMean = $scope.doneSubject.count.map(Number);
+				// for (var i = 0; i < $scope.doneSubject.count.length; i++){
+				// 		uniqueMean[i] = $scope.doneSubject.count;
+				// }
+				// console.log($scope.uniqueMean);
+
+			}
+		}
+		else
+		{
+			console.log("QUERY FAIL");
+			$scope.countNotFound = true;
+			$scope.errMsg = result.data;
+		}
+	}
+
 	$scope.getStudentExams = function()
 	{
 		$scope.examMarks = {};
 		$scope.totalMarks = {};
+		$scope.finalMean = {};
 		$scope.meanScores = {};
 		$scope.tableHeader = [];
 		$scope.marksNotFound = false;
 		$scope.getReport = "";
 
+		console.log("Entity=" + $scope.filters.entity_id + " Term=" + $scope.filters.term_id + " ExamType=" + $scope.filters.exam_type_id);
 		var request = $scope.filters.entity_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
 		if( $rootScope.currentUser.user_type == 'TEACHER' ) request += '/' + $rootScope.currentUser.emp_id;
 		apiService.getStreamExamMarks(request, loadMarks, apiError);
+		$scope.getTheCount();
 	}
 
 	var loadMarks = function(response,status)
@@ -167,8 +214,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
+			// console.log("Success getting to db");
 			if( result.nodata )
 			{
+				// console.log("Got to db but not returning data");
 				$scope.marksNotFound = true;
 				$scope.errMsg = "There are currently no exam marks entered for this search criteria.";
 			}
@@ -181,7 +230,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					$scope.dataGrid.clear();
 					$scope.dataGrid.destroy();
 				}
-
+				// console.log("we have data");
 				$scope.examMarks = result.data;
 				$scope.totalStudents = result.data.length;
 
@@ -278,6 +327,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				var total = 0;
 				// need to total up each subject for total marks in footer
 				$scope.totalMarks = {};
+				$scope.finalMean = {};
 				$scope.grandTotal = 0;
 				angular.forEach($scope.examMarks, function(item){
 					var total = 0;
@@ -292,6 +342,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 							if( $scope.totalMarks[key] === undefined ) $scope.totalMarks[key] = 0;
 							$scope.totalMarks[key] = $scope.totalMarks[key] + value;
+							if( $scope.finalMean[key] === undefined ) $scope.finalMean[key] = 0;
+							$scope.finalMean[key] = $scope.finalMean[key];
 						}
 					});
 					item.total = Math.round(total);
@@ -334,9 +386,59 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		return $scope.totalMarks[key] || '-' ;
 	}
 
+	$scope.xlsdownload = function(){
+	    window.open('data:application/vnd.ms-excel,'+document.getElementById('meow').innerHTML.replace(/ /g, '%20'));
+	};
+
 	$scope.displayMeanScore = function(key)
 	{
-		return Math.round($scope.totalMarks[key]/$scope.totalStudents,1) || '-' ;
+		//this converts our array of # of students who did a subject into an object
+		$scope.uniqueMn2 = $scope.uniqueMean.reduce(function(result, item, index, array) {
+			  result[index] = item; //a, b, c
+			  return result;
+			}, {})
+		console.log($scope.uniqueMn2);
+
+		//this takes our original array of # of stdnts who did a subject & divides to the ttl marks
+		var cnt = 0;
+		$scope.divides=[];
+		for (var o in $scope.totalMarks) {
+			$scope.divides.push($scope.totalMarks[o] / $scope.uniqueMean[cnt]);
+		  cnt++
+		}
+
+		$scope.divides2= $scope.divides.map(function(each_element){
+		    return Number(each_element.toFixed(2));
+		});
+		// $scope.divides2 = $scope.divides;
+		console.log($scope.divides2);
+		//the result of the above an array of the mean scores
+
+		//this takes the array above and converts it to an object
+		$scope.dividesObj = $scope.divides.reduce(function(result, item, index, array) {
+			  result[index] = item; //a, b, c
+			  return result;
+			}, {});
+			// console.log($scope.dividesObj);
+
+			// $scope.meanValues = [];
+			// for (var key = 0; key < $scope.divides.length; key++){
+			// 	$scope.meanValues.push($scope.dividesObj[key]);
+			// }
+			//
+			// $scope.finalMean = $scope.meanValues.reduce(function(result, item, index, array) {
+			//   result[index] = item; //a, b, c
+			//   return result;
+			// }, {});
+
+			for (var i in $scope.divedesObj){
+					return $scope.divedesObj[i] || '-' ;
+			}
+			// console.log($scope.finalMean);
+
+
+		// return Math.round($scope.totalMarks[key]/$scope.totalStudents,1) || '-' ;
+
 	}
 
 	var initDataGrid = function()
@@ -485,7 +587,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			totalMarks: $scope.totalMarks
 		}
 		var domain = window.location.host;
-		var newWindowRef = window.open('http://localhost:8008/highschool/#/exams/analysis/print');
+		var newWindowRef = window.open('http:/' + domain + '/#/exams/analysis/print');
 		newWindowRef.printCriteria = data;
 	}
 
