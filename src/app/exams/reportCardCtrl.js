@@ -472,28 +472,28 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.examMarks = data.details;
 		// $scope.overallSubjectMarks = data.subjectOverall;
 		$scope.overall = data.overall;
-		if (school == "karemeno" || "rongaiboys"){
+		if (school == "karemeno" || "rongaiboys" || "localhost:8014"){
 			$scope.overall = data.overallByAverage;
+			$scope.thisTermMarks = data.overallByAverage.current_term_marks;
+			console.log($scope.overall);
 		}else{
 			$scope.overall = data.overall;
+			$scope.thisTermMarks = data.overall.current_term_marks;
 		}
 		$scope.overallLastTerm = data.overallLastTerm;
 		$scope.graphPoints = data.graphPoints;
 		$scope.currentClassPosition = data.currentClassPosition[0];
-		if (school == "karemeno"){
+		if (school == "karemeno" || "localhost:8014"){
 			$scope.overallSubjectMarks = data.subjectOverallBySum;
 		}else if (school == "rongaiboys"){
 			$scope.overallSubjectMarks = data.subjectOverallByAvg;
 		}else{
 			$scope.overallSubjectMarks = data.subjectOverall;
 		}
-		$scope.thisTermMarks = data.overall.current_term_marks;
+		// $scope.thisTermMarks = data.overall.current_term_marks;
 		$scope.thisTermMarksOutOf = data.overall.current_term_marks_out_of;
 		$scope.thisTermGrade = data.overall.grade;
 		$scope.thisTermPercentage = data.overall.percentage;
-		console.log("Overall data ::>");
-		console.log(data.overall.current_term_marks_out_of);
-		console.log(data.overall.current_term_marks);
 
 
 			if (school == "karemeno" && $scope.motto == ""){
@@ -964,7 +964,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			thisTermPercentage: $scope.thisTermPercentage
 		}
 
-		var domain = "localhost:8008/highschool";
+		var domain = "localhost:8014/karemeno";
 		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
 	}
