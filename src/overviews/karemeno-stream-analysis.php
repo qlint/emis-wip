@@ -102,7 +102,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
 			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 15 AND students.active is true) AS position_out_of
 		FROM (
-			SELECT round((sum(total_mark))/3) AS avg, student_id, student_name, class_name
+			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
 			FROM (
 				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
 					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
@@ -268,7 +268,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
 			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 14 AND students.active is true) AS position_out_of
 		FROM (
-			SELECT round((sum(total_mark))/3) AS avg, student_id, student_name, class_name
+			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
 			FROM (
 				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
 					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
@@ -431,7 +431,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
 			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 13 AND students.active is true) AS position_out_of
 		FROM (
-			SELECT round((sum(total_mark))/3) AS avg, student_id, student_name, class_name
+			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
 			FROM (
 				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
 					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
@@ -596,7 +596,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
 			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 12 AND students.active is true) AS position_out_of
 		FROM (
-			SELECT round((sum(total_mark))/2) AS avg, student_id, student_name, class_name
+			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
 			FROM (
 				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
 					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
