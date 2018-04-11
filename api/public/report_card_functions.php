@@ -675,7 +675,7 @@ FROM(
 		$overall = $sth3->fetch(PDO::FETCH_OBJ);
 
 		// get overall position (exactly same as above) but current term marks by the average
-		$sth3ByAverage = $db->prepare("SELECT marks.total_mark, marks.total_grade_weight, positions.rank, percentages.percentage, percentages.grade, percentages.principal_comment, marks.position_out_of, positions.current_term_marks, positions.current_term_marks_out_of FROM
+		$sth3ByAverage = $db->prepare("SELECT marks.total_mark, marks.total_grade_weight, positions.rank, percentages.percentage, percentages.grade, percentages.principal_comment, marks.position_out_of, percentages.total_marks_percent as current_term_marks, positions.current_term_marks_out_of FROM
 															(SELECT student_id, total_mark/num_exam_types as total_mark, total_grade_weight/num_exam_types as total_grade_weight, rank, percentage, (select grade from app.grading where percentage >= min_mark and  percentage <= max_mark) as grade, position_out_of FROM (
 																SELECT student_id, total_mark, total_grade_weight,
 																	round((SELECT trunc(cast(avg(a.percentage) as numeric),2) AS percentage FROM (
@@ -727,7 +727,7 @@ FROM(
 																) a WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)
 															) q WHERE student_id = :studentId) AS marks
 															FULL OUTER JOIN
-															(SELECT student_id, round(avg(percentage)) AS percentage, (SELECT grade FROM app.grading WHERE round(avg(percentage)) between min_mark and max_mark) AS grade, (SELECT principal_comment FROM app.grading WHERE round(avg(percentage)) between min_mark and max_mark) AS principal_comment FROM (
+															(SELECT student_id, round(avg(percentage)) AS percentage, sum(percentage) as total_marks_percent, (SELECT grade FROM app.grading WHERE round(avg(percentage)) between min_mark and max_mark) AS grade, (SELECT principal_comment FROM app.grading WHERE round(avg(percentage)) between min_mark and max_mark) AS principal_comment FROM (
 																SELECT subject_name, total_mark, total_grade_weight, percentage, sort_order, student_id FROM(
 																	SELECT  subject_name, total_mark, total_grade_weight, round(total_mark::float/total_grade_weight::float*100) as percentage, sort_order, student_id FROM (
 																		SELECT class_id,subject_id,subject_name,student_id,coalesce(sum(total_mark)) as total_mark,coalesce(sum(total_grade_weight)) as total_grade_weight,sort_order FROM (
