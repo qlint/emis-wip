@@ -20,7 +20,7 @@
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
 					<div class="btn" title="print" ng-click="printReport()"><a class="export-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div>
-					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
+					<div class="btn" title="Export" ng-click="xlsdownload()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
 				</div>
 			</div>
 
@@ -82,6 +82,7 @@
 			<div ng-include="getReport"></div>
 
 			<script type="text/ng-template" id="examsTable">
+				<div id="meow">
 				<table id="resultsTable" class="display dataTable compactHeader" cellspacing="0" width="100%" ng-show="!loading">
 					<thead>
 						<tr>
@@ -107,13 +108,18 @@
 							<th></th>
 						</tr>
 						<tr>
-							<th class="right">MEAN SCORE</th>
+							<th class="right"></th>
 							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMeanScore(col.key)"></th>
 							<th></th>
 							<th></th>
 						</tr>
+						<tr style="border-collapse: collapse;text-align:left;">
+							<th class="right">MEAN SCORE</th>
+							<th ng-repeat="item in divides2" class="center">{{item}}</td>
+						</tr>
 					</tfoot>
 				</table>
+			</div>
 			</script>
 		</div>
 	</div>
