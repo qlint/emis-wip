@@ -388,7 +388,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
-		console.log("class id = " + $scope.studentClassesData[0].class_id);
+		console.log("class id=" + $scope.studentClassesData[0].class_id + " class name= " + $scope.studentClassesData[0].class_name + " entity=" + $scope.studentClassesData[0].entity_id);
 
 		/* I've nested the api's to that all data is fetched in one go */
 		apiService.getCurrentTerm({},function(response){
@@ -407,57 +407,80 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				// console.log($rootScope);
 			}
 
-			var loadStudentReportCard = function(response)
+			var loadStreamPOsition = function(response, status)
 			{
-				// $("#reportCardData").click(function () {
 				var result = angular.fromJson(response);
 
-				if( result.response == 'success')
+				// console.log(response);
+				$scope.streamRankPosition = result.data.streamRank[0].position;
+				$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
+				console.log("Stream = " + $scope.streamRankPosition + "/" + $scope.streamRankOutOf);
+
+				var loadStudentReportCard = function(response)
 				{
-					console.log("STUDENT DATA SUCCESS ::: Where's the data?");
-					$scope.studentData = ( result.nodata ? {} : result.data );
-					console.log($scope.studentData);
+					// $("#reportCardData").click(function () {
+					var result = angular.fromJson(response);
 
-					var school = window.location.host.split('.')[0];
+					if( result.response == 'success')
+					{
+						console.log("STUDENT DATA SUCCESS ::: Where's the data?");
+						$scope.studentData = ( result.nodata ? {} : result.data );
+						console.log($scope.studentData);
 
-					if (school == "localhost:8014"){
-						var allDataString = JSON.stringify($scope.studentData.report_data, null, "\t").replace(/[\[\]']+/g,'').replace(/[\{\}']+/g,'').replace(/[\"\"']+/g,'').replace(/[\\\\']+/g,'');
-						var firstReplaceStart = ",parent_subject_name"; var firstReplaceEnd = "overall_mark";
-						var strippedAllDataString1 = allDataString.replace(/parent_subject_name.*?overall_mark/g, 'mks');
-						var strippedAllDataString2 = strippedAllDataString1.replace(/comment.*?subject_name/g, 'sub').replace(/overall_grade/g, 'grd').replace(/subjects:subject_name/g, 'sub');
-						var strippedAllDataString3 = strippedAllDataString2.split(",position_last_term")[0];
-						var strippedAllDataString4 = strippedAllDataString3.replace(/comment.*?position:total_mark/g, '\ntot').replace(/principal_comment.*?position_out_of/g, 'out_of').replace(/,total_grade_weight:/g, '/').replace(/,percentage.*?out_of:/g, '/').split(",current_term_marks")[0];
-						var strippedAllDataString5 = strippedAllDataString4.toLowerCase().replace(/mathematics/g,'Mth').replace(/english/g,'Eng').replace(/kiswahili/g,'Kis').replace(/biology/g,'Bio').replace(/chemistry/g,'Chm').replace(/physics/g,'Phy').replace(/geography/g,'Geo').replace(/history/g,'Hst').replace(/agriculture/g,'Agr').replace(/computer/g,'Cmp').replace(/sub:/g, '\nsub:').replace(/rank/g, '\npos');
-						var strippedAllDataString6 = "TERM " + $rootScope.currentTermTitle + " REPORT";
-						var strippedAllDataString7 = strippedAllDataString6 + strippedAllDataString5;
+						var school = window.location.host.split('.')[0];
 
-						console.log(allDataString);
-						$("#textarea1").val(strippedAllDataString7);
-					}else{
-						var allDataString = JSON.stringify($scope.studentData.report_data, null, "\t").replace(/[\[\]']+/g,'').replace(/[\{\}']+/g,'').replace(/[\"\"']+/g,'').replace(/[\\\\']+/g,'');
-						var firstReplaceStart = ",parent_subject_name"; var firstReplaceEnd = "overall_mark";
-						var strippedAllDataString1 = allDataString.replace(/parent_subject_name.*?overall_mark/g, 'overall_mark');
-						var strippedAllDataString2 = strippedAllDataString1.replace(/remarks.*?subject_name/g, 'subject_name');
-						var strippedAllDataString3 = strippedAllDataString2.replace(/position_last_term.*?teacher_name/g, 'teacher_name');
-						var strippedAllDataString4 = strippedAllDataString3.replace(/subject_name/g, 'sub').replace(/overall_grade/g, 'grd').replace(/overall_mark/g, 'mks').replace(/subjects:sub/, 'sub').replace(/principle_comments/, 'comment');
-						var strippedAllDataString5 = strippedAllDataString4.replace(/sub/g, '\nsub').replace(/position:total_mark/, '\ntotal').replace(/,total_grade_weight:/, '/').replace(/rank/, '\npos').replace(/comment/, '\ncomment').replace(/remarks.*?\ntotal/g, '\ntotal').split(",teacher_name")[0];
-						var strippedAllDataString6 = "REPORT CARD FOR TERM " + $rootScope.currentTermTitle + " " + strippedAllDataString5;
-						console.log($rootScope.currentTermTitle);
-						$("#textarea1").val(strippedAllDataString6);
+						if (school == "karemeno"){
+							var allDataString = JSON.stringify($scope.studentData.report_data, null, "\t").replace(/[\[\]']+/g,'').replace(/[\{\}']+/g,'').replace(/[\"\"']+/g,'').replace(/[\\\\']+/g,'');
+							var firstReplaceStart = ",parent_subject_name"; var firstReplaceEnd = "overall_mark";
+							var strippedAllDataString1 = allDataString.replace(/parent_subject_name.*?overall_mark/g, 'mks');
+							var strippedAllDataString2 = strippedAllDataString1.replace(/comment.*?subject_name/g, 'sub').replace(/overall_grade/g, 'grd').replace(/subjects:subject_name/g, 'sub');
+							var strippedAllDataString3 = strippedAllDataString2.split(",position_last_term")[0];
+							var strippedAllDataString4 = strippedAllDataString3.replace(/comment.*?position:total_mark/g, '\ntot').replace(/principal_comment.*?position_out_of/g, 'out_of').replace(/,total_grade_weight:/g, '/').replace(/,percentage.*?out_of:/g, '/').split(",current_term_marks")[0];
+							var strippedAllDataString5 = strippedAllDataString4.toUpperCase().replace(/MATHEMATICS/g,'MAT').replace(/ENGLISH/g,'ENG').replace(/KISWAHILI/g,'KIS').replace(/BIOLOGY/g,'BIO').replace(/CHEMISTRY/g,'CHM').replace(/PHYSICS/g,'PHY').replace(/GEOGRAPHY/g,'GEO').replace(/HISTORY/g,'HST').replace(/BSTDS/g,'BST').replace(/AGRICULTURE/g,'AGR').replace(/COMPUTER/g,'CMP').replace(/SUB:/g, '\nSUB:').replace(/RANK/g, '\nPOS').replace(/SUB:/g, '').replace(/,MKS:/g, ' : ').replace(/,GRD:/g, '   ');
+							var strippedAllDataString6 = "TERM " + $rootScope.currentTermTitle + " REPORT" + "\n"+$scope.theparent.selected.student_name + "\n"+$scope.studentClassesData[0].class_name;
+							var strmPos = "STREAM:" + $scope.streamRankPosition + "/" + $scope.streamRankOutOf;
+							var ovrlGrade = allDataString.replace(/subjects:subject_name.*?rank:/g, 'rank:').split(",principal_comment:")[0].replace(/rank:.*?,grade/g, 'OVRL GRD');
+							var strippedAllDataString7 = strippedAllDataString6 + strippedAllDataString5 + "\n"+strmPos + "\n"+ovrlGrade;
+							console.log(ovrlGrade);
+
+							// console.log(allDataString);
+							$("#textarea1").val(strippedAllDataString7);
+						}else{
+							var allDataString = JSON.stringify($scope.studentData.report_data, null, "\t").replace(/[\[\]']+/g,'').replace(/[\{\}']+/g,'').replace(/[\"\"']+/g,'').replace(/[\\\\']+/g,'');
+							var firstReplaceStart = ",parent_subject_name"; var firstReplaceEnd = "overall_mark";
+							var strippedAllDataString1 = allDataString.replace(/parent_subject_name.*?overall_mark/g, 'overall_mark');
+							var strippedAllDataString2 = strippedAllDataString1.replace(/remarks.*?subject_name/g, 'subject_name');
+							var strippedAllDataString3 = strippedAllDataString2.replace(/position_last_term.*?teacher_name/g, 'teacher_name');
+							var strippedAllDataString4 = strippedAllDataString3.replace(/subject_name/g, 'sub').replace(/overall_grade/g, 'grd').replace(/overall_mark/g, 'mks').replace(/subjects:sub/, 'sub').replace(/principle_comments/, 'comment');
+							var strippedAllDataString5 = strippedAllDataString4.replace(/sub/g, '\nsub').replace(/position:total_mark/, '\ntotal').replace(/,total_grade_weight:/, '/').replace(/rank/, '\npos').replace(/comment/, '\ncomment').replace(/remarks.*?\ntotal/g, '\ntotal').split(",teacher_name")[0];
+							var strippedAllDataString6 = "REPORT CARD FOR TERM " + $rootScope.currentTermTitle + " " + strippedAllDataString5;
+							console.log($rootScope.currentTermTitle);
+							$("#textarea1").val(strippedAllDataString6);
+						}
 					}
+					else
+					{
+						console.log("FAILED TO GET STUDENT DATA FROM THE DB");
+						$scope.error = true;
+						$scope.errMsg = result.data;
+					}
+					// });
 				}
-				else
-				{
-					console.log("FAILED TO GET STUDENT DATA FROM THE DB");
-					$scope.error = true;
-					$scope.errMsg = result.data;
-				}
-				// });
-			}
 
 			console.log("Student>" + $scope.post.student_id + " Class>" + $scope.studentClassesData[0].class_id + " Term>" + $scope.term_id);
 			var params = $scope.post.student_id + '/' + $scope.studentClassesData[0].class_id + '/' + $scope.term_id;
 			apiService.getStudentReportCard(params,loadStudentReportCard, apiError);
+
+			}
+
+			var getStreamPosition = function()
+			{
+				var params = $scope.post.student_id + '/' + $scope.studentClassesData[0].entity_id + '/' +  $scope.term_id;
+
+				apiService.getStreamPosition(params, loadStreamPOsition, apiError);
+			}
+			getStreamPosition();
+
 		}, function(){});
 
 	}
