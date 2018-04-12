@@ -775,20 +775,27 @@ $app->get('/getStudentClasses/:studentId', function ($studentId) {
   try
   {
     $db = getDB();
-    $sth = $db->prepare("SELECT 1 as ord, student_id, class_id, class_name,
-                case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 1') then true else false end as term_1,
-                case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 2') then true else false end as term_2,
-                case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
-              FROM app.students
-              INNER JOIN app.classes ON students.current_class = classes.class_id
-              WHERE student_id = :studentId
-              UNION
-              SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
-              FROM app.student_class_history
-              INNER JOIN app.classes ON student_class_history.class_id = classes.class_id
-              WHERE student_id = :studentId
-              AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId)
-              ORDER BY ord");
+    $sth = $db->prepare("SELECT foo.*, foo2.entity_id FROM
+                          (SELECT 1 as ord, student_id, class_id, class_name,
+                          	case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 1') then true else false end as term_1,
+                          	case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 2') then true else false end as term_2,
+                          	case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
+                          FROM app.students
+                          INNER JOIN app.classes ON students.current_class = classes.class_id
+                          WHERE student_id = :studentId
+                          UNION
+                          SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
+                          FROM app.student_class_history
+                          INNER JOIN app.classes ON student_class_history.class_id = classes.class_id
+                          WHERE student_id = :studentId
+                          AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId)
+                          ORDER BY ord)AS foo
+                          FULL OUTER JOIN
+                          (SELECT classes.class_id, cc.class_cat_id, cc.entity_id
+                          FROM app.class_cats cc
+                          INNER JOIN app.classes ON cc.class_cat_id = classes.class_cat_id
+                          WHERE class_id = (SELECT current_class FROM app.students WHERE student_id=:studentId))AS foo2
+                          ON foo.class_id = foo2.class_id");
     $sth->execute( array(':studentId' => $studentId) );
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
