@@ -676,14 +676,14 @@ FROM(
 
 		// get overall position (exactly same as above) but current term marks by the average
 		$sth3ByAverage = $db->prepare("SELECT total_mark, total_grade_weight, rank, percentage, (SELECT grade FROM app.grading WHERE round((current_term_marks::float/current_term_marks_out_of::float)*100) between min_mark and max_mark) AS grade, principal_comment,position_out_of,current_term_marks,current_term_marks_out_of FROM(
-																			SELECT marks.total_mark, marks.total_grade_weight, positions.rank, percentages.percentage, percentages.grade, percentages.principal_comment, marks.position_out_of, 
+																			SELECT marks.total_mark, marks.total_grade_weight, positions.rank, percentages.percentage, percentages.grade, percentages.principal_comment, marks.position_out_of,
 																				percentages.total_marks_percent as current_term_marks,
 																				(case
-																					WHEN positions.current_term_marks_out_of between 0 and 700 THEN
+																					WHEN positions.current_term_marks_out_of between 0 and 700 and (select entity_id from app.class_cats where class_cat_id=(select class_cat_id from app.classes where class_id=:classId)) > 13 THEN
 																						700
-																					WHEN positions.current_term_marks_out_of between 701 and 800 THEN
+																					WHEN positions.current_term_marks_out_of between 701 and 800 and (select entity_id from app.class_cats where class_cat_id=(select class_cat_id from app.classes where class_id=:classId)) > 13 THEN
 																						800
-																					WHEN positions.current_term_marks_out_of > 801 THEN
+																					WHEN (select entity_id from app.class_cats where class_cat_id=(select class_cat_id from app.classes where class_id=:classId)) < 14 THEN
 																						1200
 																					--WHEN positions.current_term_marks_out_of = 800 THEN
 																						--800
