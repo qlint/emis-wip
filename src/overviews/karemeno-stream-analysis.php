@@ -25,20 +25,20 @@ header('Access-Control-Allow-Origin: *');
   	   <div class="wrap-table100">
          <h4>STREAM: Form 4</h4><hr>
 <?php
-$db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_rongaiboys user=postgres password=postgres");
-// $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-// $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+// $db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_karemeno user=postgres password=postgres");
+$getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
+$db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
 
 
 /* -------------------------FORM 4 QUERY ------------------------- */
-$table1 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, cre, physics, biology, chemistry, history, geography, bs_studies, agriculture, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
+$table1 = pg_query($db,"SELECT student_name, mathematics, english, kiswahili, biology, chemistry, physics, geography, history, cre, bs_studies, agriculture, tot, round((tot::float/700)*100) as percentage, (select grade from app.grading where round((tot::float/700)*100) between min_mark and max_mark) as grade, pos FROM (
   SELECT t1.*, t2.avg as tot, t2.position as pos
 FROM
 (
 /* CREATE EXTENSION tablefunc; */
 
 SELECT *
-FROM   crosstab('SELECT student_name, subject_name, round(avg(marks)) as marks FROM (
+FROM   crosstab('SELECT student_name, subject_name, sum(marks) as marks FROM (
 SELECT student_id, student_name, class_name, exam_type, subject_name, total_mark as marks_bak, total_mark as marks, total_grade_weight as out_of_bak, total_grade_weight as out_of, percentage, grade, sort_order
 FROM(
 SELECT  student_id, student_name, class_name, exam_type, subject_name,
@@ -93,7 +93,7 @@ ORDER BY sort_order
 ORDER BY student_name ASC, sort_order ASC
 )a
 GROUP BY student_name, subject_name
-ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, cre bigint, physics bigint, biology bigint, chemistry bigint, history bigint, geography bigint, bs_studies bigint, agriculture bigint)
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15 LIMIT 1) order by sort_order') AS ct (student_name text, mathematics bigint, english bigint, kiswahili bigint, biology bigint, chemistry bigint, physics bigint, geography bigint, history bigint, cre bigint, bs_studies bigint, agriculture bigint)
 
 ) AS t1
     FULL OUTER JOIN
@@ -102,7 +102,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
 			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 15 AND students.active is true) AS position_out_of
 		FROM (
-			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
+			SELECT round((sum(total_mark))/3) AS avg, student_id, student_name, class_name
 			FROM (
 				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
 					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
@@ -171,18 +171,18 @@ echo "<table id='table1'>";
         while ($row = pg_fetch_assoc($table1)) {
           echo "<tr class='row100 body'>";
              echo "<td class='cell100 column1'>" . $row['student_name'] . "</td>";
-             echo "<td class='cell100 column2'>" . $row['english'] . "</td>";
-             echo "<td class='cell100 column3'>" . $row['kiswahili'] . "</td>";
-             echo "<td class='cell100 column4'>" . $row['mathematics'] . "</td>";
-             echo "<td class='cell100 column5'>" . $row['cre'] . "</td>";
-             echo "<td class='cell100 column6'>" . $row['physics'] . "</td>";
-             echo "<td class='cell100 column7'>" . $row['biology'] . "</td>";
-             echo "<td class='cell100 column8'>" . $row['chemistry'] . "</td>";
+             echo "<td class='cell100 column2'>" . $row['mathematics'] . "</td>";
+             echo "<td class='cell100 column3'>" . $row['english'] . "</td>";
+             echo "<td class='cell100 column4'>" . $row['kiswahili'] . "</td>";
+             echo "<td class='cell100 column5'>" . $row['biology'] . "</td>";
+             echo "<td class='cell100 column6'>" . $row['chemistry'] . "</td>";
+             echo "<td class='cell100 column7'>" . $row['physics'] . "</td>";
+             echo "<td class='cell100 column8'>" . $row['geography'] . "</td>";
              echo "<td class='cell100 column9'>" . $row['history'] . "</td>";
-             echo "<td class='cell100 column10'>" . $row['geography'] . "</td>";
+             echo "<td class='cell100 column10'>" . $row['cre'] . "</td>";
              echo "<td class='cell100 column11'>" . $row['bs_studies'] . "</td>";
-             echo "<td class='cell100 column12'>" . $row['computer'] . "</td>";
-             echo "<td class='cell100 column13'>" . $row['agriculture'] . "</td>";
+             echo "<td class='cell100 column12'>" . $row['agriculture'] . "</td>";
+             echo "<td class='cell100 column13'>" . $row['computer'] . "</td>";
              echo "<td class='cell100 column14'>" . $row['tot'] . "</td>";
              echo "<td class='cell100 column15'>" . $row['percentage'] . "</td>";
              echo "<td class='cell100 column16'>" . $row['grade'] . "</td>";
@@ -197,14 +197,14 @@ echo "<table id='table1'>";
 
 echo "<h4>STREAM: Form 3</h4><hr>";
 /* -------------------------FORM 3 QUERY ------------------------- */
- $table2 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, cre, physics, biology, chemistry, history, geography, bs_studies, agriculture, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
+ $table2 = pg_query($db,"SELECT student_name, mathematics, english, kiswahili, biology, chemistry, physics, geography, history, cre, bs_studies, agriculture, tot, round((tot::float/700)*100) as percentage, (select grade from app.grading where round((tot::float/700)*100) between min_mark and max_mark) as grade, pos FROM (
   SELECT t1.*, t2.avg as tot, t2.position as pos
 FROM
 (
 /* CREATE EXTENSION tablefunc; */
 
 SELECT *
-FROM   crosstab('SELECT student_name, subject_name, round(avg(marks)) as marks FROM (
+FROM   crosstab('SELECT student_name, subject_name, SUM(marks) as marks FROM (
 SELECT student_id, student_name, class_name, exam_type, subject_name, total_mark as marks_bak, total_mark as marks, total_grade_weight as out_of_bak, total_grade_weight as out_of, percentage, grade, sort_order
 FROM(
 SELECT  student_id, student_name, class_name, exam_type, subject_name,
@@ -259,7 +259,7 @@ ORDER BY sort_order
 ORDER BY student_name ASC, sort_order ASC
 )a
 GROUP BY student_name, subject_name
-ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, cre bigint, physics bigint, biology bigint, chemistry bigint, history bigint, geography bigint, bs_studies bigint, agriculture bigint)
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14 LIMIT 1) order by sort_order') AS ct (student_name text, mathematics bigint, english bigint, kiswahili bigint, biology bigint, chemistry bigint, physics bigint, geography bigint, history bigint, cre bigint, bs_studies bigint, agriculture bigint)
 
 ) AS t1
     FULL OUTER JOIN
@@ -360,14 +360,14 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 
    echo "<h4>STREAM: Form 2</h4><hr>";
    /* -------------------------FORM 2 QUERY ------------------------- */
-    $table3 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, cre, physics, biology, chemistry, history, geography, bs_studies, computer, agriculture, tot, round((tot::float/1200)*100) as percentage, (select grade from app.grading where round((tot::float/1200)*100) between min_mark and max_mark) as grade, pos FROM (
+    $table3 = pg_query($db,"SELECT student_name, mathematics, english, kiswahili, biology, chemistry, physics, geography, history, cre, bs_studies, agriculture, computer, tot, round((tot::float/1200)*100) as percentage, (select grade from app.grading where round((tot::float/1200)*100) between min_mark and max_mark) as grade, pos FROM (
   SELECT t1.*, t2.avg as tot, t2.position as pos
 FROM
 (
 /* CREATE EXTENSION tablefunc; */
 
 SELECT *
-FROM   crosstab('SELECT student_name, subject_name, round(avg(marks)) as marks FROM (
+FROM   crosstab('SELECT student_name, subject_name, SUM(marks) as marks FROM (
 SELECT student_id, student_name, class_name, exam_type, subject_name, total_mark as marks_bak, total_mark as marks, total_grade_weight as out_of_bak, total_grade_weight as out_of, percentage, grade, sort_order
 FROM(
 SELECT  student_id, student_name, class_name, exam_type, subject_name,
@@ -422,7 +422,7 @@ ORDER BY sort_order
 ORDER BY student_name ASC, sort_order ASC
 )a
 GROUP BY student_name, subject_name
-ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, cre bigint, physics bigint, biology bigint, chemistry bigint, history bigint, geography bigint, bs_studies bigint, computer bigint, agriculture bigint)
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13 LIMIT 1) order by sort_order') AS ct (student_name text, mathematics bigint, english bigint, kiswahili bigint, biology bigint, chemistry bigint, physics bigint, geography bigint, history bigint, cre bigint, bs_studies bigint, agriculture bigint, computer bigint)
 
 ) AS t1
     FULL OUTER JOIN
@@ -525,14 +525,14 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 
      echo "<h4>STREAM: Form 1</h4><hr>";
      /* -------------------------FORM 1 QUERY ------------------------- */
-      $table4 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, cre, physics, biology, chemistry, history, geography, bs_studies, computer, agriculture, tot, round((tot::float/1200)*100) as percentage, (select grade from app.grading where round((tot::float/1200)*100) between min_mark and max_mark) as grade, pos FROM (
+      $table4 = pg_query($db,"SELECT student_name, mathematics, english, kiswahili, biology, chemistry, physics, geography, history, cre, bs_studies, agriculture, computer, tot, round((tot::float/1200)*100) as percentage, (select grade from app.grading where round((tot::float/1200)*100) between min_mark and max_mark) as grade, pos FROM (
   SELECT t1.*, t2.avg as tot, t2.position as pos
 FROM
 (
 /* CREATE EXTENSION tablefunc; */
 
 SELECT *
-FROM   crosstab('SELECT student_name, subject_name, round(avg(marks)) as marks FROM (
+FROM   crosstab('SELECT student_name, subject_name, SUM(marks) as marks FROM (
 SELECT student_id, student_name, class_name, exam_type, subject_name, total_mark as marks_bak, total_mark as marks, total_grade_weight as out_of_bak, total_grade_weight as out_of, percentage, grade, sort_order
 FROM(
 SELECT  student_id, student_name, class_name, exam_type, subject_name,
@@ -587,7 +587,7 @@ ORDER BY sort_order
 ORDER BY student_name ASC, sort_order ASC
 )a
 GROUP BY student_name, subject_name
-ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, cre bigint, physics bigint, biology bigint, chemistry bigint, history bigint, geography bigint, bs_studies bigint, computer bigint, agriculture bigint)
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12 LIMIT 1) order by sort_order') AS ct (student_name text, mathematics bigint, english bigint, kiswahili bigint, biology bigint, chemistry bigint, physics bigint, geography bigint, history bigint, cre bigint, bs_studies bigint, agriculture bigint, computer bigint)
 
 ) AS t1
     FULL OUTER JOIN
@@ -709,6 +709,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 	<script src="../components/overviewFiles/js/main.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
+      //form 4 settings below
       $('#table1').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
@@ -731,6 +732,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
           ],
           "order": [[ 15, "asc" ]]
       } );
+      //form 3 below
       $('#table2').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
@@ -753,6 +755,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
           ],
           "order": [[ 15, "asc" ]]
       } );
+      //form 2 below
       $('#table3').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
@@ -775,6 +778,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
           ],
           "order": [[ 16, "asc" ]]
       } );
+      //form 1 below
       $('#table4').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
