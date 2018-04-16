@@ -796,8 +796,8 @@ FROM(
 																			FULL OUTER JOIN
 																			(SELECT avg AS current_term_marks, avg_out_of AS current_term_marks_out_of, student_id, position AS rank FROM (
 																				SELECT avg, avg_out_of, student_id, rank() over(order by avg desc)  as position FROM (
-																					SELECT round(avg(total_mark)) AS avg, sum(total_grade_weight) AS avg_out_of, student_id FROM (
-																						SELECT  sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, student_id, exam_type_id
+																					SELECT round(sum(((total_mark)::float/(total_grade_weight)::float)*100)) AS avg, sum(total_grade_weight) AS avg_out_of, student_id FROM (
+																						SELECT  sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, student_id, subject_id
 																						FROM (
 																							SELECT class_id, class_subjects.subject_id, subject_name, exam_marks.student_id,
 																								coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
@@ -815,7 +815,7 @@ FROM(
 																							AND term_id = :termId AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND mark IS NOT NULL
 																							GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, class_subject_exams.exam_type_id,
 																								exam_types.is_last_exam,subjects.parent_subject_id,exam_marks.mark,class_subject_exams.grade_weight
-																						) q GROUP BY student_id, exam_type_id ORDER BY student_id
+																						) q GROUP BY student_id, subject_id ORDER BY student_id
 																					) AS foo GROUP BY student_id ORDER BY avg DESC
 																				) AS FOO2
 																			) AS foo3 WHERE student_id= :studentId
