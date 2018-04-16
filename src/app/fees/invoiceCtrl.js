@@ -49,6 +49,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
       deferredCredits.resolve();
 		}, function(){deferredCredits.reject();});
 
+		apiService.getBanking({},function(response){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				console.log("Banking data success");
+				$scope.banking = result.data[0].value;
+				console.log($scope.banking);
+			}
+
+		},apiError);
+
     $q.all(requests).then(function () {
 			// calcuate grand total
       $scope.grandTotal = parseFloat($scope.invoice.balance) + (parseFloat($scope.arrears) || 0) + (parseFloat($scope.credit) || 0);
@@ -118,7 +129,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			hasCredit: $scope.hasCredit,
 			arrears: $scope.arrears,
 			hasArrears: $scope.hasArrears,
-      grandTotal: $scope.grandTotal
+      grandTotal: $scope.grandTotal,
+			banking: $scope.banking
 		}
 
 		var domain = window.location.host;
