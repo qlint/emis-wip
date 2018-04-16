@@ -1,8 +1,8 @@
 angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService', function($rootScope, ajaxService) {
 
 	var domain = window.location.host;
-	var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'http://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1	? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost'));
-	path = 'http://localhost/api_eduweb';
+	// var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'http://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1	? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost'));
+	var path = 'http://localhost:8008/api_highschool';
 
 	/*********** class categories ***********/
 	this.getClassCats = function (param, successFunction, errorFunction, params) {
@@ -109,6 +109,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getSettings = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getSettings", successFunction, errorFunction, params);
+	};
+
+	this.getBanking = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getBanking", successFunction, errorFunction, params);
 	};
 
 
@@ -351,6 +355,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getClassExamMarks = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getClassExamMarks/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getDoneExamSubjectCount = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getDoneExamSubjectCount/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getTopStudents = function (param, successFunction, errorFunction, params) {
