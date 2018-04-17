@@ -77,7 +77,26 @@
 					<p class="text-group text-success" ng-show="hasCredit"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
 					<p class="text-group text-danger" ng-show="hasArrears"><strong>Amount in Arrears:</strong> {{arrears|numeric}} {{currency}}</p>
           <p class="text-group"><strong>Outstanding Balance: {{ ( grandTotal > 0 ? '0' : grandTotal)|numeric }} {{currency}}</strong></p>
-					<p class="text-group"><strong>{{ banking }}</strong></p>
+					<style type="text/css"> @import url("components/css/customSettingPrintInvoice.css"); </style>
+					<div id="printDetails" style="border:2px solid black;">
+						<h3 id="printDetailsH3" style="text-align:center;"><strong>SCHOOL BANK ACCOUNT DETAILS</strong><h3>
+						<div class="row">
+							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>ACCOUNT NAME:</strong></p></div>
+							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ account_name }}</strong></p></div>
+						</div>
+						<div class="row">
+							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>BANK:</strong></p></div>
+							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ bank_name }}</strong></p></div>
+						</div>
+						<div class="row">
+							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>BRANCH:</strong></p></div>
+							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ bank_branch }}</strong></p></div>
+						</div>
+						<div class="row">
+							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>ACCOUNT NUMBER:</strong></p></div>
+							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ account_number }}</strong></p></div>
+						</div>
+					</div>
 				</div>
 			</div>
 
