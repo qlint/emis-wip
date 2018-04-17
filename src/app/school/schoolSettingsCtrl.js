@@ -60,6 +60,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'logo' : angular.copy($rootScope.currentUser.settings['logo']	),
 			'Currency' : angular.copy($rootScope.currentUser.settings['Currency']	),
 			'Letterhead' : angular.copy($rootScope.currentUser.settings['Letterhead']	),
+			'Bank Name' : angular.copy($rootScope.currentUser.settings['Bank Name']	),
+			'Bank Branch' : angular.copy($rootScope.currentUser.settings['Bank Branch']	),
+			'Account Name' : angular.copy($rootScope.currentUser.settings['Account Name']	),
+			'Account Number' : angular.copy($rootScope.currentUser.settings['Account Number']	),
 		}
 
 	}
