@@ -53,9 +53,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			var result = angular.fromJson( response );
 			if( result.response == 'success' )
 			{
-				console.log("Banking data success");
-				$scope.banking = result.data[0].value;
-				console.log($scope.banking);
+				// console.log("Banking data success");
+				$scope.bank_name = result.data[0].bank_name;
+				$scope.bank_branch = result.data[0].bank_branch;
+				$scope.account_name = result.data[0].account_name;
+				$scope.account_number = result.data[0].account_number;
+				// console.log($scope.bank_name + "//" + $scope.bank_branch + "//" + $scope.account_name + "//" + $scope.account_number);
 			}
 
 		},apiError);
@@ -130,7 +133,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			arrears: $scope.arrears,
 			hasArrears: $scope.hasArrears,
       grandTotal: $scope.grandTotal,
-			banking: $scope.banking
+			bank_name: $scope.bank_name,
+			bank_branch: $scope.bank_branch,
+			account_name: $scope.account_name,
+			account_number: $scope.account_number
 		}
 
 		var domain = window.location.host;
