@@ -18,7 +18,10 @@ function($scope, $rootScope){
 		$scope.hasArrears = data.hasArrears;
 		$scope.arrears = data.arrears;
     $scope.grandTotal = data.grandTotal;
-		$scope.banking = data.banking;
+		$scope.bank_name = data.bank_name;
+		$scope.bank_branch = data.bank_branch;
+		$scope.account_name = data.account_name;
+		$scope.account_number = data.account_number;
 
 		$scope.loading = false;
 
