@@ -224,8 +224,8 @@ $app->post('/createInvoice', function () use($app) {
 	try
 	{
 		$db = getDB();
-		$invoiceQry = $db->prepare("INSERT INTO app.invoices(student_id, inv_date, total_amount, due_date, created_by, term_id)
-																VALUES(:studentId, :invDate, :totalAmt, :dueDate, :userId, :termId)");
+		$invoiceQry = $db->prepare("INSERT INTO app.invoices(student_id, inv_date, total_amount, due_date, created_by, term_id, custom_invoice_no)
+																VALUES(:studentId, :invDate, :totalAmt, :dueDate, :userId, :termId, :customInvoiceNo)");
 
 		$lineItems = $db->prepare("INSERT INTO app.invoice_line_items(inv_id, student_fee_item_id, amount, created_by)
 									VALUES(currval('app.invoices_inv_id_seq'), :studentFeeItemId, :amount, :userId)");
@@ -247,13 +247,15 @@ $app->post('/createInvoice', function () use($app) {
 			$totalAmt = ( isset($invoice['total_amount']) ? $invoice['total_amount']: null);
 			$dueDate = ( isset($invoice['due_date']) ? $invoice['due_date']: null);
 			$termId = ( isset($invoice['term_id']) ? $invoice['term_id']: null);
+			$customInvoiceNo = ( isset($invoice['custom_invoice_no']) ? $invoice['custom_invoice_no']: null);
 
 			$invoiceQry->execute( array(':studentId' => $studentId,
 																	':invDate' => $invDate,
 																	':totalAmt' => $totalAmt,
 																	':dueDate' => $dueDate,
 																	':userId' => $userId,
-																	':termId' => $termId ) );
+																	':termId' => $termId,
+																	':custom_invoice_no' => $customInvoiceNo ) );
 
 			foreach( $invoice['line_items'] as $lineItem )
 			{
@@ -606,7 +608,17 @@ $app->get('/getBanking', function () {
     try
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT value FROM app.settings WHERE name = 'Bank';");
+        $sth = $db->prepare("SELECT q1.bank_name, q2.bank_branch, q3.account_name, q4.account_number FROM
+														(SELECT value as bank_name, 1 as join FROM app.settings WHERE name = 'Bank Name') AS q1
+														INNER JOIN
+														(SELECT value as bank_branch, 1 as join2 FROM app.settings WHERE name = 'Bank Branch') AS q2
+														ON q1.join = q2.join2
+														INNER JOIN
+														(SELECT value as account_name, 1 as join3 FROM app.settings WHERE name = 'Account Name') AS q3
+														ON q2.join2 = q3.join3
+														INNER JOIN
+														(SELECT value as account_number, 1 as join4 FROM app.settings WHERE name = 'Account Number') AS q4
+														ON q3.join3 = q4.join4");
 		$sth->execute();
 		$settings = $sth->fetchAll(PDO::FETCH_OBJ);
 
