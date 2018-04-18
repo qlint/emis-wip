@@ -1,14 +1,14 @@
-<form name="invoiceForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+<form name="invoiceForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 			<h4 class="modal-title">Invoice Wizard</h4>
 		</div>
 		<div class="modal-body">
-	
+
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
-			
+
 			<div class="row header">
 				<div class="col-sm-4">
 					<!-- term -->
@@ -21,7 +21,7 @@
 					<button type="button" class="btn btn-xs btn-success shift-down" ng-click="generateInvoice()">Load</button>
 				</div>
 			</div>
-			
+
 			<div class="" ng-if="showResults">
 				<div ng-show="allResults.length==0">
 					<p class="alert alert-info">There is no items to invoice for the {{invoice.term}} term.</p>
@@ -33,11 +33,11 @@
 							<li ng-class="{active: activeMonth==key}" ng-repeat="(key,item) in invoices track by $index"><a class="clickable" ng-click="getInvoice(key)">Invoice for {{key}}</a></li>
 						</ul>
 					</div>
-				
+
 					<div class="subtab-content clearfix">
 						<!-- invoice date -->
 						<h2>Balance Due {{invoiceTotal[activeMonth]|currency:""}} {{currency}}</h2>
-						
+
 						<!-- invoice date -->
 						<div class="form-group">
 							<label for="inv_date" class="col-sm-2 control-label">Invoice Date</label>
@@ -48,9 +48,9 @@
 								</div>
 							</div>
 						</div>
-						
+
 						<!-- due date -->
-						<div class="form-group">	
+						<div class="form-group">
 							<label for="due_date" class="col-sm-2 control-label">Due Date</label>
 							<div class="col-sm-3">
 								<div class="input-group">
@@ -59,7 +59,7 @@
 								</div>
 							</div>
 						</div>
-						
+
 						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
@@ -80,18 +80,18 @@
 						</table>
 
 					</div>
-					
+
 				</div>
 			</div>
-			
+
 		</div>
 		<div class="modal-footer">
 			<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
-			
+
 			<button type="submit" class="btn btn-success" ng-show="allResults.length>0">
 				<span ng-hide="saving">Create Invoice(s)</span>
 				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
 			</button>
-			
+
 		</div>
 </form>
