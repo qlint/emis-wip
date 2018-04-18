@@ -87,6 +87,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 		{
 			$scope.invoiceLineItems = ( result.nodata ? {} : result.data );
 
+			$scope.custom_invoice_no = $scope.invoiceLineItems[0].custom_invoice_no;
 			$scope.lineItems = [];
 			var totalAmt = 0;
 			var amt;
@@ -136,11 +137,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			bank_name: $scope.bank_name,
 			bank_branch: $scope.bank_branch,
 			account_name: $scope.account_name,
-			account_number: $scope.account_number
+			account_number: $scope.account_number,
+			custom_invoice_no: $scope.custom_invoice_no
 		}
 
 		var domain = window.location.host;
-		var newWindowRef = window.open('http://localhost:8008/highschool/#/fees/invoice/print');
+		var newWindowRef = window.open('http:/' + domain + '/#/fees/invoice/print');
 		newWindowRef.printCriteria = criteria;
 	}
 
