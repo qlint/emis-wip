@@ -44,8 +44,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.paymentDetails = results.paymentItems;
 			$scope.payment.slip_cheque_no = results.payment.slip_cheque_no;
 			$scope.payment.payment_method = results.payment.payment_method;
-			console.log(results.payment);
-			console.log($scope.payment.payment_method);
+			$scope.payment.custom_receipt_no = "Receipt #: " + results.payment.custom_receipt_no;
 
 			var invoiceItems = results.invoice;
 
@@ -137,7 +136,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 		}
 
 		var domain = window.location.host;
-		var newWindowRef = window.open('http://localhost:8008/highschool/#/fees/receipt/print');
+		var newWindowRef = window.open('http:/' + domain + '/#/fees/receipt/print');
 		newWindowRef.printCriteria = criteria;
 	}
 
