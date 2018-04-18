@@ -34,7 +34,7 @@
 			</div>
 
 			<div>
-				<span class="text-group"><strong>Invoice No:</strong> {{invoice.inv_id}}</span>
+				<span class="text-group"><strong>Invoice No:</strong> {{custom_invoice_no || invoice.inv_id}}</span>
 				<span class="text-group"><strong>Invoice Date:</strong> {{invoice.inv_date|date}}</span>
 				<span class="text-group"><strong>Due Date:</strong> {{invoice.due_date|date}}</span>
 			</div>
