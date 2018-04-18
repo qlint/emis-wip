@@ -225,7 +225,7 @@ $app->post('/createInvoice', function () use($app) {
 	{
 		$db = getDB();
 		$invoiceQry = $db->prepare("INSERT INTO app.invoices(student_id, inv_date, total_amount, due_date, created_by, term_id, custom_invoice_no)
-																VALUES(:studentId, :invDate, :totalAmt, :dueDate, :userId, :termId, :customInvoiceNo)");
+																VALUES(:studentId, :invDate, :totalAmt, :dueDate, :userId, :termId, :custom_invoice_no)");
 
 		$lineItems = $db->prepare("INSERT INTO app.invoice_line_items(inv_id, student_fee_item_id, amount, created_by)
 									VALUES(currval('app.invoices_inv_id_seq'), :studentFeeItemId, :amount, :userId)");
@@ -304,7 +304,8 @@ $app->get('/getInvoiceDetails/:inv_id', function ($invId) {
 										AND reversed = false),0) as total_paid,
 								due_date,
 								inv_item_id,
-								fee_item
+								fee_item,
+								invoices.custom_invoice_no
 							FROM app.invoices
 							INNER JOIN app.invoice_line_items
 								INNER JOIN app.student_fee_items
