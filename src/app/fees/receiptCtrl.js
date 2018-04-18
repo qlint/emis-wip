@@ -68,22 +68,61 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.paymentItems = [];
 			if( $scope.paymentDetails.length > 0 )
 			{
-				var totalAmt = 0;
-				var amt;
-				angular.forEach( $scope.paymentDetails, function(item,key){
-					amt = item.line_item_amount.split('.'),
-					$scope.paymentItems.push( {
-						inv_id: item.inv_id,
-						fee_item: item.fee_item,
-						ksh: amt[0],
-						cts: amt[1]
-					});
-					totalAmt += parseFloat(item.line_item_amount);
-				});
+				/* nested api start */
+				apiService.getInvoiceDetails($scope.paymentDetails[0].inv_id, function(response){
+					var result = angular.fromJson(response);
 
-				var amt = ( String(totalAmt).indexOf('.') > -1 ? String(totalAmt).split('.') : [totalAmt,'00']);
-				$scope.totalAmtKsh = amt[0];
-				$scope.totalAmtCts = amt[1];
+					if( result.response == 'success')
+					{
+						$scope.invoiceLineItems = ( result.nodata ? {} : result.data );
+						$scope.custom_invoice_no = $scope.invoiceLineItems[0].custom_invoice_no;
+
+						/* receipt data start */
+						var totalAmt = 0;
+						var amt;
+						angular.forEach( $scope.paymentDetails, function(item,key){
+							amt = item.line_item_amount.split('.'),
+							$scope.paymentItems.push( {
+								inv_id: item.inv_id,
+								custom_invoice_no: $scope.custom_invoice_no,
+								fee_item: item.fee_item,
+								ksh: amt[0],
+								cts: amt[1]
+							});
+							totalAmt += parseFloat(item.line_item_amount);
+						});
+
+						var amt = ( String(totalAmt).indexOf('.') > -1 ? String(totalAmt).split('.') : [totalAmt,'00']);
+						$scope.totalAmtKsh = amt[0];
+						$scope.totalAmtCts = amt[1];
+						/* receipt data end */
+
+					}
+					else
+					{
+						$scope.error = true;
+						$scope.errMsg = result.data;
+					}
+
+				}, apiError);
+				/* nested api end */
+				// var totalAmt = 0;
+				// var amt;
+				// angular.forEach( $scope.paymentDetails, function(item,key){
+				// 	amt = item.line_item_amount.split('.'),
+				// 	$scope.paymentItems.push( {
+				// 		inv_id: item.inv_id,
+				// 		custom_invoice_no: item.custom_invoice_no,
+				// 		fee_item: item.fee_item,
+				// 		ksh: amt[0],
+				// 		cts: amt[1]
+				// 	});
+				// 	totalAmt += parseFloat(item.line_item_amount);
+				// });
+				//
+				// var amt = ( String(totalAmt).indexOf('.') > -1 ? String(totalAmt).split('.') : [totalAmt,'00']);
+				// $scope.totalAmtKsh = amt[0];
+				// $scope.totalAmtCts = amt[1];
 			}
 			else
 			{
@@ -132,7 +171,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			},
 			feeItems: $scope.feeItems,
 			credit: $scope.credit,
-			hasCredit: $scope.hasCredit
+			hasCredit: $scope.hasCredit,
+			custom_invoice_no: $scope.custom_invoice_no
 		}
 
 		var domain = window.location.host;
