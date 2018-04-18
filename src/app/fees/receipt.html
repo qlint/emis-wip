@@ -54,7 +54,7 @@
 					</thead>
 					<tbody>
 						<tr ng-repeat="item in paymentItems">
-							<td>{{item.inv_id}}</td>
+							<td>{{custom_invoice_no || item.inv_id}}</td>
 							<td>{{item.fee_item}}</td>
 							<td class="center">{{item.ksh|number}}</td>
 							<td class="center">{{item.cts}}</td>
