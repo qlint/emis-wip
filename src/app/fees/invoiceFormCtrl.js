@@ -18,6 +18,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	$scope.filters = {};
 	$scope.filters.method = 'system';
 	$scope.creditApplied = false;
+	// $scope.invoice.custom_invoice_no = undefined;
 
 	$scope.initializeController = function()
 	{
@@ -84,7 +85,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			student: student,
 			section : 'fee_items'
 		};
-		var dlg = $dialogs.create('http://localhost:8008/highschool/app/students/viewStudent.html','viewStudentCtrl',data,{size: 'lg',backdrop:'static'});
+		var dlg = $dialogs.create('http://' + domain + '/app/students/viewStudent.html','viewStudentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(results){
 			// refresh invoice preview
 			$scope.updateFeeItems = results;
@@ -314,8 +315,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 
 		var data = {
 			user_id: $scope.currentUser.user_id,
-			invoices: []
+			invoices: [],
+			custom_invoice_no: $scope.invoice.custom_invoice_no
 		};
+		// console.log("var data at save");
+		// console.log($scope.invoice.custom_invoice_no);
 		var lineItems = [];
 
 		if( $scope.filters.method == 'system' )
@@ -338,7 +342,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 					due_date: moment( items[0].due_date.startDate ).format('YYYY-MM-DD'),
 					total_amount: $scope.invoiceTotal[key],
 					line_items:lineItems,
-					term_id: $scope.termId
+					term_id: $scope.termId,
+					custom_invoice_no: $scope.invoice.custom_invoice_no
 				});
 			});
 		}
@@ -360,10 +365,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 				due_date: $scope.invoice.due_date.startDate,
 				total_amount: $scope.totals.balance,
 				line_items:lineItems,
-				term_id: $scope.termId
+				term_id: $scope.termId,
+				custom_invoice_no: $scope.invoice.custom_invoice_no
 			});
 		}
 		apiService.createInvoice(data,createCompleted,apiError);
+		// console.log(data);
 
 	}
 
@@ -570,6 +577,7 @@ function($scope,$rootScope,$uibModalInstance,$dialogs,$filter,apiService,data){
 						slip_cheque_no: item.slip_cheque_no,
 						replacement_payment: (item.replacement_payment == 'true' ? 't' : 'f' ),
 						line_items: lineItems,
+						custom_invoice_no: $scope.invoice.custom_invoice_no,
 						hasCredit: true,
 						creditAmt: $scope.totalCredit[key],
 						creditId: item.credit_id || null
