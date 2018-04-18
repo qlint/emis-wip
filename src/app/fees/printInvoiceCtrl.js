@@ -22,6 +22,7 @@ function($scope, $rootScope){
 		$scope.bank_branch = data.bank_branch;
 		$scope.account_name = data.account_name;
 		$scope.account_number = data.account_number;
+		$scope.custom_invoice_no = data.custom_invoice_no;
 
 		$scope.loading = false;
 
