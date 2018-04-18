@@ -45,6 +45,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 
 				$scope.totals.balance = angular.copy($scope.invoice.balance);
 				$scope.totals.total_due = angular.copy($scope.invoice.total_due);
+				$scope.custom_invoice_no = angular.copy($scope.invoice.custom_invoice_no);
+				$scope.custom_invoice_no = $scope.invoiceLineItems[0].custom_invoice_no;
 
 			}
 			else
@@ -249,7 +251,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			student: student,
 			section : 'fee_items'
 		};
-		var dlg = $dialogs.create('http://localhost:8008/highschool/app/students/viewStudent.html','viewStudentCtrl',data,{size: 'lg',backdrop:'static'});
+		var dlg = $dialogs.create('http://' + domain + '/app/students/viewStudent.html','viewStudentCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(results){
 			// refresh invoice preview
 			$scope.updateFeeItems = results;
