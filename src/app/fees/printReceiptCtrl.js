@@ -18,12 +18,13 @@ function($scope, $rootScope){
 		$scope.term_year = data.termYear;
 		$scope.credit = data.credit;
 		$scope.hasCredit = data.hasCredit;
-		
+		$scope.custom_invoice_no = data.custom_invoice_no;
+
 		$scope.loading = false;
-		
+
 		setTimeout( function(){
 			window.print();
-			
+
 			setTimeout( function(){
 				$rootScope.isPrinting = false;
 				window.close();
@@ -31,11 +32,11 @@ function($scope, $rootScope){
 		}, 100);
 	}
 	setTimeout(initializeController,1);
-	
+
 	$scope.$on('$destroy', function() {
 		$rootScope.isPrinting = false;
 	});
-	
-	
-	
+
+
+
 } ]);
