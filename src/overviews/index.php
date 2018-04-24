@@ -50,7 +50,7 @@
       <!-- Project One -->
       <div class="row">
         <div class="col-md-7">
-          <a href="#">
+          <a href="<?php echo htmlspecialchars("./".array_shift((explode('.', $_SERVER['HTTP_HOST'])))."-stream-analysis.php"); ?>">
             <img class="img-fluid rounded mb-3 mb-md-0" src="img/stream.jpg" alt="">
           </a>
         </div>
@@ -70,7 +70,7 @@
       <!-- Project Two -->
       <div class="row">
         <div class="col-md-7">
-          <a href="#">
+          <a href="<?php echo htmlspecialchars("./".array_shift((explode('.', $_SERVER['HTTP_HOST'])))."-financial-analysis.php"); ?>">
             <img class="img-fluid rounded mb-3 mb-md-0" src="img/financials.jpg" alt="">
           </a>
         </div>
@@ -86,18 +86,19 @@
       <hr>
 
       <!-- Project Three -->
-      <!-- <div class="row">
+      <div class="row">
         <div class="col-md-7">
-          <a href="#">
-            <img class="img-fluid rounded mb-3 mb-md-0" src="http://placehold.it/700x300" alt="">
+          <a href="<?php echo htmlspecialchars("./".array_shift((explode('.', $_SERVER['HTTP_HOST'])))."-performance-analysis.php"); ?>">
+            <img class="img-fluid rounded mb-3 mb-md-0" src="img/mean_grade.jpg" alt="">
           </a>
         </div>
         <div class="col-md-5">
-          <h3>Project Three</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Omnis, temporibus, dolores, at, praesentium ut unde repudiandae voluptatum sit ab debitis suscipit fugiat natus velit excepturi amet commodi deleniti alias possimus!</p>
-          <a class="btn btn-primary" href="#">View Project</a>
+          <h3>Overall Performance Analysis</h3>
+          <p>These are analyses for the overall performance of the class and the school. This is by analysing the overall class subject mean performance, the overall class mean performance against other classes as well as the
+          overall school subject means. Also includes comparisons for student grade attainment in the different exam types. Note that the mean is derived from the number of students who actually sat for the paper. This is to avoid lower mean figures arising from students who missed out on a given paper(s).</p>
+          <a class="btn btn-primary" href="<?php echo htmlspecialchars("./".array_shift((explode('.', $_SERVER['HTTP_HOST'])))."-performance-analysis.php"); ?>">View Project</a>
         </div>
-      </div> -->
+      </div>
       <!-- /.row -->
 
       <hr>
