@@ -17,3 +17,7 @@ body {
 .pagination {
   margin-bottom: 15px;
 }
+
+.highlight {
+  background-color: #91E4A4 !important;
+}
