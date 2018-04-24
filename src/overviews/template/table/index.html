@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <script type="text/javascript" src="jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="tableExport.js"></script>
+  <script type="text/javascript" src="jquery.base64.js"></script>
+  <script type="text/javascript" src="html2canvas.js"></script>
+  <script type="text/javascript" src="jspdf/libs/sprintf.js"></script>
+  <script type="text/javascript" src="jspdf/jspdf.js"></script>
+  <script type="text/javascript" src="jspdf/libs/base64.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Sample Table</h1>
+        <button id="generate-excel" class="btn btn-danger">Download</button>
+        <br /><br />
+        <ul class="dropdown-menu " role="menu">
+
+								<li><a href="#" onclick="$('#customers').tableExport({type:'csv',escape:'false'});"> CSV</a></li>
+								<li><a href="#" onclick="$('#customers').tableExport({type:'excel',escape:'false'});"> XLS</a></li>
+								<li><a href="#" onclick="$('#customers').tableExport({type:'doc',escape:'false'});"> Word</a></li>
+								<li><a href="#" onclick="$('#customers').tableExport({type:'png',escape:'false'});"> PNG</a></li>
+								<li><a href="#" onclick="$('#customers').tableExport({type:'pdf',pdfFontSize:'7',escape:'false'});"> PDF</a></li>
+
+
+				</ul>
+        <table id="customers" class="table table-striped" >
+        	<thead>
+        		<tr class='warning'>
+        			<th>Country</th>
+        			<th>Population</th>
+        			<th>Date</th>
+        			<th>%ge</th>
+        		</tr>
+        	</thead>
+        	<tbody>
+        		<tr>
+        			<td>Chinna</td>
+        			<td>1,363,480,000</td>
+        			<td>March 24, 2014</td>
+        			<td>19.1</td>
+        		</tr>
+        		<tr>
+        			<td>India</td>
+        			<td>1,241,900,000</td>
+        			<td>March 24, 2014</td>
+        			<td>17.4</td>
+        		</tr>
+        		<tr>
+        			<td>United States</td>
+        			<td>317,746,000</td>
+        			<td>March 24, 2014</td>
+        			<td>4.44</td>
+        		</tr>
+        		<tr>
+        			<td>Indonesia</td>
+        			<td>249,866,000</td>
+        			<td>July 1, 2013</td>
+        			<td>3.49</td>
+        		</tr>
+        		<tr>
+        			<td>Brazil</td>
+        			<td>201,032,714</td>
+        			<td>July 1, 2013</td>
+        			<td>2.81</td>
+        		</tr>
+        	</tbody>
+        </table>
+    </div>
+    <script type="text/javascript"></script>
+</body>
+</html>
