@@ -19,6 +19,7 @@ function($scope, $rootScope){
 		$scope.credit = data.credit;
 		$scope.hasCredit = data.hasCredit;
 		$scope.custom_invoice_no = data.custom_invoice_no;
+		$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
 
 		$scope.loading = false;
 
