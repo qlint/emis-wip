@@ -23,6 +23,7 @@ function($scope, $rootScope){
 		$scope.account_name = data.account_name;
 		$scope.account_number = data.account_number;
 		$scope.custom_invoice_no = data.custom_invoice_no;
+		$scope.wantBankDetails = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
 
 		$scope.loading = false;
 
