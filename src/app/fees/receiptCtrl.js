@@ -45,6 +45,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.payment.slip_cheque_no = results.payment.slip_cheque_no;
 			$scope.payment.payment_method = results.payment.payment_method;
 			$scope.payment.custom_receipt_no = "Receipt #: " + results.payment.custom_receipt_no;
+			$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || "hog" || "localhost:8008" ? true : false);
 
 			var invoiceItems = results.invoice;
 
@@ -176,7 +177,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 		}
 
 		var domain = window.location.host;
-		var newWindowRef = window.open('http:/' + domain + '/#/fees/receipt/print');
+		var newWindowRef = window.open('http://' + domain + '/#/fees/receipt/print');
 		newWindowRef.printCriteria = criteria;
 	}
 
