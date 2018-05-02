@@ -86,7 +86,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 
 		if( result.response == 'success')
 		{
-			$scope.wantBankDetails = ( window.location.host.split('.')[0] == "appleton" || "hog" || "localhost:8008" ? true : false);
+			$scope.wantBankDetails = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
 			$scope.invoiceLineItems = ( result.nodata ? {} : result.data );
 
 			$scope.custom_invoice_no = $scope.invoiceLineItems[0].custom_invoice_no;
