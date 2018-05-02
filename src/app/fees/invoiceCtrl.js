@@ -7,6 +7,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 	$scope.invoice = data.invoice;
 	$scope.student = data.student;
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
+	$scope.isSchool = window.location.host.split('.')[0];
 
 	var termName = $scope.invoice.term_name;
 	// we only want the number
@@ -85,6 +86,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 
 		if( result.response == 'success')
 		{
+			$scope.wantBankDetails = ( window.location.host.split('.')[0] == "appleton" || "hog" || "localhost:8008" ? true : false);
 			$scope.invoiceLineItems = ( result.nodata ? {} : result.data );
 
 			$scope.custom_invoice_no = $scope.invoiceLineItems[0].custom_invoice_no;
@@ -142,7 +144,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 		}
 
 		var domain = window.location.host;
-		var newWindowRef = window.open('http:/' + domain + '/#/fees/invoice/print');
+		var newWindowRef = window.open('http://' + domain + '/#/fees/invoice/print');
 		newWindowRef.printCriteria = criteria;
 	}
 
