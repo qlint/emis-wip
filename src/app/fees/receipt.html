@@ -17,7 +17,7 @@
 				<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
 				<h2 class="receipt-title">Official Receipt</h2>
 			</div>
-			<h4 style="text-align:center;">{{payment.custom_receipt_no || '-'}}</h4>
+			<h4 style="text-align:center;" ng-show="wantReceipt">{{payment.custom_receipt_no || '-'}}</h4>
 
 			<div class="row" ng-if="!useLetterhead">
 				<div class="col-xs-2">
