@@ -86,7 +86,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 
 		if( result.response == 'success')
 		{
-			$scope.wantBankDetails = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
+			$scope.wantBankDetails = ( window.location.host.split('.')[0] == "localhost:8008" || window.location.host.split('.')[0] == "hog" ? true : false);
 			$scope.invoiceLineItems = ( result.nodata ? {} : result.data );
 
 			$scope.custom_invoice_no = $scope.invoiceLineItems[0].custom_invoice_no;
@@ -140,10 +140,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			bank_branch: $scope.bank_branch,
 			account_name: $scope.account_name,
 			account_number: $scope.account_number,
-			custom_invoice_no: $scope.custom_invoice_no
+			custom_invoice_no: $scope.custom_invoice_no,
+			wantBankDetails: $scope.wantBankDetails
 		}
 
-		var domain = window.location.host;
+		// var domain = window.location.host;
+		var domain = "localhost:8008/highschool";
 		var newWindowRef = window.open('http://' + domain + '/#/fees/invoice/print');
 		newWindowRef.printCriteria = criteria;
 	}
