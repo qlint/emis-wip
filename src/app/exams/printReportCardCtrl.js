@@ -52,6 +52,7 @@ function($scope, $rootScope){
 		$scope.thisTermMarksOutOf = data.thisTermMarksOutOf;
 		$scope.thisTermGrade = data.thisTermGrade;
 		$scope.thisTermPercentage = data.thisTermPercentage;
+		$scope.isSchool = ( window.location.host.split('.')[0] == "newlightgirls" ? true : false);
 		// $scope.currentClassPosition.position = getClassPos;
 		// $scope.streamRankPosition = getPrintRank;
 		// $scope.streamRankOutOf = getStreamRankOutOf;
