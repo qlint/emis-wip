@@ -412,6 +412,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				var result = angular.fromJson(response);
 
 				// console.log(response);
+				// console.log(result.data.streamRank);
 				$scope.streamRankPosition = result.data.streamRank[0].position;
 				$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
 
