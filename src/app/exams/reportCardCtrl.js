@@ -412,7 +412,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 		var result = angular.fromJson(response);
 
-		// console.log(response);
+		// console.log(result.data.streamRank);
 		$scope.streamRankPosition = result.data.streamRank[0].position;
 		$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
 
@@ -471,24 +471,32 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		$scope.examMarks = data.details;
 		// $scope.overallSubjectMarks = data.subjectOverall;
-		$scope.overall = data.overall;
-		if (school == "karemeno" || "rongaiboys" || "localhost:8014"){
+		// $scope.overall = data.overall;
+		// if( school == "karemeno" || "rongaiboys" ) $scope.overall = data.overallByAverag;
+		// if( school == "localhost:8008" ) $scope.overall = data.overall;
+		if (school == "karemeno" || school == "rongaiboys"){
 			$scope.overall = data.overallByAverage;
 			$scope.thisTermMarks = data.overallByAverage.current_term_marks;
+			console.log("K & R");
 			console.log($scope.overall);
-		}else{
+		}else if (school == "localhost:8008"){
 			$scope.overall = data.overall;
 			$scope.thisTermMarks = data.overall.current_term_marks;
+			console.log("NLT");
+			console.log($scope.overall);
 		}
 		$scope.overallLastTerm = data.overallLastTerm;
 		$scope.graphPoints = data.graphPoints;
 		$scope.currentClassPosition = data.currentClassPosition[0];
-		if (school == "karemeno" || "localhost:8014"){
+		if (school == "karemeno"){
 			$scope.overallSubjectMarks = data.subjectOverallBySum;
+			console.log("K calc");
 		}else if (school == "rongaiboys"){
 			$scope.overallSubjectMarks = data.subjectOverallByAvg;
+			console.log("R calc");
 		}else{
 			$scope.overallSubjectMarks = data.subjectOverall;
+			console.log("N calc");
 		}
 		// $scope.thisTermMarks = data.overall.current_term_marks;
 		$scope.thisTermMarksOutOf = data.overall.current_term_marks_out_of;
@@ -964,7 +972,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			thisTermPercentage: $scope.thisTermPercentage
 		}
 
-		var domain = "localhost:8014/karemeno";
+		var domain = "localhost:8008/highschool";
 		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
 	}
