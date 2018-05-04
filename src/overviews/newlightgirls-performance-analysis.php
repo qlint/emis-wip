@@ -54,9 +54,9 @@
       <?php
         /* REMEMBER TO ENABLE > CREATE EXTENSION tablefunc; < ON THE DB IF NOT ALREADY ENABLED */
 
-        // $db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
-        $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-        $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+        $db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
+        // $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
+        // $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
         $i=0;$j=0;$k=0;$l=0;
       ?>
         <table id="table1">
@@ -116,7 +116,7 @@
 														INNER JOIN app.students ON exam_marks.student_id = students.student_id
 														WHERE class_cats.entity_id = 15
 														AND term_id = 1
-														AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY exam_type_id ASC)
+														AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY exam_type_id DESC LIMIT 5)
 														AND subjects.use_for_grading is true
 														AND students.active is true
 														WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -141,7 +141,7 @@
 																	INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																	WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY class_id ASC)
 																	AND term_id = 1
-																	AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY exam_type_id ASC)
+																	AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY exam_type_id DESC LIMIT 5)
 																	AND subjects.use_for_grading is true
 																	AND students.active is true
 																	WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -215,7 +215,7 @@
 																INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																WHERE class_cats.entity_id = 15
 																AND term_id = 1
-																AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY exam_type_id ASC)
+																AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY exam_type_id DESC LIMIT 5)
 																AND subjects.use_for_grading is true
 																AND students.active is true
 																WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -240,7 +240,7 @@
 																			INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																			WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY class_id ASC)
 																			AND term_id = 1
-																			AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY exam_type_id ASC)
+																			AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15) ORDER BY exam_type_id DESC LIMIT 5)
 																			AND subjects.use_for_grading is true
 																			AND students.active is true
 																			WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -310,7 +310,7 @@
 														INNER JOIN app.students ON exam_marks.student_id = students.student_id
 														WHERE class_cats.entity_id = 14
 														AND term_id = 1
-														AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY exam_type_id ASC)
+														AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY exam_type_id DESC LIMIT 3)
 														AND subjects.use_for_grading is true
 														AND students.active is true
 														WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -335,7 +335,7 @@
 																	INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																	WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY class_id ASC)
 																	AND term_id = 1
-																	AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY exam_type_id ASC)
+																	AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY exam_type_id DESC LIMIT 3)
 																	AND subjects.use_for_grading is true
 																	AND students.active is true
 																	WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -409,7 +409,7 @@
 																INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																WHERE class_cats.entity_id = 14
 																AND term_id = 1
-																AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY exam_type_id ASC)
+																AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY exam_type_id DESC LIMIT 3)
 																AND subjects.use_for_grading is true
 																AND students.active is true
 																WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -434,7 +434,7 @@
 																			INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																			WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY class_id ASC)
 																			AND term_id = 1
-																			AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY exam_type_id ASC)
+																			AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14) ORDER BY exam_type_id DESC LIMIT 3)
 																			AND subjects.use_for_grading is true
 																			AND students.active is true
 																			WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -504,7 +504,7 @@
 														INNER JOIN app.students ON exam_marks.student_id = students.student_id
 														WHERE class_cats.entity_id = 13
 														AND term_id = 1
-														AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY exam_type_id ASC)
+														AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY exam_type_id DESC LIMIT 3)
 														AND subjects.use_for_grading is true
 														AND students.active is true
 														WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -529,7 +529,7 @@
 																	INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																	WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY class_id ASC)
 																	AND term_id = 1
-																	AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY exam_type_id ASC)
+																	AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY exam_type_id DESC LIMIT 3)
 																	AND subjects.use_for_grading is true
 																	AND students.active is true
 																	WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -603,7 +603,7 @@
 																INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																WHERE class_cats.entity_id = 13
 																AND term_id = 1
-																AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY exam_type_id ASC)
+																AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY exam_type_id DESC LIMIT 3)
 																AND subjects.use_for_grading is true
 																AND students.active is true
 																WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -628,7 +628,7 @@
 																			INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																			WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY class_id ASC)
 																			AND term_id = 1
-																			AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY exam_type_id ASC)
+																			AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13) ORDER BY exam_type_id DESC LIMIT 3)
 																			AND subjects.use_for_grading is true
 																			AND students.active is true
 																			WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -698,7 +698,7 @@
 														INNER JOIN app.students ON exam_marks.student_id = students.student_id
 														WHERE class_cats.entity_id = 12
 														AND term_id = 1
-														AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY exam_type_id ASC)
+														AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY exam_type_id DESC LIMIT 2)
 														AND subjects.use_for_grading is true
 														AND students.active is true
 														WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -723,7 +723,7 @@
 																	INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																	WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY class_id ASC)
 																	AND term_id = 1
-																	AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY exam_type_id ASC)
+																	AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY exam_type_id DESC LIMIT 2)
 																	AND subjects.use_for_grading is true
 																	AND students.active is true
 																	WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -797,7 +797,7 @@
 																INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																WHERE class_cats.entity_id = 12
 																AND term_id = 1
-																AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY exam_type_id ASC)
+																AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY exam_type_id DESC LIMIT 2)
 																AND subjects.use_for_grading is true
 																AND students.active is true
 																WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -822,7 +822,7 @@
 																			INNER JOIN app.students ON exam_marks.student_id = students.student_id
 																			WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY class_id ASC)
 																			AND term_id = 1
-																			AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY exam_type_id ASC)
+																			AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN(SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12) ORDER BY exam_type_id DESC LIMIT 2)
 																			AND subjects.use_for_grading is true
 																			AND students.active is true
 																			WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
