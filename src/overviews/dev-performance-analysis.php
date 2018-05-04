@@ -159,7 +159,7 @@
                                                                   (
                                                                   SELECT subject_name, class_name, sort_order, count(mark) FROM (
                                                                     SELECT class_name,classes.class_id,subject_name,
-                                                                      coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,exam_type,
+                                                                      coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'parent') as parent_subject_name,exam_type,
                                                                       exam_marks.student_id,mark,grade_weight,subjects.sort_order
                                                                     FROM app.exam_marks
                                                                     INNER JOIN app.class_subject_exams
@@ -176,13 +176,14 @@
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
-                                                                  )a WHERE mark is not null GROUP BY a.subject_name, a.class_name, a.sort_order ORDER BY sort_order
+                                                                  )a WHERE mark is not null AND parent_subject_name = 'parent'
+                                                                  GROUP BY a.subject_name, a.class_name, a.sort_order ORDER BY sort_order
                                                                   )one
                                                                   FULL OUTER JOIN
                                                                   (
                                                                   SELECT subject_name AS subject_name2, class_name AS class_name2, sort_order AS sort_order2, sum(mark) as marks FROM (
                                                                     SELECT class_name,classes.class_id,subject_name,
-                                                                      coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,exam_type,
+                                                                      coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'parent') as parent_subject_name,exam_type,
                                                                       exam_marks.student_id,mark,grade_weight,subjects.sort_order
                                                                     FROM app.exam_marks
                                                                     INNER JOIN app.class_subject_exams
@@ -199,7 +200,9 @@
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
-                                                                  )a GROUP BY a.subject_name, a.class_name, a.sort_order ORDER BY sort_order
+                                                                  )a
+                                                                  WHERE parent_subject_name = 'parent'
+                                                                  GROUP BY a.subject_name, a.class_name, a.sort_order ORDER BY sort_order
                                                                   )two
                                                                   ON one.class_name = two.class_name2 AND one.subject_name = two.subject_name2
                                                                 )three
@@ -294,202 +297,27 @@
                                                               GROUP BY subject_name, sort_order ORDER BY sort_order ASC
                                                             )five
                                                   ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 11 LIMIT 1) order by sort_order') AS ct (class_name text, mathematics numeric, english numeric, eng_lang numeric, eng_comp numeric, kiswahili numeric, lugha numeric, kusoma numeric, science numeric, ss_cre numeric, ss numeric, cre numeric)");
-              echo "<tr class='row100 body highlight'>";
+              echo "<tr class='row100 body highlight' id='c8totals'>";
                 echo "<td class='cell100 column1' colspan='3'><b>SUBJECT MEAN AVERAGE</b></td>";
                 // echo "<td class='cell100 column2'>-</td>";
                 // echo "<td class='cell100 column3'>Subject Avg</td>";
                 while ($rowc8mean = pg_fetch_assoc($c8meansCombined)) {
-                  echo "<td class='cell100 column4'>" . $rowc8mean['mathematics'] . "</td>";
-                  echo "<td class='cell100 column5'>" . $rowc8mean['english'] . "</td>";
-                  echo "<td class='cell100 column6'>" . $rowc8mean['eng_lang'] . "</td>";
-                  echo "<td class='cell100 column7'>" . $rowc8mean['eng_comp'] . "</td>";
-                  echo "<td class='cell100 column8'>" . $rowc8mean['kiswahili'] . "</td>";
-                  echo "<td class='cell100 column9'>" . $rowc8mean['lugha'] . "</td>";
-                  echo "<td class='cell100 column10'>" . $rowc8mean['kusoma'] . "</td>";
-                  echo "<td class='cell100 column11'>" . $rowc8mean['science'] . "</td>";
-                  echo "<td class='cell100 column12'>" . $rowc8mean['ss_cre'] . "</td>";
-                  echo "<td class='cell100 column13'>" . $rowc8mean['ss'] . "</td>";
-                  echo "<td class='cell100 column14'>" . $rowc8mean['cre'] . "</td>";
+                  echo "<td class='cell100 column4 c8totalVals'>" . $rowc8mean['mathematics'] . "</td>";
+                  echo "<td class='cell100 column5 c8totalVals'>" . $rowc8mean['english'] . "</td>";
+                  echo "<td class='cell100 column6 c8totalVals'>" . $rowc8mean['eng_lang'] . "</td>";
+                  echo "<td class='cell100 column7 c8totalVals'>" . $rowc8mean['eng_comp'] . "</td>";
+                  echo "<td class='cell100 column8 c8totalVals'>" . $rowc8mean['kiswahili'] . "</td>";
+                  echo "<td class='cell100 column9 c8totalVals'>" . $rowc8mean['lugha'] . "</td>";
+                  echo "<td class='cell100 column10 c8totalVals'>" . $rowc8mean['kusoma'] . "</td>";
+                  echo "<td class='cell100 column11 c8totalVals'>" . $rowc8mean['science'] . "</td>";
+                  echo "<td class='cell100 column12 c8totalVals'>" . $rowc8mean['ss_cre'] . "</td>";
+                  echo "<td class='cell100 column13 c8totalVals'>" . $rowc8mean['ss'] . "</td>";
+                  echo "<td class='cell100 column14 c8totalVals'>" . $rowc8mean['cre'] . "</td>";
                   echo "<td class='cell100 column19'>-</td>";
                   echo "<td class='cell100 column20'>-</td>";
                 echo "</tr>";
                 }
 
-                /* CLASS 5 QUERY FOR SUBJECT MEAN SCORES */
-
-              // $c5ClassesAndSubjects = pg_query($db,"");
-
-              /* CLASS 5 TABLE FOR SUBJECT MEAN SCORES */
-
-              // echo "<tr class='row100 body'>";
-                  // echo "<th class='cell100 column1' rowspan='1'>5</th>";
-
-                  /* CLASS 5 TABLE FOR SUBJECT MEAN SCORES */
-
-                  // while ($rowc5 = pg_fetch_assoc($c5ClassesAndSubjects)) {
-                  //
-                  //
-                  //     echo "<th class='cell100 column1' rowspan='1'>5</th>";
-                  //      echo "<td class='cell100 column2'>" . $rowc5['class_name'] . "</td>";
-                  //      echo "<td class='cell100 column3'>xx</td>";
-                  //      echo "<td class='cell100 column4'>" . $rowc5['mathematics'] . "</td>";
-                  //      echo "<td class='cell100 column5'>" . $rowc5['english'] . "</td>";
-                  //      echo "<td class='cell100 column6'>" . $rowc5['eng_lang'] . "</td>";
-                  //      echo "<td class='cell100 column7'>" . $rowc5['eng_comp'] . "</td>";
-                  //      echo "<td class='cell100 column8'>" . $rowc5['kiswahili'] . "</td>";
-                  //      echo "<td class='cell100 column9'>" . $rowc5['lugha'] . "</td>";
-                  //      echo "<td class='cell100 column10'>" . $rowc5['insha'] . "</td>";
-                  //      echo "<td class='cell100 column11'>" . $rowc5['science'] . "</td>";
-                  //      echo "<td class='cell100 column12'>" . $rowc5['ss_cre'] . "</td>";
-                  //      echo "<td class='cell100 column13'>" . $rowc5['ss'] . "</td>";
-                  //      echo "<td class='cell100 column14'>" . $rowc5['cre'] . "</td>";
-                  //      echo "<td class='cell100 column15'>" . $rowc5['computer'] . "</td>";
-                  //      echo "<td class='cell100 column16'>" . $rowc5['french'] . "</td>";
-                  //      echo "<td class='cell100 column17'>" . $rowc5['mean'] . "</td>";
-                  //      echo "<th class='cell100 column18' rowspan='1'>" . max(array($rowc5['mean'])) . "</th>";
-                  //  echo "</tr>";
-                  // }
-
-              /* CLASS 5 COMBINED SUBJECT MEANS (MEANS OF THE MEANS) */
-
-              // $c5meansCombined = pg_query($db,"");
-              // echo "<tr class='row100 body highlight'>";
-              //   echo "<td class='cell100 column1'>-</td>";
-              //   echo "<td class='cell100 column2'>-</td>";
-              //   echo "<td class='cell100 column3'>Subject Avg</td>";
-              //   while ($rowc5mean = pg_fetch_assoc($c5meansCombined)) {
-              //     echo "<td class='cell100 column4'>" . $rowc5mean['mathematics'] . "</td>";
-              //     echo "<td class='cell100 column5'>" . $rowc5mean['english'] . "</td>";
-              //     echo "<td class='cell100 column6'>" . $rowc5mean['eng_lang'] . "</td>";
-              //     echo "<td class='cell100 column7'>" . $rowc5mean['eng_comp'] . "</td>";
-              //     echo "<td class='cell100 column8'>" . $rowc5mean['kiswahili'] . "</td>";
-              //     echo "<td class='cell100 column9'>" . $rowc5mean['lugha'] . "</td>";
-              //     echo "<td class='cell100 column10'>" . $rowc5mean['insha'] . "</td>";
-              //     echo "<td class='cell100 column11'>" . $rowc5mean['science'] . "</td>";
-              //     echo "<td class='cell100 column12'>" . $rowc5mean['ss_cre'] . "</td>";
-              //     echo "<td class='cell100 column13'>" . $rowc5mean['ss'] . "</td>";
-              //     echo "<td class='cell100 column14'>" . $rowc5mean['cre'] . "</td>";
-              //     echo "<td class='cell100 column15'>" . $rowc5mean['computer'] . "</td>";
-              //     echo "<td class='cell100 column16'>" . $rowc5mean['french'] . "</td>";
-              //     echo "<td class='cell100 column19'>-</td>";
-              //     echo "<td class='cell100 column20'>-</td>";
-              //   echo "</tr>";
-              //   }
-
-              /* CLASS 4 QUERY FOR SUBJECT MEAN SCORES */
-
-              // $c4ClassesAndSubjects = pg_query($db,"");
-
-              /* CLASS 4 TABLE FOR SUBJECT MEAN SCORES */
-
-              // echo "<tr class='row100 body'>";
-                  // echo "<th class='cell100 column1' rowspan='1'>4</th>";
-
-                  // while ($rowc4 = pg_fetch_assoc($c4ClassesAndSubjects)) {
-                  //
-                  //       echo "<th class='cell100 column1' rowspan='1'>4</th>";
-                  //      echo "<td class='cell100 column2'>" . $rowc4['class_name'] . "</td>";
-                  //      echo "<td class='cell100 column3'>xx</td>";
-                  //      echo "<td class='cell100 column4'>" . $rowc4['mathematics'] . "</td>";
-                  //      echo "<td class='cell100 column5'>" . $rowc4['english'] . "</td>";
-                  //      echo "<td class='cell100 column6'>" . $rowc4['eng_lang'] . "</td>";
-                  //      echo "<td class='cell100 column7'>" . $rowc4['eng_comp'] . "</td>";
-                  //      echo "<td class='cell100 column8'>" . $rowc4['kiswahili'] . "</td>";
-                  //      echo "<td class='cell100 column9'>" . $rowc4['lugha'] . "</td>";
-                  //      echo "<td class='cell100 column10'>" . $rowc4['insha'] . "</td>";
-                  //      echo "<td class='cell100 column11'>" . $rowc4['science'] . "</td>";
-                  //      echo "<td class='cell100 column12'>" . $rowc4['ss_cre'] . "</td>";
-                  //      echo "<td class='cell100 column13'>" . $rowc4['ss'] . "</td>";
-                  //      echo "<td class='cell100 column14'>" . $rowc4['cre'] . "</td>";
-                  //      echo "<td class='cell100 column15'>" . $rowc4['computer'] . "</td>";
-                  //      echo "<td class='cell100 column16'>" . $rowc4['french'] . "</td>";
-                  //      echo "<td class='cell100 column17'>" . $rowc4['mean'] . "</td>";
-                  //      echo "<th class='cell100 column18' rowspan='1'>" . max(array($rowc4['mean'])) . "</th>";
-                  //  echo "</tr>";
-                  // }
-
-              /* CLASS 4 COMBINED SUBJECT MEANS (MEANS OF THE MEANS) */
-
-              // $c4meansCombined = pg_query($db,"");
-              // echo "<tr class='row100 body highlight'>";
-              // echo "<td class='cell100 column1'>-</td>";
-              // echo "<td class='cell100 column2'>-</td>";
-              // echo "<td class='cell100 column3'>Subject Avg</td>";
-              // while ($rowc4mean = pg_fetch_assoc($c4meansCombined)) {
-              //   echo "<td class='cell100 column4'>" . $rowc4mean['mathematics'] . "</td>";
-              //   echo "<td class='cell100 column5'>" . $rowc4mean['english'] . "</td>";
-              //   echo "<td class='cell100 column6'>" . $rowc4mean['eng_lang'] . "</td>";
-              //   echo "<td class='cell100 column7'>" . $rowc4mean['eng_comp'] . "</td>";
-              //   echo "<td class='cell100 column8'>" . $rowc4mean['kiswahili'] . "</td>";
-              //   echo "<td class='cell100 column9'>" . $rowc4mean['lugha'] . "</td>";
-              //   echo "<td class='cell100 column10'>" . $rowc4mean['insha'] . "</td>";
-              //   echo "<td class='cell100 column11'>" . $rowc4mean['science'] . "</td>";
-              //   echo "<td class='cell100 column12'>" . $rowc4mean['ss_cre'] . "</td>";
-              //   echo "<td class='cell100 column13'>" . $rowc4mean['ss'] . "</td>";
-              //   echo "<td class='cell100 column14'>" . $rowc4mean['cre'] . "</td>";
-              //   echo "<td class='cell100 column15'>" . $rowc4mean['computer'] . "</td>";
-              //   echo "<td class='cell100 column16'>" . $rowc4mean['french'] . "</td>";
-              //   echo "<td class='cell100 column19'>-</td>";
-              //   echo "<td class='cell100 column20'>-</td>";
-              // echo "</tr>";
-              // }
-
-              /* CLASS 3 QUERY FOR SUBJECT MEAN SCORES */
-
-              // $c3ClassesAndSubjects = pg_query($db,"");
-
-              /* CLASS 3 TABLE FOR SUBJECT MEAN SCORES */
-
-              // echo "<tr class='row100 body'>";
-                  // echo "<th class='cell100 column1' rowspan='1'>3</th>";
-                  // while ($rowc3 = pg_fetch_assoc($c3ClassesAndSubjects)) {
-                  //
-                  //       echo "<th class='cell100 column1' rowspan='1'>3</th>";
-                  //      echo "<td class='cell100 column2'>" . $rowc3['class_name'] . "</td>";
-                  //      echo "<td class='cell100 column3'>xx</td>";
-                  //      echo "<td class='cell100 column4'>" . $rowc3['mathematics'] . "</td>";
-                  //      echo "<td class='cell100 column5'>" . $rowc3['english'] . "</td>";
-                  //      echo "<td class='cell100 column6'>" . $rowc3['eng_lang'] . "</td>";
-                  //      echo "<td class='cell100 column7'>" . $rowc3['eng_comp'] . "</td>";
-                  //      echo "<td class='cell100 column8'>" . $rowc3['kiswahili'] . "</td>";
-                  //      echo "<td class='cell100 column9'>" . $rowc3['lugha'] . "</td>";
-                  //      echo "<td class='cell100 column10'>" . $rowc3['insha'] . "</td>";
-                  //      echo "<td class='cell100 column11'>" . $rowc3['science'] . "</td>";
-                  //      echo "<td class='cell100 column12'>" . $rowc3['ss_cre'] . "</td>";
-                  //      echo "<td class='cell100 column13'>" . $rowc3['ss'] . "</td>";
-                  //      echo "<td class='cell100 column14'>" . $rowc3['cre'] . "</td>";
-                  //      echo "<td class='cell100 column15'>" . $rowc3['computer'] . "</td>";
-                  //      echo "<td class='cell100 column16'>" . $rowc3['french'] . "</td>";
-                  //      echo "<td class='cell100 column17'>" . $rowc3['mean'] . "</td>";
-                  //      echo "<th class='cell100 column18' rowspan='1'>" . max(array($rowc3['mean'])) . "</th>";
-                  //  echo "</tr>";
-                  // }
-
-              /* CLASS 3 COMBINED SUBJECT MEANS (MEANS OF THE MEANS) */
-
-              // $c3meansCombined = pg_query($db,"");
-              // echo "<tr class='row100 body highlight'>";
-              // echo "<td class='cell100 column1'>Subject Avg</td>";
-              // echo "<td class='cell100 column2'>-</td>";
-              // echo "<td class='cell100 column3'>-</td>";
-              // while ($rowc3mean = pg_fetch_assoc($c3meansCombined)) {
-              //   echo "<td class='cell100 column4'>" . $rowc3mean['mathematics'] . "</td>";
-              //   echo "<td class='cell100 column5'>" . $rowc3mean['english'] . "</td>";
-              //   echo "<td class='cell100 column6'>" . $rowc3mean['eng_lang'] . "</td>";
-              //   echo "<td class='cell100 column7'>" . $rowc3mean['eng_comp'] . "</td>";
-              //   echo "<td class='cell100 column8'>" . $rowc3mean['kiswahili'] . "</td>";
-              //   echo "<td class='cell100 column9'>" . $rowc3mean['lugha'] . "</td>";
-              //   echo "<td class='cell100 column10'>" . $rowc3mean['insha'] . "</td>";
-              //   echo "<td class='cell100 column11'>" . $rowc3mean['science'] . "</td>";
-              //   echo "<td class='cell100 column12'>" . $rowc3mean['ss_cre'] . "</td>";
-              //   echo "<td class='cell100 column13'>" . $rowc3mean['ss'] . "</td>";
-              //   echo "<td class='cell100 column14'>" . $rowc3mean['cre'] . "</td>";
-              //   echo "<td class='cell100 column15'>" . $rowc3mean['computer'] . "</td>";
-              //   echo "<td class='cell100 column16'>" . $rowc3mean['french'] . "</td>";
-              //   echo "<td class='cell100 column19'>-</td>";
-              //   echo "<td class='cell100 column20'>-</td>";
-              // echo "</tr>";
-              // }
               ?>
               <tr class="row100 head">
                 <th class="cell100 column1">*</th>
@@ -580,8 +408,8 @@
 
                 echo "<tr class='row100 head'>";
                   echo "<th class='cell100 column1' colspan='3'>SCHOOL MEAN AVERAGE</th>";
-                  // echo "<td class='cell100 column2'>*</td>";
-                  // echo "<td class='cell100 column3'>*</td>";
+                  // echo "<td class='cell100 column2'><b>*</b></td>";
+                  // echo "<td class='cell100 column3'><b>*</b></td>";
                   while ($rowTotal = pg_fetch_assoc($totalMean)) {
                     echo "<td class='cell100 column4'><b>" . $rowTotal['mathematics'] . "</b></td>";
                     echo "<td class='cell100 column5'><b>" . $rowTotal['english'] . "</b></td>";
@@ -598,6 +426,202 @@
                   echo "</tr>";
                   }
               ?>
+            </tbody>
+          </div>
+
+        </table>
+      </div>
+    </div>
+  </div>
+    </div>
+
+    <!-- GRADES ANALYSIS -->
+
+    <div class="limiter" style="margin-top: -450px;">
+      <div class="container-table100">
+         <div class="wrap-table100">
+           <div class="table100 ver1 m-b-110">
+
+        <h1 style="margin-left:15px;">Class Marks Attainment Comparison</h1>
+        <button id="generate-excel4" class="btn btn-success" style="margin-left:15px;">
+            Generate Excel</button>
+        <br /><br />
+        <table id="test_table2">
+          <div id='t1' class="table100-head">
+            <thead>
+              <tr class="row100 head">
+                <th class="cell100 column31">CLASS</th>
+                <th class="cell100 column32">EXAM</th>
+                <th class="cell100 column33">400 +</th>
+                <th class="cell100 column34">399 - 300</th>
+                <th class="cell100 column35">299 - 200</th>
+                <th class="cell100 column36">< 100</th>
+              </tr>
+            </thead>
+          </div>
+          <div class="table100-body js-pscroll">
+            <tbody>
+              <?php
+              /* CLASS MARKS ATTAINMENT */
+
+              $marksCount = pg_query($db,"SELECT class_name, exam_type, sum(four) as four, sum(three) as three, sum(two) as two, sum(below) as below FROM (
+                                            SELECT class_name, class_id, exam_type, total_mark, --count(total_mark) as ttl_count
+						(CASE
+							WHEN total_mark > 399 THEN
+								count(total_mark)
+
+						END) as four,
+						(CASE
+							WHEN total_mark > 299 and total_mark < 400 THEN
+								count(total_mark)
+
+						END) as three,
+						(CASE
+							WHEN total_mark > 199 and total_mark < 300 THEN
+								count(total_mark)
+
+						END) as two,
+						(CASE
+							WHEN total_mark < 99 THEN
+								count(total_mark)
+
+						END) as below
+                                            FROM (
+                                            SELECT class_name, class_id, exam_type, total_mark FROM (
+                                            SELECT student_name, class_name, class_id, exam_type, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight
+                                            FROM(
+                                            SELECT  student_name, class_name, class_id, exam_type, subject_name,
+                                            sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, sort_order
+                                            FROM (
+                                            SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+                                              coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, exam_type
+                                            FROM app.exam_marks
+                                            INNER JOIN app.students ON exam_marks.student_id = students.student_id
+                                            INNER JOIN app.class_subject_exams
+                                            INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+                                            INNER JOIN app.class_subjects
+                                            INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+                                                  ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+                                                  ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+                                            INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+                                            INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
+                                            WHERE class_cats.entity_id = 11
+                                            AND term_id = (SELECT t.term_id FROM app.terms t WHERE t.term_number=2)
+                                            AND subjects.parent_subject_id is null
+                                            AND subjects.use_for_grading is true
+                                            AND mark IS NOT NULL
+                                            GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type
+                                            ) q GROUP BY student_name, class_name, class_id, exam_type, subject_name, sort_order
+                                            ORDER BY sort_order
+                                            )v GROUP BY v.student_name, v.class_name, v.class_id, v.exam_type
+                                            ORDER BY student_name ASC, exam_type ASC
+                                            )a
+                                            )b
+                                            GROUP BY b.class_name, b.class_id, b.exam_type, b.total_mark
+                                            ORDER BY 1)c
+                                            GROUP BY class_name, exam_type");
+              echo "<tr class='row100 body'>";
+                  // echo "<th class='cell100 column1' rowspan='1'>6</th>";
+
+                  /* CLASS 8 TABLE FOR MARKS COUNT */
+
+              while ($c8marks = pg_fetch_assoc($marksCount)) {
+
+                   echo "<td class='cell100 column31'>" . $c8marks['class_name'] . "</td>";
+                   echo "<td class='cell100 column32'>" . $c8marks['exam_type'] . "</td>";
+                   echo "<td class='cell100 column33'>" . $c8marks['four'] . "</td>";
+                   echo "<td class='cell100 column34'>" . $c8marks['three'] . "</td>";
+                   echo "<td class='cell100 column35'>" . $c8marks['two'] . "</td>";
+                   echo "<td class='cell100 column36'>" . $c8marks['below'] . "</td>";
+               echo "</tr>";
+              }
+
+              echo "<tr class='row100 body highlight' style='height:13px;'>";
+                echo "<th class='cell100 column31'><b>*</b></th>";
+                echo "<th class='cell100 column32'><b>*</b></th>";
+                echo "<th class='cell100 column33'><b>*</b></th>";
+                echo "<th class='cell100 column34'><b>*</b></th>";
+                echo "<th class='cell100 column35'><b>*</b></th>";
+                echo "<th class='cell100 column36'><b>*</b></th>";
+              echo "</tr>";
+
+              /* SCHOOL GRADE COUNT TOTALS */
+
+              $marksTotForC8 = pg_query($db,"SELECT '' as class_name, '' as exam_type, SUM(four) as four, sum(three) as three, sum(two) as two, sum(below) as below FROM (
+					SELECT class_name, exam_type, sum(four) as four, sum(three) as three, sum(two) as two, sum(below) as below FROM (
+                                            SELECT class_name, class_id, exam_type, total_mark, --count(total_mark) as ttl_count
+						(CASE
+							WHEN total_mark > 399 THEN
+								count(total_mark)
+
+						END) as four,
+						(CASE
+							WHEN total_mark > 299 and total_mark < 400 THEN
+								count(total_mark)
+
+						END) as three,
+						(CASE
+							WHEN total_mark > 199 and total_mark < 300 THEN
+								count(total_mark)
+
+						END) as two,
+						(CASE
+							WHEN total_mark < 99 THEN
+								count(total_mark)
+
+						END) as below
+                                            FROM (
+                                            SELECT class_name, class_id, exam_type, total_mark FROM (
+                                            SELECT student_name, class_name, class_id, exam_type, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight
+                                            FROM(
+                                            SELECT  student_name, class_name, class_id, exam_type, subject_name,
+                                            sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, sort_order
+                                            FROM (
+                                            SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+                                              coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, exam_type
+                                            FROM app.exam_marks
+                                            INNER JOIN app.students ON exam_marks.student_id = students.student_id
+                                            INNER JOIN app.class_subject_exams
+                                            INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+                                            INNER JOIN app.class_subjects
+                                            INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+                                                  ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+                                                  ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+                                            INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+                                            INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
+                                            WHERE class_cats.entity_id = 11
+                                            AND term_id = (SELECT t.term_id FROM app.terms t WHERE t.term_number=2)
+                                            AND subjects.parent_subject_id is null
+                                            AND subjects.use_for_grading is true
+                                            AND mark IS NOT NULL
+                                            GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type
+                                            ) q GROUP BY student_name, class_name, class_id, exam_type, subject_name, sort_order
+                                            ORDER BY sort_order
+                                            )v GROUP BY v.student_name, v.class_name, v.class_id, v.exam_type
+                                            ORDER BY student_name ASC, exam_type ASC
+                                            )a
+                                            )b
+                                            GROUP BY b.class_name, b.class_id, b.exam_type, b.total_mark
+                                            ORDER BY 1)c
+                                            GROUP BY class_name, exam_type
+                                            )d");
+              echo "<tr class='row100 body'>";
+
+                  /* TOTAL MARKS ATTAINMENT COUNT */
+
+              while ($c8marksTot = pg_fetch_assoc($marksTotForC8)) {
+
+                   echo "<td class='cell100 column31'><b>OVERALL</b></td>";
+                   echo "<td class='cell100 column32'><b>*</b></td>";
+                   echo "<td class='cell100 column33'><b>" . $c8marksTot['four'] . "</b></td>";
+                   echo "<td class='cell100 column34'><b>" . $c8marksTot['three'] . "</b></td>";
+                   echo "<td class='cell100 column35'><b>" . $c8marksTot['two'] . "</b></td>";
+                   echo "<td class='cell100 column36'><b>" . $c8marksTot['below'] . "</b></td>";
+               echo "</tr>";
+              }
+
+              ?>
+
             </tbody>
           </div>
 
@@ -749,390 +773,21 @@
               }
 
               echo "<tr class='row100 body' style='height:13px;'>";
-                echo "<th class='cell100 column31'>*</th>";
-                echo "<th class='cell100 column32'>*</th>";
-                echo "<th class='cell100 column33'>*</th>";
-                echo "<th class='cell100 column34'>*</th>";
-                echo "<th class='cell100 column35'>*</th>";
-                echo "<th class='cell100 column36'>*</th>";
-                echo "<th class='cell100 column37'>*</th>";
-                echo "<th class='cell100 column38'>*</th>";
-                echo "<th class='cell100 column39'>*</th>";
-                echo "<th class='cell100 column40'>*</th>";
-                echo "<th class='cell100 column41'>*</th>";
-                echo "<th class='cell100 column42'>*</th>";
-                echo "<th class='cell100 column43'>*</th>";
-                echo "<th class='cell100 column44'>*</th>";
+                echo "<th class='cell100 column31'><b>*</b></th>";
+                echo "<th class='cell100 column32'><b>*</b></th>";
+                echo "<th class='cell100 column33'><b>*</b></th>";
+                echo "<th class='cell100 column34'><b>*</b></th>";
+                echo "<th class='cell100 column35'><b>*</b></th>";
+                echo "<th class='cell100 column36'><b>*</b></th>";
+                echo "<th class='cell100 column37'><b>*</b></th>";
+                echo "<th class='cell100 column38'><b>*</b></th>";
+                echo "<th class='cell100 column39'><b>*</b></th>";
+                echo "<th class='cell100 column40'><b>*</b></th>";
+                echo "<th class='cell100 column41'><b>*</b></th>";
+                echo "<th class='cell100 column42'><b>*</b></th>";
+                echo "<th class='cell100 column43'><b>*</b></th>";
+                echo "<th class='cell100 column44'><b>*</b></th>";
               echo "</tr>";
-
-              /* CLASS 5 QUERY FOR GRADE COUNT */
-
-              // $c5GradeCount = pg_query($db,"SELECT t2.class_name, t1.*
-              //                               FROM
-              //                               (
-              //
-              //                               SELECT *
-              //                               FROM   crosstab('SELECT exam_type, grade, grd_count FROM (
-              //                               SELECT class_name, exam_type, grade, count(grade) as grd_count FROM (
-              //                               SELECT class_name, exam_type, (select grade from app.grading where round((total_mark/total_grade_weight)*100) between min_mark and max_mark) as grade FROM (
-              //                               SELECT student_name, class_name, exam_type, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight
-              //                               FROM(
-              //                               SELECT  student_name, class_name, exam_type, subject_name,
-              //                               sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, sort_order
-              //                               FROM (
-              //                               SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || '' '' || coalesce(students.middle_name,'''') || '' '' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-              //                                 coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, exam_type
-              //                               FROM app.exam_marks
-              //                               INNER JOIN app.students ON exam_marks.student_id = students.student_id
-              //                               INNER JOIN app.class_subject_exams
-              //                               INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-              //                               INNER JOIN app.class_subjects
-              //                               INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-              //                                     ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-              //                                     ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-              //                               INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-              //                               INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
-              //                               WHERE class_cats.entity_id = 8
-              //                               AND term_id = (SELECT t.term_id FROM app.terms t WHERE t.term_number=1)
-              //                               AND subjects.parent_subject_id is null
-              //                               AND subjects.use_for_grading is true
-              //                               AND mark IS NOT NULL
-              //                               GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type
-              //                               ) q GROUP BY student_name, class_name, exam_type, subject_name, sort_order
-              //                               ORDER BY sort_order
-              //                               )v GROUP BY v.student_name, v.class_name, v.exam_type
-              //                               ORDER BY student_name ASC, exam_type ASC
-              //                               )a
-              //                               )b
-              //                               GROUP BY b.class_name, b.exam_type, b.grade
-              //                               ORDER BY 1)c
-              //                               ORDER BY 1','SELECT grade FROM app.grading ORDER BY grade_id ASC') AS ct (exam_type text, a bigint, a_m bigint, b_p bigint, b bigint, b_m bigint, c_p bigint, c bigint, c_m bigint, d_p bigint, d bigint, d_m bigint, e bigint)
-              //
-              //                               ) AS t1
-              //                                   FULL OUTER JOIN
-              //                                   (
-              //                                   SELECT DISTINCT exam_type, class_name FROM(
-              //                               SELECT class_name, exam_type, grade, count(grade) as grd_count FROM (
-              //                               SELECT class_name, exam_type, (select grade from app.grading where round((total_mark/total_grade_weight)*100) between min_mark and max_mark) as grade FROM (
-              //                               SELECT student_name, class_name, exam_type, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight
-              //                               FROM(
-              //                               SELECT  student_name, class_name, exam_type, subject_name,
-              //                               sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, sort_order
-              //                               FROM (
-              //                               SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-              //                                 coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, exam_type
-              //                               FROM app.exam_marks
-              //                               INNER JOIN app.students ON exam_marks.student_id = students.student_id
-              //                               INNER JOIN app.class_subject_exams
-              //                               INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-              //                               INNER JOIN app.class_subjects
-              //                               INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-              //                                     ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-              //                                     ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-              //                               INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-              //                               INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
-              //                               WHERE class_cats.entity_id = 8
-              //                               AND term_id = (SELECT t.term_id FROM app.terms t WHERE t.term_number=1)
-              //                               AND subjects.parent_subject_id is null
-              //                               AND subjects.use_for_grading is true
-              //                               AND mark IS NOT NULL
-              //                               GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type
-              //                               ) q GROUP BY student_name, class_name, exam_type, subject_name, sort_order
-              //                               ORDER BY sort_order
-              //                               )v GROUP BY v.student_name, v.class_name, v.exam_type
-              //                               ORDER BY student_name ASC, exam_type ASC
-              //                               )a
-              //                               )b
-              //                               GROUP BY b.class_name, b.exam_type, b.grade
-              //                               )c
-              //                               ) AS t2
-              //                                   ON t1.exam_type = t2.exam_type");
-              // echo "<tr class='row100 body'>";
-                  // echo "<th class='cell100 column1' rowspan='1'>6</th>";
-
-                  /* CLASS 6 TABLE FOR GRADE COUNT */
-
-              // while ($rowc5grade = pg_fetch_assoc($c5GradeCount)) {
-              //
-              //      echo "<td class='cell100 column31'>" . $rowc5grade['class_name'] . "</td>";
-              //      echo "<td class='cell100 column32'>" . $rowc5grade['exam_type'] . "</td>";
-              //      echo "<td class='cell100 column33'>" . $rowc5grade['a'] . "</td>";
-              //      echo "<td class='cell100 column34'>" . $rowc5grade['a_m'] . "</td>";
-              //      echo "<td class='cell100 column35'>" . $rowc5grade['b_p'] . "</td>";
-              //      echo "<td class='cell100 column36'>" . $rowc5grade['b'] . "</td>";
-              //      echo "<td class='cell100 column37'>" . $rowc5grade['b_m'] . "</td>";
-              //      echo "<td class='cell100 column38'>" . $rowc5grade['c_p'] . "</td>";
-              //      echo "<td class='cell100 column39'>" . $rowc5grade['c'] . "</td>";
-              //      echo "<td class='cell100 column40'>" . $rowc5grade['c_m'] . "</td>";
-              //      echo "<td class='cell100 column41'>" . $rowc5grade['d_p'] . "</td>";
-              //      echo "<td class='cell100 column42'>" . $rowc5grade['d'] . "</td>";
-              //      echo "<td class='cell100 column43'>" . $rowc5grade['d_m'] . "</td>";
-              //      echo "<td class='cell100 column44'>" . $rowc5grade['e'] . "</td>";
-              //  echo "</tr>";
-              // }
-              //
-              // echo "<tr class='row100 body' style='height:13px;'>";
-              //   echo "<th class='cell100 column31'>*</th>";
-              //   echo "<th class='cell100 column32'>*</th>";
-              //   echo "<th class='cell100 column33'>*</th>";
-              //   echo "<th class='cell100 column34'>*</th>";
-              //   echo "<th class='cell100 column35'>*</th>";
-              //   echo "<th class='cell100 column36'>*</th>";
-              //   echo "<th class='cell100 column37'>*</th>";
-              //   echo "<th class='cell100 column38'>*</th>";
-              //   echo "<th class='cell100 column39'>*</th>";
-              //   echo "<th class='cell100 column40'>*</th>";
-              //   echo "<th class='cell100 column41'>*</th>";
-              //   echo "<th class='cell100 column42'>*</th>";
-              //   echo "<th class='cell100 column43'>*</th>";
-              //   echo "<th class='cell100 column44'>*</th>";
-              // echo "</tr>";
-
-              /* CLASS 4 QUERY FOR GRADE COUNT */
-
-              // $c4GradeCount = pg_query($db,"SELECT t2.class_name, t1.*
-              //                               FROM
-              //                               (
-              //
-              //                               SELECT *
-              //                               FROM   crosstab('SELECT exam_type, grade, grd_count FROM (
-              //                               SELECT class_name, exam_type, grade, count(grade) as grd_count FROM (
-              //                               SELECT class_name, exam_type, (select grade from app.grading where round((total_mark/total_grade_weight)*100) between min_mark and max_mark) as grade FROM (
-              //                               SELECT student_name, class_name, exam_type, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight
-              //                               FROM(
-              //                               SELECT  student_name, class_name, exam_type, subject_name,
-              //                               sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, sort_order
-              //                               FROM (
-              //                               SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || '' '' || coalesce(students.middle_name,'''') || '' '' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-              //                                 coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, exam_type
-              //                               FROM app.exam_marks
-              //                               INNER JOIN app.students ON exam_marks.student_id = students.student_id
-              //                               INNER JOIN app.class_subject_exams
-              //                               INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-              //                               INNER JOIN app.class_subjects
-              //                               INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-              //                                     ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-              //                                     ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-              //                               INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-              //                               INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
-              //                               WHERE class_cats.entity_id = 7
-              //                               AND term_id = (SELECT t.term_id FROM app.terms t WHERE t.term_number=1)
-              //                               AND subjects.parent_subject_id is null
-              //                               AND subjects.use_for_grading is true
-              //                               AND mark IS NOT NULL
-              //                               GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type
-              //                               ) q GROUP BY student_name, class_name, exam_type, subject_name, sort_order
-              //                               ORDER BY sort_order
-              //                               )v GROUP BY v.student_name, v.class_name, v.exam_type
-              //                               ORDER BY student_name ASC, exam_type ASC
-              //                               )a
-              //                               )b
-              //                               GROUP BY b.class_name, b.exam_type, b.grade
-              //                               ORDER BY 1)c
-              //                               ORDER BY 1','SELECT grade FROM app.grading ORDER BY grade_id ASC') AS ct (exam_type text, a bigint, a_m bigint, b_p bigint, b bigint, b_m bigint, c_p bigint, c bigint, c_m bigint, d_p bigint, d bigint, d_m bigint, e bigint)
-              //
-              //                               ) AS t1
-              //                                   FULL OUTER JOIN
-              //                                   (
-              //                                   SELECT DISTINCT exam_type, class_name FROM(
-              //                               SELECT class_name, exam_type, grade, count(grade) as grd_count FROM (
-              //                               SELECT class_name, exam_type, (select grade from app.grading where round((total_mark/total_grade_weight)*100) between min_mark and max_mark) as grade FROM (
-              //                               SELECT student_name, class_name, exam_type, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight
-              //                               FROM(
-              //                               SELECT  student_name, class_name, exam_type, subject_name,
-              //                               sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, sort_order
-              //                               FROM (
-              //                               SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-              //                                 coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, exam_type
-              //                               FROM app.exam_marks
-              //                               INNER JOIN app.students ON exam_marks.student_id = students.student_id
-              //                               INNER JOIN app.class_subject_exams
-              //                               INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-              //                               INNER JOIN app.class_subjects
-              //                               INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-              //                                     ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-              //                                     ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-              //                               INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-              //                               INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
-              //                               WHERE class_cats.entity_id = 7
-              //                               AND term_id = (SELECT t.term_id FROM app.terms t WHERE t.term_number=1)
-              //                               AND subjects.parent_subject_id is null
-              //                               AND subjects.use_for_grading is true
-              //                               AND mark IS NOT NULL
-              //                               GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type
-              //                               ) q GROUP BY student_name, class_name, exam_type, subject_name, sort_order
-              //                               ORDER BY sort_order
-              //                               )v GROUP BY v.student_name, v.class_name, v.exam_type
-              //                               ORDER BY student_name ASC, exam_type ASC
-              //                               )a
-              //                               )b
-              //                               GROUP BY b.class_name, b.exam_type, b.grade
-              //                               )c
-              //                               ) AS t2
-              //                                   ON t1.exam_type = t2.exam_type");
-              // echo "<tr class='row100 body'>";
-                  // echo "<th class='cell100 column1' rowspan='1'>6</th>";
-
-                  /* CLASS 4 TABLE FOR GRADE COUNT */
-
-              // while ($rowc4grade = pg_fetch_assoc($c4GradeCount)) {
-              //
-              //      echo "<td class='cell100 column31'>" . $rowc4grade['class_name'] . "</td>";
-              //      echo "<td class='cell100 column32'>" . $rowc4grade['exam_type'] . "</td>";
-              //      echo "<td class='cell100 column33'>" . $rowc4grade['a'] . "</td>";
-              //      echo "<td class='cell100 column34'>" . $rowc4grade['a_m'] . "</td>";
-              //      echo "<td class='cell100 column35'>" . $rowc4grade['b_p'] . "</td>";
-              //      echo "<td class='cell100 column36'>" . $rowc4grade['b'] . "</td>";
-              //      echo "<td class='cell100 column37'>" . $rowc4grade['b_m'] . "</td>";
-              //      echo "<td class='cell100 column38'>" . $rowc4grade['c_p'] . "</td>";
-              //      echo "<td class='cell100 column39'>" . $rowc4grade['c'] . "</td>";
-              //      echo "<td class='cell100 column40'>" . $rowc4grade['c_m'] . "</td>";
-              //      echo "<td class='cell100 column41'>" . $rowc4grade['d_p'] . "</td>";
-              //      echo "<td class='cell100 column42'>" . $rowc4grade['d'] . "</td>";
-              //      echo "<td class='cell100 column43'>" . $rowc4grade['d_m'] . "</td>";
-              //      echo "<td class='cell100 column44'>" . $rowc4grade['e'] . "</td>";
-              //  echo "</tr>";
-              // }
-              //
-              // echo "<tr class='row100 body' style='height:13px;'>";
-              //   echo "<th class='cell100 column31'>*</th>";
-              //   echo "<th class='cell100 column32'>*</th>";
-              //   echo "<th class='cell100 column33'>*</th>";
-              //   echo "<th class='cell100 column34'>*</th>";
-              //   echo "<th class='cell100 column35'>*</th>";
-              //   echo "<th class='cell100 column36'>*</th>";
-              //   echo "<th class='cell100 column37'>*</th>";
-              //   echo "<th class='cell100 column38'>*</th>";
-              //   echo "<th class='cell100 column39'>*</th>";
-              //   echo "<th class='cell100 column40'>*</th>";
-              //   echo "<th class='cell100 column41'>*</th>";
-              //   echo "<th class='cell100 column42'>*</th>";
-              //   echo "<th class='cell100 column43'>*</th>";
-              //   echo "<th class='cell100 column44'>*</th>";
-              // echo "</tr>";
-
-              /* CLASS 3 QUERY FOR GRADE COUNT */
-
-              // $c3GradeCount = pg_query($db,"SELECT t2.class_name, t1.*
-              //                               FROM
-              //                               (
-              //
-              //                               SELECT *
-              //                               FROM   crosstab('SELECT exam_type, grade, grd_count FROM (
-              //                               SELECT class_name, exam_type, grade, count(grade) as grd_count FROM (
-              //                               SELECT class_name, exam_type, (select grade from app.grading where round((total_mark/total_grade_weight)*100) between min_mark and max_mark) as grade FROM (
-              //                               SELECT student_name, class_name, exam_type, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight
-              //                               FROM(
-              //                               SELECT  student_name, class_name, exam_type, subject_name,
-              //                               sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, sort_order
-              //                               FROM (
-              //                               SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || '' '' || coalesce(students.middle_name,'''') || '' '' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-              //                                 coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, exam_type
-              //                               FROM app.exam_marks
-              //                               INNER JOIN app.students ON exam_marks.student_id = students.student_id
-              //                               INNER JOIN app.class_subject_exams
-              //                               INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-              //                               INNER JOIN app.class_subjects
-              //                               INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-              //                                     ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-              //                                     ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-              //                               INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-              //                               INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
-              //                               WHERE class_cats.entity_id = 6
-              //                               AND term_id = (SELECT t.term_id FROM app.terms t WHERE t.term_number=1)
-              //                               AND subjects.parent_subject_id is null
-              //                               AND subjects.use_for_grading is true
-              //                               AND mark IS NOT NULL
-              //                               GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type
-              //                               ) q GROUP BY student_name, class_name, exam_type, subject_name, sort_order
-              //                               ORDER BY sort_order
-              //                               )v GROUP BY v.student_name, v.class_name, v.exam_type
-              //                               ORDER BY student_name ASC, exam_type ASC
-              //                               )a
-              //                               )b
-              //                               GROUP BY b.class_name, b.exam_type, b.grade
-              //                               ORDER BY 1)c
-              //                               ORDER BY 1','SELECT grade FROM app.grading ORDER BY grade_id ASC') AS ct (exam_type text, a bigint, a_m bigint, b_p bigint, b bigint, b_m bigint, c_p bigint, c bigint, c_m bigint, d_p bigint, d bigint, d_m bigint, e bigint)
-              //
-              //                               ) AS t1
-              //                                   FULL OUTER JOIN
-              //                                   (
-              //                                   SELECT DISTINCT exam_type, class_name FROM(
-              //                               SELECT class_name, exam_type, grade, count(grade) as grd_count FROM (
-              //                               SELECT class_name, exam_type, (select grade from app.grading where round((total_mark/total_grade_weight)*100) between min_mark and max_mark) as grade FROM (
-              //                               SELECT student_name, class_name, exam_type, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight
-              //                               FROM(
-              //                               SELECT  student_name, class_name, exam_type, subject_name,
-              //                               sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, sort_order
-              //                               FROM (
-              //                               SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-              //                                 coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, exam_type
-              //                               FROM app.exam_marks
-              //                               INNER JOIN app.students ON exam_marks.student_id = students.student_id
-              //                               INNER JOIN app.class_subject_exams
-              //                               INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-              //                               INNER JOIN app.class_subjects
-              //                               INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-              //                                     ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-              //                                     ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-              //                               INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-              //                               INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
-              //                               WHERE class_cats.entity_id = 6
-              //                               AND term_id = (SELECT t.term_id FROM app.terms t WHERE t.term_number=1)
-              //                               AND subjects.parent_subject_id is null
-              //                               AND subjects.use_for_grading is true
-              //                               AND mark IS NOT NULL
-              //                               GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type
-              //                               ) q GROUP BY student_name, class_name, exam_type, subject_name, sort_order
-              //                               ORDER BY sort_order
-              //                               )v GROUP BY v.student_name, v.class_name, v.exam_type
-              //                               ORDER BY student_name ASC, exam_type ASC
-              //                               )a
-              //                               )b
-              //                               GROUP BY b.class_name, b.exam_type, b.grade
-              //                               )c
-              //                               ) AS t2
-              //                                   ON t1.exam_type = t2.exam_type");
-              // echo "<tr class='row100 body'>";
-                  // echo "<th class='cell100 column1' rowspan='1'>6</th>";
-
-                  /* CLASS 3 TABLE FOR GRADE COUNT */
-
-              // while ($rowc3grade = pg_fetch_assoc($c3GradeCount)) {
-              //
-              //      echo "<td class='cell100 column31'>" . $rowc3grade['class_name'] . "</td>";
-              //      echo "<td class='cell100 column32'>" . $rowc3grade['exam_type'] . "</td>";
-              //      echo "<td class='cell100 column33'>" . $rowc3grade['a'] . "</td>";
-              //      echo "<td class='cell100 column34'>" . $rowc3grade['a_m'] . "</td>";
-              //      echo "<td class='cell100 column35'>" . $rowc3grade['b_p'] . "</td>";
-              //      echo "<td class='cell100 column36'>" . $rowc3grade['b'] . "</td>";
-              //      echo "<td class='cell100 column37'>" . $rowc3grade['b_m'] . "</td>";
-              //      echo "<td class='cell100 column38'>" . $rowc3grade['c_p'] . "</td>";
-              //      echo "<td class='cell100 column39'>" . $rowc3grade['c'] . "</td>";
-              //      echo "<td class='cell100 column40'>" . $rowc3grade['c_m'] . "</td>";
-              //      echo "<td class='cell100 column41'>" . $rowc3grade['d_p'] . "</td>";
-              //      echo "<td class='cell100 column42'>" . $rowc3grade['d'] . "</td>";
-              //      echo "<td class='cell100 column43'>" . $rowc3grade['d_m'] . "</td>";
-              //      echo "<td class='cell100 column44'>" . $rowc3grade['e'] . "</td>";
-              //  echo "</tr>";
-              // }
-              //
-              // echo "<tr class='row100 body' style='height:13px;'>";
-              //   echo "<th class='cell100 column31'>*</th>";
-              //   echo "<th class='cell100 column32'>*</th>";
-              //   echo "<th class='cell100 column33'>*</th>";
-              //   echo "<th class='cell100 column34'>*</th>";
-              //   echo "<th class='cell100 column35'>*</th>";
-              //   echo "<th class='cell100 column36'>*</th>";
-              //   echo "<th class='cell100 column37'>*</th>";
-              //   echo "<th class='cell100 column38'>*</th>";
-              //   echo "<th class='cell100 column39'>*</th>";
-              //   echo "<th class='cell100 column40'>*</th>";
-              //   echo "<th class='cell100 column41'>*</th>";
-              //   echo "<th class='cell100 column42'>*</th>";
-              //   echo "<th class='cell100 column43'>*</th>";
-              //   echo "<th class='cell100 column44'>*</th>";
-              // echo "</tr>";
 
               /* SCHOOL GRADE COUNT TOTALS */
 
@@ -1221,14 +876,13 @@
                                             REPLICATE ABOVE TO OTHER ENTITIES*/
                                             )tot");
               echo "<tr class='row100 body'>";
-                  // echo "<th class='cell100 column1' rowspan='1'>6</th>";
 
                   /* GRADE TOTALS TABLE */
 
               while ($gTotals = pg_fetch_assoc($gradeTotals)) {
 
-                   echo "<td class='cell100 column31'>OVERALL</td>";
-                   echo "<td class='cell100 column32'>*</td>";
+                   echo "<td class='cell100 column31'><b>OVERALL</b></td>";
+                   echo "<td class='cell100 column32'><b>*</b></td>";
                    echo "<td class='cell100 column33'><b>" . $gTotals['a'] . "</b></td>";
                    echo "<td class='cell100 column34'><b>" . $gTotals['a_m'] . "</b></td>";
                    echo "<td class='cell100 column35'><b>" . $gTotals['b_p'] . "</b></td>";
@@ -1254,6 +908,246 @@
     </div>
   </div>
     </div>
+
+    <div class="limiter" style="margin-top: -450px;">
+      <div class="container-table100">
+         <div class="wrap-table100">
+           <div class="table100 ver1 m-b-110">
+
+        <h1 style="margin-left:15px;">Deviations</h1>
+        <button id="generate-excel3" class="btn btn-success" style="margin-left:15px;">
+            Generate Excel</button>
+        <br /><br />
+        <table id="test_table3">
+          <div id='t1' class="table100-head">
+            <thead>
+              <tr class="row100 head">
+                <th class="cell100 column50">CLASS</th>
+                <th class="cell100 column51">MAT</th>
+                <th class="cell100 column52">DEV</th>
+                <th class="cell100 column53">ENG</th>
+                <th class="cell100 column54">DEV</th>
+                <th class="cell100 column55">LNG</th>
+                <th class="cell100 column56">DEV</th>
+                <th class="cell100 column57">CMP</th>
+                <th class="cell100 column58">DEV</th>
+                <th class="cell100 column59">KISW</th>
+                <th class="cell100 column60">DEV</th>
+                <th class="cell100 column61">LUG</th>
+                <th class="cell100 column62">DEV</th>
+                <th class="cell100 column63">KUS</th>
+                <th class="cell100 column64">DEV</th>
+                <th class="cell100 column65">SCI</th>
+                <th class="cell100 column66">DEV</th>
+                <th class="cell100 column67">SSRE</th>
+                <th class="cell100 column68">DEV</th>
+                <th class="cell100 column69">SS</th>
+                <th class="cell100 column70">DEV</th>
+                <th class="cell100 column71">CRE</th>
+                <th class="cell100 column72">DEV</th>
+              </tr>
+            </thead>
+          </div>
+          <div class="table100-body js-pscroll">
+            <tbody>
+              <?php
+              /* DEVIATIONS */
+
+              $deviations = pg_query($db,"SELECT class_name, maths, (maths - maths2) as dv_mat, eng, (eng - eng2) as dv_eng, eng_lang, (eng_lang - eng_lang2) as dv_eng_lang, eng_comp, (eng_comp - eng_comp2) as dv_eng_comp, kisw, (kisw - kisw2) as dv_kisw, kisw_lugh, (kisw_lugh - kisw_lugh2) as dv_kisw_lugh, kisw_kus, (kisw_kus - kisw_kus2) as dv_kisw_kus, sci, (sci - sci2) as dv_sci, ssre, (ssre - ssre2) as dv_ssre, ss, (ss - ss2) as dv_ss, cre, (cre - cre2) as dv_cre FROM (
+						SELECT *
+                                                  FROM   crosstab('SELECT class_name, subject_name, marks FROM (
+                                                                SELECT class_name, subject_name, sort_order, trunc(cast((marks::float/count::float) as numeric),2) AS marks FROM
+                                                                (
+                                                                  SELECT one.*, two.* FROM
+                                                                  (
+                                                                  SELECT subject_name, class_name, sort_order, count(mark) FROM (
+                                                                    SELECT class_name,classes.class_id,subject_name,
+                                                                      coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,exam_type,
+                                                                      exam_marks.student_id,mark,grade_weight,subjects.sort_order
+                                                                    FROM app.exam_marks
+                                                                    INNER JOIN app.class_subject_exams
+                                                                    INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+                                                                    INNER JOIN app.class_subjects
+                                                                    INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+                                                                    INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+                                                                          ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+                                                                          ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+                                                                    INNER JOIN app.students ON exam_marks.student_id = students.student_id
+                                                                    INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+                                                                    WHERE class_cats.entity_id = 11
+                                                                    AND term_id = (SELECT term_id FROM app.terms WHERE term_number = 2)
+                                                                    AND subjects.use_for_grading is true
+                                                                    AND students.active is true
+                                                                    WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
+                                                                  )a WHERE mark is not null GROUP BY a.subject_name, a.class_name, a.sort_order ORDER BY sort_order
+                                                                  )one
+                                                                  FULL OUTER JOIN
+                                                                  (
+                                                                  SELECT subject_name AS subject_name2, class_name AS class_name2, sort_order AS sort_order2, sum(mark) as marks FROM (
+                                                                    SELECT class_name,classes.class_id,subject_name,
+                                                                      coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,exam_type,
+                                                                      exam_marks.student_id,mark,grade_weight,subjects.sort_order
+                                                                    FROM app.exam_marks
+                                                                    INNER JOIN app.class_subject_exams
+                                                                    INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+                                                                    INNER JOIN app.class_subjects
+                                                                    INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+                                                                    INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+                                                                          ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+                                                                          ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+                                                                    INNER JOIN app.students ON exam_marks.student_id = students.student_id
+                                                                    INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+                                                                    WHERE class_cats.entity_id = 11
+                                                                    AND term_id = (SELECT term_id FROM app.terms WHERE term_number = 2)
+                                                                    AND subjects.use_for_grading is true
+                                                                    AND students.active is true
+                                                                    WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
+                                                                  )a GROUP BY a.subject_name, a.class_name, a.sort_order ORDER BY sort_order
+                                                                  )two
+                                                                  ON one.class_name = two.class_name2 AND one.subject_name = two.subject_name2
+                                                                )three
+                                                                ORDER BY class_name DESC, sort_order
+                                                              )four
+                                                  ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 11 LIMIT 1) order by sort_order') AS ct (class_name text, maths numeric, eng numeric, eng_lang numeric, eng_comp numeric, kisw numeric, kisw_lugh numeric, kisw_kus numeric, sci numeric, ssre numeric, ss numeric, cre numeric)
+
+,   crosstab('SELECT 1 as class_name1, subject_name, max(marks) as marks FROM (
+                                                                SELECT class_name, subject_name, sort_order, trunc(cast((marks::float/count::float) as numeric),2) AS marks FROM
+                                                                (
+                                                                  SELECT one.*, two.* FROM
+                                                                  (
+                                                                  SELECT subject_name, class_name, sort_order, count(mark) FROM (
+                                                                    SELECT class_name,classes.class_id,subject_name,
+                                                                      coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,exam_type,
+                                                                      exam_marks.student_id,mark,grade_weight,subjects.sort_order
+                                                                    FROM app.exam_marks
+                                                                    INNER JOIN app.class_subject_exams
+                                                                    INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+                                                                    INNER JOIN app.class_subjects
+                                                                    INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+                                                                    INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+                                                                          ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+                                                                          ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+                                                                    INNER JOIN app.students ON exam_marks.student_id = students.student_id
+                                                                    INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+                                                                    WHERE class_cats.entity_id = 11
+                                                                    AND term_id = (SELECT term_id FROM app.terms WHERE term_number = 2)
+                                                                    AND subjects.use_for_grading is true
+                                                                    AND students.active is true
+                                                                    WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
+                                                                  )a WHERE mark is not null GROUP BY a.subject_name, a.class_name, a.sort_order ORDER BY sort_order
+                                                                  )one
+                                                                  FULL OUTER JOIN
+                                                                  (
+                                                                  SELECT subject_name AS subject_name2, class_name AS class_name2, sort_order AS sort_order2, sum(mark) as marks FROM (
+                                                                    SELECT class_name,classes.class_id,subject_name,
+                                                                      coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,exam_type,
+                                                                      exam_marks.student_id,mark,grade_weight,subjects.sort_order
+                                                                    FROM app.exam_marks
+                                                                    INNER JOIN app.class_subject_exams
+                                                                    INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+                                                                    INNER JOIN app.class_subjects
+                                                                    INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+                                                                    INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+                                                                          ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+                                                                          ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+                                                                    INNER JOIN app.students ON exam_marks.student_id = students.student_id
+                                                                    INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+                                                                    WHERE class_cats.entity_id = 11
+                                                                    AND term_id = (SELECT term_id FROM app.terms WHERE term_number = 2)
+                                                                    AND subjects.use_for_grading is true
+                                                                    AND students.active is true
+                                                                    WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
+                                                                  )a GROUP BY a.subject_name, a.class_name, a.sort_order ORDER BY sort_order
+                                                                  )two
+                                                                  ON one.class_name = two.class_name2 AND one.subject_name = two.subject_name2
+                                                                )three
+                                                                ORDER BY class_name DESC, sort_order
+                                                              )four GROUP BY four.subject_name
+                                                  ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 11 LIMIT 1) order by sort_order') AS ct2 (class_name1 text, maths2 numeric, eng2 numeric, eng_lang2 numeric, eng_comp2 numeric, kisw2 numeric, kisw_lugh2 numeric, kisw_kus2 numeric, sci2 numeric, ssre2 numeric, ss2 numeric, cre2 numeric)
+)dev1");
+              echo "<tr class='row100 body wider'>";
+
+                  /* Deviations output */
+
+              while ($c8Deviations = pg_fetch_assoc($deviations)) {
+
+                   echo "<td class='cell100 column50'>" . $c8Deviations['class_name'] . "</td>";
+                   echo "<td class='cell100 column51'>" . $c8Deviations['maths'] . "</td>";
+                   echo "<td class='cell100 column52'>" . $c8Deviations['dv_mat'] . "</td>";
+                   echo "<td class='cell100 column53'>" . $c8Deviations['eng'] . "</td>";
+                   echo "<td class='cell100 column54'>" . $c8Deviations['dv_eng'] . "</td>";
+                   echo "<td class='cell100 column55'>" . $c8Deviations['eng_lang'] . "</td>";
+                   echo "<td class='cell100 column56'>" . $c8Deviations['dv_eng_lang'] . "</td>";
+                   echo "<td class='cell100 column57'>" . $c8Deviations['eng_comp'] . "</td>";
+                   echo "<td class='cell100 column58'>" . $c8Deviations['dv_eng_comp'] . "</td>";
+                   echo "<td class='cell100 column59'>" . $c8Deviations['kisw'] . "</td>";
+                   echo "<td class='cell100 column60'>" . $c8Deviations['dv_kisw'] . "</td>";
+                   echo "<td class='cell100 column61'>" . $c8Deviations['kisw_lugh'] . "</td>";
+                   echo "<td class='cell100 column62'>" . $c8Deviations['dv_kisw_lugh'] . "</td>";
+                   echo "<td class='cell100 column63'>" . $c8Deviations['kisw_kus'] . "</td>";
+                   echo "<td class='cell100 column64'>" . $c8Deviations['dv_kisw_kus'] . "</td>";
+                   echo "<td class='cell100 column65'>" . $c8Deviations['sci'] . "</td>";
+                   echo "<td class='cell100 column66'>" . $c8Deviations['dv_sci'] . "</td>";
+                   echo "<td class='cell100 column67'>" . $c8Deviations['ssre'] . "</td>";
+                   echo "<td class='cell100 column68'>" . $c8Deviations['dv_ssre'] . "</td>";
+                   echo "<td class='cell100 column69'>" . $c8Deviations['ss'] . "</td>";
+                   echo "<td class='cell100 column70'>" . $c8Deviations['dv_ss'] . "</td>";
+                   echo "<td class='cell100 column71'>" . $c8Deviations['cre'] . "</td>";
+                   echo "<td class='cell100 column72'>" . $c8Deviations['dv_cre'] . "</td>";
+               echo "</tr>";
+              }
+
+              echo "<tr class='row100 body highlight' style='height:18px;'>";
+                  echo "<td class='cell100 column50'><b>*</b></td>";
+                  echo "<td class='cell100 column51'><b>*</b></td>";
+                  echo "<td class='cell100 column52'><b>*</b></td>";
+                  echo "<td class='cell100 column53'><b>*</b></td>";
+                  echo "<td class='cell100 column54'><b>*</b></td>";
+                  echo "<td class='cell100 column55'><b>*</b></td>";
+                  echo "<td class='cell100 column56'><b>*</b></td>";
+                  echo "<td class='cell100 column57'><b>*</b></td>";
+                  echo "<td class='cell100 column58'><b>*</b></td>";
+                  echo "<td class='cell100 column59'><b>*</b></td>";
+                  echo "<td class='cell100 column60'><b>*</b></td>";
+                  echo "<td class='cell100 column61'><b>*</b></td>";
+                  echo "<td class='cell100 column62'><b>*</b></td>";
+                  echo "<td class='cell100 column63'><b>*</b></td>";
+                  echo "<td class='cell100 column64'><b>*</b></td>";
+                  echo "<td class='cell100 column65'><b>*</b></td>";
+                  echo "<td class='cell100 column66'><b>*</b></td>";
+                  echo "<td class='cell100 column67'><b>*</b></td>";
+                  echo "<td class='cell100 column68'><b>*</b></td>";
+                  echo "<td class='cell100 column69'><b>*</b></td>";
+                  echo "<td class='cell100 column70'><b>*</b></td>";
+                  echo "<td class='cell100 column71'><b>*</b></td>";
+                  echo "<td class='cell100 column72'><b>*</b></td>";
+              echo "</tr>";
+
+              ?>
+
+            </tbody>
+          </div>
+
+        </table>
+      </div>
+    </div>
+  </div>
+    </div>
+
+    <script type="text/javascript">
+        var targetCells = document.getElementById("test_table3").getElementsByClassName("cell100");
+        $(document).ready(function() {
+            $('td').html(function(i, html){
+              return html.replace(/0.00/g, "<b style='background-color:#91E4A4'>TOP</b>");
+            });
+
+            var c8meanTot = 0;
+            $("#c8totals tr").each(function(){
+                  c8meanTot += parseFloat($(this).find('.c8totalVals').text());
+            });
+            console.log("Our mean total = " + c8meanTot);
+        });
+    </script>
 
     <!-- Footer -->
     <footer class="py-2 bg-dark" style="position: fixed !important; bottom: 0 !important; width: 100% !important;">
