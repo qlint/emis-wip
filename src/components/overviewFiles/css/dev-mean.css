@@ -193,6 +193,11 @@ th, td {
   text-align: center;
 }
 
+.column50, .column51, .column52, .coulmn53, .column54, .column55, .column56, .column57, .column58, .column59, .column60, .column61, .column62, .column63, .column64, .column65,
+.column66, .column67, .column68, .column69, .column70, .column71, .column72 {
+  /* line-height: 20px; */
+}
+
 .table100-head th {
   padding-top: 18px;
   padding-bottom: 18px;
@@ -249,7 +254,7 @@ tr:hover{
   font-family: Lato-Regular;
   font-size: 14px;
   color: #000000;
-  line-height: 1.2;
+  line-height: 2;
 }
 
 .cell100:hover{
