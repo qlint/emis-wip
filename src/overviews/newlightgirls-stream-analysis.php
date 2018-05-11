@@ -49,13 +49,13 @@ header('Access-Control-Allow-Origin: *');
   	   <div class="wrap-table100">
          <h4>STREAM: Form 4</h4><hr>
 <?php
-$db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
-// $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-// $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+// $db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
+$getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
+$db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
 
 
 /* -------------------------FORM 4 QUERY ------------------------- */
-$table1 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, french, bs_studies, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
+$table1 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
   SELECT t1.*, t2.avg as tot, t2.position as pos
 FROM
 (
@@ -117,7 +117,7 @@ ORDER BY sort_order
 ORDER BY student_name ASC, sort_order ASC
 )a
 GROUP BY student_name, subject_name
-ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, french bigint, bs_studies bigint)
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 15 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, bs_studies bigint, french bigint)
 
 ) AS t1
     FULL OUTER JOIN
@@ -203,8 +203,8 @@ echo "<table id='table1'>";
          echo "<th class='cell100 column9'>Geo.</th>";
          echo "<th class='cell100 column10'>CRE</th>";
          echo "<th class='cell100 column11'>Comp.</th>";
-         echo "<th class='cell100 column12'>Fnch.</th>";
-         echo "<th class='cell100 column13'>B/S.</th>";
+         echo "<th class='cell100 column12'>B/S.</th>";
+         echo "<th class='cell100 column13'>Fnch.</th>";
          echo "<th class='cell100 column14'>TOT.</th>";
          echo "<th class='cell100 column15'>%</th>";
          echo "<th class='cell100 column16'>GRD.</th>";
@@ -229,8 +229,8 @@ echo "<table id='table1'>";
              echo "<td class='cell100 column9'>" . $row['geography'] . "</td>";
              echo "<td class='cell100 column10'>" . $row['cre'] . "</td>";
              echo "<td class='cell100 column11'>" . $row['computer'] . "</td>";
-             echo "<td class='cell100 column12'>" . $row['french'] . "</td>";
-             echo "<td class='cell100 column13'>" . $row['bs_studies'] . "</td>";
+             echo "<td class='cell100 column12'>" . $row['bs_studies'] . "</td>";
+             echo "<td class='cell100 column13'>" . $row['french'] . "</td>";
              echo "<td class='cell100 column14'>" . $row['tot'] . "</td>";
              echo "<td class='cell100 column15'>" . $row['percentage'] . "</td>";
              echo "<td class='cell100 column16'>" . $row['grade'] . "</td>";
@@ -245,7 +245,7 @@ echo "<table id='table1'>";
 
 echo "<h4>STREAM: Form 3</h4><hr>";
 /* -------------------------FORM 3 QUERY ------------------------- */
- $table2 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, french, bs_studies, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
+ $table2 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
    SELECT t1.*, t2.avg as tot, t2.position as pos
 FROM
 (
@@ -307,7 +307,7 @@ ORDER BY sort_order
 ORDER BY student_name ASC, sort_order ASC
 )a
 GROUP BY student_name, subject_name
-ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, french bigint, bs_studies bigint)
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 14 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, bs_studies bigint, french bigint)
 
 ) AS t1
     FULL OUTER JOIN
@@ -395,8 +395,8 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
             echo "<th class='cell100 column9'>Geo.</th>";
             echo "<th class='cell100 column10'>CRE</th>";
             echo "<th class='cell100 column11'>Comp.</th>";
-            echo "<th class='cell100 column12'>Fnch.</th>";
-            echo "<th class='cell100 column13'>B/S.</th>";
+            echo "<th class='cell100 column12'>B/S.</th>";
+            echo "<th class='cell100 column13'>Fnch.</th>";
             echo "<th class='cell100 column14'>TOT.</th>";
             echo "<th class='cell100 column15'>%</th>";
             echo "<th class='cell100 column16'>GRD.</th>";
@@ -419,8 +419,8 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
            echo "<td class='cell100 column9'>" . $row2['geography'] . "</td>";
            echo "<td class='cell100 column10'>" . $row2['cre'] . "</td>";
            echo "<td class='cell100 column11'>" . $row2['computer'] . "</td>";
-           echo "<td class='cell100 column12'>" . $row2['french'] . "</td>";
-           echo "<td class='cell100 column13'>" . $row2['bs_studies'] . "</td>";
+           echo "<td class='cell100 column12'>" . $row2['bs_studies'] . "</td>";
+           echo "<td class='cell100 column13'>" . $row2['french'] . "</td>";
            echo "<td class='cell100 column14'>" . $row2['tot'] . "</td>";
            echo "<td class='cell100 column15'>" . $row2['percentage'] . "</td>";
            echo "<td class='cell100 column16'>" . $row2['grade'] . "</td>";
@@ -435,7 +435,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 
    echo "<h4>STREAM: Form 2</h4><hr>";
    /* -------------------------FORM 2 QUERY ------------------------- */
-    $table3 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, french, bs_studies, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
+    $table3 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
       SELECT t1.*, t2.avg as tot, t2.position as pos
 FROM
 (
@@ -497,7 +497,7 @@ ORDER BY sort_order
 ORDER BY student_name ASC, sort_order ASC
 )a
 GROUP BY student_name, subject_name
-ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, french bigint, bs_studies bigint)
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 13 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, bs_studies bigint, french bigint)
 
 ) AS t1
     FULL OUTER JOIN
@@ -583,8 +583,8 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
               echo "<th class='cell100 column9'>Geo.</th>";
               echo "<th class='cell100 column10'>CRE</th>";
               echo "<th class='cell100 column11'>Comp.</th>";
-              echo "<th class='cell100 column12'>Fnch.</th>";
-              echo "<th class='cell100 column13'>B/S.</th>";
+              echo "<th class='cell100 column12'>B/S.</th>";
+              echo "<th class='cell100 column13'>Fnch.</th>";
               echo "<th class='cell100 column14'>TOT.</th>";
               echo "<th class='cell100 column15'>%</th>";
               echo "<th class='cell100 column16'>GRD.</th>";
@@ -607,8 +607,8 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
              echo "<td class='cell100 column9'>" . $row3['geography'] . "</td>";
              echo "<td class='cell100 column10'>" . $row3['cre'] . "</td>";
              echo "<td class='cell100 column11'>" . $row3['computer'] . "</td>";
-             echo "<td class='cell100 column12'>" . $row3['french'] . "</td>";
-             echo "<td class='cell100 column13'>" . $row3['bs_studies'] . "</td>";
+             echo "<td class='cell100 column12'>" . $row3['bs_studies'] . "</td>";
+             echo "<td class='cell100 column13'>" . $row3['french'] . "</td>";
              echo "<td class='cell100 column14'>" . $row3['tot'] . "</td>";
              echo "<td class='cell100 column15'>" . $row3['percentage'] . "</td>";
              echo "<td class='cell100 column16'>" . $row3['grade'] . "</td>";
@@ -623,7 +623,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 
      echo "<h4>STREAM: Form 1</h4><hr>";
      /* -------------------------FORM 1 QUERY ------------------------- */
-      $table4 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, french, bs_studies, tot, round(tot::float/12) as percentage, (select grade from app.grading where round(tot::float/12) between min_mark and max_mark) as grade, pos FROM (
+      $table4 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round(tot::float/12) as percentage, (select grade from app.grading where round(tot::float/12) between min_mark and max_mark) as grade, pos FROM (
                                     SELECT t1.*, t2.avg as tot, t2.position as pos
                               FROM
                               (
@@ -685,7 +685,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
                               ORDER BY student_name ASC, sort_order ASC
                               )a
                               GROUP BY student_name, subject_name
-                              ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, french bigint, bs_studies bigint)
+                              ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 12 LIMIT 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, bs_studies bigint, french bigint)
 
                               ) AS t1
                                   FULL OUTER JOIN
@@ -771,8 +771,8 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
                 echo "<th class='cell100 column9'>Geo.</th>";
                 echo "<th class='cell100 column10'>CRE</th>";
                 echo "<th class='cell100 column11'>Comp.</th>";
-                echo "<th class='cell100 column12'>Fnch.</th>";
-                echo "<th class='cell100 column13'>B/S.</th>";
+                echo "<th class='cell100 column12'>B/S.</th>";
+                echo "<th class='cell100 column13'>Fnch.</th>";
                 echo "<th class='cell100 column14'>TOT.</th>";
                 echo "<th class='cell100 column15'>%</th>";
                 echo "<th class='cell100 column16'>GRD.</th>";
@@ -795,8 +795,8 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
                echo "<td class='cell100 column9'>" . $row4['geography'] . "</td>";
                echo "<td class='cell100 column10'>" . $row4['cre'] . "</td>";
                echo "<td class='cell100 column11'>" . $row4['computer'] . "</td>";
-               echo "<td class='cell100 column12'>" . $row4['french'] . "</td>";
-               echo "<td class='cell100 column13'>" . $row4['bs_studies'] . "</td>";
+               echo "<td class='cell100 column12'>" . $row4['bs_studies'] . "</td>";
+               echo "<td class='cell100 column13'>" . $row4['french'] . "</td>";
                echo "<td class='cell100 column14'>" . $row4['tot'] . "</td>";
                echo "<td class='cell100 column15'>" . $row4['percentage'] . "</td>";
                echo "<td class='cell100 column16'>" . $row4['grade'] . "</td>";
