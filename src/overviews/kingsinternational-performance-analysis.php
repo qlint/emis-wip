@@ -25,7 +25,7 @@
   <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="#"><?php echo htmlspecialchars( array_shift((explode('.', $_SERVER['HTTP_HOST']))) ); ?>.eduweb.co.ke Mean (x&#772;) Analysis</a>
+      <a class="navbar-brand" href="/" style="color:#0cff05;"><?php echo htmlspecialchars( array_shift((explode('.', $_SERVER['HTTP_HOST']))) ); ?>.eduweb.co.ke <span style="color:#ffffff;"> - Performance Analysis</span></a>
       <a class="navbar-brand"></a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -53,9 +53,9 @@
       <?php
         /* REMEMBER TO ENABLE > CREATE EXTENSION tablefunc; < ON THE DB IF NOT ALREADY ENABLED */
 
-        $db = pg_connect("host=localhost port=5432 dbname=eduweb_kingsinternational user=postgres password=postgres");
-        // $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-        // $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+        // $db = pg_connect("host=localhost port=5432 dbname=eduweb_kingsinternational user=postgres password=postgres");
+        $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
+        $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
         $i=0;$j=0;$k=0;$l=0;
       ?>
         <h1 style="margin-left:15px;"><?php echo htmlspecialchars( array_shift((explode('.', $_SERVER['HTTP_HOST']))) ); ?>.eduweb.co.ke Mean Analysis</h1>
@@ -116,7 +116,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 9
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -139,7 +139,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 9
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -174,7 +174,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 9
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -197,7 +197,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 9
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -261,7 +261,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 9
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -284,7 +284,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 9
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -346,7 +346,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 8
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -369,7 +369,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 8
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -404,7 +404,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 8
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -427,7 +427,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 8
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -495,7 +495,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 8
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -518,7 +518,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 8
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -580,7 +580,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 7
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -603,7 +603,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 7
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -638,7 +638,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 7
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -661,7 +661,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 7
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -726,7 +726,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 7
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -749,7 +749,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 7
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -811,7 +811,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 6
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -834,7 +834,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 6
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -869,7 +869,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 6
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -892,7 +892,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 6
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -956,7 +956,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 6
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -979,7 +979,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 6
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -1061,7 +1061,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 9
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -1084,7 +1084,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 9
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -1120,7 +1120,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 8
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -1143,7 +1143,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 8
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -1179,7 +1179,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 7
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -1202,7 +1202,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 7
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -1238,7 +1238,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 6
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
@@ -1261,7 +1261,7 @@
                                                                     INNER JOIN app.students ON exam_marks.student_id = students.student_id
                                                                     INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
                                                                     WHERE class_cats.entity_id = 6
-                                                                    AND term_id = 3
+                                                                    AND term_id = (SELECT t.term_id FROM app.terms t WHERE now() >= t.start_date AND t.end_date > now())
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
