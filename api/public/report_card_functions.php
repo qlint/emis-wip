@@ -11,7 +11,7 @@ $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
 
 		$sth = $db->prepare("SELECT report_cards.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,
 									admission_number, report_cards.class_id, class_cat_id,
-									class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type,
+									class_name, report_cards.kcpe_marks, report_cards.school_house, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date, published
 							FROM app.report_cards
@@ -55,7 +55,7 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
+		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, report_cards.kcpe_marks, report_cards.school_house, term_name, report_cards.term_id,
 									date_part('year', start_date) as year, report_data, report_cards.report_card_type, c.class_cat_id,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date, published, cc.entity_id
@@ -1126,6 +1126,8 @@ $app->post('/addReportCard', function () use($app) {
 	$allPostVars = json_decode($app->request()->getBody(),true);
 
 	$studentId =		( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+	$kcpeMarks =		( isset($allPostVars['kcpe_marks']) ? $allPostVars['kcpe_marks']: null);
+	$schoolHse =		( isset($allPostVars['school_house']) ? $allPostVars['school_house']: null);
 	$termId =			( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
 	$classId =			( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
 	$reportCardType =	( isset($allPostVars['report_card_type']) ? $allPostVars['report_card_type']: null);
@@ -1140,8 +1142,8 @@ $app->post('/addReportCard', function () use($app) {
 
 		$getReport = $db->prepare("SELECT report_card_id FROM app.report_cards WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId");
 
-		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by, report_card_type, teacher_id, published)
-								VALUES(:studentId, :classId, :termId, :reportData, :userId, :reportCardType, :teacherId, :published)");
+		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by, report_card_type, teacher_id, published, kcpe_marks, school_house)
+								VALUES(:studentId, :classId, :termId, :reportData, :userId, :reportCardType, :teacherId, :published, :kcpe_marks, :school_house)");
 
 		$updateReport = $db->prepare("UPDATE app.report_cards
 									SET report_data = :reportData,
@@ -1169,7 +1171,9 @@ $app->post('/addReportCard', function () use($app) {
 											':reportData' => $reportData,
 											':teacherId' => $teacherId,
 											':userId' => $userId,
-											':published' => $published
+											':published' => $published,
+											':kcpe_marks' => $kcpeMarks,
+											':school_house' => $schoolHse
 											) );
 		}
     $db->commit();
