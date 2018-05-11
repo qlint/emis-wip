@@ -711,6 +711,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxDelete(path + "/deleteCommunication/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getSendNotifications = function (request, successFunction, errorFunction) {
+		ajaxService.AjaxGet(request, path + "/sendNotifications", successFunction, errorFunction);
+	};
+
 
 	return this;
 }]);
