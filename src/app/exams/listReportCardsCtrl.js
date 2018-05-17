@@ -168,6 +168,31 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 				$scope.getReport = "reportTable";
 				$timeout(initDataGrid,100);
+
+				console.log("Get reports from here");
+				console.log(result.data);
+				var mksToArray = result.data;
+				var oneProperty = _.map(mksToArray, function (p) {
+				    return _.pick(p, 'json_data');
+				});
+				var jsonStudents = oneProperty.reduce(function(acc, cur, i) {
+					acc[i] = cur;
+					return eval(acc);
+				}, {});
+				// console.log(jsonStudents);
+				var batchJson = {
+					school: {
+						school_name: $rootScope.currentUser.settings['School Name'],
+						school_address: $rootScope.currentUser.settings['Address 1'],
+						school_address2: $rootScope.currentUser.settings['Address 2'],
+						contact: $rootScope.currentUser.settings['Phone Number 2'],
+						contact2: $rootScope.currentUser.settings['Phone Number'],
+						email: $rootScope.currentUser.settings['Email Address'],
+						letterhead: "assets/schools/" + $rootScope.currentUser.settings['Letterhead']
+					},
+					students: jsonStudents
+				}
+				console.log(batchJson);
 			}
 
 		}
