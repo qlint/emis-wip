@@ -21,6 +21,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.entity_id = data.entity_id;
 	$scope.canPrint = false;
 	$scope.isSchool = window.location.host.split('.')[0];
+	$scope.isStudentImage = window.location.host.split('.')[0];
 	console.log($scope.isSchool);
 
 	$scope.report = {};
@@ -147,6 +148,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.filters = data.filters;
 			$scope.isClassTeacher = ( $scope.student.class_teacher_id == $rootScope.currentUser.emp_id ? true : false);
 			$scope.isSchool = ( window.location.host.split('.')[0] == "localhost:8008" ? true : false);
+			$scope.isStudentImage = ( window.location.host.split('.')[0] == "localhost:8015" ? true : false);
 			console.log("school = "+ window.location.host.split('.')[0] + " and isSchool = " + $scope.isSchool);
 
 			// fetch the report cards subjects based on user type
@@ -449,6 +451,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				buildReportBody(result.data);
 				// $( "#remotegraph" ).load( "/studentgraph.html div#remotegraph" );
 
+				// we send the buildReportBody to a php file and save it as pdf from there
+				var reportToPdf = buildReportBody(result.data);
+				// $.ajax({
+        //         type: "POST",
+        //         url: 'saveFiles.php',
+        //         data : reportToPdf
+        // }).done(function(data){
+				// 			console.log("Posted");
+				// 			console.log(data);
+	      // });
+				$.post('saveFiles.php', {data:reportToPdf}, function(){console.log("Posted to php");console.log(data);});
+				// sending buildReportBody end
+
 				/* look for saved report card data, if it was not passed in  */
 				if( $scope.savedReportData === undefined )
 				{
@@ -612,7 +627,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					item.tot70 = overall.tot70;
 					item.position = overall.rank;
 					var subjNm = item.subject_name;
-					if( subjNm == "KISWAHILI" ){
+					if( subjNm == "KISWAHILI" || subjNm == "Kiswahili" || subjNm == "kiswahili" ){
 						item.comment = overall.kiswahili_comment;
 					}else{
 						item.comment = overall.comment;
@@ -669,7 +684,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				var overall = $scope.overallSubjectMarks.filter(function(item2){
 					if( item.subject_name == item2.subject_name ) return item2;
 				})[0];
-				if(item.subject_name == "KISWAHILI"){
+				if(item.subject_name == "KISWAHILI" || item.subject_name == "Kiswahili" || item.subject_name == "kiswahili"){
 					if( overall ) 	item.remarks = overall.kiswahili_comment;
 				}else{
 					if( overall ) 	item.remarks = overall.comment;
@@ -977,6 +992,52 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		newWindowRef.printCriteria = criteria;
 	}
 
+	$scope.serverPdf = function()
+	{
+		var criteria = {
+			student : $scope.student,
+			report: $scope.report,
+			overall: $scope.overall,
+			graphPoints: $scope.graphPoints,
+			currentClassPosition: $scope.currentClassPosition,
+			streamRankPosition: $scope.streamRankPosition,
+			streamRankOutOf: $scope.streamRankOutOf,
+			// streamPosition: $scope.streamPosition,
+			overallLastTerm: $scope.overallLastTerm,
+			examTypes: $scope.examTypes,
+			reportData: $scope.reportData,
+			totals: $scope.totals,
+			comments: $scope.comments,
+			nextTermStartDate: $scope.nextTermStartDate,
+			currentTermEndDate: $scope.currentTermEndDate,
+			report_card_type: $scope.reportCardType,
+			chart_path: $scope.chart_path,
+			motto: $scope.motto,
+			overallSubjectMarks: $scope.overallSubjectMarks,
+			thisTermMarks: $scope.thisTermMarks,
+			thisTermMarksOutOf: $scope.thisTermMarksOutOf,
+			thisTermGrade: $scope.thisTermGrade,
+			thisTermPercentage: $scope.thisTermPercentage
+		}
+
+		var criteriaToPdf = new Blob(["criteria"], {type : "image/png"});
+		console.log(window.URL.createObjectURL(criteriaToPdf));
+		var readBlob = new FileReader();
+		 readBlob.readAsDataURL(criteriaToPdf);
+		 readBlob.onloadend = function() {
+		     var base64data = readBlob.result;
+		     console.log(base64data);
+		 }
+		// $.ajax({
+		//         type: "POST",
+		//         url: 'saveFiles.php',
+		//         data : reportToPdf
+		// }).done(function(data){
+		// 			console.log("Posted");
+		// 			console.log(data);
+		// });
+	}
+
 
 	$scope.deleteReportCard = function()
 	{
@@ -1054,20 +1115,52 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var reportData = angular.copy($scope.reportData);
 		}
 
+		var dataForPdf = {
+			school: {
+				school_name: $rootScope.currentUser.settings['School Name'],
+				school_address: $rootScope.currentUser.settings['Address 1'],
+				school_address2: $rootScope.currentUser.settings['Address 2'],
+				contact: $rootScope.currentUser.settings['Phone Number 2'],
+				contact2: $rootScope.currentUser.settings['Phone Number'],
+				email: $rootScope.currentUser.settings['Email Address'],
+				letterhead: "assets/schools/" + $rootScope.currentUser.settings['Letterhead']
+			},
+			header: {
+				user_id: $rootScope.currentUser.user_id,
+				student_id: $scope.student.student_id,
+				student_name: $scope.student.student_name,
+				student_img: "assets/students/" + $scope.student.student_image,
+				kcpe_marks: $scope.student.kcpe_marks,
+				school_house: $scope.student.school_house,
+				stream_pos: $scope.streamRankPosition,
+				stream_out_of: $scope.streamRankOutOf,
+				term_id : $scope.report.term_id,
+				class_id : $scope.report.class_id,
+				report_card_type : $scope.reportCardType,
+				teacher_id : $scope.report.teacher_id
+			},
+			report_data : reportData,
+			chart: $scope.chart_path
+		}
+
 		var data = {
 			user_id: $rootScope.currentUser.user_id,
 			student_id: $scope.student.student_id,
+			kcpe_marks: $scope.student.kcpe_marks,
+			school_house: $scope.student.school_house,
 			term_id : $scope.report.term_id,
 			class_id : $scope.report.class_id,
 			report_card_type : $scope.reportCardType,
 			teacher_id : $scope.report.teacher_id,
 			report_data : JSON.stringify(reportData),
+			json_data : JSON.stringify(dataForPdf),
 			published: $scope.report.published || 'f'
 		}
 
 		apiService.addReportCard(data,createCompleted,apiError);
 
 	}
+
 
 	var createCompleted = function ( response, status, params )
 	{
