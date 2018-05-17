@@ -11,7 +11,7 @@ $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
 
 		$sth = $db->prepare("SELECT report_cards.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,
 									admission_number, report_cards.class_id, class_cat_id,
-									class_name, report_cards.kcpe_marks, report_cards.school_house, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type,
+									class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, json_data, report_cards.report_card_type,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date, published
 							FROM app.report_cards
@@ -55,7 +55,7 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, report_cards.kcpe_marks, report_cards.school_house, term_name, report_cards.term_id,
+		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
 									date_part('year', start_date) as year, report_data, report_cards.report_card_type, c.class_cat_id,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date, published, cc.entity_id
@@ -797,7 +797,7 @@ FROM(
 																			(SELECT avg AS current_term_marks, avg_out_of AS current_term_marks_out_of, student_id, position AS rank FROM (
 																				SELECT avg, avg_out_of, student_id, rank() over(order by avg desc)  as position FROM (
 																					SELECT round(sum(((total_mark)::float/(total_grade_weight)::float)*100)) AS avg, sum(total_grade_weight) AS avg_out_of, student_id FROM (
-																						SELECT  sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, student_id, subject_id
+																						SELECT  sum(total_mark) as total_mark, avg(total_grade_weight) as total_grade_weight, student_id, subject_id
 																						FROM (
 																							SELECT class_id, class_subjects.subject_id, subject_name, exam_marks.student_id,
 																								coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
@@ -1134,6 +1134,7 @@ $app->post('/addReportCard', function () use($app) {
 	$teacherId =		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	$reportData =		( isset($allPostVars['report_data']) ? $allPostVars['report_data']: null);
+	$jsonData  = 	( isset($allPostVars['json_data']) ? $allPostVars['json_data']: null);
 	$published =		( isset($allPostVars['published']) ? $allPostVars['published']: 'f');
 
   try
@@ -1142,8 +1143,8 @@ $app->post('/addReportCard', function () use($app) {
 
 		$getReport = $db->prepare("SELECT report_card_id FROM app.report_cards WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId");
 
-		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by, report_card_type, teacher_id, published, kcpe_marks, school_house)
-								VALUES(:studentId, :classId, :termId, :reportData, :userId, :reportCardType, :teacherId, :published, :kcpe_marks, :school_house)");
+		$addReport = $db->prepare("INSERT INTO app.report_cards(student_id, class_id, term_id, report_data, created_by, report_card_type, teacher_id, published, kcpe_marks, school_house, json_data)
+								VALUES(:studentId, :classId, :termId, :reportData, :userId, :reportCardType, :teacherId, :published, :kcpe_marks, :school_house, :json_data)");
 
 		$updateReport = $db->prepare("UPDATE app.report_cards
 									SET report_data = :reportData,
@@ -1173,7 +1174,8 @@ $app->post('/addReportCard', function () use($app) {
 											':userId' => $userId,
 											':published' => $published,
 											':kcpe_marks' => $kcpeMarks,
-											':school_house' => $schoolHse
+											':school_house' => $schoolHse,
+											':json_data' => $jsonData
 											) );
 		}
     $db->commit();
