@@ -223,7 +223,7 @@ function getChartPath()
 					</div>
 				</div> -->
 
-				<div ng-include="reportCardType"></div>
+				<div ng-include="reportCardType" id="rcToPdf"></div>
 
 				<style type="text/css"> @import url("components/css/customSettingReportCard.css"); </style>
 				<script type="text/ng-template" id="Standard">
@@ -335,7 +335,7 @@ function getChartPath()
 								<label>Last Term Marks:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline">{{overallLastTerm.total_grade_weight||'-'}}</p>
+								<p class="form-control-static inline">{{lastTermMarks||'-'}}</p> / <p class="form-control-static inline">{{lastTermMarksOutOf||'-'}}</p>
 							</div>
 						</div>
 						<!-- stream position, out of, stream pos last term, out of -->
@@ -351,7 +351,7 @@ function getChartPath()
 								<label>Stream Pos Last Term:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{overallLastTerm.position_out_of||'--'}}</p>
+								<p class="form-control-static inline">{{streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{streamRankOutOfLastTerm||'--'}}</p>
 							</div>
 
 							<div class="col-xs-2 nopad-right">
@@ -641,7 +641,7 @@ function getChartPath()
 							<label>Stream Pos Last Term:</label>
 						</div>
 						<div class="col-xs-2 lesspad">
-							<p class="form-control-static inline">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{overallLastTerm.position_out_of||'--'}}</p>
+							<p class="form-control-static inline">{{streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{streamRankOutOfLastTerm||'--'}}</p>
 						</div>
 
 						<!-- <div class="col-xs-2 nopad-right">
@@ -1291,6 +1291,8 @@ function getChartPath()
 					<canvas id="line1" class="chart chart-line efficiency-chart"></canvas>
 				</div>
 
+				<canvas id="canvas"></canvas>
+
 
 
                 <div ng-if="isAdmin && parentPortalAcitve">
@@ -1312,6 +1314,7 @@ function getChartPath()
 			<div class="pull-left" ng-show="canDelete">
 				<button type="button" class="btn btn-danger" ng-click="deleteReportCard()">Delete</button>
 			</div>
+			<button type="button"  class="btn btn-success" ng-click="jsonForPdf()">JSON</button>
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>
 			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint && (isAdmin || isClassTeacher)"><i class="glyphicon glyphicon-print"></i> Print</button>
 			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && adding">Save</button>
