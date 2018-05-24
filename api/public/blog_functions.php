@@ -1047,12 +1047,10 @@ $app->post('/addCommunication', function () use($app) {
   $subject =    ( isset($allPostVars['post']['title']) ? $allPostVars['post']['title']: null);
   $message =    ( isset($allPostVars['post']['body']) ? $allPostVars['post']['body']: null);
   $attachment = ( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
-  // $attachment2 = ( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
-  // $attachment = ( isset($allPostVars['post']['attachment']) ? 'TRUE': null);
   $audienceId = ( isset($allPostVars['post']['audience_id']) ? $allPostVars['post']['audience_id']: null);
   $comTypeId =  ( isset($allPostVars['post']['com_type_id']) ? $allPostVars['post']['com_type_id']: null);
-  $studentId   =  ( isset($allPostVars['post']['student_id']) ? $allPostVars['post']['student_id']: null);
-  $guardianId = ( isset($allPostVars['post']['guardian_id']) ? $allPostVars['post']['guardian_id']: null);
+  $students   =  ( isset($allPostVars['post']['student_id']) ? $allPostVars['post']['student_id']: null);
+  $guardians = ( isset($allPostVars['post']['guardian_id']) ? $allPostVars['post']['guardian_id']: null);
   $classId =    ( isset($allPostVars['post']['class_id']) ? $allPostVars['post']['class_id']: null);
   $sendAsEmail =  ( isset($allPostVars['post']['send_as_email']) ? $allPostVars['post']['send_as_email']: 'f');
   $sendAsSms =  ( isset($allPostVars['post']['send_as_sms']) ? $allPostVars['post']['send_as_sms']: 'f');
@@ -1069,8 +1067,8 @@ $app->post('/addCommunication', function () use($app) {
   try
   {
     $db = getDB();
-    $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, post_status_id, route, activity)
-               VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :postStatus, :route, :activity) RETURNING com_id AS postId");
+    $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, class_id, send_as_email, send_as_sms, created_by, reply_to, post_status_id, route, activity, guardians, students)
+               VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :postStatus, :route, :activity, :guardians, :students) RETURNING com_id AS postId");
 
     // if( $attachment === 'TRUE' )
     // {
@@ -1142,15 +1140,26 @@ $app->post('/addCommunication', function () use($app) {
         {
           // specific parent
           $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
-          $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE guardian_id = :guardianId");
-          $params = array(':guardianId' => $guardianId);
+          $guardiansArray = explode(',', $guardians);
+          foreach($guardiansArray as $perGuardian){
+              $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE guardian_id = :guardianId");
+              $studentsToNotify = $db->prepare("SELECT students.student_id
+                                            FROM app.students
+                                            INNER JOIN app.student_guardians
+                                            ON students.student_id = student_guardians.student_id
+                                            WHERE guardian_id = :guardianId
+                                            ");
+              $params = array(':guardianId' => $perGuardian);
+          }
+          // $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE guardian_id = 32");
+          // $params = array(':guardianId' => $guardianId);
 
-          $studentsToNotify = $db->prepare("SELECT students.student_id
-                                        FROM app.students
-                                        INNER JOIN app.student_guardians
-                                        ON students.student_id = student_guardians.student_id
-                                        WHERE guardian_id = :guardianId
-                                        ");
+          // $studentsToNotify = $db->prepare("SELECT students.student_id
+          //                               FROM app.students
+          //                               INNER JOIN app.student_guardians
+          //                               ON students.student_id = student_guardians.student_id
+          //                               WHERE guardian_id = 32
+          //                               ");
         }
         else if( $audienceId === 6 )
         {
@@ -1234,14 +1243,25 @@ $app->post('/addCommunication', function () use($app) {
         {
           // specific parent
           $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
-          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM app.guardians WHERE guardian_id = :guardianId");
-          $params = array(':guardianId' => $guardianId);
-          $studentsToNotify = $db->prepare("SELECT students.student_id
-                                        FROM app.students
-                                        INNER JOIN app.student_guardians
-                                        ON students.student_id = student_guardians.student_id
-                                        WHERE guardian_id = :guardianId
-                                        ");
+          $guardiansArray = explode(',', $guardians);
+          foreach($guardiansArray as $perGuardian){
+              $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE guardian_id = :guardianId");
+              $studentsToNotify = $db->prepare("SELECT students.student_id
+                                            FROM app.students
+                                            INNER JOIN app.student_guardians
+                                            ON students.student_id = student_guardians.student_id
+                                            WHERE guardian_id = :guardianId
+                                            ");
+              $params = array(':guardianId' => $perGuardian);
+          }
+          // $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM app.guardians WHERE guardian_id = :guardianId");
+          // $params = array(':guardianId' => $guardianId);
+          // $studentsToNotify = $db->prepare("SELECT students.student_id
+          //                               FROM app.students
+          //                               INNER JOIN app.student_guardians
+          //                               ON students.student_id = student_guardians.student_id
+          //                               WHERE guardian_id = 32
+          //                               ");
 
         }
         else if( $audienceId === 6 )
@@ -1281,9 +1301,9 @@ $app->post('/addCommunication', function () use($app) {
 
     $db->beginTransaction();
     $sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message ,
-            ':attachment' => $attachment , ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
+            ':attachment' => $attachment , ':userId' => $userId,
             ':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo,
-            ':messageFrom' => $messageFrom, ':postStatus' => $postStatus, ':route' => $routeId, ':activity' => $feeItem) );
+            ':messageFrom' => $messageFrom, ':postStatus' => $postStatus, ':route' => $routeId, ':activity' => $feeItem, ':students' => $students, ':guardians' => $guardians) );
 
     // if( $attachment === 'TRUE' )
     // {
@@ -1365,91 +1385,6 @@ $app->post('/addCommunication', function () use($app) {
             );
           }
         }
-        //notifications
-        // try{
-        //   $db = getMISDB();
-          $subdomain = getSubDomain();
-
-          $sthNotification = $db->prepare('SELECT * FROM notifications WHERE sent is false AND subdomain = :subdomain');
-          $sthNotification->execute( array( ':subdomain' => $subdomain ) );
-          $notifResults = $sthNotification->fetchAll(PDO::FETCH_OBJ);
-          $resultsNotifToScope->notifResults = $notifResults;
-
-          if($notifResults) {
-
-            $notifications = array();
-            foreach( $notifResults as $result )
-            {
-              // for each notification, break out the device ids
-              // each notification can only have a max of 2000 device ids
-              $deviceIds = pg_array_parse($result->device_user_ids);
-              //var_dump($deviceIds);
-              $deviceChunks = array_chunk($deviceIds, 2000);
-              foreach ($deviceChunks as $chunk) {
-                $result->device_user_ids = $chunk;
-                $notifications[] = $result;
-              }
-            }
-            $resultsNotifArrayScope->notifications = $notifications;
-            //var_dump($notifications);
-
-            // loop through these notifications and send
-            foreach($notifications as $notification) {
-              $response = sendMessage($notification->message, $notification->device_user_ids);
-              $responseJson = json_decode($response);
-              $result = isset($responseJson->error) ? false : true;
-
-              // update database as sent
-              $update = $db->prepare('UPDATE notifications
-                                      SET sent = true,
-                                          result = :result,
-                                          response = :response
-                                      WHERE notification_id = :notificationId');
-              $update->execute( array(':response' => $response, ':notificationId' => $notification->notification_id, ':result' => $result) );
-            }
-          }
-
-          $db = null;
-          $app->response->setStatus(200);
-          $app->response()->headers->set('Content-Type', 'application/json');
-          $resultsResponseJsonToScope->responseJson = $responseJson;
-          echo json_encode(array('response' => 'onesignal notifications success', 'data' => $responseJson ));
-
-        // }
-
-        function sendMessage ($message, $deviceIds) {
-
-          require('../lib/token.php');
-          $fields = array(
-            'app_id' => "b6987dd6-80c8-40da-83e0-3ada5d55876c",
-            'include_player_ids' => $deviceIds,
-            'contents' => array(
-              "en" => $message
-            )
-          );
-
-          $fields = json_encode($fields);
-          print("\nJSON sent:\n");
-          print($fields);
-
-          $ch = curl_init();
-          curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
-          curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8',
-                                 'Authorization: Basic ' . $_onesignal));
-          curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-          curl_setopt($ch, CURLOPT_HEADER, FALSE);
-          curl_setopt($ch, CURLOPT_POST, TRUE);
-          curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-          curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-          $response = curl_exec($ch);
-          curl_close($ch);
-          print("\nJSON response:\n");
-          print($response);
-          return $response;
-
-        }
-        //end notifications
     }
     else {
       $db-commit();
