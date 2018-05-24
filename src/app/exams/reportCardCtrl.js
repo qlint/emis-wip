@@ -136,6 +136,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.nextTermStartDate = $scope.savedReportData.nextTerm;
 			$scope.currentTermEndDate = $scope.savedReportData.closingDate;
 			$scope.overallLastTerm = data.overallLastTerm;
+			$scope.overallLastTermByAverage = data.overallLastTermByAverage;
 			$scope.subjectOverall = data.subjectOverall;
 			$scope.subjectOverallBySum = data.subjectOverallBySum;
 			$scope.subjectOverallByAvg = data.subjectOverallByAvg;
@@ -253,6 +254,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.overall = {};
 		$scope.overallByAverage = {};
 		$scope.overallLastTerm = {};
+		$scope.overallLastTermByAverage = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
 		// $scope.streamPosition = {};
@@ -267,6 +269,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.overall = {};
 		$scope.overallByAverage = {};
 		$scope.overallLastTerm = {};
+		$scope.overallLastTermByAverage = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
 		// $scope.streamPosition = {};
@@ -418,10 +421,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.streamRankPosition = result.data.streamRank[0].position;
 		$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
 
+		$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
+		$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
+
 			localStorage.setItem('printStreamRank', $scope.streamRankPosition);
 			var getPrintRank = localStorage.getItem("printStreamRank");
 			localStorage.setItem('printStreamRankOutOf', $scope.streamRankOutOf);
 			var getStreamRankOutOf = localStorage.getItem("printStreamRankOutOf");
+
+			localStorage.setItem('printStreamRankLastTerm', $scope.streamRankPositionLastTerm);
+			var getPrintRankLastTerm = localStorage.getItem("printStreamRankLastTerm");
+			localStorage.setItem('printStreamRankOutOfLastTerm', $scope.streamRankOutOfLastTerm);
+			var getStreamRankOutOfLastTerm = localStorage.getItem("printStreamRankOutOfLastTerm");
 
 	}
 
@@ -492,15 +503,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		if (school == "karemeno" || school == "rongaiboys"){
 			$scope.overall = data.overallByAverage;
 			$scope.thisTermMarks = data.overallByAverage.current_term_marks;
+			$scope.lastTermMarks = data.overallLastTermByAverage.current_term_marks;
+			$scope.overallLastTerm = data.overallLastTermByAverage;
 			console.log("K & R");
 			console.log($scope.overall);
 		}else if (school == "localhost:8008"){
 			$scope.overall = data.overall;
 			$scope.thisTermMarks = data.overall.current_term_marks;
+			$scope.lastTermMarks = data.overallLastTerm.current_term_marks;
+			$scope.overallLastTerm = data.overallLastTerm;
 			console.log("NLT");
 			console.log($scope.overall);
 		}
-		$scope.overallLastTerm = data.overallLastTerm;
+		// $scope.overallLastTerm = data.overallLastTerm;
 		$scope.graphPoints = data.graphPoints;
 		$scope.currentClassPosition = data.currentClassPosition[0];
 		if (school == "karemeno"){
@@ -515,8 +530,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 		// $scope.thisTermMarks = data.overall.current_term_marks;
 		$scope.thisTermMarksOutOf = data.overall.current_term_marks_out_of;
+		$scope.lastTermMarksOutOf = data.overallLastTerm.current_term_marks_out_of;
 		$scope.thisTermGrade = data.overall.grade;
 		$scope.thisTermPercentage = data.overall.percentage;
+		$scope.lastTermGrade = data.overallLastTerm.grade;
+		$scope.lastTermPercentage = data.overallLastTerm.percentage;
 
 
 			if (school == "karemeno" && $scope.motto == ""){
@@ -969,6 +987,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			currentClassPosition: $scope.currentClassPosition,
 			streamRankPosition: $scope.streamRankPosition,
 			streamRankOutOf: $scope.streamRankOutOf,
+			streamRankPositionLastTerm: $scope.streamRankPositionLastTerm,
+			streamRankOutOfLastTerm: $scope.streamRankOutOfLastTerm,
 			// streamPosition: $scope.streamPosition,
 			overallLastTerm: $scope.overallLastTerm,
 			examTypes: $scope.examTypes,
@@ -984,7 +1004,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			thisTermMarks: $scope.thisTermMarks,
 			thisTermMarksOutOf: $scope.thisTermMarksOutOf,
 			thisTermGrade: $scope.thisTermGrade,
-			thisTermPercentage: $scope.thisTermPercentage
+			thisTermPercentage: $scope.thisTermPercentage,
+			lastTermMarks: $scope.lastTermMarks,
+			lastTermMarksOutOf: $scope.lastTermMarksOutOf,
+			lastTermGrade: $scope.lastTermGrade,
+			lastTermPercentage: $scope.lastTermPercentage
 		}
 
 		var domain = "localhost:8008/highschool";
@@ -1002,6 +1026,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			currentClassPosition: $scope.currentClassPosition,
 			streamRankPosition: $scope.streamRankPosition,
 			streamRankOutOf: $scope.streamRankOutOf,
+			streamRankPositionLastTerm: $scope.streamRankPositionLastTerm,
+			streamRankOutOfLastTerm: $scope.streamRankOutOfLastTerm,
 			// streamPosition: $scope.streamPosition,
 			overallLastTerm: $scope.overallLastTerm,
 			examTypes: $scope.examTypes,
@@ -1017,7 +1043,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			thisTermMarks: $scope.thisTermMarks,
 			thisTermMarksOutOf: $scope.thisTermMarksOutOf,
 			thisTermGrade: $scope.thisTermGrade,
-			thisTermPercentage: $scope.thisTermPercentage
+			thisTermPercentage: $scope.thisTermPercentage,
+			lastTermMarks: $scope.lastTermMarks,
+			lastTermMarksOutOf: $scope.lastTermMarksOutOf,
+			lastTermGrade: $scope.lastTermGrade,
+			lastTermPercentage: $scope.lastTermPercentage
 		}
 
 		var criteriaToPdf = new Blob(["criteria"], {type : "image/png"});
@@ -1134,6 +1164,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				school_house: $scope.student.school_house,
 				stream_pos: $scope.streamRankPosition,
 				stream_out_of: $scope.streamRankOutOf,
+				stream_pos_last_term: $scope.streamRankPositionLastTerm,
+				stream_out_of_last_term: $scope.streamRankOutOfLastTerm,
 				term_id : $scope.report.term_id,
 				class_id : $scope.report.class_id,
 				report_card_type : $scope.reportCardType,
