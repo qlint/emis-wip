@@ -5,6 +5,7 @@ $app->get('/sendNotifications/', function () {
   $app = \Slim\Slim::getInstance();
   try{
     $db = getMISDB();
+    $subdomain = getSubDomain();
 
     $sth = $db->prepare("SELECT * FROM notifications WHERE sent is false AND subdomain = :subdomain");
     $sth->execute( array(':subdomain' => $subdomain) );
