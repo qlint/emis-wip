@@ -824,9 +824,20 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.selectedClassName = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_name) : undefined );
 			$scope.selectedMethod =	angular.copy($scope.filters.send_method).toUpperCase();
 
+			var studentIdsArray = [];
+			var parentIdsArray = [];
+			for (var i = 0; i < $scope.theparent.selected.length; i++){
+				studentIdsArray[i] = $scope.theparent.selected[i].student_id;
+				parentIdsArray[i] = $scope.theparent.selected[i].guardian_id;
+			}
+			var studentsJoinedArray = studentIdsArray.join();
+			var parentsJoinedArray = parentIdsArray.join();
+			console.log(typeof studentsJoinedArray + ">>" + studentsJoinedArray);
+			console.log(typeof parentsJoinedArray + ">>" + parentsJoinedArray);
+
 			/* set variables to post of selected criteria */
-			$scope.post.student_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.student_id) : undefined );
-			$scope.post.guardian_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.guardian_id) : undefined );
+			$scope.post.student_id = ( $scope.theparent.selected !== undefined ? studentsJoinedArray : undefined );
+			$scope.post.guardian_id = ( $scope.theparent.selected !== undefined ? parentsJoinedArray : undefined );
 			$scope.post.transport_id = ( $scope.theroute.selected !== undefined ? angular.copy($scope.theroute.selected.transport_id) : undefined );
 			$scope.post.fee_item = ( $scope.theactivity.selected !== undefined ? angular.copy($scope.theactivity.selected.fee_item) : undefined );
 			$scope.post.class_id = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_id) : undefined );
@@ -1169,6 +1180,20 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				if( $scope.isEmail ) $state.go('communications/send_email');
 				else  $state.go('communications/blog_posts', {class_id: $scope.selectedClass.class_id });
 			}, 1500);
+
+			// // Calling notifications api to send notifications at this point
+			// apiService.sendNotifications({}, function(response){
+			// 	var result = angular.fromJson(response);
+			// 	console.log("Notifications result >>");
+			// 	console.log(result);
+			//
+			// 	// store these as they do not change often
+			// 	if( result.response == 'success')
+			// 	{
+			// 		console.log("Notifications should be sent!!");
+			// 	}
+			//
+			// }, apiError);
 
 		}
 		else
