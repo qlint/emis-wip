@@ -49,9 +49,9 @@ header('Access-Control-Allow-Origin: *');
   	   <div class="wrap-table100">
          <h4>STREAM: Form 4</h4><hr>
 <?php
-// $db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
-$getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-$db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+$db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
+// $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
+// $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
 
 
 /* -------------------------FORM 4 QUERY ------------------------- */
