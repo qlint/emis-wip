@@ -711,10 +711,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxDelete(path + "/deleteCommunication/" + param, successFunction, errorFunction, params);
 	};
 
-	this.getSendNotifications = function (request, successFunction, errorFunction) {
-		ajaxService.AjaxGet(request, path + "/sendNotifications", successFunction, errorFunction);
+	this.sendNotifications = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/sendNotifications", successFunction, errorFunction, params);
+		console.log("Notifications api");
 	};
-
 
 	return this;
 }]);
