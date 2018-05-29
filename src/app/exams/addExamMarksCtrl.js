@@ -80,6 +80,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					else
 					{
 						$scope.subjects = result.data;
+						console.log($scope.subjects);
 
 						var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
 						if( $scope.isTeacher ) request += '/' + $rootScope.currentUser.emp_id;
