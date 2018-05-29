@@ -21,3 +21,13 @@ body {
 .highlight {
   background-color: #91E4A4 !important;
 }
+
+.highlight-darker {
+  background-color: #1FAD3F !important;
+  color: #FFFFFF !important;
+}
+
+.highlight-class {
+  background-color: #399B50 !important;
+  color: #FFFFFF !important;
+}
