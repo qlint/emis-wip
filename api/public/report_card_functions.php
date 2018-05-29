@@ -101,7 +101,7 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, class_name, classes.class_id, term_name, report_cards.term_id,
+		$sth = $db->prepare("SELECT report_cards.student_id, report_card_id, class_name, classes.class_id, term_name, report_cards.term_id,
 									date_part('year', start_date) as year, report_data, report_cards.report_card_type,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date, published
@@ -148,7 +148,7 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 
 		// get exam marks by exam type
 		$params = array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId);
-		$query = "SELECT mark,
+		$query = "SELECT student_id, mark,
 								grade_weight,
 								exam_type,
 								(select grade from app.grading where round((mark::float/grade_weight::float)*100) between min_mark and max_mark) as grade,
@@ -1313,7 +1313,7 @@ $app->get('/getStreamPosition/:student_id/:entityId/:termId', function ($student
 
 		// stream positions
 		$sth7 = $db->prepare("SELECT * FROM (
-														SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
+														SELECT student_id, student_name, avg, class_name, rank() over(order by avg desc) AS position,
 															(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 14 AND students.active is true) AS position_out_of
 														FROM (
 															SELECT sum(total_mark) AS avg, student_id, student_name, class_name
