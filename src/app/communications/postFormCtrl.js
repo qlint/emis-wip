@@ -411,7 +411,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			{
 				var result = angular.fromJson(response);
 
-				// console.log(response);
+				// console.log(result);
 				$scope.streamRankPosition = result.data.streamRank[0].position;
 				$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
 				// console.log("Stream = " + $scope.streamRankPosition + "/" + $scope.streamRankOutOf);
@@ -448,7 +448,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 										// console.log($scope.termMarks + "/" + $scope.termMarksOutOf);
 									}else if (school == "rongaiboys"){
 										$scope.termMarks = result.data.overallByAverage.current_term_marks;
-										$scope.termMarksOutOf = result.data.overall.current_term_marks_out_of;
+										$scope.termMarksOutOf = result.data.overallByAverage.current_term_marks_out_of;
 										$scope.ovrlGrd = result.data.overall.grade;
 										// console.log($scope.termMarks + "/" + $scope.termMarksOutOf);
 									}else{
@@ -824,16 +824,30 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.selectedClassName = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_name) : undefined );
 			$scope.selectedMethod =	angular.copy($scope.filters.send_method).toUpperCase();
 
-			var studentIdsArray = [];
-			var parentIdsArray = [];
-			for (var i = 0; i < $scope.theparent.selected.length; i++){
-				studentIdsArray[i] = $scope.theparent.selected[i].student_id;
-				parentIdsArray[i] = $scope.theparent.selected[i].guardian_id;
+			// console.log($scope.filters.audience.audience);
+			if( $scope.filters.audience.audience == 'Parent' ){
+				var studentIdsArray = [];
+				var parentIdsArray = [];
+				for (var i = 0; i < $scope.theparent.selected.length; i++){
+					studentIdsArray[i] = $scope.theparent.selected[i].student_id;
+					parentIdsArray[i] = $scope.theparent.selected[i].guardian_id;
+				}
+				var studentsJoinedArray = studentIdsArray.join();
+				var parentsJoinedArray = parentIdsArray.join();
+				// console.log(typeof studentsJoinedArray + ">>" + studentsJoinedArray);
+				// console.log(typeof parentsJoinedArray + ">>" + parentsJoinedArray);
 			}
-			var studentsJoinedArray = studentIdsArray.join();
-			var parentsJoinedArray = parentIdsArray.join();
-			console.log(typeof studentsJoinedArray + ">>" + studentsJoinedArray);
-			console.log(typeof parentsJoinedArray + ">>" + parentsJoinedArray);
+
+			// var studentIdsArray = [];
+			// var parentIdsArray = [];
+			// for (var i = 0; i < $scope.theparent.selected.length; i++){
+			// 	studentIdsArray[i] = $scope.theparent.selected[i].student_id;
+			// 	parentIdsArray[i] = $scope.theparent.selected[i].guardian_id;
+			// }
+			// var studentsJoinedArray = studentIdsArray.join();
+			// var parentsJoinedArray = parentIdsArray.join();
+			// // console.log(typeof studentsJoinedArray + ">>" + studentsJoinedArray);
+			// // console.log(typeof parentsJoinedArray + ">>" + parentsJoinedArray);
 
 			/* set variables to post of selected criteria */
 			$scope.post.student_id = ( $scope.theparent.selected !== undefined ? studentsJoinedArray : undefined );
@@ -1060,7 +1074,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 					}
 				}
 				$scope.post.attachment = attachmentArray.join(',');
-				console.log($scope.post.attachment);
+				// console.log($scope.post.attachment);
 
 				if( $scope.isHomework )
 				{
@@ -1181,19 +1195,19 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				else  $state.go('communications/blog_posts', {class_id: $scope.selectedClass.class_id });
 			}, 1500);
 
-			// // Calling notifications api to send notifications at this point
-			// apiService.sendNotifications({}, function(response){
-			// 	var result = angular.fromJson(response);
-			// 	console.log("Notifications result >>");
-			// 	console.log(result);
-			//
-			// 	// store these as they do not change often
-			// 	if( result.response == 'success')
-			// 	{
-			// 		console.log("Notifications should be sent!!");
-			// 	}
-			//
-			// }, apiError);
+			// Calling notifications api to send notifications at this point
+			apiService.sendNotifications({}, function(response){
+				var result = angular.fromJson(response);
+				// console.log("Notifications result >>");
+				// console.log(result);
+
+				// store these as they do not change often
+				if( result.response == 'success')
+				{
+					console.log("Notifications sent to parties!");
+				}
+
+			}, apiError);
 
 		}
 		else
