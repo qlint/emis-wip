@@ -223,9 +223,9 @@ function getChartPath()
 					</div>
 				</div> -->
 
-				<div ng-include="reportCardType" id="rcToPdf"></div>
+				<div ng-include="reportCardType"></div>
 
-				<style type="text/css"> @import url("components/css/customSettingReportCard.css"); </style>
+				<style type="text/css"> @import url("components/css/customSettingReportCard-karemeno.css"); </style>
 				<script type="text/ng-template" id="Standard">
 					<div ng-show="savedReport" class="alert alert-warning">
 						You are viewing a previously saved report card. If this student's exam marks were updated, click 'Re-Create' to generate a new report card.
@@ -244,9 +244,15 @@ function getChartPath()
 						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
 					</div>
 					<div class="receipt-header-letterhead row" ng-if="useLetterhead">
-						<img class="center col-sm-3" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
-						<h2 class="receipt-title col-sm-6">Termly Assesment Report</h2>
-						<img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-width:150px;" />
+						<div class="col-sm-3">
+							<h2 class="receipt-title">Termly<br>Assesment<br>Report</h2>
+						</div>
+						<div class="center col-sm-6">
+							<img src="assets/schools/{{currentUser.settings['Letterhead']}}" style="width:100%; height:auto;" />
+						</div>
+						<div class="col-sm-3">
+							<img id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;" ng-style="{ 'width' : isStudentImage ? '50%' : '0%' }" />
+						</div>
 					</div>
 
 					<div class="row progress-report-header"  ng-if="!useLetterhead">
@@ -335,7 +341,7 @@ function getChartPath()
 								<label>Last Term Marks:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{lastTermMarks||'-'}}</p> / <p class="form-control-static inline">{{lastTermMarksOutOf||'-'}}</p>
+								<p class="form-control-static inline">{{overallLastTerm.last_term_marks||'-'}}</p> / <p class="form-control-static inline">{{overallLastTerm.last_term_marks_out_of||'-'}}</p>
 							</div>
 						</div>
 						<!-- stream position, out of, stream pos last term, out of -->
@@ -418,8 +424,8 @@ function getChartPath()
 								<!-- <th class="center isSchool"></th> -->
 								<th ng-show="isSchool" class="center isSchool"></th>
 								<!-- <th class="center isSchool"></th> -->
-								<th class="center double-border getpercentage">{{overall.percentage}}%</th>
-								<th class="center">{{overall.grade}}</th>
+								<th class="center double-border getpercentage">{{thisTermPercentage}}%</th>
+								<th class="center">{{thisTermGrade}}</th>
 								<th colspan="2" class="center double-border"></th>
 							</tr>
 						</tfoot>
@@ -448,9 +454,9 @@ function getChartPath()
 							  </tr>
 							  <tr>
 							    <td  class="center">-</td>
-							    <td  class="center">{{overallLastTerm.rank||'-'}}</td>
-							    <td  class="center">{{overallLastTerm.position_out_of||'--'}}</td>
-							    <td  class="center">-</td>
+                  <td  class="center">{{streamRankPositionLastTerm||'-'}}</td>
+							    <td  class="center">{{streamRankOutOfLastTerm||'--'}}</td>
+							    <td  class="center">{{overallLastTerm.grade||'--'}}</td>
 							  </tr>
 							</table>
 						</div>
@@ -534,9 +540,15 @@ function getChartPath()
 					</div>
 					<div class="progress-report-student">
 						<div class="receipt-header-letterhead row" ng-if="useLetterhead">
-							<img class="center col-sm-3" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
-							<h2 class="receipt-title col-sm-6">Termly Assesment Report</h2>
-							<img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-width:150px;" />
+							<div class="col-sm-3">
+								<h2 class="receipt-title">Termly<br>Assesment<br>Report</h2>
+							</div>
+							<div class="col-sm-6">
+								<img class="center col-sm-3" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+							</div>
+							<div class="col-sm-3">
+								<img id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;width:100%;" />
+							</div>
 						</div>
 
 						<div class="row progress-report-header"  ng-if="!useLetterhead">
@@ -641,7 +653,7 @@ function getChartPath()
 							<label>Stream Pos Last Term:</label>
 						</div>
 						<div class="col-xs-2 lesspad">
-							<p class="form-control-static inline">{{streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{streamRankOutOfLastTerm||'--'}}</p>
+							<p class="form-control-static inline">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{overallLastTerm.position_out_of||'--'}}</p>
 						</div>
 
 						<!-- <div class="col-xs-2 nopad-right">
@@ -787,9 +799,15 @@ function getChartPath()
 					</div>
 					<div class="progress-report-student">
 						<div class="receipt-header-letterhead row" ng-if="useLetterhead">
-							<img class="center col-sm-3" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
-							<h2 class="receipt-title col-sm-6">Termly Assesment Report</h2>
-							<img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-width:150px;" />
+							<div class="col-sm-3">
+								<h2 class="receipt-title">Termly<br>Assesment<br>Report</h2>
+							</div>
+							<div class="col-sm-6">
+								<img class="center col-sm-3" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+							</div>
+							<div class="col-sm-3">
+								<img id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;width:100%;" />
+							</div>
 						</div>
 
 						<div class="row progress-report-header"  ng-if="!useLetterhead">
@@ -1291,8 +1309,6 @@ function getChartPath()
 					<canvas id="line1" class="chart chart-line efficiency-chart"></canvas>
 				</div>
 
-				<canvas id="canvas"></canvas>
-
 
 
                 <div ng-if="isAdmin && parentPortalAcitve">
@@ -1314,7 +1330,6 @@ function getChartPath()
 			<div class="pull-left" ng-show="canDelete">
 				<button type="button" class="btn btn-danger" ng-click="deleteReportCard()">Delete</button>
 			</div>
-			<button type="button"  class="btn btn-success" ng-click="jsonForPdf()">JSON</button>
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>
 			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint && (isAdmin || isClassTeacher)"><i class="glyphicon glyphicon-print"></i> Print</button>
 			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && adding">Save</button>
