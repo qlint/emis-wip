@@ -117,52 +117,6 @@ echo "<table id='table1'>";
   echo "</table>";
  echo "</div>";
 
-echo "<h4>Amount paid by each student for their fee items (Ordered by Names Ascending & Dates Descending)</h4><hr>";
- $table2 = pg_query($db,"SELECT * FROM (
-                                  	SELECT s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name, fi.fee_item, pii.amount AS amount_paid, ili.amount AS default_amount, pii.creation_date AS date
-                                          FROM app.students s
-                                          INNER JOIN app.classes c ON s.current_class = c.class_cat_id
-                                          INNER JOIN app.student_fee_items sfi ON s.student_id = sfi.student_id
-                                          INNER JOIN app.fee_items fi ON sfi.fee_item_id = fi.fee_item_id
-                                          INNER JOIN app.invoice_line_items ili ON sfi.student_fee_item_id = ili.student_fee_item_id
-                                          INNER JOIN app.payment_inv_items pii ON ili.inv_item_id = pii.inv_item_id
-                                          INNER JOIN app.payments p ON pii.payment_id = p.payment_id
-                                          WHERE s.active IS TRUE AND c.active IS TRUE
-                                          ORDER BY student_name ASC, date DESC
-                                  )a WHERE date >= (SELECT start_date FROM app.terms WHERE now() between start_date and end_date)");
-
- // $col1 = NULL;
- echo "<div class='table100 ver1 m-b-110'>";
-    echo "<table id='table2'>";
-      echo "<div id='t2' class='table100-head'>";
-         echo "<thead>";
-          echo "<tr class='row100 head'>";
-            echo "<th class='cell100 column1'>STUDENT NAME</th>";
-            echo "<th class='cell100 column7'>CLASS</th>";
-            echo "<th class='cell100 column8'>FEE ITEM</th>";
-            echo "<th class='cell100 column9'>PAID</th>";
-            echo "<th class='cell100 column10'>DEFAULT AMT</th>";
-            echo "<th class='cell100 column11'>DATE</th>";
-          echo "</tr>";
-         echo "</thead>";
-     echo "</div>";
-     echo "<div class='table100-body js-pscroll'>";
-       echo "<tbody>";
-         while ($row2 = pg_fetch_assoc($table2)) {
-           // $text1 = '';
-           echo "<tr class='row100 body'>";
-              echo "<td class='cell100 column1'>" . $row2['student_name'] . "</td>";
-              echo "<td class='cell100 column7'>" . $row2['class_name'] . "</td>";
-              echo "<td class='cell100 column8'>" . $row2['fee_item'] . "</td>";
-              echo "<td class='cell100 column9'>" . number_format($row2['amount_paid']) . "</td>";
-              echo "<td class='cell100 column10'>" . number_format($row2['default_amount']) . "</td>";
-              echo "<td class='cell100 column11'>" . date( 'M j, Y', strtotime($row2['date'])) . "</td>";
-          echo "</tr>";
-         }
-       echo "</tbody>";
-     echo "</div>";
-   echo "</table>";
-   echo "</div>";
 ?>
       </div>
     </div>
@@ -211,27 +165,6 @@ echo "<h4>Amount paid by each student for their fee items (Ordered by Names Asce
             {
                 extend: 'pdfHtml5',
                 title: 'Fee-Item-Amounts-Due'
-            }
-          ]
-      } );
-      $('#table2').DataTable( {
-          fixedHeader: true,
-          dom: 'Bfrtip',
-          buttons: [
-              // 'excelHtml5',
-              // 'csvHtml5',
-              // 'pdfHtml5',
-              {
-                extend: 'excelHtml5',
-                title: 'All-Students-Paid-Fee-Items'
-            },
-            {
-              extend: 'csvHtml5',
-              title: 'All-Students-Paid-Fee-Items'
-          },
-            {
-                extend: 'pdfHtml5',
-                title: 'All-Students-Paid-Fee-Items'
             }
           ]
       } );
