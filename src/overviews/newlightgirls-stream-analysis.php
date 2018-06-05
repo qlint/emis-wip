@@ -43,20 +43,43 @@ header('Access-Control-Allow-Origin: *');
       </div>
     </div>
   </nav>
-  <h3 style="text-align:center;margin-top:15px;">This page overviews the student's current performance in the entire stream.</h3>
+  <!-- End of Header Nav -->
   <div class="limiter">
+    <h4 style="text-align:center;margin-top:85px;">This page overviews the student's performance in the entire stream in a given term.</h4>
+    <div style="border: 3px dashed #397C49; width:20%; margin-left:auto;margin-right:auto;text-align:center;padding-bottom:7px;padding-top:7px;">
+      <h5 style="text-align:center;">Select A Term.</h5>
+      <form style="margin-left:auto; margin-right:auto; text-align:center;" action="#" method="post">
+        <select name="Term">
+          <option value='1'>Term 1</option>
+          <option value='2'>Term 2</option>
+          <option value='3'>Term 3</option>
+        </select>
+        <div><input style="margin-left:auto; margin-right:auto; text-align:center;" type="submit" name="submit" value="Get Results For This Term" /></div>
+      </form>
+    </div>
+    <?php
+    if(isset($_POST['submit'])){
+    $selected_val1 = $_POST['Term'];
+    $selected_val = trim($selected_val1,"'");
+    // $no_selection = 0;  // Storing Selected Value In Variable
+    // echo "Term " .$selected_val . " stream results";  // Displaying Selected Value
+    }
+    $no_selection = 1;
+    $term = (isset($_POST['submit']) ? $selected_val : $no_selection);
+    $term_name = (isset($_POST['submit']) ? $selected_val : $no_selection);
+    ?>
     <div class="container-table100">
   	   <div class="wrap-table100">
-         <h4>STREAM: Form 4</h4><hr>
+         <h4>STREAM: Form 4 (<?php echo "Term " . $term; ?>)</h4><hr>
 <?php
-$db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
-// $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-// $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+// $db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
+$getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
+$db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
 
 
 /* -------------------------FORM 4 QUERY ------------------------- */
-$table1 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
-  SELECT t1.*, t2.avg as tot, t2.position as pos
+$table1 = pg_query($db,"SELECT student_name, class_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/12)*100) as percentage, (select grade from app.grading where round((tot::float/12)*100) between min_mark and max_mark) as grade, pos FROM (
+  SELECT t1.*, t2.avg as tot, t2.position as pos, t2.class_name
 FROM
 (
 /* CREATE EXTENSION tablefunc; */
@@ -106,7 +129,7 @@ INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND s
 INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
 INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
 WHERE class_cats.entity_id = 15
-AND term_id = 1
+AND term_id = $term
 AND subjects.parent_subject_id is null
 AND subjects.use_for_grading is true
 AND mark IS NOT NULL
@@ -126,58 +149,60 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
 			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 15 AND students.active is true) AS position_out_of
 		FROM (
-			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
+			SELECT avg(points) AS avg, student_id, student_name, class_name
 			FROM (
-				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
-					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
-					sort_order, exam_type_id, student_id, student_name, class_name
-				FROM (
-					SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
-						--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-						--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-						(CASE
-							WHEN exam_types.is_last_exam is true THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
+				SELECT student_id, student_name, class_name, subject_name, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, (SELECT points FROM app.grading WHERE sum(total_mark) between min_mark and max_mark) AS points FROM (
+					SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+						(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
+						sort_order, exam_type_id, student_id, student_name, class_name
+					FROM (
+						SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
+							--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+							--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
 
-							WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=15 limit 1)) THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
+								WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=15 limit 1)) THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
 
-							WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=15 limit 1)) THEN
-								coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
+								WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=15 limit 1)) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
 
-						END) as total_mark,
-						/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
-						(CASE
-							WHEN exam_types.is_last_exam is true THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
+							END) as total_mark,
+							/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
 
-							WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=15 limit 1)) THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
+								WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=15 limit 1)) THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
 
-							WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=15 limit 1)) THEN
-								coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
+								WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=15 limit 1)) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
 
-						END) as total_grade_weight,
-						subjects.sort_order, class_subject_exams.exam_type_id
-					FROM app.exam_marks
-					INNER JOIN app.students ON exam_marks.student_id = students.student_id
-					INNER JOIN app.class_subject_exams
-					INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-					INNER JOIN app.class_subjects
-					INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
-					INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-								 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-								 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-					WHERE class_cats.entity_id = 15
-					AND term_id = 1
-					AND subjects.parent_subject_id is null
-					AND subjects.use_for_grading is true
-					AND students.student_id = exam_marks.student_id
-					AND mark IS NOT NULL
-					GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
-						use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
-				) q ORDER BY sort_order
+							END) as total_grade_weight,
+							subjects.sort_order, class_subject_exams.exam_type_id
+						FROM app.exam_marks
+						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+						INNER JOIN app.class_subject_exams
+						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects
+						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+						INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+									 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+									 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						WHERE class_cats.entity_id = 15
+						AND term_id = ". $term ."
+						AND subjects.parent_subject_id is null
+						AND subjects.use_for_grading is true
+						AND students.student_id = exam_marks.student_id
+						AND mark IS NOT NULL
+						GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
+							use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
+					) q ORDER BY sort_order
+				)q2 GROUP BY student_id, student_name, class_name, subject_name
 			) AS foo GROUP BY student_id,student_name, class_name ORDER BY avg DESC
 		) AS FOO2
 	) AS foo3
@@ -192,23 +217,24 @@ echo "<table id='table1'>";
     // echo "<table id='table1'>";
       echo "<thead>";
        echo "<tr class='row100 head'>";
-         echo "<th class='cell100 column1'>STUDENT NAME</th>";
-         echo "<th class='cell100 column2'>Eng.</th>";
-         echo "<th class='cell100 column3'>Kis.</th>";
-         echo "<th class='cell100 column4'>Mth.</th>";
-         echo "<th class='cell100 column5'>Bio.</th>";
-         echo "<th class='cell100 column6'>Phy.</th>";
-         echo "<th class='cell100 column7'>Chm.</th>";
-         echo "<th class='cell100 column8'>Hst.</th>";
-         echo "<th class='cell100 column9'>Geo.</th>";
-         echo "<th class='cell100 column10'>CRE</th>";
-         echo "<th class='cell100 column11'>Comp.</th>";
-         echo "<th class='cell100 column12'>B/S.</th>";
-         echo "<th class='cell100 column13'>Fnch.</th>";
-         echo "<th class='cell100 column14'>TOT.</th>";
-         echo "<th class='cell100 column15'>%</th>";
-         echo "<th class='cell100 column16'>GRD.</th>";
-         echo "<th class='cell100 column17'>POS.</th>";
+         echo "<th class='cell100 column1'>STUDENT</th>";
+         echo "<th class='cell100 column2'>CLASS</th>";
+         echo "<th class='cell100 column3'>Eng.</th>";
+         echo "<th class='cell100 column4'>Kis.</th>";
+         echo "<th class='cell100 column5'>Mth.</th>";
+         echo "<th class='cell100 column6'>Bio.</th>";
+         echo "<th class='cell100 column7'>Phy.</th>";
+         echo "<th class='cell100 column8'>Chm.</th>";
+         echo "<th class='cell100 column9'>Hst.</th>";
+         echo "<th class='cell100 column10'>Geo.</th>";
+         echo "<th class='cell100 column11'>CRE</th>";
+         echo "<th class='cell100 column12'>Comp.</th>";
+         echo "<th class='cell100 column13'>B/S.</th>";
+         echo "<th class='cell100 column14'>Fnch.</th>";
+         echo "<th class='cell100 column15'>TOT.</th>";
+         echo "<th class='cell100 column16'>%</th>";
+         echo "<th class='cell100 column17'>GRD.</th>";
+         echo "<th class='cell100 column18'>POS.</th>";
        echo "</tr>";
       echo "</thead>";
     // echo "</table>";
@@ -219,22 +245,23 @@ echo "<table id='table1'>";
         while ($row = pg_fetch_assoc($table1)) {
           echo "<tr class='row100 body'>";
              echo "<td class='cell100 column1'>" . $row['student_name'] . "</td>";
-             echo "<td class='cell100 column2'>" . $row['english'] . "</td>";
-             echo "<td class='cell100 column3'>" . $row['kiswahili'] . "</td>";
-             echo "<td class='cell100 column4'>" . $row['mathematics'] . "</td>";
-             echo "<td class='cell100 column5'>" . $row['biology'] . "</td>";
-             echo "<td class='cell100 column6'>" . $row['physics'] . "</td>";
-             echo "<td class='cell100 column7'>" . $row['chemistry'] . "</td>";
-             echo "<td class='cell100 column8'>" . $row['history'] . "</td>";
-             echo "<td class='cell100 column9'>" . $row['geography'] . "</td>";
-             echo "<td class='cell100 column10'>" . $row['cre'] . "</td>";
-             echo "<td class='cell100 column11'>" . $row['computer'] . "</td>";
-             echo "<td class='cell100 column12'>" . $row['bs_studies'] . "</td>";
-             echo "<td class='cell100 column13'>" . $row['french'] . "</td>";
-             echo "<td class='cell100 column14'>" . $row['tot'] . "</td>";
-             echo "<td class='cell100 column15'>" . $row['percentage'] . "</td>";
-             echo "<td class='cell100 column16'>" . $row['grade'] . "</td>";
-             echo "<td class='cell100 column17'>" . $row['pos'] . "</td>";
+             echo "<td class='cell100 column2'>" . $row['class_name'] . "</td>";
+             echo "<td class='cell100 column3'>" . $row['english'] . "</td>";
+             echo "<td class='cell100 column4'>" . $row['kiswahili'] . "</td>";
+             echo "<td class='cell100 column5'>" . $row['mathematics'] . "</td>";
+             echo "<td class='cell100 column6'>" . $row['biology'] . "</td>";
+             echo "<td class='cell100 column7'>" . $row['physics'] . "</td>";
+             echo "<td class='cell100 column8'>" . $row['chemistry'] . "</td>";
+             echo "<td class='cell100 column9'>" . $row['history'] . "</td>";
+             echo "<td class='cell100 column10'>" . $row['geography'] . "</td>";
+             echo "<td class='cell100 column11'>" . $row['cre'] . "</td>";
+             echo "<td class='cell100 column12'>" . $row['computer'] . "</td>";
+             echo "<td class='cell100 column13'>" . $row['bs_studies'] . "</td>";
+             echo "<td class='cell100 column14'>" . $row['french'] . "</td>";
+             echo "<td class='cell100 column15'>" . $row['tot'] . "</td>";
+             echo "<td class='cell100 column16'>" . $row['percentage'] . "</td>";
+             echo "<td class='cell100 column17'>" . $row['grade'] . "</td>";
+             echo "<td class='cell100 column18'>" . $row['pos'] . "</td>";
          echo "</tr>";
         }
       echo "</tbody>";
@@ -243,10 +270,10 @@ echo "<table id='table1'>";
   echo "</table>";
  echo "</div>";
 
-echo "<h4>STREAM: Form 3</h4><hr>";
+echo "<h4>STREAM: Form 3 (Term $term)</h4><hr>";
 /* -------------------------FORM 3 QUERY ------------------------- */
- $table2 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
-   SELECT t1.*, t2.avg as tot, t2.position as pos
+ $table2 = pg_query($db,"SELECT student_name, class_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/12)*100) as percentage, (select grade from app.grading where round((tot::float/12)*100) between min_mark and max_mark) as grade, pos FROM (
+   SELECT t1.*, t2.avg as tot, t2.position as pos, t2.class_name
 FROM
 (
 /* CREATE EXTENSION tablefunc; */
@@ -296,7 +323,7 @@ INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND s
 INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
 INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
 WHERE class_cats.entity_id = 14
-AND term_id = 1
+AND term_id = $term
 AND subjects.parent_subject_id is null
 AND subjects.use_for_grading is true
 AND mark IS NOT NULL
@@ -316,60 +343,62 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
 			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 14 AND students.active is true) AS position_out_of
 		FROM (
-			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
+			SELECT avg(points) AS avg, student_id, student_name, class_name
 			FROM (
-				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
-					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
-					sort_order, exam_type_id, student_id, student_name, class_name
-				FROM (
-          SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
-						--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-						--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-						(CASE
-							WHEN exam_types.is_last_exam is true THEN
-								/*coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*/
-                round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
+				SELECT student_id, student_name, class_name, subject_name, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, (SELECT points FROM app.grading WHERE sum(total_mark) between min_mark and max_mark) AS points FROM (
+					SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+						(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
+						sort_order, exam_type_id, student_id, student_name, class_name
+					FROM (
+		  SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
+							--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+							--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									/*coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*/
+			round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
 
-							WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=14 limit 1)) THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
+								WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=14 limit 1)) THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
 
-							WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=14 limit 1)) THEN
-								coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
+								WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=14 limit 1)) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
 
-						END) as total_mark,
-						/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
-						(CASE
-							WHEN exam_types.is_last_exam is true THEN
-								/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*/
-                round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
+							END) as total_mark,
+							/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*/
+			round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
 
-							WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=14 limit 1)) THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
+								WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=14 limit 1)) THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
 
-							WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=14 limit 1)) THEN
-								coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
+								WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=14 limit 1)) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
 
-						END) as total_grade_weight,
-						subjects.sort_order, class_subject_exams.exam_type_id
-					FROM app.exam_marks
-					INNER JOIN app.students ON exam_marks.student_id = students.student_id
-					INNER JOIN app.class_subject_exams
-					INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-					INNER JOIN app.class_subjects
-					INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
-					INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-								 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-								 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-					WHERE class_cats.entity_id = 14
-					AND term_id = 1
-					AND subjects.parent_subject_id is null
-					AND subjects.use_for_grading is true
-					AND students.student_id = exam_marks.student_id
-					AND mark IS NOT NULL
-          GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
-						use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
-				) q ORDER BY sort_order
+							END) as total_grade_weight,
+							subjects.sort_order, class_subject_exams.exam_type_id
+						FROM app.exam_marks
+						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+						INNER JOIN app.class_subject_exams
+						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects
+						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+						INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+									 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+									 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						WHERE class_cats.entity_id = 14
+						AND term_id = ". $term ."
+						AND subjects.parent_subject_id is null
+						AND subjects.use_for_grading is true
+						AND students.student_id = exam_marks.student_id
+						AND mark IS NOT NULL
+		  GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
+							use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
+					) q ORDER BY sort_order
+				)q2 GROUP BY student_id, student_name, class_name, subject_name
 			) AS foo GROUP BY student_id,student_name, class_name ORDER BY avg DESC
 		) AS FOO2
 	) AS foo3
@@ -384,23 +413,24 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
       echo "<div id='t2' class='table100-head'>";
          echo "<thead>";
           echo "<tr class='row100 head'>";
-            echo "<th class='cell100 column1'>STUDENT NAME</th>";
-            echo "<th class='cell100 column2'>Eng.</th>";
-            echo "<th class='cell100 column3'>Kis.</th>";
-            echo "<th class='cell100 column4'>Mth.</th>";
-            echo "<th class='cell100 column5'>Bio.</th>";
-            echo "<th class='cell100 column6'>Phy.</th>";
-            echo "<th class='cell100 column7'>Chm.</th>";
-            echo "<th class='cell100 column8'>Hst.</th>";
-            echo "<th class='cell100 column9'>Geo.</th>";
-            echo "<th class='cell100 column10'>CRE</th>";
-            echo "<th class='cell100 column11'>Comp.</th>";
-            echo "<th class='cell100 column12'>B/S.</th>";
-            echo "<th class='cell100 column13'>Fnch.</th>";
-            echo "<th class='cell100 column14'>TOT.</th>";
-            echo "<th class='cell100 column15'>%</th>";
-            echo "<th class='cell100 column16'>GRD.</th>";
-            echo "<th class='cell100 column17'>POS.</th>";
+            echo "<th class='cell100 column1'>STUDENT</th>";
+            echo "<th class='cell100 column2'>CLASS</th>";
+            echo "<th class='cell100 column3'>Eng.</th>";
+            echo "<th class='cell100 column4'>Kis.</th>";
+            echo "<th class='cell100 column5'>Mth.</th>";
+            echo "<th class='cell100 column6'>Bio.</th>";
+            echo "<th class='cell100 column7'>Phy.</th>";
+            echo "<th class='cell100 column8'>Chm.</th>";
+            echo "<th class='cell100 column9'>Hst.</th>";
+            echo "<th class='cell100 column10'>Geo.</th>";
+            echo "<th class='cell100 column11'>CRE</th>";
+            echo "<th class='cell100 column12'>Comp.</th>";
+            echo "<th class='cell100 column13'>B/S.</th>";
+            echo "<th class='cell100 column14'>Fnch.</th>";
+            echo "<th class='cell100 column15'>TOT.</th>";
+            echo "<th class='cell100 column16'>%</th>";
+            echo "<th class='cell100 column17'>GRD.</th>";
+            echo "<th class='cell100 column18'>POS.</th>";
           echo "</tr>";
          echo "</thead>";
      echo "</div>";
@@ -409,22 +439,23 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
          while ($row2 = pg_fetch_assoc($table2)) {
            // $text1 = '';
            echo "<td class='cell100 column1'>" . $row2['student_name'] . "</td>";
-           echo "<td class='cell100 column2'>" . $row2['english'] . "</td>";
-           echo "<td class='cell100 column3'>" . $row2['kiswahili'] . "</td>";
-           echo "<td class='cell100 column4'>" . $row2['mathematics'] . "</td>";
-           echo "<td class='cell100 column5'>" . $row2['biology'] . "</td>";
-           echo "<td class='cell100 column6'>" . $row2['physics'] . "</td>";
-           echo "<td class='cell100 column7'>" . $row2['chemistry'] . "</td>";
-           echo "<td class='cell100 column8'>" . $row2['history'] . "</td>";
-           echo "<td class='cell100 column9'>" . $row2['geography'] . "</td>";
-           echo "<td class='cell100 column10'>" . $row2['cre'] . "</td>";
-           echo "<td class='cell100 column11'>" . $row2['computer'] . "</td>";
-           echo "<td class='cell100 column12'>" . $row2['bs_studies'] . "</td>";
-           echo "<td class='cell100 column13'>" . $row2['french'] . "</td>";
-           echo "<td class='cell100 column14'>" . $row2['tot'] . "</td>";
-           echo "<td class='cell100 column15'>" . $row2['percentage'] . "</td>";
-           echo "<td class='cell100 column16'>" . $row2['grade'] . "</td>";
-           echo "<td class='cell100 column17'>" . $row2['pos'] . "</td>";
+           echo "<td class='cell100 column2'>" . $row2['class_name'] . "</td>";
+           echo "<td class='cell100 column3'>" . $row2['english'] . "</td>";
+           echo "<td class='cell100 column4'>" . $row2['kiswahili'] . "</td>";
+           echo "<td class='cell100 column5'>" . $row2['mathematics'] . "</td>";
+           echo "<td class='cell100 column6'>" . $row2['biology'] . "</td>";
+           echo "<td class='cell100 column7'>" . $row2['physics'] . "</td>";
+           echo "<td class='cell100 column8'>" . $row2['chemistry'] . "</td>";
+           echo "<td class='cell100 column9'>" . $row2['history'] . "</td>";
+           echo "<td class='cell100 column10'>" . $row2['geography'] . "</td>";
+           echo "<td class='cell100 column11'>" . $row2['cre'] . "</td>";
+           echo "<td class='cell100 column12'>" . $row2['computer'] . "</td>";
+           echo "<td class='cell100 column13'>" . $row2['bs_studies'] . "</td>";
+           echo "<td class='cell100 column14'>" . $row2['french'] . "</td>";
+           echo "<td class='cell100 column15'>" . $row2['tot'] . "</td>";
+           echo "<td class='cell100 column16'>" . $row2['percentage'] . "</td>";
+           echo "<td class='cell100 column17'>" . $row2['grade'] . "</td>";
+           echo "<td class='cell100 column18'>" . $row2['pos'] . "</td>";
           echo "</tr>";
          }
        echo "</tbody>";
@@ -433,10 +464,10 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
    echo "</div>";
 
 
-   echo "<h4>STREAM: Form 2</h4><hr>";
+   echo "<h4>STREAM: Form 2 (Term $term)</h4><hr>";
    /* -------------------------FORM 2 QUERY ------------------------- */
-    $table3 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/800)*100) as percentage, (select grade from app.grading where round((tot::float/800)*100) between min_mark and max_mark) as grade, pos FROM (
-      SELECT t1.*, t2.avg as tot, t2.position as pos
+    $table3 = pg_query($db,"SELECT student_name, class_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/12)*100) as percentage, (select grade from app.grading where round((tot::float/12)*100) between min_mark and max_mark) as grade, pos FROM (
+      SELECT t1.*, t2.avg as tot, t2.position as pos, t2.class_name
 FROM
 (
 /* CREATE EXTENSION tablefunc; */
@@ -486,7 +517,7 @@ INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND s
 INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
 INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
 WHERE class_cats.entity_id = 13
-AND term_id = 1
+AND term_id = $term
 AND subjects.parent_subject_id is null
 AND subjects.use_for_grading is true
 AND mark IS NOT NULL
@@ -506,58 +537,60 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
 			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 13 AND students.active is true) AS position_out_of
 		FROM (
-			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
+			SELECT avg(points) AS avg, student_id, student_name, class_name
 			FROM (
-				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
-					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
-					sort_order, exam_type_id, student_id, student_name, class_name
-				FROM (
-          SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
-						--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-						--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-						(CASE
-							WHEN exam_types.is_last_exam is true THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
+				SELECT student_id, student_name, class_name, subject_name, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, (SELECT points FROM app.grading WHERE sum(total_mark) between min_mark and max_mark) AS points FROM (
+					SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+						(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
+						sort_order, exam_type_id, student_id, student_name, class_name
+					FROM (
+		  SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
+							--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+							--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
 
-							WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=13 limit 1)) THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
+								WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=13 limit 1)) THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
 
-							WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=13 limit 1)) THEN
-								coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
+								WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=13 limit 1)) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
 
-						END) as total_mark,
-						/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
-						(CASE
-							WHEN exam_types.is_last_exam is true THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
+							END) as total_mark,
+							/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
 
-							WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=13 limit 1)) THEN
-								round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
+								WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=13 limit 1)) THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
 
-							WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=13 limit 1)) THEN
-								coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
+								WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=13 limit 1)) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
 
-						END) as total_grade_weight,
-						subjects.sort_order, class_subject_exams.exam_type_id
-					FROM app.exam_marks
-					INNER JOIN app.students ON exam_marks.student_id = students.student_id
-					INNER JOIN app.class_subject_exams
-					INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-					INNER JOIN app.class_subjects
-					INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
-					INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-								 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-								 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-					WHERE class_cats.entity_id = 13
-					AND term_id = 1
-					AND subjects.parent_subject_id is null
-					AND subjects.use_for_grading is true
-					AND students.student_id = exam_marks.student_id
-					AND mark IS NOT NULL
-          GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
-						use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
-				) q ORDER BY sort_order
+							END) as total_grade_weight,
+							subjects.sort_order, class_subject_exams.exam_type_id
+						FROM app.exam_marks
+						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+						INNER JOIN app.class_subject_exams
+						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects
+						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+						INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+									 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+									 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						WHERE class_cats.entity_id = 13
+						AND term_id = ". $term ."
+						AND subjects.parent_subject_id is null
+						AND subjects.use_for_grading is true
+						AND students.student_id = exam_marks.student_id
+						AND mark IS NOT NULL
+		  GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
+							use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
+					) q ORDER BY sort_order
+				)q2 GROUP BY student_id, student_name, class_name, subject_name
 			) AS foo GROUP BY student_id,student_name, class_name ORDER BY avg DESC
 		) AS FOO2
 	) AS foo3
@@ -572,23 +605,24 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
         echo "<div id='t3' class='table100-head'>";
            echo "<thead>";
             echo "<tr class='row100 head'>";
-              echo "<th class='cell100 column1'>STUDENT NAME</th>";
-              echo "<th class='cell100 column2'>Eng.</th>";
-              echo "<th class='cell100 column3'>Kis.</th>";
-              echo "<th class='cell100 column4'>Mth.</th>";
-              echo "<th class='cell100 column5'>Bio.</th>";
-              echo "<th class='cell100 column6'>Phy.</th>";
-              echo "<th class='cell100 column7'>Chm.</th>";
-              echo "<th class='cell100 column8'>Hst.</th>";
-              echo "<th class='cell100 column9'>Geo.</th>";
-              echo "<th class='cell100 column10'>CRE</th>";
-              echo "<th class='cell100 column11'>Comp.</th>";
-              echo "<th class='cell100 column12'>B/S.</th>";
-              echo "<th class='cell100 column13'>Fnch.</th>";
-              echo "<th class='cell100 column14'>TOT.</th>";
-              echo "<th class='cell100 column15'>%</th>";
-              echo "<th class='cell100 column16'>GRD.</th>";
-              echo "<th class='cell100 column17'>POS.</th>";
+              echo "<th class='cell100 column1'>STUDENT</th>";
+              echo "<th class='cell100 column2'>CLASS</th>";
+              echo "<th class='cell100 column3'>Eng.</th>";
+              echo "<th class='cell100 column4'>Kis.</th>";
+              echo "<th class='cell100 column5'>Mth.</th>";
+              echo "<th class='cell100 column6'>Bio.</th>";
+              echo "<th class='cell100 column7'>Phy.</th>";
+              echo "<th class='cell100 column8'>Chm.</th>";
+              echo "<th class='cell100 column9'>Hst.</th>";
+              echo "<th class='cell100 column10'>Geo.</th>";
+              echo "<th class='cell100 column11'>CRE</th>";
+              echo "<th class='cell100 column12'>Comp.</th>";
+              echo "<th class='cell100 column13'>B/S.</th>";
+              echo "<th class='cell100 column14'>Fnch.</th>";
+              echo "<th class='cell100 column15'>TOT.</th>";
+              echo "<th class='cell100 column16'>%</th>";
+              echo "<th class='cell100 column17'>GRD.</th>";
+              echo "<th class='cell100 column18'>POS.</th>";
             echo "</tr>";
            echo "</thead>";
        echo "</div>";
@@ -597,22 +631,23 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
            while ($row3 = pg_fetch_assoc($table3)) {
              // $text1 = '';
              echo "<td class='cell100 column1'>" . $row3['student_name'] . "</td>";
-             echo "<td class='cell100 column2'>" . $row3['english'] . "</td>";
-             echo "<td class='cell100 column3'>" . $row3['kiswahili'] . "</td>";
-             echo "<td class='cell100 column4'>" . $row3['mathematics'] . "</td>";
-             echo "<td class='cell100 column5'>" . $row3['biology'] . "</td>";
-             echo "<td class='cell100 column6'>" . $row3['physics'] . "</td>";
-             echo "<td class='cell100 column7'>" . $row3['chemistry'] . "</td>";
-             echo "<td class='cell100 column8'>" . $row3['history'] . "</td>";
-             echo "<td class='cell100 column9'>" . $row3['geography'] . "</td>";
-             echo "<td class='cell100 column10'>" . $row3['cre'] . "</td>";
-             echo "<td class='cell100 column11'>" . $row3['computer'] . "</td>";
-             echo "<td class='cell100 column12'>" . $row3['bs_studies'] . "</td>";
-             echo "<td class='cell100 column13'>" . $row3['french'] . "</td>";
-             echo "<td class='cell100 column14'>" . $row3['tot'] . "</td>";
-             echo "<td class='cell100 column15'>" . $row3['percentage'] . "</td>";
-             echo "<td class='cell100 column16'>" . $row3['grade'] . "</td>";
-             echo "<td class='cell100 column17'>" . $row3['pos'] . "</td>";
+             echo "<td class='cell100 column2'>" . $row3['class_name'] . "</td>";
+             echo "<td class='cell100 column3'>" . $row3['english'] . "</td>";
+             echo "<td class='cell100 column4'>" . $row3['kiswahili'] . "</td>";
+             echo "<td class='cell100 column5'>" . $row3['mathematics'] . "</td>";
+             echo "<td class='cell100 column6'>" . $row3['biology'] . "</td>";
+             echo "<td class='cell100 column7'>" . $row3['physics'] . "</td>";
+             echo "<td class='cell100 column8'>" . $row3['chemistry'] . "</td>";
+             echo "<td class='cell100 column9'>" . $row3['history'] . "</td>";
+             echo "<td class='cell100 column10'>" . $row3['geography'] . "</td>";
+             echo "<td class='cell100 column11'>" . $row3['cre'] . "</td>";
+             echo "<td class='cell100 column12'>" . $row3['computer'] . "</td>";
+             echo "<td class='cell100 column13'>" . $row3['bs_studies'] . "</td>";
+             echo "<td class='cell100 column14'>" . $row3['french'] . "</td>";
+             echo "<td class='cell100 column15'>" . $row3['tot'] . "</td>";
+             echo "<td class='cell100 column16'>" . $row3['percentage'] . "</td>";
+             echo "<td class='cell100 column17'>" . $row3['grade'] . "</td>";
+             echo "<td class='cell100 column18'>" . $row3['pos'] . "</td>";
             echo "</tr>";
            }
          echo "</tbody>";
@@ -621,10 +656,10 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
      echo "</div>";
 
 
-     echo "<h4>STREAM: Form 1</h4><hr>";
+     echo "<h4>STREAM: Form 1 (Term $term)</h4><hr>";
      /* -------------------------FORM 1 QUERY ------------------------- */
-      $table4 = pg_query($db,"SELECT student_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round(tot::float/12) as percentage, (select grade from app.grading where round(tot::float/12) between min_mark and max_mark) as grade, pos FROM (
-                                    SELECT t1.*, t2.avg as tot, t2.position as pos
+      $table4 = pg_query($db,"SELECT student_name, class_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tot, round((tot::float/12)*100) as percentage, (select grade from app.grading where round((tot::float/12)*100) between min_mark and max_mark) as grade, pos FROM (
+                                    SELECT t1.*, t2.avg as tot, t2.position as pos, t2.class_name
                               FROM
                               (
                               /* CREATE EXTENSION tablefunc; */
@@ -674,7 +709,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
                               INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
                               INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
                               WHERE class_cats.entity_id = 12
-                              AND term_id = 1
+                              AND term_id = $term
                               AND subjects.parent_subject_id is null
                               AND subjects.use_for_grading is true
                               AND mark IS NOT NULL
@@ -694,58 +729,60 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
                               		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
                               			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 12 AND students.active is true) AS position_out_of
                               		FROM (
-                              			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
+                              			SELECT avg(points) AS avg, student_id, student_name, class_name
                               			FROM (
-                              				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
-                              					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
-                              					sort_order, exam_type_id, student_id, student_name, class_name
-                              				FROM (
-                                        SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
-                              						--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-                              						--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-                              						(CASE
-                              							WHEN exam_types.is_last_exam is true THEN
-                              								round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
+							SELECT student_id, student_name, class_name, subject_name, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, (SELECT points FROM app.grading WHERE sum(total_mark) between min_mark and max_mark) AS points FROM (
+								SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+									(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
+									sort_order, exam_type_id, student_id, student_name, class_name
+								FROM (
+						SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
+										--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+										--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+										(CASE
+											WHEN exam_types.is_last_exam is true THEN
+												round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
 
-                              							WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=12 limit 1)) THEN
-                              								round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
+											WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=12 limit 1)) THEN
+												round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
 
-                              							WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=12 limit 1)) THEN
-                              								coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
+											WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=12 limit 1)) THEN
+												coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
 
-                              						END) as total_mark,
-                              						/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
-                              						(CASE
-                              							WHEN exam_types.is_last_exam is true THEN
-                              								round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
+										END) as total_mark,
+										/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
+										(CASE
+											WHEN exam_types.is_last_exam is true THEN
+												round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
 
-                              							WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=12 limit 1)) THEN
-                              								round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
+											WHEN exam_types.is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=12 limit 1)) THEN
+												round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
 
-                              							WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=12 limit 1)) THEN
-                              								coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
+											WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam = 'TRUE' AND class_cat_id=(select class_cat_id from app.class_cats where entity_id=12 limit 1)) THEN
+												coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
 
-                              						END) as total_grade_weight,
-                              						subjects.sort_order, class_subject_exams.exam_type_id
-                              					FROM app.exam_marks
-                              					INNER JOIN app.students ON exam_marks.student_id = students.student_id
-                              					INNER JOIN app.class_subject_exams
-                              					INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-                              					INNER JOIN app.class_subjects
-                              					INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-                              					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
-                              					INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-                              								 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-                              								 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-                              					WHERE class_cats.entity_id = 12
-                              					AND term_id = 1
-                              					AND subjects.parent_subject_id is null
-                              					AND subjects.use_for_grading is true
-                              					AND students.student_id = exam_marks.student_id
-                              					AND mark IS NOT NULL
-                                        GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
-                              						use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
-                              				) q ORDER BY sort_order
+										END) as total_grade_weight,
+										subjects.sort_order, class_subject_exams.exam_type_id
+									FROM app.exam_marks
+									INNER JOIN app.students ON exam_marks.student_id = students.student_id
+									INNER JOIN app.class_subject_exams
+									INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+									INNER JOIN app.class_subjects
+									INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+									INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+									INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+												 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+												 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+									WHERE class_cats.entity_id = 12
+									AND term_id = ". $term ."
+									AND subjects.parent_subject_id is null
+									AND subjects.use_for_grading is true
+									AND students.student_id = exam_marks.student_id
+									AND mark IS NOT NULL
+						GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
+										use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
+								) q ORDER BY sort_order
+                              				)q2 GROUP BY student_id, student_name, class_name, subject_name
                               			) AS foo GROUP BY student_id,student_name, class_name ORDER BY avg DESC
                               		) AS FOO2
                               	) AS foo3
@@ -760,23 +797,24 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
           echo "<div id='t4' class='table100-head'>";
              echo "<thead>";
               echo "<tr class='row100 head'>";
-                echo "<th class='cell100 column1'>STUDENT NAME</th>";
-                echo "<th class='cell100 column2'>Eng.</th>";
-                echo "<th class='cell100 column3'>Kis.</th>";
-                echo "<th class='cell100 column4'>Mth.</th>";
-                echo "<th class='cell100 column5'>Bio.</th>";
-                echo "<th class='cell100 column6'>Phy.</th>";
-                echo "<th class='cell100 column7'>Chm.</th>";
-                echo "<th class='cell100 column8'>Hst.</th>";
-                echo "<th class='cell100 column9'>Geo.</th>";
-                echo "<th class='cell100 column10'>CRE</th>";
-                echo "<th class='cell100 column11'>Comp.</th>";
-                echo "<th class='cell100 column12'>B/S.</th>";
-                echo "<th class='cell100 column13'>Fnch.</th>";
-                echo "<th class='cell100 column14'>TOT.</th>";
-                echo "<th class='cell100 column15'>%</th>";
-                echo "<th class='cell100 column16'>GRD.</th>";
-                echo "<th class='cell100 column17'>POS.</th>";
+                echo "<th class='cell100 column1'>STUDENT</th>";
+                echo "<th class='cell100 column2'>CLASS</th>";
+                echo "<th class='cell100 column3'>Eng.</th>";
+                echo "<th class='cell100 column4'>Kis.</th>";
+                echo "<th class='cell100 column5'>Mth.</th>";
+                echo "<th class='cell100 column6'>Bio.</th>";
+                echo "<th class='cell100 column7'>Phy.</th>";
+                echo "<th class='cell100 column8'>Chm.</th>";
+                echo "<th class='cell100 column9'>Hst.</th>";
+                echo "<th class='cell100 column10'>Geo.</th>";
+                echo "<th class='cell100 column11'>CRE</th>";
+                echo "<th class='cell100 column12'>Comp.</th>";
+                echo "<th class='cell100 column13'>B/S.</th>";
+                echo "<th class='cell100 column14'>Fnch.</th>";
+                echo "<th class='cell100 column15'>TOT.</th>";
+                echo "<th class='cell100 column16'>%</th>";
+                echo "<th class='cell100 column17'>GRD.</th>";
+                echo "<th class='cell100 column18'>POS.</th>";
               echo "</tr>";
              echo "</thead>";
          echo "</div>";
@@ -785,22 +823,23 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
              while ($row4 = pg_fetch_assoc($table4)) {
                // $text1 = '';
                echo "<td class='cell100 column1'>" . $row4['student_name'] . "</td>";
-               echo "<td class='cell100 column2'>" . $row4['english'] . "</td>";
-               echo "<td class='cell100 column3'>" . $row4['kiswahili'] . "</td>";
-               echo "<td class='cell100 column4'>" . $row4['mathematics'] . "</td>";
-               echo "<td class='cell100 column5'>" . $row4['biology'] . "</td>";
-               echo "<td class='cell100 column6'>" . $row4['physics'] . "</td>";
-               echo "<td class='cell100 column7'>" . $row4['chemistry'] . "</td>";
-               echo "<td class='cell100 column8'>" . $row4['history'] . "</td>";
-               echo "<td class='cell100 column9'>" . $row4['geography'] . "</td>";
-               echo "<td class='cell100 column10'>" . $row4['cre'] . "</td>";
-               echo "<td class='cell100 column11'>" . $row4['computer'] . "</td>";
-               echo "<td class='cell100 column12'>" . $row4['bs_studies'] . "</td>";
-               echo "<td class='cell100 column13'>" . $row4['french'] . "</td>";
-               echo "<td class='cell100 column14'>" . $row4['tot'] . "</td>";
-               echo "<td class='cell100 column15'>" . $row4['percentage'] . "</td>";
-               echo "<td class='cell100 column16'>" . $row4['grade'] . "</td>";
-               echo "<td class='cell100 column17'>" . $row4['pos'] . "</td>";
+               echo "<td class='cell100 column2'>" . $row4['class_name'] . "</td>";
+               echo "<td class='cell100 column3'>" . $row4['english'] . "</td>";
+               echo "<td class='cell100 column4'>" . $row4['kiswahili'] . "</td>";
+               echo "<td class='cell100 column5'>" . $row4['mathematics'] . "</td>";
+               echo "<td class='cell100 column6'>" . $row4['biology'] . "</td>";
+               echo "<td class='cell100 column7'>" . $row4['physics'] . "</td>";
+               echo "<td class='cell100 column8'>" . $row4['chemistry'] . "</td>";
+               echo "<td class='cell100 column9'>" . $row4['history'] . "</td>";
+               echo "<td class='cell100 column10'>" . $row4['geography'] . "</td>";
+               echo "<td class='cell100 column11'>" . $row4['cre'] . "</td>";
+               echo "<td class='cell100 column12'>" . $row4['computer'] . "</td>";
+               echo "<td class='cell100 column13'>" . $row4['bs_studies'] . "</td>";
+               echo "<td class='cell100 column14'>" . $row4['french'] . "</td>";
+               echo "<td class='cell100 column15'>" . $row4['tot'] . "</td>";
+               echo "<td class='cell100 column16'>" . $row4['percentage'] . "</td>";
+               echo "<td class='cell100 column17'>" . $row4['grade'] . "</td>";
+               echo "<td class='cell100 column18'>" . $row4['pos'] . "</td>";
               echo "</tr>";
              }
            echo "</tbody>";
@@ -857,7 +896,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
                 title: 'Form-4'
             }
           ],
-          "order": [[ 16, "asc" ]]
+          "order": [[ 17, "asc" ]]
       } );
       $('#table2').DataTable( {
           fixedHeader: true,
@@ -879,7 +918,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
                 title: 'Form-3'
             }
           ],
-          "order": [[ 16, "asc" ]]
+          "order": [[ 17, "asc" ]]
       } );
       $('#table3').DataTable( {
           fixedHeader: true,
@@ -901,7 +940,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
                 title: 'Form-2'
             }
           ],
-          "order": [[ 16, "asc" ]]
+          "order": [[ 17, "asc" ]]
       } );
       $('#table4').DataTable( {
           fixedHeader: true,
@@ -923,7 +962,7 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
                 title: 'Form-1'
             }
           ],
-          "order": [[ 16, "asc" ]]
+          "order": [[ 17, "asc" ]]
       } );
     } );
   </script>
