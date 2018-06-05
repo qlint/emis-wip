@@ -4,7 +4,7 @@ angular.module('eduwebApp').
 controller('reportCardCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$timeout','$window','$parse',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window, $parse){
 	// console.log(data);
-	console.log("School = " + window.location.host.split('.')[0]);
+	// console.log("School = " + window.location.host.split('.')[0]);
 	$rootScope.isPrinting = false;
 	$scope.student = data.student || undefined;
 	$scope.reportCardType = ($scope.student !== undefined ? $scope.student.report_card_type : undefined);
@@ -21,8 +21,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.entity_id = data.entity_id;
 	$scope.canPrint = false;
 	$scope.isSchool = window.location.host.split('.')[0];
-	$scope.isStudentImage = window.location.host.split('.')[0];
-	console.log($scope.isSchool);
+	$scope.isStudentImage = ( window.location.host.split('.')[0] == "rongaiboys" ? true : false);
+	// console.log($scope.isSchool);
 
 	$scope.report = {};
 	$scope.report.published = false;
@@ -148,9 +148,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.canDelete = ( $scope.isTeacher ? false : true);
 			$scope.filters = data.filters;
 			$scope.isClassTeacher = ( $scope.student.class_teacher_id == $rootScope.currentUser.emp_id ? true : false);
-			$scope.isSchool = ( window.location.host.split('.')[0] == "localhost:8008" ? true : false);
-			$scope.isStudentImage = ( window.location.host.split('.')[0] == "localhost:8015" ? true : false);
-			console.log("school = "+ window.location.host.split('.')[0] + " and isSchool = " + $scope.isSchool);
+			$scope.isSchool = ( window.location.host.split('.')[0] == "newlightgirls" ? true : false);
+			// console.log("school = "+ window.location.host.split('.')[0] + " and isSchool = " + $scope.isSchool);
+			$scope.isStudentImage = ( window.location.host.split('.')[0] == "rongaiboys" ? true : false);
 
 			// fetch the report cards subjects based on user type
 			getExamMarksforReportCard();
@@ -252,9 +252,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.showReportCard = false;
 		$scope.report = {};
 		$scope.overall = {};
+		$scope.streamRankLastTerm = {};
 		$scope.overallByAverage = {};
 		$scope.overallLastTerm = {};
-		$scope.overallLastTermByAverage = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
 		// $scope.streamPosition = {};
@@ -267,9 +267,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.showReportCard = false;
 		$scope.report = {};
 		$scope.overall = {};
+		$scope.streamRankLastTerm = {};
 		$scope.overallByAverage = {};
 		$scope.overallLastTerm = {};
-		$scope.overallLastTermByAverage = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
 		// $scope.streamPosition = {};
@@ -417,10 +417,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 		var result = angular.fromJson(response);
 
-		// console.log(result.data.streamRank);
+		// console.log(response);
+		// $scope.streamRank = result.data.streamRank;
 		$scope.streamRankPosition = result.data.streamRank[0].position;
 		$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
 
+		$scope.streamRankLastTerm = result.data.streamRankLastTerm;
 		$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
 		$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
 
@@ -428,11 +430,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var getPrintRank = localStorage.getItem("printStreamRank");
 			localStorage.setItem('printStreamRankOutOf', $scope.streamRankOutOf);
 			var getStreamRankOutOf = localStorage.getItem("printStreamRankOutOf");
-
-			localStorage.setItem('printStreamRankLastTerm', $scope.streamRankPositionLastTerm);
-			var getPrintRankLastTerm = localStorage.getItem("printStreamRankLastTerm");
-			localStorage.setItem('printStreamRankOutOfLastTerm', $scope.streamRankOutOfLastTerm);
-			var getStreamRankOutOfLastTerm = localStorage.getItem("printStreamRankOutOfLastTerm");
 
 	}
 
@@ -462,19 +459,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				buildReportBody(result.data);
 				// $( "#remotegraph" ).load( "/studentgraph.html div#remotegraph" );
 
-				// we send the buildReportBody to a php file and save it as pdf from there
-				var reportToPdf = buildReportBody(result.data);
-				// $.ajax({
-        //         type: "POST",
-        //         url: 'saveFiles.php',
-        //         data : reportToPdf
-        // }).done(function(data){
-				// 			console.log("Posted");
-				// 			console.log(data);
-	      // });
-				$.post('saveFiles.php', {data:reportToPdf}, function(){console.log("Posted to php");console.log(data);});
-				// sending buildReportBody end
-
 				/* look for saved report card data, if it was not passed in  */
 				if( $scope.savedReportData === undefined )
 				{
@@ -498,20 +482,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.examMarks = data.details;
 		// $scope.overallSubjectMarks = data.subjectOverall;
 		// $scope.overall = data.overall;
-		// if( school == "karemeno" || "rongaiboys" ) $scope.overall = data.overallByAverag;
-		// if( school == "localhost:8008" ) $scope.overall = data.overall;
 		if (school == "karemeno" || school == "rongaiboys"){
 			$scope.overall = data.overallByAverage;
-			$scope.thisTermMarks = data.overallByAverage.current_term_marks;
-			$scope.lastTermMarks = data.overallLastTermByAverage.current_term_marks;
 			$scope.overallLastTerm = data.overallLastTermByAverage;
+			$scope.thisTermMarks = data.overallByAverage.current_term_marks;
 			console.log("K & R");
-			console.log($scope.overall);
-		}else if (school == "localhost:8008"){
+		}else if (school == "newlightgirls"){
 			$scope.overall = data.overall;
-			$scope.thisTermMarks = data.overall.current_term_marks;
-			$scope.lastTermMarks = data.overallLastTerm.current_term_marks;
 			$scope.overallLastTerm = data.overallLastTerm;
+			$scope.thisTermMarks = data.overall.current_term_marks;
 			console.log("NLT");
 			console.log($scope.overall);
 		}
@@ -530,11 +509,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 		// $scope.thisTermMarks = data.overall.current_term_marks;
 		$scope.thisTermMarksOutOf = data.overall.current_term_marks_out_of;
-		$scope.lastTermMarksOutOf = data.overallLastTerm.current_term_marks_out_of;
 		$scope.thisTermGrade = data.overall.grade;
 		$scope.thisTermPercentage = data.overall.percentage;
-		$scope.lastTermGrade = data.overallLastTerm.grade;
-		$scope.lastTermPercentage = data.overallLastTerm.percentage;
+
+		// console.log("subject overalls variable ::>");
+		// console.log($scope.overallSubjectMarks);
 
 
 			if (school == "karemeno" && $scope.motto == ""){
@@ -645,7 +624,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					item.tot70 = overall.tot70;
 					item.position = overall.rank;
 					var subjNm = item.subject_name;
-					if( subjNm == "KISWAHILI" || subjNm == "Kiswahili" || subjNm == "kiswahili" ){
+					if( subjNm == "Kiswahili" ){
 						item.comment = overall.kiswahili_comment;
 					}else{
 						item.comment = overall.comment;
@@ -702,7 +681,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				var overall = $scope.overallSubjectMarks.filter(function(item2){
 					if( item.subject_name == item2.subject_name ) return item2;
 				})[0];
-				if(item.subject_name == "KISWAHILI" || item.subject_name == "Kiswahili" || item.subject_name == "kiswahili"){
+				if(item.subject_name == "Kiswahili"){
 					if( overall ) 	item.remarks = overall.kiswahili_comment;
 				}else{
 					if( overall ) 	item.remarks = overall.comment;
@@ -987,9 +966,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			currentClassPosition: $scope.currentClassPosition,
 			streamRankPosition: $scope.streamRankPosition,
 			streamRankOutOf: $scope.streamRankOutOf,
-			streamRankPositionLastTerm: $scope.streamRankPositionLastTerm,
-			streamRankOutOfLastTerm: $scope.streamRankOutOfLastTerm,
-			// streamPosition: $scope.streamPosition,
+			streamRankLastTerm: $scope.streamRankLastTerm,
 			overallLastTerm: $scope.overallLastTerm,
 			examTypes: $scope.examTypes,
 			reportData: $scope.reportData,
@@ -1004,68 +981,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			thisTermMarks: $scope.thisTermMarks,
 			thisTermMarksOutOf: $scope.thisTermMarksOutOf,
 			thisTermGrade: $scope.thisTermGrade,
-			thisTermPercentage: $scope.thisTermPercentage,
-			lastTermMarks: $scope.lastTermMarks,
-			lastTermMarksOutOf: $scope.lastTermMarksOutOf,
-			lastTermGrade: $scope.lastTermGrade,
-			lastTermPercentage: $scope.lastTermPercentage
+			thisTermPercentage: $scope.thisTermPercentage
 		}
 
-		var domain = "localhost:8008/highschool";
+		var domain = window.location.host;
 		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
-	}
-
-	$scope.serverPdf = function()
-	{
-		var criteria = {
-			student : $scope.student,
-			report: $scope.report,
-			overall: $scope.overall,
-			graphPoints: $scope.graphPoints,
-			currentClassPosition: $scope.currentClassPosition,
-			streamRankPosition: $scope.streamRankPosition,
-			streamRankOutOf: $scope.streamRankOutOf,
-			streamRankPositionLastTerm: $scope.streamRankPositionLastTerm,
-			streamRankOutOfLastTerm: $scope.streamRankOutOfLastTerm,
-			// streamPosition: $scope.streamPosition,
-			overallLastTerm: $scope.overallLastTerm,
-			examTypes: $scope.examTypes,
-			reportData: $scope.reportData,
-			totals: $scope.totals,
-			comments: $scope.comments,
-			nextTermStartDate: $scope.nextTermStartDate,
-			currentTermEndDate: $scope.currentTermEndDate,
-			report_card_type: $scope.reportCardType,
-			chart_path: $scope.chart_path,
-			motto: $scope.motto,
-			overallSubjectMarks: $scope.overallSubjectMarks,
-			thisTermMarks: $scope.thisTermMarks,
-			thisTermMarksOutOf: $scope.thisTermMarksOutOf,
-			thisTermGrade: $scope.thisTermGrade,
-			thisTermPercentage: $scope.thisTermPercentage,
-			lastTermMarks: $scope.lastTermMarks,
-			lastTermMarksOutOf: $scope.lastTermMarksOutOf,
-			lastTermGrade: $scope.lastTermGrade,
-			lastTermPercentage: $scope.lastTermPercentage
-		}
-
-		var criteriaToPdf = new Blob(["criteria"], {type : "image/png"});
-		console.log(window.URL.createObjectURL(criteriaToPdf));
-		var readBlob = new FileReader();
-		 readBlob.readAsDataURL(criteriaToPdf);
-		 readBlob.onloadend = function() {
-		     var base64data = readBlob.result;
-		     console.log(base64data);
-		 }
-		// $.ajax({
-		//         type: "POST",
-		//         url: 'saveFiles.php',
-		//         data : reportToPdf
-		// }).done(function(data){
-		// 			console.log("Posted");
-		// 			console.log(data);
-		// });
 	}
 
 
@@ -1146,15 +1067,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 
 		var dataForPdf = {
-			school: {
-				school_name: $rootScope.currentUser.settings['School Name'],
-				school_address: $rootScope.currentUser.settings['Address 1'],
-				school_address2: $rootScope.currentUser.settings['Address 2'],
-				contact: $rootScope.currentUser.settings['Phone Number 2'],
-				contact2: $rootScope.currentUser.settings['Phone Number'],
-				email: $rootScope.currentUser.settings['Email Address'],
-				letterhead: "assets/schools/" + $rootScope.currentUser.settings['Letterhead']
-			},
+			// school: {
+			// 	school_name: $rootScope.currentUser.settings['School Name'],
+			// 	school_address: $rootScope.currentUser.settings['Address 1'],
+			// 	school_address2: $rootScope.currentUser.settings['Address 2'],
+			// 	contact: $rootScope.currentUser.settings['Phone Number 2'],
+			// 	contact2: $rootScope.currentUser.settings['Phone Number'],
+			// 	email: $rootScope.currentUser.settings['Email Address'],
+			// 	letterhead: "assets/schools/" + $rootScope.currentUser.settings['Letterhead']
+			// },
 			header: {
 				user_id: $rootScope.currentUser.user_id,
 				student_id: $scope.student.student_id,
@@ -1164,8 +1085,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				school_house: $scope.student.school_house,
 				stream_pos: $scope.streamRankPosition,
 				stream_out_of: $scope.streamRankOutOf,
-				stream_pos_last_term: $scope.streamRankPositionLastTerm,
-				stream_out_of_last_term: $scope.streamRankOutOfLastTerm,
+				stream_pos_lt: $scope.streamRankPositionLastTerm,
+				stream_out_of_lt: $scope.streamRankOutOfLastTerm,
 				term_id : $scope.report.term_id,
 				class_id : $scope.report.class_id,
 				report_card_type : $scope.reportCardType,
@@ -1178,8 +1099,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		var data = {
 			user_id: $rootScope.currentUser.user_id,
 			student_id: $scope.student.student_id,
-			kcpe_marks: $scope.student.kcpe_marks,
-			school_house: $scope.student.school_house,
 			term_id : $scope.report.term_id,
 			class_id : $scope.report.class_id,
 			report_card_type : $scope.reportCardType,
@@ -1192,7 +1111,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		apiService.addReportCard(data,createCompleted,apiError);
 
 	}
-
 
 	var createCompleted = function ( response, status, params )
 	{
