@@ -94,9 +94,9 @@ header('Access-Control-Allow-Origin: *');
   	   <div class="wrap-table100">
          <h4 id="expTitle"><?php echo $class_name . " (Term " . $term . ")"; ?></h4><hr>
 <?php
-// $db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
-$getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-$db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+$db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirls user=postgres password=postgres");
+// $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
+// $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
 
 
 /* -------------------------CLASS QUERY ------------------------- */
@@ -168,23 +168,67 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
                           ) AS t1
                           FULL OUTER JOIN
                           (
-                          	SELECT student_name, rank FROM (
-                          		SELECT student_id, student_name, total_mark, dense_rank() over w as rank FROM (
-                          			SELECT exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,
-                          				coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark
-                          			FROM app.exam_marks
-                          			INNER JOIN app.class_subject_exams
-                          			INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-                          			INNER JOIN app.class_subjects
-                          			INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
-                          						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+                            SELECT student_name, marks, grade_weight, points, rank() over(order by points desc) as rank FROM (
+					SELECT student_name, sum(marks) as marks, avg(points) as points, sum(grade_weight) as grade_weight FROM (
+						SELECT student_name, subject_name, sum(mark) as marks, (SELECT points FROM app.grading WHERE sum(mark) between min_mark and max_mark) AS points, sum(grade_weight) as grade_weight FROM(
+                          				SELECT student_name, class_id, subject_name, parent_subject_name, exam_type_id, exam_type, student_id, sort_order,
+                          				(case
+                          					WHEN count = 1 THEN
+                          						mark
+                          					WHEN count = 2 THEN
+                          						sum(mark)
+                          					WHEN count = 3 THEN
+                          						(CASE
+                          							WHEN is_last_exam is true THEN
+                          								round(mark * 0.7)
+
+                          							WHEN is_last_exam is false THEN
+                          								round(mark * 0.3)
+                          						END)
+                          				end) as mark,
+                          				(case
+                          					WHEN count = 1 THEN
+                          						grade_weight
+                          					WHEN count = 2 THEN
+                          						sum(grade_weight)
+                          					WHEN count = 3 THEN
+                          						(CASE
+                          							WHEN is_last_exam is true THEN
+                          								round(grade_weight * 0.7)
+
+                          							WHEN is_last_exam is false THEN
+                          								round(grade_weight * 0.3)
+                          						END)
+                          				end) as grade_weight FROM (
+                          					SELECT student_name, class_id, subject_name, parent_subject_name, exam_type_id, (SELECT count(distinct cse.exam_type_id) FROM app.class_subject_exams cse INNER JOIN app.class_subjects cs ON cse.class_subject_id = cs.class_subject_id INNER JOIN app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id WHERE cs.class_id = ". $class ." AND term_id = ". $term .") as count, exam_type, is_last_exam, student_id, mark, grade_weight, sort_order FROM (
+                          						SELECT first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,classes.class_id,subject_name,
+                          							  coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'') as parent_subject_name,
+                          							  class_subject_exams.exam_type_id,exam_type,is_last_exam,exam_marks.student_id,mark,grade_weight,subjects.sort_order
+                          						FROM app.exam_marks
+                          						INNER JOIN app.class_subject_exams
+                          						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+                          						INNER JOIN app.class_subjects
+                          						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+                          						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+                          						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
                           						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-                          			INNER JOIN app.students ON exam_marks.student_id = students.student_id
-                          			WHERE class_subjects.class_id = ". $class ." AND term_id = ". $term ." AND students.active is true
-                          			GROUP BY exam_marks.student_id, students.first_name, students.middle_name, students.last_name
-                          		) a
-                          		WINDOW w AS (ORDER BY total_mark desc)
-                          	) q
+                          						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+                          						WHERE class_subjects.class_id = ". $class ."
+                          						AND term_id = ". $term ."
+                          						AND subjects.use_for_grading is true
+                          						AND students.active is true AND exam_marks.mark IS NOT null
+
+                          						WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
+                          						)one
+                          						)two
+                          						GROUP BY student_name, class_id, subject_name, parent_subject_name, exam_type_id, exam_type, student_id, sort_order, count, mark, grade_weight, is_last_exam
+                          						ORDER BY student_name ASC, sort_order ASC, exam_type_id ASC
+                          						)three
+                          						GROUP BY student_name, subject_name
+                          						ORDER BY student_name ASC
+                          						)points
+                          						GROUP BY student_name
+                          						)ranked
                           ) AS t2
                           ON t1.student_name = t2.student_name
                           FULL OUTER JOIN
@@ -401,6 +445,9 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
       $('#table1').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
+          "columnDefs": [
+            {"className": "dt-center", "targets": "_all"}
+          ],
           buttons: [
               // 'excelHtml5',
               // 'csvHtml5',
@@ -423,6 +470,9 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
       $('#table2').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
+          "columnDefs": [
+            {"className": "dt-center", "targets": "_all"}
+          ],
           buttons: [
               // 'excelHtml5',
               // 'csvHtml5',
@@ -445,6 +495,9 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
       $('#table3').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
+          "columnDefs": [
+            {"className": "dt-center", "targets": "_all"}
+          ],
           buttons: [
               // 'excelHtml5',
               // 'csvHtml5',
@@ -467,6 +520,9 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
       $('#table4').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
+          "columnDefs": [
+            {"className": "dt-center", "targets": "_all"}
+          ],
           buttons: [
               // 'excelHtml5',
               // 'csvHtml5',
