@@ -49,26 +49,76 @@ header('Access-Control-Allow-Origin: *');
       </div>
     </div>
   </nav>
-  <h3 style="text-align:center;margin-top:15px;">This page overviews the student's current performance in the entire stream.</h3>
+  <!-- End of Header Nav -->
   <div class="limiter">
+    <h4 style="text-align:center;margin-top:25px;">This page overviews the student's performance in the entire stream in a given term.</h4>
+    <div style="border: 3px dashed #397C49; width:20%; margin-left:auto;margin-right:auto;text-align:center;padding-bottom:7px;padding-top:7px;">
+      <h5 style="text-align:center;">Select A Term &amp; Class.</h5>
+      <form style="margin-left:auto; margin-right:auto; text-align:center;" action="#" method="post">
+        <select name="Term">
+          <option value='15'>Term 1</option>
+          <option value='16'>Term 2</option>
+          <option value='17'>Term 3</option>
+        </select>
+        <select name="Classes">
+          <option value='11'>CLASS 8</option>
+          <option value='10'>CLASS 7</option>
+          <option value='9'>CLASS 6</option>
+          <option value='8'>CLASS 5</option>
+          <option value='7'>CLASS 4</option>
+        </select>
+        <div><input style="margin-left:auto; margin-right:auto; text-align:center;" type="submit" name="submit" value="Get Results For This Term" /></div>
+      </form>
+    </div>
+    <?php
+    if(isset($_POST['submit'])){
+    $selected_val1 = $_POST['Term'];
+    $selected_val2 = $_POST['Classes'];
+    $selected_val_1 = trim($selected_val1,"'");
+    $selected_val_2 = trim($selected_val2,"'");
+    // $no_selection = 0;  // Storing Selected Value In Variable
+    // echo "Term " .$selected_val . " stream results";  // Displaying Selected Value
+    }
+    $no_selection = 1;
+    $term = (isset($_POST['submit']) ? $selected_val_1 : $no_selection);
+    $class= (isset($_POST['submit']) ? $selected_val_2 : $no_selection);
+    $class_name = "";
+    if($class == 11){$class_name = "Class 8";}elseif($class == 10){$class_name = "Class 7";}
+    elseif($class == 9){$class_name = "Class 6";}elseif($class == 8){$class_name = "Class 5";}
+    elseif($class == 7){$class_name = "Class 4";}
+    ?>
     <div class="container-table100">
+      <div>Show/ Hide Columns:
+          <a class="toggle-vis" data-column="0" href="">Name</a> -
+          <a class="toggle-vis" data-column="1" href="">Maths</a> -
+          <a class="toggle-vis" data-column="2" href="">English</a> -
+          <a class="toggle-vis" data-column="3" href="">Kiswahili</a> -
+          <a class="toggle-vis" data-column="4" href="">Science</a> -
+          <a class="toggle-vis" data-column="5" href="">S/Stud</a> -
+          <a class="toggle-vis" data-column="6" href="">Total</a> -
+          <a class="toggle-vis" data-column="7" href="">Prev</a> -
+          <a class="toggle-vis" data-column="8" href="">Diff</a> -
+          <a class="toggle-vis" data-column="9" href="">%</a> -
+          <a class="toggle-vis" data-column="10" href="">Grade</a> -
+          <a class="toggle-vis" data-column="11" href="">Pos</a>
+      </div>
   	   <div class="wrap-table100">
-         <h4>STREAM: Class 8</h4><hr>
+         <h4 id="expTitle">STREAM: <?php echo $class_name ?></h4><hr>
 <?php
 $db = pg_connect("host=localhost port=5432 dbname=eduweb_dev2 user=postgres password=postgres");
 // $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
 // $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
 
 
-/* -------------------------CLASS 8 QUERY ------------------------- */
-$table1 = pg_query($db,"SELECT student_name, mathematics, english, eng_lang, eng_comp, kiswahili, lugha, kusoma, science, ss_cre, ss, cre, tot, round((tot::float/500)*100) as percentage, (select grade from app.grading where round((tot::float/500)*100) between min_mark and max_mark) as grade, pos FROM (
-  SELECT t1.*, t2.avg as tot, t2.position as pos
+/* -------------------------CLASS (x) QUERY ------------------------- */
+$table3 = pg_query($db,"SELECT student_name, mathematics, english, eng_lang, eng_com, kiswahili, lugha, insha, science, ss_cre, ss, cre, tot, tot2, (tot - tot2) as diff, round((tot::float/500)*100) as percentage, (select grade from app.grading where round((tot::float/500)*100) between min_mark and max_mark) as grade, pos FROM (
+  SELECT t1.*, t2.avg as tot, t2.position as pos, t3.avg as tot2
 FROM
 (
 /* CREATE EXTENSION tablefunc; */
 
 SELECT *
-FROM   crosstab('SELECT student_name, subject_name, sum(marks) as marks FROM (
+FROM   crosstab('SELECT student_name, subject_name, marks FROM (
 SELECT student_id, student_name, class_name, exam_type, subject_name, total_mark as marks_bak, t_mark2 as marks, total_grade_weight as out_of_bak, tg_weight2 as out_of, percentage, grade, sort_order
 FROM(
 SELECT  student_id, student_name, class_name, exam_type, subject_name,
@@ -88,8 +138,9 @@ INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND s
       ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
 INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
-WHERE class_cats.entity_id = 11
-AND term_id = (SELECT term_id FROM app.terms WHERE term_number = 2)
+WHERE class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = $class) ORDER BY exam_type_id DESC LIMIT (SELECT COUNT(exam_type_id) FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = $class)))
+AND class_cats.entity_id = $class
+AND term_id = $term
 AND subjects.parent_subject_id is null
 AND subjects.use_for_grading is true
 AND mark IS NOT NULL
@@ -99,15 +150,14 @@ ORDER BY sort_order
 )v GROUP BY v.student_id, v.student_name, v.class_name, v.exam_type, v.subject_name, v.total_mark, v.total_grade_weight, v.percentage, v.grade, v.sort_order, v.t_mark2, v.tg_weight2
 ORDER BY student_name ASC, sort_order ASC
 )a
-GROUP BY student_name, subject_name
-ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = 11 LIMIT 1) order by sort_order') AS ct (student_name text, mathematics numeric, english numeric, eng_lang numeric, eng_comp numeric, kiswahili numeric, lugha numeric, kusoma numeric, science numeric, ss_cre numeric, ss numeric, cre numeric)
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = $class LIMIT 1) order by sort_order') AS ct (student_name text, mathematics numeric, english numeric, eng_lang numeric, eng_com numeric, kiswahili numeric, lugha numeric, insha numeric, science numeric, ss_cre numeric, ss numeric, cre numeric)
 
 ) AS t1
     FULL OUTER JOIN
     (
 	SELECT * FROM (
 		SELECT avg, student_id, student_name, class_name, rank() over(order by avg desc) AS position,
-			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = 11 AND students.active is true) AS position_out_of
+			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = ". $class ." AND students.active is true) AS position_out_of
 		FROM (
 			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
 			FROM (
@@ -129,8 +179,9 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 					INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 								 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
 								 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-					WHERE class_cats.entity_id = 11
-					AND term_id = (SELECT term_id FROM app.terms WHERE term_number = 2)
+					WHERE class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = ". $class .") ORDER BY exam_type_id DESC LIMIT (SELECT COUNT(exam_type_id) FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = ". $class .")) - (SELECT COUNT(class_id) FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = ". $class .")))
+					AND class_cats.entity_id = ". $class ."
+					AND term_id = ". $term ."
 					AND subjects.parent_subject_id is null
 					AND subjects.use_for_grading is true
 					AND students.student_id = exam_marks.student_id
@@ -143,53 +194,99 @@ ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT 
 	) AS foo3
     ) AS t2
     ON t1.student_name = t2.student_name
-    order by position ASC
+    FULL OUTER JOIN
+    (
+	SELECT * FROM (
+		SELECT avg, student_id AS student_id2, student_name AS student_name2, class_name, rank() over(order by avg desc) AS position,
+			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = ". $class ." AND students.active is true) AS position_out_of
+		FROM (
+			SELECT sum(total_mark) AS avg, student_id, student_name, class_name
+			FROM (
+				SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+					(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
+					sort_order, exam_type_id, student_id, student_name, class_name
+				FROM (
+					SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
+						coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+						coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+						subjects.sort_order, class_subject_exams.exam_type_id
+					FROM app.exam_marks
+					INNER JOIN app.students ON exam_marks.student_id = students.student_id
+					INNER JOIN app.class_subject_exams
+					INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+					INNER JOIN app.class_subjects
+					INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+					INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+								 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+								 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+					WHERE class_subject_exams.exam_type_id IN (SELECT DISTINCT cse.exam_type_id FROM app.exam_types et INNER JOIN app.class_subject_exams cse ON et.exam_type_id = cse.exam_type_id INNER JOIN app.class_subjects cs ON cse.class_subject_id = cs.class_subject_id INNER JOIN app.classes c ON cs.class_id = c.class_id WHERE cs.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = ". $class .")) ORDER BY cse.exam_type_id DESC OFFSET (SELECT COUNT(class_cat_id) FROM app.class_cats WHERE entity_id = ". $class .") ROW FETCH FIRST (2) ROW ONLY)
+					AND class_cats.entity_id = ". $class ."
+					AND term_id = ". $term ."
+					AND subjects.parent_subject_id is null
+					AND subjects.use_for_grading is true
+					AND students.student_id = exam_marks.student_id
+					AND mark IS NOT NULL
+					GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
+						use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name
+				) q ORDER BY sort_order
+			) AS foo GROUP BY student_id,student_name, class_name ORDER BY avg DESC
+		) AS FOO2
+	) AS foo3
+    ) AS t3
+    ON t2.student_id = t3.student_id2
+    order by t2.position ASC
     )foo4 order by pos ASC");
-/* -------------------------CLASS 8 TABLE ------------------------- */
+/* -------------------------CLASS (x) TABLE ------------------------- */
 echo "<div class='table100 ver1 m-b-110'>";
-echo "<table id='table1'>";
-  echo "<div id='t1' class='table100-head'>";
-    // echo "<table id='table1'>";
-      echo "<thead>";
-       echo "<tr class='row100 head'>";
-         echo "<th class='cell100 column1'>STUDENT NAME</th>";
-         echo "<th class='cell100 column2'>MATHS</th>";
-         echo "<th class='cell100 column3'>ENGLISH</th>";
-         echo "<th class='cell100 column4'>KISWAHILI</th>";
-         echo "<th class='cell100 column5'>SCIENCE</th>";
-         echo "<th class='cell100 column6'>S/STUD.</th>";
-         echo "<th class='cell100 column14'>TOT.</th>";
-         echo "<th class='cell100 column15'>%</th>";
-         echo "<th class='cell100 column16'>GRD.</th>";
-         echo "<th class='cell100 column17'>POS.</th>";
-       echo "</tr>";
-      echo "</thead>";
-    // echo "</table>";
-  echo "</div>";
-  echo "<div class='table100-body js-pscroll'>";
-    // echo "<table id='table1-2'>";
-      echo "<tbody>";
-        while ($row = pg_fetch_assoc($table1)) {
-          echo "<tr class='row100 body'>";
-             echo "<td class='cell100 column1'>" . $row['student_name'] . "</td>";
-             echo "<td class='cell100 column2'>" . $row['mathematics'] . "</td>";
-             echo "<td class='cell100 column3'>" . $row['english'] . "</td>";
-             echo "<td class='cell100 column4'>" . $row['kiswahili'] . "</td>";
-             echo "<td class='cell100 column5'>" . $row['science'] . "</td>";
-             echo "<td class='cell100 column6'>" . $row['ss_cre'] . "</td>";
-             echo "<td class='cell100 column14'>" . $row['tot'] . "</td>";
-             echo "<td class='cell100 column15'>" . $row['percentage'] . "</td>";
-             echo "<td class='cell100 column16'>" . $row['grade'] . "</td>";
-             echo "<td class='cell100 column17'>" . $row['pos'] . "</td>";
-         echo "</tr>";
-        }
-      echo "</tbody>";
-    // echo "</table>";
-  echo "</div>";
-  echo "</table>";
- echo "</div>";
+echo "<table id='table3'  class='display'>";
+echo "<div id='t1' class='table100-head'>";
+// echo "<table id='table1'>";
+echo "<thead>";
+echo "<tr class='row100 head'>";
+echo "<th class='cell100 column1'>STUDENT NAME</th>";
+echo "<th class='cell100 column2'>MATHS</th>";
+echo "<th class='cell100 column3'>ENGLISH</th>";
+echo "<th class='cell100 column4'>KISWAHILI</th>";
+echo "<th class='cell100 column5'>SCIENCE</th>";
+echo "<th class='cell100 column6'>S/STUD.</th>";
+echo "<th class='cell100 column14'>TOTAL.</th>";
+echo "<th class='cell100 column18'>PREV Exm.</th>";
+echo "<th class='cell100 column19'>DIFF.</th>";
+echo "<th class='cell100 column15'>%</th>";
+echo "<th class='cell100 column16'>GRD.</th>";
+echo "<th class='cell100 column17'>POS.</th>";
+echo "</tr>";
+echo "</thead>";
+// echo "</table>";
+echo "</div>";
+echo "<div class='table100-body js-pscroll'>";
+// echo "<table id='table1-2'>";
+echo "<tbody>";
+while ($row3 = pg_fetch_assoc($table3)) {
+  echo "<tr class='row100 body'>";
+     echo "<td class='cell100 column1'>" . $row3['student_name'] . "</td>";
+     echo "<td class='cell100 column2'>" . $row3['mathematics'] . "</td>";
+     echo "<td class='cell100 column3'>" . $row3['english'] . "</td>";
+     echo "<td class='cell100 column4'>" . $row3['kiswahili'] . "</td>";
+     echo "<td class='cell100 column5'>" . $row3['science'] . "</td>";
+     echo "<td class='cell100 column6'>" . $row3['ss_cre'] . "</td>";
+     echo "<td class='cell100 column14'>" . $row3['tot'] . "</td>";
+     echo "<td class='cell100 column18'>" . $row3['tot2'] . "</td>";
+     echo "<td class='cell100 column14'>" . $row3['diff'] . "</td>";
+     echo "<td class='cell100 column15'>" . $row3['percentage'] . "</td>";
+     echo "<td class='cell100 column16'>" . $row3['grade'] . "</td>";
+     echo "<td class='cell100 column17'>" . $row3['pos'] . "</td>";
+ echo "</tr>";
+}
+echo "</tbody>";
+// echo "</table>";
+echo "</div>";
+echo "</table>";
+echo "</div>";
 
 ?>
+
       </div>
     </div>
   </div>
@@ -219,6 +316,9 @@ echo "<table id='table1'>";
 	<script src="../components/overviewFiles/js/main.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
+      var intendedName = document.getElementById('expTitle');
+      var docName = intendedName.innerHTML;
+      console.log(docName);
       $('#table1').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
@@ -239,7 +339,7 @@ echo "<table id='table1'>";
                 title: 'Class-8-Stream-Analysis'
             }
           ],
-          "order": [[ 9, "asc" ]]
+          "order": [[ 11, "asc" ]]
       } );
       $('#table2').DataTable( {
           fixedHeader: true,
@@ -250,20 +350,21 @@ echo "<table id='table1'>";
               // 'pdfHtml5',
               {
                 extend: 'excelHtml5',
-                title: 'Form-3'
+                title: docName + ' Analysis'
             },
             {
               extend: 'csvHtml5',
-              title: 'Form-3'
+              title: docName + ' Analysis'
           },
             {
                 extend: 'pdfHtml5',
-                title: 'Form-3'
+                title: docName + ' Analysis'
             }
           ],
-          "order": [[ 9, "asc" ]]
+          "order": [[ 11, "asc" ]]
       } );
-      $('#table3').DataTable( {
+
+      var table = $('#table3').DataTable( {
           fixedHeader: true,
           dom: 'Bfrtip',
           buttons: [
@@ -272,41 +373,28 @@ echo "<table id='table1'>";
               // 'pdfHtml5',
               {
                 extend: 'excelHtml5',
-                title: 'Form-2'
+                title: docName + ' Analysis'
             },
             {
               extend: 'csvHtml5',
-              title: 'Form-2'
+              title: docName + ' Analysis'
           },
             {
                 extend: 'pdfHtml5',
-                title: 'Form-2'
+                title: docName + ' Analysis'
             }
           ],
-          "order": [[ 9, "asc" ]]
+          "order": [[ 11, "asc" ]]
       } );
-      $('#table4').DataTable( {
-          fixedHeader: true,
-          dom: 'Bfrtip',
-          buttons: [
-              // 'excelHtml5',
-              // 'csvHtml5',
-              // 'pdfHtml5',
-              {
-                extend: 'excelHtml5',
-                title: 'Form-1'
-            },
-            {
-              extend: 'csvHtml5',
-              title: 'Form-1'
-          },
-            {
-                extend: 'pdfHtml5',
-                title: 'Form-1'
-            }
-          ],
-          "order": [[ 9, "asc" ]]
-      } );
+      $('a.toggle-vis').on( 'click', function (e) {
+        e.preventDefault();
+
+        // Get the column API object
+        var column = table.column( $(this).attr('data-column') );
+
+        // Toggle the visibility
+        column.visible( ! column.visible() );
+    } );
     } );
   </script>
   <script src="../components/overviewFiles/js/jquery.dataTables.min.js"></script>
