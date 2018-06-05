@@ -107,6 +107,20 @@
         <!-- PROJECT FIVE -->
         <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
           <div class="card h-100">
+            <a href="<?php echo htmlspecialchars("./".array_shift((explode('.', $_SERVER['HTTP_HOST'])))."-deviations.php"); ?>">
+              <img class="card-img-top" src="img/deviations.png" alt="">
+            </a>
+            <div class="card-body">
+              <h4 class="card-title">
+                <a  class="btn btn-primary" href="<?php echo htmlspecialchars("./".array_shift((explode('.', $_SERVER['HTTP_HOST'])))."-deviations.php"); ?>">Deviations</a>
+              </h4>
+              <p class="card-text">Comparison of mean performance against the best performing class per subject.</p>
+            </div>
+          </div>
+        </div>
+        <!-- PROJECT SIX -->
+        <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
+          <div class="card h-100">
             <a href="<?php echo htmlspecialchars("./".array_shift((explode('.', $_SERVER['HTTP_HOST'])))."-financial-analysis.php"); ?>">
               <img class="card-img-top" src="img/balances-analysis.png" alt="">
             </a>
@@ -118,7 +132,7 @@
             </div>
           </div>
         </div>
-        <!-- PROJECT SIX -->
+        <!-- PROJECT SEVEN -->
         <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
           <div class="card h-100">
             <a href="<?php echo htmlspecialchars("./".array_shift((explode('.', $_SERVER['HTTP_HOST'])))."-st-fee-items-analysis.php"); ?>">
@@ -132,7 +146,7 @@
             </div>
           </div>
         </div>
-        <!-- PROJECT SEVEN -->
+        <!-- PROJECT EIGHT -->
         <!-- <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
           <div class="card h-100">
             <a href="#"><img class="card-img-top" src="http://placehold.it/700x400" alt=""></a>
