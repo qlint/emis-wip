@@ -12,6 +12,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.loading = true;
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
+	if($scope.isTeacher == true){
+		document.getElementById('commTab').style.display = 'none';
+	}
 
 	$scope.gridFilter = {};
 	$scope.gridFilter.filterValue  = '';
