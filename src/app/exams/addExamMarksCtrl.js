@@ -89,6 +89,67 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				}
 			}, apiError)
 		}
+		function printThis(){
+			$(document).ready(function() {
+				var table = $('#resultsTable2').DataTable( {
+						fixedHeader: true,
+						"scrollX": true,
+						keys: true,
+						paging: false,
+						dom: 'Bfrtip',
+						buttons: [
+								// 'excelHtml5',
+								// 'csvHtml5',
+								// 'pdfHtml5',
+								{
+									extend: 'excelHtml5',
+									title: 'Mark-Sheet'
+							},
+							{
+								extend: 'csvHtml5',
+								title: 'Mark-Sheet'
+						},
+							{
+									extend: 'pdfHtml5',
+									title: 'Mark-Sheet',
+									orientation: 'landscape',
+									pageSize: 'A4'
+							}
+						]
+				} );
+				$('a.toggle-vis').on( 'click', function (e) {
+					e.preventDefault();
+
+					// Get the column API object
+					var column = table.column( $(this).attr('data-column') );
+
+					// Toggle the visibility
+					column.visible( ! column.visible() );
+			} );
+			// editor.on( 'open', function ( e, mode, action ) {
+			// 		if ( mode === 'inline' ) {
+			// 				editor.on( 'postSubmit.editorInline', function () {
+			// 						var focused = table.cell( { focused: true } );
+			//
+			// 						if ( focused.any() ) {
+			// 								var next = $(focused.node()).next();
+			//
+			// 								if ( next.length ) {
+			// 										editor.one( 'submitComplete', function () {
+			// 												table.cell( next ).focus();
+			// 										} );
+			// 								}
+			// 						}
+			// 				} );
+			// 		}
+			// } );
+
+			// editor.on( 'close', function () {
+			// 		editor.off( 'postSubmit.editorInline' );
+			// } );
+			} );
+		}
+		printThis();
 	}
 
 	var loadMarks = function(response,status)
