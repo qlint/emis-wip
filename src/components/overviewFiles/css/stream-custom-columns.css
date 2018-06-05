@@ -1,0 +1,16 @@
+.column1 {
+  width: 5%;
+  padding-left: 20px;
+}
+
+.column2, .column3, .column4, .column5, .column6, .column7, .column8, .column9, .column10, .column11, .column12, .column13, .column14, .column17, .column18, .column19 {
+  width: 4%;
+}
+
+.column15, .column16 {
+  width: 5%;
+}
+
+.wrap-table100 {
+    width: 99%;
+}
