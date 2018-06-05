@@ -46,6 +46,7 @@ function($scope, $rootScope){
 		$scope.currentClassPosition = data.currentClassPosition;
 		$scope.streamRankPosition = data.streamRankPosition;
 		$scope.streamRankOutOf = data.streamRankOutOf;
+		$scope.streamRankLastTerm = data.streamRankLastTerm,
 		$scope.overallSubjectMarks = angular.fromJson(data.subjectOverall);
 		$scope.thisTermMarks = data.thisTermMarks;
 		$scope.thisTermMarksOutOf = data.thisTermMarksOutOf;
