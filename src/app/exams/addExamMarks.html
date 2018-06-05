@@ -60,12 +60,12 @@
 						  @import url("components/overviewFiles/css/buttons.dataTables.min.css");
 							/* @import url("components/overviewFiles/css/keyTable.dataTables.min.css"); */
 						</style>
-						<button type="button" class="btn btn-link" onclick="printThis()"><h4>Show Download Options</h4></button>
-
-						<div ng-repeat="col in subjects">Show/ Hide Columns:
-			          <a class="toggle-vis" data-column="{{$index+1}}" href="">{{col.subject_name}}</a>
+						<!-- <button type="button" class="btn btn-link" onclick="printThis()"><h4>Show Download Options</h4></button> -->
+						<div>
+								<a class="toggle-vis" data-column="0" href="">Adm #</a>
+								<a class="toggle-vis" data-column="1" href="">Student</a>
+			          <a class="toggle-vis" ng-repeat="col in subjects" data-column="{{$index+2}}" href="">{{col.subject_name}}</a>
 			      </div>
-
 						<div class='table100 ver1 m-b-110'>
 						<table ng-show="!marksNotFound" id="resultsTable2" class="display dataTable tableSection" cellspacing="0" width="100%" media="print">
 							<div id='t1' class='table100-head'>
@@ -84,7 +84,7 @@
 									<td id="{{item.student_id}}" class="cell100 column2">{{item.student_name}}</td>
 									<td class="center td-form-control-add-on cell100 column3" ng-repeat="col in subjects">
 										<input type="text" class="form-control" ng-model="item.marks[col.subject_name].mark" numeric-only ng-change="calculateParentSubject(item.marks,{{item.marks[col.subject_name]}})" ng-model-options="{ debounce: 500 }" ng-disabled="item.marks[col.subject_name].is_parent" />
-										<div class="input-group-addon">/{{item.marks[col.subject_name].grade_weight}}</div>
+										<!-- <div class="input-group-addon">/{{item.marks[col.subject_name].grade_weight}}</div> -->
 									</td>
 								</tr>
 							</tbody>
@@ -116,46 +116,7 @@
 			</script>
 			<script src="components/overviewFiles/js/main.js"></script>
 			<script type="text/javascript">
-			function printThis(){
-		    $(document).ready(function() {
-		      var table = $('#resultsTable2').DataTable( {
-		          fixedHeader: true,
-							"scrollX": true,
-							keys: true,
-							// paging: false,
-							// ordering: false,
-		          dom: 'Bfrtip',
-		          buttons: [
-		              // 'excelHtml5',
-		              // 'csvHtml5',
-		              // 'pdfHtml5',
-		              {
-		                extend: 'excelHtml5',
-		                title: 'Mark-Sheet'
-		            },
-		            {
-		              extend: 'csvHtml5',
-		              title: 'Mark-Sheet'
-		          },
-		            {
-		                extend: 'pdfHtml5',
-		                title: 'Mark-Sheet',
-										orientation: 'landscape',
-										pageSize: 'A4'
-		            }
-		          ]
-		      } );
-					$('a.toggle-vis').on( 'click', function (e) {
-		        e.preventDefault();
 
-		        // Get the column API object
-		        var column = table.column( $(this).attr('data-column') );
-
-		        // Toggle the visibility
-		        column.visible( ! column.visible() );
-		    } );
-		    } );
-			}
 		  </script>
 		  <script src="components/overviewFiles/js/jquery.dataTables.min.js"></script>
 		  <script src="components/overviewFiles/js/dataTables.buttons.min.js"></script>
