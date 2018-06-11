@@ -207,19 +207,19 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 					},
 					'communications':{
 						'blog_posts': {
-							'view': true,
-							'add': true,
-							'edit': true,
+							'view': false,
+							'add': false,
+							'edit': false,
 						},
 						'homework': {
-							'view': true,
-							'add': true,
-							'edit': true,
+							'view': false,
+							'add': false,
+							'edit': false,
 						},
 						'send_email' : {
-							'view': true,
-							'add': true,
-							'edit': true,
+							'view': false,
+							'add': false,
+							'edit': false,
 						}
 					}
 				};
