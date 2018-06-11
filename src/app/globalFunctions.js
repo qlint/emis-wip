@@ -140,6 +140,11 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 				return check;
 		})();
 
+		$rootScope.updatePassword = function()
+		{
+			$rootScope.openModal('users', 'userForm', 'md');
+		}
+
 	$rootScope.showLogin = function()
 	{
 		$rootScope.$broadcast(AUTH_EVENTS.notAuthenticated);
@@ -197,7 +202,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
   $rootScope.$on('studentsPromoted', function(event, args) {
       $rootScope.$broadcast('refreshStudents', args);
   });
-  
+
 	$rootScope.$on('invoiceAdded', function(event, args) {
 				$rootScope.$broadcast('refreshInvoices', args);
 		});
@@ -229,7 +234,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 	$rootScope.$on('examMarksAdded', function(event, args) {
 				$rootScope.$broadcast('refreshExamMarks', args);
 		});
-	
+
   $rootScope.$on('examMarksAdded2', function(event, args) {
 				$rootScope.$broadcast('refreshExamMarks2', args);
 		});
@@ -380,14 +385,14 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			}, function(){});
 		}
 	}
-	
+
 	$rootScope.getCurrentTerm = function()
 	{
 		// get current term
 		apiService.getCurrentTerm({},function(response){
 			var result = angular.fromJson(response);
-			
-			if( result.response == 'success') 
+
+			if( result.response == 'success')
 			{
 				$rootScope.currentTerm = result.data;
 				var termName = $rootScope.currentTerm.term_name;
@@ -398,14 +403,14 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			}
 		}, function(){});
 	}
-	
+
 	$rootScope.getPreviousTerm = function()
 	{
 		// get previous term
 		apiService.getPreviousTerm({},function(response){
 			var result = angular.fromJson(response);
-			
-			if( result.response == 'success') 
+
+			if( result.response == 'success')
 			{
 				$rootScope.previousTerm = result.data;
 				var termName = $rootScope.previousTerm.term_name;
@@ -416,14 +421,14 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			}
 		}, function(){});
 	}
-	
+
 	$rootScope.getNextTerm = function()
 	{
 		// get next term
 		apiService.getNextTerm({},function(response){
 			var result = angular.fromJson(response);
-			
-			if( result.response == 'success') 
+
+			if( result.response == 'success')
 			{
 				$rootScope.nextTerm = result.data;
 				var termName = $rootScope.nextTerm.term_name;
@@ -440,14 +445,14 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		// get term range
 		apiService.getTermRange({},function(response){
 			var result = angular.fromJson(response);
-			
-			if( result.response == 'success') 
+
+			if( result.response == 'success')
 			{
 				$rootScope.termRange = result.data;
 			}
 		}, function(){});
 	}
-	
+
 	$rootScope.setTermRanges = function(terms)
 	{
 		$rootScope.termRanges = {};
