@@ -492,7 +492,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.overallLastTerm = data.overallLastTerm;
 			$scope.thisTermMarks = data.overall.current_term_marks;
 			console.log("NLT");
-			console.log($scope.overall);
 		}
 		// $scope.overallLastTerm = data.overallLastTerm;
 		$scope.graphPoints = data.graphPoints;
@@ -511,6 +510,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.thisTermMarksOutOf = data.overall.current_term_marks_out_of;
 		$scope.thisTermGrade = data.overall.grade;
 		$scope.thisTermPercentage = data.overall.percentage;
+		$scope.latestExamType = data.latestExamType[0];
+		$scope.isLastExamDoneEndTerm = $scope.latestExamType.is_last_exam;
+		$scope.isHideTotColumn = false;
+		if ( $scope.isSchool == true && $scope.isLastExamDoneEndTerm == false ){
+			$scope.isHideTotColumn = true;
+			$scope.isSchool = false;
+		}
+		console.log($scope.isHideTotColumn);
 
 		// console.log("subject overalls variable ::>");
 		// console.log($scope.overallSubjectMarks);
