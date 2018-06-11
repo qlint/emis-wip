@@ -42,16 +42,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			var results = ( result.nodata ? {} : result.data );
 
 			$scope.paymentDetails = results.paymentItems;
-			$scope.payment.slip_cheque_no = results.payment.slip_cheque_no;
-			$scope.payment.payment_method = results.payment.payment_method;
-			$scope.payment.custom_receipt_no = "Receipt #: " + results.payment.custom_receipt_no;
+			$scope.payment.slip_cheque_no = results.payment.slip_cheque_no; // the transaction # for the mode of payment
+			$scope.payment.payment_method = results.payment.payment_method; // drop down for mode of payment
+			$scope.payment.custom_receipt_no = "Receipt #: " + results.payment.custom_receipt_no; // for schools that want to use custom receipt #'s
 			$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
 
 			var invoiceItems = results.invoice;
 
 			if( invoiceItems.length > 0 )
 			{
-				var termName = invoiceItems[0].term_name;
+				var termName = invoiceItems[invoiceItems.length - 1].term_name;
 				// we only want the number
 				termName = termName.split(' ');
 				$scope.term_name = (invoiceItems.length > 0 ? termName[1] : '');
