@@ -19,42 +19,42 @@ $mid-gray: #DDDDDD;
      -moz-border-top-right-radius: $radiusTop;
       -ms-border-top-right-radius: $radiusTop;
           border-top-right-radius: $radiusTop;
-	
+
   -webkit-border-top-left-radius: $radiusTop;
      -moz-border-top-left-radius: $radiusTop;
       -ms-border-top-left-radius: $radiusTop;
-          border-top-left-radius: $radiusTop;	
+          border-top-left-radius: $radiusTop;
 
   -webkit-border-bottom-right-radius: $radiusBtm;
      -moz-border-bottom-right-radius: $radiusBtm;
       -ms-border-bottom-right-radius: $radiusBtm;
           border-bottom-right-radius: $radiusBtm;
-	
+
   -webkit-border-bottom-left-radius: $radiusBtm;
      -moz-border-bottom-left-radius: $radiusBtm;
       -ms-border-bottom-left-radius: $radiusBtm;
-          border-bottom-left-radius: $radiusBtm;	
+          border-bottom-left-radius: $radiusBtm;
 }
 @mixin border-radiuses( $topLeft, $topRight, $btnLeft, $btnRight) {
   -webkit-border-top-right-radius: $topRight;
      -moz-border-top-right-radius: $topRight;
       -ms-border-top-right-radius: $topRight;
           border-top-right-radius: $topRight;
-	
+
   -webkit-border-top-left-radius: $topLeft;
      -moz-border-top-left-radius: $topLeft;
       -ms-border-top-left-radius: $topLeft;
-          border-top-left-radius: $topLeft;	
+          border-top-left-radius: $topLeft;
 
   -webkit-border-bottom-right-radius: $btnRight;
      -moz-border-bottom-right-radius: $btnRight;
       -ms-border-bottom-right-radius: $btnRight;
           border-bottom-right-radius: $btnRight;
-	
+
   -webkit-border-bottom-left-radius: $btnLeft;
      -moz-border-bottom-left-radius: $btnLeft;
       -ms-border-bottom-left-radius: $btnLeft;
-          border-bottom-left-radius: $btnLeft;	
+          border-bottom-left-radius: $btnLeft;
 }
 @mixin box-shadow($top, $left, $blur, $color, $inset: false) {
   @if $inset {
@@ -156,7 +156,7 @@ a{
     margin: 0 auto;
     right: 0;
     text-align: center;
-	
+
 	p{
 		@include rounded(5px);
 		@include rotate(-45);
@@ -195,13 +195,13 @@ a{
 .navbar-brand{
 	padding:5px;
 	color:#fff;
-	
+
 	span{
 		font-size:12px;
 		line-height:42px;
 		color:#fff;
 	}
-	
+
 	.brand{
 		max-height: 45px;
 		float: left;
@@ -215,7 +215,7 @@ a{
 
 .login {
     padding: 18px 25px;
-	
+
 	a{
 		color: #fff;
 	}
@@ -229,7 +229,7 @@ a{
     color: #fff;
     margin: -10px 17px 0 0;
     padding: 10px 15px;
-	
+
 	p{
 		font-size: 10px;
 		color: #fff;
@@ -257,7 +257,7 @@ a{
 .mainNav{
 	margin-top:50px;
 	background-color:$light-gray;
-	
+
 	.navbar-nav>li>a{
 		color:#777;
 		background:$mid-gray;
@@ -270,8 +270,8 @@ a{
 }
 
 
-.navbar-inverse .navbar-nav>.active>a, 
-.navbar-inverse .navbar-nav>.active>a:focus, 
+.navbar-inverse .navbar-nav>.active>a,
+.navbar-inverse .navbar-nav>.active>a:focus,
 .navbar-inverse .navbar-nav>.active>a:hover{
 	background-color: #fff;
 	color: $text-color;
@@ -281,23 +281,23 @@ a{
 	padding-top:10px;
 	padding-bottom:10px;
 }
-	
-	
+
+
 .user-nav{
 	color:#fff;
 	font-size:12px;
-	
+
 	#welcome-msg{
 		font-style:italic;
 		text-align:right;
 		margin-right:5px;
 	}
-	
+
 	.nav>li>a{
 		padding:0px 5px 0 0;
 		font-size:11px;
 	}
-	
+
 	.nav>li a:after{
 		content:' | ';
 	}
@@ -321,15 +321,15 @@ h1{
 	.content-fixed-header{
 		padding: 0 5px;
 	}
-	
+
 	h1#pageTitle{
 		position: fixed;
 		z-index: 1002;
 	}
-	
+
 	h4{
 		font-size:18px;
-		
+
 		.caret{
 			border-top: 8px dashed;
 			border-right: 8px solid transparent;
@@ -354,7 +354,7 @@ h1{
 		font-size:16px;
 		vertical-align: text-bottom;
 	}
-	
+
 	button.close{
 		margin-top:-3px;
 	}
@@ -377,16 +377,16 @@ h1{
     padding: 15px;
     color: white;
     font-size: 14px;
-	
+
 	ul{
 		list-style:none;
 		margin:0;
 		padding:0;
-		
+
 		li{
 			padding:5px 10px;
 			margin:10px 30px 10px 0;
-			
+
 			a{
 				color:white;
 			}
@@ -396,7 +396,7 @@ h1{
 			margin-left:-15px;
 			padding-left:25px;
 			@include border-radiuses(0, 15px, 0, 15px);
-			
+
 			a{
 				color: $mid-green;
 			}
@@ -412,11 +412,11 @@ ul.table-view{
   margin:0;
   padding:0;
   list-style:none;
-  
+
   li{
     padding:3px 5px;
     border-bottom:1px solid #eee;
-    
+
     input{
       margin-right:5px;
     }
@@ -424,7 +424,7 @@ ul.table-view{
   li.list-header{
     background-color:$dark-green;
     color:#fff;
-    
+
     label{
       width:100%;
     }
@@ -445,7 +445,7 @@ ul.table-view{
 	}
 	.pic-container{
 		margin-bottom:25px;
-		
+
 		p{
 			text-align:left;
 			border-bottom:1px solid #aaa;
@@ -458,25 +458,25 @@ ul.table-view{
 	padding:5px;
 	@include rounded(7px);
 	//background-color:#eee;
-	
+
 	.dashboard-panel-header{
 		h2{
 			font-size:14px;
 			margin:0;
-		}	
+		}
 		.totalSum{
 			font-size:14px;
 			line-height:26px;
 		}
 	}
-	
+
 	.dashboard-panel-body{
 		background-color:#fff;
 		margin:0;
 		padding:3px;
 		@include rounded(7px);
 	}
-	
+
 	.dashboard-panel-footer{
 		margin:0 -10px;
 	}
@@ -491,21 +491,21 @@ ul.table-view{
 	input[type=file] {
 		border:none!important;
 	}
-	
+
 	.input-group{
 		margin-bottom:5px;
 	}
-	
+
 	.dataTables_filter{
 		position:relative!important;
 		margin-left:0!important;
 		margin-top:0!important;
-		left:0!important;	
+		left:0!important;
 		float:none;
 		text-align:left;
 	}
-	
-	
+
+
 }
 .full-height{
 	height:98%;
@@ -539,7 +539,7 @@ ul.table-view{
 	}
 	.dashboard-panel-body{
 	//	background-color:#eee;
-		
+
 		h2{
 			font-size:14px;
 			margin:5px 2px;
@@ -557,25 +557,25 @@ ul.table-view{
 			list-style:none;
 			margin:0;
 			padding:5px;
-			
+
 			li{
 				padding:3px 0;
 				border-bottom:1px solid #eee;
-				
+
 				ul{
 					padding-left:25px;
-			
+
 				}
-				
+
 			}
-			
-			
+
+
 		}
-		
+
 		ul.stripped{
 			li:nth-child(even){
 				background-color:rgba(238, 238, 238, 0.38);
-			}		
+			}
 		}
 		p.padded{
 			margin:15px 50px 5px 5px;
@@ -588,19 +588,19 @@ ul.table-view{
 				font-size:12px;
 				font-style:italic;
 			}
-			
+
 			a{
 				color:#333;
 			}
 		}
 		.indent{
 			margin: 5px 0;
-			
+
 			a{
 				font-size:12px;
 			}
 		}
-		
+
 	}
 	.dashboard-panel-footer{
 		margin:0;
@@ -621,8 +621,8 @@ ul.table-view{
 //	@include rounded(10px);
     margin-top: 10px;
     margin-bottom: 5px;
-		
-	
+
+
 	h2{
 		font-size:14px!important;
 	}
@@ -633,7 +633,7 @@ ul.table-view{
 }
 .text-lg{
 	font-size:40px;
-	
+
 	a:hover{
 		text-decoration:none;
 	}
@@ -663,11 +663,11 @@ ul.table-view{
 	border-right: 1px solid #eee;
     border-bottom: 1px solid #eee;
     margin-bottom: 10px;
-	
+
 	a{
 		color:#000;
 	}
-	
+
 	img{
 		width:100%;
 		height:auto;
@@ -700,7 +700,7 @@ ul.table-view{
    color: #eee;  font-size:12px;line-height:18px;
 }
 
-:-ms-input-placeholder {  
+:-ms-input-placeholder {
    color: #eee;  font-size:12px;line-height:18px;
 }
 
@@ -748,17 +748,17 @@ form .select2-chosen button {
 	border-bottom: 1px solid #aaa;
 	z-index: 1001;
 	background: #eee;
-	
+
 	h4{
 		text-align: right;
 		margin-right: 10px;
 	}
-	
+
 	form{
 		margin: 0 -5px;
 		padding: 5px 15px 0 10px;
 	}
-  
+
   select{
     width:120px!important;
   }
@@ -835,7 +835,7 @@ form .select2-chosen button {
 	border: 1px solid #ccc;
 	border-radius: 10px;
 	box-shadow:0, 1px, 1px, rgba(0,0,0,.075), true;
-	
+
 	-webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
 	-o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
 	transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
@@ -907,9 +907,9 @@ img.center{
 /********************** Datagrid Styles ******************************/
 .main-datagrid{
 	padding-top:65px;
-	
+
 	.dataTables_filter{
-	
+
 		position: fixed;
 		margin-top: -37px;
 		margin-left:5px;
@@ -938,7 +938,7 @@ img.center{
 table.dataTable{
 	border-bottom:none;
 }
-table.dataTable thead th, 
+table.dataTable thead th,
 table.dataTable thead td {
     padding: 5px 18px 5px 2px;
     border-bottom: none;
@@ -956,11 +956,11 @@ td.rightalign input
 	text-align:right;
 }
 
-table.dataTable tfoot th, 
+table.dataTable tfoot th,
 table.dataTable tfoot td{
 	border-top:none;
 }
-table.dataTable tfoot tr:first-child th, 
+table.dataTable tfoot tr:first-child th,
 table.dataTable tfoot tr:first-child td{
 	border-top:1px solid #aaa;
 }
@@ -1016,7 +1016,7 @@ table.clickable{
 }
 .td-form-control-add-on{
 	white-space : nowrap;
-	
+
 	input{
 		display:inline-block;
 		width:30px;
@@ -1052,7 +1052,7 @@ table.clickable{
 }
 .loading-screen{
 	z-index:1040;
-		
+
 		.msg{
 			position: absolute;
 			top: 30%;
@@ -1070,12 +1070,12 @@ table.clickable{
 }
 .modal-content{
 	@include rounded(0);
-	
+
 	.modal-header{
 		background-color:$mid-green;
 		color:#fff;
 		padding:10px 15px;
-		
+
 		.panel-title{
 			padding:10px 15px 0;
 		}
@@ -1101,8 +1101,8 @@ table.clickable{
 			color:#fff;
 		}
 	}
-	
-	
+
+
 	h2{
 		font-size:18px;
 	}
@@ -1122,7 +1122,7 @@ table.clickable{
 	}
 	.modal-tabs.main-tabs{
 		margin: 0 -14px;
-		
+
 		.nav>li>a{
 			padding: 5px 7px;
 			font-size: 11px;
@@ -1131,10 +1131,10 @@ table.clickable{
 			@include rounded(0);
 		}
 	}
-	
+
 	.modal-tabs.sub-tabs{
 		margin: 0;
-		
+
 		.nav>li>a{
 			padding: 5px 7px;
 			font-size: 11px;
@@ -1143,30 +1143,30 @@ table.clickable{
 			@include rounded(0);
 		}
 	}
-	
+
 	.subtab-content{
 		padding:10px 10px;
 		border:1px solid #ddd;
 		border-top:none;
-		
+
 		.tab-header{
 			background: #eee;
 			padding: 5px 0 0;
 			margin: 0px -10px 10px;
-			
+
 			label{
 				line-height: 24px;
 				margin-right: 10px;
 			}
 		}
 	}
-	
+
 	#loginbox{
 		.input-group{
 			margin-bottom:5px;
 		}
 	}
-		
+
 	.modalForm{
 		.form-group,
 		.input-group{
@@ -1197,12 +1197,12 @@ table.clickable{
 				left: 0px;
 			}
 		}
-		
+
 		.input-group-addon{
 			height:26px;
 			padding:0 5px;
 		}
-		
+
 		.checkbox-inline, .radio-inline{
 			padding-top: 0!important;
 			line-height: 20px;
@@ -1229,11 +1229,11 @@ table.clickable{
 			}
 		}
 	}
-	
+
 	.modal-tabs.main-tabs{
 		margin: -15px;
 		background: #eee;
-		
+
 		.nav>li>a{
 			padding: 5px 15px;
 			font-size: 12px;
@@ -1245,24 +1245,24 @@ table.clickable{
 		}
 
 	}
-	
+
 	.modal-tabs.sub-tabs{
 		margin: 15px 0 0 0;
-		
+
 		.nav>li>a{
 			padding: 5px 15px;
 			font-size: 12px;
 		}
 	}
-	
+
 	.modalDataFilter{
 		padding:0 15px;
-		
+
 		.form-group{
 			float:left;
 			margin-right:18px;
 		}
-		
+
 		label{
 			display:block;
 			font-size: 11px;
@@ -1275,12 +1275,12 @@ table.clickable{
 		.submit-btn{
 			margin-top:12px;
 		}
-	}	
-	
+	}
+
 	.header .modalDataFilter{
 		padding:0 25px;
 	}
-		
+
 	.invoice-status{
 		margin-top: -16px;
 		padding-top: 25px;
@@ -1301,7 +1301,7 @@ table.clickable{
 	margin-bottom: 27px;
     border-bottom: 1px dashed #eee;
     padding-bottom: 15px;
-	
+
 	.btn{
 		margin-top:15px;
 	}
@@ -1325,13 +1325,13 @@ table.clickable{
     background: #ddd;
     @include rounded(7px);
     text-align: center;
-	
+
 	img{
 		max-width: 97%;
 		height: initial;
 		@include rounded(7px);
 	}
-	
+
 	span{
 		font-size: 100px;
 		padding: 25px 0;
@@ -1341,7 +1341,7 @@ table.clickable{
 .receipt-header{
 	text-align:right;
 	margin-bottom:20px;
-	
+
 	h2{
 	   color: #fff;
 		background: #000;
@@ -1354,7 +1354,7 @@ table.clickable{
 	}
 	.receipt-school-address{
 		margin-bottom:10px;
-		
+
 		p{
 			margin-bottom:0;
 		}
@@ -1371,12 +1371,12 @@ table.clickable{
 }
 .receipt{
 	margin-bottom:50px;
-	
+
 	img.brand{
 		width:100px;
 		height:auto;
 	}
-	
+
 	p.form-control-static{
 		border-bottom: 1px dotted #bbb;
 		padding: 0 3px 0 3px !important;
@@ -1388,17 +1388,17 @@ table.clickable{
 		margin-top: 1px;
 		line-height: 10px;
 	}
-	
+
 	label{
-		
+
 	}
-	
+
 	table{
 		border-top:2px solid #000;
 		border-bottom:2px solid #000;
 		margin-bottom:10px;
 		margin-top:5px;
-		
+
 		td{
 			border-right:3px double #aaa;
 		}
@@ -1420,7 +1420,7 @@ table.clickable{
 			padding:2px;
 		}
 		tfoot td{
-			border-top:2px solid #000!important;			
+			border-top:2px solid #000!important;
 			font-weight:bold;
 		}
 	}
@@ -1429,16 +1429,16 @@ table.clickable{
 	text-align:center;
 	margin-bottom:20px;
 	border-bottom:1px solid #eee;
-	
+
 	img.brand{
 		width:100px;
 		height:auto;
 	}
-	
+
 	div{
 		text-align:center;
 	}
-	
+
 	h2{
 		text-transform:uppercase;
 		text-align:center;
@@ -1453,7 +1453,7 @@ table.clickable{
 		margin-bottom:10px;
 		font-size:11px;
 		color:#777;
-		
+
 		p{
 			margin-bottom:0;
 		}
@@ -1477,20 +1477,20 @@ table.clickable{
 		padding-left: 10px!important;
 		padding-right: 10px!important;
 	}
-	
-	
+
+
 	table{
 		border-top:1px solid #777;
 		border-bottom:1px solid #777;
 		margin-bottom:10px;
 		margin-top:5px;
-		
+
 		th,td{
 			padding:1px 4px!important;
 			font-size:11px;
 			border-left:1px solid #aaa;
 		}
-		
+
 		thead th{
 			background-color:#fff!important;
 			color:#000!important;
@@ -1509,31 +1509,31 @@ table.clickable{
 			border-top:3px double #aaa!important;
 			font-weight:bold;
 		}
-		
+
 		input{
 			height:20px!important;
 			@include rounded(0);
 		}
-		
+
 		.double-border{
 			border-left:3px double #aaa;
 		}
 		.no-border{
 			border-left:none;
 		}
-		
+
 	}
-	
+
 	.checklist-option{
 		height:20px;
-		
+
 		label{
 			position:relative;
 			height:20px;
 			width:100%;
 			cursor:pointer;
 		}
-		
+
 		span::before,
 		span::after {
 			content: '';
@@ -1543,7 +1543,7 @@ table.clickable{
 			left:39%;
 			margin: auto;
 		}
-		
+
 		span::before {
 			width: 20px;
 			height: 20px;
@@ -1571,11 +1571,11 @@ table.clickable{
 			color: #62AFFF;
 		}
 	}
-		
+
 	.progress-report-remarks{
 		table{
 			border:none;
-			
+
 			tr{
 				td{
 					padding:5px!important;
@@ -1593,9 +1593,9 @@ table.clickable{
 					border-bottom:none!important;
 				}
 			}
-			
+
 		}
-		
+
 		p.form-control-static{
 			border-bottom: none;
 			height:auto;
@@ -1613,20 +1613,20 @@ table.clickable{
 }
 
 .printReceipt{
-	
+
 }
 
 .radio-option{
 	margin-left:22px;
-	
+
 	label {
 		position: relative;
 	}
-	
+
 	input[type="radio"]{
 		display: none;
 	}
-	
+
 	span::before,
 	span::after {
 		content: '';
@@ -1635,7 +1635,7 @@ table.clickable{
 		bottom: 0;
 		margin: auto;
 	}
-	
+
 	span:hover {
 		cursor: pointer;
 	}
@@ -1717,7 +1717,7 @@ table.clickable{
 		border-bottom:1px solid #ddd;
 		font-style:italic;
 		background-color:#eee;
-		
+
 		p{
 			margin-bottom:3px;
 		}
@@ -1731,7 +1731,7 @@ table.clickable{
 	border-right: 1px solid #ddd;
 	margin-bottom:15px;
 	margin-left:-15px;
-	
+
 	.row, select{
 		margin-bottom:5px;
 	}
@@ -1750,11 +1750,11 @@ table.clickable{
 		width:100%;
 		background: rgba(238, 238, 238, 0.48);
 		margin: -1px 5px 0 -5px;
-		
+
 		.toolbar{
 
 			display: block!important;
-			
+
 			.btn{
 				width: 33.333%;
 				border-right: 1px solid #fff;
@@ -1774,7 +1774,7 @@ table.clickable{
 
 	.modal-content{
 		.modal-tabs{
-			
+
 			.nav>li>a{
 				padding: 5px 10px;
 				font-size: 12px;
@@ -1793,19 +1793,19 @@ table.clickable{
 	#mainContainer{
 		top: 81px;
 	}
-	
+
 	/********************** Branding Styles ******************************/
 	.navbar-brand{
 		padding:0 25px;
 		color:#fff;
 		/*width:100%;*/
-		
+
 		span{
 			font-size:20px;
 			line-height:42px;
 			color:#fff;
 		}
-		
+
 		.brand{
 			max-width: 200px;
 		}
@@ -1825,32 +1825,32 @@ table.clickable{
 	.navbar-inverse .navbar-toggle{
 		border:none;
 	}
-	
+
 	.mainNav{
 		background-color:$light-gray;
 		border-right:1px solid #fff;
 		color: $text-color;
-		
+
 		.navbar-nav > li > a{
 			border-right:1px solid #fff;
 		}
 	}
-	
+
 	.navbar-nav{
 		margin-top:0;
 	}
 
-	
+
 	.user-nav .navbar-nav>li>a{
 		color:#fff;
 		background:transparent;
 	}
-	
+
 	.navbar-nav>li>a{
 		padding-top:3px;
 		padding-bottom:3px;
 	}
-	
+
 	/********************** Page Styles ******************************/
 	h1{
 		font-size:24px;
@@ -1864,52 +1864,52 @@ table.clickable{
 		.content-fixed-header{
 			padding: 0;
 		}
-		
+
 		h1#pageTitle{
 			position: static;
 		}
-		
+
 		h4{
 			font-size:18px;
-			
+
 			.caret{
 				border-top: 4px dashed;
 				border-right: 4px solid transparent;
 				border-left: 4px solid transparent;
 			}
 		}
-		
+
 		.toolbar{
 			margin-top:4px;
-		
+
 			a{
 				font-size:12px;
 				color:#000;
-				
+
 			}
-			
+
 			.add-btn a{
 				color: $bright-green;
 			}
 		}
-		
-		
+
+
 	}
 	.subnavbar{
-	
-		margin:10px 0;		
-	
+
+		margin:10px 0;
+
 		.nav-tabs{
 			padding-left:10px;
-		}			
+		}
 		.nav>li>a{
 			padding:5px 15px;
-			
+
 		}
 	}
-	
+
 	.info-boxes{
-		
+
 		.info-box{
 			padding:8px;
 			margin:0 2px 0 0;
@@ -1917,13 +1917,13 @@ table.clickable{
 			background-color:#eee;
 			@include rounded(7px);
 			margin-bottom:2px;
-			
-			
+
+
 			p{
 				display:block;
 				font-size:15px;
 				font-weight:bold;
-				
+
 				span{
 					font-size:11px;
 					font-weight:normal;
@@ -1931,15 +1931,15 @@ table.clickable{
 			}
 		}
 	}
-	
+
 	/********************** Dashboard Styles ******************************/
 	.dashboard-panel{
-		
+
 		padding:8px;
 		@include rounded(7px);
-		
+
 		.dashboard-panel-header{
-		
+
 			h2{
 				font-size:16px;
 				margin:2px 0 5px 0;
@@ -1949,15 +1949,15 @@ table.clickable{
 				line-height:29px;
 			}
 		}
-		
+
 		.dashboard-panel-body{
-		
+
 		}
 
 	}
-	
-	
-	
+
+
+
 	.fees.dashboard .main-datagrid .info-boxes{
 		margin-left:20px;
 		margin-bottom: 10px;
@@ -1967,22 +1967,22 @@ table.clickable{
 		}
 
 	}
-	
-	
-	
+
+
+
 	/********************** Modal Styles ******************************/
 	.modal-dialog{
 		margin:30px auto;
 	}
 	.modal-content{
 		.modal-tabs{
-			
+
 			.nav-tabs{
 				padding-left:10px;
-			}			
+			}
 			.nav>li>a{
 				padding:5px 15px;
-				
+
 			}
 		}
 		.modal-tabs.main-tabs{
@@ -2000,16 +2000,16 @@ table.clickable{
 		h3:first-child{
 			margin-top:0;
 		}
-		
+
 		.info-boxes .info-box{
 			float:left;
 		}
-		
+
 	}
-	
-	
-	
-	
+
+
+
+
 
 	/********************** DataTable Styles ******************************/
 	.dataFilterForm{
@@ -2021,8 +2021,8 @@ table.clickable{
 		display: inline-block;
 		height: 45px;
 		border-bottom:none;
-		
-		
+
+
 		h4{
 			color:#fff;
 			background-color:#666666;
@@ -2035,13 +2035,13 @@ table.clickable{
 			width:45px;
 			position:static;
 		}
-		
+
 		form{
 			display:inline;
 			background:#eee;
 			margin-left:-15px;
 		}
-		
+
 		label{
 			display:block;
 			font-size: 11px;
@@ -2064,12 +2064,12 @@ table.clickable{
 	.main-datagrid{
 		padding-top:40px;
 		border-top:1px solid #fff;
-		
+
 		.dataTables_filter{
 			margin-top: -40px;
-			left: 350px;
+			left: 450px;
 		}
-	}	
+	}
 	.fixed-filter .main-datagrid{
 		padding-top:83px;
 	}
@@ -2081,19 +2081,19 @@ table.clickable{
 	{
 		padding-top:90px
 	}
-	
-	table.dataTable tbody th, 
-	table.dataTable tbody td, 
+
+	table.dataTable tbody th,
+	table.dataTable tbody td,
 	table.dataTable tfoot th,
 	table.dataTable tfoot td
 	{
 		padding:2px 18px 2px 2px;
 	}
-	table.dataTable.nosort tbody th, 
+	table.dataTable.nosort tbody th,
 	table.dataTable.nosort tbody td{
 		padding:2px;
 	}
-	
+
 }
 
 
@@ -2121,7 +2121,7 @@ table.clickable{
 	}
 	#mainContainer{
 		top:0;
-		
+
 	}
 	.navbar-fixed-top,
 	.modal-header,
@@ -2129,11 +2129,11 @@ table.clickable{
 	.footer{
 		display:none;
 	}
-	
+
 	.receipt{
 		font-family:monospace;
 		font-size:8pt;
-		
+
 		h1{
 			font-size:13pt;
 		}
@@ -2141,22 +2141,22 @@ table.clickable{
 			font-size:11pt;
 			margin-bottom:2pt;
 		}
-		
+
 		.text-group{
 			margin:0 10pt 1pt 0;
 			white-space:nowrap;
 		}
 	}
-	
+
 	.progress-report{
-		
+
 		img{
 			height:60px;
 		}
 		img.center{
 			height:auto;
 		}
-		
+
 		.progress-report-header
 		{
 			margin-bottom:5px;
@@ -2171,9 +2171,9 @@ table.clickable{
 				font-size:7pt;
 				margin-bottom:0;
 			}
-			
+
 		}
-		
+
 		.progress-report-student{
 			label{
 				font-size: 7pt;
@@ -2186,23 +2186,23 @@ table.clickable{
 				margin-top: 3px;
 			}
 		}
-		
+
 		table{
 			border-top: 1px solid #000;
 			border-bottom: 1px solid #000;
 			margin-bottom: 5px;
 			margin-top: 5px;
-			
+
 			th,td{
 				font-size:8pt!important;
 				border-left: 1px solid #aaa;
 				padding-left:3px;
-			}	
+			}
 			th{
 				border-bottom:1px solid #aaa !important
 			}
 		}
-		
+
 		.progress-report-remarks{
 			h3{
 				font-size:9pt;
@@ -2229,11 +2229,11 @@ table.clickable{
 				padding: 0!important;
 				height: auto!important;
 				min-height: auto!important;
-					
+
 			}
 		}
 	}
-	
+
 	.progress-report.kindergarten{
 		table{
 			td{
@@ -2246,5 +2246,5 @@ table.clickable{
 			}
 		}
 	}
-	
+
 }
