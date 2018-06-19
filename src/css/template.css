@@ -16,7 +16,9 @@ body {
 #myHiddenPage {
       display: none;
   }
-
+img#url {
+  width:400px;height:200px;
+}
   /* beginning of fixed table head on scroll (used in Exams > Add/update exams marks ie addExamMarks.html) */
   table.tableSection {
       display: table;
@@ -54,7 +56,7 @@ body {
   z-index: 1000; }
 
 #body-content {
-  height: 98%; }
+  height: 8%; }
 
 .nopad {
   padding: 0 !important; }
