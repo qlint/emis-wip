@@ -191,6 +191,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		if( $rootScope.currentUser.user_type == 'TEACHER' ) request += '/' + $rootScope.currentUser.emp_id;
 		apiService.getAllStudentExamMarks(request, loadMarks, apiError);
 		$scope.getTheCount();
+		$( document ).ready(function() {
+			setTimeout(function() { $('#resultsTable_filter').css('margin-left',"110px"); }, 500);
+			// $('#resultsTable_filter').css('margin-left',"110px");
+		});
 	}
 
 	var loadMarks = function(response,status)
