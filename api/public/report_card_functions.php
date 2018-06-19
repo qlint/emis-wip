@@ -56,7 +56,7 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
         $db = getDB();
 
 		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
-									date_part('year', start_date) as year, report_data, report_cards.report_card_type, c.class_cat_id,
+									date_part('year', start_date) as year, report_data, json_data, report_cards.report_card_type, c.class_cat_id,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date, published, cc.entity_id
 					FROM app.report_cards
@@ -102,7 +102,7 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
         $db = getDB();
 
 		$sth = $db->prepare("SELECT report_cards.student_id, report_card_id, class_name, classes.class_id, term_name, report_cards.term_id,
-									date_part('year', start_date) as year, report_data, report_cards.report_card_type,
+									date_part('year', start_date) as year, report_data, json_data, report_cards.report_card_type,
 									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
 									report_cards.creation_date::date as date, published
 					FROM app.report_cards
@@ -1171,11 +1171,11 @@ FROM(
 																LEFT JOIN app.class_subjects cs USING (class_subject_id)
 																LEFT JOIN app.subjects s USING(subject_id)
 																WHERE em.student_id= :studentId
-																AND em.term_id = (SELECT term_id FROM app.terms WHERE term_number=1)
+																AND em.term_id = :termId
 																GROUP BY exam_type,et.sort_order
 																ORDER BY et.sort_order ASC
 															) foo LIMIT 4");
-		$sth5->execute(  array(':studentId' => $studentId) );
+		$sth5->execute(  array(':studentId' => $studentId, ':termId' => $termId) );
 		$graphPoints = $sth5->fetchAll(PDO::FETCH_OBJ);
 
 		// current class position of student
