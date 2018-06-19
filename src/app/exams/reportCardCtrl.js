@@ -22,7 +22,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.canPrint = false;
 	$scope.isSchool = window.location.host.split('.')[0];
 	$scope.isStudentImage = ( window.location.host.split('.')[0] == "rongaiboys" ? true : false);
-	// console.log($scope.isSchool);
+	$scope.dynamicReportCrdCss = null;
+	if( window.location.host.split('.')[0] == "localhost:8008" ){
+		//custom report card style for karemeno (the css file name)
+		$scope.dynamicReportCrdCss = "customSettingReportCard-karemeno.css";
+	}else if( window.location.host.split('.')[0] == "rongaiboys" ? true : false){
+		//custom report card style for rongaiboys
+		$scope.dynamicReportCrdCss = "customSettingReportCard.css";
+	}
+	console.log($scope.dynamicReportCrdCss);
 
 	$scope.report = {};
 	$scope.report.published = false;
