@@ -12,7 +12,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 		return (window.innerWidth <= 768 ? true : false );
 	})();
 
-  // For any unmatched url, redirect to homepage /
+  // For any unmatched url, redirect to /
   $urlRouterProvider.otherwise("/");
 
   // Now set up the states
@@ -201,6 +201,14 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
+	.state('exams/bulk_report_card/print', {
+	 		 url: "/exams/bulk_report_card/print",
+	 	 templateUrl: 'app/exams/reportCardBulkPrint.html',
+	 	 controller: 'printReportCardBulkPrintCtrl',
+	 		 data: {
+	 				authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+	 		 }
+	 	 })
 	.state('exams/class_analysis', {
       url: "/exams/class_analysis",
 	  templateUrl: 'app/exams/classAnalysisReport.html',
