@@ -16,18 +16,18 @@ function($scope, $rootScope, $uibModalInstance, data){
 	localStorage.setItem("theParentName", attachments);
 	var exportParentName = localStorage.setItem("theParentName", showName);
 	var returnParentName = localStorage.getItem("theParentName");
-	console.log(returnParentName);
+	console.log($scope.post.details.attachment);
 
 	var attachments = data.post.attachment;
 	localStorage.setItem("attachmentsList", attachments);
 	var testing12 = localStorage.setItem("attachmentsList", attachments);
 	var returntestresults = localStorage.getItem("attachmentsList");
-	console.log("Testing 1-2 || " + returntestresults);
-	console.log(attachments);
+	// console.log("Testing 1-2 || " + returntestresults);
+	// console.log(attachments);
 
 	$scope.attachments = attachments.split(',');
 
-	console.log($scope.attachments[0]);
+	// console.log($scope.attachments[0]);
 
 	$scope.cancel = function()
 	{
