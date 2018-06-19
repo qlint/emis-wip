@@ -1,3 +1,4 @@
+
 <div ng-controller="listStudentsCtrl" class="full-height">
 
 	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
@@ -90,18 +91,26 @@
 						</select>
 					</div>
 
+					<!-- BULK PRINT -->
+					<div class="form-group" >
+						<label><input type="submit" ng-show="showPrint" class="btn btn-link"  ng-click="bulkPrint('TERM 1')" value="Print for:" /></label>
+						<select name="terms" id="terms" ng-show="showPrint" class="form-control" ng-options="optFeeItem.term_name as optFeeItem.term_name for optFeeItem in terms" ng-model="filters.term_name">
+
+					</div>
+
 					<!-- search btn -->
 					<div class="form-group submit-btn">
 						<input type="submit" class="btn btn-sm btn-info" ng-click="loadFilter()" value="Load" />
+
+						</div>
 						<img src="assets/spinner.gif" ng-show="loading" />
 						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
 					</div>
-
-					<div class="form-group grid-filter">
+					<span class="form-group grid-filter">
 						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' placeholder="Filter"/>
 						<button class="btn btn-xs btn-primary" ng-click='filterDataTable()'>Filter</button>
 						<button class="btn btn-xs " ng-click='clearFilterDataTable()'>Clear</button>
-					</div>
+					</span>
 				</form>
 			</div>
 			<!-- // end search form -->
