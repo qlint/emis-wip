@@ -212,6 +212,14 @@ table.dataTable {
 table {
     background-color: transparent;
 }
+#avaragesTable {
+  margin-top: 1px !important;
+}
+@media print {
+  #avaragesTable {
+    margin-top: -65px !important;
+  }
+}
 .progress-report table tr:first-child th:first-child {
     border-left: none;
 }
@@ -284,7 +292,7 @@ table.dataTable tbody tr {
     font-weight: 600;
 }
 .progress-report-remarks {
-  margin-top: 30px;
+  margin-top: 5px;
 }
 .progress-report .progress-report-remarks table tr td {
     padding: 5px !important;
