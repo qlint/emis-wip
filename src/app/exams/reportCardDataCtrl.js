@@ -5,11 +5,11 @@ controller('reportCardDataCtrl', ['$scope', '$rootScope', '$uibModalInstance', '
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, $timeout, $window, $parse, $compile){
 
 	var newBulkData = Bulkdata.filter(function(e){ return e === 0 || e }); //removes undefined values from array
-	// console.log(newBulkData);
+	console.log(newBulkData);
 
 	$scope.studentReports =[]
 	$scope.studentReports = newBulkData;
-	$scope.data = newBulkData[0];
+	$scope.data = newBulkData[0];console.log($scope.data);
 	$rootScope.isPrinting = false;
 	$scope.student = $scope.data.student || undefined;
 	$scope.reportCardType = ($scope.student !== undefined ? $scope.student.report_card_type : undefined);
@@ -37,13 +37,22 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
 
-	$scope.chart_path = "";
+	$scope.no_img_found = "assets/x.png";
 	$scope.motto = "";
 
 	var cnt=0;
 
+
+
+
+
+
+
+
 	var initializeController = function(studentData, student_id)
 	{
+		 // appendDiv(ids);
+
 
 		if( $scope.studentReports[student_id].report_card_type === 'Standard' )
 		{
@@ -154,6 +163,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 			$scope.studentReports[student_id].subjectOverallByAvg = studentData.subjectOverallByAvg;
 			$scope.studentReports[student_id].graphPoints = studentData.graphPoints;
 			$scope.studentReports[student_id].currentClassPosition = studentData.currentClassPosition;
+
 			$scope.savedReport = true;
 			$scope.canPrint = true;
 			$scope.canDelete = ( $scope.isTeacher ? false : true);
@@ -166,9 +176,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 			// fetch the report cards subjects based on user type
 
 			getExamMarksforReportCard(angular.copy(studentData), student_id);
-			getStreamPosition(angular.copy(studentData), student_id);
-
-			// console.log($scope);
+			// var getStreamParams = angular.copy(studentData);
+			// var streamTerm = getStreamParams.term_id;
+			// var streamEntity = getStreamParams.entity_id;
+			// var streamStudent = getStreamParams.student.student_id;
+			// var streamParam = streamStudent + '/' + streamEntity + '/' + streamTerm;
+			// var getStreams = getStreamPosition(angular.copy(studentData), student_id);
+			// console.log(streamParam);
 
 		}
 	}
@@ -332,35 +346,29 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 		apiService.getStudentReportCard(params, loadExamMarks, apiError);
 	}
 
-	var getStreamPosition = function(studentData, student_id)
-	{
-		var params = studentData.student.student_id + '/' + studentData.entity_id + '/' +  studentData.report.term_id;
-
-		//apiService.getStreamPosition(params, loadStreamPOsition, apiError);
-
-
-			apiService.getStreamPosition(params, function(response){
-
-					var result = angular.fromJson(response);
-
-				// console.log(response);
-				studentData.streamRankPosition = result.data.streamRank[0].position;
-				studentData.streamRankOutOf = result.data.streamRank[0].position_out_of;
-
-					localStorage.setItem('printStreamRank', studentData.streamRankPosition);
-					var getPrintRank = localStorage.getItem("printStreamRank");
-					localStorage.setItem('printStreamRankOutOf', studentData.streamRankOutOf);
-					var getStreamRankOutOf = localStorage.getItem("printStreamRankOutOf");
-
-
-
-
-
-
-					}, apiError);
-
-
-	}
+	// var getStreamPosition = function(studentData, student_id)
+	// {
+	// 	var params = studentData.student.student_id + '/' + studentData.entity_id + '/' +  studentData.report.term_id;
+	//
+	// 	//apiService.getStreamPosition(params, loadStreamPOsition, apiError);
+	//
+	//
+	// 		apiService.getStreamPosition(params, function(response){
+	//
+	// 				var result = angular.fromJson(response);
+	//
+	// 			// console.log("Stream Pos = " + result.data.streamRank[0].position);
+	// 			studentData.streamRankPosition = result.data.streamRank[0].position;
+	// 			studentData.streamRankOutOf = result.data.streamRank[0].position_out_of;
+	//
+	// 				localStorage.setItem('printStreamRank', studentData.streamRankPosition);
+	// 				var getPrintRank = localStorage.getItem("printStreamRank");
+	// 				localStorage.setItem('printStreamRankOutOf', studentData.streamRankOutOf);
+	// 				var getStreamRankOutOf = localStorage.getItem("printStreamRankOutOf");
+	//
+	// 				}, apiError);
+	//
+	// }
 
 	var getExamMarksforReportCard = function(studentData, student_id)
 	{
@@ -399,7 +407,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 								}
 								else
 								{
-									console.log("is defined and called");
 									diffExamMarks(studentData.latestExamMarks, studentData.savedReportData, studentData, student_id);
 								}
 
@@ -602,75 +609,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 	var buildReportBody = function(data, studentData, student_id)
 	{
 
-	console.log(student_id);
-		$scope.studentReports[student_id].chart_path = "";
-		var school = window.location.host.split('.')[0];
-
-		$scope.studentReports[student_id].examMarks = data.details;
-		// $scope.overallSubjectMarks = data.subjectOverall;
-		// $scope.overall = data.overall;
-		if (school == "karemeno" || school == "rongaiboys"){
-			$scope.studentReports[student_id].overall = data.overallByAverage;
-			$scope.studentReports[student_id].overallLastTerm = data.overallLastTermByAverage;
-			$scope.studentReports[student_id].thisTermMarks = data.overallByAverage.current_term_marks;
-			console.log("K & R");
-		}else if (school == "newlightgirls"){
-			$scope.studentReports[student_id].overall = data.overall;
-			$scope.studentReports[student_id].overallLastTerm = data.overallLastTerm;
-			$scope.studentReports[student_id].thisTermMarks = data.overall.current_term_marks;
-			console.log("NLT");
-			// console.log($scope.overall);
-		}
-		// $scope.overallLastTerm = data.overallLastTerm;
-		$scope.studentReports[student_id].graphPoints = data.graphPoints;
-		$scope.studentReports[student_id].currentClassPosition = data.currentClassPosition[0];
-		if (school == "karemeno"){
-			$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallBySum;
-			console.log("K calc");
-		}else if (school == "rongaiboys"){
-			$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallByAvg;
-			console.log("R calc");
-		}else{
-			$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverall;
-			console.log("N calc");
-		}
-		// $scope.thisTermMarks = data.overall.current_term_marks;
-		$scope.studentReports[student_id].thisTermMarksOutOf = data.overall.current_term_marks_out_of;
-		$scope.studentReports[student_id].thisTermGrade = data.overall.grade;
-		$scope.studentReports[student_id].thisTermPercentage = data.overall.percentage;
-
-		// console.log("subject overalls variable ::>");
-		// console.log($scope.overallSubjectMarks);
-
-
-			if (school == "karemeno" && $scope.motto == ""){
-
-					var motto = "LIVE JESUS IN OUR HEARTS.......... FOREVER";
-					var h4Element = document.createElement('h4');
-					//document.getElementById('motto').appendChild(h4Element);
-					$scope.studentReports[student_id].motto = "LIVE JESUS IN OUR HEARTS.......... FOREVER";
-
-
-			}else{
-				var motto = "";
-				var h4Element = document.createElement('h4');
-				//document.getElementById('motto').appendChild(h4Element);
-				$scope.motto = "";
-			}
-
-		/* remove any exam types that have not been used for this report card */
-		$scope.studentReports[student_id].examTypes = $scope.studentReports[student_id].rawExamTypes.filter(function(item){
-			var found = $scope.studentReports[student_id].examMarks.filter(function(item2){
-				if( item.exam_type == item2.exam_type ) return item2;
-			})[0];
-			if( found !== undefined ) return item;
-		});
-
+	// console.log(student_id);
+		// $scope.studentReports[student_id].chart_path = "";
 		var params2 = $scope.studentReports[student_id].student.student_id + '/' + $scope.filters.class.class_id + '/' + $scope.filters.term.term_id;
 		// console.log(params2);
 		var theChartPath = function(response, status)
 		{
-			console.log("Loading chart...");
+			// console.log("Loading chart...");
 			var result = angular.fromJson(response);
 			if( result.response == 'success')
 			{
@@ -678,13 +623,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 				$scope.studentReports[student_id].chart_path = $scope.fetchedJson.chart;
 				$scope.chart_path = $scope.studentReports[student_id].chart_path;
 				// if( $scope.studentReports[student_id].chart_path == null ){ $scope.studentReports[student_id].chart_path = "assets/x.png";}
-				console.log($scope.chart_path);
+				// console.log($scope.chart_path);
 
 				if( result.nodata === undefined )
 				{
 					/* existing report card was found, load the data */
 					$scope.report = result.data;
-					console.log("fetch chart");
+					// console.log("fetch chart");
 					// console.log(result.data);
 				}
 				else
@@ -692,100 +637,444 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 			}
 		}
 		apiService.getStudentReportCard(params2,theChartPath, apiError);
+		// console.log($scope.chart_path);
+		$scope.studentReports[student_id].chart_path = $scope.chart_path;
 
-		/* group the results by subject */
-		$scope.studentReports[student_id].reportData = {};
-		$scope.studentReports[student_id].reportData.subjects = groupExamMarks( $scope.studentReports[student_id].examMarks );
-		$scope.studentReports[student_id].latestExamMarks = angular.copy($scope.studentReports[student_id].reportData);
+		var getStreamPosition = function(studentData, student_id)
+		{
+			var strmParams = studentData.student.student_id + '/' + studentData.entity_id + '/' +  studentData.report.term_id;
 
-		// set overall
-		var total_marks = 0;
-		var total_grade_weight = 0;
+			//apiService.getStreamPosition(params, loadStreamPOsition, apiError);
 
-		angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key){
-			if( item.use_for_grading )
-			{
 
-				var overall = $scope.studentReports[student_id].overallSubjectMarks.filter(function(item2){
-					if( item.subject_name == item2.subject_name ) return item2;
-				})[0];
+				apiService.getStreamPosition(strmParams, function(response){
 
-				if( overall )
-				{
-					item.overall_mark = overall.percentage;
-					item.overall_grade = overall.grade;
-					item.tot30 = overall.tot30;
-					item.tot70 = overall.tot70;
-					item.position = overall.rank;
-					var subjNm = item.subject_name;
-					if( subjNm == "Kiswahili" ){
-						item.comment = overall.kiswahili_comment;
-					}else{
-						item.comment = overall.comment;
+						var result = angular.fromJson(response);
+
+					// console.log("Stream api Pos = " + result.data.streamRank[0].position);
+					$scope.streamRankPosition = result.data.streamRank[0].position;
+					$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
+
+					var school = window.location.host.split('.')[0];
+
+					$scope.studentReports[student_id].examMarks = data.details;
+					// $scope.overallSubjectMarks = data.subjectOverall;
+					// $scope.overall = data.overall;
+					if (school == "karemeno" || school == "rongaiboys"){
+						$scope.studentReports[student_id].overall = data.overallByAverage;
+						$scope.studentReports[student_id].overallLastTerm = data.overallLastTermByAverage;
+						$scope.studentReports[student_id].thisTermMarks = data.overallByAverage.current_term_marks;
+						console.log("K & R");
+					}else if (school == "newlightgirls"){
+						$scope.studentReports[student_id].overall = data.overall;
+						$scope.studentReports[student_id].overallLastTerm = data.overallLastTerm;
+						$scope.studentReports[student_id].thisTermMarks = data.overall.current_term_marks;
+						console.log("NLT");
+						// console.log($scope.overall);
 					}
-					// item.comment = overall.comment;
-					// console.log("Endterm percentage :: >>");
-					// console.log(overall.percentage);
+					// $scope.overallLastTerm = data.overallLastTerm;
+					$scope.studentReports[student_id].graphPoints = data.graphPoints;
+					$scope.studentReports[student_id].currentClassPosition = data.currentClassPosition[0];
+					$scope.studentReports[student_id].streamRankPosition = result.data.streamRank[0].position;
+					$scope.studentReports[student_id].streamRankOutOf = result.data.streamRank[0].position_out_of;
+					console.log("Stream Pos = " + $scope.studentReports[student_id].streamRankPosition + '/' + $scope.studentReports[student_id].streamRankOutOf);
+					if (school == "karemeno"){
+						$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallBySum;
+						console.log("K calc");
+					}else if (school == "rongaiboys"){
+						$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallByAvg;
+						console.log("R calc");
+					}else{
+						$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverall;
+						console.log("N calc");
+					}
+					// $scope.thisTermMarks = data.overall.current_term_marks;
+					$scope.studentReports[student_id].thisTermMarksOutOf = data.overall.current_term_marks_out_of;
+					$scope.studentReports[student_id].thisTermGrade = data.overall.grade;
+					$scope.studentReports[student_id].thisTermPercentage = data.overall.percentage;
 
-					total_marks += parseInt(overall.total_mark);
-					total_grade_weight += parseInt(overall.total_grade_weight);
-				}
+					// console.log("subject overalls variable ::>");
+					// console.log($scope.overallSubjectMarks);
 
-				var graphdata = $scope.studentReports[student_id].graphPoints.filter(function(item2){
-					if( item.average_grade == item2.average_grade ) return item2;
-				})[0];
-				if( graphdata )
-				{
-					item.term_grade = graphdata.average_grade;
-					item.which_term = graphdata.exam_type;
-				}
+						if (school == "karemeno" && $scope.motto == ""){
 
-			}
+								var motto = "LIVE JESUS IN OUR HEARTS.......... FOREVER";
+								var h4Element = document.createElement('h4');
+								//document.getElementById('motto').appendChild(h4Element);
+								$scope.studentReports[student_id].motto = "LIVE JESUS IN OUR HEARTS.......... FOREVER";
 
-		});
+						}else{
+							var motto = "";
+							var h4Element = document.createElement('h4');
+							//document.getElementById('motto').appendChild(h4Element);
+							$scope.motto = "";
+						}
 
+					$scope.studentReports[student_id].performanceLabels = [];
+					$scope.studentReports[student_id].performanceData = [];
 
-		// set totals, only add up parent subjects
-		$scope.studentReports[student_id].totals = {};
-		angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key)
-		{
-			if( item.use_for_grading )
-			{
-				angular.forEach( item.marks, function(item2,key)
-				{
-					if( $scope.studentReports[student_id].totals[key] === undefined ) $scope.studentReports[student_id].totals[key] = {total_mark:0, total_grade_weight:0};
-					if( item.parent_subject_name == null ) $scope.studentReports[student_id].totals[key].total_mark += item2.mark;
-					if( item.parent_subject_name == null ) $scope.studentReports[student_id].totals[key].total_grade_weight += item2.grade_weight;
-				});
-			}
-		});
+					angular.forEach($scope.studentReports[student_id].graphPoints, function (item, key) {
+					    $scope.studentReports[student_id].performanceLabels.push(item.exam_type);
+					    $scope.studentReports[student_id].performanceData.push(item.average_grade);
+					});
+
+					var lineChartData = {
+					    labels: $scope.studentReports[student_id].performanceLabels,
+					    datasets: [{
+					        label: "performance",
+					        data: $scope.studentReports[student_id].performanceData,
 
 
-		if( $scope.studentReports[student_id].originalData !== undefined )
-		{
-			// recreated a report, carry over the comments
-			$scope.studentReports[student_id].comments = angular.copy(studentData.originalData.comments) || {};
+					        borderWidth: 2,
+					        pointBorderColor: '#ffffff',
+					        pointBackgroundColor: '#2D4E5E',
+					        pointBorderWidth: 1,
+					        radius: 4
+					    }]
+					};
 
-			angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key){
+					// console.log($scope.studentReports);
+					cnt++;
 
-				// get matching element of currentReportData
-				var orgData = $scope.studentReports[student_id].originalData.subjects.filter(function(newItem){
-					if( newItem.subject_name == item.subject_name ) return newItem;
-				})[0];
-				var overall = $scope.studentReports[student_id].overallSubjectMarks.filter(function(item2){
-					if( item.subject_name == item2.subject_name ) return item2;
-				})[0];
-				if(item.subject_name == "Kiswahili"){
-					if( overall ) 	item.remarks = overall.kiswahili_comment;
-				}else{
-					if( overall ) 	item.remarks = overall.comment;
-				}
-				// if( overall ) 	item.remarks = overall.comment;
-			});
+					if(cnt === ids.length)
+					{
+
+					//Print
+
+					$uibModalInstance.close($scope.studentReports);
+						//$scope.openModal('exams', 'reportCardBulkPrint', 'lg', $scope.studentReports);
+
+					}
+					/* if($scope.studentReports[student_id].chart_path == "")
+					{
+					if ($scope.zoomed) $scope.ctx = document.getElementById("zoomedLine1").getContext("2d");
+						else $scope.ctx = document.getElementById(student_id).getContext("2d");
+
+
+						initChart1($scope.ctx, lineChartData, $scope.studentReports[student_id]);
+						//$timeout(callAtTimeout, 2000);
+						$timeout(callAtTimeout, 2000, true, student_id);
+						$scope.efficiencyLoading = false;
+					} */
+
+					/* remove any exam types that have not been used for this report card */
+					$scope.studentReports[student_id].examTypes = $scope.studentReports[student_id].rawExamTypes.filter(function(item){
+						var found = $scope.studentReports[student_id].examMarks.filter(function(item2){
+							if( item.exam_type == item2.exam_type ) return item2;
+						})[0];
+						if( found !== undefined ) return item;
+					});
+
+					/* group the results by subject */
+					$scope.studentReports[student_id].reportData = {};
+					$scope.studentReports[student_id].reportData.subjects = groupExamMarks( $scope.studentReports[student_id].examMarks );
+					$scope.studentReports[student_id].latestExamMarks = angular.copy($scope.studentReports[student_id].reportData);
+
+					// set overall
+					var total_marks = 0;
+					var total_grade_weight = 0;
+
+					angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key){
+						if( item.use_for_grading )
+						{
+
+							var overall = $scope.studentReports[student_id].overallSubjectMarks.filter(function(item2){
+								if( item.subject_name == item2.subject_name ) return item2;
+							})[0];
+
+							if( overall )
+							{
+								item.overall_mark = overall.percentage;
+								item.overall_grade = overall.grade;
+								item.tot30 = overall.tot30;
+								item.tot70 = overall.tot70;
+								item.position = overall.rank;
+								var subjNm = item.subject_name;
+								if( subjNm == "Kiswahili" ){
+									item.comment = overall.kiswahili_comment;
+								}else{
+									item.comment = overall.comment;
+								}
+								// item.comment = overall.comment;
+								// console.log("Endterm percentage :: >>");
+								// console.log(overall.percentage);
+
+								total_marks += parseInt(overall.total_mark);
+								total_grade_weight += parseInt(overall.total_grade_weight);
+							}
+
+							var graphdata = $scope.studentReports[student_id].graphPoints.filter(function(item2){
+								if( item.average_grade == item2.average_grade ) return item2;
+							})[0];
+							if( graphdata )
+							{
+								item.term_grade = graphdata.average_grade;
+								item.which_term = graphdata.exam_type;
+							}
+
+						}
+
+					});
+
+
+					// set totals, only add up parent subjects
+					$scope.studentReports[student_id].totals = {};
+					angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key)
+					{
+						if( item.use_for_grading )
+						{
+							angular.forEach( item.marks, function(item2,key)
+							{
+								if( $scope.studentReports[student_id].totals[key] === undefined ) $scope.studentReports[student_id].totals[key] = {total_mark:0, total_grade_weight:0};
+								if( item.parent_subject_name == null ) $scope.studentReports[student_id].totals[key].total_mark += item2.mark;
+								if( item.parent_subject_name == null ) $scope.studentReports[student_id].totals[key].total_grade_weight += item2.grade_weight;
+							});
+						}
+					});
+
+
+					if( $scope.studentReports[student_id].originalData !== undefined )
+					{
+						// recreated a report, carry over the comments
+						$scope.studentReports[student_id].comments = angular.copy(studentData.originalData.comments) || {};
+
+						angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key){
+
+							// get matching element of currentReportData
+							var orgData = $scope.studentReports[student_id].originalData.subjects.filter(function(newItem){
+								if( newItem.subject_name == item.subject_name ) return newItem;
+							})[0];
+							var overall = $scope.studentReports[student_id].overallSubjectMarks.filter(function(item2){
+								if( item.subject_name == item2.subject_name ) return item2;
+							})[0];
+							if(item.subject_name == "Kiswahili"){
+								if( overall ) 	item.remarks = overall.kiswahili_comment;
+							}else{
+								if( overall ) 	item.remarks = overall.comment;
+							}
+							// if( overall ) 	item.remarks = overall.comment;
+						});
+					}
+
+						}, apiError);
+
 		}
+		getStreamPosition(angular.copy(studentData), student_id);
+		// console.log("outside api pos = " + $scope.streamRankPosition + '/' + $scope.streamRankOutOf);
+
+		// var school = window.location.host.split('.')[0];
+		//
+		// $scope.studentReports[student_id].examMarks = data.details;
+		// // $scope.overallSubjectMarks = data.subjectOverall;
+		// // $scope.overall = data.overall;
+		// if (school == "karemeno" || school == "rongaiboys"){
+		// 	$scope.studentReports[student_id].overall = data.overallByAverage;
+		// 	$scope.studentReports[student_id].overallLastTerm = data.overallLastTermByAverage;
+		// 	$scope.studentReports[student_id].thisTermMarks = data.overallByAverage.current_term_marks;
+		// 	console.log("K & R");
+		// }else if (school == "newlightgirls"){
+		// 	$scope.studentReports[student_id].overall = data.overall;
+		// 	$scope.studentReports[student_id].overallLastTerm = data.overallLastTerm;
+		// 	$scope.studentReports[student_id].thisTermMarks = data.overall.current_term_marks;
+		// 	console.log("NLT");
+		// 	// console.log($scope.overall);
+		// }
+		// // $scope.overallLastTerm = data.overallLastTerm;
+		// $scope.studentReports[student_id].graphPoints = data.graphPoints;
+		// $scope.studentReports[student_id].currentClassPosition = data.currentClassPosition[0];
+		// $scope.studentReports[student_id].streamRankPosition = studentData.streamRankPosition;
+		// $scope.studentReports[student_id].streamRankOutOf = studentData.streamRankOutOf;
+		// console.log("Stream Pos = " + $scope.studentReports[student_id].streamRankPosition + '/' + $scope.studentReports[student_id].streamRankOutOf);
+		// if (school == "karemeno"){
+		// 	$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallBySum;
+		// 	console.log("K calc");
+		// }else if (school == "rongaiboys"){
+		// 	$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallByAvg;
+		// 	console.log("R calc");
+		// }else{
+		// 	$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverall;
+		// 	console.log("N calc");
+		// }
+		// // $scope.thisTermMarks = data.overall.current_term_marks;
+		// $scope.studentReports[student_id].thisTermMarksOutOf = data.overall.current_term_marks_out_of;
+		// $scope.studentReports[student_id].thisTermGrade = data.overall.grade;
+		// $scope.studentReports[student_id].thisTermPercentage = data.overall.percentage;
+		//
+		// // console.log("subject overalls variable ::>");
+		// // console.log($scope.overallSubjectMarks);
+		//
+		// 	if (school == "karemeno" && $scope.motto == ""){
+		//
+		// 			var motto = "LIVE JESUS IN OUR HEARTS.......... FOREVER";
+		// 			var h4Element = document.createElement('h4');
+		// 			//document.getElementById('motto').appendChild(h4Element);
+		// 			$scope.studentReports[student_id].motto = "LIVE JESUS IN OUR HEARTS.......... FOREVER";
+		//
+		// 	}else{
+		// 		var motto = "";
+		// 		var h4Element = document.createElement('h4');
+		// 		//document.getElementById('motto').appendChild(h4Element);
+		// 		$scope.motto = "";
+		// 	}
+		//
+		// $scope.studentReports[student_id].performanceLabels = [];
+		// $scope.studentReports[student_id].performanceData = [];
+		//
+		// angular.forEach($scope.studentReports[student_id].graphPoints, function (item, key) {
+		//     $scope.studentReports[student_id].performanceLabels.push(item.exam_type);
+		//     $scope.studentReports[student_id].performanceData.push(item.average_grade);
+		// });
+		//
+		// var lineChartData = {
+		//     labels: $scope.studentReports[student_id].performanceLabels,
+		//     datasets: [{
+		//         label: "performance",
+		//         data: $scope.studentReports[student_id].performanceData,
+		//
+		//
+		//         borderWidth: 2,
+		//         pointBorderColor: '#ffffff',
+		//         pointBackgroundColor: '#2D4E5E',
+		//         pointBorderWidth: 1,
+		//         radius: 4
+		//     }]
+		// };
+		//
+		// // console.log($scope.studentReports);
+		// cnt++;
+		//
+		// if(cnt === ids.length)
+		// {
+		//
+		// //Print
+		//
+		// $uibModalInstance.close($scope.studentReports);
+		// 	//$scope.openModal('exams', 'reportCardBulkPrint', 'lg', $scope.studentReports);
+		//
+		// }
+		// /* if($scope.studentReports[student_id].chart_path == "")
+		// {
+		// if ($scope.zoomed) $scope.ctx = document.getElementById("zoomedLine1").getContext("2d");
+		// 	else $scope.ctx = document.getElementById(student_id).getContext("2d");
+		//
+		//
+		// 	initChart1($scope.ctx, lineChartData, $scope.studentReports[student_id]);
+		// 	//$timeout(callAtTimeout, 2000);
+		// 	$timeout(callAtTimeout, 2000, true, student_id);
+		// 	$scope.efficiencyLoading = false;
+		// } */
+		//
+		// /* remove any exam types that have not been used for this report card */
+		// $scope.studentReports[student_id].examTypes = $scope.studentReports[student_id].rawExamTypes.filter(function(item){
+		// 	var found = $scope.studentReports[student_id].examMarks.filter(function(item2){
+		// 		if( item.exam_type == item2.exam_type ) return item2;
+		// 	})[0];
+		// 	if( found !== undefined ) return item;
+		// });
+		//
+		// /* group the results by subject */
+		// $scope.studentReports[student_id].reportData = {};
+		// $scope.studentReports[student_id].reportData.subjects = groupExamMarks( $scope.studentReports[student_id].examMarks );
+		// $scope.studentReports[student_id].latestExamMarks = angular.copy($scope.studentReports[student_id].reportData);
+		//
+		// // set overall
+		// var total_marks = 0;
+		// var total_grade_weight = 0;
+		//
+		// angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key){
+		// 	if( item.use_for_grading )
+		// 	{
+		//
+		// 		var overall = $scope.studentReports[student_id].overallSubjectMarks.filter(function(item2){
+		// 			if( item.subject_name == item2.subject_name ) return item2;
+		// 		})[0];
+		//
+		// 		if( overall )
+		// 		{
+		// 			item.overall_mark = overall.percentage;
+		// 			item.overall_grade = overall.grade;
+		// 			item.tot30 = overall.tot30;
+		// 			item.tot70 = overall.tot70;
+		// 			item.position = overall.rank;
+		// 			var subjNm = item.subject_name;
+		// 			if( subjNm == "Kiswahili" ){
+		// 				item.comment = overall.kiswahili_comment;
+		// 			}else{
+		// 				item.comment = overall.comment;
+		// 			}
+		// 			// item.comment = overall.comment;
+		// 			// console.log("Endterm percentage :: >>");
+		// 			// console.log(overall.percentage);
+		//
+		// 			total_marks += parseInt(overall.total_mark);
+		// 			total_grade_weight += parseInt(overall.total_grade_weight);
+		// 		}
+		//
+		// 		var graphdata = $scope.studentReports[student_id].graphPoints.filter(function(item2){
+		// 			if( item.average_grade == item2.average_grade ) return item2;
+		// 		})[0];
+		// 		if( graphdata )
+		// 		{
+		// 			item.term_grade = graphdata.average_grade;
+		// 			item.which_term = graphdata.exam_type;
+		// 		}
+		//
+		// 	}
+		//
+		// });
+		//
+		//
+		// // set totals, only add up parent subjects
+		// $scope.studentReports[student_id].totals = {};
+		// angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key)
+		// {
+		// 	if( item.use_for_grading )
+		// 	{
+		// 		angular.forEach( item.marks, function(item2,key)
+		// 		{
+		// 			if( $scope.studentReports[student_id].totals[key] === undefined ) $scope.studentReports[student_id].totals[key] = {total_mark:0, total_grade_weight:0};
+		// 			if( item.parent_subject_name == null ) $scope.studentReports[student_id].totals[key].total_mark += item2.mark;
+		// 			if( item.parent_subject_name == null ) $scope.studentReports[student_id].totals[key].total_grade_weight += item2.grade_weight;
+		// 		});
+		// 	}
+		// });
+		//
+		//
+		// if( $scope.studentReports[student_id].originalData !== undefined )
+		// {
+		// 	// recreated a report, carry over the comments
+		// 	$scope.studentReports[student_id].comments = angular.copy(studentData.originalData.comments) || {};
+		//
+		// 	angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key){
+		//
+		// 		// get matching element of currentReportData
+		// 		var orgData = $scope.studentReports[student_id].originalData.subjects.filter(function(newItem){
+		// 			if( newItem.subject_name == item.subject_name ) return newItem;
+		// 		})[0];
+		// 		var overall = $scope.studentReports[student_id].overallSubjectMarks.filter(function(item2){
+		// 			if( item.subject_name == item2.subject_name ) return item2;
+		// 		})[0];
+		// 		if(item.subject_name == "Kiswahili"){
+		// 			if( overall ) 	item.remarks = overall.kiswahili_comment;
+		// 		}else{
+		// 			if( overall ) 	item.remarks = overall.comment;
+		// 		}
+		// 		// if( overall ) 	item.remarks = overall.comment;
+		// 	});
+		// }
 
 	}
 	// console.log(data.graphPoints);
+
+	function callAtTimeout(student_id) {
+
+
+	$scope.studentReports[student_id].chart_path = $scope.chart_path;
+
+	// console.log($scope.studentReports[student_id]);
+	// console.log("time out func");
+
+}
 
 	var groupExamMarks = function(data)
 	{
@@ -834,7 +1123,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 
 	var loadReportCard = function(response, status)
 	{
-		console.log("Loading...");
 		var result = angular.fromJson(response);
 		if( result.response == 'success')
 		{
