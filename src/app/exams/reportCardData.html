@@ -271,9 +271,9 @@
 								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
 								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
 								<td class="remarks double-border">
-									<span ng-show="isPrinting">{{item.remarks}}</span>
+									<span class="span-border">{{item.remarks}}</span>
 									<!-- <input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" /> -->
-									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" readonly style="background-color:#ffffff;" />
+									<!-- <input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" readonly style="background-color:#ffffff;" /> -->
 								</td>
 								<td>{{item.initials}}</td>
 							</tr>
@@ -297,7 +297,8 @@
 
 					<div class="row">
 						<div class="col-md-6">
-							<img  class="col-md-6"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  />
+							<!-- <img  class="col-md-6"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  /> -->
+							<img  class="col-md-6"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}" onError="this.onerror=null;this.src='assets/x.png';"  />
 						</div>
 						<div class="col-md-6">
 							<table id="avaragesTable" class="display dataTable" cellspacing="0" width="100%">
@@ -557,8 +558,8 @@
 								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
 								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
 								<td class="remarks double-border">
-									<span ng-show="isPrinting">{{item.remarks}}</span>
-									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" readonly style="background-color:#ffffff;" />
+									<span class="span-border">{{item.remarks}}</span>
+									<!-- <input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" readonly style="background-color:#ffffff;" /> -->
 								</td>
 								<td>{{item.initials}}</td>
 							</tr>
@@ -576,7 +577,8 @@
 						</tfoot>
 					</table>
 
-					<img  class="col-sm-12"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  />
+					<!-- <img  class="col-sm-12"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  /> -->
+					<img  class="col-sm-12"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}" onError="this.onerror=null;this.src='assets/x.png';"  />
 
 
 
@@ -816,8 +818,8 @@
 								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
 								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
 								<td class="remarks double-border">
-									<span ng-show="isPrinting">{{item.remarks}}</span>
-									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" readonly style="background-color:#ffffff;" />
+									<span class="span-border">{{item.remarks}}</span>
+									<!-- <input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" readonly style="background-color:#ffffff;" /> -->
 								</td>
 								<td>{{item.initials}}</td>
 							</tr>
@@ -835,7 +837,8 @@
 						</tfoot>
 					</table>
 
-					<img  class="col-sm-3"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  />
+					<!-- <img  class="col-sm-3"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  /> -->
+					<img  class="col-sm-3"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}" onError="this.onerror=null;this.src='assets/x.png';this.style.height='65px';this.style.width='400px';"  />
 
 
 
