@@ -102,12 +102,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			{
 				var params = $rootScope.currentUser.emp_id + '/' + true;
 				apiService.getTeacherStudents(params, loadStudents, apiError);
-				// apiService.getStreamPosition(params, loadStudents, apiError);
 			}
 			else
 			{
 				apiService.getAllStudents(true, loadStudents, apiError);
-				// apiService.getStreamPosition(params, loadStudents, apiError);
 			}
 		}
 
@@ -265,7 +263,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.overallLastTerm = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
-		// $scope.streamPosition = {};
 		//$scope.examTypes = {};
 		$scope.reportData = undefined;
 	};
@@ -280,7 +277,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.overallLastTerm = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
-		// $scope.streamPosition = {};
 		$scope.reportData = undefined;
 		$scope.comments = {};
 		$scope.recreated = false;
@@ -1021,7 +1017,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						$scope.overallLastTerm = {};
 						$scope.graphPoints = {};
 						$scope.currentClassPosition = {};
-						// $scope.streamPosition = {};
 						$scope.reportData = undefined;
 						$scope.comments = {};
 						$scope.recreated = false;
@@ -1052,7 +1047,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 
 		$scope.reportData.position = $scope.overall;
-		// $scope.reportData.stream_position = $scope.streamPosition;
 		$scope.reportData.position_last_term = $scope.overallLastTerm;
 		$scope.reportData.totals = $scope.totals;
 		$scope.reportData.comments = $scope.comments;
