@@ -28,7 +28,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 
 
-	// console.log($scope.AllData2);
+
 	data = $scope.AllData2[302];
 	$rootScope.isPrinting = false;
 	$scope.student = null
@@ -766,7 +766,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	function callAtTimeout(param) {
 
 	$scope.chart_path = getChartPath();
-	console.log("GETTTING CHART" + param);
+	console.log("GETTTING CHART" + param)
 			$scope.AllData[param].chart_path = $scope.chart_path;
 			$scope.Done_getChart_path = true;
 
@@ -837,8 +837,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				termName = termName.split(' ');
 				$scope.report.term = termName[1];
 				$scope.savedReportData = ( result.data.report_data !== null ? angular.fromJson(result.data.report_data) : []);
-				$scope.fetchChart = result.data.chart;
-				console.log($scope.fetchChart);
 				$scope.originalData = angular.copy($scope.savedReportData);
 
 				$scope.setReportCardData($scope.savedReportData);
@@ -1038,38 +1036,36 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.modified = true;
 	}
 
-
 	$scope.print = function()
 	{
-		console.log($scope.AllData2);
 		var criteria = {
-			student : $scope.AllData2.student,
-			report: $scope.AllData2.report,
-			overall: $scope.AllData2.overall,
-			graphPoints: $scope.AllData2.graphPoints,
-			currentClassPosition: $scope.AllData2.currentClassPosition,
-			streamRankPosition: $scope.AllData2.streamRankPosition,
-			// streamRankOutOf: $scope.AllData2.student.streamRankOutOf, //we need this
+			student : $scope.student,
+			report: $scope.report,
+			overall: $scope.overall,
+			graphPoints: $scope.graphPoints,
+			currentClassPosition: $scope.currentClassPosition,
+			streamRankPosition: $scope.streamRankPosition,
+			streamRankOutOf: $scope.streamRankOutOf,
 			// streamPosition: $scope.streamPosition,
-			overallLastTerm: $scope.AllData2.overallLastTerm,
-			examTypes: $scope.AllData2.examTypes,
-			reportData: $scope.AllData2.reportData,
-			totals: $scope.AllData2.totals,
-			comments: $scope.AllData2.comments,
-			nextTermStartDate: $scope.AllData2.nextTermStartDate,
-			currentTermEndDate: $scope.AllData2.currentTermEndDate,
-			report_card_type: $scope.AllData2.reportCardType,
-			chart_path: $scope.AllData2.chart_path,
-			motto: $scope.AllData2.motto,
-			overallSubjectMarks: $scope.AllData2.overallSubjectMarks,
-			thisTermMarks: $scope.AllData2.thisTermMarks,
-			thisTermMarksOutOf: $scope.AllData2.thisTermMarksOutOf,
-			thisTermGrade: $scope.AllData2.thisTermGrade,
-			thisTermPercentage: $scope.AllData2.thisTermPercentage
+			overallLastTerm: $scope.overallLastTerm,
+			examTypes: $scope.examTypes,
+			reportData: $scope.reportData,
+			totals: $scope.totals,
+			comments: $scope.comments,
+			nextTermStartDate: $scope.nextTermStartDate,
+			currentTermEndDate: $scope.currentTermEndDate,
+			report_card_type: $scope.reportCardType,
+			chart_path: $scope.chart_path,
+			motto: $scope.motto,
+			overallSubjectMarks: $scope.overallSubjectMarks,
+			thisTermMarks: $scope.thisTermMarks,
+			thisTermMarksOutOf: $scope.thisTermMarksOutOf,
+			thisTermGrade: $scope.thisTermGrade,
+			thisTermPercentage: $scope.thisTermPercentage
 		}
 
 		var domain = window.location.host;
-		var newWindowRef = window.open('http://' + domain + '/#/exams/bulk_report_card/print');
+		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
 	}
 
