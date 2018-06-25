@@ -459,43 +459,93 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 		angular.forEach($scope.studentReports, function(item,key)
 		{
 
-			
+      // console.log($scope.classes);
 			var student = $scope.students.find(function (stud) { return stud.student_id === key; });
-			var class_id = $scope.studentReports[student.student_id][term_name].class_id;
-			var class_obj = $scope.classes.find(function (obj) { return obj.class_id === class_id; });
+      var studentTermObj = $scope.studentReports[student.student_id];
+      console.log(studentTermObj);
+      if(studentTermObj.hasOwnProperty(term_name)){
+        var studentsWithExams = function(response,status)
+      	{
+
+      		var result = angular.fromJson( response );
+      		if( result.response == 'success' )
+      		{
+      			if( result.nodata )
+      			{
+      				$scope.students2 = {};
+      				$scope.reportsNotFound = true;
+      				$scope.errMsg = "No students found. Try another criteria.";
+      			}
+      			else
+      			{
+
+      				var rawFilteredStudents = result.data;
+              console.log("Succeses. Students found!");
+              $scope.students2 = rawFilteredStudents.reduce(function(acc, cur, i) { acc[i] = cur; return acc; }, {});
+              // console.log($scope.students2);
+      				// $scope.students2 = {};
+
+      			}
+      		}
+      		else
+      		{
+      			console.log("There might be an API issue");
+      			$scope.errMsg = result.data;
+      		}
+      	}
+        var paramForFilter = $scope.filters.class_id + '/' + $scope.filters.term_name;
+        console.log(paramForFilter);
+        apiService.getClassStudentsWithExamInTerm(paramForFilter, studentsWithExams, apiError);
+        // console.log(studentTermObj);
+        // var termMatch = Object.keys(studentTermObj).toString();
+
+        // var myObj = {"a": "test1"} //test this
+        // if(myObj.a == "test1") {
+        //     alert("test1 exists!"); //test this
+        // }
+        // console.log(Object.keys(studentTermObj).toString()); //test this
+
+        setTimeout(function(){ console.log("Students with report cards are >>"); },1000);
+        setTimeout(function(){ console.log($scope.students2); },1000);
+
+  			var class_id = $scope.studentReports[student.student_id][term_name].class_id;
+  			var class_obj = $scope.classes.find(function (obj) { return obj.class_id === class_id; });
 
 
-				var data =
-				{
-					student : student,
-					report_card_id: $scope.studentReports[student.student_id][term_name].report_card_id,
-					class_name : $scope.studentReports[student.student_id][term_name].class_name,
-					class_id : $scope.studentReports[student.student_id][term_name].class_id,
-					published: $scope.studentReports[student.student_id][term_name].published,
-					term_id: $scope.studentReports[student.student_id][term_name].term_id,
-					entity_id: $scope.studentReports[student.student_id][term_name].entity_id,
-					term_name : term_name,
-					year: $scope.studentReports[student.student_id][term_name].year,
-					report_card_type: $scope.studentReports[student.student_id][term_name].report_card_type,
-					teacher_id: $scope.studentReports[student.student_id][term_name].teacher_id,
-					teacher_name: $scope.studentReports[student.student_id][term_name].teacher_name,
-					date: $scope.studentReports[student.student_id][term_name].date,
-					reportData: $scope.studentReports[student.student_id][term_name].data,
-					adding: false,
-					filters:{
-						term:{
-							term_name:term_name,
-							term_id: $scope.studentReports[student.student_id][term_name].term_id,
-						},
-						class:{
-							class_id: $scope.studentReports[student.student_id][term_name].class_id,
-							class_cat_id: class_obj.class_cat_id
-						}
-					}
+  				var data =
+  				{
+  					student : student,
+  					report_card_id: $scope.studentReports[student.student_id][term_name].report_card_id,
+  					class_name : $scope.studentReports[student.student_id][term_name].class_name,
+  					class_id : $scope.studentReports[student.student_id][term_name].class_id,
+  					published: $scope.studentReports[student.student_id][term_name].published,
+  					term_id: $scope.studentReports[student.student_id][term_name].term_id,
+  					entity_id: $scope.studentReports[student.student_id][term_name].entity_id,
+  					term_name : term_name,
+  					year: $scope.studentReports[student.student_id][term_name].year,
+  					report_card_type: $scope.studentReports[student.student_id][term_name].report_card_type,
+  					teacher_id: $scope.studentReports[student.student_id][term_name].teacher_id,
+  					teacher_name: $scope.studentReports[student.student_id][term_name].teacher_name,
+  					date: $scope.studentReports[student.student_id][term_name].date,
+  					reportData: $scope.studentReports[student.student_id][term_name].data,
+  					adding: false,
+  					filters:{
+  						term:{
+  							term_name:term_name,
+  							term_id: $scope.studentReports[student.student_id][term_name].term_id,
+  						},
+  						class:{
+  							class_id: $scope.studentReports[student.student_id][term_name].class_id,
+  							class_cat_id: $scope.activeFilters.class_cat_id
+  						}
+  					}
 
-				};
+  				};
 
-				BulkData[student.student_id] = data;
+  				BulkData[student.student_id] = data;
+      }
+
+
 			});
 
 			$scope.openModal('exams', 'reportCardData', 'sm', angular.fromJson(BulkData));
@@ -651,6 +701,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 
     if( $scope.activeFilters.class_cat_id )
     {
+      // console.log($scope.activeFilters.class_cat_id);
       filteredResults = filteredResults.filter(function(item) {
         if( item.class_cat_id.toString() == $scope.activeFilters.class_cat_id.toString() ) return item;
       });
@@ -688,7 +739,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 
     if( $scope.activeFilters.route_id )
     {
-      console.log($scope.activeFilters.route_id);
+      // console.log($scope.activeFilters.route_id);
       filteredResults = filteredResults.filter(function(item) {
         if( item.transport_route_id && item.transport_route_id.toString() == $scope.activeFilters.route_id.toString() ) return item;
       });
