@@ -25,7 +25,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 	$scope.entity_id = $scope.data.entity_id;
 	$scope.canPrint = false;
-	$scope.isSchool = window.location.host.split('.')[0];
+	$scope.isSchool = ( window.location.host.split('.')[0] == "newlightgirls" ? true : false);
 	$scope.isStudentImage = ( window.location.host.split('.')[0] == "rongaiboys" ? true : false);
 	// console.log($scope.isSchool);
 
@@ -568,6 +568,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 		$scope.streamRankPosition = result.data.streamRank[0].position;
 		$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
 
+		$scope.streamRankLastTerm = result.data.streamRankLastTerm;
+		$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
+		$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
+
+		console.log("Stream last term = (" + $scope.streamRankPositionLastTerm + "/" + $scope.streamRankOutOfLastTerm + ")");
+
 			localStorage.setItem('printStreamRank', $scope.streamRankPosition);
 			var getPrintRank = localStorage.getItem("printStreamRank");
 			localStorage.setItem('printStreamRankOutOf', $scope.streamRankOutOf);
@@ -655,6 +661,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 					$scope.streamRankPosition = result.data.streamRank[0].position;
 					$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
 
+					$scope.streamRankLastTerm = result.data.streamRankLastTerm;
+					$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
+					$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
+
+					console.log("Stream last term = (" + $scope.streamRankPositionLastTerm + "/" + $scope.streamRankOutOfLastTerm + ")");
+
 					var school = window.location.host.split('.')[0];
 
 					$scope.studentReports[student_id].examMarks = data.details;
@@ -677,6 +689,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 					$scope.studentReports[student_id].currentClassPosition = data.currentClassPosition[0];
 					$scope.studentReports[student_id].streamRankPosition = result.data.streamRank[0].position;
 					$scope.studentReports[student_id].streamRankOutOf = result.data.streamRank[0].position_out_of;
+					$scope.studentReports[student_id].streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
+					$scope.studentReports[student_id].streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of
 					console.log("Stream Pos = " + $scope.studentReports[student_id].streamRankPosition + '/' + $scope.studentReports[student_id].streamRankOutOf);
 					if (school == "karemeno"){
 						$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallBySum;
@@ -692,6 +706,26 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 					$scope.studentReports[student_id].thisTermMarksOutOf = data.overall.current_term_marks_out_of;
 					$scope.studentReports[student_id].thisTermGrade = data.overall.grade;
 					$scope.studentReports[student_id].thisTermPercentage = data.overall.percentage;
+					$scope.studentReports[student_id].latestExamType = data.latestExamType[0];
+					$scope.studentReports[student_id].isLastExamDoneEndTerm = $scope.studentReports[student_id].latestExamType.is_last_exam;
+					console.log("Has ET been done? " + $scope.studentReports[student_id].isLastExamDoneEndTerm);
+					$scope.studentReports[student_id].isHideTotColumn = false;
+					if ( $scope.isSchool == true && $scope.studentReports[student_id].isLastExamDoneEndTerm == false ){
+						setTimeout(function(){
+							$scope.studentReports[student_id].isHideTotColumn = true;
+							$scope.isSchool = false;
+							// $('#colsHidden').attr('colspan',2);
+							document.getElementById("colsHidden").colSpan = "2";
+							var x = document.getElementsByClassName("hideColTillEt");
+							var i;
+							console.log("There are (" + x.length + ") with the class (hideColTillEt)");
+							for (i = 0; i < x.length; i++) {
+							    x[i].style.display = 'none';
+							}
+						},3000);
+
+					}
+					console.log("Show columns? " + $scope.isSchool);
 
 					// console.log("subject overalls variable ::>");
 					// console.log($scope.overallSubjectMarks);
