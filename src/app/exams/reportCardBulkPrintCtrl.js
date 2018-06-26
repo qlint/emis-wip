@@ -461,6 +461,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.streamRankPosition = result.data.streamRank[0].position;
 		$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
 
+		$scope.streamRankLastTerm = result.data.streamRankLastTerm;
+		$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
+		$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
+
+		console.log("Stream last term = (" + $scope.streamRankPositionLastTerm + "/" + $scope.streamRankOutOfLastTerm + ")");
+
 			localStorage.setItem('printStreamRank', $scope.streamRankPosition);
 			var getPrintRank = localStorage.getItem("printStreamRank");
 			localStorage.setItem('printStreamRankOutOf', $scope.streamRankOutOf);
@@ -468,6 +474,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 
 		$scope.AllData[$scope.data_key].streamRankOutOf = $scope.streamRankOutOf;
+		$scope.AllData[$scope.data_key].streamRankOutOfLastTerm = $scope.streamRankOutOfLastTerm;
 		}catch(e){}
 		$scope.Done_getStreamPosition =true;
 
@@ -558,6 +565,22 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.thisTermMarksOutOf = data.overall.current_term_marks_out_of;
 		$scope.thisTermGrade = data.overall.grade;
 		$scope.thisTermPercentage = data.overall.percentage;
+		$scope.latestExamType = data.latestExamType[0];
+		$scope.isLastExamDoneEndTerm = $scope.latestExamType.is_last_exam;
+		$scope.isHideTotColumn = false;
+		if ( $scope.isSchool == true && $scope.isLastExamDoneEndTerm == false ){
+			setTimeout(function(){
+				$scope.isHideTotColumn = true;
+				$scope.isSchool = false;
+				document.getElementById("colsHidden").colSpan = "2";
+				var x = document.getElementsByClassName("hideColTillEt");
+				var i;
+				console.log("There are (" + x.length + ") with the class (hideColTillEt)");
+				for (i = 0; i < x.length; i++) {
+						x[i].style.display = 'none';
+				}
+			},3000);
+		}
 
 		// console.log("subject overalls variable ::>");
 		// console.log($scope.overallSubjectMarks);
