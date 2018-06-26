@@ -346,14 +346,14 @@ function getChartPath()
 								<label>Pos Last Term:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{student.overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{student.student.overallLastTerm.position_out_of||'--'}}</p>
+								<p class="form-control-static inline">{{student.overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{student.overallLastTerm.position_out_of||'--'}}</p>
 							</div>
 
 							<div class="col-xs-2 nopad-right">
 								<label>Last Term Marks:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{student.overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline">{{student.student.overallLastTerm.total_grade_weight||'-'}}</p>
+								<p class="form-control-static inline">{{student.overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline">{{student.overallLastTerm.total_grade_weight||'-'}}</p>
 							</div>
 						</div>
 						<!-- stream position, out of, stream pos last term, out of -->
@@ -362,14 +362,14 @@ function getChartPath()
 								<label>Stream Position:</label>
 							</div>
 							<div class="col-xs-3 lesspad">
-								<p class="form-control-static inline">{{student.streamRankPosition}}</p> / <p class="form-control-static inline">{{student.student.streamRankOutOf}}</p>
+								<p class="form-control-static inline">{{student.streamRankPosition}}</p> / <p class="form-control-static inline">{{student.streamRankOutOf}}</p>
 							</div>
 
 							<div class="col-xs-2 nopad-right">
 								<label>Stream Pos Last Term:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{student.overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{student.overallLastTerm.position_out_of||'--'}}</p>
+								<p class="form-control-static inline">{{student.streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{student.streamRankOutOfLastTerm||'--'}}</p>
 							</div>
 
 							<div class="col-xs-2 nopad-right">
@@ -386,7 +386,7 @@ function getChartPath()
 							<tr>
 								<th rowspan="3" class="center">Subject</th>
 								<th class="center double-border" colspan="{{student.examTypes.length*3}}">Marks</th>
-								<th rowspan="2" colspan="{{ isSchool ? '4' : '2'}}" class="center double-border isSchool">Overall</th>
+								<th id="colsHidden" rowspan="2" colspan="{{ isSchool ? '4' : '2'}}" class="center double-border isSchool">Overall</th>
 								<!-- <th rowspan="2" colspan="4" class="center double-border isSchool">Overall</th> -->
 								<th class="center double-border remarks" rowspan="3" width="300">Remarks</th>
 								<th class="center" rowspan="3">Teacher<br>Int.</th>
@@ -399,9 +399,9 @@ function getChartPath()
 								<th class="center">Out Of</th>
 								<th class="center" ng-repeat-end="">Grade</th>
 								<!-- <th class="center double-border isSchool">CAT 30%</th> -->
-								<th ng-show="isSchool" class="center double-border isSchool">CAT 30%</th>
+								<th ng-show="isSchool" class="center double-border isSchool hideColTillEt">CAT 30%</th>
 								<!-- <th class="center double-border isSchool">END 70%</th> -->
-								<th ng-show="isSchool" class="center double-border isSchool">END 70%</th>
+								<th ng-show="isSchool" class="center double-border isSchool hideColTillEt">END 70%</th>
 								<th class="center double-border">Avg</th>
 								<th class="center">Grade</th>
 							</tr>
@@ -412,9 +412,9 @@ function getChartPath()
 								<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in student.examTypes">{{item.marks[examType.exam_type].mark}}</td>
 								<td class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
 								<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
-								<td ng-show="isSchool" class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td>
+								<td ng-show="isSchool" class="center strong double-border isSchool hideColTillEt"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td>
 								<!-- <td class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td> -->
-								<td ng-show="isSchool" class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td>
+								<td ng-show="isSchool" class="center strong double-border isSchool hideColTillEt"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td>
 								<!-- <td class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td> -->
 								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
 								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
@@ -432,9 +432,9 @@ function getChartPath()
 								<th class="center double-border" ng-repeat-start="examType in examTypes">{{student.totals[examType.exam_type].total_mark}}</th>
 								<th class="center">{{student.totals[examType.exam_type].total_grade_weight}}</th>
 								<th class="center" ng-repeat-end=""></th>
-								<th ng-show="isSchool" class="center isSchool"></th>
+								<th ng-show="isSchool" class="center isSchool hideColTillEt"></th>
 								<!-- <th class="center isSchool"></th> -->
-								<th ng-show="isSchool" class="center isSchool"></th>
+								<th ng-show="isSchool" class="center isSchool hideColTillEt"></th>
 								<!-- <th class="center isSchool"></th> -->
 								<th class="center double-border getpercentage">{{student.thisTermPercentage}}%</th>
 								<th class="center">{{student.thisTermGrade}}</th>
@@ -465,10 +465,10 @@ function getChartPath()
 							    <td  class="center">{{student.overall.grade}}</td>
 							  </tr>
 							  <tr>
-							    <td  class="center">-</td>
-							    <td  class="center">{{student.overallLastTerm.rank||'-'}}</td>
-							    <td  class="center">{{student.overallLastTerm.position_out_of||'--'}}</td>
-							    <td  class="center">-</td>
+									<td  class="center">-</td>
+                  <td  class="center">{{student.streamRankPositionLastTerm||'-'}}</td>
+							    <td  class="center">{{student.streamRankOutOfLastTerm||'--'}}</td>
+							    <td  class="center">{{student.overallLastTerm.grade||'--'}}</td>
 							  </tr>
 							</table>
 						</div>
