@@ -7,23 +7,23 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 	$scope.loginForm = {};
 	$scope.error = false;
 	$scope.loggingIn = false;
-	
-	var initializeController = function () 
+
+	var initializeController = function ()
 	{
 	}
 	//setTimeout(initializeController,10);
-	
+
 	$scope.hitEnter = function(evt)
-	{		
+	{
 		$scope.submit();
 	}; // end hitEnter
-	
+
 	//when the form is submitted
-	$scope.submit = function() 
+	$scope.submit = function()
 	{
 		$scope.submitted = true;
 		$scope.loggingIn = true;
-		
+
 		if (!$scope.loginForm.$invalid) {
 			$scope.login($scope.credentials);
 		} else {
@@ -33,15 +33,15 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 			return;
 		}
 	};
-	
+
 	$scope.cancel = function()
 	{
-		$uibModalInstance.dismiss('canceled');  
+		$uibModalInstance.dismiss('canceled');
 	}; // end cancel
-	
+
 
 	//Performs the login function, by sending a request to the server with the Auth service
-	$scope.login = function(credentials) 
+	$scope.login = function(credentials)
 	{
 		$scope.error = false;
 
@@ -49,33 +49,33 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 			//success function
 
 			$scope.loggingIn = false;
-			
+
 			setTimeout(
 				function(){
 					$uibModalInstance.dismiss('cancel');
 				}
 			, 100);
-			
+
 			if( $rootScope.currentUser.user_type == 'PARENT' ) $state.go('portal_dashboard');
 			else $state.go('dashboard');
-			
-			
+
+
 		}, function(err) {
 			$scope.credentials.user_pwd = '';
 			$scope.error = true;
 			$scope.loggingIn = false;
 		});
-		
-		
-	};	
-	
+
+
+	};
+
 	$rootScope.$on('displayLoginError', function(event, args) {
 		$scope.errorMsg = args.errorMsg;
 		$scope.credentials.user_pwd = '';
 		$scope.error = true;
 		$scope.loggingIn = false;
 	});
-	
+
 	$rootScope.$on('pwdUpdatedMsg', function(event, args) {
 		$scope.credentials.user_pwd = '';
 		$scope.submitted = false;
@@ -86,16 +86,16 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 		$scope.loginForm.user_pwd.$invalid = false;
 		$('input[name=user_pwd]').focus();
 	});
-	
-	
-	
+
+
+
 	// if a session exists for current user (page was refreshed)
 	// log him in again
 	/***** REMOVE ME : TEST *****
 	var loginData = {"response":"success","data":{"user_name":"sealer","user_pwd":"123","user_type":"SEALER","user_id":3}};
 	$window.sessionStorage["userInfo"] = JSON.stringify(loginData.data);
 	****************************/
-	if( $window.sessionStorage["userInfo"] ) 
+	if( $window.sessionStorage["userInfo"] )
 	{
 		var credentials = JSON.parse($window.sessionStorage["userInfo"]);
 		$scope.login(credentials);
@@ -108,13 +108,13 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 		$scope.user = data.user
 		$scope.user.old_pwd = $scope.user.user_pwd;
 		$scope.user.user_pwd = '';
-	
+
 		//-- Methods --//
-		
+
 		$scope.cancel = function(){
 			$uibModalInstance.dismiss('Canceled');
 		}; // end cancel
-		
+
 		$scope.updatePwd = function(form){
 
 			if( $scope.user.old_pwd == $scope.user.user_pwd )
@@ -134,41 +134,84 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 					"user_id" : $scope.user.user_id
 				};
 
-				apiService.postUserRequest(angular.toJson(user_data), function (response, status) {
-					// back to login form
-					$uibModalInstance.close($scope.user);
-				}, 
-				function (response, status) 
+				var change_pass = {
+					new_user_pwd : $scope.user.user_pwd,
+					user_id : $scope.user.user_id
+				};
+
+				var updateSuccess = function ( response, status, params )
+				{
+					console.log(result);
+
+					var result = angular.fromJson( response );
+					if( result.response == 'success' )
 					{
+						console.log("Password Updated Successfully");
+					}
+					else
+					{
+						console.log("Error. Pass not updated");
+						$scope.error = true;
+						$scope.errMsg = result.data;
+					}
+				}
+
+				var apiError = function (response, status)
+				{
+					console.log("There is a problem somewhere");
+				}
+
+				// apiService.postUserRequest(change_pass,updateSuccess,apiError);
+				apiService.postUserRequest(angular.toJson(change_pass), function (response, status) {
+					// back to login form
+					console.log("Password changed");
+					console.log(response);
+					$uibModalInstance.close($scope.user);
+				},
+				function (response, status)
+					{
+						console.log("There's a problem");
 						var result = angular.fromJson( response );
+						console.log(result);
 						$scope.error = true;
 						$scope.notificationMsg = result.data;
 					});
-				
-				
+				// apiService.postUserRequest(angular.toJson(user_data), function (response, status) {
+				// 	// back to login form
+				// 	$uibModalInstance.close($scope.user);
+				// },
+				// function (response, status)
+				// 	{
+				// 		console.log(angular.fromJson( response ));
+				// 		var result = angular.fromJson( response );
+				// 		$scope.error = true;
+				// 		$scope.notificationMsg = result.data;
+				// 	});
+
+
 			}
-			
+
 		}; // end save
-		
+
 		$scope.hitEnter = function(evt){
 			if( angular.equals(evt.keyCode,13) )
 				$scope.updatePwd();
 		};
-			
+
 	}]) // end controller(addCargoCtrl)
 .run(['$templateCache',function($templateCache){
   		$templateCache.put('updatePwd.html','<div class="modal-header modal-warning dialog-header-form">' +
-		'<h4 class="modal-title"><span class="fa fa-exclamation-triangle"></span> Password is Expired</h4>' +
+		'<h4 class="modal-title"><span class="fa fa-exclamation-triangle"></span> Change Password</h4>' +
 		'</div><div class="modal-body">' +
 		'<ng-form name="updatePwdDialog" novalidate role="form" class="form-horizontal" method="post">' +
 		'<div class="notification alert alert-danger" ng-show="error">{{notificationMsg}}</div>' +
-		'<p>Your password has expired, please create a new password below.</p>' +
+		'<p>Please create a new password below.</p>' +
 		'<div>' +
-		  '<label for="user_pwd">Password</label>' +
+		  '<label for="user_pwd">New Password</label>' +
 		  '<div ng-class="{ \'has-error\' : updatePwdDialog.user_pwd.$dirty && updatePwdDialog.user_pwd.$error.pwdnotnew && (updatePwdDialog.user_pwd.$touched || updatePwdDialog.$submitted) }">' +
 			'<input type="password" class="form-control immediate-help" name="user_pwd" ng-model="user.user_pwd" password-validate="{{user.old_pwd}}" required id="inputPassword">' +
 			'<div class="input-help">' +
-				'<h4>Password must meet the following requirements:</h4>' +
+				'<h4>A secure password should meet the following requirements:</h4>' +
 				'<ul>' +
 				  '<li ng-class="pwdHasLetter">At least <strong>one letter</strong></li>' +
 				  '<li ng-class="pwdHasNumber">At least <strong>one number</strong></li>' +
