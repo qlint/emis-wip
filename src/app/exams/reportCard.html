@@ -22,7 +22,8 @@ function done(){
          data: { src: dataURL }
       }).done(function(path){
 
-				chartPath = baseUrl + '/assets/charts/' + path +  '.png';
+	chartPath = baseUrl + '/assets/charts/' + path +  '.png';
+
 
       });
 }
@@ -204,7 +205,7 @@ function getChartPath()
 				<!-- <div class="receipt-header-letterhead row" ng-if="useLetterhead">
 					<img class="center col-sm-3" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
 					<h2 class="receipt-title col-sm-6">Termly Assesment Report</h2>
-					<img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-width:150px;" />
+					<img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-max-width:150px;" />
 				</div>
 
 				<div class="row progress-report-header"  ng-if="!useLetterhead">
@@ -244,13 +245,13 @@ function getChartPath()
 					</div>
 					<div class="receipt-header-letterhead row" ng-if="useLetterhead">
 						<div class="col-sm-3">
-							<h2 class="receipt-title">Termly<br>Assesment<br>Report</h2>
+							<h2 class="receipt-title">Termly Assesment Report</h2>
 						</div>
 						<div class="center col-sm-6">
-							<img src="assets/schools/{{currentUser.settings['Letterhead']}}" style="width:100%; height:auto;" />
+							<img src="assets/schools/{{currentUser.settings['Letterhead']}}" style="max-width:99%; height:auto;" />
 						</div>
 						<div class="col-sm-3">
-							<img id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;" ng-style="{ 'width' : isStudentImage ? '50%' : '0%' }" />
+							<img id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;"  ng-style="{ 'max-width' : isStudentImage ? '150px' : '0%', 'display' : isStudentImage ? '' : 'none' }"/>
 						</div>
 					</div>
 
@@ -373,7 +374,7 @@ function getChartPath()
 							<tr>
 								<th rowspan="3" class="center">Subject</th>
 								<th class="center double-border" colspan="{{examTypes.length*3}}">Marks</th>
-								<th id="colsHidden" rowspan="2" colspan="{{ isSchool ? '4' : '2'}}" class="center double-border isSchool">Overall</th>
+								<th rowspan="2" colspan="{{ isSchool ? '4' : '2'}}" class="center double-border isSchool">Overall</th>
 								<!-- <th rowspan="2" colspan="4" class="center double-border isSchool">Overall</th> -->
 								<th class="center double-border remarks" rowspan="3" width="300">Remarks</th>
 								<th class="center" rowspan="3">Teacher<br>Int.</th>
@@ -386,22 +387,22 @@ function getChartPath()
 								<th class="center">Out Of</th>
 								<th class="center" ng-repeat-end="">Grade</th>
 								<!-- <th class="center double-border isSchool">CAT 30%</th> -->
-								<th ng-show="isSchool" class="center double-border isSchool hideColTillEt">CAT 30%</th>
+								<th ng-show="isSchool" class="center double-border isSchool">CAT 30%</th>
 								<!-- <th class="center double-border isSchool">END 70%</th> -->
-								<th ng-show="isSchool" class="center double-border isSchool hideColTillEt">END 70%</th>
+								<th ng-show="isSchool" class="center double-border isSchool">END 70%</th>
 								<th class="center double-border">Avg</th>
 								<th class="center">Grade</th>
 							</tr>
 						</thead>
-						<tbody id="tbody">
+						<tbody>
 							<tr ng-repeat="item in reportData.subjects track by $index">
 								<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
 								<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
 								<td class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
 								<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
-								<td ng-show="isSchool" class="hideColTillEt2 center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td>
+								<td ng-show="isSchool" class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td>
 								<!-- <td class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td> -->
-								<td ng-show="isSchool" class="hideColTillEt2 center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td>
+								<td ng-show="isSchool" class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td>
 								<!-- <td class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td> -->
 								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
 								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
@@ -419,12 +420,12 @@ function getChartPath()
 								<th class="center double-border" ng-repeat-start="examType in examTypes">{{totals[examType.exam_type].total_mark}}</th>
 								<th class="center">{{totals[examType.exam_type].total_grade_weight}}</th>
 								<th class="center" ng-repeat-end=""></th>
-								<th ng-show="isSchool" class="center isSchool hideColTillEt"></th>
+								<th ng-show="isSchool" class="center isSchool"></th>
 								<!-- <th class="center isSchool"></th> -->
-								<th ng-show="isSchool" class="center isSchool hideColTillEt"></th>
+								<th ng-show="isSchool" class="center isSchool"></th>
 								<!-- <th class="center isSchool"></th> -->
-								<th class="center double-border getpercentage">{{thisTermPercentage}}%</th>
-								<th class="center">{{thisTermGrade}}</th>
+								<th class="center double-border getpercentage">{{overall.percentage}}%</th>
+								<th class="center">{{overall.grade}}</th>
 								<th colspan="2" class="center double-border"></th>
 							</tr>
 						</tfoot>
@@ -435,7 +436,7 @@ function getChartPath()
 							<img  class="col-md-6"  style="width:400px;height:200px;" id="url"   src="{{chart_path}}"  />
 						</div>
 						<div class="col-md-6">
-							<table id="avaragesTable" class="display dataTable" cellspacing="0" width="100%">
+							<table id="avaragesTable" class="display dataTable" cellspacing="0" width="50%">
 							  <tr>
 							    <th colspan="4" style="text-align:center;">FORM {{report.class_name}}</th>
 							  </tr>
