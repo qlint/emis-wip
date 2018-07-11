@@ -16,7 +16,8 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 
 	$rootScope.$on('$stateChangeStart', function (event, next, toParams)
 	{
-		var domain = window.location.host;
+		// var domain = window.location.host;
+		var domain = "localhost:8008/highschool";
 		var subdomain = domain.substr(0, domain.indexOf('.'));
 		$rootScope.clientIdentifier = ( subdomain == 'parents' ? '' : subdomain );
 
@@ -140,11 +141,6 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 				return check;
 		})();
 
-		$rootScope.updatePassword = function()
-		{
-			$rootScope.openModal('users', 'userForm', 'md');
-		}
-
 	$rootScope.showLogin = function()
 	{
 		$rootScope.$broadcast(AUTH_EVENTS.notAuthenticated);
@@ -157,7 +153,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		Auth.logout();
 	};
 
-	$rootScope.userTypes = ['SYS_ADMIN','TEACHER'];
+	$rootScope.userTypes = ['SYS_ADMIN','ADMIN','TEACHER'];
 
 	$rootScope.formatStudentData = function(data)
 	{
