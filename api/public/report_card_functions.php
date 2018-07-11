@@ -1298,7 +1298,7 @@ $app->get('/getStreamPosition/:student_id/:entityId/:termId', function ($student
 		// get exam marks by exam type
 		$params = array(':studentId' => $studentId, ':termId' => $termId, ':entityId' => $entityId);
 
-		// stream positions
+		// stream positions using points
 		$sth7 = $db->prepare("SELECT * FROM (
 														SELECT student_id, student_name, avg, class_name, rank() over(order by avg desc) AS position,
 															(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = :entityId AND students.active is true) AS position_out_of
@@ -1358,7 +1358,47 @@ $app->get('/getStreamPosition/:student_id/:entityId/:termId', function ($student
 		$sth7->execute(  array(':studentId' => $studentId, ':termId' => $termId, ':entityId' => $entityId) );
 		$streamRank = $sth7->fetchAll(PDO::FETCH_OBJ);
 
-		// stream positions last term
+		// stream positions using marks
+		$sth7ByMarks = $db->prepare("SELECT * FROM (
+														SELECT student_id, student_name, avg, class_name, rank() over(order by avg desc) AS position,
+															(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = :entityId AND students.active is true) AS position_out_of
+														FROM (
+															SELECT student_id, student_name, class_name, round(avg(total_mark)) as avg, round(avg(total_grade_weight)) as total_grade_weight FROM (
+																SELECT sum(total_mark) AS total_mark, sum(total_grade_weight) AS total_grade_weight, student_id, student_name, class_name, exam_type_id
+																FROM (
+																	SELECT  student_id, student_name, class_id, class_name, subject_id, subject_name, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, exam_type_id
+																	FROM (
+																		SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
+																			coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+																			coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+																			subjects.sort_order, class_subject_exams.exam_type_id
+																		FROM app.exam_marks
+																		INNER JOIN app.students ON exam_marks.student_id = students.student_id
+																		INNER JOIN app.class_subject_exams
+																		INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+																		INNER JOIN app.class_subjects
+																		INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+																		INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+																		INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+																					ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+																					ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+																		WHERE class_cats.entity_id = :entityId
+																		AND term_id = :termId
+																		AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND students.student_id = exam_marks.student_id AND mark IS NOT NULL
+																		GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
+																			use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
+																		ORDER BY exam_marks.student_id ASC
+																	) q GROUP BY student_id, student_name, class_id, class_name, subject_id, subject_name, exam_type_id ORDER BY student_id ASC
+																) AS foo GROUP BY student_id,student_name, class_name, exam_type_id ORDER BY student_id ASC, total_mark DESC
+															) AS FOO2 GROUP BY student_id, student_name, class_name
+														) AS foo3
+													) AS foo3 WHERE student_id = :studentId
+
+													");
+		$sth7ByMarks->execute(  array(':studentId' => $studentId, ':termId' => $termId, ':entityId' => $entityId) );
+		$streamRankByMarks = $sth7ByMarks->fetchAll(PDO::FETCH_OBJ);
+
+		// stream positions last term using points
 		$sth7LstTm = $db->prepare("SELECT * FROM (
 														SELECT student_id, student_name, avg, class_name, rank() over(order by avg desc) AS position,
 															(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = :entityId AND students.active is true) AS position_out_of
@@ -1418,9 +1458,48 @@ $app->get('/getStreamPosition/:student_id/:entityId/:termId', function ($student
 		$sth7LstTm->execute(  array(':studentId' => $studentId, ':termId' => $termId, ':entityId' => $entityId) );
 		$streamRankLastTerm = $sth7LstTm->fetchAll(PDO::FETCH_OBJ);
 
+		// stream positions last term using marks
+		$sth7LstTmByMarks = $db->prepare("SELECT * FROM (
+														SELECT student_id, student_name, avg, class_name, rank() over(order by avg desc) AS position,
+															(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = :entityId AND students.active is true) AS position_out_of
+														FROM (
+															SELECT student_id, student_name, class_name, round(avg(avg)) as avg, round(avg(total_grade_weight)) as total_grade_weight FROM (
+																SELECT sum(total_mark) AS avg, sum(total_grade_weight) as total_grade_weight, student_id, student_name, class_name, exam_type_id
+																FROM (
+																	SELECT  student_id, student_name, class_id, class_name, subject_id, subject_name, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, exam_type_id
+																	FROM (
+																		SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
+																			coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+																			coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+																			subjects.sort_order, class_subject_exams.exam_type_id
+																		FROM app.exam_marks
+																		INNER JOIN app.students ON exam_marks.student_id = students.student_id
+																		INNER JOIN app.class_subject_exams
+																		INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+																		INNER JOIN app.class_subjects
+																		INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+																		INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+																		INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+																					ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+																					ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+																		WHERE class_cats.entity_id = :entityId
+																		AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																		AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND students.student_id = exam_marks.student_id AND mark IS NOT NULL
+																		GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
+																			use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
+																	) q GROUP BY student_id, student_name, class_id, class_name, subject_id, subject_name, exam_type_id ORDER BY student_id ASC
+																) AS foo GROUP BY student_id,student_name, class_name, exam_type_id ORDER BY student_id ASC
+															)foo4 GROUP BY student_id, student_name, class_name order by avg DESC
+														) AS FOO2
+													) AS foo3 WHERE student_id = :studentId");
+		$sth7LstTmByMarks->execute(  array(':studentId' => $studentId, ':termId' => $termId, ':entityId' => $entityId) );
+		$streamRankLastTermByMarks = $sth7LstTmByMarks->fetchAll(PDO::FETCH_OBJ);
+
 		$results =  new stdClass();
 		$results->streamRank = $streamRank;
+		$results->streamRankByMarks = $streamRankByMarks;
 		$results->streamRankLastTerm = $streamRankLastTerm;
+		$results->streamRankLastTermByMarks = $streamRankLastTermByMarks;
 
 		if($results) {
 				$app->response->setStatus(200);
