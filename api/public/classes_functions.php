@@ -191,7 +191,7 @@ $app->get('/getAllClassExams/:class_id(/:exam_type_id/:teacher_id)', function ($
 							INNER JOIN app.classes
 							ON class_subjects.class_id = classes.class_id
 							WHERE class_subjects.class_id = :classId
-							AND class_subjects.active is true
+							AND class_subjects.active is true AND subjects.active is true
 							";
 		$params = array(':classId' => $classId);
 
