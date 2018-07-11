@@ -158,6 +158,119 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 				};
 				break;
+				case "ADMIN":
+					$rootScope.permissions = {
+						'dashboard':{
+							'view': true,
+						},
+						'students':{
+							'view': true,
+							'add': true,
+							'edit': true,
+							'import': true
+						},
+						'staff':{
+							'view': true,
+							'add': true,
+							'edit': true,
+							'import': true
+						},
+						'fees':{
+							'dashboard': {
+								'view': false,
+								'add': false,
+								'edit': false,
+							},
+							'opening_balances': {
+								'view': false,
+								'add': false,
+								'edit': false,
+							},
+							'invoices': {
+								'view': false,
+								'add': false,
+								'edit': false,
+								'delete': false
+							},
+							'payments_received': {
+								'view': false,
+								'add': false,
+								'edit': false,
+								'delete': false
+							},
+							'fee_structure': {
+								'view': false,
+								'add': false,
+								'edit': false,
+							},
+						},
+						'school':{
+							'school_settings': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'school_dates': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'grading': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'subjects': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'departments': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'classes': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							}
+
+						},
+						'exams':{
+							'exams': {
+								'view': true,
+								'add': true,
+								'edit': true,
+								'import': true
+							},
+							'exam_types': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'report_cards': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'class_analysis': {
+								'view': true,
+							},
+							'stream_analysis': {
+								'view': true,
+							},
+						},
+						'communications':{
+							'send_email' : {
+								'view': true,
+								'add': true,
+								'edit': true,
+							}
+						}
+
+					};
+					break;
 			case "TEACHER":
 				$rootScope.permissions = {
 					'dashboard':{
@@ -320,6 +433,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 		},function(){
 
 		});
+	}
+
+	$scope.updatePassword = function()
+	{
+		showUpdatePwdForm();
 	}
 
 	var goHome = function()
