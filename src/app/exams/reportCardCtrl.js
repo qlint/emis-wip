@@ -23,14 +23,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.isSchool = window.location.host.split('.')[0];
 	$scope.isStudentImage = ( window.location.host.split('.')[0] == "rongaiboys" ? true : false);
 	$scope.dynamicReportCrdCss = null;
-	if( window.location.host.split('.')[0] == "localhost:8008" ){
+	if( window.location.host.split('.')[0] == "karemeno" ){
 		//custom report card style for karemeno (the css file name)
 		$scope.dynamicReportCrdCss = "customSettingReportCard-karemeno.css";
 	}else if( window.location.host.split('.')[0] == "rongaiboys" ? true : false){
 		//custom report card style for rongaiboys
 		$scope.dynamicReportCrdCss = "customSettingReportCard.css";
 	}
-	console.log($scope.dynamicReportCrdCss);
+	// console.log($scope.isSchool);
 
 	$scope.report = {};
 	$scope.report.published = false;
@@ -102,10 +102,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			{
 				var params = $rootScope.currentUser.emp_id + '/' + true;
 				apiService.getTeacherStudents(params, loadStudents, apiError);
+				// apiService.getStreamPosition(params, loadStudents, apiError);
 			}
 			else
 			{
 				apiService.getAllStudents(true, loadStudents, apiError);
+				// apiService.getStreamPosition(params, loadStudents, apiError);
 			}
 		}
 
@@ -263,6 +265,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.overallLastTerm = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
+		// $scope.streamPosition = {};
 		//$scope.examTypes = {};
 		$scope.reportData = undefined;
 	};
@@ -277,6 +280,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.overallLastTerm = {};
 		$scope.graphPoints = {};
 		$scope.currentClassPosition = {};
+		// $scope.streamPosition = {};
 		$scope.reportData = undefined;
 		$scope.comments = {};
 		$scope.recreated = false;
@@ -423,12 +427,31 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		// console.log(response);
 		// $scope.streamRank = result.data.streamRank;
-		$scope.streamRankPosition = result.data.streamRank[0].position;
-		$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
+		var school = window.location.host.split('.')[0];
+		if (school == "karemeno" || school == "rongaiboys"){
+			$scope.streamRankPosition = result.data.streamRankByMarks[0].position;
+			$scope.streamRankOutOf = result.data.streamRankByMarks[0].position_out_of;
 
-		$scope.streamRankLastTerm = result.data.streamRankLastTerm;
-		$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
-		$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
+			$scope.streamRankLastTerm = result.data.streamRankLastTermByMarks;
+			$scope.streamRankPositionLastTerm = result.data.streamRankLastTermByMarks[0].position;
+			$scope.streamRankOutOfLastTerm = result.data.streamRankLastTermByMarks[0].position_out_of;
+			console.log("By Marks");
+		}else if (school == "newlightgirls"){
+			$scope.streamRankPosition = result.data.streamRank[0].position;
+			$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
+
+			$scope.streamRankLastTerm = result.data.streamRankLastTerm;
+			$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
+			$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
+			console.log("By Points");
+		}
+
+		// $scope.streamRankPosition = result.data.streamRank[0].position;
+		// $scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
+		//
+		// $scope.streamRankLastTerm = result.data.streamRankLastTerm;
+		// $scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
+		// $scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
 
 			localStorage.setItem('printStreamRank', $scope.streamRankPosition);
 			var getPrintRank = localStorage.getItem("printStreamRank");
@@ -995,7 +1018,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			thisTermPercentage: $scope.thisTermPercentage
 		}
 
-		var domain = window.location.host;
+		// var domain = window.location.host;
+		var domain = "localhost:8008/highschool";
+		console.log(domain);
 		var newWindowRef = window.open('http://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
 	}
@@ -1017,6 +1042,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						$scope.overallLastTerm = {};
 						$scope.graphPoints = {};
 						$scope.currentClassPosition = {};
+						// $scope.streamPosition = {};
 						$scope.reportData = undefined;
 						$scope.comments = {};
 						$scope.recreated = false;
@@ -1047,6 +1073,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 
 		$scope.reportData.position = $scope.overall;
+		// $scope.reportData.stream_position = $scope.streamPosition;
 		$scope.reportData.position_last_term = $scope.overallLastTerm;
 		$scope.reportData.totals = $scope.totals;
 		$scope.reportData.comments = $scope.comments;
