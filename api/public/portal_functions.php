@@ -91,10 +91,11 @@ $app->post('/parentLogin', function () use($app) {
                   INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
                   INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
                   INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-                  WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
+                  WHERE (communications.student_id = any(:studentIds) OR communications.student_id is null)
                   AND communications.post_status_id = 1
-                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
-                  ORDER BY creation_date desc");
+                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
+                  OR communications.audience_id IN (SELECT audience_id FROM app.communication_audience WHERE audience_id IN (1,2,5,6,7)))
+                  ORDER BY com_id DESC");
 
         $studentsArray = "{" . implode(',',$students) . "}";
         $sth5->execute(array(':studentIds' => $studentsArray));
@@ -264,8 +265,9 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                 INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
                 WHERE (communications.student_id = any(:studentIds) OR communications.student_id is null)
                 AND communications.post_status_id = 1
-                AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
-                ORDER BY creation_date desc");
+                AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
+                OR communications.audience_id NOT IN (SELECT audience_id FROM app.communication_audience WHERE audience_id IN (1,2,5,6,7)))
+                ORDER BY com_id DESC");
 
       $studentsArray = "{" . implode(',',$students) . "}";
       $sth5->execute(array(':studentIds' => $studentsArray));
@@ -695,6 +697,7 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
                                     coalesce((select sum(payment_inv_items.amount) from app.payments inner join app.payment_inv_items on payments.payment_id = payment_inv_items.payment_id where student_id = :studentID),0) as total_paid
                                   FROM app.invoices
                                   WHERE student_id = :studentID
+                                  --AND date_part('year', due_date) = date_part('year',now())
                                   AND canceled = false
                                 )q");
       $balanceQry->execute( array(':studentID' => $studentId));
