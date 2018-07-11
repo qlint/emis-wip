@@ -1497,7 +1497,7 @@ table.clickable tr {
   .dataFilterForm {
     position: static;
     background: #eee;
-    width: auto;
+    width: 83%;
     border-top-right-radius: 10px;
     padding: 5px 0;
     display: inline-block;
