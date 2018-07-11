@@ -278,6 +278,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getTeacherClassSubjects/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getClassSubjects = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassSubjects/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getSubjects = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getSubjects/" + param, successFunction, errorFunction, params);
 	};
@@ -347,6 +351,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getAllClassExams = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getAllClassExams/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getClassStudentsWithExamInTerm = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassStudentsWithExamInTerm/" + param, successFunction, errorFunction, params);
 	};
 
 	this.addExamType = function (request, successFunction, errorFunction, params) {
@@ -471,6 +479,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getMISLogin = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getMISLogin/" + param, successFunction, errorFunction, params);
+	};
+
+	this.postUserRequest = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/postUserRequest", successFunction, errorFunction, params);
 	};
 
 	this.checkUsername = function (param, successFunction, errorFunction, params) {
