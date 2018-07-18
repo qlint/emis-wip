@@ -775,27 +775,20 @@ $app->get('/getStudentClasses/:studentId', function ($studentId) {
   try
   {
     $db = getDB();
-    $sth = $db->prepare("SELECT foo.*, foo2.entity_id FROM
-                          (SELECT 1 as ord, student_id, class_id, class_name,
-                          	case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 1') then true else false end as term_1,
-                          	case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 2') then true else false end as term_2,
-                          	case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
-                          FROM app.students
-                          INNER JOIN app.classes ON students.current_class = classes.class_id
-                          WHERE student_id = :studentId
-                          UNION
-                          SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
-                          FROM app.student_class_history
-                          INNER JOIN app.classes ON student_class_history.class_id = classes.class_id
-                          WHERE student_id = :studentId
-                          AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId)
-                          ORDER BY ord)AS foo
-                          FULL OUTER JOIN
-                          (SELECT classes.class_id, cc.class_cat_id, cc.entity_id
-                          FROM app.class_cats cc
-                          INNER JOIN app.classes ON cc.class_cat_id = classes.class_cat_id
-                          WHERE class_id = (SELECT current_class FROM app.students WHERE student_id=:studentId))AS foo2
-                          ON foo.class_id = foo2.class_id");
+    $sth = $db->prepare("SELECT 1 as ord, student_id, class_id, class_name,
+                case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 1') then true else false end as term_1,
+                case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 2') then true else false end as term_2,
+                case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
+              FROM app.students
+              INNER JOIN app.classes ON students.current_class = classes.class_id
+              WHERE student_id = :studentId
+              UNION
+              SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
+              FROM app.student_class_history
+              INNER JOIN app.classes ON student_class_history.class_id = classes.class_id
+              WHERE student_id = :studentId
+              AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId)
+              ORDER BY ord");
     $sth->execute( array(':studentId' => $studentId) );
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -854,8 +847,6 @@ $app->post('/addStudent', function () use($app) {
   $emergencyContact =       ( isset($allPostVars['emergency_name']) ? $allPostVars['emergency_name']: null);
   $emergencyRelation =      ( isset($allPostVars['emergency_relationship']) ? $allPostVars['emergency_relationship']: null);
   $emergencyPhone =         ( isset($allPostVars['emergency_telephone']) ? $allPostVars['emergency_telephone']: null);
-  $kcpeMarks =         ( isset($allPostVars['kcpe_marks']) ? $allPostVars['kcpe_marks']: null);
-  $schoolHouse =         ( isset($allPostVars['school_house']) ? $allPostVars['school_house']: null);
   $pickUpIndividual =       ( isset($allPostVars['pick_up_drop_off_individual']) ? $allPostVars['pick_up_drop_off_individual']: null);
   $installmentOption =      ( isset($allPostVars['installment_option']) ? $allPostVars['installment_option']: null);
   $routeId =                ( isset($allPostVars['route_id']) ? $allPostVars['route_id']: null);
@@ -890,11 +881,11 @@ $app->post('/addStudent', function () use($app) {
                                 hospitalized_description, current_medical_treatment, current_medical_treatment_description,
                                 other_medical_conditions, other_medical_conditions_description,
                                 emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual,
-                                installment_option_id, new_student, transport_route_id, kcpe_marks, school_house)
+                                installment_option_id, new_student, transport_route_id)
             VALUES(:admissionNumber,:gender,:firstName,:middleName,:lastName,:dob,:studentCat,:studentType,:nationality,:studentImg, :currentClass, :paymentMethod, :active, :createdBy,
           :admissionDate, :marialStatusParents, :adopted, :adoptedAge, :maritalSeparationAge, :adoptionAware, :comments, :hasMedicalConditions, :hospitalized,
           :hospitalizedDesc, :currentMedicalTreatment, :currentMedicalTreatmentDesc, :otherMedicalConditions, :otherMedicalConditionsDesc,
-          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId, :kcpeMarks, :schoolHouse);");
+          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId);");
 
     $studentClassInsert = $db->prepare("INSERT INTO app.student_class_history(student_id,class_id,created_by)
                       VALUES(currval('app.students_student_id_seq'),:currentClass,:createdBy);");
@@ -931,9 +922,12 @@ $app->post('/addStudent', function () use($app) {
                     employer_address = :guardianEmployerAddress,
                     work_email = :guardianWorkEmail,
                     work_phone = :guardianWorkPhone,
+                    password = :guardianPassword,
                     modified_date = now(),
                     modified_by = :createdBy
-                  WHERE guardian_id = :guardianId");
+                  WHERE guardian_id = :guardianId;");
+      //$guardianUpdatePwd = $db->("SELECT 1 FROM dblink('host=localhost user=postgres password=postgres dbname=eduweb_mis','UPDATE parents SET password = :guardianPassword WHERE email = :guardianWorkEmail')
+		//AS  tb2(password character varying);")
 
       $guardianUpdate2 = $db->prepare("INSERT INTO app.student_guardians(student_id, guardian_id, relationship, created_by)
                       VALUES(currval('app.students_student_id_seq'), :guardianId, :guardianRelationship,  :createdBy)");
@@ -992,9 +986,7 @@ $app->post('/addStudent', function () use($app) {
               ':pickUpIndividual' => $pickUpIndividual,
               ':installmentOption' => $installmentOption,
               ':newStudent' => $newStudent,
-              ':routeId' => $routeId,
-              ':kcpeMarks' => $kcpeMarks,
-              ':schoolHouse' => $schoolHouse
+              ':routeId' => $routeId
     ) );
 
     $studentClassInsert->execute(array(':currentClass' => $currentClass,':createdBy' => $createdBy));
@@ -1037,7 +1029,9 @@ $app->post('/addStudent', function () use($app) {
                 ':guardianEmployerAddress' => $guardianEmployerAddress,
                 ':guardianWorkEmail' => $guardianWorkEmail,
                 ':guardianWorkPhone' => $guardianWorkPhone,
+                ':guardianPassword' => $guardianPassword,
                 ':createdBy' => $createdBy) );
+          //$guardianUpdatePwd->execute(array( ':guardianWorkEmail' => $guardianWorkEmail, ':guardianPassword' => $guardianPassword ) );
           $guardianUpdate2->execute(array(':guardianId' =>  $guardian['guardian_id'],
                           ':guardianRelationship' => $guardianRelationship,
                           ':createdBy' => $createdBy));
@@ -1183,8 +1177,6 @@ $app->put('/updateStudent', function () use($app) {
     $newStudent =       ( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: 'f');
     $admissionNumber =    ( isset($allPostVars['details']['admission_number']) ? $allPostVars['details']['admission_number']: null);
     $admissionDate =    ( isset($allPostVars['details']['admission_date']) ? $allPostVars['details']['admission_date']: null);
-    $kcpeMarks =          ( isset($allPostVars['details']['kcpe_marks']) ? $allPostVars['details']['kcpe_marks']: null);
-    $schoolHouse =          ( isset($allPostVars['details']['school_house']) ? $allPostVars['details']['school_house']: null);
   }
 
   if( isset($allPostVars['family']) )
@@ -1248,9 +1240,7 @@ $app->put('/updateStudent', function () use($app) {
             admission_date= :admissionDate,
             admission_number= :admissionNumber,
             modified_date = now(),
-            modified_by = :userId,
-            kcpe_marks = :kcpeMarks,
-            school_house = :schoolHouse
+            modified_by = :userId
           WHERE student_id = :studentId"
       );
 
@@ -1401,9 +1391,7 @@ $app->put('/updateStudent', function () use($app) {
               ':newStudent' => $newStudent,
               ':admissionDate' => $admissionDate,
               ':admissionNumber' => $admissionNumber,
-              ':userId' => $userId,
-              ':kcpeMarks' => $kcpeMarks,
-              ':schoolHouse' => $schoolHouse
+              ':userId' => $userId
       ) );
       if( $updateClass )
       {
@@ -2073,7 +2061,7 @@ $app->get('/getMISLogin/:id_number', function ($idNumber) {
   {
     $db = getLoginDB();
     $sth = $db->prepare("SELECT parent_id, first_name, middle_name, last_name, email, id_number, active as login_active, username,
-                  first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name,
+                  password, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name,
                   (SELECT array_agg(student_id) FROM parent_students WHERE parent_id = parents.parent_id) as student_ids
               FROM parents
               WHERE id_number = :idNumber");
