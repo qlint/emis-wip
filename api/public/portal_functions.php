@@ -266,7 +266,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                 WHERE (communications.student_id = any(:studentIds) OR communications.student_id is null)
                 AND communications.post_status_id = 1
                 AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
-                OR communications.audience_id NOT IN (SELECT audience_id FROM app.communication_audience WHERE audience_id IN (1,2,5,6,7)))
+                OR communications.audience_id IN (SELECT audience_id FROM app.communication_audience WHERE audience_id IN (1,2,5,6,7)))
                 ORDER BY com_id DESC");
 
       $studentsArray = "{" . implode(',',$students) . "}";
