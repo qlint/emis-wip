@@ -282,6 +282,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getClassSubjects/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getClassCatSubjects = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassCatSubjects/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getSubjects = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getSubjects/" + param, successFunction, errorFunction, params);
 	};
@@ -292,6 +296,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.updateSubject = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateSubject", successFunction, errorFunction, params);
+	};
+
+	this.setTemporaryTeacher = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/setTemporaryTeacher", successFunction, errorFunction, params);
+	};
+
+	this.updateTemporaryTeacher = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/updateTemporaryTeacher", successFunction, errorFunction, params);
 	};
 
 	this.setSubjectStatus = function (request, successFunction, errorFunction, params) {
