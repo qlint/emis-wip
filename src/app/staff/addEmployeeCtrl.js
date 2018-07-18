@@ -37,7 +37,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}, []);
 			$scope.employee.emp_cat_id = newVal.emp_cat_id;
 
-			if( newVal.emp_cat_name == 'Teaching' ) $scope.employee.user_type = 'TEACHER';
+			if( newVal.emp_cat_name == 'Teaching' ){ $scope.employee.user_type = 'TEACHER';}
+			else if( newVal.emp_cat_name == 'Admin' || newVal.emp_cat_name == 'ADMIN' ){ $scope.employee.user_type = 'ADMIN';}
 		}
 
 	});
@@ -57,7 +58,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		// show small dialog with add form
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://localhost:8008/highschool/app/school/departmentForm.html','departmentFormCtrl',{emp_cat_name: $scope.employee.emp_cat.emp_cat_name},{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('http://' + domain + '/app/school/departmentForm.html','departmentFormCtrl',{emp_cat_name: $scope.employee.emp_cat.emp_cat_name},{size: 'md',backdrop:'static'});
+		// var dlg = $dialogs.create('http://localhost:8008/highschool/app/school/departmentForm.html','departmentFormCtrl',{emp_cat_name: $scope.employee.emp_cat.emp_cat_name},{size: 'md',backdrop:'static'});
 		dlg.result.then(function(){
 
 			// update departments
