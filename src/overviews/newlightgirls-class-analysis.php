@@ -15,7 +15,7 @@ header('Access-Control-Allow-Origin: *');
 	<link rel="stylesheet" type="text/css" href="../components/overviewFiles/css/main.css">
   <link rel="stylesheet" type="text/css" href="../components/overviewFiles/css/jquery.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="../components/overviewFiles/css/buttons.dataTables.min.css">
-  <title>Streams Analysis</title>
+  <title>Class Analysis</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 </head>
 <body>
@@ -45,7 +45,7 @@ header('Access-Control-Allow-Origin: *');
   </nav>
   <!-- End of Header Nav -->
   <div class="limiter">
-    <h4 style="text-align:center;margin-top:85px;">This page overviews the student's performance in the entire stream in a given term.</h4>
+    <h4 style="text-align:center;margin-top:85px;">This page overviews the student's performance in the class in a given term.</h4>
     <div style="border: 3px dashed #397C49; width:20%; margin-left:auto;margin-right:auto;text-align:center;padding-bottom:7px;padding-top:7px;">
       <h5 style="text-align:center;">Select A Term &amp; Class.</h5>
       <form style="margin-left:auto; margin-right:auto; text-align:center;" action="#" method="post">
@@ -98,203 +98,436 @@ $db = pg_connect("host=localhost port=5432 dbname=eduweb_highschool_newlightgirl
 // $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
 // $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
 
+if($class == 1 || $class == 2){
 
-/* -------------------------CLASS QUERY ------------------------- */
-$table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
-                          (
-                          /* CREATE EXTENSION tablefunc; */
+        /* -------------------------CLASS QUERY FOR FORM ONE'S ------------------------- */
+        $table1 = pg_query($db,"SELECT student_name, class_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tm, trunc(cast(tot as numeric),3) as tot, round((tot::float/12)*100) as percentage, (select grade from app.grading where round((tot::float/12)*100) between min_mark and max_mark) as grade, pos,
+	(SELECT count(distinct student_name) FROM (
+							SELECT student_name, sum(done_subj) as done_subj, trunc(cast(avg(sat_et) as numeric),1) as sat_et FROM (
+								SELECT distinct student_name, subject_name, count(mark) as done_subj, count(exam_type_id) as sat_et FROM (
+									SELECT first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,classes.class_id,subject_name,
+										coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,
+										class_subject_exams.exam_type_id, exam_type,
+										exam_marks.student_id,mark,grade_weight,subjects.sort_order
+									FROM app.exam_marks
+									INNER JOIN app.class_subject_exams
+									INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+									INNER JOIN app.class_subjects
+									INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+									INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+												ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+												ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+									INNER JOIN app.students ON exam_marks.student_id = students.student_id
+									WHERE class_subjects.class_id = $class
+									AND term_id = $term
+									--AND class_subject_exams.exam_type_id = 13
+									AND subjects.use_for_grading is true
+									AND students.active is true
+									WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
+								)a WHERE mark is not null
+								GROUP BY a.student_name, a.subject_name
+								ORDER BY student_name ASC
+							)c
+							GROUP BY c.student_name
+						)d
+						WHERE sat_et = (case
+									WHEN (SELECT is_last_exam FROM app.exam_types
+										WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class))
+										ORDER BY exam_type_id DESC LIMIT 1) IS TRUE THEN
+											3.0
+									WHEN (SELECT is_last_exam FROM app.exam_types
+										WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class))
+										ORDER BY exam_type_id DESC LIMIT 1) IS FALSE THEN
+											2.0
+									end)
+							AND sat_et = (case
+									WHEN (SELECT is_last_exam FROM app.exam_types
+										WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class))
+										ORDER BY exam_type_id DESC LIMIT 1) IS TRUE THEN
+											3.0
+									WHEN (SELECT is_last_exam FROM app.exam_types
+										WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class))
+										ORDER BY exam_type_id DESC LIMIT 1) IS FALSE THEN
+											2.0
+									end)) AS position_out_of FROM (
+      SELECT t1.*, t2.avg as tot, t2.position as pos, t2.class_name, t2.total_mark as tm
+FROM
+(
+/* CREATE EXTENSION tablefunc; */
 
-                          SELECT *
-                          FROM   crosstab('SELECT student_name, subject_name, marks FROM (
-                          			SELECT student_name, subject_name, sum(mark) as marks, sum(grade_weight) as grade_weight FROM(
-                          				SELECT student_name, class_id, subject_name, parent_subject_name, exam_type_id, exam_type, student_id, sort_order,
-                          				(case
-                          					WHEN count = 1 THEN
-                          						mark
-                          					WHEN count = 2 THEN
-                          						sum(mark)
-                          					WHEN count = 3 THEN
-                          						(CASE
-                          							WHEN is_last_exam is true THEN
-                          								round(mark * 0.7)
+SELECT *
+FROM   crosstab('WITH t AS (
+      SELECT student_name, subject_name, sum(marks) AS marks, sum(et_count) AS et_count, sum(subj_count) AS subj_count FROM (
+				SELECT student_id, student_name, class_name, exam_type_id, exam_type, subject_name, total_mark as marks_bak, t_mark2 as marks, total_grade_weight as out_of_bak, tg_weight2 as out_of, percentage, grade, sort_order,
+					COUNT(exam_type_id) AS et_count, COUNT(subject_name) AS subj_count
+				FROM(
+					SELECT  student_id, student_name, class_name, exam_type_id, exam_type, subject_name,
+					total_mark,
+					(CASE
+					WHEN is_last_exam is true THEN
+					round(total_mark *0.7)
 
-                          							WHEN is_last_exam is false THEN
-                          								round(mark * 0.3)
-                          						END)
-                          				end) as mark,
-                          				(case
-                          					WHEN count = 1 THEN
-                          						grade_weight
-                          					WHEN count = 2 THEN
-                          						sum(grade_weight)
-                          					WHEN count = 3 THEN
-                          						(CASE
-                          							WHEN is_last_exam is true THEN
-                          								round(grade_weight * 0.7)
+					WHEN is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam is TRUE AND class_cat_id=(select class_cat_id from app.classes where class_id = $class limit 1)) THEN
+					round(coalesce(sum(total_mark),0)*0.3)
 
-                          							WHEN is_last_exam is false THEN
-                          								round(grade_weight * 0.3)
-                          						END)
-                          				end) as grade_weight FROM (
-                          					SELECT student_name, class_id, subject_name, parent_subject_name, exam_type_id, (SELECT count(distinct cse.exam_type_id) FROM app.class_subject_exams cse INNER JOIN app.class_subjects cs ON cse.class_subject_id = cs.class_subject_id INNER JOIN app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id WHERE cs.class_id = $class AND term_id = $term) as count, exam_type, is_last_exam, student_id, mark, grade_weight, sort_order FROM (
-                          						SELECT first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name,classes.class_id,subject_name,
-                          							  coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,
-                          							  class_subject_exams.exam_type_id,exam_type,is_last_exam,exam_marks.student_id,mark,grade_weight,subjects.sort_order
-                          						FROM app.exam_marks
-                          						INNER JOIN app.class_subject_exams
-                          						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-                          						INNER JOIN app.class_subjects
-                          						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
-                          						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-                          						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-                          						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-                          						INNER JOIN app.students ON exam_marks.student_id = students.student_id
-                          						WHERE class_subjects.class_id = $class
-                          						AND term_id = $term
-                          						AND subjects.use_for_grading is true
-                          						AND students.active is true
+					WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam is TRUE AND class_cat_id=(select class_cat_id from app.classes where class_id = $class limit 1)) THEN
+					coalesce(sum(total_mark),0)
 
-                          						WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
-                          						)one
-                          						)two
-                          						GROUP BY student_name, class_id, subject_name, parent_subject_name, exam_type_id, exam_type, student_id, sort_order, count, mark, grade_weight, is_last_exam
-                          						ORDER BY student_name ASC, sort_order ASC, exam_type_id ASC
-                          						)three
-                          						GROUP BY student_name, subject_name
-                          						ORDER BY student_name ASC
-                          						)four
-                          ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $class) order by sort_order') AS ct (student_name text, english numeric, kiswahili numeric, mathematics numeric, biology numeric, physics numeric, chemistry numeric, history numeric, geography numeric, cre numeric, computer numeric, french numeric, bst numeric)
+					END) as t_mark2,
+					total_grade_weight,
+					(CASE
+					WHEN is_last_exam is true THEN
+					round(total_grade_weight *0.7)
 
-                          ) AS t1
-                          FULL OUTER JOIN
-                          (
-                            SELECT student_name, marks, grade_weight, points, rank() over(order by points desc) as rank FROM (
-					SELECT student_name, sum(marks) as marks, avg(points) as points, sum(grade_weight) as grade_weight FROM (
-						SELECT student_name, subject_name, sum(mark) as marks, (SELECT points FROM app.grading WHERE sum(mark) between min_mark and max_mark) AS points, sum(grade_weight) as grade_weight FROM(
-                          				SELECT student_name, class_id, subject_name, parent_subject_name, exam_type_id, exam_type, student_id, sort_order,
-                          				(case
-                          					WHEN count = 1 THEN
-                          						mark
-                          					WHEN count = 2 THEN
-                          						sum(mark)
-                          					WHEN count = 3 THEN
-                          						(CASE
-                          							WHEN is_last_exam is true THEN
-                          								round(mark * 0.7)
+					WHEN is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam is TRUE AND class_cat_id=(select class_cat_id from app.classes where class_id = $class limit 1)) THEN
+					round(coalesce(sum(total_grade_weight),0)*0.3)
 
-                          							WHEN is_last_exam is false THEN
-                          								round(mark * 0.3)
-                          						END)
-                          				end) as mark,
-                          				(case
-                          					WHEN count = 1 THEN
-                          						grade_weight
-                          					WHEN count = 2 THEN
-                          						sum(grade_weight)
-                          					WHEN count = 3 THEN
-                          						(CASE
-                          							WHEN is_last_exam is true THEN
-                          								round(grade_weight * 0.7)
+					WHEN not exists (select is_last_exam from app.exam_types where is_last_exam is TRUE AND class_cat_id=(select class_cat_id from app.classes where class_id = $class limit 1)) THEN
+					coalesce(sum(total_grade_weight),0)
 
-                          							WHEN is_last_exam is false THEN
-                          								round(grade_weight * 0.3)
-                          						END)
-                          				end) as grade_weight FROM (
-                          					SELECT student_name, class_id, subject_name, parent_subject_name, exam_type_id, (SELECT count(distinct cse.exam_type_id) FROM app.class_subject_exams cse INNER JOIN app.class_subjects cs ON cse.class_subject_id = cs.class_subject_id INNER JOIN app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id WHERE cs.class_id = ". $class ." AND term_id = ". $term .") as count, exam_type, is_last_exam, student_id, mark, grade_weight, sort_order FROM (
-                          						SELECT first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,classes.class_id,subject_name,
-                          							  coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'') as parent_subject_name,
-                          							  class_subject_exams.exam_type_id,exam_type,is_last_exam,exam_marks.student_id,mark,grade_weight,subjects.sort_order
-                          						FROM app.exam_marks
-                          						INNER JOIN app.class_subject_exams
-                          						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-                          						INNER JOIN app.class_subjects
-                          						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
-                          						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-                          						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-                          						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-                          						INNER JOIN app.students ON exam_marks.student_id = students.student_id
-                          						WHERE class_subjects.class_id = ". $class ."
-                          						AND term_id = ". $term ."
-                          						AND subjects.use_for_grading is true
-                          						AND students.active is true AND exam_marks.mark IS NOT null
+					END) as tg_weight2,
+					round(total_mark::float/total_grade_weight::float*100) as percentage,
+					(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade, sort_order
+					FROM (
+						SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || '' '' || coalesce(students.middle_name,'''') || '' '' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+						coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, class_subject_exams.exam_type_id, exam_type, is_last_exam
+						FROM app.exam_marks
+						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+						INNER JOIN app.class_subject_exams
+						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects
+						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+						INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
+						WHERE class_subject_exams.class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class )
+						AND term_id = $term
+						AND subjects.parent_subject_id is null
+						AND subjects.use_for_grading is true
+						AND mark IS NOT NULL AND students.active IS TRUE
+						GROUP BY class_subjects.class_id, subjects.subject_name, class_subject_exams.exam_type_id, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type, exam_types.is_last_exam
+					) q GROUP BY student_id, student_name, class_name, exam_type_id, exam_type, subject_name, total_mark, total_grade_weight, is_last_exam, sort_order
+					ORDER BY sort_order
+				)v GROUP BY v.student_id, v.student_name, v.class_name, v.exam_type_id, v.exam_type, v.subject_name, v.total_mark, v.total_grade_weight, v.percentage, v.grade, v.sort_order, v.t_mark2, v.tg_weight2
+				ORDER BY student_name ASC, sort_order ASC
+			)a
+			GROUP BY student_name, subject_name
+			ORDER BY student_name ASC
+     )
+SELECT student_name, subject_name, marks FROM t WHERE NOT EXISTS (SELECT *
+                                FROM t y
+                                WHERE y.student_name = t.student_name
+                                      AND (y.et_count <> 3
+                                           OR y.subj_count <> 3))
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (select class_cat_id from app.classes where class_id = $class limit 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, bs_studies bigint, french bigint)
 
-                          						WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
-                          						)one
-                          						)two
-                          						GROUP BY student_name, class_id, subject_name, parent_subject_name, exam_type_id, exam_type, student_id, sort_order, count, mark, grade_weight, is_last_exam
-                          						ORDER BY student_name ASC, sort_order ASC, exam_type_id ASC
-                          						)three
-                          						GROUP BY student_name, subject_name
-                          						ORDER BY student_name ASC
-                          						)points
-                          						GROUP BY student_name
-                          						)ranked
-                          ) AS t2
-                          ON t1.student_name = t2.student_name
-                          FULL OUTER JOIN
-                          (
-                          SELECT student_name, sum(marks) as marks, sum(grade_weight) as total FROM (
-                          			SELECT student_name, subject_name, sum(mark) as marks, sum(grade_weight) as grade_weight FROM(
-                          				SELECT student_name, class_id, subject_name, parent_subject_name, exam_type_id, exam_type, student_id, sort_order,
-                          				(case
-                          					WHEN count = 1 THEN
-                          						mark
-                          					WHEN count = 2 THEN
-                          						sum(mark)
-                          					WHEN count = 3 THEN
-                          						(CASE
-                          							WHEN is_last_exam is true THEN
-                          								round(mark * 0.7)
+) AS t1
+    FULL OUTER JOIN
+    (
+	SELECT * FROM (
+		SELECT student_id, total_mark, avg, student_name, class_name, rank() over(order by avg desc) AS position,
+			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id WHERE class_id = $class AND students.active is true) AS position_out_of
+		FROM (
+			SELECT sum(total_mark) as total_mark, trunc(cast(sum(points)::float/8 as numeric),3) AS avg, student_id, student_name, class_name, avg(et_count) as et_count, sum(subj_count) AS subj_count
+			FROM (
+				SELECT student_id, student_name, class_name, subject_name, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, (SELECT points FROM app.grading WHERE sum(total_mark) between min_mark and max_mark) AS points,
+					COUNT(exam_type_id) AS et_count, COUNT(subject_name) AS subj_count
+				FROM (
+					SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+						(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
+						sort_order, exam_type_id, student_id, student_name, class_name, is_last_exam
+					FROM (
+		  SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
+							--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+							--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
 
-                          							WHEN is_last_exam is false THEN
-                          								round(mark * 0.3)
-                          						END)
-                          				end) as mark,
-                          				(case
-                          					WHEN count = 1 THEN
-                          						grade_weight
-                          					WHEN count = 2 THEN
-                          						sum(grade_weight)
-                          					WHEN count = 3 THEN
-                          						(CASE
-                          							WHEN is_last_exam is true THEN
-                          								round(grade_weight * 0.7)
+								WHEN exam_types.is_last_exam is false and (select et.is_last_exam from app.exam_types et inner join app.class_subject_exams cse ON et.exam_type_id = cse.exam_type_id inner join app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id where is_last_exam = 'TRUE' AND class_cat_id IN (select class_cat_id from app.classes where class_id = $class) AND em.term_id = $term LIMIT 1) IS NOT NULL THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
 
-                          							WHEN is_last_exam is false THEN
-                          								round(grade_weight * 0.3)
-                          						END)
-                          				end) as grade_weight FROM (
-                          					SELECT student_name, class_id, subject_name, parent_subject_name, exam_type_id, (SELECT count(distinct cse.exam_type_id) FROM app.class_subject_exams cse INNER JOIN app.class_subjects cs ON cse.class_subject_id = cs.class_subject_id INNER JOIN app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id WHERE cs.class_id = ". $class ." AND term_id = ". $term .") as count, exam_type, is_last_exam, student_id, mark, grade_weight, sort_order FROM (
-                          						SELECT first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,classes.class_id,subject_name,
-                          							  coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'') as parent_subject_name,
-                          							  class_subject_exams.exam_type_id,exam_type,is_last_exam,exam_marks.student_id,mark,grade_weight,subjects.sort_order
-                          						FROM app.exam_marks
-                          						INNER JOIN app.class_subject_exams
-                          						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-                          						INNER JOIN app.class_subjects
-                          						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
-                          						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-                          						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-                          						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-                          						INNER JOIN app.students ON exam_marks.student_id = students.student_id
-                          						WHERE class_subjects.class_id = ". $class ."
-                          						AND term_id = ". $term ."
-                          						AND subjects.use_for_grading is true
-                          						AND students.active is true AND exam_marks.mark IS NOT null
+								WHEN not exists (select et.is_last_exam from app.exam_types et inner join app.class_subject_exams cse ON et.exam_type_id = cse.exam_type_id inner join app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id where is_last_exam = 'TRUE' AND class_cat_id IN (select class_cat_id from app.classes where class_id = $class) AND em.term_id = $term LIMIT 1) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
 
-                          						WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
-                          						)one
-                          						)two
-                          						GROUP BY student_name, class_id, subject_name, parent_subject_name, exam_type_id, exam_type, student_id, sort_order, count, mark, grade_weight, is_last_exam
-                          						ORDER BY student_name ASC, sort_order ASC, exam_type_id ASC
-                          						)three
-                          						GROUP BY student_name, subject_name
-                          						ORDER BY student_name ASC
-                          						)four
-                          						GROUP BY student_name ORDER BY student_name ASC
-                          ) AS t3
-                          ON t2.student_name = t3.student_name
-                          ");
+							END) as total_mark,
+							/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
+
+								WHEN exam_types.is_last_exam is false and (select et.is_last_exam from app.exam_types et inner join app.class_subject_exams cse ON et.exam_type_id = cse.exam_type_id inner join app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id where is_last_exam = 'TRUE' AND class_cat_id IN (select class_cat_id from app.classes where class_id = $class) AND em.term_id = $term LIMIT 1) IS NOT NULL THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
+
+								WHEN not exists (select et.is_last_exam from app.exam_types et inner join app.class_subject_exams cse ON et.exam_type_id = cse.exam_type_id inner join app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id where is_last_exam = 'TRUE' AND class_cat_id IN (select class_cat_id from app.classes where class_id = $class) AND em.term_id = $term LIMIT 1) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
+
+							END) as total_grade_weight,
+							subjects.sort_order, class_subject_exams.exam_type_id, is_last_exam
+						FROM app.exam_marks
+						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+						INNER JOIN app.class_subject_exams
+						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects
+						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+						INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+									 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+									 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						WHERE class_subject_exams.class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class)
+						AND term_id = $term
+						AND subjects.parent_subject_id is null
+						AND subjects.use_for_grading is true
+						AND students.student_id = exam_marks.student_id
+						AND mark IS NOT NULL AND students.active IS TRUE
+		  GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
+							use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
+					) q ORDER BY student_name ASC, sort_order
+				)q2
+				GROUP BY student_id, student_name, class_name, subject_name ORDER BY student_name ASC, subject_name ASC
+			) AS foo GROUP BY student_id,student_name, class_name ORDER BY avg DESC
+		) AS FOO2
+		WHERE subj_count = (case
+					WHEN (SELECT is_last_exam FROM app.exam_types
+						WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $class))))
+						ORDER BY exam_type_id DESC LIMIT 1) IS TRUE THEN
+						24
+																	WHEN (SELECT is_last_exam FROM app.exam_types
+					WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $class))))
+						ORDER BY exam_type_id DESC LIMIT 1) IS FALSE THEN
+						16
+				end)
+		AND et_count = (case
+					WHEN (SELECT is_last_exam FROM app.exam_types
+						WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $class))))
+						ORDER BY exam_type_id DESC LIMIT 1) IS TRUE THEN
+						3
+																	WHEN (SELECT is_last_exam FROM app.exam_types
+					WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $class))))
+						ORDER BY exam_type_id DESC LIMIT 1) IS FALSE THEN
+						2
+				end)
+	) AS foo3
+    ) AS t2
+    ON t1.student_name = t2.student_name
+    order by position ASC
+    )foo4 order by pos ASC");
+}else{
+        /* -------------------------CLASS QUERY FOR FORM 2 -4 ------------------------- */
+        $table1 = pg_query($db,"SELECT student_name, class_name, english, kiswahili, mathematics, biology, physics, chemistry, history, geography, cre, computer, bs_studies, french, tm, trunc(cast(tot as numeric),3) as tot, round((tot::float/12)*100) as percentage, (select grade from app.grading where round((tot::float/12)*100) between min_mark and max_mark) as grade, pos,
+	(SELECT count(distinct student_name) FROM (
+							SELECT student_name, sum(done_subj) as done_subj, trunc(cast(avg(sat_et) as numeric),1) as sat_et FROM (
+								SELECT distinct student_name, subject_name, count(mark) as done_subj, count(exam_type_id) as sat_et FROM (
+									SELECT first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,classes.class_id,subject_name,
+										coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,
+										class_subject_exams.exam_type_id, exam_type,
+										exam_marks.student_id,mark,grade_weight,subjects.sort_order
+									FROM app.exam_marks
+									INNER JOIN app.class_subject_exams
+									INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+									INNER JOIN app.class_subjects
+									INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+									INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+												ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+												ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+									INNER JOIN app.students ON exam_marks.student_id = students.student_id
+									WHERE class_subjects.class_id = $class
+									AND term_id = $term
+									--AND class_subject_exams.exam_type_id = 13
+									AND subjects.use_for_grading is true
+									AND students.active is true
+									WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
+								)a WHERE mark is not null
+								GROUP BY a.student_name, a.subject_name
+								ORDER BY student_name ASC
+							)c
+							GROUP BY c.student_name
+						)d
+						WHERE sat_et = (case
+									WHEN (SELECT is_last_exam FROM app.exam_types
+										WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class))
+										ORDER BY exam_type_id DESC LIMIT 1) IS TRUE THEN
+											3.0
+									WHEN (SELECT is_last_exam FROM app.exam_types
+										WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class))
+										ORDER BY exam_type_id DESC LIMIT 1) IS FALSE THEN
+											2.0
+									end)
+							AND sat_et = (case
+									WHEN (SELECT is_last_exam FROM app.exam_types
+										WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class))
+										ORDER BY exam_type_id DESC LIMIT 1) IS TRUE THEN
+											3.0
+									WHEN (SELECT is_last_exam FROM app.exam_types
+										WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class))
+										ORDER BY exam_type_id DESC LIMIT 1) IS FALSE THEN
+											2.0
+									end)) AS position_out_of FROM (
+      SELECT t1.*, t2.avg as tot, t2.position as pos, t2.class_name, t2.total_mark as tm
+FROM
+(
+/* CREATE EXTENSION tablefunc; */
+
+SELECT *
+FROM   crosstab('WITH t AS (
+      SELECT student_name, subject_name, sum(marks) AS marks, sum(et_count) AS et_count, sum(subj_count) AS subj_count FROM (
+				SELECT student_id, student_name, class_name, exam_type_id, exam_type, subject_name, total_mark as marks_bak, t_mark2 as marks, total_grade_weight as out_of_bak, tg_weight2 as out_of, percentage, grade, sort_order,
+					COUNT(exam_type_id) AS et_count, COUNT(subject_name) AS subj_count
+				FROM(
+					SELECT  student_id, student_name, class_name, exam_type_id, exam_type, subject_name,
+					total_mark,
+					(CASE
+					WHEN is_last_exam is true THEN
+					round(total_mark *0.7)
+
+					WHEN is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam is TRUE AND class_cat_id=(select class_cat_id from app.classes where class_id = $class limit 1)) THEN
+					round(coalesce(sum(total_mark),0)*0.3)
+
+					WHEN not exists (select exam_types.is_last_exam from app.exam_types where is_last_exam is TRUE AND class_cat_id=(select class_cat_id from app.classes where class_id = $class limit 1)) THEN
+					coalesce(sum(total_mark),0)
+
+					END) as t_mark2,
+					total_grade_weight,
+					(CASE
+					WHEN is_last_exam is true THEN
+					round(total_grade_weight *0.7)
+
+					WHEN is_last_exam is false and exists (select exam_types.is_last_exam from app.exam_types where is_last_exam is TRUE AND class_cat_id=(select class_cat_id from app.classes where class_id = $class limit 1)) THEN
+					round(coalesce(sum(total_grade_weight),0)*0.3)
+
+					WHEN not exists (select is_last_exam from app.exam_types where is_last_exam is TRUE AND class_cat_id=(select class_cat_id from app.classes where class_id = $class limit 1)) THEN
+					coalesce(sum(total_grade_weight),0)
+
+					END) as tg_weight2,
+					round(total_mark::float/total_grade_weight::float*100) as percentage,
+					(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade, sort_order
+					FROM (
+						SELECT class_name, class_subjects.class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,students.first_name || '' '' || coalesce(students.middle_name,'''') || '' '' || students.last_name AS student_name,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+						coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,subjects.sort_order, class_subject_exams.exam_type_id, exam_type, is_last_exam
+						FROM app.exam_marks
+						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+						INNER JOIN app.class_subject_exams
+						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects
+						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+						INNER JOIN app.class_cats ON exam_types.class_cat_id = class_cats.class_cat_id
+						WHERE class_subject_exams.class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class )
+						AND term_id = $term
+						AND subjects.parent_subject_id is null
+						AND subjects.use_for_grading is true
+						AND mark IS NOT NULL AND students.active IS TRUE
+						GROUP BY class_subjects.class_id, subjects.subject_name, class_subject_exams.exam_type_id, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, students.first_name, students.middle_name, students.last_name, class_name, exam_types.exam_type, exam_types.is_last_exam
+					) q GROUP BY student_id, student_name, class_name, exam_type_id, exam_type, subject_name, total_mark, total_grade_weight, is_last_exam, sort_order
+					ORDER BY sort_order
+				)v GROUP BY v.student_id, v.student_name, v.class_name, v.exam_type_id, v.exam_type, v.subject_name, v.total_mark, v.total_grade_weight, v.percentage, v.grade, v.sort_order, v.t_mark2, v.tg_weight2
+				ORDER BY student_name ASC, sort_order ASC
+			)a
+			GROUP BY student_name, subject_name
+			ORDER BY student_name ASC
+     )
+SELECT student_name, subject_name, marks FROM t WHERE NOT EXISTS (SELECT *
+                                FROM t y
+                                WHERE y.student_name = t.student_name
+                                      AND (y.et_count <> 3
+                                           OR y.subj_count <> 3))
+ORDER BY 1','SELECT subject_name FROM app.subjects WHERE class_cat_id = (select class_cat_id from app.classes where class_id = $class limit 1) order by sort_order') AS ct (student_name text, english bigint, kiswahili bigint, mathematics bigint, biology bigint, physics bigint, chemistry bigint, history bigint, geography bigint, cre bigint, computer bigint, bs_studies bigint, french bigint)
+
+) AS t1
+    FULL OUTER JOIN
+    (
+	SELECT * FROM (
+		SELECT student_id, total_mark, avg, student_name, class_name, rank() over(order by avg desc) AS position,
+			(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id WHERE class_id = $class AND students.active is true) AS position_out_of
+		FROM (
+			SELECT sum(total_mark) as total_mark, trunc(cast(sum(points)::float/8 as numeric),3) AS avg, student_id, student_name, class_name, avg(et_count) as et_count, sum(subj_count) AS subj_count
+			FROM (
+				SELECT student_id, student_name, class_name, subject_name, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, (SELECT points FROM app.grading WHERE sum(total_mark) between min_mark and max_mark) AS points,
+					COUNT(exam_type_id) AS et_count, COUNT(subject_name) AS subj_count
+				FROM (
+					SELECT  subject_name, total_mark, total_grade_weight, ceil(total_mark::float/total_grade_weight::float*100) as percentage,
+						(SELECT grade FROM app.grading WHERE (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) AS grade,
+						sort_order, exam_type_id, student_id, student_name, class_name, is_last_exam
+					FROM (
+		  SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
+							--coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+							--coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.7)
+
+								WHEN exam_types.is_last_exam is false and (select et.is_last_exam from app.exam_types et inner join app.class_subject_exams cse ON et.exam_type_id = cse.exam_type_id inner join app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id where is_last_exam = 'TRUE' AND class_cat_id IN (select class_cat_id from app.classes where class_id = $class) AND em.term_id = $term LIMIT 1) IS NOT NULL THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)*0.3)
+
+								WHEN not exists (select et.is_last_exam from app.exam_types et inner join app.class_subject_exams cse ON et.exam_type_id = cse.exam_type_id inner join app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id where is_last_exam = 'TRUE' AND class_cat_id IN (select class_cat_id from app.classes where class_id = $class) AND em.term_id = $term LIMIT 1) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
+
+							END) as total_mark,
+							/*coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,*/
+							(CASE
+								WHEN exam_types.is_last_exam is true THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.7)
+
+								WHEN exam_types.is_last_exam is false and (select et.is_last_exam from app.exam_types et inner join app.class_subject_exams cse ON et.exam_type_id = cse.exam_type_id inner join app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id where is_last_exam = 'TRUE' AND class_cat_id IN (select class_cat_id from app.classes where class_id = $class) AND em.term_id = $term LIMIT 1) IS NOT NULL THEN
+									round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
+
+								WHEN not exists (select et.is_last_exam from app.exam_types et inner join app.class_subject_exams cse ON et.exam_type_id = cse.exam_type_id inner join app.exam_marks em ON cse.class_sub_exam_id = em.class_sub_exam_id where is_last_exam = 'TRUE' AND class_cat_id IN (select class_cat_id from app.classes where class_id = $class) AND em.term_id = $term LIMIT 1) THEN
+									coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)
+
+							END) as total_grade_weight,
+							subjects.sort_order, class_subject_exams.exam_type_id, is_last_exam
+						FROM app.exam_marks
+						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+						INNER JOIN app.class_subject_exams
+						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects
+						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+						INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
+						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+									 ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+									 ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						WHERE class_subject_exams.class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id = $class)
+						AND term_id = $term
+						AND subjects.parent_subject_id is null
+						AND subjects.use_for_grading is true
+						AND students.student_id = exam_marks.student_id
+						AND mark IS NOT NULL AND students.active IS TRUE
+		  GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
+							use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
+					) q ORDER BY student_name ASC, sort_order
+				)q2
+				GROUP BY student_id, student_name, class_name, subject_name ORDER BY student_name ASC, subject_name ASC
+			) AS foo GROUP BY student_id,student_name, class_name ORDER BY avg DESC
+		) AS FOO2
+		WHERE subj_count = (case
+					WHEN (SELECT is_last_exam FROM app.exam_types
+						WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $class))))
+						ORDER BY exam_type_id DESC LIMIT 1) IS TRUE THEN
+						24
+																	WHEN (SELECT is_last_exam FROM app.exam_types
+					WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $class))))
+						ORDER BY exam_type_id DESC LIMIT 1) IS FALSE THEN
+						16
+				end)
+		AND et_count = (case
+					WHEN (SELECT is_last_exam FROM app.exam_types
+						WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $class))))
+						ORDER BY exam_type_id DESC LIMIT 1) IS TRUE THEN
+						3
+																	WHEN (SELECT is_last_exam FROM app.exam_types
+					WHERE exam_type_id IN (SELECT exam_type_id FROM app.class_subject_exams WHERE class_subject_id IN (SELECT class_subject_id FROM app.class_subjects WHERE class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $class))))
+						ORDER BY exam_type_id DESC LIMIT 1) IS FALSE THEN
+						2
+				end)
+	) AS foo3
+    ) AS t2
+    ON t1.student_name = t2.student_name
+    order by position ASC
+    )foo4 order by pos ASC");
+}
 
                         /* -------------------------CLASS TABLE ------------------------- */
                         echo "<div class='table100 ver1 m-b-110'>";
@@ -317,7 +550,10 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
                                  echo "<th class='cell100 column12'>Fnch.</th>";
                                  echo "<th class='cell100 column13'>B/S.</th>";
                                  echo "<th class='cell100 column14'>TOT.</th>";
-                                 echo "<th class='cell100 column15'>POS.</th>";
+                                 echo "<th class='cell100 column15'>%.</th>";
+                                 echo "<th class='cell100 column16'>GRD.</th>";
+                                 echo "<th class='cell100 column17'>PNTS.</th>";
+                                 echo "<th class='cell100 column18'>POS.</th>";
                                echo "</tr>";
                               echo "</thead>";
                             // echo "</table>";
@@ -339,9 +575,12 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
                                      echo "<td class='cell100 column10'>" . $row['cre'] . "</td>";
                                      echo "<td class='cell100 column11'>" . $row['computer'] . "</td>";
                                      echo "<td class='cell100 column12'>" . $row['french'] . "</td>";
-                                     echo "<td class='cell100 column13'>" . $row['bst'] . "</td>";
-                                     echo "<td class='cell100 column14'>" . $row['marks'] . "</td>";
-                                     echo "<td class='cell100 column15'>" . $row['position'] . "</td>";
+                                     echo "<td class='cell100 column13'>" . $row['bs_studies'] . "</td>";
+                                     echo "<td class='cell100 column14'>" . $row['tm'] . "</td>";
+                                     echo "<td class='cell100 column15'>" . $row['percentage'] . "</td>";
+                                     echo "<td class='cell100 column16'>" . $row['grade'] . "</td>";
+                                     echo "<td class='cell100 column17'>" . $row['tot'] . "</td>";
+                                     echo "<td class='cell100 column18'>" . $row['pos'] . " /" . $row['position_out_of'] . "</td>";
                                  echo "</tr>";
                                 }
                               echo "</tbody>";
@@ -465,7 +704,7 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
                 title: docName + ' Class Analysis'
             }
           ],
-          "order": [[ 14, "asc" ]]
+          "order": [[ 14, "desc" ]]
       } );
       $('#table2').DataTable( {
           fixedHeader: true,
@@ -490,7 +729,7 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
                 title: 'Class Analysis'
             }
           ],
-          "order": [[ 14, "asc" ]]
+          "order": [[ 17, "asc" ]]
       } );
       $('#table3').DataTable( {
           fixedHeader: true,
@@ -515,7 +754,7 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
                 title: 'Class Analysis'
             }
           ],
-          "order": [[ 14, "asc" ]]
+          "order": [[ 17, "asc" ]]
       } );
       $('#table4').DataTable( {
           fixedHeader: true,
@@ -540,7 +779,7 @@ $table1 = pg_query($db,"SELECT t1.*, t3.marks, t2.rank as position FROM
                 title: 'Class Analysis'
             }
           ],
-          "order": [[ 14, "asc" ]]
+          "order": [[ 17, "asc" ]]
       } );
     } );
   </script>
