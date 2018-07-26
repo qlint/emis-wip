@@ -1348,7 +1348,7 @@ $app->get('/getStreamPosition/:student_id/:entityId/:termId', function ($student
 																				ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 																	WHERE class_cats.entity_id = :entityId
 																	AND term_id = :termId
-																	AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND students.student_id = exam_marks.student_id AND mark IS NOT NULL
+																	AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND students.student_id = exam_marks.student_id AND mark IS NOT NULL AND students.active is true
 																	GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
 																		use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name, exam_types.is_last_exam
 																) q GROUP BY student_id, student_name, class_id, class_name, subject_id, subject_name ORDER BY student_id ASC
