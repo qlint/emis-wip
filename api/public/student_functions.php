@@ -850,6 +850,7 @@ $app->post('/addStudent', function () use($app) {
   $pickUpIndividual =       ( isset($allPostVars['pick_up_drop_off_individual']) ? $allPostVars['pick_up_drop_off_individual']: null);
   $installmentOption =      ( isset($allPostVars['installment_option']) ? $allPostVars['installment_option']: null);
   $routeId =                ( isset($allPostVars['route_id']) ? $allPostVars['route_id']: null);
+  $nemisNo =             ( isset($allPostVars['nemis_no']) ? $allPostVars['nemis_no']: null);
 
   // guardian fields
   $guardianData =         ( isset($allPostVars['guardians']) ? $allPostVars['guardians']: null);
@@ -881,11 +882,11 @@ $app->post('/addStudent', function () use($app) {
                                 hospitalized_description, current_medical_treatment, current_medical_treatment_description,
                                 other_medical_conditions, other_medical_conditions_description,
                                 emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual,
-                                installment_option_id, new_student, transport_route_id)
+                                installment_option_id, new_student, transport_route_id, nemis_no)
             VALUES(:admissionNumber,:gender,:firstName,:middleName,:lastName,:dob,:studentCat,:studentType,:nationality,:studentImg, :currentClass, :paymentMethod, :active, :createdBy,
           :admissionDate, :marialStatusParents, :adopted, :adoptedAge, :maritalSeparationAge, :adoptionAware, :comments, :hasMedicalConditions, :hospitalized,
           :hospitalizedDesc, :currentMedicalTreatment, :currentMedicalTreatmentDesc, :otherMedicalConditions, :otherMedicalConditionsDesc,
-          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId);");
+          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId, :nemisNo);");
 
     $studentClassInsert = $db->prepare("INSERT INTO app.student_class_history(student_id,class_id,created_by)
                       VALUES(currval('app.students_student_id_seq'),:currentClass,:createdBy);");
@@ -986,7 +987,8 @@ $app->post('/addStudent', function () use($app) {
               ':pickUpIndividual' => $pickUpIndividual,
               ':installmentOption' => $installmentOption,
               ':newStudent' => $newStudent,
-              ':routeId' => $routeId
+              ':routeId' => $routeId,
+              ':nemisNo' => $nemisNo
     ) );
 
     $studentClassInsert->execute(array(':currentClass' => $currentClass,':createdBy' => $createdBy));
@@ -1177,6 +1179,7 @@ $app->put('/updateStudent', function () use($app) {
     $newStudent =       ( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: 'f');
     $admissionNumber =    ( isset($allPostVars['details']['admission_number']) ? $allPostVars['details']['admission_number']: null);
     $admissionDate =    ( isset($allPostVars['details']['admission_date']) ? $allPostVars['details']['admission_date']: null);
+    $nemisNo =         ( isset($allPostVars['details']['nemis_no']) ? $allPostVars['details']['nemis_no']: null);
   }
 
   if( isset($allPostVars['family']) )
@@ -1240,7 +1243,8 @@ $app->put('/updateStudent', function () use($app) {
             admission_date= :admissionDate,
             admission_number= :admissionNumber,
             modified_date = now(),
-            modified_by = :userId
+            modified_by = :userId,
+            nemis_no = :nemisNo
           WHERE student_id = :studentId"
       );
 
@@ -1391,7 +1395,8 @@ $app->put('/updateStudent', function () use($app) {
               ':newStudent' => $newStudent,
               ':admissionDate' => $admissionDate,
               ':admissionNumber' => $admissionNumber,
-              ':userId' => $userId
+              ':userId' => $userId,
+              ':nemisNo' => $nemisNo,
       ) );
       if( $updateClass )
       {
