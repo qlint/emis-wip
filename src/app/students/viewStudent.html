@@ -31,7 +31,7 @@
 						<div class="row">
 
 							<!-- admission date -->
-							<div class="col-sm-4"ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.admission_date.$dirty ) && studentForm.admission_date.$invalid && studentForm.admission_date.$error.required }">
+							<div class="col-sm-3"ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.admission_date.$dirty ) && studentForm.admission_date.$invalid && studentForm.admission_date.$error.required }">
 								<label>Admission Date</label>
 								<p class="form-control-static" ng-show="!edit">{{student.admission_date.startDate}}</p>
 								<div ng-show="edit">
@@ -44,7 +44,7 @@
 							</div>
 
 							<!-- admission number -->
-							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.admission_number.$dirty ) && studentForm.admission_number.$invalid && studentForm.admission_number.$error.required }">
+							<div class="col-sm-3" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.admission_number.$dirty ) && studentForm.admission_number.$invalid && studentForm.admission_number.$error.required }">
 								<label>Admission Number</label>
 								<p class="form-control-static" ng-show="!edit">{{student.admission_number}}</p>
 								<div ng-show="edit">
@@ -54,7 +54,7 @@
 							</div>
 
 							<!-- student category -->
-							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.student_category.$dirty ) && studentForm.student_category.$invalid && studentForm.student_category.$error.required }">
+							<div class="col-sm-3" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.student_category.$dirty ) && studentForm.student_category.$invalid && studentForm.student_category.$error.required }">
 								<label for="student_category">Student Category</label>
 								<p class="form-control-static" ng-show="!edit">{{student.student_category}}</p>
 								<div ng-show="edit">
@@ -62,6 +62,16 @@
 										<option value="{{item}}" ng-repeat="item in studentCats">{{item}}</option>
 									</select>
 									<p ng-show="(studentForm.$submitted || studentForm.student_category.$dirty ) && studentForm.student_category.$invalid && studentForm.student_category.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Student Category is required.</p>
+								</div>
+							</div>
+
+							<!-- nemis_no -->
+							<div class="col-sm-3"  ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.nemis_no.$dirty ) && studentForm.nemis_no.$invalid && studentForm.nemis_no.$error.required }">
+								<label for="nemis_no">Nemis No.</label>
+								<p class="form-control-static" ng-show="!edit">{{student.nemis_no}}</p>
+								<div ng-show="edit">
+									<input type="text" name="nemis_no" class="form-control input-sm" ng-model="student.nemis_no" />
+									<p ng-show="(studentForm.$submitted || studentForm.nemis_no.$dirty ) && studentForm.nemis_no.$invalid && studentForm.nemis_no.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Student's nemis number is required.</p>
 								</div>
 							</div>
 
@@ -149,8 +159,8 @@
 						<div class="row">
 
 							<!-- current class -->
-							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.current_class.$dirty ) && studentForm.current_class.$invalid && studentForm.current_class.$error.required }">
-								<label for="current_class">Class Entry</label>
+							<div class="col-sm-3" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.current_class.$dirty ) && studentForm.current_class.$invalid && studentForm.current_class.$error.required }">
+								<label for="current_class">Current Class</label>
 								<p class="form-control-static" ng-show="!edit">{{student.class_name}}</p>
 								<div ng-show="edit">
 									<select name="current_class" class="form-control" ng-options="class.class_name for class in allClasses track by class.class_id" ng-model="student.current_class" required>
@@ -160,8 +170,20 @@
 								</div>
 							</div>
 
+							<!-- entry class -->
+							<div class="col-sm-3">
+								<label for="entry_class">Entry Class</label>
+								<p class="form-control-static" ng-show="!edit">{{student.entry_class}}</p>
+								<div ng-show="edit">
+									<select name="entry_class" class="form-control" ng-options="class.class_name for class in allClasses track by class.class_id" ng-model="student.entry_class" required>
+										<option value="">--select class--</option>
+									</select>
+									<p ng-show="(studentForm.$submitted || studentForm.entry_class.$dirty ) && studentForm.entry_class.$invalid && studentForm.entry_class.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Entry is required.</p>
+								</div>
+							</div>
+
 							<!-- pic -->
-							<div class="col-sm-4">
+							<div class="col-sm-3">
 								<label for="student-image">Student Image</label>
 								<p class="form-control-static" ng-show="!edit">{{student.student_image}}</p>
 								<div ng-show="edit">
@@ -170,7 +192,7 @@
 							</div>
 
 							<!-- status -->
-							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.status.$dirty ) && studentForm.status.$invalid && studentForm.status.$error.required }">
+							<div class="col-sm-3" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.status.$dirty ) && studentForm.status.$invalid && studentForm.status.$error.required }">
 								<label for="status">Status</label>
 								<p class="form-control-static" ng-show="!edit">{{student.status}}</p>
 								<div ng-show="edit">
