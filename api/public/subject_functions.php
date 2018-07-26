@@ -87,7 +87,7 @@ $app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($
 	{
 		$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 								array_to_string(array_agg(distinct classes.class_name), ',') as class_name,
-								subjects.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active, use_for_grading,
+								subjects.teacher_id, subjects.tmp_tchr_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active, use_for_grading,
 								parent_subject_id, subjects.sort_order,
 								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name,
 								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is not null then true else false end as has_children
@@ -96,7 +96,11 @@ $app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($
 							INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 							INNER JOIN app.classes ON class_cats.class_cat_id = classes.class_cat_id
 							WHERE subjects.class_cat_id = :classCatId
-							AND subjects.teacher_id = :teacherId
+							AND CASE WHEN subjects.tmp_tchr_id IS NOT NULL
+								 THEN subjects.tmp_tchr_id = :teacherId
+								 ELSE  subjects.teacher_id = :teacherId
+							     END
+							--AND subjects.teacher_id = :teacherId
 							GROUP BY subject_id, class_cats.class_cat_name, employees.first_name, employees.middle_name, employees.last_name
 							ORDER BY class_cat_name, sort_order, subject_name";
 		$params = array(':teacherId' => $teacherId, ':classCatId' => $classCatId);
@@ -450,7 +454,7 @@ $app->get('/getTeacherSubjects/:teacher_id(/:status)', function ($teacherId, $st
 	try
 	{
 			$db = getDB();
-	$sth = $db->prepare("SELECT subjects.subject_id, subject_name, subjects.teacher_id, subjects.active, subjects.class_cat_id, class_cat_name, use_for_grading,
+	$sth = $db->prepare("SELECT subjects.subject_id, subject_name, subjects.teacher_id, subjects.tmp_tchr_id, subjects.active, subjects.class_cat_id, class_cat_name, use_for_grading,
 				first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, class_subjects.class_id, class_name,
 				(select count(*)
 							from app.class_subjects
@@ -588,5 +592,118 @@ $app->get('/getClassSubjects/:class_id', function ($classId) {
 
 });
 
+$app->get('/getClassCatSubjects/:class_cat_id', function ($classCatId) {
+	//Show class subjects for specific class
+
+	$app = \Slim\Slim::getInstance();
+
+	try
+	{
+			$db = getDB();
+	$sth = $db->prepare("SELECT c.class_name, s.subject_id, LEFT(s.subject_name,3) AS subject_name, s.sort_order, cs.class_id, s.class_cat_id, s.parent_subject_id
+											FROM app.subjects s
+											INNER JOIN app.class_subjects cs USING (subject_id)
+											INNER JOIN app.classes c USING (class_id)
+											WHERE s.class_cat_id = :classCatId AND s.use_for_grading IS TRUE AND s.active IS TRUE
+											ORDER BY s.sort_order");
+
+			$sth->execute( array('classCatId' => $classCatId));
+
+			$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+			if($results) {
+					$app->response->setStatus(200);
+					$app->response()->headers->set('Content-Type', 'application/json');
+					echo json_encode(array('response' => 'success', 'data' => $results ));
+					$db = null;
+			} else {
+					 $app->response->setStatus(200);
+					$app->response()->headers->set('Content-Type', 'application/json');
+					echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+					$db = null;
+			}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
+
+$app->put('/setTemporaryTeacher', function () use($app) {
+	// set temporary teachers for subjects
+
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$classCatId =		( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$markData =		( isset($allPostVars['mark_data']) ? $allPostVars['mark_data']: null);
+
+	try
+	{
+		$db = getDB();
+		$sth = $db->prepare("UPDATE app.subjects
+												SET tmp_tchr_id = :teacherId
+												WHERE subject_id = :subjectId AND class_cat_id = :classCatId");
+		$db->beginTransaction();
+		foreach( $markData as $item )
+		{
+			$subjectId =		( isset($item['subject_id']) ? $item['subject_id']: null);
+			$tmpTchrId =		( isset($item['teacher_id']) ? $item['teacher_id']: null);
+			$sth->execute( array(':teacherId' => $tmpTchrId, ':subjectId' => $subjectId, ':classCatId' => $classCatId ) );
+		}
+
+		$db->commit();
+
+		$app->response->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array("response" => "success", "code" => 1));
+		$db = null;
+
+
+	} catch(PDOException $e) {
+			$app->response()->setStatus(404);
+	$app->response()->headers->set('Content-Type', 'application/json');
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
+
+$app->get('/getTemporaryTeacher/:class_cat_id', function ($classCatId) {
+	//Show class subjects for specific class
+
+	$app = \Slim\Slim::getInstance();
+
+	try
+	{
+			$db = getDB();
+			$sth = $db->prepare("SELECT subject_id, class_cat_id, tmp_tchr_id FROM app.subjects s
+													WHERE class_cat_id = :class_cat_id AND active IS TRUE
+													ORDER BY sort_order");
+
+			$db->beginTransaction();
+			$sth->execute( array(':class_cat_id' => $classCatId));
+			$db->commit();
+
+			$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+			if($results) {
+					$app->response->setStatus(200);
+					$app->response()->headers->set('Content-Type', 'application/json');
+					echo json_encode(array('response' => 'success', 'data' => $results ));
+					$db = null;
+			} else {
+					 $app->response->setStatus(200);
+					$app->response()->headers->set('Content-Type', 'application/json');
+					echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+					$db = null;
+			}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
 
 ?>
