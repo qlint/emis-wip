@@ -463,6 +463,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 			var student = $scope.students.find(function (stud) { return stud.student_id === key; });
       var studentTermObj = $scope.studentReports[student.student_id];
       console.log(studentTermObj);
+      //checking to see if all the students in the selected class have an exam in the selected term
       if(studentTermObj.hasOwnProperty(term_name)){
         var studentsWithExams = function(response,status)
       	{
