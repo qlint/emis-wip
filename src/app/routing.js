@@ -60,39 +60,50 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
       }
     })
+		.state('staff/subjectMarkList', {
+	      url: "/staff/subjectMarkList",
+		  params: {
+			category: null,
+			dept:  null
+		  },
+		  templateUrl: 'app/staff/subjectMarkList.html',
+	      data: {
+	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
+	      }
+	    })
 	.state('fees/dashboard', {
       url: "/fees/dashboard",
 	  templateUrl: 'app/fees/feesDashboard.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
 	.state('fees/opening_balances', {
       url: "/fees/opening_balances",
 	  templateUrl: 'app/fees/openingBalances.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
 	.state('fees/invoices', {
       url: "/fees/invoices/:balance_status",
 	  templateUrl: 'app/fees/invoices.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
 	.state('fees/payments_received', {
       url: "/fees/payments_received",
 	  templateUrl: 'app/fees/paymentsReceived.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
 	.state('fees/fee_structure', {
       url: "/fees/fee_structure",
 	  templateUrl: 'app/fees/feeStructure.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
 	.state('fees/receipt/print', {
@@ -100,7 +111,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/fees/receipt.html',
 	  controller: 'printReceiptCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
 	.state('fees/invoice/print', {
@@ -108,7 +119,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/fees/invoice.html',
 	  controller: 'printInvoiceCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
 	.state('fees/statement/print', {
@@ -116,7 +127,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/fees/statement.html',
 	  controller: 'printStatementCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
 	.state('school/departments', {
@@ -260,7 +271,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/listPosts.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
 	.state('communications/homework', {
@@ -271,7 +282,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/listHomework.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
 	.state('communications/send_email', {
@@ -282,7 +293,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/listEmails.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
 	.state('communications/add_post', {
@@ -295,7 +306,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/postForm.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
 	.state('communications/edit_post', {
@@ -306,7 +317,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/postForm.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
 
