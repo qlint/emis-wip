@@ -373,33 +373,35 @@ function getChartPath()
 						<thead>
 							<tr>
 								<th rowspan="3" class="center">Subject</th>
-								<th class="center double-border" colspan="{{examTypes.length*3}}">Marks</th>
-								<th rowspan="2" colspan="{{ isSchool ? '4' : '2'}}" class="center double-border isSchool">Overall</th>
+								<th class="center double-border" colspan="{{ isSchool ? examTypes.length*2 : examTypes.length*3}}">Marks</th>
+								<th rowspan="2" colspan="{{ isSchool ? '5' : '2'}}" class="center double-border isSchool">Overall</th>
 								<!-- <th rowspan="2" colspan="4" class="center double-border isSchool">Overall</th> -->
 								<th class="center double-border remarks" rowspan="3" width="300">Remarks</th>
 								<th class="center" rowspan="3">Teacher<br>Int.</th>
 							</tr>
 							<tr>
-								<th class="center double-border" colspan="3" ng-repeat="item in examTypes">{{item.exam_type}}</th>
+								<th class="center double-border" colspan="{{ isSchool ? '2' : '3'}}" ng-repeat="item in examTypes">{{item.exam_type}}</th>
 							</tr>
 							<tr>
-								<th class="center double-border" ng-repeat-start="item in examTypes">Mark</th>
-								<th class="center">Out Of</th>
+								<th class="center double-border percentages" ng-repeat-start="item in examTypes">Mark</th>
+								<th ng-hide="{{isCustomTemplate1}}" class="center">Out Of</th>
 								<th class="center" ng-repeat-end="">Grade</th>
+								<th ng-show="isSchool" class="center double-border isSchool">{{ isSchool ? 'Cat + Mid' : 'Total'}}</th>
 								<!-- <th class="center double-border isSchool">CAT 30%</th> -->
-								<th ng-show="isSchool" class="center double-border isSchool">CAT 30%</th>
+								<th ng-show="isSchool" class="center double-border isSchool">{{ isSchool ? 'CATS 30%' : 'CAT 30%'}}</th>
 								<!-- <th class="center double-border isSchool">END 70%</th> -->
-								<th ng-show="isSchool" class="center double-border isSchool">END 70%</th>
-								<th class="center double-border">Avg</th>
+								<th ng-show="isSchool" class="center double-border isSchool">{{ isSchool ? 'END EX 70%' : 'END 70%'}}</th>
+								<th class="center double-border">{{ isSchool ? 'END EX 100%' : 'Avg'}}</th>
 								<th class="center">Grade</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr ng-repeat="item in reportData.subjects track by $index">
 								<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
-								<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
-								<td class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
+								<td ng-repeat-start="examType in examTypes" ng-class="{'strong': item.parent_subject_name===null}" class="center double-border et-{{examType.exam_type_id}}">{{item.marks[examType.exam_type].mark}}</td>
+								<td ng-hide="{{isCustomTemplate1}}" class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
 								<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
+								<td ng-show="isSchool" class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot100}}</span></td>
 								<td ng-show="isSchool" class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td>
 								<!-- <td class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td> -->
 								<td ng-show="isSchool" class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td>
@@ -418,8 +420,9 @@ function getChartPath()
 							<tr>
 								<th class="center">Total</th>
 								<th class="center double-border" ng-repeat-start="examType in examTypes">{{totals[examType.exam_type].total_mark}}</th>
-								<th class="center">{{totals[examType.exam_type].total_grade_weight}}</th>
+								<th ng-hide="{{isCustomTemplate1}}" class="center">{{totals[examType.exam_type].total_grade_weight}}</th>
 								<th class="center" ng-repeat-end=""></th>
+								<th ng-show="isSchool" class="center isSchool"></th>
 								<th ng-show="isSchool" class="center isSchool"></th>
 								<!-- <th class="center isSchool"></th> -->
 								<th ng-show="isSchool" class="center isSchool"></th>
