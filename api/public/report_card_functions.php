@@ -191,19 +191,19 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 
 
 		// get overall marks per subjects, only use parent subjects
-			$sth2 = $db->prepare("SELECT subject_name, total_mark, tot30, tot70, total_grade_weight, percentage1, (coalesce(tot30, 0) + coalesce(tot70, 0)) as percentage,
+			$sth2 = $db->prepare("SELECT subject_name, total_mark, tot30, tot70, tot100, total_grade_weight, percentage1, (coalesce(tot30, 0) + coalesce(tot70, 0)) as percentage,
 															(select grade from app.grading where (coalesce(tot30, 0) + coalesce(tot70, 0)) between min_mark and max_mark) as grade,
 															(select comment from app.grading where (coalesce(tot30, 0) + coalesce(tot70, 0)) between min_mark and max_mark) as comment,
 															(select kiswahili_comment from app.grading where (coalesce(tot30, 0) + coalesce(tot70, 0)) between min_mark and max_mark) as kiswahili_comment,
 															(select principal_comment from app.grading where (coalesce(tot30, 0) + coalesce(tot70, 0)) between min_mark and max_mark) as principal_comment, sort_order, grade as overall_grade2
 														FROM(
-															SELECT  subject_name, total_mark, tot30, tot70, total_grade_weight, round(total_mark::float/total_grade_weight::float*100) as percentage1,
+															SELECT  subject_name, total_mark, tot30, tot70, tot100, total_grade_weight, round(total_mark::float/total_grade_weight::float*100) as percentage1,
 																(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
 																(select comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as comment,
 																(select kiswahili_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as kiswahili_comment,
 																(select principal_comment from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as principal_comment, sort_order
 															FROM (
-																SELECT class_id,subject_id,subject_name,student_id,coalesce(sum(total_mark)) as total_mark,coalesce(sum(total_grade_weight)) as total_grade_weight,coalesce(sum(tot30)) as tot30,coalesce(sum(tot70)) as tot70,sort_order FROM (
+																SELECT class_id,subject_id,subject_name,student_id,coalesce(sum(total_mark)) as total_mark,coalesce(sum(total_grade_weight)) as total_grade_weight,coalesce(sum(tot30)) as tot30,coalesce(sum(tot70)) as tot70,coalesce(sum(tot100)) as tot100,sort_order FROM (
 																	SELECT class_id,class_subjects.subject_id,subject_name,exam_marks.student_id,
 																		/*coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,*/
 																		(CASE
@@ -242,7 +242,12 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 
 																			--ELSE
 																				--round (coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0)*0.3)
-																		END) as total_grade_weight,subjects.sort_order,is_last_exam
+																		END) as total_grade_weight,
+																		(CASE
+																			WHEN exam_types.is_last_exam is false and exists (select et.is_last_exam from app.exam_types et inner join app.class_subject_exams cse on et.exam_type_id = cse.exam_type_id inner join app.exam_marks em on cse.class_sub_exam_id = em.class_sub_exam_id where is_last_exam = 'TRUE' and em.term_id= 1 and class_cat_id=(select class_cat_id from app.classes where class_id= 4) LIMIT 1) THEN
+																				coalesce(sum(case when subjects.parent_subject_id is null then mark end),0)
+																		END) as tot100,
+																		subjects.sort_order,is_last_exam
 																	FROM app.exam_marks
 																	INNER JOIN app.class_subject_exams
 																	INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
