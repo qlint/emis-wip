@@ -43,6 +43,49 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.chart_path = "";
 	$scope.motto = "";
 
+	$scope.isCustomTemplate1 = ( window.location.host.split('.')[0] == 'localhost:8008' ? true : false ); //for newlightgirls
+	if( $scope.isCustomTemplate1 == true){
+		setTimeout(function(){
+
+			var thText = document.getElementsByClassName("percentages");
+			thText[0].innerHTML = "Cat 30%";
+			thText[1].innerHTML = "Mid 70%";
+			thText[2].innerHTML = "End 100%";
+
+			// var cat30array = document.getElementsByClassName("et-26"); var cat30arr = [];
+			// var mid70array = document.getElementsByClassName("et-39"); var mid70arr = [];
+			// console.log("There are " + cat30array.length + " elements with class et-26");
+
+			// //this gets the text from the selected classes above
+			// for(var i = 0; i < cat30array.length; i++){
+			// 	cat30arr.push(cat30array[i].innerHTML);
+			// 	mid70arr.push(mid70array[i].innerHTML);
+			// }
+			//
+			// // console.log(cat30arr);
+			// // console.log(mid70arr);
+			//
+			// //this sums the 2 arrays from the above selections
+			// var sumCol = cat30arr.map(function (num, idx) {
+			//   return parseFloat(num) + parseFloat(mid70arr[idx]);
+			// });
+			// console.log(sumCol);
+			//
+			// // $scope.tot100 = sum;
+			// //this converts the summation array above into an object
+			// var tot100Obj = sumCol.reduce(function(acc, cur, i) {
+			//   acc[i] = cur;
+			//   return acc;
+			// }, {});
+			//
+			// //this converts the object into an object array
+			// $rootScope.total100 = Object.entries(tot100Obj).map(([key, value]) => ({key,value}));
+			//
+			// console.log($rootScope.total100.length);
+
+		}, 3000);
+	}
+
 	var initializeController = function()
 	{
 		if( $scope.reportCardType == 'Standard' )
@@ -156,7 +199,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.canDelete = ( $scope.isTeacher ? false : true);
 			$scope.filters = data.filters;
 			$scope.isClassTeacher = ( $scope.student.class_teacher_id == $rootScope.currentUser.emp_id ? true : false);
-			$scope.isSchool = ( window.location.host.split('.')[0] == "newlightgirls" ? true : false);
+			$scope.isSchool = ( window.location.host.split('.')[0] == "localhost:8008" ? true : false);
 			// console.log("school = "+ window.location.host.split('.')[0] + " and isSchool = " + $scope.isSchool);
 			$scope.isStudentImage = ( window.location.host.split('.')[0] == "rongaiboys" ? true : false);
 
@@ -654,6 +697,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					item.overall_mark = overall.percentage;
 					item.overall_grade = overall.grade;
+					item.tot100 = overall.tot100;
 					item.tot30 = overall.tot30;
 					item.tot70 = overall.tot70;
 					item.position = overall.rank;
