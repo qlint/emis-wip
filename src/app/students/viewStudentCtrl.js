@@ -1703,6 +1703,13 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		    }
 		}
 
+		$scope.genRandId = function() {
+			var d = new Date();
+			var n = d.getTime();
+			var y = document.getElementById("id_number");
+			y.value = n;
+		}
+
 		$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 
 		var relationships = $rootScope.currentUser.settings['Guardian Relationships'];
@@ -2039,7 +2046,8 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 							'<div class="col-sm-4 nopad-right">' +
 								'<p class="form-control-static" ng-show="readOnly">{{guardian.id_number}}</p>' +
 								'<div ng-show="edit||add">' +
-									'<input type="text" name="id_number" ng-model="guardian.id_number" ng-model-options="{ debounce: 1000 }" class="form-control" required numeric-only />	' +
+									'<input id="id_number" type="text" name="id_number" ng-model="guardian.id_number" ng-model-options="{ debounce: 1000 }" class="form-control" required numeric-only />	' +
+									'<span><button ng-click="genRandId()" type="button" class="btn btn-xs btn-primary">GENERTE RANDOM No.</button></span>' +
 									'<p ng-show="(parentForm.$submitted || parentForm.id_number.$dirty ) && parentForm.id_number.$invalid && parentForm.id_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> ID Number is required.</p>' +
 								'</div>' +
 							'</div>' +
