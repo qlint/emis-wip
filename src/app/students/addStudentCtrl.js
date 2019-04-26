@@ -394,7 +394,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{
 		// open dialog
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/fees/feeItemForm.html','feeItemFormCtrl',undefined,{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('https://' + domain + '/app/fees/feeItemForm.html','feeItemFormCtrl',undefined,{size: 'md',backdrop:'static'});
 		dlg.result.then(function(result){
 			// update fee items
 			//getFeeItems(true);

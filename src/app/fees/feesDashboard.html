@@ -1,7 +1,7 @@
-<div ng-controller="feesDashboardCtrl">	
-	
-	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
-		
+<div ng-controller="feesDashboardCtrl">
+
+	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}" ng-show="permissions.fees.dashboard.view">
+
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
 		</div>
@@ -9,7 +9,7 @@
 			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 			{{errMsg}}
 		</div>
-		
+
 		<div class="fixed content-fixed-header">
 			<div class="subnavbar non-printable" ng-hide="isPrinting">
 				<ul class="nav nav-tabs main-sub-nav" >
@@ -21,17 +21,17 @@
 				<div class="btn-group toolbar">
 					<div class="btn add-btn" title="Add Payment" ng-show="permissions.fees.payments_received.add" ng-click="addPayment()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Payment</span></a></div>
 					<div class="btn" title="Adjust Payment" ng-show="permissions.fees.payments_received.edit" ng-click="adjustPayment()"><a class="clickable"><span class="glyphicon glyphicon-pencil"></span> <span class="tool-text">Adjust Payment</span></a></div>
-				</div>			
+				</div>
 			</div>
-			
+
 			<div class="clearfix">
 				<h1 id="pageTitle">Fee Summary for {{currentTermTitle}} ({{date.startDate|date}} - {{date.endDate|date}})</h1>
 			</div>
 
 		</div>
-		
+
 		<div class="full-height datagrid main-datagrid">
-			
+
 			<div class="row">
 				<div class="info-boxes clearfix">
 					<div class="info-box">
@@ -44,19 +44,19 @@
 					</div>
 					<div class="info-box" ng-class="{'alert-success':totals.total_balance>=0, 'text-warning' : totals.total_balance<0 && gracePeriod, 'text-danger': totals.total_balance<0}">
 						Balance
-						<p>{{totals.total_balance|numeric}} <span>{{currency}}</span></p>						
+						<p>{{totals.total_balance|numeric}} <span>{{currency}}</span></p>
 					</div>
 				</div>
 			</div>
-			
+
 			<div class="col-sm-4">
-				<div class="dashboard-panel alert alert-success">		
+				<div class="dashboard-panel alert alert-success">
 					<!--
-					<div class="row dashboard-panel-header">					
+					<div class="row dashboard-panel-header">
 						<div class="col-xs-12">
 							<h2>Payment Received</h2>
 						</div>
-						<div class="col-xs-7">			
+						<div class="col-xs-7">
 							<div class="input-group">
 								<input type="text" name="dob" date-range-picker class="form-control date-picker input-sm" ng-model="date" options="{}" />
 								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
@@ -73,13 +73,13 @@
 					</div>
 					<div class="dashboard-panel-body">
 						<div class="loading-indicator" ng-show="paymentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
-						
+
 						<div class="form-group grid-filter">
 							<input class="ui-grid-filter" ng-model="gridFilter.filterValue1" placeholder="Filter"/>
 							<button class="btn btn-xs btn-primary" ng-click="filterDataTable('1')">Filter</button>
 							<button class="btn btn-xs " ng-click="clearFilterDataTable('1')">Clear</button>
 						</div>
-					
+
 						<div id="grid1" ui-grid="gridOptions1" ui-grid-resize-columns class="myGrid">
 							<div ng-if="gridOptions1.data.length==0" class="no-results">No results found.</div>
 						</div>
@@ -92,7 +92,7 @@
 									<th class="center">Amt ({{currency}})</th>
 									<th>Date</th>
 								</tr>
-							</thead>	
+							</thead>
 							<tbody>
 								<tr ng-repeat="item in paymentsReceived track by $index">
 									<td></td>
@@ -110,20 +110,20 @@
 				</div>
 			</div>
 			<div class="col-sm-4">
-				<div class="dashboard-panel alert alert-warning">					
+				<div class="dashboard-panel alert alert-warning">
 					<div class="dashboard-panel-header clearfix">
 						<h2 class="pull-left">Invoices Due This Month</h2>
 						<span class="totalSum pull-right">{{paymentsDueTotal|numeric}} {{currency}}</span>
 					</div>
 					<div class="dashboard-panel-body">
 						<div class="loading-indicator" ng-show="invoicesLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
-						
+
 						<div class="form-group grid-filter">
 							<input class="ui-grid-filter" ng-model="gridFilter.filterValue2" placeholder="Filter"/>
 							<button class="btn btn-xs btn-primary" ng-click="filterDataTable('2')">Filter</button>
 							<button class="btn btn-xs " ng-click="clearFilterDataTable('2')">Clear</button>
 						</div>
-					
+
 						<div id="grid2" ui-grid="gridOptions2" ui-grid-resize-columns class="myGrid">
 							<div ng-if="gridOptions2.data.length==0" class="no-results">No results found.</div>
 						</div>
@@ -136,7 +136,7 @@
 									<th class="center">Amt ({{currency}})</th>
 									<th>Due Date</th>
 								</tr>
-							</thead>	
+							</thead>
 							<tbody>
 								<tr ng-repeat="item in paymentsDue track by $index">
 									<td></td>
@@ -161,13 +161,13 @@
 					</div>
 					<div class="dashboard-panel-body">
 						<div class="loading-indicator" ng-show="pastDueLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
-						
+
 						<div class="form-group grid-filter">
 							<input class="ui-grid-filter" ng-model="gridFilter.filterValue3" placeholder="Filter"/>
 							<button class="btn btn-xs btn-primary" ng-click="filterDataTable('3')">Filter</button>
 							<button class="btn btn-xs " ng-click="clearFilterDataTable('3')">Clear</button>
 						</div>
-					
+
 						<div id="grid3" ui-grid="gridOptions3" ui-grid-resize-columns class="myGrid">
 							<div ng-if="gridOptions3.data.length==0" class="no-results">No results found.</div>
 						</div>
@@ -180,7 +180,7 @@
 									<th class="center">Balance ({{currency}})</th>
 									<th>Due Date</th>
 								</tr>
-							</thead>	
+							</thead>
 							<tbody>
 								<tr ng-repeat="item in paymentsPastDue track by $index">
 									<td></td>
@@ -197,15 +197,12 @@
 					</div>
 				</div>
 			</div>
-			
+
 		</div>
-		
+
 		<div class="loading-screen modal-backdrop fade in" ng-show="modalLoading">
 			<p class="msg"><span class="fa fa-cog fa-spin"></span> Fetching data...</p>
 		</div>
-		
+
 	</div>
 </div>
-
-
-

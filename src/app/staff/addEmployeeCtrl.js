@@ -57,7 +57,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	{		
 		// show small dialog with add form
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/school/departmentForm.html','departmentFormCtrl',{emp_cat_name: $scope.employee.emp_cat.emp_cat_name},{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('https://' + domain + '/app/school/departmentForm.html','departmentFormCtrl',{emp_cat_name: $scope.employee.emp_cat.emp_cat_name},{size: 'md',backdrop:'static'});
 		dlg.result.then(function(){
 			
 			// update departments
@@ -88,6 +88,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	}
 	
+	$scope.isDriverSelected = function(){
+	    //
+	}
+	
+	function driverSelectedCheck(sel) {
+	    var selection = sel.options[sel.selectedIndex].text;
+	    console.log(selection,"to lower case ->",selection.toLowerCase());
+	    if( selection == "driver" || selection == "drivers" ){
+          console.log("The current selection is a driver");
+	    }
+    }
 	
 	$scope.save = function(theForm)
 	{	

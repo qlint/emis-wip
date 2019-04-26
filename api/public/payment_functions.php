@@ -300,12 +300,13 @@ $app->post('/addPayment', function () use($app) {
   $creditAmt =      ( isset($allPostVars['creditAmt']) ? $allPostVars['creditAmt']: null);
   $updateCredit =     ( isset($allPostVars['updateCredit']) ? $allPostVars['updateCredit']: false);
   $amtApplied =     ( isset($allPostVars['amtApplied']) ? $allPostVars['amtApplied']: null);
+  $customReceiptNo =     ( isset($allPostVars['custom_receipt_no']) ? $allPostVars['custom_receipt_no']: null);
 
   try
   {
     $db = getDB();
-    $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by)
-                  VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId)");
+    $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by, custom_receipt_no)
+                  VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId, :custom_receipt_no)");
 
     $credit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount, created_by)
                   VALUES(:studentId, currval('app.payments_payment_id_seq'), :creditAmt, :userId)");
@@ -342,6 +343,7 @@ $app->post('/addPayment', function () use($app) {
                  ':amount' => $amount,
                  ':paymentMethod' => $paymentMethod,
                  ':slipChequeNo' => $slipChequeNo,
+                 ':custom_receipt_no' => $customReceiptNo,
                  ':replacementPayment' => $replacementPayment,
                  ':userId' => $userId ) );
 
@@ -442,7 +444,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
      $db = getDB();
 
     // get payment data
-    $sth = $db->prepare("SELECT payments.payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no,
+    $sth = $db->prepare("SELECT payments.payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, custom_receipt_no,
                   payments.student_id, replacement_payment, reversed, reversed_date, credit_id --,payments.inv_id
               FROM app.payments
               LEFT JOIN app.credits ON payments.payment_id = credits.payment_id
@@ -548,6 +550,7 @@ $app->put('/updatePayment', function() use($app){
   $amount =         ( isset($allPostVars['amount']) ? $allPostVars['amount']: null);
   $paymentMethod =    ( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
   $slipChequeNo =     ( isset($allPostVars['slip_cheque_no']) ? $allPostVars['slip_cheque_no']: null);
+  $customReceiptNo =     ( isset($allPostVars['custom_receipt_no']) ? $allPostVars['custom_receipt_no']: null);
   $replacementPayment =   ( isset($allPostVars['replacement_payment']) ? $allPostVars['replacement_payment']: null);
   //$invId =        ( isset($allPostVars['inv_id']) ? $allPostVars['inv_id']: null);
   $lineItems =      ( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
@@ -565,6 +568,7 @@ $app->put('/updatePayment', function() use($app){
                       amount = :amount,
                       payment_method = :paymentMethod,
                       slip_cheque_no = :slipChequeNo,
+                      custom_receipt_no = :custom_receipt_no,
                       replacement_payment = :replacementPayment,
                       modified_date = now(),
                       modified_by = :userId
@@ -637,6 +641,7 @@ $app->put('/updatePayment', function() use($app){
             ':amount' => $amount,
             ':paymentMethod' => $paymentMethod,
             ':slipChequeNo' => $slipChequeNo,
+            ':custom_receipt_no' => $customReceiptNo,
             ':replacementPayment' => $replacementPayment,
             ':userId' => $userId
     ) );
@@ -910,7 +915,7 @@ $app->delete('/deletePayment/:payment_id', function ($paymentId){
     $db->beginTransaction();
     $removePaymentItems->execute( array(':paymentId' => $paymentId) );
     $removeCredit->execute( array(':paymentId' => $paymentId) );
-    $removePayment->execute( array(':paymentId' => $paymentId) );    
+    $removePayment->execute( array(':paymentId' => $paymentId) );
     $removeReplacment->execute( array(':paymentId' => $paymentId) );
     $db->commit();
 
@@ -938,6 +943,7 @@ $app->put('/applyCredit', function() use($app){
   $amount =         ( isset($allPostVars['amount']) ? $allPostVars['amount']: null);
   $paymentMethod =    ( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
   $slipChequeNo =     ( isset($allPostVars['slip_cheque_no']) ? $allPostVars['slip_cheque_no']: null);
+  $customReceiptNo =     ( isset($allPostVars['custom_receipt_no']) ? $allPostVars['custom_receipt_no']: null);
   $replacementPayment =   ( isset($allPostVars['replacement_payment']) ? $allPostVars['replacement_payment']: null);
   $lineItems =      ( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
   $replacementItems =   ( isset($allPostVars['replacement_items']) ? $allPostVars['replacement_items']: null);

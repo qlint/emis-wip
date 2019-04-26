@@ -19,28 +19,28 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.apply_to_all = [];
 	$scope.totalApplied = 0;
 	$scope.totalCredit = 0;
-	
+
 	var initializeController = function()
 	{
 		var paymentMethods = $rootScope.currentUser.settings['Payment Methods'];
 		$scope.paymentMethods = paymentMethods.split(',');
-		
-		
+
+
 		if( $scope.selectedStudent === undefined )
 		{
 			apiService.getAllStudents(true, function(response){
 				var result = angular.fromJson(response);
-				
+
 				if( result.response == 'success')
 				{
-					$scope.students = ( result.nodata ? {} : $rootScope.formatStudentData(result.data) );				
+					$scope.students = ( result.nodata ? {} : $rootScope.formatStudentData(result.data) );
 				}
 				else
 				{
 					$scope.error = true;
 					$scope.errMsg = result.data;
 				}
-				
+
 			}, function(){});
 		}
 		else
@@ -48,36 +48,36 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			apiService.getOpenInvoices($scope.selectedStudent.student_id, loadInvoices, apiError);
 			apiService.getStudentBalance($scope.selectedStudent.student_id, loadFeeBalance, apiError);
 		}
-		
+
 	}
 	setTimeout(initializeController,1);
-	
+
 	$scope.cancel = function()
 	{
-		$uibModalInstance.dismiss('canceled');  
+		$uibModalInstance.dismiss('canceled');
 	}; // end cancel
-	
-	$scope.clearSelect = function(item, $event) 
+
+	$scope.clearSelect = function(item, $event)
 	{
-		$event.stopPropagation(); 
+		$event.stopPropagation();
 
 		var item = $parse(item + ".selected");
 			item.assign($scope, undefined);
 	};
-	
+
 	$scope.$watch('student.selected', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		
+
 		// grab what should be invoice for next term
 		$scope.selectedStudent = $scope.student.selected;
 		apiService.getOpenInvoices($scope.student.selected.student_id, loadInvoices, apiError);
 		apiService.getStudentBalance($scope.student.selected.student_id, loadFeeBalance, apiError);
 	});
-	
+
 	/*
 	$scope.$watch('payment.apply_to_all', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		
+
 		if( newVal )
 		{
 			angular.forEach($scope.selectedInvoice.fee_items, function(feeitem,key){
@@ -92,29 +92,29 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				$scope.feeItemsSelection = [];
 			});
 		}
-		
+
 	});
 	*/
-	
+
 	$scope.$watch('payment.replacement_payment', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		
+
 		// if replacement payment, remove the invoices and show replaceable fee items that belong to the student
-		
+
 		apiService.getReplaceableFeeItems($scope.selectedStudent.student_id,function(response,status){
-		
+
 			var result = angular.fromJson(response);
-					
-			if( result.response == 'success') 
+
+			if( result.response == 'success')
 			{
 				$scope.replaceableFeeItems = angular.copy(result.data);
 			}
 
-		
+
 		},apiError);
-		
+
 	});
-	
+
 	$scope.selectAllItems = function(key, invoice)
 	{
 		$scope.apply_to_all[key] = !$scope.apply_to_all[key];
@@ -137,19 +137,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 		$scope.totalCredit = ( $scope.payment.amount - $scope.totalApplied > 0 ? $scope.payment.amount - $scope.totalApplied : 0) ;
 	}
-	
+
 	var loadInvoices = function(response,status)
 	{
 		$scope.loading = false;
 		var result = angular.fromJson(response);
-				
-		if( result.response == 'success') 
+
+		if( result.response == 'success')
 		{
 			$scope.invoices = formatInvoices(angular.copy(result.data));
 			//setTimeout(initInvoicesDataGrid,10);
 		}
 	}
-	
+
 	var formatInvoices = function(invoiceData)
 	{
 		var currentInvoice = {};
@@ -158,7 +158,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		var feeItems = []
 		var overallBalance = 0;
 		angular.forEach( invoiceData, function(item,key){
-		
+
 			if( key > 0 && currentInvoice != item.inv_id )
 			{
 				// store row
@@ -171,12 +171,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					total_due: currentItem.total_due,
 					fee_items: feeItems,
 				});
-				
+
 				// reset
 				feeItems = [];
 				overallBalance = 0;
 			}
-			
+
 			feeItems.push({
 				fee_item_id: item.fee_item_id,
 				fee_item: item.fee_item,
@@ -189,7 +189,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				modifiable: parseInt(item.balance) < 0 ? true : false,
 			});
 			overallBalance += parseFloat(item.balance);
-			
+
 			currentInvoice = item.inv_id;
 			currentItem = item;
 		});
@@ -206,19 +206,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		//console.log(invoices);
 		return invoices;
 	}
-	
+
 	var loadFeeBalance = function(response,status)
 	{
-		$scope.loading = false;		
+		$scope.loading = false;
 		var result = angular.fromJson(response);
-		
+
 		if( $scope.dataGrid !== undefined )
 		{
 			$scope.dataGrid.clear();
 			$scope.dataGrid.destroy();
 		}
-				
-		if( result.response == 'success') 
+
+		if( result.response == 'success')
 		{
 			if( result.nodata === undefined )
 			{
@@ -232,12 +232,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				$scope.fees = [];
 				$scope.nofeeSummary = true;
 			}
-			
+
 			setTimeout(initFeesDataGrid,50);
 		}
 	}
-	
-	var initFeesDataGrid = function() 
+
+	var initFeesDataGrid = function()
 	{
 		var settings = {
 			sortOrder: [4,'asc'],
@@ -245,10 +245,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 		initDataGrid(settings);
 	}
-	
+
 	var initDataGrid = function(settings)
 	{
-	
+
 		var tableElement = $('#resultsTable2');
 		$scope.dataGrid = tableElement.DataTable( {
 				responsive: {
@@ -278,30 +278,30 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					emptyTable: settings.noResultsTxt
 				},
 			} );
-	}	
-	
-	var apiError = function (response, status) 
+	}
+
+	var apiError = function (response, status)
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
 		$scope.errMsg = result.data;
 	}
-	
+
 	$scope.$watch('payment.amount', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
 		$scope.totalCredit = ( newVal - $scope.totalApplied > 0 ? newVal - $scope.totalApplied : 0) ;
 	});
-	
+
 	$scope.$watch('payment.invoice', function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-		
+
 		$scope.selectedInvoice = newVal;
 	});
 	/*
 	$scope.showDetails = [];
-	$scope.toggleInvoices = function(item,index) 
+	$scope.toggleInvoices = function(item,index)
 	{
-	
+
 		var id = $scope.invoiceSelection.indexOf(item);
 
 		// is currently selected
@@ -317,7 +317,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 	};
 	*/
-	$scope.toggleFeeItems = function(feeitem) 
+	$scope.toggleFeeItems = function(feeitem)
 	{
 		var id = $scope.feeItemsSelection.indexOf(feeitem);
 
@@ -334,11 +334,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			$scope.totalApplied += parseFloat(feeitem.amount);
 			$scope.feeItemsSelection.push(feeitem);
 		}
-		
+
 		$scope.totalCredit = ( $scope.payment.amount - $scope.totalApplied > 0 ? $scope.payment.amount - $scope.totalApplied : 0) ;
 	};
-	
-	$scope.toggleFeeItems2 = function(feeitem) 
+
+	$scope.toggleFeeItems2 = function(feeitem)
 	{
 		var id = $scope.feeItemsSelection2.indexOf(feeitem);
 
@@ -354,20 +354,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			$scope.feeItemsSelection2.push(feeitem);
 		}
 	};
-	
+
 	$scope.save = function(theForm)
 	{
 		if( !theForm.$invalid )
 		{
 			$scope.saveCredit = false;
-			
+
 			// make sure that the fee items selected do not total up to more than the payment amount
 			var totalFeeItems = $scope.feeItemsSelection.reduce(function(sum,item){
 				sum = sum + parseFloat(item.amount);
 				return sum;
 			},0);
-			
-			
+
+
 			if( $scope.payment.replacement_payment !== true )
 			{
 				if( totalFeeItems > $scope.payment.amount )
@@ -382,7 +382,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 						 // save the form
 						 $scope.saveCredit = true;
 						 savePayment();
-						 
+
 					},function(btn){
 						$scope.saveCredit = false;
 					});
@@ -398,12 +398,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			}
 		}
 	}
-	
+
 	var savePayment = function()
 	{
 		$scope.error = false;
 		$scope.errMsg = '';
-		
+
 		if( $scope.payment.replacement_payment )
 		{
 			var replacementItems = [];
@@ -413,7 +413,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					amount: item.paying_amount
 				});
 			});
-			
+
 			var data = {
 				user_id: $scope.currentUser.user_id,
 				student_id : $scope.selectedStudent.student_id,
@@ -421,6 +421,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				amount: $scope.payment.amount,
 				payment_method : $scope.payment.payment_method,
 				slip_cheque_no: $scope.payment.slip_cheque_no,
+				custom_receipt_no: $scope.payment.custom_receipt_no,
 				replacement_payment: ($scope.payment.replacement_payment ? 't' : 'f' ),
 				inv_id : ($scope.payment.invoice !== undefined ? $scope.payment.invoice.inv_id : null),
 				replacement_items: replacementItems,
@@ -437,7 +438,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					amount: item.amount
 				});
 			});
-			
+
 			var data = {
 				user_id: $scope.currentUser.user_id,
 				student_id : $scope.selectedStudent.student_id,
@@ -445,20 +446,21 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				amount: $scope.payment.amount,
 				payment_method : $scope.payment.payment_method,
 				slip_cheque_no: $scope.payment.slip_cheque_no,
+				custom_receipt_no: $scope.payment.custom_receipt_no,
 				replacement_payment: ($scope.payment.replacement_payment == 'true' ? 't' : 'f' ),
 			//	inv_id : $scope.payment.invoice.inv_id,
 				line_items: lineItems,
 				hasCredit: $scope.saveCredit,
 				creditAmt: $scope.creditAmt
 			};
-			
+
 		}
-		
-		
+
+
 		apiService.addPayment(data,createCompleted,apiError);
-		
+
 	}
-	
+
 	var createCompleted = function(response,status)
 	{
 		var result = angular.fromJson( response );
@@ -473,7 +475,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 			$scope.errMsg = result.data;
 		}
 	}
-	
+
 	$scope.sumPayment = function()
 	{
 		$scope.totalApplied = $scope.feeItemsSelection.reduce(function(sum,item){

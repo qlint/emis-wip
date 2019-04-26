@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Eduweb Starter</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
+	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+	<link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+	<link rel="stylesheet" type="text/css" href="vendor/perfect-scrollbar/perfect-scrollbar.css">
+	<link rel="stylesheet" type="text/css" href="css/util.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+
+	<div class="limiter">
+		<div class="container-table100">
+			<div style="text-align:center;width:93%;" class="row">
+				<h3 style="color:#ffffff;text-align:center;" class="col-md-1">Eduweb<br>Starter </h3>
+				<div class="col-md-1"></div>
+				<div class="md-col-2"><input type="file" id="input-excel" /></div>
+				<div class="col-md-8" style="margin-top:-60px;margin-left:33%;"><h5 style="color:#ffffff;text-align:center;border:3px solid #ffffff;">Begin by uploading the appropriate excel (xlsx) file. The excel data should appear on the screen as a table. If all data is okay, click on the process button to upload the data to a database, else - edit the file and try again.</h5></div>
+			</div>
+			<div class="wrap-table100">
+				<div id="wrapper" class="table100" style="margin-top:7px;">
+
+				</div>
+				<div id="faker" style="margin-top: 8px;margin-left: auto;margin-right: auto;text-align: center;"></div>
+			</div>
+		</div>
+	</div>
+
+
+
+
+	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+	<script lang="javascript" src="xlsx.full.min.js"></script>
+	<script src="vendor/bootstrap/js/popper.js"></script>
+	<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+	<script src="vendor/select2/select2.min.js"></script>
+	<script src="js/main.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.min.js"></script>
+
+    <!-- script to insert excel data into html table and some formatting -->
+	<script>
+	        $('#input-excel').change(function(e){
+	                var reader = new FileReader();
+	                reader.readAsArrayBuffer(e.target.files[0]);
+	                reader.onload = function(e) {
+	                        var data = new Uint8Array(reader.result);
+	                        var wb = XLSX.read(data,{type:'array'});
+	                        var processThisObj = {};
+	                        processThisObj.data = wb;
+	                        var nameOfSheet = processThisObj.data.SheetNames[0];
+	                        // console.log(processThisObj.data);
+	                        var htmlstr = XLSX.write(wb,{sheet:nameOfSheet, type:'binary',bookType:'html'});
+	                        $('#wrapper')[0].innerHTML += htmlstr;
+
+	                        //styling the resulting table
+	                        var cssStyle1 = "border: 1px solid #ddd;text-align: left;";
+	                        var cssStyle2 = "border-collapse: collapse;width: 100%;";
+	                        var cssStyle3 = "padding: 15px;";
+
+	                        var tableElem = document.getElementsByTagName('table')[0];
+	                        tableElem.style.cssText = cssStyle2;
+	                        var tdElems = document.getElementsByTagName('td');
+	                        for (var i = 0; i<tdElems.length; i++) {
+	                            tdElems[i].style.cssText = cssStyle1;
+	                            tdElems[i].style.cssText = cssStyle3;
+	                        }
+	                        var trElems = document.getElementsByTagName('tr')[0];
+	                        trElems.style.fontWeight = 'bold';
+							trElems.style.backgroundColor = "#555555";
+							trElems.style.color = "#ffffff";
+
+							//create a button to execute posting of the above data
+							var anchor = document.createElement('a');
+							var linkText = document.createTextNode("Looks Fine. Upload It");
+							anchor.appendChild(linkText);
+							anchor.title = "Upload to database";
+							anchor.href = "#";
+							var anchorStyle = "color: #ffffff;border: 2px solid #ffffff;border-radius: 16px;text-align: center;padding: 7px;";
+							anchor.style.cssText = anchorStyle;
+							var fakerElement = document.getElementById('faker');
+							fakerElement.appendChild(anchor);
+							
+							// script to extract data from table
+							var tableRows = tableElem.rows;
+							
+							var students = [{}];
+							for (var y = 0; y<tableRows.length; y++) {
+							
+							    var colmn = tableRows[y].cells;
+
+                                students.push({
+                                    "student_id": colmn[0].innerHTML,
+                                    "admission_number": colmn[1].innerHTML,
+                                    "first_name": colmn[2].innerHTML,
+                                    "middle_name": colmn[3].innerHTML,
+                                    "last_name": colmn[4].innerHTML,
+                                    "class_id": colmn[5].innerHTML,
+                                    "gender": colmn[6].innerHTML
+                                });
+	                        }
+	                        
+	                        //remove null values
+	                        var removeByAttr = function(arr, attr, value){
+                                var z = students.length;
+                                while(z--){
+                                   if( students[z] 
+                                       && students[z].hasOwnProperty(attr) 
+                                       && (arguments.length > 2 && students[z][attr] === value ) ){ 
+                            
+                                       students.splice(z,1);
+                            
+                                   }
+                                }
+                                return students;
+                            }
+                            removeByAttr(students, 'first_name', '');
+                            //we remove the first two objects (empty object & column headers) -- there are better ways to do this
+                            students.shift();students.shift();
+	                        console.log(students.length);
+	                        
+	                        //convert the object array to one large object
+                            var newObj = {};
+                            for (var k=0; k < students.length; k++) {
+                                //newObj[Object.keys(students)[k]] = students[k].admission_number;
+                                newObj[Object.keys(students)[k]] = Object.values(students)[k];
+                            }
+                            //result
+                            console.log(newObj);
+	                        
+	                        // php script url
+	                        var domain = window.location.host.split('.')[0];
+	                        var url = "http://" + domain + ".eduweb.co.ke/starter/students.php"; console.log(url);
+
+	                       var array = JSON.stringify(students);
+                           $.ajax({
+                                   type: "POST",
+                                   url: url,
+                                   data: {src : JSON.stringify(newObj)},
+                                   success: function (data, status, jqXHR) {
+                                       console.log(data);
+                                       console.log(status);
+                                       console.log(jqXHR);
+                                       console.log("Success. Data uploaded.");
+                                   },
+                                   error: function (xhr) {
+                                       console.log(xhr.responseText);
+                                       console.log("Error. Data not uploaded");
+                                   }
+                           });
+
+	                }
+	        });
+	</script>
+
+</body>
+</html>

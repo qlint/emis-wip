@@ -13,9 +13,55 @@ body {
   color: #333;
   font: 12px Arial, Verdana, Helvetica, sans-serif; }
 
+#myHiddenPage {
+      display: none;
+  }
+  
+  .notifBox {
+    background-color: #ff0000;
+    padding: 2px 16px 16px 7px;
+    border-radius: 50%;
+    float: right;
+    color: #ffffff;
+    font-weight: bolder;
+    text-align: center;
+    margin-left: 5px;
+    height: 20px;
+    width: 18px;
+    margin-top: -2px;
+}
+
+.unreadMsg {
+    font-weight: bolder;
+    color: #ff0000;
+}
+
+.openedMsgTxtBox {
+    background-color: #dcdcdc;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-left: 3px;
+    padding-right: 3px;
+    border-radius: 5px;
+    border: 2px solid #000000;
+}
+
 #page-wrap {
   height: 100%;
   position: relative; }
+  
+ .dashboard-panel select.transportSelectWidth {
+    width: 100%;
+}
+
+.busmanagementtbl {
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 40px;
+    border: 2px solid #000000;
+    border-radius: 5px;
+}
 
 #mainContainer {
   top: 62px;
@@ -28,6 +74,30 @@ body {
   position: fixed;
   width: 99%;
   z-index: 1000; }
+  
+table#pgSpecific {
+    border-collapse: collapse;
+}
+table#pgSpecific thead tr, table tbody tr {
+    margin: 0px; 
+    padding: 0px;
+    height: 30px;
+}
+table#pgSpecific tbody tr td {
+    height: 100%;
+}
+table#pgSpecific tbody tr td textarea {
+    position: relative;
+    margin: 0px;
+    margin-right: 15px; 
+    margin-bottom: 15px;
+}
+table#pgSpecific tbody tr td .commWrapper {
+    position: relative;
+    height: 100%;
+}
+
+/* div.navbar-collapse.collapse ul.nav.navbar-nav li { background-color: ##dddddd; } */
 
 #body-content {
   height: 98%; }
@@ -436,8 +506,8 @@ ul.table-view {
   //	@include rounded(10px);
       margin-top: 10px;
       margin-bottom: 5px;
-  		
-  	
+
+
   	h2{
   		font-size:14px!important;
   	}
@@ -1298,26 +1368,25 @@ table.clickable tr {
   margin-left: -15px; }
   .post-options-form .row, .post-options-form select {
     margin-bottom: 5px; }
+    
+highlightRed:focus { 
+    border:2px solid;
+    outline:none;
+    border-color:#E60000;
+    box-shadow:0 0 10px #E60000;
+}
 
 /*
  * Max-Width 768 Styling
  * --------------------------------------------------
  */
 @media (max-width: 767px) {
-  .toolbar-container {
-    position: fixed;
-    top: 88px;
-    z-index: 1002;
-    width: 100%;
-    background: rgba(238, 238, 238, 0.48);
-    margin: -1px 5px 0 -5px; }
-    .toolbar-container .toolbar {
-      display: block !important; }
-      .toolbar-container .toolbar .btn {
-        width: 33.333%;
-        border-right: 1px solid #fff; }
-      .toolbar-container .toolbar .btn:last-child {
-        border-right: none; } }
+    .toolbar-container { position: fixed; top: 88px; z-index: 1002; width: 100%; background: rgba(238, 238, 238, 0.48); margin: -1px 5px 0 -5px; }
+    .toolbar-container .toolbar { display: block !important; }
+    .toolbar-container .toolbar .btn { width: 33.333%; border-right: 1px solid #fff; }
+    .toolbar-container .toolbar .btn:last-child { border-right: none; } 
+    
+}
 /*
  * Min-Width 768 Styling
  * --------------------------------------------------
@@ -1471,7 +1540,7 @@ table.clickable tr {
   .dataFilterForm {
     position: static;
     background: #eee;
-    width: auto;
+    width: 83%;
     border-top-right-radius: 10px;
     padding: 5px 0;
     display: inline-block;
@@ -1546,6 +1615,13 @@ table.clickable tr {
 }
 */
 @media print {
+    div.cbc1 {margin-top: -180px !important;}
+    div.cbc2 {margin-top: -180px !important;}
+    div.cbc3 {margin-top: -180px !important;}
+    table#pgKey {width: 30% !important; margin-left:auto !important; margin-right:auto !important;margin-bottom:10px !important;}
+    div.thirdTable {margin-top: 20px !important;}
+    div.progress-report-remarks.thirdTable table textarea.form-control {font-size: 11px !important;}
+        
   html, body {
     height: auto; }
 
@@ -1626,4 +1702,276 @@ table.clickable tr {
   .progress-report.kindergarten .progress-report-remarks p.form-control-static {
     font-size: 10pt; } }
 
+/* settings page toggle buttons */
+.settings-switch {
+  position: relative;
+  display: inline-block;
+  width: 90px;
+  height: 34px;
+}
+
+.settings-switch input {display:none;}
+
+.settings-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ca2222;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.settings-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .settings-slider {
+  background-color: #2ab934;
+}
+
+input:focus + .settings-slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .settings-slider:before {
+  -webkit-transform: translateX(55px);
+  -ms-transform: translateX(55px);
+  transform: translateX(55px);
+}
+
+.settings-on
+{
+  display: none;
+}
+
+.settings-on, .settings-off
+{
+  color: white;
+  position: absolute;
+  transform: translate(-50%,-50%);
+  top: 50%;
+  left: 50%;
+  font-size: 10px;
+  font-family: Verdana, sans-serif;
+}
+
+input:checked+ .settings-slider .settings-on
+{display: block;}
+
+input:checked + .settings-slider .settings-off
+{display: none;}
+
+/* Rounded sliders */
+.settings-slider.settings-round {
+  border-radius: 34px;
+}
+
+.settings-slider.settings-round:before {
+  border-radius: 50%;
+}
+
+/* end settings page toggle buttons */
+
+/* new feedback switch settings */
+.switch {
+	position: relative;
+	display: block;
+	vertical-align: top;
+	width: 100px;
+	height: 30px;
+	padding: 3px;
+	margin: 0 10px 10px 0;
+	background: linear-gradient(to bottom, #eeeeee, #FFFFFF 25px);
+	background-image: -webkit-linear-gradient(top, #eeeeee, #FFFFFF 25px);
+	border-radius: 18px;
+	box-shadow: inset 0 -1px white, inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	cursor: pointer;
+}
+.switch-input {
+	position: absolute;
+	top: 0;
+	left: 0;
+	opacity: 0;
+}
+.switch-label {
+	position: relative;
+	display: block;
+	height: inherit;
+	font-size: 10px;
+	text-transform: uppercase;
+	background: #eceeef;
+	border-radius: inherit;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12), inset 0 0 2px rgba(0, 0, 0, 0.15);
+}
+.switch-label:before, .switch-label:after {
+	position: absolute;
+	top: 50%;
+	margin-top: -.5em;
+	line-height: 1;
+	-webkit-transition: inherit;
+	-moz-transition: inherit;
+	-o-transition: inherit;
+	transition: inherit;
+}
+.switch-label:before {
+	content: attr(data-off);
+	right: 11px;
+	color: #FFFFFF;
+	text-shadow: 0 1px rgba(255, 255, 255, 0.5);
+}
+.switch-label:after {
+	content: attr(data-on);
+	left: 11px;
+	color: #FFFFFF;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2);
+	opacity: 0;
+}
+.switch-input ~ .switch-label {
+	background: #CA2222;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15), inset 0 0 3px rgba(0, 0, 0, 0.2);
+}
+.switch-input:checked ~ .switch-label {
+	background: #2ABA34;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15), inset 0 0 3px rgba(0, 0, 0, 0.2);
+}
+.switch-input:checked ~ .switch-label:before {
+	opacity: 0;
+}
+.switch-input:checked ~ .switch-label:after {
+	opacity: 1;
+}
+.switch-handle {
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	width: 28px;
+	height: 28px;
+	background: linear-gradient(to bottom, #FFFFFF 40%, #000000);
+	background-image: -webkit-linear-gradient(top, #FFFFFF 40%, #000000);
+	border-radius: 100%;
+	box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+}
+.switch-handle:before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin: -6px 0 0 -6px;
+	width: 12px;
+	height: 12px;
+	background: linear-gradient(to bottom, #eeeeee, #FFFFFF);
+	background-image: -webkit-linear-gradient(top, #eeeeee, #FFFFFF);
+	border-radius: 6px;
+	box-shadow: inset 0 1px rgba(0, 0, 0, 0.02);
+}
+.switch-input:checked ~ .switch-handle {
+	left: 74px;
+	box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.2);
+}
+ 
+/* Transition
+========================== */
+.switch-label, .switch-handle {
+	transition: All 0.3s ease;
+	-webkit-transition: All 0.3s ease;
+	-moz-transition: All 0.3s ease;
+	-o-transition: All 0.3s ease;
+}
+/* end new feedback switch settings */
+
+/* report card document upload */
+.customDocUpload1 {
+    border: 2px solid;
+    border-radius: 10px;
+    background-color: #5f9ea0;
+    color: #ffffff;
+    border-color: #000000;
+    width: 80%;
+    line-height: 25px;
+}
+.customDocUpload1 input {
+    display: none;
+}
+.deleteDocUpload1 {
+        border: 2px solid;
+    border-radius: 10px;
+    background-color: #d43f3a;
+    color: #ffffff;
+    border-color: #000000;
+    width: 50%;
+    line-height: 25px;
+}
+/* end report card document upload */
+
+/* reports styles */
+.sidebar1 {
+    background: #228B22;
+    /* For browsers that do not support gradients */
+    background: -webkit-linear-gradient(#228B22, #32CD32, #00FF00);
+    /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(#228B22, #32CD32, #00FF00);
+    /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(#228B22, #32CD32, #00FF00);
+    /* For Firefox 3.6 to 15 */
+    background: linear-gradient(#228B22, #32CD32, #00FF00);
+    /* Standard syntax */
+    padding: 0px;
+    min-height: 100%;
+}
+.reports-logo {
+    max-height: 130px;
+}
+.reports-logo>img {
+    margin-top: 30px;
+    padding: 3px;
+    border: 3px solid white;
+    border-radius: 100%;
+}
+.reports-list {
+    color: #fff;
+    list-style: none;
+    padding-left: 0px;
+}
+.reports-list::first-line {
+    color: rgba(255, 255, 255, 0.5);
+}
+.reports-list> li, h5 {
+    padding: 5px 0px 5px 40px;
+}
+.reports-list>li:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left: 5px solid white;
+    color: white;
+    font-weight: bolder;
+    padding-left: 35px;
+}
+.reports-main-content{
+    text-align:center;
+}
+div#reportsSection {
+    margin-top: 132px;
+}
+
+#exTab1 .tab-content {
+  color : white;
+  background-color: #428bca;
+  padding : 5px 15px;
+}
+#exTab1 .nav-pills > li > a {
+  border-radius: 0;
+}
+/* end reports styles */
+
 /*# sourceMappingURL=template.css.map */
+

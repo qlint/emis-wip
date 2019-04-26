@@ -1,12 +1,24 @@
 angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService', function($rootScope, ajaxService) {
 
 	var domain = window.location.host;
-	var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'http://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1	? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost'));
+	// var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'http://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1	? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost'));
+	// if(domain == '67.219.189.47'){
+	if(domain == 'eduweb.co.ke'){
+		// var path = 'http://67.219.189.47/api';
+		var path = 'https://eduweb.co.ke/api';
+	}else{
+		var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'https://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1	? 'https://api.eduweb.co.ke': 'https://api.eduweb.localhost'));
+	}
 
 	/*********** class categories ***********/
 	this.getClassCats = function (param, successFunction, errorFunction, params) {
 		if( param === undefined ) ajaxService.AjaxGet(path + "/getClassCats", successFunction, errorFunction, params);
 		else ajaxService.AjaxGet(path + "/getClassCats/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getStreamPosition = function (param, successFunction, errorFunction, params) {
+		if( param === undefined ) ajaxService.AjaxGet(path + "/getStreamPosition", successFunction, errorFunction, params);
+		else ajaxService.AjaxGet(path + "/getStreamPosition/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getClassCatsSummary = function (request, successFunction, errorFunction, params) {
@@ -105,18 +117,37 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGetWithData(request, path + "/getSettings", successFunction, errorFunction, params);
 	};
 
+	this.getBanking = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getBanking", successFunction, errorFunction, params);
+	};
+
 
 	/*********** grading ***********/
 	this.getGrading = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getGrading", successFunction, errorFunction, params);
 	};
 
+	//lower school get grading
+	this.getGrading2 = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getGrading2", successFunction, errorFunction, params);
+	};
+
 	this.addGrading = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addGrading", successFunction, errorFunction, params);
 	};
 
+	// lower school add grading
+	this.addGrading2 = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addGrading2", successFunction, errorFunction, params);
+	};
+
 	this.updateGrading = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateGrading", successFunction, errorFunction, params);
+	};
+
+	// lower school update grading
+	this.updateGrading2 = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/updateGrading2", successFunction, errorFunction, params);
 	};
 
 	/*********** countries ***********/
@@ -176,6 +207,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getFeeItems/" + param, successFunction, errorFunction);
 	};
 
+	this.getActivitiesList = function (request, successFunction, errorFunction) {
+		ajaxService.AjaxGetWithData(request, path + "/getActivitiesList", successFunction, errorFunction);
+	};
+
 	this.getTansportRoutes = function (request, successFunction, errorFunction) {
 		ajaxService.AjaxGetWithData(request, path + "/getTansportRoutes", successFunction, errorFunction);
 	};
@@ -216,6 +251,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.getTerms = function (param, successFunction, errorFunction, params) {
 		if( param === undefined ) ajaxService.AjaxGet(path + "/getTerms", successFunction, errorFunction, params);
 		else ajaxService.AjaxGet(path + "/getTerms/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getTermsByYear = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getTermsByYear/" + param, successFunction, errorFunction, params);
 	};
 
 	this.addTerm = function (request, successFunction, errorFunction, params) {
@@ -343,6 +382,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getClassExamMarks/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getDoneExamSubjectCount = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getDoneExamSubjectCount/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getStreamDoneExamSubjectCount = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStreamDoneExamSubjectCount/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getTopStudents = function (param, successFunction, errorFunction, params) {
 		if( param === undefined ) ajaxService.AjaxGet(path + "/getTopStudents", successFunction, errorFunction, params);
 		else	ajaxService.AjaxGet(path + "/getTopStudents/" + param, successFunction, errorFunction, params);
@@ -374,6 +421,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getExamMarksforReportCard/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getLowerSchoolExamMarksforReportCard = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getLowerSchoolExamMarksforReportCard/" + param, successFunction, errorFunction, params);
+	};
+
 	this.addReportCard = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addReportCard", successFunction, errorFunction, params);
 	};
@@ -389,6 +440,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getAllParents = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getAllParents", successFunction, errorFunction, params);
+	};
+
+	this.studentGenderCount = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/studentGenderCount", successFunction, errorFunction, params);
 	};
 
 	this.getTeacherStudents = function (param, successFunction, errorFunction, params) {
@@ -431,12 +486,28 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getAllStudentExamMarks/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getAllStudentStreamMarks = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllStudentStreamMarks/" + param, successFunction, errorFunction, params);
+	};
+
 	this.postStudent = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addStudent", successFunction, errorFunction, params);
 	};
 
 	this.updateStudent = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateStudent", successFunction, errorFunction, params);
+	};
+
+	this.addDocReport = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addDocReport", successFunction, errorFunction, params);
+	};
+
+	this.getDocReport = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getDocReport/" + param, successFunction, errorFunction, params);
+	};
+
+	this.deleteDocReport = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxDelete(path + "/deleteDocReport/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getAllGuardians = function (param, successFunction, errorFunction, params) {
@@ -449,6 +520,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getMISLogin = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getMISLogin/" + param, successFunction, errorFunction, params);
+	};
+
+	this.postUserRequest = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/postUserRequest", successFunction, errorFunction, params);
 	};
 
 	this.checkUsername = function (param, successFunction, errorFunction, params) {
@@ -494,9 +569,17 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.adminDeleteStudent = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxDelete(path + "/adminDeleteStudent/" + param, successFunction, errorFunction, params);
 	};
-  
-  this.promoteStudents = function (request, successFunction, errorFunction, params) {
+
+    this.promoteStudents = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/promoteStudents", successFunction, errorFunction, params);
+	};
+
+	this.rmvStudentImg = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/rmvStudentImg", successFunction, errorFunction, params);
+	};
+
+	this.rmvPickUpIndividualImg = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/rmvPickUpIndividualImg", successFunction, errorFunction, params);
 	};
 
 
@@ -532,7 +615,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.updatePayment = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updatePayment", successFunction, errorFunction, params);
 	};
-  
+
 	this.applyCredit = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/applyCredit", successFunction, errorFunction, params);
 	};
@@ -673,6 +756,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGetWithData(request, path + "/getSchoolCommunications", successFunction, errorFunction, params);
 	};
 
+	this.getAllFeedback = function (request, successFunction, errorFunction, params) {
+	    ajaxService.AjaxGetWithData(request, path + "/getAllFeedback", successFunction, errorFunction, params);
+	};
+
 	this.addCommunication = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addCommunication", successFunction, errorFunction, params);
 	};
@@ -689,7 +776,44 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxDelete(path + "/deleteCommunication/" + param, successFunction, errorFunction, params);
 	};
 
+	this.sendNotifications = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/sendNotifications", successFunction, errorFunction, params);
+	};
+
+	this.getFeedbackUnopenedCount = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getFeedbackUnopenedCount", successFunction, errorFunction, params);
+	};
+
+	this.updateOpenedFeedbackMessage = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/updateOpenedFeedbackMessage", successFunction, errorFunction, params);
+	};
+
+	this.getUnPublishedMsgCount = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getUnPublishedMsgCount", successFunction, errorFunction, params);
+	};
+
+	this.publishMessage = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/publishMessage", successFunction, errorFunction, params);
+	};
+
+	this.batchPublishMessages = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/batchPublishMessages", successFunction, errorFunction, params);
+	};
+
+	this.unPublishMessage = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/unPublishMessage", successFunction, errorFunction, params);
+	};
+
+	this.getCommunicationForSms = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getCommunicationForSms/" + param, successFunction, errorFunction, params);
+	};
+
+	/*********** Reports ***********/
+
+	this.getClassAnalysis = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassAnalysis/" + param, successFunction, errorFunction, params);
+	};
+
 
 	return this;
 }]);
-

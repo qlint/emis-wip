@@ -1,16 +1,18 @@
 <?php
 
 $app->get('/sendNotifications/', function () {
-  
+
   $app = \Slim\Slim::getInstance();
   try{
     $db = getMISDB();
-    
-    $sth = $db->query("SELECT * FROM notifications WHERE sent is false");
+    $subdomain = getSubDomain();
+
+    $sth = $db->prepare("SELECT * FROM notifications WHERE sent is false AND subdomain = :subdomain");
+    $sth->execute( array(':subdomain' => $subdomain) );
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
-    
+
     if($results) {
-    
+
       $notifications = array();
       foreach( $results as $result )
       {
@@ -25,15 +27,15 @@ $app->get('/sendNotifications/', function () {
         }
       }
       //var_dump($notifications);
-    
+
       // loop through these notifications and send
       foreach($notifications as $notification) {
         $response = sendMessage($notification->message, $notification->device_user_ids);
         $responseJson = json_decode($response);
         $result = isset($responseJson->error) ? false : true;
-        
+
         // update database as sent
-        $update = $db->prepare('UPDATE notifications 
+        $update = $db->prepare('UPDATE notifications
                                 SET sent = true,
                                     result = :result,
                                     response = :response
@@ -41,17 +43,17 @@ $app->get('/sendNotifications/', function () {
         $update->execute( array(':response' => $response, ':notificationId' => $notification->notification_id, ':result' => $result) );
       }
     }
-    
+
     $db = null;
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
-    echo json_encode(array('response' => 'success', 'data' => $responseJson ));
-    
+    echo json_encode(array('response' => 'notifications success', 'data' => $responseJson ));
+
   }
   catch(PDOException $e){
     $app->response()->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
-    echo json_encode(array('response' => 'error', 'data' => $e->getMessage()  ));
+    echo json_encode(array('response' => 'notifications error', 'data' => $e->getMessage()  ));
   }
 });
 
@@ -80,12 +82,16 @@ function sendMessage ($message, $deviceIds) {
   curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
 
+  header('Access-Control-Allow-Origin: *');
+  header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
+  header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
+
   $response = curl_exec($ch);
   curl_close($ch);
   print("\nJSON response:\n");
   print($response);
   return $response;
-  
+
 }
 
 ?>

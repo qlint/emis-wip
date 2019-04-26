@@ -26,9 +26,9 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 											date_part('year',start_date) as year,
 											(select count(*) from app.exam_marks where term_id = terms.term_id) as has_exams
 										FROM app.terms
-										WHERE date_part('year',start_date) = :year
+										--WHERE date_part('year',start_date) = :year
 										ORDER BY date_part('year',start_date), term_name");
-			$query->execute(array(':year' => $year));
+			$query->execute(/*array(':year' => $year)*/);
 		}
 
 				$results = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -44,6 +44,46 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 						echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
 						$db = null;
 				}
+
+		} catch(PDOException $e) {
+				$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+				echo	json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		}
+
+});
+
+$app->get('/getTermsByYear/:year', function ($year) {
+		//Show all terms for given year
+
+	$app = \Slim\Slim::getInstance();
+
+		try
+		{
+    		$db = getDB();
+    		
+    		$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name,start_date, end_date,
+    											case when term_id = (select term_id from app.current_term) then true else false end as current_term,
+    											date_part('year',start_date) as year,
+    											(select count(*) from app.exam_marks where term_id = terms.term_id) as has_exams
+    										FROM app.terms
+    										WHERE date_part('year',start_date) = :year
+    										ORDER BY date_part('year',start_date), term_name");
+    		$query->execute(array(':year' => $year));
+    
+    		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+    
+    		if($results) {
+    						$app->response->setStatus(200);
+    						$app->response()->headers->set('Content-Type', 'application/json');
+    						echo json_encode(array('response' => 'success', 'data' => $results ));
+    						$db = null;
+    		} else {
+    						$app->response->setStatus(200);
+    						$app->response()->headers->set('Content-Type', 'application/json');
+    						echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+    						$db = null;
+    		}
 
 		} catch(PDOException $e) {
 				$app->response()->setStatus(404);

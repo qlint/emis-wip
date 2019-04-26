@@ -1,0 +1,67 @@
+<form name="gradingForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(gradingForm)">		
+	<div class="modal-header dialog-header-form">
+				<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> {{ (edit ? 'Edit' : 'Add' ) }} Grading Level</h4>
+			</div>
+			<div class="modal-body cleafix">
+
+					<div ng-show="error" class="alert alert-danger">
+						{{errMsg}}
+					</div>
+					<!-- grade -->
+					<div class="form-group" ng-class="{ 'has-error' : gradingForm.grade.$invalid && (gradingForm.grade.$touched || gradingForm.$submitted) }">		
+						<label for="grade" class="col-sm-4 nopad-right control-label">Grade</label>
+						<div class="col-sm-3">
+							<input type="text" name="grade" ng-model="grading.grade" class="form-control" required >						
+							<p ng-show="gradingForm.grade.$invalid && (gradingForm.grade.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Grade is required.</p>
+						</div>	
+					</div>
+					<!-- grade mark min -->
+					<div class="form-group" ng-class="{ 'has-error' : gradingForm.min_mark.$invalid && (gradingForm.min_mark.$touched || gradingForm.$submitted) }">
+						<label for="min_mark" class="col-sm-4 nopad-right control-label">Marks Range</label>
+						<div class="col-sm-3 nopad-right">
+							<input type="text" name="min_mark" ng-model="grading.min_mark" class="form-control" required numeric_only>
+							<span class="help-block">Min. mark</span>							
+							<p ng-show="gradingForm.min_mark.$invalid && (gradingForm.min_mark.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Min Mark is required.</p>
+						</div>
+						<div class="col-sm-1">
+							<p class="form-control-static">-</p>
+						</div>
+						<div class="col-sm-3 nopad-left">
+							<input type="text" name="max_mark" ng-model="grading.max_mark" class="form-control" required numeric_only >		
+							<span class="help-block">Max. mark</span>							
+							<p ng-show="gradingForm.max_mark.$invalid && (gradingForm.max_mark.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Max Mark is required.</p>
+						</div>
+					</div>
+					<!-- grade comments -->
+					<div class="form-group" ng-class="{ 'has-error' : gradingForm.comment.$invalid && (gradingForm.comment.$touched || gradingForm.$submitted) }">
+						<label for="comment" class="col-sm-4 nopad-right control-label">Comment</label>
+						<div class="col-sm-7">
+							<textarea type="text" name="comment" rows="2" ng-model="grading.comment" class="form-control" ></textarea>
+							<p ng-show="gradingForm.comment.$invalid && (gradingForm.comment.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Comment is required.</p>
+						</div>
+					</div>
+					<!-- kiswahili comments -->
+					<div class="form-group" ng-class="{ 'has-error' : gradingForm.kiswahili_comment.$invalid && (gradingForm.kiswahili_comment.$touched || gradingForm.$submitted) }">
+						<label for="kiswahili_comment" class="col-sm-4 nopad-right control-label">Kiswahili Comment</label>
+						<div class="col-sm-7">
+							<textarea type="text" name="kiswahili_comment" rows="2" ng-model="grading.kiswahili_comment" class="form-control" ></textarea>
+							<p ng-show="gradingForm.kiswahili_comment.$invalid && (gradingForm.kiswahili_comment.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Kiswahili comment is required.</p>
+						</div>
+					</div>
+					<!-- principal comments -->
+					<div class="form-group" ng-class="{ 'has-error' : gradingForm.principal_comment.$invalid && (gradingForm.principal_comment.$touched || gradingForm.$submitted) }">
+						<label for="principal_comment" class="col-sm-4 nopad-right control-label">Principal Comment</label>
+						<div class="col-sm-7">
+							<textarea type="text" name="principal_comment" rows="2" ng-model="grading.principal_comment" class="form-control" ></textarea>
+							<p ng-show="gradingForm.principal_comment.$invalid && (gradingForm.principal_comment.$touched || gradingForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Principal comment is required.</p>
+						</div>
+					</div>
+
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
+				<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>
+				<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>
+			</div>
+</form>

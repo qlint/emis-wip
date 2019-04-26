@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Eduweb Statistics Dashboard</title>
+  <!-- plugins:css -->
+  <link rel="stylesheet" href="cloudui/dark/vendors/iconfonts/simple-line-icon/css/simple-line-icons.css">
+  <link rel="stylesheet" href="cloudui/dark/vendors/iconfonts/flag-icon-css/css/flag-icon.min.css">
+  <link rel="stylesheet" href="cloudui/dark/vendors/css/vendor.bundle.base.css">
+  <link rel="stylesheet" href="cloudui/dark/vendors/css/vendor.bundle.addons.css">
+  <!-- endinject -->
+  <!-- plugin css for this page -->
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <link rel="stylesheet" href="cloudui/dark/css/style.css">
+  <!-- endinject -->
+  <link rel="shortcut icon" href="cloudui/dark/images/favicon.png" />
+</head>
+<body>
+  <div class="container-scroller">
+    <!-- partial:partials/_horizontal-navbar.html -->
+    <nav class="navbar horizontal-layout col-lg-12 col-12 p-0">
+      <div class="nav-top flex-grow-1">
+        <div class="container d-flex flex-row h-100">
+          <div class="text-center navbar-brand-wrapper d-flex align-items-center">
+            <a class="navbar-brand brand-logo" href="#" style="color:#ABFFA5;">Eduweb Stats</a>
+            <a class="navbar-brand brand-logo-mini" href="#" style="color:#ABFFA5;">Eduweb Stats</a>
+          </div>
+          <div class="navbar-menu-wrapper d-flex align-items-stretch justify-content-between flex-grow-1">
+            <form class="search-field d-none d-md-flex" action="#">
+              <div class="form-group mb-0">
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="icon-magnifier"></i></span>
+                  </div>
+                  <input type="text" class="form-control" placeholder="search here...">
+                </div>
+              </div>
+            </form>
+            <ul class="navbar-nav navbar-nav-right mr-0 ml-auto">
+              <li class="nav-item nav-profile dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" id="profileDropdown">
+                  <img src="cloudui/dark/images/faces/face4.jpg" alt="profile"/>
+                  <span class="nav-profile-name">Clint A.</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
+                  <a class="dropdown-item">
+                    <i class="icon-logout text-primary mr-2"></i>
+                    Logout
+                  </a>
+                </div>
+              </li>
+            </ul>
+            <button class="navbar-toggler align-self-center" type="button" data-toggle="minimize">
+              <span class="icon-menu text-light"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="nav-bottom">
+        <div class="container">
+          <ul class="nav page-navigation">
+            <li class="nav-item">
+              <a href="cloudui/dark/index.html" class="nav-link"><i class="link-icon icon-screen-desktop"></i><span class="menu-title">DASHBOARD</span></a>
+            </li>
+            <li class="nav-item">
+              <a id="refreshPage" class="nav-link"><i class="link-icon icon-refresh"></i><span class="menu-title">Refresh</span></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <!-- partial -->
+    <div class="container-fluid page-body-wrapper">
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="row">
+            <div class="col-12 grid-margin">
+              <div class="card card-statistics">
+                <div class="card-body p-0">
+                  <div class="row">
+                    <div class="col-md-6 col-lg-2">
+                      <div class="d-flex justify-content-between border-right card-statistics-item">
+                        <div>
+                          <h1 id="totalParents"></h1>
+                          <p class="text-muted mb-0" style="color:#ca9235 !important">Total Parents</p>
+                        </div>
+                        <i class="icon-user text-primary icon-lg"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                      <div class="d-flex justify-content-between border-right card-statistics-item">
+                        <div>
+                          <h1 id="totalAppUsers"></h1>
+                          <p class="text-muted mb-0" style="color:#ca9235 !important">Total App Accounts</p>
+                        </div>
+                        <i class="icon-user-following text-primary icon-lg"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                      <div class="d-flex justify-content-between border-right card-statistics-item">
+                        <div>
+                          <h1 id="totalStudents"></h1>
+                          <p class="text-muted mb-0" style="color:#ca9235 !important">Total Students</p>
+                        </div>
+                        <i class="icon-people text-primary icon-lg"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                      <div class="d-flex justify-content-between border-right card-statistics-item">
+                        <div>
+                          <h1 id="totalTeachers"></h1>
+                          <p class="text-muted mb-0" style="color:#ca9235 !important">Total Teachers</p>
+                        </div>
+                        <i class="icon-book-open text-primary icon-lg"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                      <div class="d-flex justify-content-between border-right card-statistics-item">
+                        <div>
+                          <h1 id="totalAppDownloads"></h1>
+                          <p class="text-muted mb-0" style="color:#ca9235 !important">Total App Downloads</p>
+                        </div>
+                        <i class="icon-cloud-download text-primary icon-lg"></i>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                      <div class="d-flex justify-content-between card-statistics-item">
+                        <!-- FUTURE USE -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">General Stats</h4>
+                  <div class="w-75 mx-auto">
+                    <canvas id="earning-report" width="100" height="100"></canvas>
+                  </div>
+                  <div class="py-4 d-flex justify-content-center align-items-end">
+                    <h1 class="text-center text-md-left mb-0">14</h1>
+                    <p class="text-muted mb-0 ml-2">Total</p>
+                  </div>
+                  <div id="earning-report-legend" class="earning-report-legend"></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-9 grid-margin stretch-card">
+              <div class="card">
+                <div class="row h-100">
+                  <div class="col-md-5 border-right">
+                    <div class="card-body">
+                      <h4 class="card-title">Parents By Year</h4>
+                      <table class="table table-borderless">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <h6 style="color:#ABFFA5">New Parents 2018</h6>
+                              <p class="text-muted mb-0">Monthly change percentage</p>
+                            </td>
+                            <td>
+                              <h3 class="text-primary" id="parents2018"></h3>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <h6 style="color:#ABFFA5">New Parents 2017</h6>
+                              <p class="text-muted mb-0">Monthly change percentge</p>
+                            </td>
+                            <td>
+                              <h3 class="text-primary" id="parents2017"></h3>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <h6 style="color:#ABFFA5">New Parents 2016</h6>
+                              <p class="text-muted mb-0">Monthly change percentage</p>
+                            </td>
+                            <td>
+                              <h3 class="text-primary" id="parents2016"></h3>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <h6 style="color:#ABFFA5">New App Users 2018</h6>
+                              <p class="text-muted mb-0">Monthly change percentage</p>
+                            </td>
+                            <td>
+                              <h3 class="text-warning" id="newApp2018"></h3>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <h6 style="color:#ABFFA5">New App Users 2017</h6>
+                              <p class="text-muted mb-0">Monthly change percentage</p>
+                            </td>
+                            <td>
+                              <h3 class="text-warning" id="newApp2017"></h3>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <div class="card-body d-flex flex-column h-100">
+                      <div class="d-flex flex-row">
+                        <h4 class="card-title">Monthly Communications Metrics (2018)</h4>
+                      </div>
+                      <p><b style="color:#ff00ff">Purple</b> = App Messages || <b style="color:#00ff7f">Green</b> = SMS Messages</p>
+                      <canvas id="chart-activity" class="mt-auto"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-7 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Open invoices</h4>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>Invoice</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="disc bg-secondary"></div>
+                        </td>
+                        <td>
+                          <h4 class="text-primary font-weight-normal">490-525-4779</h4>
+                          <p class="text-muted mb-0">Online sale</p>
+                        </td>
+                        <td>
+                          $41991
+                        </td>
+                        <td>
+                          <p>27 Sep 2018</p>
+                          <p class="text-muted mb-0">3 days ago</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="disc bg-secondary"></div>
+                        </td>
+                        <td>
+                          <h4 class="text-primary font-weight-normal">490-525-4780</h4>
+                          <p class="text-muted mb-0">Online sale</p>
+                        </td>
+                        <td>
+                          $65789
+                        </td>
+                        <td>
+                          <p>27 Sep 2018</p>
+                          <p class="text-muted mb-0">2 days ago</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="disc bg-secondary"></div>
+                        </td>
+                        <td>
+                          <h4 class="text-primary font-weight-normal">490-525-4781</h4>
+                          <p class="text-muted mb-0">Offline sale</p>
+                        </td>
+                        <td>
+                          $98076
+                        </td>
+                        <td>
+                          <p>27 Sep 2018</p>
+                          <p class="text-muted mb-0">4 days ago</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="disc bg-secondary"></div>
+                        </td>
+                        <td>
+                          <h4 class="text-primary font-weight-normal">490-525-4782</h4>
+                          <p class="text-muted mb-0">Online sale</p>
+                        </td>
+                        <td>
+                          $67589
+                        </td>
+                        <td>
+                          <p>27 Sep 2018</p>
+                          <p class="text-muted mb-0">1 day ago</p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-5 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body d-flex flex-column justify-content-between">
+                  <div>
+                    <h4 class="card-title">Revenue</h4>
+                    <h1>20009</h1>
+                    <p class="text-muted">5.6% change today</p>
+                  </div>
+                  <canvas id="sales-chart" class="mt-auto"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-7 grid-margin grid-margin-md-0 stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Todo list</h4>
+                  <div class="add-items d-flex">
+                    <input type="text" class="form-control todo-list-input"  placeholder="What do you need to do today?">
+                    <button class="add btn btn-primary todo-list-add-btn" id="add-task">Add</button>
+                  </div>
+                  <div class="list-wrapper">
+                    <ul class="d-flex flex-column-reverse todo-list">
+                      <li class="completed">
+                        <div class="form-check">
+                          <label class="form-check-label">
+                            <input class="checkbox" type="checkbox" checked>
+                            Call John
+                          </label>
+                        </div>
+                        <i class="remove icon-close"></i>
+                      </li>
+                      <li>
+                        <div class="form-check">
+                          <label class="form-check-label">
+                            <input class="checkbox" type="checkbox">
+                            Create invoice
+                          </label>
+                        </div>
+                        <i class="remove icon-close"></i>
+                      </li>
+                      <li>
+                        <div class="form-check">
+                          <label class="form-check-label">
+                            <input class="checkbox" type="checkbox">
+                            Print Statements
+                          </label>
+                        </div>
+                        <i class="remove icon-close"></i>
+                      </li>
+                      <li class="completed">
+                        <div class="form-check">
+                          <label class="form-check-label">
+                            <input class="checkbox" type="checkbox" checked>
+                            Prepare for presentation
+                          </label>
+                        </div>
+                        <i class="remove icon-close"></i>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-5 grid-margin grid-margin-md-0 stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Projects</h4>
+                  <table class="table">
+                    <tbody>
+                      <tr>
+                        <td class="py-1">
+                          <img src="cloudui/dark/images/faces/bulb-gear.png" alt="profile" class="img-sm rounded-circle"/>
+                        </td>
+                        <td>
+                          Project One
+                        </td>
+                        <td>
+                          <label class="badge badge-warning">Medium</label>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="py-1">
+                          <img src="cloudui/dark/images/faces/bulb-gear.png" alt="profile" class="img-sm rounded-circle"/>
+                        </td>
+                        <td>
+                            Project Two
+                        </td>
+                        <td>
+                          <label class="badge badge-danger">High</label>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="py-1">
+                          <img src="cloudui/dark/images/faces/bulb-gear.png" alt="profile" class="img-sm rounded-circle"/>
+                        </td>
+                        <td>
+                            Project Three
+                        </td>
+                        <td>
+                          <label class="badge badge-success">Low</label>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="py-1">
+                          <img src="cloudui/dark/images/faces/bulb-gear.png" alt="profile" class="img-sm rounded-circle"/>
+                        </td>
+                        <td>
+                            Project Four
+                        </td>
+                        <td>
+                          <label class="badge badge-warning">Medium</label>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- partial:partials/_footer.html -->
+        <footer class="footer">
+          <div class="w-100 clearfix">
+            <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright © 2018 <a href="index.html" target="_blank">Eduweb</a>. All rights reserved.</span>
+            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">By Eduweb Team <i class="icon-heart text-danger"></i></span>
+          </div>
+        </footer>
+        <!-- partial -->
+      </div>
+      <!-- main-panel ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+  <!-- container-scroller -->
+  <!-- plugins:js -->
+  <script src="cloudui/dark/vendors/js/vendor.bundle.base.js"></script>
+  <script src="cloudui/dark/vendors/js/vendor.bundle.addons.js"></script>
+  <!-- endinject -->
+  <!-- Plugin js for this page-->
+  <!-- End plugin js for this page-->
+  <!-- inject:js -->
+  <script src="cloudui/dark/js/template.js"></script>
+  <!-- endinject -->
+  <!-- Custom js for this page-->
+  <script src="cloudui/dark/js/dashboard.js"></script>
+  <script src="cloudui/dark/js/todolist.js"></script>
+  <!-- End custom js for this page-->
+  <script type="text/javascript">
+    $(document).ready(function() {
+      //fetch data as soon as the page loads
+      $.get("cloudui/ajax/generalStats.php", function(data, status){
+        // alert("Data: " + data + "\nStatus: " + status);
+        var jsonData = JSON.parse(data);
+        console.log(jsonData);
+        $("#totalAppUsers").text(jsonData.total_parents);
+        $("#totalAppDownloads").text(jsonData.total_app_users);
+        $("#newApp2018").text(jsonData.total_app_users_2018);
+        $("#newApp2017").text(jsonData.total_app_users_2017);
+      });
+      $.get("cloudui/ajax/getAllSchools.php", function(data, status){
+        // alert("Data: " + data + "\nStatus: " + status);
+        var schoolDataArr = [];
+        var getAllSschools = JSON.parse(data);
+        for (var a = 0; a < getAllSschools.length; a++) {
+            var eachSchool = JSON.parse(getAllSschools[a]);
+            schoolDataArr.push(eachSchool);
+        }
+        console.log(schoolDataArr);
+        
+        // summation function
+        Array.prototype.sum = function (prop) {
+            var total = 0
+            for ( var i = 0, _len = this.length; i < _len; i++ ) {
+                total += parseInt(this[i][prop])
+            }
+            return total
+        }
+        
+        var allParents = schoolDataArr.sum("total_parents");
+        var allTeachers = schoolDataArr.sum("total_teachers");
+        var allStudents = schoolDataArr.sum("total_students");
+        $("#totalParents").text(allParents);
+        $("#totalStudents").text(allStudents);
+        $("#totalTeachers").text(allTeachers);
+        
+        var parents2018 = schoolDataArr.sum("total_parents_2018");
+        var parents2017 = schoolDataArr.sum("total_parents_2017");
+        var parents2016 = schoolDataArr.sum("total_parents_2016");
+        $("#parents2018").text(parents2018);
+        $("#parents2017").text(parents2017);
+        $("#parents2016").text(parents2016);
+        
+      });
+      //this gets the select options based on another select
+      $("#refreshPage").click(function() {
+        // get latest data in any (just another fetch)
+        $.get("cloudui/ajax/generalStats.php", function(data, status){
+          console.log("Page refreshed.");
+          var jsonData = JSON.parse(data);
+          console.log(jsonData);
+          $("#totalParents").text(jsonData.total_parents);
+          $("#totalAppDownloads").text(jsonData.total_app_users);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

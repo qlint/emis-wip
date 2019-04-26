@@ -10,112 +10,192 @@ $app->post('/parentLogin', function () use($app) {
   try
   {
     $db = getLoginDB();
-    $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
-                  first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id
-                FROM parents
-                INNER JOIN parent_students ON parents.parent_id = parent_students.parent_id
-                WHERE username= :username
-                AND password = :password
-                AND active is true");
-    $sth->execute( array(':username' => $username, ':password' => $pwd) );
-    $result = $sth->fetch(PDO::FETCH_OBJ);
-
-    if($result) {
-      
-      // get the parents' students and add to result
-      $sth1 = $db->prepare("SELECT student_id, subdomain, dbusername, dbpassword 
-                            FROM parent_students 
-                            WHERE parent_id = :parentId 
-                            ORDER BY subdomain");
-      $sth1->execute(array(':parentId' => $result->parent_id));
-      $students = $sth1->fetchAll(PDO::FETCH_OBJ);
-      $db = null;
-
-      $studentDetails = Array();
-      $curSubDomain = '';
-      $studentsBySchool = Array();
-      foreach( $students as $student )
-      {
-        // get individual student details
-        // only get new db connection if different subdomain
-        if( $curSubDomain != $student->subdomain )
-        {
-          if( $db !== null ) $db = null;
-          $db = setDBConnection($student->subdomain);
-        }
-        $sth3 = $db->prepare("SELECT student_id, first_name, middle_name, last_name, student_image, admission_number,
-                       first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-                       students.active, class_name, class_id, class_cat_id, report_card_type,
-                       (SELECT value FROM app.settings WHERE name = 'School Name') as school_name
-                    FROM app.students
-                    INNER JOIN app.classes ON students.current_class = classes.class_id
-                    WHERE student_id = :studentId");
-        $sth3->execute(array(':studentId' => $student->student_id));
-        $details = $sth3->fetch(PDO::FETCH_OBJ);
+    
+    $userCheckQry = $db->query("SELECT (CASE 
+                                    		WHEN EXISTS (SELECT username FROM parents WHERE username = '$username') THEN 'proceed'
+                                    		ELSE 'stop'
+                                    	END) AS status");
+    $userStatus = $userCheckQry->fetch(PDO::FETCH_OBJ);
+    $userStatus = $userStatus->status;
+    
+    if($userStatus === "proceed"){
+    
+            $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
+                          first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id, guardian_id AS school_guardian_id
+                        FROM parents
+                        INNER JOIN parent_students ON parents.parent_id = parent_students.parent_id
+                        WHERE username= :username
+                        AND password = :password
+                        AND active is true");
+            $sth->execute( array(':username' => $username, ':password' => $pwd) );
+            $result = $sth->fetch(PDO::FETCH_OBJ);
         
-        if( $details ) {
-          $details->school = $student->subdomain;
-
-          if( $details->student_id !== null )
-          {
-            $studentDetails[] = $details;
-            $curSubDomain = $student->subdomain;
-
-            /* build an array for grabbing news */
-            $studentsBySchool[$curSubDomain][] = $student->student_id;
-          }
+            if($result) {
+        
+              // get the parents' students and add to result
+              $sth1 = $db->prepare("SELECT student_id, guardian_id AS school_guardian_id, subdomain, dbusername, dbpassword
+                                    FROM parent_students
+                                    WHERE parent_id = :parentId
+                                    ORDER BY subdomain");
+              $sth1->execute(array(':parentId' => $result->parent_id));
+              $students = $sth1->fetchAll(PDO::FETCH_OBJ);
+              $db = null;
+        
+              $studentDetails = Array();
+              $curSubDomain = '';
+              $studentsBySchool = Array();
+              foreach( $students as $student )
+              {
+                // get individual student details
+                // only get new db connection if different subdomain
+                if( $curSubDomain != $student->subdomain )
+                {
+                  if( $db !== null ) $db = null;
+                  $db = setDBConnection($student->subdomain);
+                }
+                $sth3 = $db->prepare("SELECT student_id, first_name, middle_name, last_name, student_image, admission_number,
+                               first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
+                               students.active, class_name, class_id, class_cat_id, report_card_type, admission_date, student_category, gender, dob, payment_method, payment_plan_name,
+                               (SELECT value FROM app.settings WHERE name = 'School Name') as school_name,
+                               (SELECT value FROM app.settings WHERE name = 'subdomain') as school_subdomain,
+                               (SELECT value FROM app.settings WHERE name = 'Use Feedback') as use_feedback
+                            FROM app.students
+                            INNER JOIN app.classes ON students.current_class = classes.class_id
+                            LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
+                            WHERE student_id = :studentId  AND students.active IS TRUE");
+                $sth3->execute(array(':studentId' => $student->student_id));
+                $details = $sth3->fetch(PDO::FETCH_OBJ);
+        
+                if( $details ) {
+                  $details->school = $student->subdomain;
+        
+                  if( $details->student_id !== null )
+                  {
+                    $studentDetails[] = $details;
+                    $curSubDomain = $student->subdomain;
+        
+                    /* build an array for grabbing news */
+                    $studentsBySchool[$curSubDomain][] = $student->student_id;
+                  }
+                }
+              }
+        
+              /* get news for students, only want new once per school, and student specific news */
+              $news = Array();
+              foreach( $studentsBySchool as $school => $students )
+              {
+                if( $db !== null ) $db = null;
+                $db = setDBConnection($school);
+        
+                $sth5 = $db->prepare("SELECT
+                            com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
+                            employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                            audience, attachment, reply_to,
+                            students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
+                            guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
+                            communications.guardian_id, communications.student_id, classes.class_name, post_status,
+                            sent, sent_date, message_from,
+                            case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method
+                          FROM app.communications
+                          LEFT JOIN app.students ON communications.student_id = students.student_id
+                          LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
+                          LEFT JOIN app.classes ON communications.class_id = classes.class_id
+                          INNER JOIN app.employees ON communications.message_from = employees.emp_id
+                          INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
+                          INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
+                          INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
+                          WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
+                          AND communications.sent IS TRUE
+                          AND communications.post_status_id = 1
+                          AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) 
+                          OR communications.class_id is null)
+                          AND communications.audience_id NOT IN (3,4,7,9)
+                          --AND students.active IS TRUE
+                          ORDER BY creation_date desc");
+        
+                $studentsArray = "{" . implode(',',$students) . "}";
+                $sth5->execute(array(':studentIds' => $studentsArray));
+                $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
+        
+              }
+        
+              /* get sent messages by student's parent */
+              $feedback = Array();
+              foreach( $studentsBySchool as $school => $students )
+              {
+                if( $db !== null ) $db = null;
+                $db = setDBConnection($school);
+        
+                $sth6 = $db->prepare("SELECT cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
+                        cf.message_from as posted_by,
+                        s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                        g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
+                        c.class_name
+                    FROM app.communication_feedback cf
+                    LEFT JOIN app.students s USING (student_id)
+                    LEFT JOIN app.guardians g USING (guardian_id)
+                    LEFT JOIN app.classes c USING (class_id)
+                    WHERE cf.student_id = any(:studentIds)
+                    AND s.active IS TRUE
+                    GROUP BY cf.com_feedback_id, subject, message, student_name, parent_full_name, class_name, opened
+                    ORDER BY post_id DESC");
+        
+                $studentsArray = "{" . implode(',',$students) . "}";
+                $sth6->execute(array(':studentIds' => $studentsArray));
+                $feedback[$school] = $sth6->fetchAll(PDO::FETCH_OBJ);
+        
+              }
+        
+              $result->students = $studentDetails;
+              $result->news = $news;
+              $result->feedback = $feedback;
+        
+              $app->response->setStatus(200);
+              $app->response()->headers->set('Content-Type', 'application/json');
+              $db = null;
+        
+              echo json_encode(array('response' => 'success', 'data' => $result ));
+        
+            } else {
+                $app->response->setStatus(200);
+                $app->response()->headers->set('Content-Type', 'application/json');
+                echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
+                /*
+                $responseJSON = json_encode($theResponse);
+                // throw new PDOException('The username or password you have entered is incorrect.'); 
+                throw new PDOException($responseJSON);
+                // throw new PDOException('The username you entered does not exist. Please confirm and try again.');
+                */
+            }
+    
+    } else { 
+        if($userStatus === "stop"){ 
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array("response" => "error", "code" => 2, "data" => 'The username you entered does not exist. Please confirm and try again.'));
+            /*
+            $theResponse->data = 'The username you entered does not exist. Please confirm and try again.';
+            $theResponse->status = array(2=>"The username you entered does not exist. Please confirm and try again.");
+            
+            $responseJSON = json_encode($theResponse);
+            
+            // throw new PDOException('The username you entered does not exist. Please confirm and try again.'); 
+            throw new PDOException($responseJSON); 
+            */
+        } else { 
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
+            /*
+            $theResponse->data = 'The password you have entered is incorrect. Please check the spelling and / or capitalization.';
+            $theResponse->status = array(3=>"The password you have entered is incorrect. Please check the spelling and / or capitalization.");
+            
+            $responseJSON = json_encode($theResponse);
+            // throw new PDOException('The username or password you have entered is incorrect.'); 
+            throw new PDOException($responseJSON); 
+            */
         }
-      }
-
-      /* get news for students, only want new once per school, and student specific news */
-      $news = Array();
-      foreach( $studentsBySchool as $school => $students )
-      {
-        if( $db !== null ) $db = null;
-        $db = setDBConnection($school);
-
-        $sth5 = $db->prepare("SELECT
-                    com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
-                    employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
-                    audience, attachment, reply_to,
-                    students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
-                    guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
-                    communications.guardian_id, communications.student_id, classes.class_name, post_status,
-                    sent, sent_date, message_from,
-                    case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method
-                  FROM app.communications
-                  LEFT JOIN app.students ON communications.student_id = students.student_id
-                  LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
-                  LEFT JOIN app.classes ON communications.class_id = classes.class_id
-                  INNER JOIN app.employees ON communications.message_from = employees.emp_id
-                  INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
-                  INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
-                  INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-                  WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
-                  AND communications.post_status_id = 1
-                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
-                  AND date_part('year',communications.creation_date) = date_part('year',now())
-                  ORDER BY creation_date desc");
-
-        $studentsArray = "{" . implode(',',$students) . "}";
-        $sth5->execute(array(':studentIds' => $studentsArray));
-        $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
-
-      }
-
-      $result->students = $studentDetails;
-      $result->news = $news;
-
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      $db = null;
-
-      echo json_encode(array('response' => 'success', 'data' => $result ));
-
-    } else {
-      throw new PDOException('The username or password you have entered is incorrect.');
     }
-
   } catch(PDOException $e) {
     $app->response()->setStatus(401);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -151,7 +231,7 @@ $app->put('/updatePassword', function () use($app) {
     {
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array("response" => "error", "data" => "Current password is incorrect."));
+      echo json_encode(array("response" => "error", "data" => "Current password is incorrect." ));
     }
 
 
@@ -178,7 +258,7 @@ $app->post('/updateDeviceUserId', function () use($app) {
     $sth->execute( array(':parentId' => $parentId, ':deviceUserId' => $deviceUserId) );
 
     $db = null;
-    
+
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
     echo json_encode(array("response" => "success", "code" => 1));
@@ -199,7 +279,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
     $db = getLoginDB();
 
     // get the parents' students and add to result
-    $sth1 = $db->prepare("SELECT student_id, subdomain, dbusername, dbpassword FROM parent_students WHERE parent_id = :parentId ORDER BY subdomain");
+    $sth1 = $db->prepare("SELECT student_id, guardian_id AS school_guardian_id, subdomain, dbusername, dbpassword FROM parent_students WHERE parent_id = :parentId ORDER BY subdomain");
     $sth1->execute(array(':parentId' => $parentId));
     $students = $sth1->fetchAll(PDO::FETCH_OBJ);
     $db = null;
@@ -218,14 +298,16 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
       }
       $sth3 = $db->prepare("SELECT student_id, first_name, middle_name, last_name, student_image, admission_number,
                      first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-                     students.active, class_name, class_id, class_cat_id, report_card_type,
-                     (SELECT value FROM app.settings WHERE name = 'School Name') as school_name
+                     students.active, class_name, class_id, class_cat_id, report_card_type, admission_date, student_category, gender, dob, payment_method, payment_plan_name,
+                     (SELECT value FROM app.settings WHERE name = 'School Name') as school_name,
+                     (SELECT value FROM app.settings WHERE name = 'Use Feedback') as use_feedback
                   FROM app.students
                   INNER JOIN app.classes ON students.current_class = classes.class_id
-                  WHERE student_id = :studentId");
+                  LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
+                  WHERE student_id = :studentId AND students.active IS TRUE");
       $sth3->execute(array(':studentId' => $student->student_id));
       $details = $sth3->fetch(PDO::FETCH_OBJ);
-      if($details){      
+      if($details){
         $details->school = $student->subdomain;
 
         if( $details->student_id !== null )
@@ -247,37 +329,68 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
       $db = setDBConnection($school);
 
       $sth5 = $db->prepare("SELECT
-                  com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
-                  employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
-                  audience, attachment, reply_to,
-                  students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
-                  guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
-                  communications.guardian_id, communications.student_id, classes.class_name, post_status,
-                  sent, sent_date, message_from,
-                  case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method
-                FROM app.communications
-                LEFT JOIN app.students ON communications.student_id = students.student_id
-                LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
-                LEFT JOIN app.classes ON communications.class_id = classes.class_id
-                INNER JOIN app.employees ON communications.message_from = employees.emp_id
-                INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
-                INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
-                INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-                WHERE (communications.student_id = any(:studentIds) OR communications.student_id is null)
-                AND communications.post_status_id = 1
-                AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
-                AND date_part('year',communications.creation_date) = date_part('year',now())
-                ORDER BY creation_date desc");
+                    com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
+                    employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                    audience, attachment, reply_to,
+                    students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
+                    guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
+                    communications.guardian_id, communications.student_id, classes.class_name, post_status,
+                    sent, sent_date, message_from,
+                    case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method
+                  FROM app.communications
+                  LEFT JOIN app.students ON communications.student_id = students.student_id
+                  LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
+                  LEFT JOIN app.classes ON communications.class_id = classes.class_id
+                  INNER JOIN app.employees ON communications.message_from = employees.emp_id
+                  INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
+                  INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
+                  INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
+                  WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
+                  AND communications.sent IS TRUE
+                  AND communications.post_status_id = 1
+                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) 
+                  OR communications.class_id is null)
+                  AND communications.audience_id NOT IN (3,4,7,9)
+                  --AND students.active IS TRUE
+                  ORDER BY creation_date desc");
 
       $studentsArray = "{" . implode(',',$students) . "}";
       $sth5->execute(array(':studentIds' => $studentsArray));
       $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
 
     }
+    
+    /* get sent messages by student's parent */
+      $feedback = Array();
+      foreach( $studentsBySchool as $school => $students )
+      {
+        if( $db !== null ) $db = null;
+        $db = setDBConnection($school);
+
+        $sth6 = $db->prepare("SELECT cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
+                cf.message_from as posted_by,
+                s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
+                c.class_name
+            FROM app.communication_feedback cf
+            LEFT JOIN app.students s USING (student_id)
+            LEFT JOIN app.guardians g USING (guardian_id)
+            LEFT JOIN app.classes c USING (class_id)
+            WHERE cf.student_id = any(:studentIds)
+            AND s.active IS TRUE
+            GROUP BY cf.com_feedback_id, subject, message, student_name, parent_full_name, class_name, opened
+            ORDER BY post_id DESC");
+
+        $studentsArray = "{" . implode(',',$students) . "}";
+        $sth6->execute(array(':studentIds' => $studentsArray));
+        $feedback[$school] = $sth6->fetchAll(PDO::FETCH_OBJ);
+
+      }
 
     $result = new stdClass();
     $result->students = $studentDetails;
     $result->news = $news;
+    $result->feedback = $feedback;
     $result->notices = Array();
 
     $app->response->setStatus(200);
@@ -323,6 +436,41 @@ $app->get('/getSchoolCurrency/:school', function ($school) {
         $app->response()->setStatus(404);
     $app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getGrading2/:school', function ($school) {
+    //Show lower school grading
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = setDBConnection($school);
+        $sth = $db->prepare("SELECT *
+            FROM app.grading2
+			ORDER BY max_mark desc");
+        $sth->execute();
+
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+         $app->response()->setStatus(200);
+		 $app->response()->headers->set('Content-Type', 'application/json');
+         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
 });
@@ -390,6 +538,7 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
                 AND blog_posts.post_status_id = 1
                -- AND blog_posts.post_type_id = 1
                 AND date_trunc('year', blog_posts.creation_date) =  date_trunc('year', now())
+                AND students.active IS TRUE
                 ORDER BY blog_posts.creation_date desc
                 ");
       $sth->execute( array(':studentId' => $studentId) );
@@ -409,6 +558,7 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
                AND blog_posts.post_status_id = 1
               -- AND blog_posts.post_type_id = 1
                AND date_trunc('year', blog_posts.creation_date) =  date_trunc('year', now())
+               AND students.active IS TRUE
                 ");
 
       $sth2 = $db->prepare("SELECT post_id, blogs.blog_id, blog_posts.creation_date, title, post_type, body, blog_posts.post_status_id, post_status,
@@ -442,7 +592,7 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
 
       $count = $sth1->fetch(PDO::FETCH_OBJ);
       $posts = $sth2->fetchAll(PDO::FETCH_OBJ);
-      
+
       $pagination = new stdClass();
       $pagination->page = $pageNumber;
       $pagination->perPage = $limit;
@@ -483,29 +633,25 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
     try
     {
     $db = setDBConnection($school);
-    $sth = $db->prepare("SELECT homework_id, assigned_date, title, body, homework.post_status_id, post_status,
-                  employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
-                  attachment, homework.modified_date,
-                  class_name, class_subjects.class_id, due_date, subject_name
-                FROM app.homework
-                INNER JOIN app.employees
-                ON homework.created_by = employees.emp_id
-                INNER JOIN app.blog_post_statuses
-                ON homework.post_status_id = blog_post_statuses.post_status_id
-                INNER JOIN app.class_subjects
-                  INNER JOIN app.classes
-                    INNER JOIN app.students
-                    ON classes.class_id = students.current_class
-                  ON class_subjects.class_id = classes.class_id
-                  INNER JOIN app.subjects
-                  ON class_subjects.subject_id = subjects.subject_id
-                ON homework.class_subject_id = class_subjects.class_subject_id
-                WHERE student_id = :studentId
-                AND homework.post_status_id = 1
-                --AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
-                AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date
-                  OR due_date > now() )
-                ORDER BY homework.assigned_date, subjects.sort_order
+    $sth = $db->prepare("SELECT homework_id, assigned_date,
+                        	employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                        	title, body, homework.post_status_id, post_status, class_name, class_subjects.class_id, due_date, subject_name,
+                        	attachment, homework.modified_date
+                        FROM app.homework
+                        INNER JOIN app.blog_post_statuses USING (post_status_id)
+                        INNER JOIN app.class_subjects USING (class_subject_id)
+                        INNER JOIN app.classes USING (class_id)
+                        INNER JOIN app.students ON classes.class_id = students.current_class
+                        			AND class_subjects.class_id = classes.class_id
+                        INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+                        			AND homework.class_subject_id = class_subjects.class_subject_id
+                        LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
+                        WHERE student_id = :studentId
+                        AND homework.post_status_id = 1
+                        AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
+                        --AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date OR due_date > now() )
+                        AND students.active IS TRUE
+                        ORDER BY homework.assigned_date DESC, subjects.sort_order
                 ");
     $sth->execute( array(':studentId' => $studentId) );
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -551,7 +697,7 @@ $app->get('/getStudent/:school/:studentId', function ($school, $studentId) {
         $db = setDBConnection($school);
         $sth = $db->prepare("SELECT students.student_id, first_name, middle_name, last_name, admission_number, admission_date,
                   student_category, gender, dob, student_image, classes.class_name,
-                payment_plan_name,
+                payment_method, payment_plan_name,
                 emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual,
                 other_medical_conditions, other_medical_conditions_description,
                 medical_conditions, hospitalized, current_medical_treatment, hospitalized_description,
@@ -559,7 +705,7 @@ $app->get('/getStudent/:school/:studentId', function ($school, $studentId) {
                FROM app.students
                INNER JOIN app.classes ON students.current_class = classes.class_id
                LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
-               WHERE student_id = :studentID
+               WHERE student_id = :studentID AND students.active IS TRUE
                ORDER BY first_name, middle_name, last_name");
         $sth->execute( array(':studentID' => $studentId));
         $results = $sth->fetch(PDO::FETCH_OBJ);
@@ -1050,13 +1196,13 @@ $app->get('/getStudentClasses/:school/:studentId', function ($school, $studentId
                 case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
               FROM app.students
               INNER JOIN app.classes ON students.current_class = classes.class_id
-              WHERE student_id = :studentId
+              WHERE student_id = :studentId AND students.active IS TRUE
               UNION
               SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
               FROM app.student_class_history
               INNER JOIN app.classes ON student_class_history.class_id = classes.class_id
               WHERE student_id = :studentId
-              AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId)
+              AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId AND students.active IS TRUE)
               ORDER BY ord");
     $sth->execute( array(':studentId' => $studentId) );
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1182,7 +1328,7 @@ $app->get('/getStudentReportCards/:school/:student_id', function ($school, $stud
           INNER JOIN app.terms ON report_cards.term_id = terms.term_id
           LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
           WHERE report_cards.student_id = :studentId
-          AND published is true
+          AND published is true AND students.active IS TRUE
           ORDER BY report_card_id");
     $sth->execute( array(':studentId' => $studentId) );
 
@@ -1228,7 +1374,7 @@ $app->get('/getStudentReportCard/:school/:student_id/:class_id/:term_id', functi
           LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
           WHERE report_cards.student_id = :studentId
           AND report_cards.class_id = :classId
-          AND report_cards.term_id = :termId");
+          AND report_cards.term_id = :termId AND students.active IS TRUE");
     $sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) );
         $results = $sth->fetch(PDO::FETCH_OBJ);
 
@@ -1428,7 +1574,7 @@ $app->get('/getInvoiceDetails/:school/:inv_id', function ($school,$invId) {
                 INNER JOIN app.classes
                 ON students.current_class = classes.class_id
               ON invoices.student_id = students.student_id
-              WHERE invoices.inv_id = :invId
+              WHERE invoices.inv_id = :invId AND students.active IS TRUE
               ORDER BY fee_item
               ) q");
     $sth->execute( array(':invId' => $invId) );
@@ -1492,5 +1638,37 @@ $app->get('/getExamTypes/:school/:class_cat_id', function ($school, $classCatId)
     }
 
 });
+
+$app->post('/addFeedback/:school', function ($school) {
+
+  $app = \Slim\Slim::getInstance();
+
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $subject = $allPostVars['subject'];
+  $message = $allPostVars['message'];
+  $messageFrom = $allPostVars['message_from'];
+  $studentId = $allPostVars['student_id'];
+  $guardianId = $allPostVars['guardian_id'];
+
+  try
+  {
+
+    $db = setDBConnection($school);
+    $sth = $db->prepare("INSERT INTO app.communication_feedback (subject, message, message_from, student_id, guardian_id) VALUES (:subject, :message, :messageFrom, :studentId, :guardianId)");
+    $sth->execute( array(':subject' => $subject, ':message' => $message, ':messageFrom' => $messageFrom, ':studentId' => $studentId, ':guardianId' => $guardianId) );
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", 'data' => 'Message Posted'));
+
+    $db = null;
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
 
 ?>

@@ -76,6 +76,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 					$scope.classes = ( result.nodata ? [] : result.data );
 					
 					//$rootScope.allClasses = $scope.classes
+					//console.log($scope.classes);
 					
 					$timeout(initDataGrid,10);
 				}

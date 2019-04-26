@@ -8,7 +8,7 @@ $app->get('/getAllSubjects/:classCatId(/:status/:teacher_id)', function ($classC
 	{
 
 	$db = getDB();
-	if( $status === 'all' )
+	if( $status === 'true' ) // changed from > if( $status === 'all' )
 	{
 		$query = "SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active, use_for_grading,
@@ -69,7 +69,7 @@ $app->get('/getAllSubjects/:classCatId(/:status/:teacher_id)', function ($classC
 
 });
 
-$app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($teacherId, $classCatId, $status = true) {
+$app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($teacherId, $classCatId, $status = 'all') {
 	//Show all subjects, including parent subjects
 
 	$app = \Slim\Slim::getInstance();

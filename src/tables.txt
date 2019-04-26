@@ -1,0 +1,27 @@
+CREATE TABLE app.communication_feedback
+(
+  com_feedback_id serial NOT NULL,
+  opened boolean NOT NULL DEFAULT false,
+  subject character varying NOT NULL,
+  message character varying NOT NULL,
+  message_from character varying,
+  student_id integer,
+  guardian_id integer,
+  class_id integer,
+  creation_date timestamp without time zone NOT NULL DEFAULT now(),
+  CONSTRAINT "PK_com_feedback_id" PRIMARY KEY (com_feedback_id ),
+  CONSTRAINT "FK_com_class_id" FOREIGN KEY (class_id)
+      REFERENCES app.classes (class_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "FK_com_guardian_id" FOREIGN KEY (guardian_id)
+      REFERENCES app.guardians (guardian_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "FK_com_student_id" FOREIGN KEY (student_id)
+      REFERENCES app.students (student_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE app.communication_feedback
+  OWNER TO postgres;

@@ -6,6 +6,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	$scope.edit = ( data !== undefined ? true : false );
 	$scope.grading = ( data !== undefined ? data : {} );
+	
+	console.log("Reading from grading test :::");
+	console.log($rootScope.gradeAddingSelector);
+	
+	// we use these to show / hide elements as needed
+	if ( window.location.host.split('.')[0] == "lasalle" && $rootScope.gradeAddingSelector == "lower" ){
+	    $scope.isLowerSchool = true;
+	}else{
+	    $scope.isLowerSchool = false;
+	}
 		
 	$scope.initializeController = function()
 	{
@@ -23,14 +33,38 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		if ( !form.$invalid ) 
 		{
 			var data = $scope.grading;
+			console.log("Saving ::::");
+			console.log($scope.grading);
+			
+			// need to add grade2 to the object
+            if( $scope.isLowerSchool == true ){
+                data.grade2 = data.grade;
+                delete data.grade;
+                console.log(data);
+            }
 			
 			if( $scope.edit )
-			{
-				apiService.updateGrading(data,createCompleted,apiError);
+			{   
+			    if( $scope.isLowerSchool == true ){
+			        console.log("Updating lower school grading.");
+			        console.log(data);
+			        apiService.updateGrading2(data,createCompleted,apiError);
+			    }else{
+			        console.log("Updating upper school grading.");
+			        console.log(data);
+				    apiService.updateGrading(data,createCompleted,apiError);
+			    }
 			}
 			else
-			{
-				apiService.addGrading(data,createCompleted,apiError);
+			{   
+			    if( $scope.isLowerSchool == true ){
+			        console.log("Adding lower school grading.");
+			        console.log(data);
+				    apiService.addGrading2(data,createCompleted,apiError);
+			    }else{
+			        console.log("Adding upper school grading.");
+			        apiService.addGrading(data,createCompleted,apiError);
+			    }
 			}
 			
 			

@@ -155,6 +155,36 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.filter = function()
 	{
 		$scope.currentFilters = angular.copy($scope.filters);
+		console.log($scope.filters.status);
+		
+		apiService.getAllEmployees($scope.filters.status, function(response){
+			var result = angular.fromJson(response);
+			
+			// store these as they do not change often
+			if( result.response == 'success')
+			{		
+				$scope.allEmployees = (result.nondata !== undefined ? [] : result.data);	
+				$scope.employees = $scope.allEmployees ;
+				
+				// if filters set, filter results
+				if( $scope.currentFilters !== undefined || $scope.filterEmpCat || $scope.filterDept  )
+				{
+					filterResults(false);
+				}
+				else
+				{
+					initDataGrid($scope.employees);
+				}
+				
+				
+			}
+			else
+			{
+				initDataGrid($scope.employees);
+			}
+			
+		}, function(){});
+		
 		filterResults(true);
 	}
 	

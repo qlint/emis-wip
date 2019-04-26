@@ -21,6 +21,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	
 	var getSubjects = function(classCatId)
 	{
+	    console.log("Getting subjects");
 		/* if teacher of subject, only pull their subjects, else if teacher assigned to class, show all subjects */
 		if( $scope.isTeacher && !$scope.canEditClass )
 		{
@@ -28,14 +29,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			apiService.getAllTeacherSubjects(params,function(response){
 				var result = angular.fromJson(response);
 				if( result.response == 'success') $scope.subjects = ( result.nodata? [] : result.data );
+				console.log("The subjects",$scope.subjects);
 			}, apiError);
 		}
 		else
 		{
-			var params = classCatId + '/all/0';
+			var params = classCatId + '/true/0';
 			apiService.getAllSubjects(params,function(response){
 				var result = angular.fromJson(response);
 				if( result.response == 'success') $scope.subjects = ( result.nodata? [] : result.data );
+				console.log("The subjects",$scope.subjects);
 			}, apiError);
 		}
 	}
@@ -362,7 +365,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	{		
 		// show small dialog with add form
 		var domain = window.location.host;
-		var dlg = $dialogs.create('http://' + domain + '/app/school/subjectForm.html','subjectFormCtrl',{class_cat_id:$scope.theClass.class_cat_id},{size: 'md',backdrop:'static'});
+		var dlg = $dialogs.create('https://' + domain + '/app/school/subjectForm.html','subjectFormCtrl',{class_cat_id:$scope.theClass.class_cat_id},{size: 'md',backdrop:'static'});
 		dlg.result.then(function(subject){
 			
 			getSubjects($scope.theClass.class_cat_id);

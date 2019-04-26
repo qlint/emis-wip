@@ -6,7 +6,6 @@ require '../lib/db.php';
 require '../bootstrap.php';
 
 
-
 /*  DEFINITIONS
 URL                  						HTTP Method   	Operation
 /login               						POST          	Returns users data
@@ -193,6 +192,9 @@ require('blog_functions.php');
 
 // ************** Parent Portal  ****************** //
 require('portal_functions.php');
+
+// ************** Staff App  ****************** //
+require('staff_app_functions.php');
 
 // ************** Notifications  ****************** //
 require('notifications_functions.php');

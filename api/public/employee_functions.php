@@ -1,5 +1,5 @@
 <?php
-$app->get('/getAllEmployees(/:status)', function ($status=true) {
+$app->get('/getAllEmployees(/:status)', function ($status) {
     //Show all employees
 	
 	$app = \Slim\Slim::getInstance();
@@ -392,14 +392,15 @@ $app->get('/getAllTeachers(/:status)', function ($status=true) {
     try 
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT emp_id as teacher_id, emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
-									middle_name, last_name, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
-									initials, dob, country, active, telephone, email, joined_date,
-									job_title, qualifications, experience, additional_info, emp_image
-							 FROM app.employees 
-							 WHERE emp_cat_id = 1
-							 AND active = :status 							 
-							 ORDER BY first_name, middle_name, last_name");
+        $sth = $db->prepare("SELECT emp_id as teacher_id, employees.emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
+         middle_name, last_name, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
+         initials, dob, country, employees.active, telephone, email, joined_date,
+         job_title, qualifications, experience, additional_info, emp_image
+        FROM app.employees 
+        INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id
+        WHERE LOWER(employee_cats.emp_cat_name) = LOWER('TEACHING')
+        AND employees.active = :status        
+        ORDER BY first_name, middle_name, last_name");
         $sth->execute( array(':status' => $status)); 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
  

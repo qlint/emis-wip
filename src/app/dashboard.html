@@ -1,21 +1,21 @@
 <div ng-controller="dashboardCtrl" class="full-height">
-	
+
 	<div class="row subnavbar non-printable">
-			
+
 	</div>
-	
+
 	<div id="body-content">
 
 		<div class="row">
-						
+
 			<div class="col-sm-3" ng-show="isTeacher">
 
-				<div class="dashboard-panel">					
+				<div class="dashboard-panel">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-child text-lg section-label"></span>
-						<h2>My Classes</h2>						
+						<h2>My Classes</h2>
 					</div>
-					<div class="row dashboard-panel-body">	
+					<div class="row dashboard-panel-body">
 						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<p class="text-muted padded" ng-show="myClasses.length==0">You are currently do not have any assigned classes.</p>
 						<ul class="stripped">
@@ -36,13 +36,13 @@
 						</ul>
 					</div>
 				</div>
-				
-				<div class="dashboard-panel">					
+
+				<div class="dashboard-panel">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-book text-lg section-label"></span>
-						<h2>My Subjects</h2>						
+						<h2>My Subjects</h2>
 					</div>
-					<div class="row dashboard-panel-body">	
+					<div class="row dashboard-panel-body">
 						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<p class="text-muted padded" ng-show="subjects.length==0">You are currently do not have any assigned subjects.</p>
 						<ul class="stripped">
@@ -52,8 +52,8 @@
 										<b>{{item.subject_name}}</b>
 									</a>
 									<span class='text-muted'>({{item.num_students}} students)</span>
-									<br />{{item.class_cat_name}}	
-									<br />{{item.class_name}}	
+									<br />{{item.class_cat_name}}
+									<br />{{item.class_name}}
 								</span>
 								<div class="indent">
 									<a ui-sref="communications/homework({ class_id: item.class_id, subject_id: item.subject_id })">Manage Homework</a>
@@ -61,17 +61,17 @@
 						</ul>
 					</div>
 				</div>
-			
+
 			</div>
-			
+
 			<div class="col-sm-3" ng-show="!isTeacher">
-				<div class="dashboard-panel" ng-show="permissions.students.view">					
+				<div class="dashboard-panel" ng-show="permissions.students.view">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-child text-lg section-label"></span>
-						<h2>Student Module</h2>
-						
+						<h2>Student Module - <span style="font-size:14px;">{{genderCount}}</span></h2>
+
 					</div>
-					<div class="row dashboard-panel-body">	
+					<div class="row dashboard-panel-body">
 						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<ul class="stripped">
 							<li ng-repeat="item in classCats">
@@ -80,37 +80,37 @@
 						</ul>
 					</div>
 				</div>
-				
-				<div class="dashboard-panel" ng-show="permissions.staff.view">					
+
+				<div class="dashboard-panel" ng-show="permissions.staff.view">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-users text-md section-label"></span>
 						<h2>Staff Module</h2>
-						
+
 					</div>
-					<div class="row dashboard-panel-body">	
+					<div class="row dashboard-panel-body">
 						<div class="loading-indicator" ng-show="staffLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<ul>
 							<li ng-repeat="item in empCats">
 								<a ui-sref="staff({ category: item.emp_cat_id })">{{item.emp_cat_name}}</a>
 									<ul class="stripped">
 										<li ng-repeat="dept in deptCats | filter: {category : item.emp_cat_name}:true">
-											<a ui-sref="staff({ category: item.emp_cat_id, dept:dept.dept_id })">{{dept.dept_name}} ({{dept.num_staff}}) {{category}}</a>													
+											<a ui-sref="staff({ category: item.emp_cat_id, dept:dept.dept_id })">{{dept.dept_name}} ({{dept.num_staff}}) {{category}}</a>
 										</li>
 									</ul>
 							</li>
 						</ul>
 					</div>
 				</div>
-				
+
 			</div>
-			
+
 			<div class="col-sm-4">
-				<div class="dashboard-panel" ng-show="permissions.exams.exams.view">					
+				<div class="dashboard-panel" ng-show="permissions.exams.exams.view">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-pencil text-md section-label"></span>
 						<h2>Exams Module</h2>
 					</div>
-					<div class="row dashboard-panel-body">	
+					<div class="row dashboard-panel-body">
 						<h2>Top Three Students Per Class</h2>
 						<div class="loading-indicator" ng-show="examsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<p class="text-muted padded" ng-show="classes.length==0">There are currently no exam marks added for your students this term.</p>
@@ -123,14 +123,14 @@
 					</div>
 				</div>
 			</div>
-			
-			<div class="col-sm-5">
-				<div class="dashboard-panel" ng-show="permissions.fees.dashboard.view">					
+
+			<div class="col-sm-5" ng-show="permissions.fees.dashboard.view">
+				<div class="dashboard-panel">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-calculator text-md section-label"></span>
-						<h2>Fees Module</h2>						
+						<h2>Fees Module</h2>
 					</div>
-					<div class="row dashboard-panel-body">	
+					<div class="row dashboard-panel-body">
 						<div class="col-sm-4 lesspad">
 							<div class="well">
 								<h2 class="text-success"># Payments Received</h2>
@@ -156,29 +156,27 @@
 						</div>
 					</div>
 				</div>
-				<div class="dashboard-panel" ng-show="permissions.news.view">					
+				<div class="dashboard-panel" ng-show="permissions.news.view">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-newspaper-o text-md section-label"></span>
 						<h2>Latest News</h2>
 					</div>
-					<div class="row dashboard-panel-body">	
+					<div class="row dashboard-panel-body">
 						<p class="padded">Coming soon...</p>
 					</div>
 				</div>
 			</div>
-		
+
 		</div>
 		<div class="row">
 			<div class="col-sm-6">
-				
+
 			</div>
-			
+
 			<div class="col-sm-6">
-				
+
 			</div>
 		</div>
 	</div>
 
 </div>
-
-

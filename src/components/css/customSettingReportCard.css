@@ -1,0 +1,87 @@
+@media print {
+  @page {size: A4 portrait !important; }
+  table.display.dataTable{
+    /* width:75% !important; */
+    width:100% !important;
+    float: left;
+  }
+  th.remarks, td.remarks{
+    width:20px !important;
+  }
+  table#avaragesTable{
+    width: 20% !important;
+    float: right;
+    margin-top: -80px;
+  }
+  table#tblGroup1{
+    margin-top: 250px !important;
+  }
+  table#avaragesTable3{
+    width: 70% !important;
+    margin-left: 100px;
+    margin-top: 100px;
+  }
+  table#avaragesTable4{
+    width: 40% !important;
+    float: right;
+    margin-top: -100px;
+  }
+  table#avaragesTable5{
+    margin-left:250px !important;
+    height: 50px !important;
+    border-collapse: collapse !important;
+    padding: 0px !important;
+  }
+  div#nxtPage{
+    margin-top: 450px !important;
+    page-break-before: always !important;
+    /* font-size: 28px !important; */
+  }
+  div#nxtPage h3{
+    font-family:"Arial Black", Gadget, sans-serif;
+    font-weight:normal;
+    font-style:normal;
+    /* font-size:20px; */
+    line-height:22px;
+    text-align:center;
+  }
+  div#nxtPage table thead{
+    font-family:"Arial Black", Gadget, sans-serif;
+    font-weight:normal;
+    font-style:normal;
+    /* font-size:14px; */
+    line-height:33px;
+    text-align:left;
+  }
+  div#nxtPage table tbody{
+    font-family:Verdana, Geneva, sans-serif;
+    font-weight:normal;
+    font-style:normal;
+    /* font-size:31px; */
+    line-height:33px;
+    text-align:left;
+  }
+  table.social_report{
+    border: 1px solid black;
+  }
+  div#motto {
+    visibility: visible !important;
+    display: block;
+  }
+  img#url{
+    float: right;
+    max-width: 240px !important;
+    max-height: 120px !important;
+  }
+  img#testdiv{
+    float: right;
+    max-width: 100px !important;
+    height: auto !important;
+    margin-top: -130px !important;
+  }
+  .isSchool{
+    visibility: visible !important;
+  }
+  div.cbc1 {margin-top: -140px !important;}
+
+}

@@ -138,6 +138,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
           {
           //  $rootScope.allClasses = ;
             $scope.classes = result.data;
+            // console.log($scope.classes);
 
             getStudents('true',false );
 

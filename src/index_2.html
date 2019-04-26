@@ -1,0 +1,189 @@
+<!doctype html>
+<html ng-app="eduwebApp" ng-strict-di>
+<head>
+
+<title>Eduweb MIS</title>
+
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+	<!-- Dependencies CSS -->
+    <link type="text/css" href="min/css/dependencies.min.css" rel="stylesheet">
+	<link type="text/css" href="components/ui-grid/ui-grid.min.css" rel="stylesheet">
+	<link type="text/css" href="components/css/trix.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/template.css" rel="stylesheet">
+
+	<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js?v=4"></script>
+    <script type="text/javascript" src="bower_components/angular/angular.min.js?v=4"></script>
+	<script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js?v=4"></script>
+	<script type="text/javascript" src="components/ui-grid/ui-grid.js?v=4"></script>
+	<script src="components/angular-file-upload2.min.js?v=4"></script>
+  <script src="app/communications/upload-controllers.js?v=4"></script>
+	<script src="components/upload-directives.js?v=4"></script>
+	<script type="text/javascript" src="http://www.chartjs.org/assets/Chart.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+
+</head>
+<body class="{{activeSection}} {{activeSubSection}} {{activeSubSubSection}}" ng-class="{printing: isPrinting, printModal: isPrintModal, printReceipt: isPrintReceipt, mobile: isSmallScreen}" ng-controller="ParentController" ng-cloak>
+
+<div id="page-wrap" adjust-for-small-screen>
+	<a name="top"></a>
+	<div class="modal-backdrop fade in" ng-show="menuOn"></div>
+	<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation" ng-hide="isPrinting">
+		<div class="container-fluid">
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+				<button ng-show="loggedIn" type="button" class="navbar-toggle collapsed" data-toggle="collapse" id="mainnav" data-target="#navigation" ng-click="menuOn=!menuOn">
+					<span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
+				</button>
+
+				<div class="navbar-brand">
+					<img src="{{ (currentUser.settings.logo !== undefined ?'assets/schools/' + currentUser.settings.logo : '/assets/eduweb-logo-lg.png' )}}" title="{{currentUser.settings['School Name'] || 'Eduweb'}}" class="brand" />
+					<span>{{currentUser.settings['School Name'] || 'Eduweb MIS Login'}}</span>
+				</div>
+				<div ng-show="loggedIn">
+					<div class="navbar-right collapse navbar-collapse" id="navtopright">
+						<div class="poweredby-branding pull-right">
+							<p>Powered by</p>
+							<img src="/assets/eduweb-logo-sm.png" title="Eduweb" class="brand2" />
+						</div>
+						<div class="user-nav pull-right">
+							<div id="welcome-msg">Welcome {{ currentUser.first_name + ' ' + (currentUser.middle_name || '')  + ' ' + currentUser.last_name }}</div>
+
+							<ul class="nav navbar-nav">
+								<li ng-show="manageUsers">
+									<a ui-sref="users">Manage Users</a>
+								</li>
+								<li>
+									<a ng-click="updatePassword()">Change Password</a>
+								</li>
+								<li>
+									<a ng-click="logout()">Log Out</a>
+								</li>
+							</ul>
+
+						</div>
+					</div>
+				</div>
+
+
+				<!-- Collect the nav links, forms, and other content for toggling -->
+				<div ng-show="loggedIn && !isSmallScreen">
+					<div class="mainNav collapse navbar-collapse">
+						<ul class="nav navbar-nav">
+							<li ng-class="{active: item.section == activeSection}" ng-repeat="item in navItems">
+								<a ui-sref="{{item.id}}">{{item.label}}</a>
+							</li>
+							<li ng-if="isSmallScreen" ng-show="manageUsers" ng-class="{active: item.section == activeSection}">
+								<a ui-sref="users">Manage Users</a>
+							</li>
+							<li ng-if="isSmallScreen" class="indent" ng-class="{active: item.section == activeSection}">
+								<a ng-click="updatePassword()">Change Password</a>
+							</li>
+							<li ng-if="isSmallScreen" class="indent">
+								<a ng-click="logout()">Log Out</a>
+							</li>
+						</ul>
+
+					</div>
+				</div>
+
+				<!-- /.navbar-collapse -->
+
+			</div>
+
+		</div>
+		<!-- /.container-fluid -->
+	</nav>
+
+	<!-- /.navbar-collapse -->
+    <div id="mainContainer" class="container-fluid">
+        <div id="body" class="full-height">
+			<div ui-view class="full-height" ng-cloak></div>
+		</div><!-- /.body-->
+      </div><!-- /.mainContainer-->
+	</div><!-- /.page-wrap-->
+
+	<script type="text/javascript" src="min/dependencies.min.js?v=4"></script>
+	<script type="text/javascript" src="components/datatables.js?v=4"></script>
+	<script type="text/javascript" src="components/trix.js?v=4"></script>
+	<script type="text/javascript" src="components/angular-trix.min.js?v=4"></script>
+	<!--script type="text/javascript" src="min/app.min.js?v=4"></script>-->
+
+	<script type="text/javascript" src="app/app.js?v=4"></script>
+	<script type="text/javascript" src="app/routing.js?v=4"></script>
+
+	<!--FACTORY -->
+	<script type="text/javascript" src="services/authInterceptor.js?v=4"></script>
+
+	<!--DIRECTIVES-->
+	<script type="text/javascript" src="app/directive.js?v=4"></script>
+
+	<!--CONTROLLERS -->
+	<script type="text/javascript" src="app/globalFunctions.js?v=4"></script>
+	<script type="text/javascript" src="app/parentController.js?v=4"></script>
+	<script type="text/javascript" src="app/landingCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/dashboardCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/students/listStudentsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/students/addStudentCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/students/viewStudentCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/students/promoteStudentsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/staff/listStaffCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/staff/addEmployeeCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/staff/viewEmployeeCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/paymentFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/feesDashboardCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/openingBalancesCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/invoicesCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/invoiceCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/printInvoiceCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/invoiceFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/invoiceWizardCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/invoiceDetailsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/paymentsReceivedCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/paymentDetailsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/feeStructureCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/feeItemFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/receiptCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/printReceiptCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/fees/printStatementCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/departmentsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/departmentFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/gradingCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/datesCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/datesFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/subjectsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/subjectFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/classesCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/classFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/schoolSettingsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/school/gradingFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/exams/listExamsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/exams/addExamMarksCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/exams/examTypesCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/exams/reportCardCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/exams/printReportCardCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/exams/listReportCardsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/exams/classAnalysisReportCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/exams/printClassAnalysisCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/users/listUsersCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/users/userFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/communications/listPostsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/communications/listHomeworkCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/communications/postFormCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/communications/previewPostCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/communications/listEmailsCtrl.js?v=4"></script>
+	<script type="text/javascript" src="app/login.js?v=4"></script>
+
+	<!--SERVICES -->
+	<script type="text/javascript" src="services/auth.js?v=4"></script>
+	<script type="text/javascript" src="services/session.js?v=4"></script>
+	<script type="text/javascript" src="services/AjaxServices.js?v=4"></script>
+	<script type="text/javascript" src="services/apiServices.js?v=4"></script>
+
+
+
+
+</body>
+</html>

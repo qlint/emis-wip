@@ -1,0 +1,57 @@
+DROP TABLE if exists app.students cascade;
+
+CREATE TABLE app.students
+(
+  student_id serial NOT NULL,
+  admission_number character varying,
+  gender character(1),
+  first_name character varying NOT NULL,
+  middle_name character varying,
+  last_name character varying NOT NULL,
+  student_category character varying NOT NULL DEFAULT 'Regular'::character varying,
+  nationality character varying,
+  student_image character varying,
+  active boolean NOT NULL DEFAULT true,
+  current_class integer NOT NULL,
+  creation_date timestamp without time zone NOT NULL DEFAULT now(),
+  created_by integer,
+  payment_method character varying NOT NULL DEFAULT 'Annually'::character varying,
+  admission_date date,
+  marial_status_parents character varying,
+  adopted boolean NOT NULL DEFAULT false,
+  adopted_age character varying,
+  marital_separation_age character varying,
+  adoption_aware boolean NOT NULL DEFAULT false,
+  medical_conditions boolean NOT NULL DEFAULT false,
+  hospitalized boolean NOT NULL DEFAULT false,
+  current_medical_treatment boolean NOT NULL DEFAULT false,
+  hospitalized_description character varying,
+  current_medical_treatment_description character varying,
+  comments character varying,
+  other_medical_conditions boolean NOT NULL DEFAULT false,
+  other_medical_conditions_description character varying,
+  emergency_name character varying,
+  emergency_relationship character varying,
+  emergency_telephone character varying,
+  dob character varying,
+  pick_up_drop_off_individual character varying,
+  modified_date timestamp without time zone,
+  modified_by integer,
+  installment_option_id integer,
+  new_student boolean NOT NULL DEFAULT false,
+  transport_route_id integer,
+  student_type character varying DEFAULT 'Day Scholar'::character varying,
+  CONSTRAINT "PK_student_id" PRIMARY KEY (student_id ),
+  CONSTRAINT "FK_installment_option" FOREIGN KEY (installment_option_id)
+      REFERENCES app.installment_options (installment_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "FK_student_route" FOREIGN KEY (transport_route_id)
+      REFERENCES app.transport_routes (transport_id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "U_admission_number" UNIQUE (admission_number )
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE app.students
+  OWNER TO postgres;

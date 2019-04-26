@@ -29,7 +29,7 @@
 			
 		</div>
 		
-		<div class="full-height datagrid main-datagrid">
+		<div class="full-height datagrid main-datagrid" style="margin-top:-45px;">
 			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 			
 			<div id="grid1" ui-grid="gridOptions" ui-grid-exporter class="myGrid">
@@ -54,6 +54,57 @@
 			</table>
 			-->
 		</div>	
+		
+		<!-- LOWER SCHOOL GRADING -->
+		<div style="margin-top:-40px;background-color:#99ff99;border:2px solid #009933;" ng-show="isLowerSchGradingNeeded">
+			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+					<div class="btn add-btn" title="Add Grading Level" ng-show="permissions.school.grading.add" ng-click="addGrading2()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text" style="color:#000000;">Add Lower School Grading Level</span></a></div>
+				</div>				
+			</div>
+			
+			<div class="clearfix">
+				<h1 id="pageTitle">Lower School Grading (Grade 3 and Below)</h1>
+			</div>			
+			
+		</div>
+		<!-- Lower Sch. Grading Table -->
+		<div class="full-height datagrid main-datagrid" ng-show="isLowerSchGradingNeeded">
+			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+			
+			<div id="grid2" ui-grid="gridOptions2" ui-grid-exporter class="myGrid" style="margin-top:-135px;">
+				<div ng-if="!gridOptions2.data.length" class="no-results">No results found.</div>
+			</div>
+			
+			<!--
+			<table id="resultsTable" class="display clickable" cellspacing="0" width="100%" ng-show="!loading" style="margin-top:-132px;">
+				<thead>
+					<tr style="background-color:gray;color:#fff;line-height:20px;font-size:13px;">
+						<th></th>
+						<th>Grade</th>
+						<th>Grade Marks Range</th>
+						<th>Comment</th>
+						<th>Key</th>
+					</tr>
+				</thead>	
+				<tbody>
+					<tr ng-repeat="item in grades2 track by $index">
+						<td></td>
+						<td ng-click="viewGrading(item)" id="{{item.grade2_id}}" class="grade2_id">{{item.grade2}}</td>
+						<td ng-click="viewGrading(item)">{{item.mark_range}}</td>
+						<td ng-click="viewGrading(item)">{{item.comment}}</td>
+						<td ng-click="viewGrading(item)">{{item.kiswahili_comment}}</td>
+					</tr>
+				</tbody>
+			</table>
+			-->
+			
+		</div>	
+		<!-- END LOWER SCHOOL GRADING -->
+		
+		
+		
 	</div>
 </div>
 

@@ -1,7 +1,7 @@
 ﻿angular.module('eduwebApp').service('ajaxService', ['$http','$rootScope', function ($http,$rootScope) {
 
         // setting timeout of 1 second to simulate a busy server.
-		
+
 		var loadingCount = 0;
 		//console.log($rootScope.clientIdentifier);
 
@@ -24,7 +24,7 @@
 			});
 
         }
-		
+
 		this.AjaxPost2 = function (data, route, successFunction, errorFunction, extras) {
 			$http({
 				method: 'POST',
@@ -38,7 +38,7 @@
 			});
 
         }
-		
+
 		this.AjaxPut = function (data, route, successFunction, errorFunction, extras) {
 			$http({
 				method: 'PUT',
@@ -52,10 +52,10 @@
 			});
 
         }
-		
+
 		this.AjaxDelete = function (route, successFunction, errorFunction, extras) {
-			$http({ 
-					method: 'DELETE', 
+			$http({
+					method: 'DELETE',
 					url: route,
 					headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
 			}).success(function (response, status, headers, config) {
@@ -67,12 +67,13 @@
 
 		this.AjaxGet = function (route, successFunction, errorFunction, extras) {
 
-			$http({ 
-				method: 'GET', 
+			$http({
+				method: 'GET',
 				url: route,
 				headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
 			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
+				return response;
 			}).error(function (response) {
 				errorFunction(response);
 			});
@@ -81,19 +82,20 @@
 
         this.AjaxGetWithData = function (data, route, successFunction, errorFunction, extras) {
 
-			$http({ 
-				method: 'GET', 
-				url: route, 
+			$http({
+				method: 'GET',
+				url: route,
 				headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
-				params: data 
+				params: data
 			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
+				return response;
 			}).error(function (response) {
 				errorFunction(response);
 			});
 
         }
-		
+
 		this.JSONPGet = function (data, route, successFunction, errorFunction, extras) {
             //blockUI.start();
           //  setTimeout(function () {
@@ -109,8 +111,6 @@
 
         }
 
-	
+
 		return this;
 }]);
-
-

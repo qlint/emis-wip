@@ -114,6 +114,43 @@ $app->get('/getAllParents', function () {
 
 });
 
+$app->get('/studentGenderCount', function () {
+  //count the number of students by the gender
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT count(gender) AS total,
+                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'M') AS male,
+                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'F') AS female
+                        FROM app.students
+                        WHERE active IS TRUE");
+    $sth->execute();
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/getTeacherStudents/:teacher_id/:status(/:startDate/:endDate)', function ($teacherId, $status,$startDate=null,$endDate=null) {
   //Show teacher students
 
@@ -236,11 +273,12 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
   try
   {
     $db = getDB();
-    $sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, classes.class_name, classes.report_card_type,
+    $sth = $db->prepare("SELECT students.*, classes.class_id, classes.class_cat_id, class_cats.entity_id, classes.class_name, classes.report_card_type,
                 payment_plan_name || ' (' || num_payments || ' payments ' || payment_interval || ' ' || payment_interval2 || '(s) apart)' as payment_plan_name,
                 classes.teacher_id as class_teacher_id
                FROM app.students
                INNER JOIN app.classes ON students.current_class = classes.class_id
+               INNER JOIN app.class_cats USING (class_cat_id)
                LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
                WHERE student_id = :studentID
                ORDER BY first_name, middle_name, last_name");
@@ -847,7 +885,10 @@ $app->post('/addStudent', function () use($app) {
   $emergencyContact =       ( isset($allPostVars['emergency_name']) ? $allPostVars['emergency_name']: null);
   $emergencyRelation =      ( isset($allPostVars['emergency_relationship']) ? $allPostVars['emergency_relationship']: null);
   $emergencyPhone =         ( isset($allPostVars['emergency_telephone']) ? $allPostVars['emergency_telephone']: null);
+  $emergencyPhone2 =         ( isset($allPostVars['emergency_telephone_2']) ? $allPostVars['emergency_telephone_2']: null);
   $pickUpIndividual =       ( isset($allPostVars['pick_up_drop_off_individual']) ? $allPostVars['pick_up_drop_off_individual']: null);
+  $pickUpIndividualPhone =       ( isset($allPostVars['pick_up_drop_off_individual_phone']) ? $allPostVars['pick_up_drop_off_individual_phone']: null);
+  $pickUpIndividualImage =       ( isset($allPostVars['pick_up_drop_off_individual_img']) ? $allPostVars['pick_up_drop_off_individual_img']: null);
   $installmentOption =      ( isset($allPostVars['installment_option']) ? $allPostVars['installment_option']: null);
   $routeId =                ( isset($allPostVars['route_id']) ? $allPostVars['route_id']: null);
 
@@ -881,11 +922,11 @@ $app->post('/addStudent', function () use($app) {
                                 hospitalized_description, current_medical_treatment, current_medical_treatment_description,
                                 other_medical_conditions, other_medical_conditions_description,
                                 emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual, 
-                                installment_option_id, new_student, transport_route_id)
+                                installment_option_id, new_student, transport_route_id, emergency_telephone_2, pick_up_drop_off_individual_phone, pick_up_drop_off_individual_img)
             VALUES(:admissionNumber,:gender,:firstName,:middleName,:lastName,:dob,:studentCat,:studentType,:nationality,:studentImg, :currentClass, :paymentMethod, :active, :createdBy,
           :admissionDate, :marialStatusParents, :adopted, :adoptedAge, :maritalSeparationAge, :adoptionAware, :comments, :hasMedicalConditions, :hospitalized,
           :hospitalizedDesc, :currentMedicalTreatment, :currentMedicalTreatmentDesc, :otherMedicalConditions, :otherMedicalConditionsDesc,
-          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId);");
+          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId, :emergencyPhone2, :pickUpIndividualPhone, :pickUpIndividualImage);");
 
     $studentClassInsert = $db->prepare("INSERT INTO app.student_class_history(student_id,class_id,created_by)
                       VALUES(currval('app.students_student_id_seq'),:currentClass,:createdBy);");
@@ -981,9 +1022,12 @@ $app->post('/addStudent', function () use($app) {
               ':emergencyRelation' => $emergencyRelation,
               ':emergencyPhone' => $emergencyPhone,
               ':pickUpIndividual' => $pickUpIndividual,
+              ':pickUpIndividualPhone' => $pickUpIndividualPhone,
+              ':pickUpIndividualImage' => $pickUpIndividualImage,
               ':installmentOption' => $installmentOption,
               ':newStudent' => $newStudent,
-              ':routeId' => $routeId
+              ':routeId' => $routeId,
+              ':emergencyPhone2' => $emergencyPhone2
     ) );
 
     $studentClassInsert->execute(array(':currentClass' => $currentClass,':createdBy' => $createdBy));
@@ -1185,7 +1229,10 @@ $app->put('/updateStudent', function () use($app) {
     $emergencyContact =   ( isset($allPostVars['family']['emergency_name']) ? $allPostVars['family']['emergency_name']: null);
     $emergencyRelation =  ( isset($allPostVars['family']['emergency_relationship']) ? $allPostVars['family']['emergency_relationship']: null);
     $emergencyPhone =     ( isset($allPostVars['family']['emergency_telephone']) ? $allPostVars['family']['emergency_telephone']: null);
+    $emergencyPhone2 =     ( isset($allPostVars['family']['emergency_telephone_2']) ? $allPostVars['family']['emergency_telephone_2']: null);
     $pickUpIndividual =   ( isset($allPostVars['family']['pick_up_drop_off_individual']) ? $allPostVars['family']['pick_up_drop_off_individual']: null);
+    $pickUpIndividualPhone =   ( isset($allPostVars['family']['pick_up_drop_off_individual_phone']) ? $allPostVars['family']['pick_up_drop_off_individual_phone']: null);
+    $pickUpIndividualImage =   ( isset($allPostVars['family']['pick_up_drop_off_individual_img']) ? $allPostVars['family']['pick_up_drop_off_individual_img']: null);
   }
 
   if( isset($allPostVars['medical']) )
@@ -1275,7 +1322,10 @@ $app->put('/updateStudent', function () use($app) {
             emergency_name = :emergencyName,
             emergency_relationship = :emergencyRelationship,
             emergency_telephone = :emergencyTelephone,
+            emergency_telephone_2 = :emergencyTelephone2,
             pick_up_drop_off_individual = :pickUpIndividual,
+            pick_up_drop_off_individual_phone = :pickUpIndividualPhone,
+            pick_up_drop_off_individual_img = :pickUpIndividualImage,
             modified_date = now(),
             modified_by = :userId
           WHERE student_id = :studentId"
@@ -1412,7 +1462,10 @@ $app->put('/updateStudent', function () use($app) {
               ':emergencyName' => $emergencyContact,
               ':emergencyRelationship' => $emergencyRelation,
               ':emergencyTelephone' => $emergencyPhone,
+              ':emergencyTelephone2' => $emergencyPhone2,
               ':pickUpIndividual' => $pickUpIndividual,
+              ':pickUpIndividualPhone' => $pickUpIndividualPhone,
+              ':pickUpIndividualImage' => $pickUpIndividualImage,
               ':userId' => $userId
       ) );
     }
@@ -1625,6 +1678,7 @@ $app->post('/addGuardian', function () use($app) {
 
   // guardian fields
   $Telephone =      ( isset($allPostVars['guardian']['telephone']) ? $allPostVars['guardian']['telephone']: null);
+  $Telephone2 =      ( isset($allPostVars['guardian']['telephone2']) ? $allPostVars['guardian']['telephone2']: null);
   $Email =        ( isset($allPostVars['guardian']['email']) ? $allPostVars['guardian']['email']: null);
   $FirstName =      ( isset($allPostVars['guardian']['first_name']) ? $allPostVars['guardian']['first_name']: null);
   $MiddleName =       ( isset($allPostVars['guardian']['middle_name']) ? $allPostVars['guardian']['middle_name']: null);
@@ -1660,6 +1714,7 @@ $app->post('/addGuardian', function () use($app) {
                     id_number = :IdNumber,
                     address = :Address,
                     telephone = :Telephone,
+                    telephone2 = :Telephone2,
                     email = :Email,
                     marital_status = :MaritalStatus,
                     occupation = :Occupation,
@@ -1683,6 +1738,7 @@ $app->post('/addGuardian', function () use($app) {
               ':IdNumber' => $IdNumber,
               ':Address' => $Address,
               ':Telephone' => $Telephone,
+              ':Telephone2' => $Telephone2,
               ':Email' => $Email,
               ':MaritalStatus' => $MaritalStatus,
               ':Occupation' => $Occupation,
@@ -1700,10 +1756,10 @@ $app->post('/addGuardian', function () use($app) {
     {
       // add new guardian and add to student
       $insert = $db->prepare("INSERT INTO app.guardians( first_name, middle_name, last_name, title, id_number, address, telephone, email,
-                        marital_status, occupation, employer, employer_address, work_email, work_phone, created_by)
+                        marital_status, occupation, employer, employer_address, work_email, work_phone, created_by, telephone2)
                   VALUES(:FirstName, :MiddleName, :LastName, :Title, :IdNumber, :Address,
                       :Telephone, :Email, :MaritalStatus, :Occupation, :Employer, :EmployerAddress, :WorkEmail,
-                      :WorkPhone, :createdBy);");
+                      :WorkPhone, :createdBy, :Telephone2);");
 
       $insert2 = $db->prepare("INSERT INTO app.student_guardians(student_id, guardian_id, relationship, created_by)
                       VALUES(:studentId, currval('app.guardians_guardian_id_seq'), :Relationship, :createdBy)");
@@ -1726,7 +1782,8 @@ $app->post('/addGuardian', function () use($app) {
               ':EmployerAddress' => $EmployerAddress,
               ':WorkEmail' => $WorkEmail,
               ':WorkPhone' => $WorkPhone,
-              ':createdBy' => $createdBy
+              ':createdBy' => $createdBy,
+              ':Telephone2' => $Telephone2
       ) );
       $insert2->execute(array(':Relationship' => $Relationship, ':studentId' => $studentId, ':createdBy' => $createdBy));
       $query->execute();
@@ -1767,6 +1824,7 @@ $app->put('/updateGuardian', function () use($app) {
 
   // guardian fields
   $Telephone =      ( isset($allPostVars['guardian']['telephone']) ? $allPostVars['guardian']['telephone']: null);
+  $Telephone2 =      ( isset($allPostVars['guardian']['telephone2']) ? $allPostVars['guardian']['telephone2']: null);
   $Email =        ( isset($allPostVars['guardian']['email']) ? $allPostVars['guardian']['email']: null);
   $FirstName =      ( isset($allPostVars['guardian']['first_name']) ? $allPostVars['guardian']['first_name']: null);
   $MiddleName =       ( isset($allPostVars['guardian']['middle_name']) ? $allPostVars['guardian']['middle_name']: null);
@@ -1784,6 +1842,7 @@ $app->put('/updateGuardian', function () use($app) {
 
   $userId =         ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
   $login =        ( isset($allPostVars['guardian']['login']) ? $allPostVars['guardian']['login']: null);
+  $password =        ( isset($allPostVars['password']) ? $allPostVars['password']: null);
 
   try
   {
@@ -1805,9 +1864,18 @@ $app->put('/updateGuardian', function () use($app) {
                   work_email = :WorkEmail,
                   work_phone = :WorkPhone,
                   modified_date = now(),
-                  modified_by = :userId
+                  modified_by = :userId,
+                  telephone2 = :Telephone2
                 WHERE guardian_id = :guardianId"
                 );
+                
+    $dbPwd = getMISDB();
+    $updatePass = $dbPwd->prepare("UPDATE parents SET password = :Password WHERE id_number = :IdNumber");
+    $dbPwd->beginTransaction();
+    $updatePass->execute( array(':IdNumber' => $IdNumber, ':Password' => $password ) );
+    $dbPwd->commit();
+    $dbPwd = null;
+    
     $sth2 = $db->prepare("UPDATE app.student_guardians
                 SET relationship= :Relationship,
                   modified_date = now(),
@@ -1831,7 +1899,8 @@ $app->put('/updateGuardian', function () use($app) {
             ':EmployerAddress' => $EmployerAddress,
             ':WorkEmail' => $WorkEmail,
             ':WorkPhone' => $WorkPhone,
-            ':userId' => $userId
+            ':userId' => $userId,
+            ':Telephone2' => $Telephone2
     ) );
     $sth2->execute(array(':guardianId' => $guardianId, ':studentId' => $studentId, ':Relationship' => $Relationship,':userId' => $userId));
     $db->commit();
@@ -2056,7 +2125,7 @@ $app->get('/getMISLogin/:id_number', function ($idNumber) {
   {
     $db = getLoginDB();
     $sth = $db->prepare("SELECT parent_id, first_name, middle_name, last_name, email, id_number, active as login_active, username,
-                  first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name,
+                  password, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name,
                   (SELECT array_agg(student_id) FROM parent_students WHERE parent_id = parents.parent_id) as student_ids
               FROM parents
               WHERE id_number = :idNumber");
@@ -2315,6 +2384,60 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
   }
 });
 
+$app->put('/rmvStudentImg', function () use($app) {
+  // update medical condition
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  $studentId =       ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("UPDATE app.students SET student_image = NULL WHERE student_id = :studentId"
+                );
+
+    $sth->execute( array(':studentId' => $studentId ) );
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
+    $db = null;
+  } catch(PDOException $e) {
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
+$app->put('/rmvPickUpIndividualImg', function () use($app) {
+  // update medical condition
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  $studentId =       ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("UPDATE app.students SET pick_up_drop_off_individual_img = NULL WHERE student_id = :studentId"
+                );
+
+    $sth->execute( array(':studentId' => $studentId ) );
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
+    $db = null;
+  } catch(PDOException $e) {
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
 $app->put('/promoteStudents', function () use($app) {
   // promote students
   $allPostVars = json_decode($app->request()->getBody(),true);
@@ -2376,6 +2499,96 @@ $app->put('/promoteStudents', function () use($app) {
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
 }
+
+});
+
+$app->post('/addDocReport', function () use($app) {
+  // Add document report cards
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  $studentId =  ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+  $termId =     ( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
+  $reportCard =     ( isset($allPostVars['report_card']) ? $allPostVars['report_card']: null);
+
+  try
+  {
+    $db = getDB();
+
+    $docInsert = $db->prepare("INSERT INTO app.lowersch_reportcards(student_id, term_id, file_name)
+    VALUES(:studentId,:termId,:reportCard);");
+
+    $db->beginTransaction();
+    $docInsert->execute( array(':studentId' => $studentId, ':termId' => $termId, ':reportCard' => $reportCard) );
+    $db->commit();
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "data" => "Data successfully inserted"));
+    $db = null;
+  } catch(PDOException $e) {
+    $db->rollBack();
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getDocReport/:studentId', function ($studentId) {
+  //Show document report cards for the student
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT * FROM app.lowersch_reportcards WHERE student_id = :studentId");
+    $sth->execute( array(':studentId' => $studentId));
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->delete('/deleteDocReport/:studentId/:termId', function ($studentId, $termId) {
+  //Show document report cards for the student
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("DELETE FROM app.lowersch_reportcards WHERE student_id = :studentId AND term_id = :termId");
+    $sth->execute( array(':studentId' => $studentId, ':termId' => $termId));
+    $db = null;
+    
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
 
 });
 

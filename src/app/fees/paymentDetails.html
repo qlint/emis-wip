@@ -4,24 +4,24 @@
 			<h4 class="modal-title">{{ (edit ? 'Adjust ':'')}} {{ (isCredit ? 'Credit' : 'Payment') }} {{selectedPayment.payment_id}}: {{ student_name}}</h4>
 		</div>
 		<div class="modal-body" ng-class="{'static': !edit || !editPayment}">
-	
+
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
-			
+
 			<p ng-show="notice" class="notice alert alert-info">
 				{{message}}
 			</p>
-			
+
 			<div class="row header" ng-if="makeSelection">
 				<div class="form-group" ng-class="{ 'has-error' : invoiceForm.student.$invalid && (!invoiceForm.student.$pristine || invoiceForm.$submitted) }">
 					<!-- student -->
 					<label for="student" class="col-sm-3 control-label">Student</label>
 					<div class="col-sm-8">
-						<ui-select ng-model="student.selected" theme="select2" class="form-control" name="student" required> 
+						<ui-select ng-model="student.selected" theme="select2" class="form-control" name="student" required>
 						  <ui-select-match placeholder="Select or search a student...">
 							<span>{{$select.selected.student_name}}</span>
-							<button type="button" class="clear text-danger" ng-click="clearSelect('student',$event)"><span class="glyphicon glyphicon-remove"></span></button> 
+							<button type="button" class="clear text-danger" ng-click="clearSelect('student',$event)"><span class="glyphicon glyphicon-remove"></span></button>
 						  </ui-select-match>
 						  <ui-select-choices repeat="item in students | filter: $select.search">
 							<span ng-bind-html="item.student_name | highlight: $select.search"></span>
@@ -30,17 +30,17 @@
 						<p ng-show="invoiceForm.student.$invalid && (!invoiceForm.student.$pristine || invoiceForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a student.</p>
 					</div>
 				</div>
-				
+
 				<div class="form-group">
 					<!-- payment select -->
 					<label for="student" class="col-sm-3 control-label">Payment</label>
 					<div class="col-sm-8" ng-show="payments.length==0 && selectedStudent!==undefined"><p class="form-control-static">This student does not have any payments.</p></div>
 					<div class="col-sm-8" ng-show="selectedStudent===undefined"><p class="form-control-static">Select a student to view available payments.</p></div>
 					<div class="col-sm-8" ng-show="payments.length>0">
-						<ui-select ng-model="payment.selected" theme="select2" class="form-control" name="payment" required> 
+						<ui-select ng-model="payment.selected" theme="select2" class="form-control" name="payment" required>
 						  <ui-select-match placeholder="Select or search a payment...">
 							<span>{{$select.selected.payment_date}} - {{$select.selected.amount}} Ksh</span>
-							<button type="button" class="clear text-danger" ng-click="clearSelect('payment',$event)"><span class="glyphicon glyphicon-remove"></span></button>	  
+							<button type="button" class="clear text-danger" ng-click="clearSelect('payment',$event)"><span class="glyphicon glyphicon-remove"></span></button>
 						  </ui-select-match>
 						  <ui-select-choices repeat="item in payments | filter: $select.search">
 							<span ng-bind-html="item.payment_date | highlight: $select.search"></span>
@@ -50,11 +50,11 @@
 					</div>
 				</div>
 			</div>
-			
+
 			<div class="clearfix">
 				<div class="col-sm-6">
 					<div ng-if="selectedPayment!==undefined">
-						
+
 						<!-- date -->
 						<div class="form-group" ng-class="{ 'has-error' : paymentForm.payment_date.$invalid && (paymentForm.payment_date.$touched || paymentForm.$submitted) }">
 							<label for="payment_date" class="col-sm-3 control-label nopad">Date</label>
@@ -67,7 +67,7 @@
 								<p ng-show="paymentForm.payment_date.$invalid && (paymentForm.payment_date.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Payment Date is required.</p>
 							</div>
 						</div>
-							
+
 						<!-- amount -->
 						<div class="form-group" ng-class="{ 'has-error' : paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted) }">
 							<label for="amount" class="col-sm-3 control-label nopad">Amount</label>
@@ -78,9 +78,9 @@
 									<div class="input-group-addon">{{currency}}</div>
 								</div>
 								<p ng-show="paymentForm.amount.$invalid && (paymentForm.amount.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Father's Last Name is required.</p>
-							</div>	
+							</div>
 						</div>
-							
+
 						<!-- payment method -->
 						<div class="form-group" ng-class="{ 'has-error' : paymentForm.payment_method.$invalid && (paymentForm.payment_method.$touched || paymentForm.$submitted) }">
 							<label for="payment_method" class="col-sm-3 control-label nopad">Payment Method</label>
@@ -93,16 +93,25 @@
 								<p ng-show="paymentForm.payment_method.$invalid && (paymentForm.payment_method.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Payment Method is required.</p>
 							</div>
 						</div>
-							
+
 						<!-- slip/cheque no -->
 						<div class="form-group">
 							<label for="slip_cheque_no" class="col-sm-3 control-label nopad">Slip/Cheque No.</label>
 							<p class="col-sm-8 form-control-static" ng-show="!edit || !editPayment">{{selectedPayment.slip_cheque_no || '-'}}</p>
 							<div class="col-sm-5" ng-show="edit && editPayment">
 								<input type="text" name="slip_cheque_no" ng-model="selectedPayment.slip_cheque_no" class="form-control"  >
-							</div>	
+							</div>
 						</div>
-							
+
+						<!-- receipt no -->
+						<div class="form-group">
+							<label for="custom_receipt_no" class="col-sm-3 control-label nopad">Receipt No. (*Optional)</label>
+							<p class="col-sm-8 form-control-static" ng-show="!edit || !editPayment">{{selectedPayment.custom_receipt_no || '-'}}</p>
+							<div class="col-sm-5" ng-show="edit && editPayment">
+								<input type="text" name="custom_receipt_no" ng-model="selectedPayment.custom_receipt_no" class="form-control"  >
+							</div>
+						</div>
+
 						<!-- replacement? -->
 						<div class="form-group">
 							<label class="col-sm-3 control-label nopad"><span ng-show="!edit || !editPayment">Replacement</span></label>
@@ -113,14 +122,14 @@
 								</label>
 							</div>
 						</div>
-							
+
 						<!-- applied to -->
 						<div class="form-group" ng-show="selectedPayment.replacement_payment==false">
-							
+
 							<div ng-if="selectedInvoice">
 								<label class="col-sm-3 control-label nopad">Applied To</label>
 								<div class="col-sm-9 fixed-height-box">
-									
+
 									<div class="well lesspad" ng-repeat="invoice in selectedInvoice track by $index">
 										<div class="row alert-danger" ng-show="invoice.canceled">
 											<div class="col-sm-12">
@@ -141,7 +150,7 @@
 												<p>{{invoice.due_date|date}} </p>
 											</div>
 										</div>
-									
+
 										<table class="display dataTable" cellspacing="0" width="100%">
 											<thead>
 												<tr>
@@ -178,7 +187,7 @@
 									</div>
 								</div>
 							</div>
-							
+
 							<label class="col-sm-3 control-label nopad">
 								{{ (isCredit ? 'Apply To' : 'Open Invoices') }}
 							</label>
@@ -202,7 +211,7 @@
 											<p>{{invoice.due_date|date}} </p>
 										</div>
 									</div>
-								
+
 									<table class="display dataTable" cellspacing="0" width="100%">
 										<thead>
 											<tr>
@@ -238,9 +247,9 @@
 									</table>
 								</div>
 							</div>
-							
+
 						</div>
-						
+
 						<div class="form-group" ng-show="selectedPayment.replacement_payment==true">
 							<label class="col-sm-3 control-label">Apply To</label>
 							<div class="col-sm-9">
@@ -272,17 +281,17 @@
 								</table>
 							</div>
 						</div>
-					
+
 						<!-- summary -->
 						<div class="alert alert-info">
-							<span><b>Amount Paid: </b>{{selectedPayment.amount|currency:""}}</span> | 
-							<span ng-class="{'text-danger': totalApplied>payment.amount}"><b>Amount Applied:</b> {{totalApplied|currency:""}}</span> | 
+							<span><b>Amount Paid: </b>{{selectedPayment.amount|currency:""}}</span> |
+							<span ng-class="{'text-danger': totalApplied>payment.amount}"><b>Amount Applied:</b> {{totalApplied|currency:""}}</span> |
 							<span ng-class="{'text-success': totalCredit>0}"><b>Credit:</b> {{totalCredit|currency:""}}</span>
 						</div>
 					</div>
 				</div>
 				<div class="col-sm-6 well lesspad" ng-show="selectedPayment!==undefined">
-					<!-- date range picker 
+					<!-- date range picker
 					<label for="class">Student Balance Date Range</label>
 					<div class="input-group pull-left" style="width:85%;margin-right:10px;">
 						<input type="text" name="dob" date-range-picker class="form-control date-picker input-sm" ng-model="dateSelect" options="{ranges:termRanges, showCustomRangeLabel:false}" />
@@ -290,7 +299,7 @@
 					</div>
 					<button type="button" class="btn btn-xs btn-success pull-left" ng-click="getStudentBalance()" >Load</button>
 					-->
-					
+
 					<div class="info-boxes clearfix" ng-show="!nofeeSummary">
 						<div class="info-box alert alert-info">
 							Amount Due
@@ -334,20 +343,20 @@
 			</div>
 		</div>
 		<div class="modal-footer">
-		
+
 			<div class="pull-left">
 				<button type="button" class="btn btn-danger" ng-click="deletePayment()" ng-show="permissions.fees.payments_received.delete"><i class="fa fa-trash"></i> Delete Payment</button>
-				
+
 				<button type="button" class="btn btn-danger" ng-click="reversePayment()" ng-show="!isCredit && editPayment && edit && !selectedPayment.reversed">Reverse Payment</button>
 				<button type="button" class="btn btn-success" ng-click="reactivatePayment()" ng-show="!isCredit && editPayment && edit && selectedPayment.reversed">Reactivate Payment</button>
 			</div>
-			
+
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>
-			
+
 			<button type="submit" class="btn btn-success">
 				<span ng-hide="saving">Save</span>
 				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
 			</button>
-			
+
 		</div>
 </form>

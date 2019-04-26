@@ -1,0 +1,175 @@
+<form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+		<div class="modal-header dialog-header-form">
+			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+			<h4 class="modal-title">Statement</h4>
+		</div>
+		<div class="modal-body receipt">
+	
+			<p ng-show="error" class="error alert alert-danger">
+				{{errMsg}}
+			</p>
+			
+			<div class="receipt-header-letterhead" ng-if="useLetterhead">
+				<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+				<h2 class="receipt-title">Official Statement</h2>
+			</div>
+			
+			<div class="row" ng-if="!useLetterhead">
+				<div class="col-xs-2">
+					<img src="{{'assets/schools/' + currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" /> 
+				</div>
+				<div class="col-xs-10 receipt-header">
+					<h2 class="receipt-title">Statement</h2>
+					<h1 class="receipt-school-name">{{currentUser.settings['School Name']}}</h1>
+					<div class="receipt-school-address">
+						<p>{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
+						<p>Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
+						<p>Email: {{currentUser.settings['Email Address']}}</p>
+					</div>
+					<div class="row">
+						<div class="col-xs-8 nopad">
+							<label class="pull-right">Date:</label>
+						</div>
+						<div class="col-xs-4">
+							<p class="form-control-static">{{todays_date|date}}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-2 nopad-right">
+					<label>Statement For:</label>
+				</div>
+				<div class="col-xs-9 lesspad">
+					<p class="form-control-static">{{student.student_name}}</p>
+				</div>
+			</div>
+			
+			<div class="row">
+				<div class="col-xs-2 nopad-right">
+					<label>Admission No:</label>
+				</div>
+				<div class="col-xs-3 lesspad">
+					<p class="form-control-static">{{student.admission_number}}</p>
+				</div>
+				<div class="col-xs-1 nopad">
+					<label>Class:</label>
+				</div>
+				<div class="col-xs-3 lesspad">
+					<p class="form-control-static">{{student.class_name}}</p>
+				</div>
+				<div class="col-xs-1 nopad">
+					<label>Term:</label>
+				</div>
+				<div class="col-xs-2 nopad-left">
+					<p class="form-control-static">{{currentTermTitle}}</p>
+				</div>
+			</div>
+			<!--
+			<div class="row">
+				<div class="col-xs-3 nopad-right">
+					<label>The sum of Kshs:</label>
+				</div>
+				<div class="col-xs-9">
+					<p class="form-control-static">{{totalAmt|currency:""}} {{currency}}</p>
+				</div>
+			</div>
+			-->
+			<div class="row">
+				<div class="col-xs-3 nopad-right">
+					<label>Outstanding Balance:</label>
+				</div>
+				<div class="col-xs-9">
+				    
+					<p class="form-control-static"><b>{{( grandTotalBalanceUnfiltered < 0 ? '0' : grandTotalBalanceUnfiltered|numeric) }}  {{currency}}
+						<span ng-show="hasCredit"> Credit of {{totalCredits|currency:""}}  {{currency}}</span></b>
+					</p>
+					
+					<!--
+					<p class="form-control-static"><b>{{( hasCredit ? '' : ( grandTotalBalanceUnfiltered < 0 ? '0' : grandTotalBalanceUnfiltered|numeric) ) }}  {{(hasCredit ? '' : currency)}}
+						<span ng-show="hasCredit"> Credit of {{totalCredits|currency:""}}  {{currency}}</span></b>
+					</p>
+					-->
+				</div>
+			</div>
+			
+			<div class="">
+				<h4>Invoice Summary</h4>
+				<table class="display dataTable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th>Invoice</th>
+							<th>Date</th>
+							<th>Due Date</th>
+							<th class="center">Amount ({{currency}})</th>
+							<th>Invoice Items</th>
+							<th class="center">Paid ({{currency}})</th>
+							<th class="center">Balance ({{currency}})</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in invoices">
+							<td>{{item.inv_id}}</td>
+							<td>{{item.inv_date}}</td>
+							<td>{{item.due_date}}</td>
+							<td class="center">{{item.total_due|currency:""}}</td>
+							<td>
+								<div ng-repeat="fee_item in item.invoice_line_items">{{fee_item}}</div>
+							</td>
+							<td class="center">{{item.total_paid|currency:""}}</td>
+							<td class="center">{{item.balance|numeric}}</td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="3"></td>
+							<td class="center">{{totalAmt|currency:""}}</td>
+							<td></td>
+							<td class="center">{{totalPaid|currency:""}}</td>
+							<td class="center">{{totalBalance|numeric}}</td>
+						</tr>
+					</tfoot>
+				</table>
+				<h4>Payments Summary</h4>
+				<table class="display dataTable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th>Receipt Id</th>
+							<th>Date</th>
+							<th>Method</th>
+							<th class="center">Amount ({{currency}})</th>
+							<th>Applied To</th>
+							<th class="center">Amount Unapplied</th>
+							<th class="center">Replacement</th>
+							<th class="center">Reversed</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in payments track by $index">
+							<td class="center" id="{{item.payment_id}}">{{item.receipt_number}}</td>
+							<td>{{item.payment_date|date}}</td>
+							<td>{{item.payment_method}}</td>
+							<td class="center">{{item.amount|currency:""}}</td>
+							<td>{{item.applied_to|arrayToList}}</td>
+							<td class="center">{{item.unapplied_amount|currency:""}}</td>
+							<td class="center">{{item.replacement}}</td>
+							<td class="center">{{item.reverse}}</td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="3"><b class="pull-right">Total Paid:</b></td>
+							<td class="center">{{totalPayments|currency:""}}</td>
+							<td colspan="4" class="center"></td>
+						</tr>
+					</tfoot>
+				</table>
+			
+			</div>
+			
+		</div>
+		<div class="modal-footer">				
+			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>			
+			<button type="button" class="btn btn-success" ng-click="print()"><i class="glyphicon glyphicon-print"></i> Print</button>			
+		</div>
+</form>

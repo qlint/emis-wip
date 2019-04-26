@@ -1,7 +1,7 @@
-<div ng-controller="listHomeworkCtrl">	
-	
+<div ng-controller="listHomeworkCtrl">
+
 	<div id="body-content" class="row blog fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
-		
+
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
 		</div>
@@ -9,7 +9,7 @@
 			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 			{{errMsg}}
 		</div>
-		
+
 		<div class="fixed content-fixed-header">
 			<div class="subnavbar non-printable" ng-hide="isPrinting">
 				<ul class="nav nav-tabs main-sub-nav" >
@@ -21,31 +21,31 @@
 				<div class="btn-group toolbar">
 					<div class="btn add-btn" title="Add Post" ng-show="permissions.communications.blog_posts.add" ng-click="addPost()"><a class="clickable"><span class="fa fa-comment"></span> <span class="tool-text">Add Blog Post</span></a></div>
 					<div class="btn add-btn" title="Add Homework" ng-show="permissions.communications.homework.add" ng-click="addHomework()"><a class="clickable"><span class="glyphicon glyphicon-pencil"></span> <span class="tool-text">Add Homework</span></a></div>
-					<div class="btn add-btn" title="Add Email" ng-show="permissions.communications.send_email.add" ng-click="addEmail()"><a class="clickable"><span class="glyphicon glyphicon-send"></span> <span class="tool-text">Compose Email</span></a></div>
-				</div>			
+					<div id="commTab" class="btn add-btn" title="Add Email" ng-show="permissions.communications.send_email.add" ng-click="addEmail()"><a class="clickable"><span class="glyphicon glyphicon-send"></span> <span class="tool-text">Compose Email</span></a></div>
+				</div>
 			</div>
-			
+
 			<div class="clearfix">
 				<h1 id="pageTitle">Homework Posts</h1>
 			</div>
-			
+
 			<!-- search form -->
-			<div class="dataFilterForm">	
+			<div class="dataFilterForm">
 				<h4 ng-show="!isSmallScreen">Filters</h4>
 				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
 				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
-					
+
 					<!-- class select -->
 					<div class="form-group">
-						<label for="class">Class</label>	
+						<label for="class">Class</label>
 						<select name="class" id="class" class="form-control" ng-options="class.class_id as class.class_name for class in classes" ng-model="filters.class_id">
 							<option value="">All</option>
 						</select>
-					</div>	
+					</div>
 
 					<!-- subject select -->
 					<div class="form-group">
-						<label for="class">Subject</label>	
+						<label for="class">Subject</label>
 						<select name="class" id="class" class="form-control" ng-options="subject.class_subject_id as subject.subject_name for subject in classSubjects" ng-model="filters.class_subject_id">
 							<option value="">All</option>
 						</select>
@@ -58,14 +58,14 @@
 							<option value="">All</option>
 						</select>
 					</div>
-					
+
 					<!-- search btn -->
 					<div class="form-group submit-btn">
 						<input type="submit" class="btn btn-sm btn-info" ng-click="loadFilter()" value="Load" />
 						<img src="assets/spinner.gif" ng-show="loading" />
 						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
 					</div>
-					
+
 					<div class="form-group grid-filter">
 						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' placeholder="Filter"/>
 						<button class="btn btn-xs btn-primary" ng-click='filterDataTable()'>Filter</button>
@@ -75,13 +75,13 @@
 				</form>
 			</div>
 			<!-- // end search form -->
-			
-			
+
+
 		</div>
-		
+
 		<div class="full-height datagrid main-datagrid">
 			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
-			
+
 			<div id="grid1" ui-grid="gridOptions" ui-grid-exporter class="myGrid">
 				<div ng-if="!gridOptions.data.length" class="no-results">No results found.</div>
 			</div>
@@ -89,7 +89,7 @@
 			<table id="resultsTable" class="display nowrap clickable" cellspacing="0" width="100%" ng-show="!loading">
 				<thead>
 					<tr>
-						<th></th>						
+						<th></th>
 						<th>Class</th>
 						<th>Subject</th>
 						<th>Title</th>
@@ -98,7 +98,7 @@
 						<th>Status</th>
 						<th class="center">Preview</th>
 					</tr>
-				</thead>	
+				</thead>
 				<tbody>
 					<tr ng-repeat="item in homework track by $index">
 						<td></td>
@@ -114,9 +114,6 @@
 			</table>
 			-->
 		</div>
-				
+
 	</div>
 </div>
-
-
-

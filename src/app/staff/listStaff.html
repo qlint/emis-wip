@@ -43,7 +43,16 @@
 						<select name="dept" id="dept" class="form-control" ng-options="dept.dept_id as dept.dept_name for dept in departments" ng-model="filters.dept_id">
 							<option value="">All Departments</option>
 						</select>
-					</div>			
+					</div>
+					
+					<!-- status select -->
+					<div class="form-group">
+						<label for="status">Status</label>
+						<select name="status" id="status" class="form-control" ng-model="filters.status">
+							<option value="true">Current</option>
+							<option value="false">Former</option>
+						</select>
+					</div>
 					
 					<!-- search btn -->
 					<div class="form-group submit-btn">

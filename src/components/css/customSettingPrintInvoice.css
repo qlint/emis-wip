@@ -1,0 +1,32 @@
+@media print {
+  div#printDetails{
+    text-align: center;
+    margin-top: 20px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width:75% !important;
+    height: 75% !important;
+  }
+  div#printDetails h3#printDetailsH3{
+    font-size: 13px !important;
+    font-weight: 400;
+  }
+  div#printDetails div.row{
+
+  }
+  div#printDetails div.row div.col-sm-6{
+
+  }
+  div#printDetails div.row div.right{
+    text-align: center !important;
+    /* width: 50%; */
+  }
+  div#printDetails div.row div.left{
+    text-align: center !important;
+    /* width: 50%; */
+  }
+  div#printDetails div.row div.col-sm-6 p{
+    font-size: 11px !important;
+    font-weight: 400;
+  }
+}

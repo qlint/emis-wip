@@ -1,22 +1,22 @@
-<form name="invoiceForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">		
+<form name="invoiceForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 			<h4 class="modal-title">Invoice: {{selectedStudent.student_name}}</h4>
 		</div>
 		<div class="modal-body">
-	
+
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
-			
+
 			<div class="row header">
 				<div class="col-sm-4" ng-class="{ 'has-error' : ( invoiceForm.student.$invalid && (!invoiceForm.student.$pristine || invoiceForm.$submitted)) || studentError }" ng-show="selectStudent">
 					<!-- student -->
 					<label for="student">Student</label>
-					<ui-select ng-model="student.selected" theme="select2" class="form-control" name="student" required> 
+					<ui-select ng-model="student.selected" theme="select2" class="form-control" name="student" required>
 					  <ui-select-match placeholder="Select or search a student...">
 						<span>{{$select.selected.student_name}}</span>
-						<button type="button" class="clear text-danger" ng-click="clearSelect('student',$event)"><span class="glyphicon glyphicon-remove"></span></button>	  
+						<button type="button" class="clear text-danger" ng-click="clearSelect('student',$event)"><span class="glyphicon glyphicon-remove"></span></button>
 					  </ui-select-match>
 					  <ui-select-choices repeat="item in students | filter: $select.search">
 						<span ng-bind-html="item.student_name | highlight: $select.search"></span>
@@ -29,7 +29,7 @@
 					<label for="student">Student</label>
 					<p class="form-control-static">{{selectedStudent.student_name}}</p>
 				</div>
-				
+
 				<div class="col-sm-3">
 					<!-- term -->
 					<label for="student">Term</label>
@@ -37,7 +37,7 @@
 						<option value="">--select term--</option>
 					</select>
 				</div>
-				
+
 				<div class="col-sm-3">
 					<!-- creation option -->
 					<label for="student">Method</label>
@@ -50,22 +50,22 @@
 						<label for="manual"><span>Create Manually</span></label>
 					</div>
 				</div>
-			
+
 				<div class="col-sm-2">
 					<button type="button" class="btn btn-sm btn-success shift-down" ng-click="generateInvoice()">Load</button>
 				</div>
 			</div>
-			
-			
+
+
 			<div class="" ng-if="loadManual">
 				<div class="row">
-				
+
 					<!-- student -->
 					<div class="col-sm-4" >
 						<label>Student</label>
 						<p class="form-control-static">{{selectedStudent.student_name}}</p>
 					</div>
-					
+
 					<!-- invoice date -->
 					<div class="col-sm-4" >
 						<label>Invoice Date</label>
@@ -74,7 +74,7 @@
 							<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 						</div>
 					</div>
-					
+
 					<!-- due date -->
 					<div class="col-sm-4" >
 						<label>Due Date</label>
@@ -84,7 +84,7 @@
 						</div>
 
 					</div>
-					
+
 				</div>
 
 				<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
@@ -94,7 +94,7 @@
 							<th>Fee Item</th>
 							<th class="rightalign">Amount</th>
 						</tr>
-					</thead>	
+					</thead>
 					<tbody>
 						<tr ng-repeat="item in invoiceLineItems track by $index">
 							<td width="25" ng-click="removeLineItem($index)"><span class="glyphicon glyphicon-trash text-danger clickable"></span></td>
@@ -103,7 +103,7 @@
 									<select ng-options="feeitem.fee_item for feeitem in studentFeeItems track by feeitem.student_fee_item_id" ng-model="invoice.newItem">
 										<option value="">-- select a fee item -- </select>
 									</select> <button type="button" class="btn btn-sm btn-link" ng-click="viewStudent(selectedStudent,$index)">Add Fee Item to Student</button>
-								</span>	
+								</span>
 								<span ng-show="item.fee_item!==undefined">{{item.fee_item}}</span>
 							</td>
 							<td class="rightalign">
@@ -113,7 +113,7 @@
 					</tbody>
 				</table>
 				<button type="button" class="btn btn-sm btn-success" ng-click="addRow()">Add Line Item</button>
-				
+
 				<div class="row">
 							<div class="col-sm-6">
 								<div ng-show="hasCredit" class="alert alert-info" style="margin:15px 0">
@@ -128,37 +128,37 @@
 									</label>
 								</div>
 							</div>
-							
+
 							<div class="col-sm-6">
 								<div>
 									<label class="col-sm-8 control-label">Invoice Total</label>
 									<p class="form-control-static right">{{totals.invoice|numeric}}</p>
 								</div>
-								
+
 								<div ng-show="creditApplied">
 									<label class="col-sm-8 control-label">Credit</label>
 									<p class="form-control-static right">{{appliedCreditAmt|numeric}}</p>
 								</div>
-								
+
 								<div>
 									<label class="col-sm-8 control-label">Balance Due ({{currency}})</label>
 									<p class="form-control-static right">{{totals.balance|numeric}}</p>
 								</div>
-								
+
 								<div>
 									<label class="col-sm-8 control-label" ng-show="hasArrears">Arrears ({{currency}})</label>
 									<p class="form-control-static right">{{arrears|numeric}}</p>
 								</div>
 							</div>
 						</div>
-				
+
 			</div>
-			
+
 			<div class="" ng-if="loadSystem">
-				
+
 				<h2>Invoice Preview</h2>
 				<button type="button" class="btn btn-sm btn-link pull-right" ng-click="viewStudent(student.selected)" ng-show="!selectedStudent"><i class="glyphicon glyphicon-user"></i> View Student Details</button>
-			
+
 				<div ng-show="results.length==0">
 					<p class="alert alert-info">There are no items to invoice for the selected term.</p>
 				</div>
@@ -168,7 +168,7 @@
 							<li ng-class="{active: activeInvoice==key}" ng-repeat="(key,item) in invoices track by $index"><a class="clickable" ng-click="getInvoice(key)">Invoice {{$index+1}}</a></li>
 						</ul>
 					</div>
-									
+
 					<div class="subtab-content clearfix">
 						<!-- invoice date -->
 						<div class="col-sm-4" >
@@ -178,7 +178,7 @@
 								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 							</div>
 						</div>
-						
+
 						<!-- invoice date -->
 						<div class="col-sm-4" >
 							<label>Due Date</label>
@@ -187,8 +187,16 @@
 								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 							</div>
 						</div>
-						
-					
+
+						<!-- user generated invoice number -->
+						<div class="col-sm-4" >
+							<label>Custom Invoice No. (*Optional*)</label>
+							<div class="input-group">
+								<input type="text" name="custom_invoice_no" class="form-control input-sm" ng-model="invoice.custom_invoice_no" >
+							</div>
+						</div>
+
+
 						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
 							<thead>
 								<tr>
@@ -205,7 +213,7 @@
 											<select ng-options="feeitem.fee_item for feeitem in studentFeeItems track by feeitem.student_fee_item_id"  ng-model="invoice.newItem">
 												<option value="">-- select a fee item -- </select>
 											</select> <button type="button" class="btn btn-sm btn-link" ng-click="viewStudent(selectedStudent,$index)">Add Fee Item to Student</button>
-										</span>	
+										</span>
 										<span ng-show="item.fee_item!==undefined">{{item.fee_item}}</span>
 									</td>
 									<td class="rightalign">
@@ -215,9 +223,9 @@
 							</tbody>
 
 						</table>
-						
+
 						<button type="button" class="btn btn-sm btn-success" ng-click="addRow()">Add Line Item</button>
-						
+
 						<div class="row">
 							<div class="col-sm-6">
 								<div ng-show="hasCredit" class="alert alert-info" style="margin:15px 0">
@@ -232,23 +240,23 @@
 									</label>
 								</div>
 							</div>
-							
+
 							<div class="col-sm-6">
 								<div>
 									<label class="col-sm-8 control-label">Invoice Total</label>
 									<p class="form-control-static right">{{totals.invoice|currency:""}}</p>
 								</div>
-								
+
 								<div ng-show="creditApplied">
 									<label class="col-sm-8 control-label">Credit</label>
 									<p class="form-control-static right">{{ appliedCreditAmt|currency:"" }}</p>
 								</div>
-								
+
 								<div>
 									<label class="col-sm-8 control-label">Balance Due ({{currency}})</label>
 									<p class="form-control-static right">{{totals.balance|numeric}}</p>
 								</div>
-								
+
 								<div ng-show="hasArrears">
 									<label class="col-sm-8 control-label text-danger" >Arrears ({{currency}})</label>
 									<p class="form-control-static right text-danger">{{arrears|numeric}}</p>
@@ -257,18 +265,18 @@
 						</div>
 
 					</div>
-					
+
 				</div>
 			</div>
-			
+
 		</div>
 		<div class="modal-footer">
 			<button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
-			
+
 			<button type="submit" class="btn btn-success" ng-show="selectedStudent !== undefined && (results.length>0 || invoice.creation_method=='manual')">
 				<span ng-hide="saving">Create Invoice(s)</span>
 				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
 			</button>
-			
+
 		</div>
 </form>

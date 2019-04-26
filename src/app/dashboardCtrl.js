@@ -204,6 +204,45 @@ function($scope, $rootScope, apiService){
 		}
 	}
 	
+	var getStudentGenderCount = function()
+	{
+		apiService.studentGenderCount({}, processGenderCount, apiError);
+	}
+	
+	var processGenderCount = function(response, status)
+	{
+		var result = angular.fromJson(response);
+			
+		if( result.response == 'success') 
+		{
+			
+			$scope.maleCount = result.data[0].male;
+			$scope.femaleCount = result.data[0].female;
+			$scope.totalCount = result.data[0].total;
+			
+			if($scope.maleCount == "0"){
+			    //console.log("No male students found");
+			    var genderOverview = "Girls(" + $scope.femaleCount + ")";
+			    //console.log(genderOverview);
+			}else if($scope.femaleCount == "0"){
+			    //console.log("No female students found");
+			    var genderOverview = "Boys(" + $scope.maleCount + ")";
+			    //console.log(genderOverview);
+			}else{
+			    //console.log("Both genders found");
+			    var genderOverview = "Boys(" + $scope.maleCount + ") Girls(" + $scope.femaleCount + ")";
+			    //console.log(genderOverview);
+			}
+			$scope.genderCount = genderOverview;
+		}
+		else
+		{
+		    $scope.prError = true;
+			$scope.prErrMsg = result.data;
+			$scope.fees3Loading = false;
+		}
+	}
+	
 	var getTopStudents = function()
 	{
 		if( $scope.isTeacher ) apiService.getTeacherTopStudents($rootScope.currentUser.emp_id, loadTopStudents, apiError);
@@ -281,6 +320,7 @@ function($scope, $rootScope, apiService){
 			getTeacherClasses();
 			getTeacherSubjects();
 			getTopStudents();
+			getStudentGenderCount();
 		}
 		else
 		{
@@ -288,6 +328,7 @@ function($scope, $rootScope, apiService){
 			getStaffCount();
 			getFeeSummary();
 			getTopStudents();
+			getStudentGenderCount();
 		}
 	}
 	

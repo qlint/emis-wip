@@ -16,6 +16,38 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.gridFilter = {};
 	$scope.gridFilter.filterValue  = '';
 	
+	if( $( "li:contains('Feedback')" ) ){
+	    // console.log("Feedback tab located");
+	    apiService.getFeedbackUnopenedCount({}, function(response){
+				var result = angular.fromJson(response);
+				// console.log(result);
+				
+				if( result.response == 'success')
+				{
+					// console.log(result.data);
+					$( "li a:contains('Feedback')" ).append( "<span class='notifBox'>" + result.data.count + "</span>" );
+				}
+				
+			}, apiError);
+	}
+	
+	if( $rootScope.currentUser.user_type == 'SYS_ADMIN' ){
+	    if( $( "li:contains('Send Email')" ) ){
+    	    // console.log("Send Email tab located");
+    	    apiService.getUnPublishedMsgCount({}, function(response){
+    				var result = angular.fromJson(response);
+    				// console.log(result);
+    				
+    				if( result.response == 'success')
+    				{
+    					// console.log(result.data);
+    					$( "li a:contains('Send Email')" ).append( "<span class='notifBox'>" + result.data.count + "</span>" );
+    				}
+    				
+    			}, apiError);
+    	}
+	}
+	
 	var rowTemplate = function() 
 	{
 		return '<div class="clickable">' +
@@ -29,13 +61,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 		rowTemplate: rowTemplate(),
 		rowHeight:24,
 		columnDefs: [
-			{ name: 'Date', field: 'creation_date', type:'date', enableColumnMenu: false, sort: {direction:'asc'}, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.creation_date|date:"MMM d yyyy, h:mm a"}}</div>'},
-			{ name: 'Type', field: 'com_type', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.com_type}}</div>'},
-			{ name: 'Recipient', field: 'audience', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.audience}}</div>'},
-			{ name: 'Subject', field: 'subject', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.subject}}</div>'},
-			{ name: 'Message', field: 'message', enableColumnMenu: false, width:'40%', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)" ng-bind-html="row.entity.message"></div>'},
-			{ name: 'Status', field: 'post_status', width:75, enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.post_status}}</div>'},
-			{ name: 'View', field: '', cellClass:'center', width:40, headerCellClass:'center', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.preview(row.entity)"><i class="fa fa-eye"></i></div>'},
+		    { name: 'Approve', field: 'approve', width:55,enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents post{{row.entity.post_id}} {{row.entity.sent == false ? \'unreadMsg\':\'\'}}"><input ng-disabled="{{row.entity.sent == false ? \'false\':\'true\'}}" value="{{row.entity.post_id}}" type="checkbox" class="approveMsgs" name="approveMsgs"></div>'},
+		    // { name: 'Approve', field: 'approve', width:55,enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents post{{row.entity.post_id}} {{row.entity.sent == false ? \'unreadMsg\':\'\'}}"><input value="{{row.entity.post_id}}" type="checkbox" class="approveMsgs" name="approveMsgs"></div>'},
+			{ name: 'Date', field: 'creation_date', type:'date', enableColumnMenu: false, sort: {direction:'desc'}, cellTemplate:'<div class="ui-grid-cell-contents post{{row.entity.post_id}} {{row.entity.sent == false ? \'unreadMsg\':\'\'}}" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.creation_date|date:"MMM d yyyy, h:mm a"}}</div>'},
+			{ name: 'Type', field: 'com_type', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents post{{row.entity.post_id}} {{row.entity.sent == false ? \'unreadMsg\':\'\'}}" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.com_type}}</div>'},
+			{ name: 'Recipient', field: 'audience', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents post{{row.entity.post_id}} {{row.entity.sent == false ? \'unreadMsg\':\'\'}}" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.audience}}</div>'},
+			{ name: 'Subject', field: 'subject', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents post{{row.entity.post_id}} {{row.entity.sent == false ? \'unreadMsg\':\'\'}}" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.subject}}</div>'},
+			{ name: 'Message', field: 'message', enableColumnMenu: false, width:'40%', cellTemplate:'<div class="ui-grid-cell-contents post{{row.entity.post_id}} {{row.entity.sent == false ? \'unreadMsg\':\'\'}}" ng-click="grid.appScope.viewEmail(row.entity)" ng-bind-html="row.entity.message"></div>'},
+			{ name: 'Status', field: 'post_status', width:75, enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents post{{row.entity.post_id}} {{row.entity.sent == false ? \'unreadMsg\':\'\'}}" ng-click="grid.appScope.viewEmail(row.entity)">{{row.entity.post_status}}</div>'},
+			{ name: 'View', field: '', cellClass:'center', width:40, headerCellClass:'center', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents post{{row.entity.post_id}} {{row.entity.sent == false ? \'unreadMsg\':\'\'}}" ng-click="grid.appScope.preview(row.entity)"><i class="fa fa-eye"></i></div>'},
 			
 		],
 		exporterCsvFilename: 'school-emails.csv',
@@ -96,6 +130,202 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 		}
 		
 		getCommunications();
+		// console.log($scope);
+		
+		setTimeout(function(){ 
+    	    // show or hide the 'Approve messages button'
+    	    var inpForApprv = document.getElementsByClassName('approveMsgs');
+    	    // console.log(inpForApprv);
+    	    
+    	    $scope.inputsForApproval = [].slice.call(inpForApprv);
+    	    console.log("Number of elements with our class = " + $scope.inputsForApproval.length);
+    	    // console.log($scope.inputsForApproval);
+    	    
+    	    $scope.approveBtn = false;
+    	    for (var m = 0; m < $scope.inputsForApproval.length; m++){
+    			if( $scope.inputsForApproval[m].disabled == false )
+    			{
+    				// if there's an enabled input - we show the 'Approve Msg' button
+    				$scope.approveBtn = true;
+    				var allowBtn = document.getElementById('approveSelectedMsgs');
+    				allowBtn.style.display = "";
+    			}
+    		}
+    	    console.log("Should btn appear? " + $scope.approveBtn);
+    	    
+    	    // acquire values from the selected inputs
+    	    
+            $("#approveSelectedMsgs").click(function(){
+                var approveList = [];
+                $.each($("input[name='approveMsgs']:checked"), function(){
+                    approveList.push($(this).val());
+                });
+                // console.log("Selected message id's are: " + approveList.join(", "));
+                
+                var msgId = {
+        			post_id: approveList
+        		}
+                apiService.batchPublishMessages(msgId,function(response){
+        			var result = angular.fromJson( response );
+        			if( result.response == 'success' )
+        			{
+        				alert("Success. Messages are now published and visible to the recipients.");
+        				// $uibModalInstance.close();
+        				if( $( "li:contains('Send Email')" ) ){
+                    	    // console.log("Feedback tab");
+                    	    apiService.getUnPublishedMsgCount({}, function(response){
+                    				var result = angular.fromJson(response);
+                    				// console.log(result);
+                    				
+                    				if( result.response == 'success')
+                    				{
+                    					// console.log(result.data);
+                    					$( "li a:contains('Send Email')" ).html( "Send Email <span class='notifBox'>" + result.data.count + "</span>" );
+                    				}
+                    				
+                    			}, apiError);
+                    	}
+        			}
+        		},apiError);
+        		
+        		// POST SMS - START
+                $scope.unpublishedSms = false;
+        		// filter through all messages and put checked sms's (from approveList above) in an array to later send
+        		var unpublishedSmsArr = [];
+        		// we check through all messages if an unpublished sms exists
+        		for (var q = 0; q < $scope.emails.length; q++){
+            			if( $scope.emails[q].send_as_sms == true && $scope.emails[q].sent == false )
+            			{
+            			    for(var r = 0; r < approveList.length; r++){
+            			        if($scope.emails[q].post_id == approveList[r]){
+            			           // there exists an unpublished sms
+                    				unpublishedSmsArr.push($scope.emails[q].post_id);
+                    				$scope.unpublishedSms = true; 
+            			        }
+            			    }
+            			    
+            			}
+            	}
+            	
+            	if($scope.unpublishedSms == true){
+            	    console.log(unpublishedSmsArr);
+            	    
+            	    // we need to get the sms details for each item in 'unpublishedSmsArr'
+            	    unpublishedSmsArr.forEach(function(eachMsgId) {
+                      apiService.getCommunicationForSms(eachMsgId, function(response, status){
+        					var result = angular.fromJson(response);
+        
+        					if( result.response == 'success')
+        					{
+        					    
+        						$scope.smsData = result.data;
+        						console.log($scope.smsData);
+        						
+        						// this is a delay function - we'll use it to pause & wait for an ajax response
+                                function sleep(milliseconds) {
+                                    var start = new Date().getTime();
+                                    for (var i = 0; i < 1e7; i++) {
+                                        if ((new Date().getTime() - start) > milliseconds){
+                                            break;
+                                        }
+                                    }
+                                 }
+                                 // end delay function
+        						
+        						var buildSmsToPost = {
+                                    "message_by": $scope.smsData[0].message_by,
+                                    "message_date": $scope.smsData[0].message_date,
+                                    "message_recipients": [],
+                                    "message_text": $scope.smsData[0].message_text,
+                                    "subscriber_name": window.location.host.split('.')[0]
+                                };
+                                
+                                // insert recipients into 'message_recipients'
+                                for (var v = 0; v < $scope.smsData.length; v++) {
+                                    
+                                    buildSmsToPost.message_recipients.push({
+                                        "phone_number": $scope.smsData[v].phone_number,
+                                        "recipient_name": $scope.smsData[v].recipient_name
+                                    });
+                                }
+                                
+                                console.log("Our built message :::",buildSmsToPost);
+                                /*
+                                  We need to determine the number of keys/properties (recipients) in the object
+                                  -this is because the sms api for some reason won't post messages with over 99 recipients, else
+                                  we'd just post the object as it is at this point
+                                */
+                                var recipientLength = Object.keys(buildSmsToPost.message_recipients).length;
+                                console.log("The message has (" + recipientLength + ") keys.");
+                                
+                                /*
+                                   Create a variable to divide the above object to a predetermined number less than 100
+                                   in our case we'll use a safe number of 80 so that for messages with many recipients
+                                   the messages will be sent to 80 at a time until it's over
+                                */
+                                var messageRep = buildSmsToPost.message_recipients.slice();
+                                for(var i = 0; i < recipientLength; i+=80){
+                                    buildSmsToPost.message_recipients = messageRep.slice(i, i+80);
+                                    // console.log(buildSmsToPost.message_recipients);
+                                    // We can now create a new message object using the smaller recipient groups
+                                    var newMessage = {
+                                      "message_by": buildSmsToPost.message_by,
+                                      "message_date": buildSmsToPost.message_date,
+                                      "message_recipients": buildSmsToPost.message_recipients,
+                                      "message_text": buildSmsToPost.message_text,
+                                      "subscriber_name": buildSmsToPost.subscriber_name
+                                    };
+                                    console.log(newMessage);
+                                    
+                                  // Post the message
+                                  var url = "http://41.72.203.166/sms_api_staging/api/sendBulkSms";
+                                  $.ajax({
+                                          type: "POST",
+                                          url: url,
+                                          data: JSON.stringify(newMessage),
+                                          contentType: "application/json; charset=utf-8",
+                                          dataType: "json",
+                                          processData: true,
+                                          success: function (data, status, jqXHR) {
+                                              console.log("Success Func. Msg Sent");
+                                              console.log(data);
+                                              console.log(status);
+                                              console.log(jqXHR);
+                                              //alert("success..." + data);
+                                              //alert("Success. Message sent.");
+                                          },
+                                          error: function (xhr) {
+                                              console.log("Error Func. Probably a false positive");
+                                              console.log("Batch number " + i);
+                                              console.log(xhr);
+                                              // Do not alert() an error message to the user as often times the api
+                                              // may delay with a response therefore output an error. This is a false negative
+                                              // since the messages are already successfully sent.
+                                              // alert("Success. Message Sent.");
+                                          }
+                                  });
+                                  
+                                  // before continuing the loop we need to wait a bit - trying 1.5s
+                                    console.log("Waiting 1.5s ...");
+                                    sleep(1500);
+                                  
+                                  
+                                }
+        
+        					}
+        					else
+        					{
+        						$scope.error = true;
+        						$scope.errMsg = result.data;
+        					}
+        				}, apiError);
+                    });
+            	    
+            	}
+            	// POST SMS - END
+        		
+            });
+        },5000);
 		
 	}
 	$timeout(initializeController,1);
@@ -255,7 +485,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	
 	$scope.preview = function(post)
 	{
-		var data = {
+	    var data = {
 			type: 'communication',
 			post: post
 		}
@@ -321,5 +551,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.$on('$destroy', function() {
 		$rootScope.isModal = false;
     });
+    
 
 } ]);

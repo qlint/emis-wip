@@ -1,0 +1,28 @@
+@media print {
+  @page {size: A4 landscape !important; }
+  table.display.dataTable{
+    width:75% !important;
+    float: left;
+  }
+  th.remarks, td.remarks{
+    width:20px !important;
+  }
+  table#avaragesTable{
+    width: 20% !important;
+    float: right;
+    margin-top: -80px;
+  }
+  div#motto {
+    visibility: visible !important;
+    display: block;
+  }
+  img#url{
+    float: right;
+    max-width: 240px !important;
+    max-height: 120px !important;
+  }
+  .isSchool{
+    visibility: visible !important;
+  }
+
+}

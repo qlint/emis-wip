@@ -1,0 +1,16 @@
+CREATE TABLE app.grading2
+(
+  grade2_id serial NOT NULL,
+  grade2 character varying NOT NULL,
+  min_mark integer NOT NULL,
+  max_mark integer NOT NULL,
+  comment character varying,
+  kiswahili_comment character varying,
+  CONSTRAINT "PK_grade2_id" PRIMARY KEY (grade2_id ),
+  CONSTRAINT grading_unique_grade2_contraint UNIQUE (grade2 )
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE app.grading2
+  OWNER TO postgres;

@@ -1,0 +1,89 @@
+<form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">
+		<div class="modal-header dialog-header-form">
+			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+			<h4 class="modal-title">Invoice</h4>
+		</div>
+		<div class="modal-body receipt">
+
+			<p ng-show="error" class="error alert alert-danger">
+				{{errMsg}}
+			</p>
+
+			<div class="watermark canceled" ng-show="invoice.canceled">
+				<p>CANCELED</p>
+			</div>
+
+			<div class="receipt-header-letterhead" ng-if="useLetterhead">
+				<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
+				<h2 class="receipt-title">Invoice</h2>
+			</div>
+
+			<div class="row" ng-if="!useLetterhead">
+				<div class="col-xs-2">
+					<img src="{{'assets/schools/' + currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" />
+				</div>
+				<div class="col-xs-10 receipt-header">
+					<h2 class="receipt-title">Invoice</h2>
+					<h1 class="receipt-school-name">{{currentUser.settings['School Name']}}</h1>
+					<div class="receipt-school-address">
+						<p>{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
+						<p>Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
+						<p>Email: {{currentUser.settings['Email Address']}}</p>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<span class="text-group"><strong>Invoice No:</strong> {{invoice.inv_id}}</span>
+				<span class="text-group"><strong>Invoice Date:</strong> {{invoice.inv_date|date}}</span>
+				<span class="text-group"><strong>Due Date:</strong> {{invoice.due_date|date}}</span>
+			</div>
+
+			<div>
+				<span class="text-group"><strong>Invoice For:</strong> {{student.student_name}}</span>
+				<span class="text-group"><strong>Admission No:</strong> {{student.admission_number}}</span>
+				<span class="text-group"><strong>Class:</strong> {{student.class_name}}</span>
+				<span class="text-group"><strong>Term:</strong> {{invoice.term_name}}, {{invoice.year}}</span>
+			</div>
+
+			<div class="">
+				<table class="display dataTable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th class="center">Fee Item</th>
+							<th class="center">Kshs</th>
+							<th class="center">Cts</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in invoiceLineItems">
+							<td>{{item.fee_item}}</td>
+							<td class="center">{{lineItems[item.fee_item].ksh|number}}</td>
+							<td class="center">{{lineItems[item.fee_item].cts}}</td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td></td>
+							<td class="center">{{totalAmtKsh|number}}</td>
+							<td class="center">{{totalAmtCts}}</td>
+						</tr>
+					</tfoot>
+				</table>
+				<div>
+					<p class="text-group"><strong>Invoice Total:</strong> {{invoice.total_due|currency:""}} {{currency}}</p>
+					<p class="text-group"><strong>Amount Paid:</strong> {{invoice.total_paid|currency:""}} {{currency}}</p>
+					<p class="text-group"><strong>Invoice Balance:</strong> {{ ( invoice.balance > 0 ? '0' : invoice.balance)|numeric }} {{currency}}</p>
+					<p class="text-group text-success" ng-show="hasCredit"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
+					<p class="text-group text-danger" ng-show="hasArrears"><strong>Amount in Arrears:</strong> {{arrears|numeric}} {{currency}}</p>
+          <p class="text-group"><strong>Outstanding Balance: {{ ( grandTotal > 0 ? '0' : grandTotal)|numeric }} {{currency}}</strong></p>
+					<p class="text-group"><strong>{{ banking }}</strong></p>
+				</div>
+			</div>
+
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>
+			<button type="button" class="btn btn-success" ng-click="print()"><i class="glyphicon glyphicon-print"></i> Print</button>
+		</div>
+</form>
