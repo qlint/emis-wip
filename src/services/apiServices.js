@@ -214,6 +214,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.getTansportRoutes = function (request, successFunction, errorFunction) {
 		ajaxService.AjaxGetWithData(request, path + "/getTansportRoutes", successFunction, errorFunction);
 	};
+	
+	this.getUniforms = function (request, successFunction, errorFunction) {
+		ajaxService.AjaxGetWithData(request, path + "/getUniforms", successFunction, errorFunction);
+	};
 
 	this.getReplaceableFeeItems = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getReplaceableFeeItems/" + param, successFunction, errorFunction, params);
@@ -237,6 +241,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.updateRoutes = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateRoutes", successFunction, errorFunction, params);
+	};
+	
+	this.updateUniforms = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/updateUniforms", successFunction, errorFunction, params);
 	};
 
 	this.deleteFeeItem = function (param, successFunction, errorFunction, params) {
@@ -537,6 +545,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.checkAdmNumber = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/checkAdmNumber/" + param, successFunction, errorFunction, params);
 	};
+	
+	this.getLatestAdmission = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getLatestAdmission", successFunction, errorFunction, params);
+	};
 
 	this.postGuardian = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addGuardian", successFunction, errorFunction, params);
@@ -812,6 +824,18 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getClassAnalysis = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getClassAnalysis/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getStreamAnalysis = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStreamAnalysis/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getOverallFinancials = function (param, successFunction, errorFunction) {
+		ajaxService.AjaxGet(path + "/getOverallFinancials/" + param, successFunction, errorFunction);
+	};
+	
+	this.getOverallStudentFeePayments = function (param, successFunction, errorFunction) {
+		ajaxService.AjaxGet(path + "/getOverallStudentFeePayments/" + param, successFunction, errorFunction);
 	};
 
 

@@ -736,7 +736,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr ng-repeat="item in optFeeItems track by $index">
+								<tr ng-repeat="item in optFeeItems track by $index" style="background-color: {{item.fee_item == 'Uniform' ? '#dcdcdc' : ''}}">
 									<td>
 										<label class="checkbox-inline">
 										  <input
@@ -753,11 +753,29 @@
 												<option value="">-- select a route --</option>
 											</select>
 										</div>
+										
+										<div ng-if="item.fee_item == 'Uniform'">
+										    <table ng-show="showUniform" style="border:1px #000000 solid;">
+										        <thead>
+										            <tr>
+										                <th></th><th>Uniform Item</th>
+										            </tr>
+										        </thead>
+										        <tbody>
+										            <tr ng-repeat="uni in uniforms track by $index">
+										                <td><input type="checkbox" name="uniforms[]" value="{{uni.uniform_id}}" ng-click="checkedUniformItem(this)"></td><td>{{uni.uniform}}</td>
+										            </tr>
+										        </tbody>
+										    </table>
+										</div>
+										
 									</td>
 									<td width="70">
 										<input type="text" name="fee_item_amount[]" ng-model="item.amount" class="form-control" placeholder="{{item.default_amount}}">
 									</td>
-									<td>{{item.frequency}}</td>
+									<td>
+									    {{item.frequency}}
+									</td>
 									<td>
 										<select name="fee_items_payment_methods[]" ng-model="item.payment_method" class="form-control">
 											<option value=""></option>

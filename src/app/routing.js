@@ -127,6 +127,13 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
+    .state('fees/fees_reports', {
+      url: "/fees/fees_reports",
+	  templateUrl: 'app/fees/feesReports.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
 	.state('school/departments', {
       url: "/school/departments",
 	  templateUrl: 'app/school/departments.html',
@@ -247,6 +254,13 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  //        authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
 	  //     }
 	  //   })
+	.state('exams/exam_reports', {
+      url: "/exams/exam_reports",
+	  templateUrl: 'app/exams/examsReports.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
 	.state('school_settings', {
       url: "/school_settings",
 	  templateUrl: 'app/school/settings.html',

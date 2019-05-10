@@ -70,6 +70,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Account Number 2' : angular.copy($rootScope.currentUser.settings['Account Number 2']	),
 			'Mpesa Details' : angular.copy($rootScope.currentUser.settings['Mpesa Details']	),
 			'Use Feedback' : angular.copy($rootScope.currentUser.settings['Use Feedback']	),
+			'Use Autoadmission' : angular.copy($rootScope.currentUser.settings['Use Autoadmission']	),
 		}
 		
 		if($scope.settings['Bank Name 2'] == 'Null'){ $scope.settings['Bank Name 2'] = ''; }
@@ -78,55 +79,114 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		if($scope.settings['Account Number 2'] == 'Null'){ $scope.settings['Account Number 2'] = ''; }
 		if($scope.settings['Mpesa Details'] == 'Null'){ $scope.settings['Mpesa Details'] = ''; }
 		
-		setTimeout(function(){ 
-		    if( $scope.settings['Use Feedback'] == 'true' ){
-    		    //set the toggle to 'YES'
-    		    document.querySelector(".settings-on").style.display = "block";
-    		    document.querySelector(".settings-slider").style.backgroundColor = "rgb(42, 185, 52)";
-    		    $('.settingsOffRemoveables').remove(); // remove any custom settings off appends
-    		    $('<style class="settingsSliderRemoveable">.settings-slider:before{left:59px !important;}</style>').appendTo('head');
-    		    
-    		    //hide the 'NO' toggle to prevent a display conflict
-    		    document.querySelector(".settings-off").style.display = "none";
-    		}
-		}, 2500);
+		if($scope.settings['Use Feedback'] == 'true'){
+		    
+		    console.log("Checking status, feedback = " + $scope.settings['Use Autoadmission']);
+		    // Params ($selector, boolean)
+            function setSwitchState(el, flag) {
+                el.attr('checked', flag);
+            }
+            
+            // change switch status
+            setSwitchState($('#feedbackStat.switch-input'), true);
+		}
+		
+		if($scope.settings['Use Autoadmission'] == 'true'){
+		    $scope.autoAdmissionEn = true; // show automatic admissions options
+		    
+		    console.log("Checking status, auto admission = " + $scope.settings['Use Autoadmission']);
+		    // Params ($selector, boolean)
+            function setSwitchState(el, flag) {
+                el.attr('checked', flag);
+            }
+            
+            // change switch status
+            setSwitchState($('#autoAdmission.switch-input'), true);
+		}
 
 	}
 	
 	$scope.getFeedbackSetting = function(el){
         
-      
-        $("#togBtn").on('change', function() {
-            
-            if( $scope.settings['Use Feedback'] == 'true' ){
-                document.querySelector(".settings-off").style.display = "block"; //enable NO
-                document.querySelector(".settings-on").style.display = "none"; // disable YES
-                $('.settingsSliderRemoveable').remove(); // remove earlier append
-                $('<style class="settingsOffRemoveables">.settings-slider:before{left:4px !important;}</style>').appendTo('head'); // move slider left (no)
-                $('<style class="settingsOffRemoveables">input:checked + .settings-slider:before {transform: translateX(0px);}</style>').appendTo('head');
-                document.querySelector(".settings-slider").style.backgroundColor = "#ca2222"; // change color to red / maroon
-                
-            }
-            
-            var checkIfStatusOn = $('.settings-on').css( "display" );
-            $scope.setFeedback = ( checkIfStatusOn == 'block' ? "true" : "false" );
-            console.log("Does the school want feedback? " + $scope.setFeedback);
-            
-            
-            // make the change
-            var postData = {
-				settings: [{
-				    name: 'Use Feedback',
-    				value: $scope.setFeedback,
-    				append: false
-				}]
-			}
-			
-			apiService.updateSettings(postData, createCompleted, apiError);
-			getSettings();
-            
-        });
+        // process the switch
         
+        $('#feedbackStat.switch-input').on('change', function() {
+            var isChecked = $(this).is(':checked');
+            var selectedData;
+            var $switchLabel = $('#feedbackSwitch.switch-label');
+                        
+            if($scope.settings[ 'Use Feedback' ] == "true"){
+                console.log("Feedback was true, now switcing to false");
+                selectedData = $switchLabel.attr('data-off');
+            } else {
+                console.log("Feedback was false, now switching on");
+                selectedData = $switchLabel.attr('data-on');
+            }
+                        
+            console.log('Selected feedback = ' + selectedData);
+                      
+        });
+                    
+        // Params ($selector, boolean)
+        function setSwitchState(el, flag) {
+            console.log("Changing feedback switch status .....");
+            el.attr('checked', flag);
+        }
+        
+        // change switch status
+        setSwitchState($('#feedbackStat.switch-input'), true);
+        
+        // make the change
+        var postData = {
+			settings: [{
+				    name: 'Use Feedback',
+    				value: ( $scope.settings[ 'Use Feedback' ] == "false" ? "true" : "false" ),
+    				append: false
+			}]
+		}
+        apiService.updateSettings(postData, createCompleted, apiError);
+    }
+    
+    $scope.automaticAdmissionNumbers = function(el){
+        
+        $scope.autoAdmissionEn = true; // show automatic admissions options
+        
+        // process the switch
+        
+        $('#autoAdmission.switch-input').on('change', function() {
+            var isChecked = $(this).is(':checked');
+            var selectedData;
+            var $switchLabel = $('#admissionSwitch.switch-label');
+                        
+            if($scope.settings[ 'Use Autoadmission' ] == "true"){
+                console.log("Auto admission was true, now switcing to false");
+                selectedData = $switchLabel.attr('data-off');
+            } else {
+                console.log("Auto admission was false, now switching on");
+                selectedData = $switchLabel.attr('data-on');
+            }
+                        
+            console.log('Selected auto admission = ' + selectedData);
+                      
+        });
+                    
+        // Params ($selector, boolean)
+        function setSwitchState(el, flag) {
+            console.log("Changing switch status .....");
+            el.attr('checked', flag);
+        }
+        
+        // change switch status
+        setSwitchState($('#autoAdmission.switch-input'), true);
+        
+        var updateAdmission = {
+			settings: [{
+				    name: 'Use Autoadmission',
+    				value: ( $scope.settings[ 'Use Autoadmission' ] == "false" ? "true" : "false" ),
+    				append: false
+			}]
+		}
+        apiService.updateSettings(updateAdmission, createCompleted, apiError);
     }
 
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){

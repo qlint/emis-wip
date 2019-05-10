@@ -15,8 +15,8 @@ header('Access-Control-Allow-Origin: *');
 
 // $getDbname = 'eduweb_mis';
 $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-$db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
-$db2 = pg_connect("host=localhost port=5432 dbname=eduweb_mis user=postgres password=postgres");
+$db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=pg_edu@8947");
+$db2 = pg_connect("host=localhost port=5432 dbname=eduweb_mis user=postgres password=pg_edu@8947");
 
 
 /* -------------------------execute the below ------------------------- */
@@ -69,6 +69,14 @@ $db2 = pg_connect("host=localhost port=5432 dbname=eduweb_mis user=postgres pass
 
 // $table1 = pg_query($db,"INSERT INTO app.users(username, password, active, first_name, last_name, email, user_type, creation_date)
 // VALUES('mathew', 'mathew', TRUE, 'mathew', 'mathew', 'mathew@mail.com', 'SYS_ADMIN', now());");
+
+// $table1 = pg_query($db2,"INSERT INTO staff(
+//             staff_id, first_name, middle_name, last_name, telephone, email,
+//             emp_id, user_id, user_type, subdomain, usernm, password, active,
+//             creation_date)
+//     VALUES ((SELECT max(staff_id)+1 FROM staff), 'Stanley', 'Mudogo', 'Eboya', '0720902703', 'stanleyeboya@gmail.com',
+//             201, 39, 'TEACHER', 'kingsinternational', 'stanleyeboya@gmail.com', 'stanley', TRUE,
+//             now());");
 
 // $subdom = array_shift((explode('.', $_SERVER['HTTP_HOST'])));
 // $table1 = pg_query($db,"INSERT INTO app.settings(name, value) VALUES('subdomain', '$subdom');");
@@ -209,10 +217,10 @@ $db2 = pg_connect("host=localhost port=5432 dbname=eduweb_mis user=postgres pass
 // alter sequence app.students_student_id_seq restart with 850;
 // alter sequence app.student_guardians_student_guardian_id_seq restart with 1200;");
 
-$table1 = pg_query($db,"SELECT * FROM app.users");
-while ($row = pg_fetch_assoc($table1)) {
-  echo json_encode(pg_fetch_assoc($table1));
-}
+// $table1 = pg_query($db,"SELECT username, password FROM app.users");
+// while ($row = pg_fetch_assoc($table1)) {
+//   echo $row['username'] . "<<< +++ >>>" .  $row['password'] . "<br><br>" ;
+// }
 
 // $table1 = pg_query($db,"SELECT sum(tot_inv_pymt) as total_paid FROM (
 // 	SELECT DISTINCT payment_id, tot_inv_pymt FROM (
@@ -280,8 +288,12 @@ while ($row = pg_fetch_assoc($table1)) {
 //   echo json_encode(pg_fetch_assoc($table1));
 // }
 
-// $table1 = pg_query($db2,"SELECT * FROM staff
-// ");
+$table1 = pg_query($db2,"SELECT * FROM staff");
+while ($row = pg_fetch_assoc($table1)) {
+  echo json_encode(pg_fetch_assoc($table1));
+}
+
+// $table1 = pg_query($db,"SELECT * FROM app.users WHERE first_name = 'Stanley'");
 // while ($row = pg_fetch_assoc($table1)) {
 //   echo json_encode(pg_fetch_assoc($table1));
 // }

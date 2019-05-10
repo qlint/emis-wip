@@ -312,6 +312,51 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 	
+	// if( window.location.host.split('.')[0] == 'xxxxxxxxxx' ){
+		    
+		    apiService.getSettings({},function(response){
+    			var result = angular.fromJson( response );
+    			if( result.response == 'success' )
+    			{
+    			    // console.log(result);
+    			    var settingsArr = result.data;
+    			    
+                    for (var f = 0; f < settingsArr.length; f++) {
+                        if(settingsArr[f].name == "Use Autoadmission"){
+                            if(settingsArr[f].value == "true"){
+                                // console.log(settingsArr[f].name + " is " + settingsArr[f].value);
+                                
+                                apiService.getLatestAdmission({},function(response){
+                        			var result2 = angular.fromJson( response );
+                        			if( result2.response == 'success' )
+                        			{
+                        			    // console.log("Latest admission :: ",result2);
+                        			    var latestAdmission = result2.data.admission_number;
+                        			    
+                        			    if(latestAdmission.search(/-/) > -1){ 
+                        			        var lastSegment = latestAdmission.split('-').reverse()[0];
+                        			        var admissionIncrement = Number(lastSegment) + 1;
+                            			    var newAdmissionNumber = window.location.host.split('.')[0] + '-' + new Date().getFullYear() + '-' + admissionIncrement;
+                            			    $scope.student.admission_number = newAdmissionNumber;
+                        			    }else{
+                        			        var admissionIncrement = Number(latestAdmission) + 1;
+                            			    var newAdmissionNumber = window.location.host.split('.')[0] + '-' + new Date().getFullYear() + '-' + admissionIncrement;
+                            			    $scope.student.admission_number = newAdmissionNumber;
+                        			    }
+                        			    
+                        			}
+                        
+                        		},apiError);
+    		
+                            }
+                        }
+                    }
+    			}
+    
+    		},apiError);
+		    
+	// }
+	
 	$scope.save = function(theForm)
 	{
 		$scope.forms[$scope.currentTab] = angular.copy(theForm);

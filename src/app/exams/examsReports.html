@@ -1,0 +1,217 @@
+<div ng-controller="examsReportsCtrl">
+
+    <style>
+        @import "components/overviewFiles/vendor/animate/animate.css";
+        @import "components/overviewFiles/vendor/select2/select2.min.css";
+        @import "components/overviewFiles/vendor/perfect-scrollbar/perfect-scrollbar.css";
+        @import "components/overviewFiles/css/util.css";
+        @import "components/overviewFiles/css/reportStyles.css";
+        @import "components/overviewFiles/css/jquery.dataTables.min.css";
+        @import "components/overviewFiles/css/buttons.dataTables.min.css";
+    </style>
+
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+			<!-- <h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+					<div class="btn" title="print" ng-click="printReport()"><a class="export-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div>
+					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
+				</div>
+			</div> -->
+
+			<div class="clearfix">
+				<h1 id="pageTitle">Examination Reports</h1>
+			</div>
+
+			<!-- search form -->
+			<div class="dataFilterForm">
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+					<!-- class select -->
+					<div class="form-group">
+						<label for="class">Class</label>
+						<select name="class" id="class" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
+							<option value="">--select class--</option>
+						</select>
+					</div>
+
+					<!-- term select -->
+					<div class="form-group">
+						<label for="term">Term</label>
+						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" >
+							<option value="">--select term--</option>
+						</select>
+					</div>
+
+					<!-- exam select -->
+					<div class="form-group">
+						<label for="term">Exam</label>
+						<select id="term" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" >
+							<option value="">-- select exam --</option>
+						</select>
+					</div>
+
+                    <!-- report select -->
+					<div class="form-group">
+						<label for="analysis">Analysis</label>
+						<select id="analysis" class="form-control" ng-model="filters.analysis" >
+							<option disabled>-- CLASS REPORTS --</option>
+                              <option value="class_performace">Class Performance</option>
+                              <option value="class_mean">Class Mean</option>
+                              <option value="class_grades">Class Grades</option>
+                              <option value="class_subjects">Class Subjects</option>
+                            <option disabled>-- STREAM REPORTS --</option>
+                              <option value="stream_performace">Stream Performance</option>
+                              <option value="stream_mean">Stream Mean</option>
+                              <option value="stream_grades">Stream Grades</option>
+                              <option value="stream_subjects">Stream Subjects</option>
+						</select>
+					</div>
+
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="loadSelection()" value="Load" />
+						<img src="assets/spinner.gif" ng-show="loading" />
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+
+				</form>
+			</div>
+			<!-- // end search form -->
+
+
+		</div>
+
+		<!-- reports body -->
+		<div class="container-fluid" id="reportsSection">
+            <div class="row">
+
+                <div class="col-md-12 col-sm-12 reports-main-content">
+                <!--Main reports go here -->
+                <h1 ng-show="initialReportLoad">{{preLoadMessageH1}}</h1>
+                <h3 ng-show="initialReportLoad">{{preLoadMessageH3}}</h3>
+
+                <div id="exTab1" class="container" ng-show="showReport">
+                    <ul  class="nav nav-pills">
+                		<li class="active"><a ng-click="gotoDiv1(this)" data-toggle="tab">Table</a></li>
+                		<li><a ng-click="gotoDiv2(this)" data-toggle="tab">Charts &amp; Graphs</a></li>
+                	</ul>
+
+                	<div class="tab-content clearfix">
+                		<div class="tab-pane active" id="1a">
+                            <h3 style="color:#000000;">{{reportTitle}}</h3>
+
+                            <!-- class analysis table -->
+                            <div class='table100 ver1 m-b-110' ng-show="classAnalysisTable">
+                                <table id='classAnalysisTable'>
+                                    <div id='t1' class='table100-head'>
+                                        <thead>
+                                            <tr class='row100 head' id="tblHeader">
+                                                <th class='cell100 column2'>GND.</th>
+                                                <th class='cell100 column2'>STUDENT</th>
+                                                <th class='cell100 column2' ng-repeat="col in tableHeader">{{col.title}}</th>
+                                                <th class='cell100 column2'>POS</th>
+                                            </tr>
+                                        </thead>
+                                    </div>
+                                    <div class='table100-body js-pscroll'>
+                                        <tbody id="tblBody">
+                                            <tr class='row100 body' ng-repeat="item in examMarks track by $index">
+                                                <td class='cell100 column2'>{{item.gender}}</td>
+                                                <td class='cell100 column2'>{{item.student_name}}</td>
+                                                <td class='cell100 column2' ng-repeat="col in tableHeader" ng-bind="displayClassAnalysisMark($parent.$index, col.key)"></td>
+                                                <td class='cell100 column2'>{{item.rank}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </div>
+                                </table>
+                            </div>
+
+                            <!-- stream analysis table -->
+                            <div class='table100 ver1 m-b-110' ng-show="streamAnalysisTable">
+                                <table id='streamAnalysisTable'>
+                                    <div id='t1' class='table100-head'>
+                                        <thead>
+                                            <tr class='row100 head' id="tblHeader">
+                                                <th class='cell100 column2'>GND.</th>
+                                                <th class='cell100 column2'>STUDENT</th>
+                                                <th class='cell100 column2' ng-repeat="col in tableHeader">{{col.title}}</th>
+                                                <th class='cell100 column2'>POS</th>
+                                            </tr>
+                                        </thead>
+                                    </div>
+                                    <div class='table100-body js-pscroll'>
+                                        <tbody id="tblBody">
+                                            <tr class='row100 body' ng-repeat="item in examMarks track by $index">
+                                                <td class='cell100 column2'>{{item.gender}}</td>
+                                                <td class='cell100 column2'>{{item.student_name}}</td>
+                                                <td class='cell100 column2' ng-repeat="col in tableHeader" ng-bind="displayStreamAnalysisMark($parent.$index, col.key)"></td>
+                                                <td class='cell100 column2'>{{item.rank}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </div>
+                                </table>
+                            </div>
+
+                            <!-- class means table -->
+
+                            <!-- stream means table -->
+
+                            <!-- class grades table -->
+
+                            <!-- stream grades table -->
+
+                            <!-- class subjects table -->
+
+                            <!-- stream subjects table -->
+                		</div>
+                		<div class="tab-pane" id="2a">
+                            <h3>We use the class nav-pills instead of nav-tabs which automatically creates a background color for the tab</h3>
+                		</div>
+                	</div>
+                </div>
+            </div>
+        </div>
+		<!-- end reports body -->
+
+	</div>
+
+	<!-- <script src="components/overviewFiles/vendor/jquery/jquery-3.2.1.min.js"></script> -->
+	<script src="components/overviewFiles/vendor/bootstrap/js/popper.js"></script>
+	<!-- <script src="components/overviewFiles/vendor/bootstrap/js/bootstrap.min.js"></script> -->
+	<script src="components/overviewFiles/vendor/select2/select2.min.js"></script>
+	<script src="components/overviewFiles/vendor/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+	<script>
+		$('.js-pscroll').each(function(){
+			var ps = new PerfectScrollbar(this);
+
+			$(window).on('resize', function(){
+				ps.update();
+			})
+		});
+	</script>
+	<script src="components/overviewFiles/js/main.js"></script>
+  <script src="components/overviewFiles/js/jquery.dataTables.min.js"></script>
+  <script src="components/overviewFiles/js/dataTables.buttons.min.js"></script>
+  <script src="components/overviewFiles/js/jszip.min.js"></script>
+  <script src="components/overviewFiles/js/pdfmake.min.js"></script>
+  <script src="components/overviewFiles/js/vfs_fonts.js"></script>
+  <script src="components/overviewFiles/js/buttons.html5.min.js"></script>
+
+</div>

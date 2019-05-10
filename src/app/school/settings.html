@@ -318,16 +318,28 @@
 				    <div class="dashboard-panel-header">
 						<h2>Usabilty &amp; Basic Functionality</h2>
 					</div>
+					
 					<div class="dashboard-panel-body row">
 					    <h5 class="col-sm-9 control-label nopad-right">Use Feedback module to get feedback messages from parents app? </h5>
-					    <label class="col-sm-3 settings-switch">
-					        <input type="checkbox" id="togBtn">
-					        <div class="settings-slider settings-round" ng-click="getFeedbackSetting(this)">
-					            <span class="settings-on">YES</span>
-					            <span class="settings-off">NO</span>
-					        </div>
-					    </label>
+					    <label class="col-sm-3 switch">
+                            <input id="feedbackStat" class="switch-input" type="checkbox" ng-click="getFeedbackSetting(this)"/>
+                            <span id="feedbackSwitch" class="switch-label" data-on="Yes" data-off="No"></span> 
+                            <span class="switch-handle"></span> 
+                        </label>
 					</div>
+					
+					<div class="dashboard-panel-body row" style="margin-top: 7px;">
+					    <h5 class="col-sm-9 control-label nopad-right">Generate automatic admission numbers? </h5>
+					    <label class="col-sm-3 switch">
+                            <input id="autoAdmission" class="switch-input" type="checkbox" ng-click="automaticAdmissionNumbers(this)"/>
+                            <span id="admissionSwitch" class="switch-label" data-on="Yes" data-off="No"></span> 
+                            <span class="switch-handle"></span> 
+                        </label>
+                        <div class="col-sm-9" ng-show="autoAdmissionEn">
+                            <input type="text" value="school/year/001" style="border-radius: 7px;background-color: #d3d3d3;border: 2px solid #000000;" readonly /></span>
+                        </div>
+					</div>
+					
 				</div>
 				
 				<!-- UNCOMMENT FUNCTIONALITY SETTINGS -->

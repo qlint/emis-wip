@@ -54,6 +54,32 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 					
 				}, function(){});
 			}
+			
+			$scope.isUniform = ( data.fee_item == 'Uniform' ? true : false );
+			
+			if( $scope.isUniform )
+			{
+				// get uniforms
+				apiService.getUniforms({}, function(response){
+					var result = angular.fromJson(response);
+					
+					if( result.response == 'success')
+					{
+						if( result.nodata !== undefined) 
+						{
+							$scope.uniforms = [];
+						}
+						else
+						{
+							$scope.uniforms = result.data.map(function(item){
+								item.amount = parseFloat(item.amount);
+								return item;
+							});
+						}
+					}
+					
+				}, function(){});
+			}
 		}
 		
 		
@@ -115,6 +141,26 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 						
 					},apiError);
 				}
+				if( $scope.isUniform )
+				{
+					var uniformData = {
+						user_id: $rootScope.currentUser.user_id,
+						uniforms: $scope.uniforms
+					}
+					apiService.updateUniforms(uniformData,function(response,status){
+						var result = angular.fromJson( response );
+						if( result.response == 'success' )
+						{
+							apiService.updateFeeItem(data,createCompleted,apiError);
+						}
+						else
+						{
+							$scope.error = true;
+							$scope.errMsg = result.data;
+						}
+						
+					},apiError);
+				}
 				else
 				{
 					apiService.updateFeeItem(data,createCompleted,apiError);
@@ -150,7 +196,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
-		var msg = ( result.data.indexOf('"U_route"') > -1 ? 'Duplicate route name.' : result.data);
+		
+		if(result.data.indexOf('"U_route"') > -1){
+		    var msg = 'Duplicate route name.';
+		}else if(result.data.indexOf('"U_uniform"') > -1){
+		    var msg = 'Duplicate uniform name.';
+		}else{
+		    var msg = result.data;
+		}
+		
+		// var msg = ( result.data.indexOf('"U_route"') > -1 ? 'Duplicate route name.' : result.data);
 		$scope.errMsg = msg;
 	}
 	
@@ -216,6 +271,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.removeRoute = function(index)
 	{
 		$scope.transportRoutes.splice(index,1);
+	}
+	
+	$scope.addUniform = function()
+	{		
+		$scope.uniforms.push({
+			uniform_id:undefined,
+			uniform:undefined,
+			amount:undefined
+		});
+	}
+	
+	$scope.removeUniform = function(index)
+	{
+		$scope.uniforms.splice(index,1);
 	}
 	
 	

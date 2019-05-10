@@ -69,7 +69,7 @@
 
 /* -------------------------QUERY ------------------------- */
 
-$table3 = pg_query($db,"SELECT parent_name, relationship, user_name, password, student_name, class_name
+$table3 = pg_query($db,"SELECT parent_name, relationship, user_name, password, student_name, class_name, device_user_id as device
                         FROM (
                         	SELECT p.first_name || ' ' || coalesce(p.middle_name,'') || ' ' || p.last_name AS parent_name, p.device_user_id, 
                         		p.username as user_name, p.password, ps.subdomain, ps.student_id,
@@ -96,6 +96,7 @@ echo "<div class='table100 ver1 m-b-110'>";
                     echo "<th class='cell100 column4'>PASSWORD</th>";
                     echo "<th class='cell100 column5'>STUDENT NAME</th>";
                     echo "<th class='cell100 column6'>CLASS</th>";
+                    echo "<th class='cell100 column6'>DEVICE</th>";
                 echo "</tr>";
             echo "</thead>";
 
@@ -110,6 +111,7 @@ echo "<div class='table100 ver1 m-b-110'>";
                      echo "<td class='cell100 column4'>" . $row3['password'] . "</td>";
                      echo "<td class='cell100 column5'>" . $row3['student_name'] . "</td>";
                      echo "<td class='cell100 column6'>" . $row3['class_name'] . "</td>";
+                     echo "<td class='cell100 column6'>" . $row3['device'] . "</td>";
                  echo "</tr>";
                 }
             echo "</tbody>";

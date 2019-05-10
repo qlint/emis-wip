@@ -91,8 +91,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 						
 						item.default_amount_raw = item.default_amount;
 						
-						if( item.fee_item == 'Transport' ) item.default_amount = item.range;
-						else item.default_amount = $filter('currency')(item.default_amount,"");
+						if( item.fee_item == 'Transport' ){
+						    item.default_amount = item.range;
+						}else if( item.fee_item == 'Uniform' ){
+						    item.default_amount = item.uniform_range;
+						}else{ 
+						    item.default_amount = $filter('currency')(item.default_amount,"");
+						}
 						return item;
 					});
 				}

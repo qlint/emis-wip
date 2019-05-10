@@ -108,7 +108,8 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                     console.log(newMessage);
                                     
                                   // Post the message
-                                  var url = "http://41.72.203.166/sms_api_staging/api/sendBulkSms";
+                                  // var url = "http://41.72.203.166/sms_api_staging/api/sendBulkSms";
+                                  var url = "https://sms_api.eduweb.co.ke/api/sendBulkSms";
                                   $.ajax({
                                           type: "POST",
                                           url: url,

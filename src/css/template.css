@@ -1962,15 +1962,54 @@ input:checked + .settings-slider .settings-off
 div#reportsSection {
     margin-top: 132px;
 }
-
+#exTab1 {
+  width: 104% !important;
+  margin-left: -25px;
+}
 #exTab1 .tab-content {
   color : white;
-  background-color: #428bca;
+  background-image: linear-gradient(180deg, rgba(27,120,0,1) 0%, rgba(255,255,255,1) 10%);
   padding : 5px 15px;
 }
 #exTab1 .nav-pills > li > a {
   border-radius: 0;
 }
+.classAnalysisCol {
+  width: 6.5% !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -o-text-overflow: ellipsis;
+  display: inline-block;
+  position: relative;
+  text-align: center;
+}
+.classAnalysisNameCol {
+  width: 15.5% !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -o-text-overflow: ellipsis;
+  display: inline-block;
+  position: relative;
+  text-align: center;
+}
+.tab-pane {
+  max-width: 100%;
+}
+/* .table100.ver1 th {
+    width: 3.4% !important;
+}
+.table100.ver1 th.classAnalysisNameCol {
+    width: 8% !important;
+}
+.table100.ver1 td {
+    width: 5% !important;
+}
+.table100.ver1 td.classAnalysisNameCol {
+    width: 8% !important;
+    white-space: unset;
+} */
 /* end reports styles */
 
 /*# sourceMappingURL=template.css.map */

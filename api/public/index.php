@@ -199,6 +199,9 @@ require('staff_app_functions.php');
 // ************** Notifications  ****************** //
 require('notifications_functions.php');
 
+// ************** Reports  ****************** //
+require('reports_functions.php');
+
 // Run app
 $app->run();
 
@@ -335,6 +338,82 @@ function createParentLogin($data)
        // $app->response()->setStatus(404);
 		//$app->response()->headers->set('Content-Type', 'application/json');
        // echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+	
+}
+
+function createStaffLogin($data)
+{	
+	$username = 		( isset($data['login']['username']) ? $data['login']['username']: null);
+	$password = 		( isset($data['login']['password']) ? $data['login']['password']: null);
+	$loginActive = 		( isset($data['login']['login_active']) ? ( $data['login']['login_active'] == 'true' ? 't' : 'f') : 'f');
+    $empId = 		    ( isset($data['emp_id']) ? $data['emp_id']: null);
+    $userId = 		    ( isset($data['user_id']) ? $data['user_id']: null);
+	$active = 			( isset($data['active']) ? $data['active']: false);
+	$userType = 		( isset($data['user_type']) ? $data['user_type']: null);
+	$email = 			( isset($data['email']) ? $data['email']: null);
+	$firstName = 		( isset($data['first_name']) ? $data['first_name']: null);
+	$middleName = 		( isset($data['middle_name']) ? $data['middle_name']: null);
+	$lastName = 		( isset($data['last_name']) ? $data['last_name']: null);
+	$idNumber = 		( isset($data['id_number']) ? $data['id_number']: null);
+	$telephone = 		( isset($data['telephone']) ? $data['telephone']: null);
+	
+	$dbData = getClientDBData();
+	$subdomain = $dbData->subdomain;
+	$dbUser = $dbData->dbuser;
+	$dbPass = $dbData->dbpass;
+	
+	$updateLogin = false;
+	$addParentStudent = false;
+	$addLogin = false;	
+	
+	$db = getMISDB();
+	
+	if( $staffId !== null )
+	{
+		$updateLogin = true;
+		// existing login, update status
+		$staffUpdate = $db->prepare("UPDATE staff 
+										SET first_name = :firstName,
+											middle_name = :middleName,
+											last_name = :lastName,
+											telephone = :telephone,
+											email = :email,
+											user_type = :userType,
+											password = :password,
+											active = :active, 
+											modified_date = now() 
+										WHERE staff_id = :staffId");
+		
+	}
+	else
+	{
+		$addLogin = true;
+		// new login, create
+		$insertStaffLogin = $db->prepare("INSERT INTO staff(first_name, middle_name, last_name, telephone, email, emp_id, user_id, user_type, subdomain, usernm, password, active)
+									VALUES(:firstName, :middleName, :lastName, :telephone, :email, :empId, :userId, :userType, :subdomain, :username, :password, :active)");
+	}
+	
+	try{
+		
+		$db->beginTransaction();
+		
+		if( $addLogin ) 
+		{
+			$insertStaffLogin->execute( array(':firstName' => $firstName, ':middleName' => $middleName, ':lastName' => $lastName, ':telephone' => $telephone, ':email' => $email, 
+			                                ':empId' => $empId, ':userId' => $userId, ':userType' => $userType, ':subdomain' => $subdomain, ':username' => $username, 
+			                                ':password' => $password, ':active' => $active) );
+		}
+		else if( $updateLogin )
+		{
+			$staffUpdate->execute( array(':firstName' => $firstName, ':middleName' => $middleName, ':lastName' => $lastName, ':telephone' => $telephone, ':email' => $email, 
+											':userType' => $userType, ':password' => $password, ':active' => $active, ':staffId' => $staffId) );
+		}
+		
+		$db->commit();		
+		$db = null;
+	} catch(PDOException $e) {
+		echo $e->getMessage();
     }
 	
 }

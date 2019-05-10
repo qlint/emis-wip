@@ -221,6 +221,26 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 		}, function(){});
 		
+		// get uniforms
+		apiService.getUniforms({}, function(response){
+			var result = angular.fromJson(response);
+
+			if( result.response == 'success')
+			{
+				$scope.uniforms = result.data;
+				// console.log($scope.uniforms);
+				if( $scope.uniforms !== undefined ){
+				    
+				    $scope.student.uniforms = $scope.uniforms.filter(function(item){
+                       if( item.uniform_id == $scope.student.uniform_id ) return item;
+                    })[0];
+                    if( $scope.student.uniforms !== undefined ) $scope.showUniform = true;
+                    
+				}
+			}
+
+		}, function(){});
+		
 		// get the terms for the current year only
 		var currentYear = new Date().getFullYear();
 		var setCurrentYearTerms  = function(response,status)
@@ -309,6 +329,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
              if( item.transport_id == $scope.student.transport_route_id ) return item;
           })[0];
           if( $scope.student.transport_route !== undefined ) $scope.showTransport = true;
+        }
+        if( $scope.uniforms ) {
+          $scope.student.uniforms = $scope.uniforms.filter(function(item){
+             if( item.uniform_id == $scope.student.uniform_id ) return item;
+          })[0];
+          if( $scope.student.uniforms !== undefined ) $scope.showUniform = true;
         }
 				originalData = angular.copy($scope.student);
 
@@ -404,7 +430,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.initLoad  = false;
 
 			}
-
 		}, function(){});
 	}
 
@@ -795,6 +820,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		// use the amount and put it into the input box
 		angular.forEach($scope.optFeeItemSelection, function(feeItem,key){
 			if( feeItem.fee_item == 'Transport') feeItem.amount = newVal.amount;
+		});
+	});
+	
+	$scope.$watch('student.uniforms', function(newVal, oldVal){
+		if( newVal == oldVal || newVal === undefined || newVal == '' ) return;
+
+		// use the amount and put it into the input box
+		angular.forEach($scope.optFeeItemSelection, function(feeItem,key){
+			if( feeItem.fee_item == 'Uniform') feeItem.amount = newVal.amount;
 		});
 	});
 
@@ -1203,9 +1237,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			//item.amount = undefined;
 			//item.payment_method = undefined;
 			if( item.fee_item == 'Transport' ){
-        $scope.showTransport = false;
-        $scope.student.transport_route = undefined;
-      }
+                $scope.showTransport = false;
+                $scope.student.transport_route = undefined;
+            }
+            if( item.fee_item == 'Uniform' ){
+                $scope.showUniform = false;
+                $scope.student.uniforms = undefined;
+            }
 		}
 
 		// is newly selected
@@ -1233,6 +1271,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			selectionObj.push(item);
 			$scope.studentForm.$setDirty();
 			if( item.fee_item == 'Transport' ) $scope.showTransport = true;
+			if( item.fee_item == 'Uniform' ) $scope.showUniform = true;
 		}
 	};
 
@@ -1696,6 +1735,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			else if( $scope.currentTab == 'Fees' )
 			{
+			    console.log($scope.student);
 
 				var postData = {
 					student_id : $scope.student.student_id,
@@ -1703,11 +1743,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					fees : {
 						payment_method : $scope.student.payment_method,
 						installment_option: $scope.student.installment_option_id,
-            route_id: $scope.student.transport_route !== undefined ? $scope.student.transport_route.transport_id : null,
+                        route_id: $scope.student.transport_route !== undefined ? $scope.student.transport_route.transport_id : null,
+                        uniform_id: $scope.student.uniforms !== undefined ? $scope.student.uniforms.uniform_id : null,
 						feeItems : $scope.feeItemSelection,
 						optFeeItems : $scope.optFeeItemSelection
 					}
 				}
+				
+				console.log(postData);
 			}
 
 			apiService.updateStudent(postData, createCompleted, apiError, {tab:tab});

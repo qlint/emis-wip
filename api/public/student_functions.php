@@ -2255,6 +2255,38 @@ $app->get('/checkAdmNumber/:admission_number', function ($admissionNumber) {
 
 });
 
+$app->get('/getLatestAdmission', function () {
+  // Get the latest admission number
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+    $sth = $db->prepare("SELECT student_id, admission_number FROM app.students
+                        WHERE student_id = (SELECT max(student_id) FROM app.students)");
+    $sth->execute();
+    $results = $sth->fetch(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$studentId) {
   // delete student and all associated records
 

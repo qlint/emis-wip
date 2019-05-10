@@ -90,6 +90,9 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true,
 						},
+						'fees_reports': {
+							'view': true,
+						},
 					},
 					'school':{
 						'school_settings': {
@@ -145,6 +148,9 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'view': true,
 							},
 							'stream_analysis': {
+								'view': true,
+							},
+							'exam_reports': {
 								'view': true,
 							},
 					},
@@ -276,6 +282,9 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'stream_analysis': {
 								'view': true,
 							},
+							'exam_reports': {
+								'view': true,
+							},
 						},
 						'communications':{
 							'send_email' : {
@@ -377,6 +386,9 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'add': true,
 								'edit': true,
 							},
+							'fees_reports': {
+    							'view': true,
+    						},
 						},
 						'school':{
 							'school_settings': {
@@ -471,6 +483,9 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'add': true,
 								'edit': true,
 							},
+							'fees_reports': {
+    							'view': true,
+    						},
 						},
 						'school':{
 							'school_settings': {
@@ -553,6 +568,9 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						},
 						'stream_analysis': {
 							'view': true,
+						},
+						'exam_reports': {
+								'view': true,
 						},
 					},
 					'transport':{

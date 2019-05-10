@@ -229,8 +229,10 @@ function($scope, $rootScope, apiService){
 			    var genderOverview = "Boys(" + $scope.maleCount + ")";
 			    //console.log(genderOverview);
 			}else{
+			    $('#studentModuleIcon').css('margin-top','27px');
 			    //console.log("Both genders found");
-			    var genderOverview = "Boys(" + $scope.maleCount + ") Girls(" + $scope.femaleCount + ")";
+			    var totalGnd = Number($scope.maleCount) + Number($scope.femaleCount);
+			    var genderOverview = "Boys(" + $scope.maleCount + ") Girls(" + $scope.femaleCount + ") Tot(" + totalGnd + ")";
 			    //console.log(genderOverview);
 			}
 			$scope.genderCount = genderOverview;

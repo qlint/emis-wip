@@ -7,11 +7,16 @@ $app->get('/getFeeItems(/:status)', function ($status = true) {
     try
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT fee_item_id, fee_item, default_amount, frequency, active, class_cats_restriction, optional, new_student_only, replaceable
-              FROM app.fee_items
-              WHERE active = :status
-              AND optional is false
-              ORDER BY fee_item_id");
+        $sth = $db->prepare("SELECT fee_item_id, fee_item, default_amount, 
+                            CASE 
+                                WHEN fee_item = 'Uniform' THEN
+                                    (select min(to_char(amount, '999,999,999.99')) || '-' || max(to_char(amount, '999,999,999.99')) from app.fee_item_uniforms where active is true)
+                            END as uniform_range,
+                            frequency, active, class_cats_restriction, optional, new_student_only, replaceable
+                                  FROM app.fee_items
+                                  WHERE active = :status
+                                  AND optional is false
+                                  ORDER BY fee_item_id");
         $sth->execute( array(':status' => $status) );
         $requiredItems = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -19,9 +24,14 @@ $app->get('/getFeeItems(/:status)', function ($status = true) {
     $results->required_items = $requiredItems;
 
     $sth = $db->prepare("SELECT fee_item_id, fee_item, default_amount,
-                CASE WHEN fee_item = 'Transport' THEN
-                  (select min(to_char(amount, '999,999,999.99')) || '-' || max(to_char(amount, '999,999,999.99')) from app.transport_routes where active is true)
+                CASE 
+                    WHEN fee_item = 'Transport' THEN
+                        (select min(to_char(amount, '999,999,999.99')) || '-' || max(to_char(amount, '999,999,999.99')) from app.transport_routes where active is true)
                 END as range,
+                CASE 
+                    WHEN fee_item = 'Uniform' THEN
+                        (select min(to_char(amount, '999,999,999.99')) || '-' || max(to_char(amount, '999,999,999.99')) from app.fee_item_uniforms where active is true)
+                END as uniform_range,
                 frequency, active, class_cats_restriction, optional, new_student_only, replaceable
               FROM app.fee_items
               WHERE active = :status
@@ -63,6 +73,42 @@ $app->get('/getTansportRoutes(/:status)', function ($status = true) {
               FROM app.transport_routes
               WHERE active = :status
               ORDER BY route");
+        $sth->execute( array(':status' => $status) );
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getUniforms(/:status)', function ($status = true) {
+    //Show uniforms
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT uniform_id, uniform, amount
+              FROM app.fee_item_uniforms
+              WHERE active = :status
+              ORDER BY uniform");
         $sth->execute( array(':status' => $status) );
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -306,6 +352,100 @@ $app->put('/updateRoutes', function () use($app) {
       if( $deleteMe )
       {
         $deleteRoute->execute(array(':transportId' => $currentRoute->transport_id));
+      }
+    }
+
+    $db->commit();
+
+    $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->put('/updateUniforms', function () use($app) {
+    // Update uniforms
+
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $uniforms = ( isset($allPostVars['uniforms']) ? $allPostVars['uniforms']: null);
+  $userId = ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+    try
+    {
+        $db = getDB();
+        $updateUniform = $db->prepare("UPDATE app.fee_item_uniforms
+              SET amount = :amount,
+                active = true,
+                modified_date = now(),
+                modified_by = :userId
+              WHERE uniform_id = :uniformId
+              ");
+
+    $insertUniform = $db->prepare("INSERT INTO app.fee_item_uniforms(uniform,amount,created_by)
+                    VALUES(:uniform, :amount, :userId)");
+    /*
+    $inactivateUniform = $db->prepare("UPDATE app.fee_item_uniforms
+              SET active = false,
+                modified_date = now(),
+                modified_by = :userId
+              WHERE uniform_id = :uniformId
+              ");
+    */
+    $deleteUniform = $db->prepare('DELETE FROM app.fee_item_uniforms WHERE uniform_id = :uniformId');
+
+
+    // pull out existing uniforms
+      $query = $db->prepare("SELECT uniform_id FROM app.fee_item_uniforms WHERE active is true");
+    $query->execute();
+    $currentUniforms = $query->fetchAll(PDO::FETCH_OBJ);
+
+    $db->beginTransaction();
+    foreach($uniforms as $uniform)
+    {
+      $uniformId =  ( isset($uniform['uniform_id']) ? $uniform['uniform_id']: null);
+      $uniformName =  ( isset($uniform['uniform']) ? $uniform['uniform']: null);
+      $amount =   ( isset($uniform['amount']) ? $uniform['amount']: null);
+
+      if( $uniformId !== null )
+      {
+        $updateUniform->execute( array(':uniformId' => $uniformId,
+               ':amount' => $amount,
+               ':userId' => $userId
+          ) );
+      }
+      else
+      {
+        $insertUniform->execute( array(':uniform' => $uniformName,
+               ':amount' => $amount,
+               ':userId' => $userId
+          ) );
+      }
+    }
+
+      // set active to false for any not passed in
+    foreach( $currentUniforms as $currentUniform )
+    {
+      $deleteMe = true;
+      // if found, do not delete
+      foreach( $uniforms as $uniform )
+      {
+        if( isset($uniform['uniform_id']) && $uniform['uniform_id'] == $currentUniform->uniform_id )
+        {
+          $deleteMe = false;
+        }
+      }
+
+      if( $deleteMe )
+      {
+        $deleteUniform->execute(array(':uniformId' => $currentUniform->uniform_id));
       }
     }
 

@@ -66,8 +66,8 @@
                                         	guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name AS parent_name, relationship,
                                         	telephone
                                         FROM app.students
-                                        INNER JOIN app.student_guardians USING (student_id)
-                                        INNER JOIN app.guardians USING (guardian_id)
+                                        LEFT JOIN app.student_guardians USING (student_id)
+                                        LEFT JOIN app.guardians USING (guardian_id)
                                         INNER JOIN app.classes ON students.current_class = classes.class_id
                                         WHERE students.active IS TRUE
                                         ORDER BY student_name ASC");

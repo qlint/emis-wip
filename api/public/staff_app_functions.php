@@ -72,7 +72,7 @@ $app->post('/staffLogin', function () use($app) {
                     // $details = $sth3->fetchAll(PDO::FETCH_OBJ);
                     $myStudents[$result->school] = $sth3->fetchAll(PDO::FETCH_OBJ);
                     
-                    $sth4 = $db->prepare("SELECT subjects.subject_id, subject_name, subjects.teacher_id, subjects.active, subjects.class_cat_id, class_cat_name, use_for_grading,
+                    $sth4 = $db->prepare("SELECT class_subject_id, subjects.subject_id, subject_name, subjects.teacher_id, subjects.active, subjects.class_cat_id, class_cat_name, use_for_grading,
                                         	first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, class_subjects.class_id, class_name,
                                         	(SELECT count(*) FROM app.class_subjects 
                                         	INNER JOIN app.classes 
@@ -377,7 +377,7 @@ $app->get('/getStaffData/:school/:user_id', function ($school, $userId) {
                     // $details = $sth3->fetchAll(PDO::FETCH_OBJ);
                     $myStudents[$result->school] = $sth3->fetchAll(PDO::FETCH_OBJ);
                     
-                    $sth4 = $db->prepare("SELECT subjects.subject_id, subject_name, subjects.teacher_id, subjects.active, subjects.class_cat_id, class_cat_name, use_for_grading,
+                    $sth4 = $db->prepare("SELECT class_subject_id, subjects.subject_id, subject_name, subjects.teacher_id, subjects.active, subjects.class_cat_id, class_cat_name, use_for_grading,
                                         	first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, class_subjects.class_id, class_name,
                                         	(SELECT count(*) FROM app.class_subjects 
                                         	INNER JOIN app.classes 
@@ -655,6 +655,398 @@ $app->put('/updateStaffPassword', function () use($app) {
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
+});
+
+$app->get('/getHomeworkPostsForApp/:school/:status/:class_subject_id(/:class_id/:teacher_id)', function ($school, $status, $classSubjectId, $classId = null, $teacherId = null) {
+    // Get all homework for class for current school year
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = setDBConnection($school);
+        $params = array();
+    $query = "SELECT homework_id as post_id, assigned_date, title, body, homework.post_status_id, post_status,
+                employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                attachment, homework.modified_date,
+                class_name, class_subjects.class_id, due_date, subject_name, homework.class_subject_id, homework.creation_date
+              FROM app.homework
+              INNER JOIN app.employees
+              ON homework.created_by = employees.emp_id
+              INNER JOIN app.blog_post_statuses
+              ON homework.post_status_id = blog_post_statuses.post_status_id
+              INNER JOIN app.class_subjects
+                INNER JOIN app.classes
+                  INNER JOIN app.students
+                  ON classes.class_id = students.current_class
+                ON class_subjects.class_id = classes.class_id
+                INNER JOIN app.subjects
+                ON class_subjects.subject_id = subjects.subject_id
+              ON homework.class_subject_id = class_subjects.class_subject_id
+              WHERE date_trunc('year', homework.creation_date) =  date_trunc('year', now())
+            ";
+
+  if( $status != 'All' )
+  {
+    $query .= "AND homework.post_status_id = :status ";
+    $params[':status'] = $status;
+  }
+  if( $classSubjectId != 'All' )
+  {
+    $query .= "AND homework.class_subject_id = :classSubjectId ";
+    $params[':classSubjectId'] = $classSubjectId;
+  }
+  else if( $classId !== null && $classId != 'All' )
+  {
+    $query .= "AND classes.class_id = :classId ";
+    $params[':classId'] = $classId;
+  }
+
+  if( $teacherId !== '0' )
+  {
+    $query .= "AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId) ";
+    $params[':teacherId'] = $teacherId;
+  }
+
+  $query .= " GROUP BY homework_id, assigned_date, title, body, homework.post_status_id, post_status,
+                posted_by, homework.class_subject_id,
+                attachment, homework.modified_date,
+                class_name, class_subjects.class_id, due_date, subject_name
+        ORDER BY homework.creation_date desc";
+
+      $sth = $db->prepare( $query );
+  $sth->execute( $params );
+      $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getHomeworkPostForApp/:school/:post_id', function ($school,$postId) {
+    // Get homework post
+
+    $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = setDBConnection($school);
+        $sth = $db->prepare("SELECT homework_id as post_id, homework.creation_date, title, body, homework.post_status_id, post_status,
+                                first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as posted_by, attachment, homework.modified_date,
+                                class_name, classes.class_id, homework.class_subject_id, subjects.subject_id, subject_name, assigned_date, due_date
+                            FROM app.homework
+                            INNER JOIN app.employees
+                            ON homework.created_by = employees.emp_id
+                            INNER JOIN app.blog_post_statuses
+                            ON homework.post_status_id = blog_post_statuses.post_status_id
+                            INNER JOIN app.class_subjects
+                              INNER JOIN app.classes
+                              ON class_subjects.class_id = classes.class_id
+                              INNER JOIN app.subjects
+                              ON class_subjects.subject_id = subjects.subject_id
+                            ON homework.class_subject_id = class_subjects.class_subject_id
+                            WHERE homework_id = :postId");
+        $sth->execute( array(':postId' => $postId) );
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $settings ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addHomeworkFromApp/:school', function ($school) {
+    // Add homework post
+  
+    $app = \Slim\Slim::getInstance();
+    
+    $allPostVars = json_decode($app->request()->getBody(),true);
+
+      $classSubjectId = ( isset($allPostVars['class_subject_id']) ? $allPostVars['class_subject_id']: null);
+      $title =    ( isset($allPostVars['post']['title']) ? $allPostVars['post']['title']: null);
+      $body =     ( isset($allPostVars['post']['body']) ? $allPostVars['post']['body']: null);
+      $postStatusId = ( isset($allPostVars['post']['post_status_id']) ? $allPostVars['post']['post_status_id']: null);
+      $attachment = ( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
+      $dueDate   =  ( isset($allPostVars['post']['due_date']) ? $allPostVars['post']['due_date']: null);
+      $assignedDate = ( isset($allPostVars['post']['assigned_date']) ? $allPostVars['post']['assigned_date']: null);
+      $postedBy =   ( isset($allPostVars['post']['posted_by']) ? $allPostVars['post']['posted_by']: null);
+      $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+  try
+  {
+    $db = setDBConnection($school);
+
+    $sth = $db->prepare("INSERT INTO app.homework(class_subject_id, created_by, body, title, post_status_id, attachment, due_date, assigned_date)
+                          VALUES(:classSubjectId, :postedBy, :body, :title, :postStatusId, :attachment, :dueDate, :assignedDate)");
+
+    $sth->execute( array(':classSubjectId' => $classSubjectId, ':title' => $title, ':body' => $body, ':postStatusId' => $postStatusId ,
+            ':attachment' => $attachment , ':postedBy' => $postedBy, ':dueDate' => $dueDate, ':assignedDate' => $assignedDate,
+     ));
+     
+    // if homework was published
+    if( $postStatusId === 1 )
+    {
+      // get class and subject
+      $className = $db->prepare("SELECT class_name, subject_name
+                                FROM app.class_subjects
+                                INNER JOIN app.classes ON classes.class_id = class_subjects.class_id
+                                INNER JOIN app.subjects ON subjects.subject_id = class_subjects.subject_id
+                              WHERE class_subject_id = :classSubjectId");
+      $className->execute(array(':classSubjectId' => $classSubjectId));
+      $classNameResult = $className->fetch(PDO::FETCH_OBJ);
+
+      $studentsInClass = $db->prepare("SELECT student_id
+                                        FROM app.students
+                                        WHERE current_class = (select class_id
+                                                                from app.class_subjects
+                                                                where class_subject_id = :classSubjectId)");
+      $studentsInClass->execute( array(':classSubjectId' => $classSubjectId));
+      $results = $studentsInClass->fetchAll(PDO::FETCH_OBJ);
+
+      $studentIds = array();
+      foreach($results as $result) {
+        $studentIds[] = $result->student_id;
+      }
+      $studentIdStr = '{' . implode(',', $studentIds) . '}';
+
+      $db = null;
+
+      // homework was published, need to add entry for notifications
+      $db = getMISDB();
+      $subdomain = $school;
+      $message = "New homework posted for " . $classNameResult->class_name . " " . $classNameResult->subject_name . "! " . $title;
+
+      // get all device ids
+      $getDeviceIds = $db->prepare("SELECT device_user_id
+                                    FROM parents
+                                    INNER JOIN parent_students
+                                    ON parents.parent_id = parent_students.parent_id
+                                    WHERE subdomain = :subdomain
+                                    AND student_id = any(:studentIds)");
+      $getDeviceIds->execute( array(':studentIds' => $studentIdStr, ':subdomain' => $subdomain) );
+      $results = $getDeviceIds->fetchAll(PDO::FETCH_OBJ);
+
+      $deviceIds = array();
+      foreach($results as $result) {
+        $id = $result->device_user_id;
+        if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+      }
+
+      if( count($deviceIds) > 0 ) {
+        $deviceIdStr = '{' . implode(',',$deviceIds) . '}';
+
+        $add = $db->prepare("INSERT INTO notifications(subdomain, device_user_ids, message)
+                             VALUES(:subdomain, :deviceIds, :message)");
+        $add->execute(
+          array(
+            ':subdomain' => $subdomain,
+            ':deviceIds' => $deviceIdStr,
+            ':message' => $message
+          )
+        );
+      }
+    }
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1, "data" => "Homework added successfully."));
+    $db = null;
+
+
+  } catch(PDOException $e) {
+    $db->rollBack();
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->put('/updateHomeworkFromApp/:school', function () use($school) {
+  // Update homework
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $homeworkId =   ( isset($allPostVars['post']['post_id']) ? $allPostVars['post']['post_id']: null);
+  $title =    ( isset($allPostVars['post']['title']) ? $allPostVars['post']['title']: null);
+  $body =     ( isset($allPostVars['post']['body']) ? $allPostVars['post']['body']: null);
+  $postStatusId = ( isset($allPostVars['post']['post_status_id']) ? $allPostVars['post']['post_status_id']: null);
+  $attachment = ( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
+  $dueDate   =  ( isset($allPostVars['post']['due_date']) ? $allPostVars['post']['due_date']: null);
+  $assignedDate = ( isset($allPostVars['post']['assigned_date']) ? $allPostVars['post']['assigned_date']: null);
+  $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+  //$hash = password_hash($pwd, PASSWORD_BCRYPT);
+
+  try
+  {
+    $db = setDBConnection($school);
+
+    if( $postStatusId === 1 )
+    {
+      // check the current homework status
+      // if already published, send an notification that post was updated
+      // if being updated to published, send notification of new post
+
+      $check = $db->prepare("SELECT post_status_id FROM app.homework WHERE homework_id = :homeworkId");
+      $check->execute(array(':homeworkId' => $homeworkId));
+      $checkResult = $check->fetch(PDO::FETCH_OBJ);
+    }
+
+    $sth = $db->prepare("UPDATE app.homework
+                        SET title = :title,
+                          body = :body,
+                          post_status_id = :postStatusId,
+                          attachment = :attachment,
+                          due_date = :dueDate,
+                          assigned_date = :assignedDate,
+                          modified_date = now(),
+                          modified_by = :userId
+                        WHERE homework_id = :homeworkId");
+
+    $sth->execute( array(':title' => $title, ':body' => $body, ':postStatusId' => $postStatusId,
+             ':attachment' => $attachment, ':userId' => $userId, ':homeworkId' => $homeworkId,
+             ':dueDate' => $dueDate, ':assignedDate' => $assignedDate) );
+
+    // if homework was published
+    if( $postStatusId === 1 )
+    {
+      // get class and subject
+      $className = $db->prepare("SELECT class_name, subject_name
+                                FROM app.homework
+                                INNER JOIN app.class_subjects ON homework.class_subject_id = class_subjects.class_subject_id
+                                INNER JOIN app.classes ON classes.class_id = class_subjects.class_id
+                                INNER JOIN app.subjects ON subjects.subject_id = class_subjects.subject_id
+                              WHERE homework_id = :homeworkId");
+      $className->execute(array(':homeworkId' => $homeworkId));
+      $classNameResult = $className->fetch(PDO::FETCH_OBJ);
+
+      $studentsInClass = $db->prepare("SELECT student_id
+                                        FROM app.students
+                                        WHERE current_class = (select class_id
+                                                                from app.homework
+                                                                inner join app.class_subjects
+                                                                ON homework.class_subject_id = class_subjects.class_subject_id
+                                                                where homework_id = :homeworkId)");
+      $studentsInClass->execute( array(':homeworkId' => $homeworkId));
+      $results = $studentsInClass->fetchAll(PDO::FETCH_OBJ);
+
+      $studentIds = array();
+      foreach($results as $result) {
+        $studentIds[] = $result->student_id;
+      }
+      $studentIdStr = '{' . implode(',', $studentIds) . '}';
+
+      $db = null;
+
+      // homework was published, need to add entry for notifications
+      $db = getMISDB();
+      $subdomain = getSubDomain();
+
+      // blog was published, need to add entry for notifications
+      if( $checkResult->post_status_id == 2 )
+      {
+        // previously a draft, now publishing
+        $message = "New homework posted for " . $classNameResult->class_name . " " . $classNameResult->subject_name . "! " . $title;
+      }
+      else{
+        // previously published, updating
+        $message = "Homework for " . $classNameResult->class_name . " " . $classNameResult->subject_name . " updated! " . $title;
+      }
+
+      // get all device ids
+      $getDeviceIds = $db->prepare("SELECT device_user_id
+                                    FROM parents
+                                    INNER JOIN parent_students
+                                    ON parents.parent_id = parent_students.parent_id
+                                    WHERE subdomain = :subdomain
+                                    AND student_id = any(:studentIds)");
+      $getDeviceIds->execute( array(':studentIds' => $studentIdStr, ':subdomain' => $subdomain) );
+      $results = $getDeviceIds->fetchAll(PDO::FETCH_OBJ);
+
+      $deviceIds = array();
+      foreach($results as $result) {
+        $id = $result->device_user_id;
+        if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+      }
+
+      if( count($deviceIds) > 0 ) {
+        $deviceIdStr = '{' . implode(',',$deviceIds) . '}';
+
+        $add = $db->prepare("INSERT INTO notifications(subdomain, device_user_ids, message)
+                             VALUES(:subdomain, :deviceIds, :message)");
+        $add->execute(
+          array(
+            ':subdomain' => $subdomain,
+            ':deviceIds' => $deviceIdStr,
+            ':message' => $message
+          )
+        );
+      }
+    }
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
+    $db = null;
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->delete('/deleteHomeworkFromApp/:school/:homework_id', function ($school,$homeworkId) {
+    // Delete homework
+
+    $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = setDBConnection($school);
+        $sth = $db->prepare("DELETE FROM app.homework WHERE homework_id = :homeworkId");
+        $sth->execute( array(':homeworkId' => $homeworkId) );
+
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1, "data" => "Homework deleted successfully."));
+        $db = null;
+
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
 });
 
 $app->post('/updateDeviceUserId', function () use($app) {
@@ -1388,20 +1780,23 @@ $app->get('/getStudentsInBus/:school/:busId', function ($school,$busId) {
   {
     $db = setDBConnection($school);
     
-     $sth = $db->prepare("SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
-                        	g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS guardian_name, sg.relationship, g.telephone,
-                        	b.bus_driver AS driver_id, e1.first_name || ' ' || coalesce(e1.middle_name,'') || ' ' || e1.last_name AS driver_name,
-                        	b.bus_guide AS guide_id, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS assistant_name,
-                        	b.bus_id, b.bus_registration, b.bus_type, b.route_id, tr.route
-                        FROM app.students s
-                        INNER JOIN app.classes c ON s.current_class = c.class_id
-                        LEFT JOIN app.student_guardians sg USING (student_id)
-                        LEFT JOIN app.guardians g USING (guardian_id)
-                        INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
-                        INNER JOIN app.buses b ON tr.transport_id = b.route_id
-                        INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
-                        LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
-                        WHERE b.bus_id = :busId");
+     $sth = $db->prepare("SELECT student_id, student_name, class_name, array_agg('{' || 'guardian_id:' || guardian_id || ',' || 'guardian_name:' || guardian_name || ',' || 'relationship:' || relationship || ',' || 'telephone:' || telephone || '}') AS parents, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route FROM (
+                    			SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
+                                            	g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS guardian_name, sg.relationship, g.telephone,
+                                            	b.bus_driver AS driver_id, e1.first_name || ' ' || coalesce(e1.middle_name,'') || ' ' || e1.last_name AS driver_name,
+                                            	b.bus_guide AS guide_id, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS assistant_name,
+                                            	b.bus_id, b.bus_registration, b.bus_type, b.route_id, tr.route
+                                            FROM app.students s
+                                            INNER JOIN app.classes c ON s.current_class = c.class_id
+                                            LEFT JOIN app.student_guardians sg USING (student_id)
+                                            LEFT JOIN app.guardians g USING (guardian_id)
+                                            INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                                            INNER JOIN app.buses b ON tr.transport_id = b.route_id
+                                            INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
+                                            LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                                            WHERE b.bus_id = :busId
+                    )a
+                    GROUP BY student_id, student_name, class_name, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route");
     $sth->execute( array(':busId' => $busId) );
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -1434,30 +1829,37 @@ $app->post('/getStudentsFromClassInBus/:school', function ($school) {
 
   $busId = ( isset($allPostVars['bus_id']) ? $allPostVars['bus_id']: null);
   $classId = ( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+  $activity = ( isset($allPostVars['activity']) ? $allPostVars['activity']: null);
 
   try
   {
     $db = setDBConnection($school);
 
-    $fetchStudents = $db->prepare("SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
-                                	g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS guardian_name, sg.relationship, g.telephone,
-                                	b.bus_driver AS driver_id, e1.first_name || ' ' || coalesce(e1.middle_name,'') || ' ' || e1.last_name AS driver_name,
-                                	b.bus_guide AS guide_id, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS assistant_name,
-                                	b.bus_id, b.bus_registration, b.bus_type, b.route_id, tr.route
-                                FROM app.students s
-                                INNER JOIN app.classes c ON s.current_class = c.class_id
-                                LEFT JOIN app.student_guardians sg USING (student_id)
-                                LEFT JOIN app.guardians g USING (guardian_id)
-                                INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
-                                INNER JOIN app.buses b ON tr.transport_id = b.route_id
-                                INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
-                                LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
-                                WHERE b.bus_id = :busId
-                                AND s.current_class IN (".implode(',',$classId).")");
+    $fetchStudents = $db->prepare("SELECT student_id, student_name, class_name, array_agg('{' || 'guardian_id:' || guardian_id || ',' || 'guardian_name:' || guardian_name || ',' || 'relationship:' || relationship || ',' || 'telephone:' || telephone || '}') AS parents, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route FROM (
+                                        SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
+                                        	g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS guardian_name, sg.relationship, g.telephone,
+                                        	b.bus_driver AS driver_id, e1.first_name || ' ' || coalesce(e1.middle_name,'') || ' ' || e1.last_name AS driver_name,
+                                        	b.bus_guide AS guide_id, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS assistant_name,
+                                        	b.bus_id, b.bus_registration, b.bus_type, b.route_id, tr.route
+                                        FROM app.students s
+                                        INNER JOIN app.classes c ON s.current_class = c.class_id
+                                        LEFT JOIN app.student_guardians sg USING (student_id)
+                                        LEFT JOIN app.guardians g USING (guardian_id)
+                                        INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                                        INNER JOIN app.buses b ON tr.transport_id = b.route_id
+                                        INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
+                                        LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                                        WHERE b.bus_id = :busId
+                                        AND s.student_id NOT IN (SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
+                                                        AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
+                                                        AND student_id IS NOT NULL AND activity = :activity)
+                                        AND s.current_class IN (".implode(',',$classId).")
+                                )a
+                                GROUP BY student_id, student_name, class_name, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route");
 
     $db->beginTransaction();
 
-    $fetchStudents->execute( array(':busId' => $busId) );
+    $fetchStudents->execute( array(':busId' => $busId,':activity' => $activity) );
     $results = $fetchStudents->fetchAll(PDO::FETCH_OBJ);
 
     $db->commit();
@@ -1477,7 +1879,7 @@ $app->post('/getStudentsFromClassInBus/:school', function ($school) {
 
 });
 
-$app->get('/getStudentsInARoute/:school/:routeId', function ($school,$routeId) {
+$app->get('/getStudentsInARoute/:school/:routeId/:activity', function ($school,$routeId,$activity) {
   //Show all students in their respective routes
 
   $app = \Slim\Slim::getInstance();
@@ -1493,8 +1895,11 @@ $app->get('/getStudentsInARoute/:school/:routeId', function ($school,$routeId) {
                         INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
                         WHERE tr.active IS TRUE AND s.active IS TRUE
                         AND transport_id = :routeId
+                        AND s.student_id NOT IN (SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
+                                                AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
+                                                AND student_id IS NOT NULL AND activity = :activity)
                         ");
-    $sth->execute( array(':routeId' => $routeId) );
+    $sth->execute( array(':routeId' => $routeId,':activity' => $activity) );
       
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -2842,7 +3247,8 @@ $app->get('/getStudentExamMarksForApp/:school/:student_id/:class/:term(/:type)',
 								,exam_type
 							  ,mark
 							  ,grade_weight
-							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
+							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade,
+							  class_subject_exams.class_sub_exam_id, subjects.parent_subject_id
 						FROM app.exam_marks
 						INNER JOIN app.class_subject_exams 
 						INNER JOIN app.exam_types

@@ -15,7 +15,7 @@
         array_push($dbArray,$dbCreate); // push into dbArray the value of dbCreate
     }
 
-    $queryInTextFile = file_get_contents('create-db.txt'); // for larger more complex queries, we put in a text file
+    // $queryInTextFile = file_get_contents('create-db.txt'); // for larger or more complex queries and create statements, we put in a text file
     
     foreach ($dbArray as $key => $value) {
         
@@ -23,9 +23,20 @@
     	    
     	    // now we can create a second db connect for each of the db's above and execute a query on each
     	    
-    	    $schoolDb = pg_connect("host=localhost port=5432 dbname=" . $value . " user=postgres password=postgres"); // the db connect
-    	    $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
-    	    // $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.students ADD COLUMN pick_up_drop_off_individual_phone character varying, ADD COLUMN pick_up_drop_off_individual_img character varying;"); // executing the query
+    	    $schoolDb = pg_connect("host=localhost port=5432 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
+    	    // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
+    	    $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.settings ALTER COLUMN value DROP NOT NULL;"); // executing the query
+    	    /*
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Branch');");
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Branch 2');");
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Name');");
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Name 2');");
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Account Name');");
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Account Name 2');");
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Account Number');");
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Account Number 2');");
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Mpesa Details');");
+    	    */
     	    
     	    echo $dbOutput; // just an output of all our db's
     }
