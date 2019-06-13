@@ -4,7 +4,7 @@
 			<h4 class="modal-title">Invoice</h4>
 		</div>
 		<div class="modal-body receipt">
-
+            <style type="text/css"> @import url("components/css/customSettingPrintInvoice.css"); </style>
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
@@ -18,9 +18,9 @@
 				<h2 class="receipt-title">Invoice</h2>
 			</div>
 
-			<div class="row" ng-if="!useLetterhead">
+			<div class="row printInv" ng-if="!useLetterhead">
 				<div class="col-xs-2">
-					<img src="{{'assets/schools/' + currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" />
+					<img src="{{'assets/schools/' + currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand invLogo" style="max-width:400px !important;" />
 				</div>
 				<div class="col-xs-10 receipt-header">
 					<h2 class="receipt-title">Invoice</h2>
@@ -33,21 +33,22 @@
 				</div>
 			</div>
 
-			<div>
+			<div class="printInv">
 				<span class="text-group"><strong>Invoice No:</strong> {{custom_invoice_no || invoice.inv_id}}</span>
 				<span class="text-group"><strong>Invoice Date:</strong> {{invoice.inv_date|date}}</span>
 				<span class="text-group"><strong>Due Date:</strong> {{invoice.due_date|date}}</span>
 			</div>
 
-			<div>
+			<div class="printInv">
 				<span class="text-group"><strong>Invoice For:</strong> {{student.student_name}}</span>
 				<span class="text-group"><strong>Admission No:</strong> {{student.admission_number}}</span>
 				<span class="text-group"><strong>Class:</strong> {{student.class_name}}</span>
-				<span class="text-group"><strong>Term:</strong> {{invoice.term_name}}, {{invoice.year}}</span>
+				<!-- <span class="text-group"><strong>Term:</strong> {{invoice.term_name}}, {{invoice.year}}</span> -->
+				<span class="text-group"><strong>Term:</strong> {{invoice.term_name}}</span>
 			</div>
 
 			<div class="">
-				<table class="display dataTable" cellspacing="0" width="100%">
+				<table class="display dataTable printInv" cellspacing="0" width="100%">
 					<thead>
 						<tr>
 							<th class="center">Fee Item</th>
@@ -70,14 +71,16 @@
 						</tr>
 					</tfoot>
 				</table>
-				<div>
+				<div class="printInv">
 					<p class="text-group"><strong>Invoice Total:</strong> {{invoice.total_due|currency:""}} {{currency}}</p>
 					<p class="text-group"><strong>Amount Paid:</strong> {{invoice.total_paid|currency:""}} {{currency}}</p>
-					<p class="text-group"><strong>Invoice Balance:</strong> {{ ( invoice.balance > 0 ? '0' : invoice.balance)|numeric }} {{currency}}</p>
+					<!-- <p class="text-group"><strong>Invoice Balance:</strong> {{ ( invoice.balance > 0 ? '0' : invoice.balance)|numeric }} {{currency}}</p> -->
+					<p class="text-group"><strong>Invoice Balance:</strong> {{ invoice.balance2|numeric }} {{currency}}</p>
 					<p class="text-group text-success" ng-show="hasCredit"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
 					<p class="text-group text-danger" ng-show="hasArrears"><strong>Amount in Arrears:</strong> {{arrears|numeric}} {{currency}}</p>
-          <p class="text-group"><strong>Outstanding Balance: {{ ( grandTotal > 0 ? '0' : grandTotal)|numeric }} {{currency}}</strong></p>
-					<style type="text/css"> @import url("components/css/customSettingPrintInvoice.css"); </style>
+          <!-- <p class="text-group"><strong>Outstanding Balance: {{ ( grandTotal > 0 ? '0' : grandTotal)|numeric }} {{currency}}</strong></p> -->
+          <!-- <p class="text-group"><strong>Outstanding Balance: {{ grandTotal|numeric }} {{currency}}</strong></p> --> <!-- USE THIS IF NEEDED -->
+
 					<!-- <div ng-show="wantBankDetails" id="printDetails" style="border:2px solid black;"> -->
 					<!--
 					<div id="printDetails" style="border:2px solid black;">
@@ -100,10 +103,10 @@
 						</div>
 					</div>
 					-->
-					
+
 					<div id="printDetails" class="row" style="border:2px solid black;max-width:90%;margin-right:auto;margin-left:auto;">
 					    <div id="bank_one" class="col-md-6" style="border-right: 1px solid;">
-    					        <h5 id="printDetailsH3" style="text-align:center;"><strong>SCHOOL BANK DETAILS</strong><h5><hr style="margin-top:-5px;">
+    					        <h5 id="printDetailsH3" style="text-align:center;"><strong>BANK DETAILS</strong><h5><hr style="margin-top:-5px;">
         						<div class="row">
         							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>A/C NAME:</strong></p></div>
         							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ account_name }}</strong></p></div>

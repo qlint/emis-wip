@@ -6,7 +6,7 @@
     /* db conn and query */
     foreach ($schools as &$value) {
       $getDbname = 'eduweb_'.$value;
-      $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+      $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=pg_edu@8947");
 
       $schoolStats = pg_query($db,"SELECT
                                   (SELECT COUNT(*) FROM app.students WHERE active IS TRUE) AS total_students,

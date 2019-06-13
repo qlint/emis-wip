@@ -24,6 +24,46 @@ function($scope, $rootScope, apiService){
 			if( result.response == 'success')
 			{
 				$scope.classCats = result.data;
+				for(var f=0; f < $scope.classCats.length; f++){
+				    var parseThis = $scope.classCats[f].classes;
+				    var stripOuter = parseThis.substring(1, parseThis.length-1);
+				    var stripInner = stripOuter.substring(1, stripOuter.length-1);
+				    var replaceInner = stripInner.replace(/","/g, ",");
+				    var replaceAll = replaceInner.replace(/"/g, ",");
+				    
+				    var objectBlueprint = replaceAll
+                      .match(/\{[^}]*\}/g)
+                      .map(objString => objString.slice(1, -1))
+                      .map(item => item.split(/\s*,\s*/))
+                      .map(item => item.map(subitem => subitem.split(/\s*:\s*/)));
+                    
+                    //convert each object
+                    let output = objectBlueprint.map(fromArrayToObject)
+                    
+                    for(var j=0; j < output.length; j++){
+                        output[j].tot = output[j].boys + output[j].girls;
+                    }
+                    console.log("The output",output);
+                    $scope.classCats[f].classes = output;
+                    console.log($scope.classCats[f].classes);
+                    
+                    function fromArrayToObject(keyValuePairs) {
+                      return keyValuePairs.reduce((obj, [key, value]) => {
+                        obj[key] = guessType(value);
+                    
+                        return obj;
+                      }, {})
+                    }
+                    
+                    function guessType(value) {
+                      try {
+                        return JSON.parse(value)
+                      } catch (e) {
+                        return value;
+                      }
+                    }
+				    console.log(replaceAll);
+				}
 				$scope.studentsLoading = false;
 			}
 			else

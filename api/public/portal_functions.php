@@ -31,6 +31,15 @@ $app->post('/parentLogin', function () use($app) {
             $result = $sth->fetch(PDO::FETCH_OBJ);
         
             if($result) {
+                
+                // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','parent-app login')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
         
               // get the parents' students and add to result
               $sth1 = $db->prepare("SELECT student_id, guardian_id AS school_guardian_id, subdomain, dbusername, dbpassword
@@ -170,6 +179,16 @@ $app->post('/parentLogin', function () use($app) {
     
     } else { 
         if($userStatus === "stop"){ 
+            
+            // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','parent-app failed login')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
+				
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array("response" => "error", "code" => 2, "data" => 'The username you entered does not exist. Please confirm and try again.'));
@@ -183,6 +202,16 @@ $app->post('/parentLogin', function () use($app) {
             throw new PDOException($responseJSON); 
             */
         } else { 
+            
+            // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','parent-app failed login')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
+				
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
@@ -221,6 +250,15 @@ $app->put('/updatePassword', function () use($app) {
     $result = $sth1->fetch(PDO::FETCH_OBJ);
     if( $result )
     {
+        // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','parent-app updated login')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
+				
       $sth2 = $db->prepare("UPDATE parents SET password = :newPwd WHERE parent_id = :userId");
       $sth2->execute( array(':userId' => $userId, ':newPwd' => $newPwd) );
       $app->response->setStatus(200);
@@ -229,6 +267,16 @@ $app->put('/updatePassword', function () use($app) {
     }
     else
     {
+        
+        // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','parent-app failed login update')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end 
+				
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
       echo json_encode(array("response" => "error", "data" => "Current password is incorrect." ));
@@ -258,6 +306,15 @@ $app->post('/updateDeviceUserId', function () use($app) {
     $sth->execute( array(':parentId' => $parentId, ':deviceUserId' => $deviceUserId) );
 
     $db = null;
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','parent-app device user id updated')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -284,6 +341,15 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
     $students = $sth1->fetchAll(PDO::FETCH_OBJ);
     $db = null;
 
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','parent-app getting parents children and associated data')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
+				
     $studentDetails = Array();
     $curSubDomain = '';
     $studentsBySchool = Array();
@@ -604,6 +670,16 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
       $results->pagination = $pagination;
       $results->posts = $posts;
     }
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting blog posts')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
+				
 
         if($results) {
             $app->response->setStatus(200);
@@ -666,6 +742,15 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
     $sth->execute( array(':studentId' => $studentId) );
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
     */
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting homework')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
         if($results) {
             $app->response->setStatus(200);
@@ -746,6 +831,15 @@ $app->get('/getStudent/:school/:studentId', function ($school, $studentId) {
       $results4 = $sth4->fetchAll(PDO::FETCH_OBJ);
 
       $results->fee_items = $results4;
+      
+      // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student information')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -872,6 +966,15 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
+        
+        // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student fee balance')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
@@ -921,6 +1024,15 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
   }
+  
+  // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student invoices')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
@@ -998,6 +1110,15 @@ $app->get('/getStudentPaymentsPortal/:school/:studentId', function ($school, $st
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student fee payments')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
@@ -1038,6 +1159,15 @@ $app->get('/getStudentCreditsPortal/:school/:studentId', function ($school, $stu
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student fee credits')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
@@ -1082,6 +1212,15 @@ $app->get('/getStudentArrearsPortal/:school/:studentId/:date', function ($school
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student fee arrears')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
@@ -1121,6 +1260,15 @@ $app->get('/getStudentFeeItemsPortal/:school/:studentId', function ($school, $st
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
+        
+        // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student fee items')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
@@ -1173,6 +1321,15 @@ $app->get('/getStudentExamMarksPortal/:school/:student_id/:class/:term', functio
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
+        
+        // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student exam marks')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
@@ -1345,6 +1502,15 @@ $app->get('/getStudentReportCards/:school/:student_id', function ($school, $stud
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student report card')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
@@ -1390,6 +1556,15 @@ $app->get('/getStudentReportCard/:school/:student_id/:class_id/:term_id', functi
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
+        
+        // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app getting student report card')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
@@ -1533,6 +1708,16 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
         echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
         $db = null;
     }
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app showing payment')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
+				
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -1591,6 +1776,15 @@ $app->get('/getInvoiceDetails/:school/:inv_id', function ($school,$invId) {
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app showing invoice')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
@@ -1662,6 +1856,15 @@ $app->post('/addFeedback/:school', function ($school) {
     echo json_encode(array("response" => "success", 'data' => 'Message Posted'));
 
     $db = null;
+    
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app sending feedback')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(401);

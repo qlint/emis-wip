@@ -609,6 +609,7 @@ $app->get('/getBanking', function () {
     try
     {
         $db = getDB();
+        /*
         $sth = $db->prepare("SELECT q1.bank_name, q2.bank_branch, q3.account_name, q4.account_number, q5.bank_name_2, q6.bank_branch_2, q7.account_name_2, q8.account_number_2, q9.mpesa_details FROM
                             (SELECT value as bank_name, 1 as join FROM app.settings WHERE name = 'Bank Name') AS q1
                             INNER JOIN
@@ -635,6 +636,17 @@ $app->get('/getBanking', function () {
                             INNER JOIN
                             (SELECT value as mpesa_details, 1 as join9 FROM app.settings WHERE name = 'Mpesa Details') AS q9
                             ON q8.join8 = q9.join9
+                            ");
+        */
+        $sth = $db->prepare("SELECT (SELECT value as bank_name FROM app.settings WHERE name = 'Bank Name') AS bank_name, 
+                                    (SELECT value as bank_branch FROM app.settings WHERE name = 'Bank Branch') AS bank_branch, 
+                                    (SELECT value as account_name FROM app.settings WHERE name = 'Account Name') AS account_name, 
+                                    (SELECT value as account_number FROM app.settings WHERE name = 'Account Number') AS account_number, 
+                                    (SELECT value as bank_name_2 FROM app.settings WHERE name = 'Bank Name 2') AS bank_name_2, 
+                                    (SELECT value as bank_branch_2 FROM app.settings WHERE name = 'Bank Branch 2') AS bank_branch_2, 
+                                    (SELECT value as account_name_2 FROM app.settings WHERE name = 'Account Name 2') AS account_name_2, 
+                                    (SELECT value as account_number_2 FROM app.settings WHERE name = 'Account Number 2') AS account_number_2, 
+                                    (SELECT value as mpesa_details FROM app.settings WHERE name = 'Mpesa Details') AS mpesa_details
                             ");
 		$sth->execute();
 		$settings = $sth->fetchAll(PDO::FETCH_OBJ);

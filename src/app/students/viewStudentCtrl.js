@@ -898,6 +898,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.fees = [];
 				$scope.nofeeSummary = true;
 			}
+			console.log($scope.feeSummary);
 
 			if( $scope.currentFeeTab == 'Fee Summary' )	initFeesDataGrid($scope.fees);
 		}
@@ -1681,7 +1682,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						admission_date: moment($scope.student.admission_date.startDate).format('YYYY-MM-DD'),
 						admission_number: $scope.student.admission_number,
 						new_student : ( $scope.student.new_student ? 't' : 'f' ),
-            student_type: $scope.student.student_type
+                        student_type: $scope.student.student_type,
+                        nemis: $scope.student.nemis
 					}
 				}
 			}

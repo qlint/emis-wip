@@ -160,7 +160,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		Auth.logout();
 	};
 
-	$rootScope.userTypes = ['SYS_ADMIN','ADMIN','ADMIN-FINANCE','FINANCE','TEACHER'];
+	$rootScope.userTypes = ['SYS_ADMIN','ADMIN','ADMIN-FINANCE','FINANCE','TEACHER', 'DRIVER'];
 
 	$rootScope.formatStudentData = function(data)
 	{

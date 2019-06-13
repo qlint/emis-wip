@@ -75,7 +75,13 @@
 						<div class="loading-indicator" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 						<ul class="stripped">
 							<li ng-repeat="item in classCats">
-								<a ui-sref="students({ class_cat_id: item.class_cat_id })">{{item.class_cat_name}} ({{item.num_students}})</a>
+								<a class="field-tip" ui-sref="students({ class_cat_id: item.class_cat_id })">
+								    {{item.class_cat_name}} ({{item.num_students}})
+								    <span class="tip-content">{{item.class_cat_name}}<br>{{item.num_boys}} Boys<br>{{item.num_girls}} Girls<br>
+								        <hr>
+								        <p ng-repeat="item2 in item.classes track by $index">{{item2.class_name}} - {{item2.boys}} Boys and {{item2.girls}} Girls. Tot ({{item2.tot}})</p>
+								    </span>
+								</a>
 							</li>
 						</ul>
 					</div>

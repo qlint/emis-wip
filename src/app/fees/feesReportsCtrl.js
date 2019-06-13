@@ -26,6 +26,68 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	$scope.studentFeeItemsAnalysisTable = false; // show the table for student fee items
 	$scope.activeChartTab = false; // hide charts
 	
+	$scope.fetchOvrlBalances = function()
+    	{
+    	    $scope.chartData = $scope.overallBalances;
+        	var theLabels = [];
+        	var theDue = [];
+        	var thePaid = [];
+        	var theBalance = [];
+        	$scope.chartData.forEach(function(label) {
+                theLabels.push(label.fee_item);
+                theDue.push(label.total_due);
+                thePaid.push(label.total_paid);
+                theBalance.push(label.balance);
+            });
+        	console.log("The labels are:",theLabels);
+        	        
+        	var barChartData = {
+            	labels: theLabels,
+            	datasets: [{
+            				label: 'Total Paid',
+            				backgroundColor: '#17FF00',
+            				stack: 'Stack 0',
+            				data: thePaid
+            			}, {
+            				label: 'Balance',
+            				backgroundColor: '#FF0000',
+            				stack: 'Stack 0',
+            				data: theBalance
+            			}, {
+            				label: 'Total Due',
+            				backgroundColor: '#00D1FF',
+            				stack: 'Stack 1',
+            				data: theDue
+            	}]
+            
+            };
+            		
+            var ctx = document.getElementById('canvasReport').getContext('2d');
+        			new Chart(ctx, {
+        				type: 'bar',
+        				data: barChartData,
+        				options: {
+        					title: {
+        						display: true,
+        						text: 'Overall School Balances Analysis'
+        					},
+        					tooltips: {
+        						mode: 'index',
+        						intersect: false
+        					},
+        					responsive: true,
+        					scales: {
+        						xAxes: [{
+        							stacked: true,
+        						}],
+        						yAxes: [{
+        							stacked: true
+        						}]
+        					}
+        				}
+        			});
+    	}
+    	
 	$scope.fetchBalances = function()
     	{   
     	    var fetchOverallBalances = function(response,status){
@@ -64,6 +126,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                 var paidLength = thePaid.length;
                                 var newPaidVals = [];
                                 
+                                /*
                                 for (var v = 0; v < paidLength; v++) {
                                     
                                     var newArr = [];
@@ -81,6 +144,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                         newArr[v] = roundedPercentage;
                                     }
                                     newPaidVals.push(newArr);
+                                }
+                                */
+                                for (var v = 0; v < paidLength; v++) {
+                                    console.log("The paid arr",thePaid);
+                                    
+                                    var fullPercentage = ((thePaid[v] / $scope.overallPaid) * 100) * 1.8;
+                                    var roundedPercentage = fullPercentage.toFixed(1);
+                                    console.log(thePaid[v],"Overall = " + roundedPercentage);
+                                    newPaidVals.push(Number(roundedPercentage));
                                 }
                                 console.log(newPaidVals);
                                 
@@ -100,6 +172,84 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                     getRandomColor();
                                 }
                                 
+                                /* begin charting */
+                                
+                                var myDataSets = [];
+                                
+                                newPaidVals.forEach(function(eachArrItem) {
+                                    myDataSets.push(eachArrItem);
+                                });
+                                
+                                var options = {
+                                    chart: {
+                                        height: 800,
+                                        type: 'radialBar',
+                                    },
+                                    plotOptions: {
+                                        radialBar: {
+                                            offsetY: -10,
+                                            startAngle: 0,
+                                            endAngle: 225,
+                                            hollow: {
+                                                margin: 5,
+                                                size: '5%',
+                                                background: 'transparent',
+                                                image: undefined,
+                                            },
+                                            dataLabels: {
+                                                name: {
+                                                    show: true,
+                                                    
+                                                },
+                                                value: {
+                                                    show: true,
+                                                }
+                                            }
+                                        }
+                                    },
+                                    colors: myColors,
+                                    series: myDataSets,
+                                    labels: theLabels,
+                                    legend: {
+                                        show: true,
+                                        floating: true,
+                                        fontSize: '16px',
+                                        position: 'left',
+                                        offsetX: 160,
+                                        offsetY: 10,
+                                        labels: {
+                                            useSeriesColors: true,
+                                        },
+                                        markers: {
+                                            size: 0
+                                        },
+                                        formatter: function(seriesName, opts) {
+                                            return seriesName + ":  " + opts.w.globals.series[opts.seriesIndex]
+                                        },
+                                        itemMargin: {
+                                            horizontal: 1,
+                                        }
+                                    },
+                                    responsive: [{
+                                        breakpoint: 480,
+                                        options: {
+                                            legend: {
+                                                show: false
+                                            }
+                                        }
+                                    }]
+                                }
+                        
+                               var chart = new ApexCharts(
+                                    document.querySelector("#chart"),
+                                    options
+                                );
+                                
+                                chart.render();
+                                
+                                /* end charting */
+                                
+                                /*
                     	        Chart.controllers.doughnut.prototype.calculateTotal = function() {
                                   return 100;
                                 };
@@ -133,6 +283,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                 });
                                 document.getElementById("canvasReport").style.width = "65%"; // make the chart samller to fit on screen
                                 document.getElementById("canvasReport").style.height = "auto"; // set the height to auto to maintain aspect ratio
+                                */
                                 
         			}
         		}
@@ -338,6 +489,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         	$scope.studentFeeItemsAnalysisTable = false; // show the table for student fee items
         	$scope.activeChartTab = false; // hide charts
         	
+        	$("#overallBalancesAnalysisTable").DataTable().destroy();
+        	$("#studentFeeItemsAnalysisTable").DataTable().destroy();
         	initializeController();
         }
         
@@ -352,8 +505,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
             $location.hash('2a');
             
             // lets first load chart.js
-            $.getScript('/components/Chart2.8.min.js', function()
-            // $.getScript('/components/overviewFiles/js/apexcharts.js', function()
+            // $.getScript('/components/Chart2.8.min.js', function()
+            $.getScript('/components/overviewFiles/js/apexcharts.js', function()
             {
                 // script is now loaded and executed.
                 document.getElementById("1a").classList.remove("active");
@@ -369,65 +522,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         	        document.getElementById("studentFeeItemsAnalysisTableDiv").style.display = "none";
         	        $scope.activeChartTab = true; // show charts
         	        
-        	        $scope.chartData = $scope.overallBalances;
-        	        var theLabels = [];
-        	        var theDue = [];
-        	        var thePaid = [];
-        	        var theBalance = [];
-        	        $scope.chartData.forEach(function(label) {
-                        theLabels.push(label.fee_item);
-                        theDue.push(label.total_due);
-                        thePaid.push(label.total_paid);
-                        theBalance.push(label.balance);
-                    });
-        	        console.log("The labels are:",theLabels);
+        	        $scope.fetchOvrlBalances();
         	        
-        	        var barChartData = {
-            			labels: theLabels,
-            			datasets: [{
-            				label: 'Total Paid',
-            				backgroundColor: '#17FF00',
-            				stack: 'Stack 0',
-            				data: thePaid
-            			}, {
-            				label: 'Balance',
-            				backgroundColor: '#FF0000',
-            				stack: 'Stack 0',
-            				data: theBalance
-            			}, {
-            				label: 'Total Due',
-            				backgroundColor: '#00D1FF',
-            				stack: 'Stack 1',
-            				data: theDue
-            			}]
-            
-            		};
-            		
-            		var ctx = document.getElementById('canvasReport').getContext('2d');
-        			new Chart(ctx, {
-        				type: 'bar',
-        				data: barChartData,
-        				options: {
-        					title: {
-        						display: true,
-        						text: 'Overall School Balances Analysis'
-        					},
-        					tooltips: {
-        						mode: 'index',
-        						intersect: false
-        					},
-        					responsive: true,
-        					scales: {
-        						xAxes: [{
-        							stacked: true,
-        						}],
-        						yAxes: [{
-        							stacked: true
-        						}]
-        					}
-        				}
-        			});
-        			
         			// document.getElementById("canvasReport").classList.remove("ng-hide");
         	        
         	    }else if($scope.studentFeeItemsAnalysisTable == true){

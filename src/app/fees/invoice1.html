@@ -73,7 +73,7 @@
 				<div>
 					<p class="text-group"><strong>Invoice Total:</strong> {{invoice.total_due|currency:""}} {{currency}}</p>
 					<p class="text-group"><strong>Amount Paid:</strong> {{invoice.total_paid|currency:""}} {{currency}}</p>
-					<p class="text-group"><strong>Invoice Balance:</strong> {{ ( invoice.balance > 0 ? '0' : invoice.balance)|numeric }} {{currency}}</p>
+					<p class="text-group"><strong>Invoice Balance:</strong> {{  invoice.balance > 0 ? '0' : invoice.balance|numeric }} {{currency}}</p>
 					<p class="text-group text-success" ng-show="hasCredit"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
 					<p class="text-group text-danger" ng-show="hasArrears"><strong>Amount in Arrears:</strong> {{arrears|numeric}} {{currency}}</p>
           <p class="text-group"><strong>Outstanding Balance: {{ ( grandTotal > 0 ? '0' : grandTotal)|numeric }} {{currency}}</strong></p>

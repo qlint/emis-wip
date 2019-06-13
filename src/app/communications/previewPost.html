@@ -44,9 +44,9 @@
 						<p class="meta"><b>Reply To:</b> {{post.reply_to}}</p>
 						<p class="meta"><b>Subject:</b> {{post.title}}</p>
 						<p ng-bind-html="post.body"></p>
-						<p  ng-show="post.attachment!==null">
+						<p  ng-show="showAttachment">
 							<b>Attachment:</b>
-								<a target="_new" ng-repeat='item in attachments' href="assets/posts/{{item}}">
+								<a target="_new" ng-repeat='item in attachments' href="assets/posts/{{item}}">_
 									<i class="fa fa-file-text icon-lg"></i>
 								</a>
 						</p>

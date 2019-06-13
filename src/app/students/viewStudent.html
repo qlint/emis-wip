@@ -202,15 +202,24 @@
 								</div>
 							</div>
 
-              <!-- student type -->
+                            <!-- student type -->
 							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.student_type.$dirty ) && studentForm.student_type.$invalid && studentForm.student_type.$error.required }">
 								<label for="new_student">Student Type</label>
 								<p class="form-control-static" ng-show="!edit">{{student.student_type}}</p>
 								<div ng-show="edit">
 									<select name="student_type" ng-model="student.student_type" class="form-control" required>
-                    <option value="{{item}}" ng-repeat="item in studentTypes">{{item}}</option>
-                  </select>
+                                        <option value="{{item}}" ng-repeat="item in studentTypes">{{item}}</option>
+                                    </select>
 									<p ng-show="(studentForm.$submitted || studentForm.student_type.$dirty ) && studentForm.student_type.$invalid && studentForm.student_type.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Student Type is required.</p>
+								</div>
+							</div>
+							
+							<!-- nemis -->
+							<div class="col-sm-4">
+								<label for="nemis">NEMIS</label>
+								<p class="form-control-static" ng-show="!edit">{{student.nemis}}</p>
+								<div ng-show="edit">
+									<input type="text" name="nemis" ng-model="student.nemis" class="form-control"  >
 								</div>
 							</div>
 

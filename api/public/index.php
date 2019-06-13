@@ -96,6 +96,15 @@ $app->post('/login', function () use($app) {
 				$settings = $sth2->fetchAll(PDO::FETCH_OBJ);
 				$result->settings = $settings;			
 				
+				// traffic analysis start
+				$misdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $misdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','staff login')");
+				$trafficMonitor->execute( array() );
+				$misdb = null;
+				// traffic analysis end
+				
 				echo json_encode(array('response' => 'success', 'data' => $result ));
 				$db = null;
 			} else {
@@ -319,6 +328,15 @@ function createParentLogin($data)
 										 ':active' => $loginActive) );
 			$insertLoginStudent->execute( array(':guardianId' => $guardianId, ':studentId' => $studentId, ':subdomain' => $subdomain, ':dbUser' => $dbUser, ':dbPass' => $dbPass, 
 										':createdBy' => $createdBy) );
+										
+			// traffic analysis start
+				$misdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $misdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','staff created parent login')");
+				$trafficMonitor->execute( array() );
+				$misdb = null;
+				// traffic analysis end
 		}
 		else if( $updateLogin )
 		{
@@ -329,6 +347,15 @@ function createParentLogin($data)
 				$insertLoginStudent->execute( array(':guardianId' => $guardianId, ':parentId' => $parentId, ':studentId' => $studentId, ':subdomain' => $subdomain, 
 										':dbUser' => $dbUser, ':dbPass' => $dbPass, ':createdBy' => $createdBy) );
 			}
+			
+			// traffic analysis start
+				$misdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $misdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','staff updated parent login')");
+				$trafficMonitor->execute( array() );
+				$misdb = null;
+				// traffic analysis end
 		}
 		
 		$db->commit();		
@@ -344,12 +371,12 @@ function createParentLogin($data)
 
 function createStaffLogin($data)
 {	
-	$username = 		( isset($data['login']['username']) ? $data['login']['username']: null);
-	$password = 		( isset($data['login']['password']) ? $data['login']['password']: null);
-	$loginActive = 		( isset($data['login']['login_active']) ? ( $data['login']['login_active'] == 'true' ? 't' : 'f') : 'f');
+    $username = 		( isset($data['username']) ? $data['username']: null);
+	$password = 		( isset($data['password']) ? $data['password']: null);
+	$loginActive = 		( isset($data['login_active']) ? ( $data['login_active'] == 't' ? 't' : 'f') : 'f');
     $empId = 		    ( isset($data['emp_id']) ? $data['emp_id']: null);
-    $userId = 		    ( isset($data['user_id']) ? $data['user_id']: null);
-	$active = 			( isset($data['active']) ? $data['active']: false);
+    $userId = 		    ( isset($data['login_id']) ? $data['login_id']: null);
+	$active = 			( isset($data['active']) ? ($data['active'] === true ? 't' : 'f'): 'f');
 	$userType = 		( isset($data['user_type']) ? $data['user_type']: null);
 	$email = 			( isset($data['email']) ? $data['email']: null);
 	$firstName = 		( isset($data['first_name']) ? $data['first_name']: null);
@@ -357,6 +384,7 @@ function createStaffLogin($data)
 	$lastName = 		( isset($data['last_name']) ? $data['last_name']: null);
 	$idNumber = 		( isset($data['id_number']) ? $data['id_number']: null);
 	$telephone = 		( isset($data['telephone']) ? $data['telephone']: null);
+	$subdmn = 		    ( isset($data['subdmn']) ? $data['subdmn']: null);
 	
 	$dbData = getClientDBData();
 	$subdomain = $dbData->subdomain;
@@ -369,53 +397,94 @@ function createStaffLogin($data)
 	
 	$db = getMISDB();
 	
-	if( $staffId !== null )
+	$statusCheckQry = $db->query("SELECT (CASE WHEN EXISTS (SELECT staff_id FROM staff WHERE user_id = $userId AND subdomain = 'dev') THEN 'proceed' ELSE 'stop' END) AS status");
+    $userStatus = $statusCheckQry->fetch(PDO::FETCH_OBJ);
+    $userStatus = $userStatus->status;
+    
+    if( $userStatus === "proceed" )
 	{
 		$updateLogin = true;
 		// existing login, update status
+		
 		$staffUpdate = $db->prepare("UPDATE staff 
-										SET first_name = :firstName,
-											middle_name = :middleName,
-											last_name = :lastName,
-											telephone = :telephone,
-											email = :email,
-											user_type = :userType,
-											password = :password,
-											active = :active, 
-											modified_date = now() 
-										WHERE staff_id = :staffId");
+										SET first_name = '$firstName',
+											middle_name = '$middleName',
+											last_name = '$lastName',
+											telephone = '$telephone',
+											email = '$email',
+											user_type = '$userType',
+											password = '$password',
+											active = '$active', 
+											modified_date = now(),
+											last_active = now()
+										WHERE id_number = '$idNumber'");
+		
+	}
+	else if( $userStatus === "stop" )
+	{
+		$addLogin = true;
+		// new login, create
+		
+		$insertStaffLogin = $db->prepare("INSERT INTO staff(staff_id, first_name, middle_name, last_name, telephone, email, emp_id, user_id, user_type, subdomain, usernm, password, active, last_active, id_number)
+									VALUES((SELECT max(staff_id)+1 FROM staff), '$firstName', '$middleName', '$lastName', '$telephone', '$email', $empId, $userId, '$userType', '$subdmn', '$username', '$password', '$active', now(), '$idNumber')");
 		
 	}
 	else
 	{
-		$addLogin = true;
-		// new login, create
-		$insertStaffLogin = $db->prepare("INSERT INTO staff(first_name, middle_name, last_name, telephone, email, emp_id, user_id, user_type, subdomain, usernm, password, active)
-									VALUES(:firstName, :middleName, :lastName, :telephone, :email, :empId, :userId, :userType, :subdomain, :username, :password, :active)");
+	    echo "We have run into a problem with this record. Please ensure all credentials are fine";
 	}
 	
 	try{
-		
+	    
 		$db->beginTransaction();
 		
 		if( $addLogin ) 
 		{
-			$insertStaffLogin->execute( array(':firstName' => $firstName, ':middleName' => $middleName, ':lastName' => $lastName, ':telephone' => $telephone, ':email' => $email, 
-			                                ':empId' => $empId, ':userId' => $userId, ':userType' => $userType, ':subdomain' => $subdomain, ':username' => $username, 
+		    $insertStaffLogin->execute();
+		    /*
+		    $insertStaffLogin->execute( array(':firstName' => $firstName, ':middleName' => $middleName, ':lastName' => $lastName, ':telephone' => $telephone, ':email' => $email, 
+			                                ':empId' => $empId, ':userId' => $userId, ':userType' => $userType, ':subdmn' => $subdmn, ':username' => $username, 
 			                                ':password' => $password, ':active' => $active) );
+			*/
+			
+			// traffic analysis start
+				$misdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $misdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','staff created staff login')");
+				$trafficMonitor->execute( array() );
+				$misdb = null;
+				// traffic analysis end
+			
 		}
 		else if( $updateLogin )
 		{
+		    $staffUpdate->execute();
+		    /*
 			$staffUpdate->execute( array(':firstName' => $firstName, ':middleName' => $middleName, ':lastName' => $lastName, ':telephone' => $telephone, ':email' => $email, 
-											':userType' => $userType, ':password' => $password, ':active' => $active, ':staffId' => $staffId) );
+											':userType' => $userType, ':password' => $password, ':active' => $active, ':idNumber' => $idNumber) );
+		    */
+		    
+		    // traffic analysis start
+				$misdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $misdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','staff updated staff login')");
+				$trafficMonitor->execute( array() );
+				$misdb = null;
+				// traffic analysis end
+		    
 		}
 		
 		$db->commit();		
 		$db = null;
+		
 	} catch(PDOException $e) {
-		echo $e->getMessage();
+		// echo $e->getMessage();
+		$app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
-	
 }
 
 function getCurrentTerms()

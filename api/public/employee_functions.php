@@ -190,6 +190,7 @@ $app->put('/updateEmployee', function () use($app) {
 	$empId =			( isset($allPostVars['emp_id']) ? $allPostVars['emp_id']: null);
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	
+	$employeeDataOnly = ( isset($allPostVars['employee']) ? $allPostVars['employee']: null);
 	
 	$updatePersonal = false;
 	$updateEmployee = false;
@@ -215,8 +216,11 @@ $app->put('/updateEmployee', function () use($app) {
 	}
 	if( isset($allPostVars['employee']) )
 	{
+	    $active =           ( isset($allPostVars['employee']['active']) ? $allPostVars['employee']['active']: null);
 		$empNumber =		( isset($allPostVars['employee']['emp_number']) ? $allPostVars['employee']['emp_number']: null);
 		$empCatId =			( isset($allPostVars['employee']['emp_cat_id']) ? $allPostVars['employee']['emp_cat_id']: null);
+		// $empId =			( isset($allPostVars['employee']['emp_id']) ? $allPostVars['employee']['emp_id']: null);
+		$idNumber =			( isset($allPostVars['employee']['id_number']) ? $allPostVars['employee']['id_number']: null);
 		$deptId =			( isset($allPostVars['employee']['dept_id']) ? $allPostVars['employee']['dept_id']: null);
 		$joinedDate =		( isset($allPostVars['employee']['joined_date']) ? $allPostVars['employee']['joined_date']: null);
 		$jobTitle =			( isset($allPostVars['employee']['job_title']) ? $allPostVars['employee']['job_title']: null);
@@ -232,6 +236,8 @@ $app->put('/updateEmployee', function () use($app) {
 		$userType =			( isset($allPostVars['employee']['user_type']) ? $allPostVars['employee']['user_type']: null);
 		$loginActive =		( isset($allPostVars['employee']['login_active']) ? $allPostVars['employee']['login_active']: 'f');
 		$loginId =			( isset($allPostVars['employee']['login_id']) ? $allPostVars['employee']['login_id']: null);
+		$telephone =		( isset($allPostVars['employee']['telephone']) ? $allPostVars['employee']['telephone']: null);
+		$subdomain =		( isset($allPostVars['employee']['subdomain']) ? $allPostVars['employee']['subdomain']: null);
 		$updateEmployee = true;
 	}
 	
@@ -365,6 +371,9 @@ $app->put('/updateEmployee', function () use($app) {
 				}
 								
 				$db->commit();
+				
+				// we use the same data to create or modify the data for app login
+				createStaffLogin($employeeDataOnly);
 			
 		}
 		

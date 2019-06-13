@@ -4,6 +4,13 @@ angular.module('eduwebApp').
 controller('invoiceCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', '$q', 'data',
 function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 	console.log(data.invoice);
+
+	if(data.invoice.balance.charAt(0) === '-')
+    {
+     data.invoice.balance2 = data.invoice.balance.substr(1);
+     data.invoice.balance = data.invoice.balance.substr(1);
+    }
+
 	$scope.invoice = data.invoice;
 	$scope.student = data.student;
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
@@ -11,8 +18,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 
 	var termName = $scope.invoice.term_name;
 	// we only want the number
-	termName = termName.split(' ');
-	$scope.invoice.term_name = termName[1];
+	// termName = termName.split(' ');
+	// $scope.invoice.term_name = termName[1];
   var requests = [];
 
 
@@ -66,12 +73,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 				$scope.account_number_2 = result.data[0].account_number_2;
 				$scope.mpesa_details = result.data[0].mpesa_details;
 				console.log(result.data);
-				
+
 				var bankOne = document.getElementById("bank_one");
 				var bankTwo = document.getElementById("bank_two");
 				var bankThree = document.getElementById("bank_three");
 				var allBanks = document.getElementById("printDetails");
-				
+
 				if( $scope.bank_name == null || $scope.bank_name == undefined ){
 				    // We hide this div and convert the next div from col-6 to col-12
 				    bankOne.style.display = 'none';
@@ -181,7 +188,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			bank_branch_2: $scope.bank_branch_2,
 			account_name_2: $scope.account_name_2,
 			account_number_2: $scope.account_number_2,
-			mpesa_details: $scope.mpesa_details
+			mpesa_details: $scope.mpesa_details,
+			user: $rootScope.currentUser
 		}
 
 		var domain = window.location.host;

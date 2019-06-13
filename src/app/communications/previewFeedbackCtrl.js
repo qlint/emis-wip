@@ -60,13 +60,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
         fdbackObj.send_as_sms = 'f';
         fdbackObj.reply_to = "Mobile App";
         console.log("Feedback object",fdbackObj);
-        // console.log("Scope",$scope);
+        console.log("Scope",$scope);
         // console.log("Root scope",$rootScope);
         
         var data = {
 						user_id: $rootScope.currentUser.user_id,
 						post: fdbackObj
 					}
+		console.log("Data Post",data);
         apiService.addCommunication(data,createCompleted,apiError);
 	};
 

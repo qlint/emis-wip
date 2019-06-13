@@ -1,7 +1,7 @@
 <?php
     /* access control header */
     header('Access-Control-Allow-Origin: *');
-    
+
     /*db conn */
     include("ajax/db.php");
 ?>
@@ -51,18 +51,18 @@
   <!-- End of Header Nav -->
   <div class="limiter">
     <h4 style="text-align:center;margin-top:85px;">This page lists all current students in the school alongside their parents details.</h4>
-    
+
     <div class="container-table100" style="align-items: flex-start;">
   	    <div class="wrap-table100">
             <h4 id="expTitle" style="border-left:7px solid;border-color:#3DE100;background-color:#D8FFC9;">
                 <?php $subDom = array_shift((explode('.', $_SERVER['HTTP_HOST']))); echo $subDom . " students and parents details"; ?>
             </h4>
             <hr>
-            
+
             <!-- ******************** QUERY ******************** -->
-            
+
             <?php
-            $tableQuery = pg_query($db,"SELECT students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, class_name, 
+            $tableQuery = pg_query($db,"SELECT students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, gender, class_name,
                                         	guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name AS parent_name, relationship,
                                         	telephone
                                         FROM app.students
@@ -73,13 +73,14 @@
                                         ORDER BY student_name ASC");
 
             ?>
-            
+
             <div class='table100 ver1 m-b-110'>
                 <table id='table1'>
                     <div id='t1' class='table100-head'>
                         <thead>
                             <tr class='row100 head'  id="tblHeader">
                                 <th class='cell100 column1'>STUDENT NAME</th>
+                                <th class='cell100 column6'>GND.</th>
                                 <th class='cell100 column2'>CLASS</th>
                                 <th class='cell100 column3'>PARENT</th>
                                 <th class='cell100 column4'>RELATIONSHIP</th>
@@ -93,6 +94,7 @@
                                while ($row3 = pg_fetch_assoc($tableQuery)) {
                                   echo "<tr class='row100 body'>";
                                      echo "<td class='cell100 column1'>" . $row3['student_name'] . "</td>";
+                                     echo "<td class='cell100 column6'>" . $row3['gender'] . "</td>";
                                      echo "<td class='cell100 column2'>" . $row3['class_name'] . "</td>";
                                      echo "<td class='cell100 column3'>" . $row3['parent_name'] . "</td>";
                                      echo "<td class='cell100 column4'>" . $row3['relationship'] . "</td>";
@@ -139,7 +141,7 @@
   <script src="../components/overviewFiles/js/pdfmake.min.js"></script>
   <script src="../components/overviewFiles/js/vfs_fonts.js"></script>
   <script src="../components/overviewFiles/js/buttons.html5.min.js"></script>
-  
+
   <script type="text/javascript">
     //function reExecute() {
       var intendedName = document.getElementById('expTitle');
@@ -147,7 +149,7 @@
       var targetTable = document.getElementById('table1').rows[0].cells.length;
       var orderCol = targetTable - 1;
       console.log(document.getElementById('table1').rows[0].cells.length);
-      
+
       $('#table1').DataTable( {
               fixedHeader: true,
               dom: 'Bfrtip',
@@ -174,7 +176,7 @@
               "order": [[orderCol,"asc"]],
               "bStateSave": true
         } );
-      
+
     //}
   </script>
 

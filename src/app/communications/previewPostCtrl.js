@@ -8,10 +8,15 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	$scope.post = angular.copy(data.post);
 	$scope.enUnPub = undefined;
 	console.log($scope.post);
+	
 
 	// for (var i = 0; i < data.post.attachment.length; i++){
 		$scope.post.attachment = data.post.attachment;
+		$scope.post.attachment = [$scope.post.attachment]; // remove this and acquire array dynamically
 	// }
+	
+	$scope.showAttachment = ($scope.post.attachment[0] == null ? false : true);
+	console.log("Is there an attachment? " + $scope.showAttachment);
 	
 	//this block allows a sys_admin to 'publish' messages posted by other users
 	//BEGIN
@@ -42,6 +47,21 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
             	if($scope.unpublishedSms == true){
             	    
             	    // post the message
+            	    
+                    $.ajax({
+                        type: "POST",
+                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/postSms.php",
+                        data: { src: $scope.post.post_id, school: window.location.host.split('.')[0] },
+                        success: function (data, status, jqXHR) {
+                            console.log("Data posted for processing.",data,status,jqXHR);
+                        },
+                        error: function (xhr) {
+                            console.log("Error. Data not posted.");
+                        }
+                    });
+                    
+                    // Below is the old method of doing it - note there are 2 xhr methods, use one or the other if reverting to it
+                    /*
             	    apiService.getCommunicationForSms($scope.post.post_id, function(response, status){
         					var result = angular.fromJson(response);
         
@@ -72,27 +92,20 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                 
                                 // insert recipients into 'message_recipients'
                                 for (var v = 0; v < $scope.smsData.length; v++) {
-                                    
                                     buildSmsToPost.message_recipients.push({
-                                        "phone_number": $scope.smsData[v].phone_number,
+                                        "phone_number": "+254" + $scope.smsData[v].phone_number,
                                         "recipient_name": $scope.smsData[v].recipient_name
                                     });
                                 }
                                 
                                 console.log("Our built message :::",buildSmsToPost);
-                                /*
-                                  We need to determine the number of keys/properties (recipients) in the object
-                                  -this is because the sms api for some reason won't post messages with over 99 recipients, else
-                                  we'd just post the object as it is at this point
-                                */
-                                var recipientLength = Object.keys(buildSmsToPost.message_recipients).length;
-                                console.log("The message has (" + recipientLength + ") keys.");
                                 
-                                /*
-                                   Create a variable to divide the above object to a predetermined number less than 100
-                                   in our case we'll use a safe number of 80 so that for messages with many recipients
-                                   the messages will be sent to 80 at a time until it's over
-                                */
+                                // We need to divide the recipients into groups of less than 99 recipients, messages to over 99 fail
+                                var recipientLength = Object.keys(buildSmsToPost.message_recipients).length;
+                                // console.log("The message has (" + recipientLength + ") keys.");
+                                
+                                // In our case we will do groups of 80 recipients 
+                                
                                 var messageRep = buildSmsToPost.message_recipients.slice();
                                 for(var i = 0; i < recipientLength; i+=80){
                                     buildSmsToPost.message_recipients = messageRep.slice(i, i+80);
@@ -105,9 +118,9 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                       "message_text": buildSmsToPost.message_text,
                                       "subscriber_name": buildSmsToPost.subscriber_name
                                     };
-                                    console.log(newMessage);
+                                    // console.log(newMessage);
                                     
-                                  // Post the message
+                                  // jquery ajax method
                                   // var url = "http://41.72.203.166/sms_api_staging/api/sendBulkSms";
                                   var url = "https://sms_api.eduweb.co.ke/api/sendBulkSms";
                                   $.ajax({
@@ -118,16 +131,10 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                           dataType: "json",
                                           processData: true,
                                           success: function (data, status, jqXHR) {
-                                              console.log("Success Func. Msg Sent");
-                                              console.log(data);
-                                              console.log(status);
-                                              console.log(jqXHR);
-                                              //alert("success..." + data);
-                                              //alert("Success. Message sent.");
+                                              console.log("Success Func. Msg Sent",data,status,jqXHR);
                                           },
                                           error: function (xhr) {
                                               console.log("Error Func. Probably a false positive");
-                                              console.log("Batch number " + i);
                                               console.log(xhr);
                                               // Do not alert() an error message to the user as often times the api
                                               // may delay with a response therefore output an error. This is a false negative
@@ -136,11 +143,21 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                           }
                                   });
                                   
-                                  // before continuing the loop we need to wait a bit - trying 1.5s
+                                  // plain js xhr method
+                                    var xhr = new XMLHttpRequest();
+                                    xhr.open("POST", 'https://sms_api.eduweb.co.ke/api/sendBulkSms', true);
+                                    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                                    xhr.onreadystatechange = function() {
+                                        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+                                                console.log("Request sent. Wait for response object ........");
+                                                console.log(xhr);
+                                        }
+                                    }
+                                    xhr.send(JSON.stringify(newMessage));
+                                    
+                                    // before continuing the loop we need to wait a bit - trying 1.5s
                                     console.log("Waiting 1.5s ...");
                                     sleep(1500);
-                                  
-                                  
                                 }
         
         					}
@@ -150,7 +167,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
         						$scope.errMsg = result.data;
         					}
         				}, apiError);
-            	    
+            	        */
             	}
             	// POST SMS - END
             	
@@ -208,7 +225,10 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	
 	//END
 	
-	if( $scope.post.details === undefined ) $scope.post.details = data.post;
+	if( $scope.post.details === undefined ){ 
+	    console.log("scope post details is undefined");
+	    $scope.post.details = data.post;
+	}
 
 	var showName = $scope.post.details.audience;
 	localStorage.setItem("theParentName", attachments);
@@ -223,10 +243,15 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	// console.log("Testing 1-2 || " + returntestresults);
 	// console.log(attachments);
 
+    $scope.attachments = [$scope.post.details.attachment];
+    console.log($scope.attachments);
+    // UNCOMMENT THIS
+    /*
     if($scope.attachments !== undefined && $scope.attachments.length > 0){
 	    $scope.attachments = attachments.split(',');
     }
-
+    */
+    
 	// console.log($scope.attachments[0]);
 
 	$scope.cancel = function()

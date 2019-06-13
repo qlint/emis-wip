@@ -52,12 +52,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			if( invoiceItems.length > 0 )
 			{
 				var termName = invoiceItems[invoiceItems.length - 1].term_name; 
+				$scope.term_name = termName; // EDIT -- see ORIGINAL BELOW
 				var yearFromTermName = termName.split(' '); // just a test
 				console.log(yearFromTermName.slice(-1)[0]); // just a test - receipt term conflicts
 				// we only want the number
 				termName = termName.split(' ');
-				console.log("The invoice has " + invoiceItems.length + " items");
-				$scope.term_name = (invoiceItems.length > 0 ? termName[1] : '');
+				// console.log("The invoice has " + invoiceItems.length + " items");
+				// $scope.term_name = (invoiceItems.length > 0 ? termName[1] : ''); // ORIGINAL
+				
 				// $scope.term_year = (invoiceItems.length > 0 ? invoiceItems[0].term_year : '');
 				$scope.term_year = (invoiceItems.length > 0 ? invoiceItems[invoiceItems.length-1].term_year : ''); // using last item in arr as term year
 				/*
@@ -143,6 +145,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			// is there a credit
 			if( $scope.feeSummary )
 			{
+			    // this is a hck to remove negatives to avoid brackets on the receipt
+			    if($scope.feeSummary.balance.charAt(0) === '-')
+                {
+                 $scope.feeSummary.balance = $scope.feeSummary.balance.substr(1);
+                }
+                
 				$scope.balanceDue = $scope.feeSummary.balance;
 
 				if( parseFloat($scope.feeSummary.total_credit) > 0 )

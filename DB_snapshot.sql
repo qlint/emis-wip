@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.1.24
 -- Dumped by pg_dump version 9.1.24
--- Started on 2019-05-10 16:41:14
+-- Started on 2019-06-13 15:07:56
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -13,7 +13,7 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- TOC entry 2613 (class 1262 OID 45530)
+-- TOC entry 2619 (class 1262 OID 45530)
 -- Name: eduweb_kingsinternational; Type: DATABASE; Schema: -; Owner: postgres
 --
 
@@ -49,7 +49,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2616 (class 0 OID 0)
+-- TOC entry 2622 (class 0 OID 0)
 -- Dependencies: 1
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -67,7 +67,7 @@ CREATE EXTENSION IF NOT EXISTS dblink WITH SCHEMA public;
 
 
 --
--- TOC entry 2617 (class 0 OID 0)
+-- TOC entry 2623 (class 0 OID 0)
 -- Dependencies: 3
 -- Name: EXTENSION dblink; Type: COMMENT; Schema: -; Owner: 
 --
@@ -85,7 +85,7 @@ CREATE EXTENSION IF NOT EXISTS tablefunc WITH SCHEMA public;
 
 
 --
--- TOC entry 2618 (class 0 OID 0)
+-- TOC entry 2624 (class 0 OID 0)
 -- Dependencies: 2
 -- Name: EXTENSION tablefunc; Type: COMMENT; Schema: -; Owner: 
 --
@@ -96,8 +96,8 @@ COMMENT ON EXTENSION tablefunc IS 'functions that manipulate whole tables, inclu
 SET search_path = app, pg_catalog;
 
 --
--- TOC entry 351 (class 1255 OID 45597)
--- Dependencies: 9 929
+-- TOC entry 357 (class 1255 OID 45597)
+-- Dependencies: 9 935
 -- Name: colpivot(character varying, character varying, character varying[], character varying[], character varying, character varying); Type: FUNCTION; Schema: app; Owner: postgres
 --
 
@@ -220,8 +220,8 @@ $$;
 ALTER FUNCTION app.colpivot(out_table character varying, in_query character varying, key_cols character varying[], class_cols character varying[], value_e character varying, col_order character varying) OWNER TO postgres;
 
 --
--- TOC entry 352 (class 1255 OID 45598)
--- Dependencies: 929 9
+-- TOC entry 358 (class 1255 OID 45598)
+-- Dependencies: 935 9
 -- Name: set_invoice_term(); Type: FUNCTION; Schema: app; Owner: postgres
 --
 
@@ -250,7 +250,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- TOC entry 187 (class 1259 OID 45599)
+-- TOC entry 193 (class 1259 OID 45599)
 -- Dependencies: 9
 -- Name: blog_post_statuses; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -264,8 +264,8 @@ CREATE TABLE blog_post_statuses (
 ALTER TABLE app.blog_post_statuses OWNER TO postgres;
 
 --
--- TOC entry 188 (class 1259 OID 45605)
--- Dependencies: 9 187
+-- TOC entry 194 (class 1259 OID 45605)
+-- Dependencies: 9 193
 -- Name: blog_post_statuses_post_status_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -280,8 +280,8 @@ CREATE SEQUENCE blog_post_statuses_post_status_id_seq
 ALTER TABLE app.blog_post_statuses_post_status_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2619 (class 0 OID 0)
--- Dependencies: 188
+-- TOC entry 2625 (class 0 OID 0)
+-- Dependencies: 194
 -- Name: blog_post_statuses_post_status_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -289,7 +289,7 @@ ALTER SEQUENCE blog_post_statuses_post_status_id_seq OWNED BY blog_post_statuses
 
 
 --
--- TOC entry 189 (class 1259 OID 45607)
+-- TOC entry 195 (class 1259 OID 45607)
 -- Dependencies: 9
 -- Name: blog_post_types; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -303,8 +303,8 @@ CREATE TABLE blog_post_types (
 ALTER TABLE app.blog_post_types OWNER TO postgres;
 
 --
--- TOC entry 190 (class 1259 OID 45613)
--- Dependencies: 9 189
+-- TOC entry 196 (class 1259 OID 45613)
+-- Dependencies: 9 195
 -- Name: blog_post_types_post_type_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -319,8 +319,8 @@ CREATE SEQUENCE blog_post_types_post_type_id_seq
 ALTER TABLE app.blog_post_types_post_type_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2620 (class 0 OID 0)
--- Dependencies: 190
+-- TOC entry 2626 (class 0 OID 0)
+-- Dependencies: 196
 -- Name: blog_post_types_post_type_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -328,8 +328,8 @@ ALTER SEQUENCE blog_post_types_post_type_id_seq OWNED BY blog_post_types.post_ty
 
 
 --
--- TOC entry 191 (class 1259 OID 45615)
--- Dependencies: 2190 9
+-- TOC entry 197 (class 1259 OID 45615)
+-- Dependencies: 2196 9
 -- Name: blog_posts; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -351,8 +351,8 @@ CREATE TABLE blog_posts (
 ALTER TABLE app.blog_posts OWNER TO postgres;
 
 --
--- TOC entry 192 (class 1259 OID 45622)
--- Dependencies: 9 191
+-- TOC entry 198 (class 1259 OID 45622)
+-- Dependencies: 9 197
 -- Name: blog_posts_post_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -367,8 +367,8 @@ CREATE SEQUENCE blog_posts_post_id_seq
 ALTER TABLE app.blog_posts_post_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2621 (class 0 OID 0)
--- Dependencies: 192
+-- TOC entry 2627 (class 0 OID 0)
+-- Dependencies: 198
 -- Name: blog_posts_post_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -376,7 +376,7 @@ ALTER SEQUENCE blog_posts_post_id_seq OWNED BY blog_posts.post_id;
 
 
 --
--- TOC entry 193 (class 1259 OID 45624)
+-- TOC entry 199 (class 1259 OID 45624)
 -- Dependencies: 9
 -- Name: blogs; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -392,8 +392,8 @@ CREATE TABLE blogs (
 ALTER TABLE app.blogs OWNER TO postgres;
 
 --
--- TOC entry 194 (class 1259 OID 45630)
--- Dependencies: 193 9
+-- TOC entry 200 (class 1259 OID 45630)
+-- Dependencies: 199 9
 -- Name: blogs_blog_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -408,8 +408,8 @@ CREATE SEQUENCE blogs_blog_id_seq
 ALTER TABLE app.blogs_blog_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2622 (class 0 OID 0)
--- Dependencies: 194
+-- TOC entry 2628 (class 0 OID 0)
+-- Dependencies: 200
 -- Name: blogs_blog_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -417,8 +417,8 @@ ALTER SEQUENCE blogs_blog_id_seq OWNED BY blogs.blog_id;
 
 
 --
--- TOC entry 195 (class 1259 OID 45632)
--- Dependencies: 2193 2194 9
+-- TOC entry 201 (class 1259 OID 45632)
+-- Dependencies: 2199 2200 9
 -- Name: class_cats; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -437,8 +437,8 @@ CREATE TABLE class_cats (
 ALTER TABLE app.class_cats OWNER TO postgres;
 
 --
--- TOC entry 196 (class 1259 OID 45640)
--- Dependencies: 9 195
+-- TOC entry 202 (class 1259 OID 45640)
+-- Dependencies: 9 201
 -- Name: class_cats_class_cat_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -453,8 +453,8 @@ CREATE SEQUENCE class_cats_class_cat_id_seq
 ALTER TABLE app.class_cats_class_cat_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2623 (class 0 OID 0)
--- Dependencies: 196
+-- TOC entry 2629 (class 0 OID 0)
+-- Dependencies: 202
 -- Name: class_cats_class_cat_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -462,8 +462,8 @@ ALTER SEQUENCE class_cats_class_cat_id_seq OWNED BY class_cats.class_cat_id;
 
 
 --
--- TOC entry 197 (class 1259 OID 45642)
--- Dependencies: 2196 2197 9
+-- TOC entry 203 (class 1259 OID 45642)
+-- Dependencies: 2202 2203 9
 -- Name: class_subject_exams; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -483,8 +483,8 @@ CREATE TABLE class_subject_exams (
 ALTER TABLE app.class_subject_exams OWNER TO postgres;
 
 --
--- TOC entry 198 (class 1259 OID 45647)
--- Dependencies: 197 9
+-- TOC entry 204 (class 1259 OID 45647)
+-- Dependencies: 203 9
 -- Name: class_subject_exams_class_sub_exam_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -499,8 +499,8 @@ CREATE SEQUENCE class_subject_exams_class_sub_exam_id_seq
 ALTER TABLE app.class_subject_exams_class_sub_exam_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2624 (class 0 OID 0)
--- Dependencies: 198
+-- TOC entry 2630 (class 0 OID 0)
+-- Dependencies: 204
 -- Name: class_subject_exams_class_sub_exam_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -508,8 +508,8 @@ ALTER SEQUENCE class_subject_exams_class_sub_exam_id_seq OWNED BY class_subject_
 
 
 --
--- TOC entry 199 (class 1259 OID 45649)
--- Dependencies: 2199 2200 9
+-- TOC entry 205 (class 1259 OID 45649)
+-- Dependencies: 2205 2206 9
 -- Name: class_subjects; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -528,8 +528,8 @@ CREATE TABLE class_subjects (
 ALTER TABLE app.class_subjects OWNER TO postgres;
 
 --
--- TOC entry 200 (class 1259 OID 45654)
--- Dependencies: 199 9
+-- TOC entry 206 (class 1259 OID 45654)
+-- Dependencies: 205 9
 -- Name: class_subjects_class_subject_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -544,8 +544,8 @@ CREATE SEQUENCE class_subjects_class_subject_id_seq
 ALTER TABLE app.class_subjects_class_subject_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2625 (class 0 OID 0)
--- Dependencies: 200
+-- TOC entry 2631 (class 0 OID 0)
+-- Dependencies: 206
 -- Name: class_subjects_class_subject_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -553,8 +553,8 @@ ALTER SEQUENCE class_subjects_class_subject_id_seq OWNED BY class_subjects.class
 
 
 --
--- TOC entry 201 (class 1259 OID 45656)
--- Dependencies: 2202 2203 9
+-- TOC entry 207 (class 1259 OID 45656)
+-- Dependencies: 2208 2209 9
 -- Name: classes; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -576,8 +576,8 @@ CREATE TABLE classes (
 ALTER TABLE app.classes OWNER TO postgres;
 
 --
--- TOC entry 202 (class 1259 OID 45664)
--- Dependencies: 9 201
+-- TOC entry 208 (class 1259 OID 45664)
+-- Dependencies: 9 207
 -- Name: classes_class_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -592,8 +592,8 @@ CREATE SEQUENCE classes_class_id_seq
 ALTER TABLE app.classes_class_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2626 (class 0 OID 0)
--- Dependencies: 202
+-- TOC entry 2632 (class 0 OID 0)
+-- Dependencies: 208
 -- Name: classes_class_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -601,7 +601,7 @@ ALTER SEQUENCE classes_class_id_seq OWNED BY classes.class_id;
 
 
 --
--- TOC entry 203 (class 1259 OID 45666)
+-- TOC entry 209 (class 1259 OID 45666)
 -- Dependencies: 9
 -- Name: communication_attachments; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -616,8 +616,8 @@ CREATE TABLE communication_attachments (
 ALTER TABLE app.communication_attachments OWNER TO postgres;
 
 --
--- TOC entry 204 (class 1259 OID 45672)
--- Dependencies: 203 9
+-- TOC entry 210 (class 1259 OID 45672)
+-- Dependencies: 209 9
 -- Name: communication_attachments_attachment_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -632,8 +632,8 @@ CREATE SEQUENCE communication_attachments_attachment_id_seq
 ALTER TABLE app.communication_attachments_attachment_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2627 (class 0 OID 0)
--- Dependencies: 204
+-- TOC entry 2633 (class 0 OID 0)
+-- Dependencies: 210
 -- Name: communication_attachments_attachment_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -641,7 +641,7 @@ ALTER SEQUENCE communication_attachments_attachment_id_seq OWNED BY communicatio
 
 
 --
--- TOC entry 205 (class 1259 OID 45674)
+-- TOC entry 211 (class 1259 OID 45674)
 -- Dependencies: 9
 -- Name: communication_audience; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -655,8 +655,8 @@ CREATE TABLE communication_audience (
 ALTER TABLE app.communication_audience OWNER TO postgres;
 
 --
--- TOC entry 206 (class 1259 OID 45680)
--- Dependencies: 9 205
+-- TOC entry 212 (class 1259 OID 45680)
+-- Dependencies: 9 211
 -- Name: communication_audience_audience_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -671,8 +671,8 @@ CREATE SEQUENCE communication_audience_audience_id_seq
 ALTER TABLE app.communication_audience_audience_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2628 (class 0 OID 0)
--- Dependencies: 206
+-- TOC entry 2634 (class 0 OID 0)
+-- Dependencies: 212
 -- Name: communication_audience_audience_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -680,8 +680,8 @@ ALTER SEQUENCE communication_audience_audience_id_seq OWNED BY communication_aud
 
 
 --
--- TOC entry 207 (class 1259 OID 45682)
--- Dependencies: 2207 2208 9
+-- TOC entry 213 (class 1259 OID 45682)
+-- Dependencies: 2213 2214 9
 -- Name: communication_emails; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -698,8 +698,8 @@ CREATE TABLE communication_emails (
 ALTER TABLE app.communication_emails OWNER TO postgres;
 
 --
--- TOC entry 208 (class 1259 OID 45690)
--- Dependencies: 9 207
+-- TOC entry 214 (class 1259 OID 45690)
+-- Dependencies: 9 213
 -- Name: communication_emails_email_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -714,8 +714,8 @@ CREATE SEQUENCE communication_emails_email_id_seq
 ALTER TABLE app.communication_emails_email_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2629 (class 0 OID 0)
--- Dependencies: 208
+-- TOC entry 2635 (class 0 OID 0)
+-- Dependencies: 214
 -- Name: communication_emails_email_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -723,8 +723,8 @@ ALTER SEQUENCE communication_emails_email_id_seq OWNED BY communication_emails.e
 
 
 --
--- TOC entry 209 (class 1259 OID 45692)
--- Dependencies: 2210 2211 9
+-- TOC entry 215 (class 1259 OID 45692)
+-- Dependencies: 2216 2217 9
 -- Name: communication_feedback; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -744,8 +744,8 @@ CREATE TABLE communication_feedback (
 ALTER TABLE app.communication_feedback OWNER TO postgres;
 
 --
--- TOC entry 210 (class 1259 OID 45700)
--- Dependencies: 9 209
+-- TOC entry 216 (class 1259 OID 45700)
+-- Dependencies: 9 215
 -- Name: communication_feedback_com_feedback_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -760,8 +760,8 @@ CREATE SEQUENCE communication_feedback_com_feedback_id_seq
 ALTER TABLE app.communication_feedback_com_feedback_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2630 (class 0 OID 0)
--- Dependencies: 210
+-- TOC entry 2636 (class 0 OID 0)
+-- Dependencies: 216
 -- Name: communication_feedback_com_feedback_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -769,8 +769,8 @@ ALTER SEQUENCE communication_feedback_com_feedback_id_seq OWNED BY communication
 
 
 --
--- TOC entry 211 (class 1259 OID 45702)
--- Dependencies: 2213 2214 9
+-- TOC entry 217 (class 1259 OID 45702)
+-- Dependencies: 2219 2220 9
 -- Name: communication_sms; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -789,8 +789,8 @@ CREATE TABLE communication_sms (
 ALTER TABLE app.communication_sms OWNER TO postgres;
 
 --
--- TOC entry 212 (class 1259 OID 45710)
--- Dependencies: 211 9
+-- TOC entry 218 (class 1259 OID 45710)
+-- Dependencies: 217 9
 -- Name: communication_sms_sms_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -805,8 +805,8 @@ CREATE SEQUENCE communication_sms_sms_id_seq
 ALTER TABLE app.communication_sms_sms_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2631 (class 0 OID 0)
--- Dependencies: 212
+-- TOC entry 2637 (class 0 OID 0)
+-- Dependencies: 218
 -- Name: communication_sms_sms_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -814,7 +814,7 @@ ALTER SEQUENCE communication_sms_sms_id_seq OWNED BY communication_sms.sms_id;
 
 
 --
--- TOC entry 213 (class 1259 OID 45712)
+-- TOC entry 219 (class 1259 OID 45712)
 -- Dependencies: 9
 -- Name: communication_types; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -828,8 +828,8 @@ CREATE TABLE communication_types (
 ALTER TABLE app.communication_types OWNER TO postgres;
 
 --
--- TOC entry 214 (class 1259 OID 45718)
--- Dependencies: 213 9
+-- TOC entry 220 (class 1259 OID 45718)
+-- Dependencies: 219 9
 -- Name: communication_types_com_type_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -844,8 +844,8 @@ CREATE SEQUENCE communication_types_com_type_id_seq
 ALTER TABLE app.communication_types_com_type_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2632 (class 0 OID 0)
--- Dependencies: 214
+-- TOC entry 2638 (class 0 OID 0)
+-- Dependencies: 220
 -- Name: communication_types_com_type_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -853,8 +853,8 @@ ALTER SEQUENCE communication_types_com_type_id_seq OWNED BY communication_types.
 
 
 --
--- TOC entry 215 (class 1259 OID 45720)
--- Dependencies: 2217 2218 9
+-- TOC entry 221 (class 1259 OID 45720)
+-- Dependencies: 2223 2224 9
 -- Name: communications; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -890,8 +890,8 @@ CREATE TABLE communications (
 ALTER TABLE app.communications OWNER TO postgres;
 
 --
--- TOC entry 216 (class 1259 OID 45728)
--- Dependencies: 9 215
+-- TOC entry 222 (class 1259 OID 45728)
+-- Dependencies: 9 221
 -- Name: communications_com_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -906,8 +906,8 @@ CREATE SEQUENCE communications_com_id_seq
 ALTER TABLE app.communications_com_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2633 (class 0 OID 0)
--- Dependencies: 216
+-- TOC entry 2639 (class 0 OID 0)
+-- Dependencies: 222
 -- Name: communications_com_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -915,7 +915,7 @@ ALTER SEQUENCE communications_com_id_seq OWNED BY communications.com_id;
 
 
 --
--- TOC entry 217 (class 1259 OID 45730)
+-- TOC entry 223 (class 1259 OID 45730)
 -- Dependencies: 9
 -- Name: countries; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -932,8 +932,8 @@ CREATE TABLE countries (
 ALTER TABLE app.countries OWNER TO postgres;
 
 --
--- TOC entry 218 (class 1259 OID 45733)
--- Dependencies: 217 9
+-- TOC entry 224 (class 1259 OID 45733)
+-- Dependencies: 223 9
 -- Name: countries_countries_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -948,8 +948,8 @@ CREATE SEQUENCE countries_countries_id_seq
 ALTER TABLE app.countries_countries_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2634 (class 0 OID 0)
--- Dependencies: 218
+-- TOC entry 2640 (class 0 OID 0)
+-- Dependencies: 224
 -- Name: countries_countries_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -957,8 +957,8 @@ ALTER SEQUENCE countries_countries_id_seq OWNED BY countries.countries_id;
 
 
 --
--- TOC entry 219 (class 1259 OID 45735)
--- Dependencies: 2221 2222 9
+-- TOC entry 225 (class 1259 OID 45735)
+-- Dependencies: 2227 2228 9
 -- Name: credits; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -978,8 +978,8 @@ CREATE TABLE credits (
 ALTER TABLE app.credits OWNER TO postgres;
 
 --
--- TOC entry 220 (class 1259 OID 45743)
--- Dependencies: 9 219
+-- TOC entry 226 (class 1259 OID 45743)
+-- Dependencies: 9 225
 -- Name: credits_credit_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -994,8 +994,8 @@ CREATE SEQUENCE credits_credit_id_seq
 ALTER TABLE app.credits_credit_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2635 (class 0 OID 0)
--- Dependencies: 220
+-- TOC entry 2641 (class 0 OID 0)
+-- Dependencies: 226
 -- Name: credits_credit_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1003,8 +1003,8 @@ ALTER SEQUENCE credits_credit_id_seq OWNED BY credits.credit_id;
 
 
 --
--- TOC entry 221 (class 1259 OID 45745)
--- Dependencies: 2224 9
+-- TOC entry 227 (class 1259 OID 45745)
+-- Dependencies: 2230 9
 -- Name: terms; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1022,8 +1022,8 @@ CREATE TABLE terms (
 ALTER TABLE app.terms OWNER TO postgres;
 
 --
--- TOC entry 222 (class 1259 OID 45752)
--- Dependencies: 2602 9
+-- TOC entry 228 (class 1259 OID 45752)
+-- Dependencies: 2608 9
 -- Name: current_term; Type: VIEW; Schema: app; Owner: postgres
 --
 
@@ -1034,8 +1034,8 @@ CREATE VIEW current_term AS
 ALTER TABLE app.current_term OWNER TO postgres;
 
 --
--- TOC entry 223 (class 1259 OID 45756)
--- Dependencies: 2226 2227 9
+-- TOC entry 229 (class 1259 OID 45756)
+-- Dependencies: 2232 2233 9
 -- Name: departments; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1054,8 +1054,8 @@ CREATE TABLE departments (
 ALTER TABLE app.departments OWNER TO postgres;
 
 --
--- TOC entry 224 (class 1259 OID 45764)
--- Dependencies: 223 9
+-- TOC entry 230 (class 1259 OID 45764)
+-- Dependencies: 229 9
 -- Name: departments_dept_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1070,8 +1070,8 @@ CREATE SEQUENCE departments_dept_id_seq
 ALTER TABLE app.departments_dept_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2636 (class 0 OID 0)
--- Dependencies: 224
+-- TOC entry 2642 (class 0 OID 0)
+-- Dependencies: 230
 -- Name: departments_dept_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1079,8 +1079,8 @@ ALTER SEQUENCE departments_dept_id_seq OWNED BY departments.dept_id;
 
 
 --
--- TOC entry 225 (class 1259 OID 45766)
--- Dependencies: 2229 2230 9
+-- TOC entry 231 (class 1259 OID 45766)
+-- Dependencies: 2235 2236 9
 -- Name: employee_cats; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1098,8 +1098,8 @@ CREATE TABLE employee_cats (
 ALTER TABLE app.employee_cats OWNER TO postgres;
 
 --
--- TOC entry 226 (class 1259 OID 45774)
--- Dependencies: 9 225
+-- TOC entry 232 (class 1259 OID 45774)
+-- Dependencies: 9 231
 -- Name: employee_cats_emp_cat_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1114,8 +1114,8 @@ CREATE SEQUENCE employee_cats_emp_cat_id_seq
 ALTER TABLE app.employee_cats_emp_cat_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2637 (class 0 OID 0)
--- Dependencies: 226
+-- TOC entry 2643 (class 0 OID 0)
+-- Dependencies: 232
 -- Name: employee_cats_emp_cat_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1123,8 +1123,8 @@ ALTER SEQUENCE employee_cats_emp_cat_id_seq OWNED BY employee_cats.emp_cat_id;
 
 
 --
--- TOC entry 227 (class 1259 OID 45776)
--- Dependencies: 2232 2233 9
+-- TOC entry 233 (class 1259 OID 45776)
+-- Dependencies: 2238 2239 9
 -- Name: employees; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1164,8 +1164,8 @@ CREATE TABLE employees (
 ALTER TABLE app.employees OWNER TO postgres;
 
 --
--- TOC entry 228 (class 1259 OID 45784)
--- Dependencies: 9 227
+-- TOC entry 234 (class 1259 OID 45784)
+-- Dependencies: 9 233
 -- Name: employees_emp_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1180,8 +1180,8 @@ CREATE SEQUENCE employees_emp_id_seq
 ALTER TABLE app.employees_emp_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2638 (class 0 OID 0)
--- Dependencies: 228
+-- TOC entry 2644 (class 0 OID 0)
+-- Dependencies: 234
 -- Name: employees_emp_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1189,8 +1189,8 @@ ALTER SEQUENCE employees_emp_id_seq OWNED BY employees.emp_id;
 
 
 --
--- TOC entry 229 (class 1259 OID 45786)
--- Dependencies: 2235 9
+-- TOC entry 235 (class 1259 OID 45786)
+-- Dependencies: 2241 9
 -- Name: exam_marks; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1210,8 +1210,8 @@ CREATE TABLE exam_marks (
 ALTER TABLE app.exam_marks OWNER TO postgres;
 
 --
--- TOC entry 230 (class 1259 OID 45790)
--- Dependencies: 229 9
+-- TOC entry 236 (class 1259 OID 45790)
+-- Dependencies: 235 9
 -- Name: exam_marks_exam_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1226,8 +1226,8 @@ CREATE SEQUENCE exam_marks_exam_id_seq
 ALTER TABLE app.exam_marks_exam_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2639 (class 0 OID 0)
--- Dependencies: 230
+-- TOC entry 2645 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: exam_marks_exam_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1235,8 +1235,8 @@ ALTER SEQUENCE exam_marks_exam_id_seq OWNED BY exam_marks.exam_id;
 
 
 --
--- TOC entry 231 (class 1259 OID 45792)
--- Dependencies: 2237 9
+-- TOC entry 237 (class 1259 OID 45792)
+-- Dependencies: 2243 9
 -- Name: exam_types; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1255,8 +1255,8 @@ CREATE TABLE exam_types (
 ALTER TABLE app.exam_types OWNER TO postgres;
 
 --
--- TOC entry 232 (class 1259 OID 45799)
--- Dependencies: 9 231
+-- TOC entry 238 (class 1259 OID 45799)
+-- Dependencies: 9 237
 -- Name: exam_types_exam_type_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1271,8 +1271,8 @@ CREATE SEQUENCE exam_types_exam_type_id_seq
 ALTER TABLE app.exam_types_exam_type_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2640 (class 0 OID 0)
--- Dependencies: 232
+-- TOC entry 2646 (class 0 OID 0)
+-- Dependencies: 238
 -- Name: exam_types_exam_type_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1280,8 +1280,8 @@ ALTER SEQUENCE exam_types_exam_type_id_seq OWNED BY exam_types.exam_type_id;
 
 
 --
--- TOC entry 288 (class 1259 OID 86683)
--- Dependencies: 2309 2310 9
+-- TOC entry 294 (class 1259 OID 86683)
+-- Dependencies: 2315 2316 9
 -- Name: fee_item_uniforms; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1300,8 +1300,8 @@ CREATE TABLE fee_item_uniforms (
 ALTER TABLE app.fee_item_uniforms OWNER TO postgres;
 
 --
--- TOC entry 287 (class 1259 OID 86681)
--- Dependencies: 9 288
+-- TOC entry 293 (class 1259 OID 86681)
+-- Dependencies: 9 294
 -- Name: fee_item_uniforms_uniform_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1316,8 +1316,8 @@ CREATE SEQUENCE fee_item_uniforms_uniform_id_seq
 ALTER TABLE app.fee_item_uniforms_uniform_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2641 (class 0 OID 0)
--- Dependencies: 287
+-- TOC entry 2647 (class 0 OID 0)
+-- Dependencies: 293
 -- Name: fee_item_uniforms_uniform_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1325,8 +1325,8 @@ ALTER SEQUENCE fee_item_uniforms_uniform_id_seq OWNED BY fee_item_uniforms.unifo
 
 
 --
--- TOC entry 233 (class 1259 OID 45801)
--- Dependencies: 2239 2240 2241 2242 2243 9
+-- TOC entry 239 (class 1259 OID 45801)
+-- Dependencies: 2245 2246 2247 2248 2249 9
 -- Name: fee_items; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1350,8 +1350,8 @@ CREATE TABLE fee_items (
 ALTER TABLE app.fee_items OWNER TO postgres;
 
 --
--- TOC entry 234 (class 1259 OID 45812)
--- Dependencies: 9 233
+-- TOC entry 240 (class 1259 OID 45812)
+-- Dependencies: 9 239
 -- Name: fee_items_fee_item_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1366,8 +1366,8 @@ CREATE SEQUENCE fee_items_fee_item_id_seq
 ALTER TABLE app.fee_items_fee_item_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2642 (class 0 OID 0)
--- Dependencies: 234
+-- TOC entry 2648 (class 0 OID 0)
+-- Dependencies: 240
 -- Name: fee_items_fee_item_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1375,7 +1375,7 @@ ALTER SEQUENCE fee_items_fee_item_id_seq OWNED BY fee_items.fee_item_id;
 
 
 --
--- TOC entry 235 (class 1259 OID 45814)
+-- TOC entry 241 (class 1259 OID 45814)
 -- Dependencies: 9
 -- Name: grading; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -1394,7 +1394,7 @@ CREATE TABLE grading (
 ALTER TABLE app.grading OWNER TO postgres;
 
 --
--- TOC entry 236 (class 1259 OID 45820)
+-- TOC entry 242 (class 1259 OID 45820)
 -- Dependencies: 9
 -- Name: grading2; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -1412,8 +1412,8 @@ CREATE TABLE grading2 (
 ALTER TABLE app.grading2 OWNER TO postgres;
 
 --
--- TOC entry 237 (class 1259 OID 45826)
--- Dependencies: 9 236
+-- TOC entry 243 (class 1259 OID 45826)
+-- Dependencies: 9 242
 -- Name: grading2_grade2_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1428,8 +1428,8 @@ CREATE SEQUENCE grading2_grade2_id_seq
 ALTER TABLE app.grading2_grade2_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2643 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 2649 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: grading2_grade2_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1437,8 +1437,8 @@ ALTER SEQUENCE grading2_grade2_id_seq OWNED BY grading2.grade2_id;
 
 
 --
--- TOC entry 238 (class 1259 OID 45828)
--- Dependencies: 235 9
+-- TOC entry 244 (class 1259 OID 45828)
+-- Dependencies: 241 9
 -- Name: grading_grade_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1453,8 +1453,8 @@ CREATE SEQUENCE grading_grade_id_seq
 ALTER TABLE app.grading_grade_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2644 (class 0 OID 0)
--- Dependencies: 238
+-- TOC entry 2650 (class 0 OID 0)
+-- Dependencies: 244
 -- Name: grading_grade_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1462,8 +1462,8 @@ ALTER SEQUENCE grading_grade_id_seq OWNED BY grading.grade_id;
 
 
 --
--- TOC entry 239 (class 1259 OID 45830)
--- Dependencies: 2247 2248 9
+-- TOC entry 245 (class 1259 OID 45830)
+-- Dependencies: 2253 2254 9
 -- Name: guardians; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1495,8 +1495,8 @@ CREATE TABLE guardians (
 ALTER TABLE app.guardians OWNER TO postgres;
 
 --
--- TOC entry 240 (class 1259 OID 45838)
--- Dependencies: 239 9
+-- TOC entry 246 (class 1259 OID 45838)
+-- Dependencies: 245 9
 -- Name: guardians_guardian_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1511,8 +1511,8 @@ CREATE SEQUENCE guardians_guardian_id_seq
 ALTER TABLE app.guardians_guardian_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2645 (class 0 OID 0)
--- Dependencies: 240
+-- TOC entry 2651 (class 0 OID 0)
+-- Dependencies: 246
 -- Name: guardians_guardian_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1520,8 +1520,8 @@ ALTER SEQUENCE guardians_guardian_id_seq OWNED BY guardians.guardian_id;
 
 
 --
--- TOC entry 241 (class 1259 OID 45840)
--- Dependencies: 2250 9
+-- TOC entry 247 (class 1259 OID 45840)
+-- Dependencies: 2256 9
 -- Name: homework; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1544,8 +1544,8 @@ CREATE TABLE homework (
 ALTER TABLE app.homework OWNER TO postgres;
 
 --
--- TOC entry 242 (class 1259 OID 45847)
--- Dependencies: 9 241
+-- TOC entry 248 (class 1259 OID 45847)
+-- Dependencies: 9 247
 -- Name: homework_homework_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1560,8 +1560,8 @@ CREATE SEQUENCE homework_homework_id_seq
 ALTER TABLE app.homework_homework_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2646 (class 0 OID 0)
--- Dependencies: 242
+-- TOC entry 2652 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: homework_homework_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1569,8 +1569,8 @@ ALTER SEQUENCE homework_homework_id_seq OWNED BY homework.homework_id;
 
 
 --
--- TOC entry 243 (class 1259 OID 45849)
--- Dependencies: 2252 9
+-- TOC entry 249 (class 1259 OID 45849)
+-- Dependencies: 2258 9
 -- Name: installment_options; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1587,8 +1587,8 @@ CREATE TABLE installment_options (
 ALTER TABLE app.installment_options OWNER TO postgres;
 
 --
--- TOC entry 2647 (class 0 OID 0)
--- Dependencies: 243
+-- TOC entry 2653 (class 0 OID 0)
+-- Dependencies: 249
 -- Name: COLUMN installment_options.payment_interval; Type: COMMENT; Schema: app; Owner: postgres
 --
 
@@ -1596,8 +1596,8 @@ COMMENT ON COLUMN installment_options.payment_interval IS 'number of days';
 
 
 --
--- TOC entry 244 (class 1259 OID 45856)
--- Dependencies: 9 243
+-- TOC entry 250 (class 1259 OID 45856)
+-- Dependencies: 9 249
 -- Name: installment_options_installment_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1612,8 +1612,8 @@ CREATE SEQUENCE installment_options_installment_id_seq
 ALTER TABLE app.installment_options_installment_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2648 (class 0 OID 0)
--- Dependencies: 244
+-- TOC entry 2654 (class 0 OID 0)
+-- Dependencies: 250
 -- Name: installment_options_installment_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1621,7 +1621,7 @@ ALTER SEQUENCE installment_options_installment_id_seq OWNED BY installment_optio
 
 
 --
--- TOC entry 247 (class 1259 OID 45878)
+-- TOC entry 253 (class 1259 OID 45878)
 -- Dependencies: 9
 -- Name: invoice_balances; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -1642,7 +1642,7 @@ CREATE TABLE invoice_balances (
 ALTER TABLE app.invoice_balances OWNER TO postgres;
 
 --
--- TOC entry 250 (class 1259 OID 45897)
+-- TOC entry 256 (class 1259 OID 45897)
 -- Dependencies: 9
 -- Name: invoice_balances2; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -1664,8 +1664,8 @@ CREATE TABLE invoice_balances2 (
 ALTER TABLE app.invoice_balances2 OWNER TO postgres;
 
 --
--- TOC entry 248 (class 1259 OID 45883)
--- Dependencies: 2262 9
+-- TOC entry 254 (class 1259 OID 45883)
+-- Dependencies: 2268 9
 -- Name: invoice_line_items; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1684,8 +1684,8 @@ CREATE TABLE invoice_line_items (
 ALTER TABLE app.invoice_line_items OWNER TO postgres;
 
 --
--- TOC entry 251 (class 1259 OID 45902)
--- Dependencies: 9 248
+-- TOC entry 257 (class 1259 OID 45902)
+-- Dependencies: 9 254
 -- Name: invoice_line_items_inv_item_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1700,8 +1700,8 @@ CREATE SEQUENCE invoice_line_items_inv_item_id_seq
 ALTER TABLE app.invoice_line_items_inv_item_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2649 (class 0 OID 0)
--- Dependencies: 251
+-- TOC entry 2655 (class 0 OID 0)
+-- Dependencies: 257
 -- Name: invoice_line_items_inv_item_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1709,8 +1709,8 @@ ALTER SEQUENCE invoice_line_items_inv_item_id_seq OWNED BY invoice_line_items.in
 
 
 --
--- TOC entry 245 (class 1259 OID 45858)
--- Dependencies: 2254 2255 2256 9
+-- TOC entry 251 (class 1259 OID 45858)
+-- Dependencies: 2260 2261 2262 9
 -- Name: invoices; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1734,8 +1734,8 @@ CREATE TABLE invoices (
 ALTER TABLE app.invoices OWNER TO postgres;
 
 --
--- TOC entry 252 (class 1259 OID 45904)
--- Dependencies: 9 245
+-- TOC entry 258 (class 1259 OID 45904)
+-- Dependencies: 9 251
 -- Name: invoices_inv_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1750,8 +1750,8 @@ CREATE SEQUENCE invoices_inv_id_seq
 ALTER TABLE app.invoices_inv_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2650 (class 0 OID 0)
--- Dependencies: 252
+-- TOC entry 2656 (class 0 OID 0)
+-- Dependencies: 258
 -- Name: invoices_inv_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1759,7 +1759,7 @@ ALTER SEQUENCE invoices_inv_id_seq OWNED BY invoices.inv_id;
 
 
 --
--- TOC entry 253 (class 1259 OID 45906)
+-- TOC entry 259 (class 1259 OID 45906)
 -- Dependencies: 9
 -- Name: lowersch_reportcards; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -1775,8 +1775,8 @@ CREATE TABLE lowersch_reportcards (
 ALTER TABLE app.lowersch_reportcards OWNER TO postgres;
 
 --
--- TOC entry 254 (class 1259 OID 45912)
--- Dependencies: 253 9
+-- TOC entry 260 (class 1259 OID 45912)
+-- Dependencies: 259 9
 -- Name: lowersch_reportcards_lowersch_reportcards_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1791,8 +1791,8 @@ CREATE SEQUENCE lowersch_reportcards_lowersch_reportcards_id_seq
 ALTER TABLE app.lowersch_reportcards_lowersch_reportcards_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2651 (class 0 OID 0)
--- Dependencies: 254
+-- TOC entry 2657 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: lowersch_reportcards_lowersch_reportcards_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1800,7 +1800,7 @@ ALTER SEQUENCE lowersch_reportcards_lowersch_reportcards_id_seq OWNED BY lowersc
 
 
 --
--- TOC entry 255 (class 1259 OID 45914)
+-- TOC entry 261 (class 1259 OID 45914)
 -- Dependencies: 9
 -- Name: medical_conditions; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -1814,8 +1814,8 @@ CREATE TABLE medical_conditions (
 ALTER TABLE app.medical_conditions OWNER TO postgres;
 
 --
--- TOC entry 256 (class 1259 OID 45920)
--- Dependencies: 255 9
+-- TOC entry 262 (class 1259 OID 45920)
+-- Dependencies: 261 9
 -- Name: medical_conditions_condition_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1830,8 +1830,8 @@ CREATE SEQUENCE medical_conditions_condition_id_seq
 ALTER TABLE app.medical_conditions_condition_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2652 (class 0 OID 0)
--- Dependencies: 256
+-- TOC entry 2658 (class 0 OID 0)
+-- Dependencies: 262
 -- Name: medical_conditions_condition_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1839,8 +1839,8 @@ ALTER SEQUENCE medical_conditions_condition_id_seq OWNED BY medical_conditions.c
 
 
 --
--- TOC entry 257 (class 1259 OID 45922)
--- Dependencies: 2605 9
+-- TOC entry 263 (class 1259 OID 45922)
+-- Dependencies: 2611 9
 -- Name: next_term; Type: VIEW; Schema: app; Owner: postgres
 --
 
@@ -1851,8 +1851,8 @@ CREATE VIEW next_term AS
 ALTER TABLE app.next_term OWNER TO postgres;
 
 --
--- TOC entry 249 (class 1259 OID 45890)
--- Dependencies: 2264 9
+-- TOC entry 255 (class 1259 OID 45890)
+-- Dependencies: 2270 9
 -- Name: payment_inv_items; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1872,8 +1872,8 @@ CREATE TABLE payment_inv_items (
 ALTER TABLE app.payment_inv_items OWNER TO postgres;
 
 --
--- TOC entry 258 (class 1259 OID 45926)
--- Dependencies: 249 9
+-- TOC entry 264 (class 1259 OID 45926)
+-- Dependencies: 255 9
 -- Name: payment_inv_items_payment_inv_item_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1888,8 +1888,8 @@ CREATE SEQUENCE payment_inv_items_payment_inv_item_id_seq
 ALTER TABLE app.payment_inv_items_payment_inv_item_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2653 (class 0 OID 0)
--- Dependencies: 258
+-- TOC entry 2659 (class 0 OID 0)
+-- Dependencies: 264
 -- Name: payment_inv_items_payment_inv_item_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1897,8 +1897,8 @@ ALTER SEQUENCE payment_inv_items_payment_inv_item_id_seq OWNED BY payment_inv_it
 
 
 --
--- TOC entry 259 (class 1259 OID 45928)
--- Dependencies: 2268 9
+-- TOC entry 265 (class 1259 OID 45928)
+-- Dependencies: 2274 9
 -- Name: payment_replacement_items; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1917,8 +1917,8 @@ CREATE TABLE payment_replacement_items (
 ALTER TABLE app.payment_replacement_items OWNER TO postgres;
 
 --
--- TOC entry 260 (class 1259 OID 45935)
--- Dependencies: 9 259
+-- TOC entry 266 (class 1259 OID 45935)
+-- Dependencies: 9 265
 -- Name: payment_replacement_items_payment_replace_item_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1933,8 +1933,8 @@ CREATE SEQUENCE payment_replacement_items_payment_replace_item_id_seq
 ALTER TABLE app.payment_replacement_items_payment_replace_item_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2654 (class 0 OID 0)
--- Dependencies: 260
+-- TOC entry 2660 (class 0 OID 0)
+-- Dependencies: 266
 -- Name: payment_replacement_items_payment_replace_item_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -1942,8 +1942,8 @@ ALTER SEQUENCE payment_replacement_items_payment_replace_item_id_seq OWNED BY pa
 
 
 --
--- TOC entry 246 (class 1259 OID 45867)
--- Dependencies: 2258 2259 2260 9
+-- TOC entry 252 (class 1259 OID 45867)
+-- Dependencies: 2264 2265 2266 9
 -- Name: payments; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -1970,8 +1970,8 @@ CREATE TABLE payments (
 ALTER TABLE app.payments OWNER TO postgres;
 
 --
--- TOC entry 2655 (class 0 OID 0)
--- Dependencies: 246
+-- TOC entry 2661 (class 0 OID 0)
+-- Dependencies: 252
 -- Name: COLUMN payments.payment_method; Type: COMMENT; Schema: app; Owner: postgres
 --
 
@@ -1979,8 +1979,8 @@ COMMENT ON COLUMN payments.payment_method IS 'Cash or Cheque';
 
 
 --
--- TOC entry 261 (class 1259 OID 45937)
--- Dependencies: 246 9
+-- TOC entry 267 (class 1259 OID 45937)
+-- Dependencies: 252 9
 -- Name: payments_payment_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -1995,8 +1995,8 @@ CREATE SEQUENCE payments_payment_id_seq
 ALTER TABLE app.payments_payment_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2656 (class 0 OID 0)
--- Dependencies: 261
+-- TOC entry 2662 (class 0 OID 0)
+-- Dependencies: 267
 -- Name: payments_payment_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2004,8 +2004,8 @@ ALTER SEQUENCE payments_payment_id_seq OWNED BY payments.payment_id;
 
 
 --
--- TOC entry 262 (class 1259 OID 45939)
--- Dependencies: 2606 9
+-- TOC entry 268 (class 1259 OID 45939)
+-- Dependencies: 2612 9
 -- Name: previous_term; Type: VIEW; Schema: app; Owner: postgres
 --
 
@@ -2016,8 +2016,8 @@ CREATE VIEW previous_term AS
 ALTER TABLE app.previous_term OWNER TO postgres;
 
 --
--- TOC entry 263 (class 1259 OID 45943)
--- Dependencies: 2270 2271 9
+-- TOC entry 269 (class 1259 OID 45943)
+-- Dependencies: 2276 2277 9
 -- Name: report_cards; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -2040,8 +2040,8 @@ CREATE TABLE report_cards (
 ALTER TABLE app.report_cards OWNER TO postgres;
 
 --
--- TOC entry 264 (class 1259 OID 45951)
--- Dependencies: 263 9
+-- TOC entry 270 (class 1259 OID 45951)
+-- Dependencies: 269 9
 -- Name: report_cards_report_card_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2056,8 +2056,8 @@ CREATE SEQUENCE report_cards_report_card_id_seq
 ALTER TABLE app.report_cards_report_card_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2657 (class 0 OID 0)
--- Dependencies: 264
+-- TOC entry 2663 (class 0 OID 0)
+-- Dependencies: 270
 -- Name: report_cards_report_card_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2065,7 +2065,7 @@ ALTER SEQUENCE report_cards_report_card_id_seq OWNED BY report_cards.report_card
 
 
 --
--- TOC entry 265 (class 1259 OID 45953)
+-- TOC entry 271 (class 1259 OID 45953)
 -- Dependencies: 9
 -- Name: settings; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -2079,8 +2079,8 @@ CREATE TABLE settings (
 ALTER TABLE app.settings OWNER TO postgres;
 
 --
--- TOC entry 266 (class 1259 OID 45959)
--- Dependencies: 2273 2274 9
+-- TOC entry 272 (class 1259 OID 45959)
+-- Dependencies: 2279 2280 9
 -- Name: student_class_history; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -2098,8 +2098,8 @@ CREATE TABLE student_class_history (
 ALTER TABLE app.student_class_history OWNER TO postgres;
 
 --
--- TOC entry 267 (class 1259 OID 45964)
--- Dependencies: 9 266
+-- TOC entry 273 (class 1259 OID 45964)
+-- Dependencies: 9 272
 -- Name: student_class_history_class_history_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2114,8 +2114,8 @@ CREATE SEQUENCE student_class_history_class_history_id_seq
 ALTER TABLE app.student_class_history_class_history_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2658 (class 0 OID 0)
--- Dependencies: 267
+-- TOC entry 2664 (class 0 OID 0)
+-- Dependencies: 273
 -- Name: student_class_history_class_history_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2123,8 +2123,8 @@ ALTER SEQUENCE student_class_history_class_history_id_seq OWNED BY student_class
 
 
 --
--- TOC entry 268 (class 1259 OID 45966)
--- Dependencies: 2276 2277 2278 2279 2280 2281 2282 2283 2284 2285 2286 2287 9
+-- TOC entry 274 (class 1259 OID 45966)
+-- Dependencies: 2282 2283 2284 2285 2286 2287 2288 2289 2290 2291 2292 2293 9
 -- Name: students; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -2170,15 +2170,16 @@ CREATE TABLE students (
     student_type character varying DEFAULT 'Day Scholar'::character varying,
     emergency_telephone_2 integer,
     pick_up_drop_off_individual_phone character varying,
-    pick_up_drop_off_individual_img character varying
+    pick_up_drop_off_individual_img character varying,
+    nemis character varying
 );
 
 
 ALTER TABLE app.students OWNER TO postgres;
 
 --
--- TOC entry 269 (class 1259 OID 45984)
--- Dependencies: 2289 2290 2291 9
+-- TOC entry 275 (class 1259 OID 45984)
+-- Dependencies: 2295 2296 2297 9
 -- Name: subjects; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -2201,8 +2202,8 @@ CREATE TABLE subjects (
 ALTER TABLE app.subjects OWNER TO postgres;
 
 --
--- TOC entry 270 (class 1259 OID 45993)
--- Dependencies: 2607 9
+-- TOC entry 276 (class 1259 OID 45993)
+-- Dependencies: 2613 9
 -- Name: student_exam_marks; Type: VIEW; Schema: app; Owner: postgres
 --
 
@@ -2213,8 +2214,8 @@ CREATE VIEW student_exam_marks AS
 ALTER TABLE app.student_exam_marks OWNER TO postgres;
 
 --
--- TOC entry 271 (class 1259 OID 45998)
--- Dependencies: 2293 2294 9
+-- TOC entry 277 (class 1259 OID 45998)
+-- Dependencies: 2299 2300 9
 -- Name: student_fee_items; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -2235,8 +2236,8 @@ CREATE TABLE student_fee_items (
 ALTER TABLE app.student_fee_items OWNER TO postgres;
 
 --
--- TOC entry 2659 (class 0 OID 0)
--- Dependencies: 271
+-- TOC entry 2665 (class 0 OID 0)
+-- Dependencies: 277
 -- Name: COLUMN student_fee_items.payment_method; Type: COMMENT; Schema: app; Owner: postgres
 --
 
@@ -2244,8 +2245,8 @@ COMMENT ON COLUMN student_fee_items.payment_method IS 'This is an option from th
 
 
 --
--- TOC entry 272 (class 1259 OID 46006)
--- Dependencies: 9 271
+-- TOC entry 278 (class 1259 OID 46006)
+-- Dependencies: 9 277
 -- Name: student_fee_items_student_fee_item_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2260,8 +2261,8 @@ CREATE SEQUENCE student_fee_items_student_fee_item_id_seq
 ALTER TABLE app.student_fee_items_student_fee_item_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2660 (class 0 OID 0)
--- Dependencies: 272
+-- TOC entry 2666 (class 0 OID 0)
+-- Dependencies: 278
 -- Name: student_fee_items_student_fee_item_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2269,8 +2270,8 @@ ALTER SEQUENCE student_fee_items_student_fee_item_id_seq OWNED BY student_fee_it
 
 
 --
--- TOC entry 273 (class 1259 OID 46008)
--- Dependencies: 2296 2297 9
+-- TOC entry 279 (class 1259 OID 46008)
+-- Dependencies: 2302 2303 9
 -- Name: student_guardians; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -2290,8 +2291,8 @@ CREATE TABLE student_guardians (
 ALTER TABLE app.student_guardians OWNER TO postgres;
 
 --
--- TOC entry 274 (class 1259 OID 46016)
--- Dependencies: 9 273
+-- TOC entry 280 (class 1259 OID 46016)
+-- Dependencies: 9 279
 -- Name: student_guardians_student_guardian_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2306,8 +2307,8 @@ CREATE SEQUENCE student_guardians_student_guardian_id_seq
 ALTER TABLE app.student_guardians_student_guardian_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2661 (class 0 OID 0)
--- Dependencies: 274
+-- TOC entry 2667 (class 0 OID 0)
+-- Dependencies: 280
 -- Name: student_guardians_student_guardian_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2315,8 +2316,8 @@ ALTER SEQUENCE student_guardians_student_guardian_id_seq OWNED BY student_guardi
 
 
 --
--- TOC entry 275 (class 1259 OID 46018)
--- Dependencies: 2299 9
+-- TOC entry 281 (class 1259 OID 46018)
+-- Dependencies: 2305 9
 -- Name: student_medical_history; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -2336,8 +2337,8 @@ CREATE TABLE student_medical_history (
 ALTER TABLE app.student_medical_history OWNER TO postgres;
 
 --
--- TOC entry 276 (class 1259 OID 46025)
--- Dependencies: 275 9
+-- TOC entry 282 (class 1259 OID 46025)
+-- Dependencies: 281 9
 -- Name: student_medical_history_medical_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2352,8 +2353,8 @@ CREATE SEQUENCE student_medical_history_medical_id_seq
 ALTER TABLE app.student_medical_history_medical_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2662 (class 0 OID 0)
--- Dependencies: 276
+-- TOC entry 2668 (class 0 OID 0)
+-- Dependencies: 282
 -- Name: student_medical_history_medical_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2361,8 +2362,8 @@ ALTER SEQUENCE student_medical_history_medical_id_seq OWNED BY student_medical_h
 
 
 --
--- TOC entry 277 (class 1259 OID 46027)
--- Dependencies: 268 9
+-- TOC entry 283 (class 1259 OID 46027)
+-- Dependencies: 274 9
 -- Name: students_student_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2377,8 +2378,8 @@ CREATE SEQUENCE students_student_id_seq
 ALTER TABLE app.students_student_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2663 (class 0 OID 0)
--- Dependencies: 277
+-- TOC entry 2669 (class 0 OID 0)
+-- Dependencies: 283
 -- Name: students_student_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2386,8 +2387,8 @@ ALTER SEQUENCE students_student_id_seq OWNED BY students.student_id;
 
 
 --
--- TOC entry 278 (class 1259 OID 46029)
--- Dependencies: 269 9
+-- TOC entry 284 (class 1259 OID 46029)
+-- Dependencies: 275 9
 -- Name: subjects_subject_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2402,8 +2403,8 @@ CREATE SEQUENCE subjects_subject_id_seq
 ALTER TABLE app.subjects_subject_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2664 (class 0 OID 0)
--- Dependencies: 278
+-- TOC entry 2670 (class 0 OID 0)
+-- Dependencies: 284
 -- Name: subjects_subject_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2411,8 +2412,8 @@ ALTER SEQUENCE subjects_subject_id_seq OWNED BY subjects.subject_id;
 
 
 --
--- TOC entry 279 (class 1259 OID 46031)
--- Dependencies: 2608 9
+-- TOC entry 285 (class 1259 OID 46031)
+-- Dependencies: 2614 9
 -- Name: term_after_next; Type: VIEW; Schema: app; Owner: postgres
 --
 
@@ -2423,8 +2424,8 @@ CREATE VIEW term_after_next AS
 ALTER TABLE app.term_after_next OWNER TO postgres;
 
 --
--- TOC entry 280 (class 1259 OID 46035)
--- Dependencies: 221 9
+-- TOC entry 286 (class 1259 OID 46035)
+-- Dependencies: 227 9
 -- Name: terms_term_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2439,8 +2440,8 @@ CREATE SEQUENCE terms_term_id_seq
 ALTER TABLE app.terms_term_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2665 (class 0 OID 0)
--- Dependencies: 280
+-- TOC entry 2671 (class 0 OID 0)
+-- Dependencies: 286
 -- Name: terms_term_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2448,8 +2449,8 @@ ALTER SEQUENCE terms_term_id_seq OWNED BY terms.term_id;
 
 
 --
--- TOC entry 281 (class 1259 OID 46037)
--- Dependencies: 2301 2302 9
+-- TOC entry 287 (class 1259 OID 46037)
+-- Dependencies: 2307 2308 9
 -- Name: transport_routes; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -2468,8 +2469,8 @@ CREATE TABLE transport_routes (
 ALTER TABLE app.transport_routes OWNER TO postgres;
 
 --
--- TOC entry 282 (class 1259 OID 46045)
--- Dependencies: 9 281
+-- TOC entry 288 (class 1259 OID 46045)
+-- Dependencies: 9 287
 -- Name: transport_routes_transport_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2484,8 +2485,8 @@ CREATE SEQUENCE transport_routes_transport_id_seq
 ALTER TABLE app.transport_routes_transport_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2666 (class 0 OID 0)
--- Dependencies: 282
+-- TOC entry 2672 (class 0 OID 0)
+-- Dependencies: 288
 -- Name: transport_routes_transport_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2493,7 +2494,7 @@ ALTER SEQUENCE transport_routes_transport_id_seq OWNED BY transport_routes.trans
 
 
 --
--- TOC entry 283 (class 1259 OID 46047)
+-- TOC entry 289 (class 1259 OID 46047)
 -- Dependencies: 9
 -- Name: user_permissions; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
@@ -2508,8 +2509,8 @@ CREATE TABLE user_permissions (
 ALTER TABLE app.user_permissions OWNER TO postgres;
 
 --
--- TOC entry 284 (class 1259 OID 46053)
--- Dependencies: 9 283
+-- TOC entry 290 (class 1259 OID 46053)
+-- Dependencies: 9 289
 -- Name: user_permissions_perm_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2524,8 +2525,8 @@ CREATE SEQUENCE user_permissions_perm_id_seq
 ALTER TABLE app.user_permissions_perm_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2667 (class 0 OID 0)
--- Dependencies: 284
+-- TOC entry 2673 (class 0 OID 0)
+-- Dependencies: 290
 -- Name: user_permissions_perm_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2533,8 +2534,8 @@ ALTER SEQUENCE user_permissions_perm_id_seq OWNED BY user_permissions.perm_id;
 
 
 --
--- TOC entry 285 (class 1259 OID 46055)
--- Dependencies: 2305 2306 9
+-- TOC entry 291 (class 1259 OID 46055)
+-- Dependencies: 2311 2312 9
 -- Name: users; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -2558,8 +2559,8 @@ CREATE TABLE users (
 ALTER TABLE app.users OWNER TO postgres;
 
 --
--- TOC entry 286 (class 1259 OID 46063)
--- Dependencies: 285 9
+-- TOC entry 292 (class 1259 OID 46063)
+-- Dependencies: 291 9
 -- Name: user_user_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
 --
 
@@ -2574,8 +2575,8 @@ CREATE SEQUENCE user_user_id_seq
 ALTER TABLE app.user_user_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2668 (class 0 OID 0)
--- Dependencies: 286
+-- TOC entry 2674 (class 0 OID 0)
+-- Dependencies: 292
 -- Name: user_user_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
 --
 
@@ -2583,8 +2584,8 @@ ALTER SEQUENCE user_user_id_seq OWNED BY users.user_id;
 
 
 --
--- TOC entry 2188 (class 2604 OID 46065)
--- Dependencies: 188 187
+-- TOC entry 2194 (class 2604 OID 46065)
+-- Dependencies: 194 193
 -- Name: post_status_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2592,8 +2593,8 @@ ALTER TABLE ONLY blog_post_statuses ALTER COLUMN post_status_id SET DEFAULT next
 
 
 --
--- TOC entry 2189 (class 2604 OID 46066)
--- Dependencies: 190 189
+-- TOC entry 2195 (class 2604 OID 46066)
+-- Dependencies: 196 195
 -- Name: post_type_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2601,8 +2602,8 @@ ALTER TABLE ONLY blog_post_types ALTER COLUMN post_type_id SET DEFAULT nextval('
 
 
 --
--- TOC entry 2191 (class 2604 OID 46067)
--- Dependencies: 192 191
+-- TOC entry 2197 (class 2604 OID 46067)
+-- Dependencies: 198 197
 -- Name: post_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2610,8 +2611,8 @@ ALTER TABLE ONLY blog_posts ALTER COLUMN post_id SET DEFAULT nextval('blog_posts
 
 
 --
--- TOC entry 2192 (class 2604 OID 46068)
--- Dependencies: 194 193
+-- TOC entry 2198 (class 2604 OID 46068)
+-- Dependencies: 200 199
 -- Name: blog_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2619,8 +2620,8 @@ ALTER TABLE ONLY blogs ALTER COLUMN blog_id SET DEFAULT nextval('blogs_blog_id_s
 
 
 --
--- TOC entry 2195 (class 2604 OID 46069)
--- Dependencies: 196 195
+-- TOC entry 2201 (class 2604 OID 46069)
+-- Dependencies: 202 201
 -- Name: class_cat_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2628,8 +2629,8 @@ ALTER TABLE ONLY class_cats ALTER COLUMN class_cat_id SET DEFAULT nextval('class
 
 
 --
--- TOC entry 2198 (class 2604 OID 46070)
--- Dependencies: 198 197
+-- TOC entry 2204 (class 2604 OID 46070)
+-- Dependencies: 204 203
 -- Name: class_sub_exam_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2637,8 +2638,8 @@ ALTER TABLE ONLY class_subject_exams ALTER COLUMN class_sub_exam_id SET DEFAULT 
 
 
 --
--- TOC entry 2201 (class 2604 OID 46071)
--- Dependencies: 200 199
+-- TOC entry 2207 (class 2604 OID 46071)
+-- Dependencies: 206 205
 -- Name: class_subject_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2646,8 +2647,8 @@ ALTER TABLE ONLY class_subjects ALTER COLUMN class_subject_id SET DEFAULT nextva
 
 
 --
--- TOC entry 2204 (class 2604 OID 46072)
--- Dependencies: 202 201
+-- TOC entry 2210 (class 2604 OID 46072)
+-- Dependencies: 208 207
 -- Name: class_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2655,8 +2656,8 @@ ALTER TABLE ONLY classes ALTER COLUMN class_id SET DEFAULT nextval('classes_clas
 
 
 --
--- TOC entry 2205 (class 2604 OID 46073)
--- Dependencies: 204 203
+-- TOC entry 2211 (class 2604 OID 46073)
+-- Dependencies: 210 209
 -- Name: attachment_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2664,8 +2665,8 @@ ALTER TABLE ONLY communication_attachments ALTER COLUMN attachment_id SET DEFAUL
 
 
 --
--- TOC entry 2206 (class 2604 OID 46074)
--- Dependencies: 206 205
+-- TOC entry 2212 (class 2604 OID 46074)
+-- Dependencies: 212 211
 -- Name: audience_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2673,8 +2674,8 @@ ALTER TABLE ONLY communication_audience ALTER COLUMN audience_id SET DEFAULT nex
 
 
 --
--- TOC entry 2209 (class 2604 OID 46075)
--- Dependencies: 208 207
+-- TOC entry 2215 (class 2604 OID 46075)
+-- Dependencies: 214 213
 -- Name: email_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2682,8 +2683,8 @@ ALTER TABLE ONLY communication_emails ALTER COLUMN email_id SET DEFAULT nextval(
 
 
 --
--- TOC entry 2212 (class 2604 OID 46076)
--- Dependencies: 210 209
+-- TOC entry 2218 (class 2604 OID 46076)
+-- Dependencies: 216 215
 -- Name: com_feedback_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2691,8 +2692,8 @@ ALTER TABLE ONLY communication_feedback ALTER COLUMN com_feedback_id SET DEFAULT
 
 
 --
--- TOC entry 2215 (class 2604 OID 46077)
--- Dependencies: 212 211
+-- TOC entry 2221 (class 2604 OID 46077)
+-- Dependencies: 218 217
 -- Name: sms_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2700,8 +2701,8 @@ ALTER TABLE ONLY communication_sms ALTER COLUMN sms_id SET DEFAULT nextval('comm
 
 
 --
--- TOC entry 2216 (class 2604 OID 46078)
--- Dependencies: 214 213
+-- TOC entry 2222 (class 2604 OID 46078)
+-- Dependencies: 220 219
 -- Name: com_type_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2709,8 +2710,8 @@ ALTER TABLE ONLY communication_types ALTER COLUMN com_type_id SET DEFAULT nextva
 
 
 --
--- TOC entry 2219 (class 2604 OID 46079)
--- Dependencies: 216 215
+-- TOC entry 2225 (class 2604 OID 46079)
+-- Dependencies: 222 221
 -- Name: com_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2718,8 +2719,8 @@ ALTER TABLE ONLY communications ALTER COLUMN com_id SET DEFAULT nextval('communi
 
 
 --
--- TOC entry 2220 (class 2604 OID 46080)
--- Dependencies: 218 217
+-- TOC entry 2226 (class 2604 OID 46080)
+-- Dependencies: 224 223
 -- Name: countries_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2727,8 +2728,8 @@ ALTER TABLE ONLY countries ALTER COLUMN countries_id SET DEFAULT nextval('countr
 
 
 --
--- TOC entry 2223 (class 2604 OID 46081)
--- Dependencies: 220 219
+-- TOC entry 2229 (class 2604 OID 46081)
+-- Dependencies: 226 225
 -- Name: credit_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2736,8 +2737,8 @@ ALTER TABLE ONLY credits ALTER COLUMN credit_id SET DEFAULT nextval('credits_cre
 
 
 --
--- TOC entry 2228 (class 2604 OID 46082)
--- Dependencies: 224 223
+-- TOC entry 2234 (class 2604 OID 46082)
+-- Dependencies: 230 229
 -- Name: dept_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2745,8 +2746,8 @@ ALTER TABLE ONLY departments ALTER COLUMN dept_id SET DEFAULT nextval('departmen
 
 
 --
--- TOC entry 2231 (class 2604 OID 46083)
--- Dependencies: 226 225
+-- TOC entry 2237 (class 2604 OID 46083)
+-- Dependencies: 232 231
 -- Name: emp_cat_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2754,8 +2755,8 @@ ALTER TABLE ONLY employee_cats ALTER COLUMN emp_cat_id SET DEFAULT nextval('empl
 
 
 --
--- TOC entry 2234 (class 2604 OID 46084)
--- Dependencies: 228 227
+-- TOC entry 2240 (class 2604 OID 46084)
+-- Dependencies: 234 233
 -- Name: emp_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2763,8 +2764,8 @@ ALTER TABLE ONLY employees ALTER COLUMN emp_id SET DEFAULT nextval('employees_em
 
 
 --
--- TOC entry 2236 (class 2604 OID 46085)
--- Dependencies: 230 229
+-- TOC entry 2242 (class 2604 OID 46085)
+-- Dependencies: 236 235
 -- Name: exam_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2772,8 +2773,8 @@ ALTER TABLE ONLY exam_marks ALTER COLUMN exam_id SET DEFAULT nextval('exam_marks
 
 
 --
--- TOC entry 2238 (class 2604 OID 46086)
--- Dependencies: 232 231
+-- TOC entry 2244 (class 2604 OID 46086)
+-- Dependencies: 238 237
 -- Name: exam_type_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2781,8 +2782,8 @@ ALTER TABLE ONLY exam_types ALTER COLUMN exam_type_id SET DEFAULT nextval('exam_
 
 
 --
--- TOC entry 2308 (class 2604 OID 86686)
--- Dependencies: 288 287 288
+-- TOC entry 2314 (class 2604 OID 86686)
+-- Dependencies: 294 293 294
 -- Name: uniform_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2790,8 +2791,8 @@ ALTER TABLE ONLY fee_item_uniforms ALTER COLUMN uniform_id SET DEFAULT nextval('
 
 
 --
--- TOC entry 2244 (class 2604 OID 46087)
--- Dependencies: 234 233
+-- TOC entry 2250 (class 2604 OID 46087)
+-- Dependencies: 240 239
 -- Name: fee_item_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2799,8 +2800,8 @@ ALTER TABLE ONLY fee_items ALTER COLUMN fee_item_id SET DEFAULT nextval('fee_ite
 
 
 --
--- TOC entry 2245 (class 2604 OID 46088)
--- Dependencies: 238 235
+-- TOC entry 2251 (class 2604 OID 46088)
+-- Dependencies: 244 241
 -- Name: grade_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2808,8 +2809,8 @@ ALTER TABLE ONLY grading ALTER COLUMN grade_id SET DEFAULT nextval('grading_grad
 
 
 --
--- TOC entry 2246 (class 2604 OID 46089)
--- Dependencies: 237 236
+-- TOC entry 2252 (class 2604 OID 46089)
+-- Dependencies: 243 242
 -- Name: grade2_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2817,8 +2818,8 @@ ALTER TABLE ONLY grading2 ALTER COLUMN grade2_id SET DEFAULT nextval('grading2_g
 
 
 --
--- TOC entry 2249 (class 2604 OID 46090)
--- Dependencies: 240 239
+-- TOC entry 2255 (class 2604 OID 46090)
+-- Dependencies: 246 245
 -- Name: guardian_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2826,8 +2827,8 @@ ALTER TABLE ONLY guardians ALTER COLUMN guardian_id SET DEFAULT nextval('guardia
 
 
 --
--- TOC entry 2251 (class 2604 OID 46091)
--- Dependencies: 242 241
+-- TOC entry 2257 (class 2604 OID 46091)
+-- Dependencies: 248 247
 -- Name: homework_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2835,8 +2836,8 @@ ALTER TABLE ONLY homework ALTER COLUMN homework_id SET DEFAULT nextval('homework
 
 
 --
--- TOC entry 2253 (class 2604 OID 46092)
--- Dependencies: 244 243
+-- TOC entry 2259 (class 2604 OID 46092)
+-- Dependencies: 250 249
 -- Name: installment_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2844,8 +2845,8 @@ ALTER TABLE ONLY installment_options ALTER COLUMN installment_id SET DEFAULT nex
 
 
 --
--- TOC entry 2263 (class 2604 OID 46093)
--- Dependencies: 251 248
+-- TOC entry 2269 (class 2604 OID 46093)
+-- Dependencies: 257 254
 -- Name: inv_item_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2853,8 +2854,8 @@ ALTER TABLE ONLY invoice_line_items ALTER COLUMN inv_item_id SET DEFAULT nextval
 
 
 --
--- TOC entry 2257 (class 2604 OID 46094)
--- Dependencies: 252 245
+-- TOC entry 2263 (class 2604 OID 46094)
+-- Dependencies: 258 251
 -- Name: inv_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2862,8 +2863,8 @@ ALTER TABLE ONLY invoices ALTER COLUMN inv_id SET DEFAULT nextval('invoices_inv_
 
 
 --
--- TOC entry 2266 (class 2604 OID 46095)
--- Dependencies: 254 253
+-- TOC entry 2272 (class 2604 OID 46095)
+-- Dependencies: 260 259
 -- Name: lowersch_reportcards_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2871,8 +2872,8 @@ ALTER TABLE ONLY lowersch_reportcards ALTER COLUMN lowersch_reportcards_id SET D
 
 
 --
--- TOC entry 2267 (class 2604 OID 46096)
--- Dependencies: 256 255
+-- TOC entry 2273 (class 2604 OID 46096)
+-- Dependencies: 262 261
 -- Name: condition_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2880,8 +2881,8 @@ ALTER TABLE ONLY medical_conditions ALTER COLUMN condition_id SET DEFAULT nextva
 
 
 --
--- TOC entry 2265 (class 2604 OID 46097)
--- Dependencies: 258 249
+-- TOC entry 2271 (class 2604 OID 46097)
+-- Dependencies: 264 255
 -- Name: payment_inv_item_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2889,8 +2890,8 @@ ALTER TABLE ONLY payment_inv_items ALTER COLUMN payment_inv_item_id SET DEFAULT 
 
 
 --
--- TOC entry 2269 (class 2604 OID 46098)
--- Dependencies: 260 259
+-- TOC entry 2275 (class 2604 OID 46098)
+-- Dependencies: 266 265
 -- Name: payment_replace_item_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2898,8 +2899,8 @@ ALTER TABLE ONLY payment_replacement_items ALTER COLUMN payment_replace_item_id 
 
 
 --
--- TOC entry 2261 (class 2604 OID 46099)
--- Dependencies: 261 246
+-- TOC entry 2267 (class 2604 OID 46099)
+-- Dependencies: 267 252
 -- Name: payment_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2907,8 +2908,8 @@ ALTER TABLE ONLY payments ALTER COLUMN payment_id SET DEFAULT nextval('payments_
 
 
 --
--- TOC entry 2272 (class 2604 OID 46100)
--- Dependencies: 264 263
+-- TOC entry 2278 (class 2604 OID 46100)
+-- Dependencies: 270 269
 -- Name: report_card_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2916,8 +2917,8 @@ ALTER TABLE ONLY report_cards ALTER COLUMN report_card_id SET DEFAULT nextval('r
 
 
 --
--- TOC entry 2275 (class 2604 OID 46101)
--- Dependencies: 267 266
+-- TOC entry 2281 (class 2604 OID 46101)
+-- Dependencies: 273 272
 -- Name: class_history_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2925,8 +2926,8 @@ ALTER TABLE ONLY student_class_history ALTER COLUMN class_history_id SET DEFAULT
 
 
 --
--- TOC entry 2295 (class 2604 OID 46102)
--- Dependencies: 272 271
+-- TOC entry 2301 (class 2604 OID 46102)
+-- Dependencies: 278 277
 -- Name: student_fee_item_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2934,8 +2935,8 @@ ALTER TABLE ONLY student_fee_items ALTER COLUMN student_fee_item_id SET DEFAULT 
 
 
 --
--- TOC entry 2298 (class 2604 OID 46103)
--- Dependencies: 274 273
+-- TOC entry 2304 (class 2604 OID 46103)
+-- Dependencies: 280 279
 -- Name: student_guardian_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2943,8 +2944,8 @@ ALTER TABLE ONLY student_guardians ALTER COLUMN student_guardian_id SET DEFAULT 
 
 
 --
--- TOC entry 2300 (class 2604 OID 46104)
--- Dependencies: 276 275
+-- TOC entry 2306 (class 2604 OID 46104)
+-- Dependencies: 282 281
 -- Name: medical_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2952,8 +2953,8 @@ ALTER TABLE ONLY student_medical_history ALTER COLUMN medical_id SET DEFAULT nex
 
 
 --
--- TOC entry 2288 (class 2604 OID 46105)
--- Dependencies: 277 268
+-- TOC entry 2294 (class 2604 OID 46105)
+-- Dependencies: 283 274
 -- Name: student_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2961,8 +2962,8 @@ ALTER TABLE ONLY students ALTER COLUMN student_id SET DEFAULT nextval('students_
 
 
 --
--- TOC entry 2292 (class 2604 OID 46106)
--- Dependencies: 278 269
+-- TOC entry 2298 (class 2604 OID 46106)
+-- Dependencies: 284 275
 -- Name: subject_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2970,8 +2971,8 @@ ALTER TABLE ONLY subjects ALTER COLUMN subject_id SET DEFAULT nextval('subjects_
 
 
 --
--- TOC entry 2225 (class 2604 OID 46107)
--- Dependencies: 280 221
+-- TOC entry 2231 (class 2604 OID 46107)
+-- Dependencies: 286 227
 -- Name: term_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2979,8 +2980,8 @@ ALTER TABLE ONLY terms ALTER COLUMN term_id SET DEFAULT nextval('terms_term_id_s
 
 
 --
--- TOC entry 2303 (class 2604 OID 46108)
--- Dependencies: 282 281
+-- TOC entry 2309 (class 2604 OID 46108)
+-- Dependencies: 288 287
 -- Name: transport_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2988,8 +2989,8 @@ ALTER TABLE ONLY transport_routes ALTER COLUMN transport_id SET DEFAULT nextval(
 
 
 --
--- TOC entry 2304 (class 2604 OID 46109)
--- Dependencies: 284 283
+-- TOC entry 2310 (class 2604 OID 46109)
+-- Dependencies: 290 289
 -- Name: perm_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -2997,8 +2998,8 @@ ALTER TABLE ONLY user_permissions ALTER COLUMN perm_id SET DEFAULT nextval('user
 
 
 --
--- TOC entry 2307 (class 2604 OID 46110)
--- Dependencies: 286 285
+-- TOC entry 2313 (class 2604 OID 46110)
+-- Dependencies: 292 291
 -- Name: user_id; Type: DEFAULT; Schema: app; Owner: postgres
 --
 
@@ -3006,8 +3007,8 @@ ALTER TABLE ONLY users ALTER COLUMN user_id SET DEFAULT nextval('user_user_id_se
 
 
 --
--- TOC entry 2318 (class 2606 OID 46253)
--- Dependencies: 193 193 2610
+-- TOC entry 2324 (class 2606 OID 46253)
+-- Dependencies: 199 199 2616
 -- Name: FK_blog_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3016,8 +3017,8 @@ ALTER TABLE ONLY blogs
 
 
 --
--- TOC entry 2390 (class 2606 OID 46255)
--- Dependencies: 241 241 2610
+-- TOC entry 2396 (class 2606 OID 46255)
+-- Dependencies: 247 247 2616
 -- Name: FK_homework_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3026,8 +3027,8 @@ ALTER TABLE ONLY homework
 
 
 --
--- TOC entry 2402 (class 2606 OID 46257)
--- Dependencies: 253 253 2610
+-- TOC entry 2408 (class 2606 OID 46257)
+-- Dependencies: 259 259 2616
 -- Name: FK_lowersch_reportcards_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3036,8 +3037,8 @@ ALTER TABLE ONLY lowersch_reportcards
 
 
 --
--- TOC entry 2408 (class 2606 OID 46259)
--- Dependencies: 263 263 2610
+-- TOC entry 2414 (class 2606 OID 46259)
+-- Dependencies: 269 269 2616
 -- Name: FK_report_card_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3046,8 +3047,8 @@ ALTER TABLE ONLY report_cards
 
 
 --
--- TOC entry 2336 (class 2606 OID 46261)
--- Dependencies: 205 205 2610
+-- TOC entry 2342 (class 2606 OID 46261)
+-- Dependencies: 211 211 2616
 -- Name: PK_audience_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3056,8 +3057,8 @@ ALTER TABLE ONLY communication_audience
 
 
 --
--- TOC entry 2320 (class 2606 OID 46263)
--- Dependencies: 195 195 2610
+-- TOC entry 2326 (class 2606 OID 46263)
+-- Dependencies: 201 201 2616
 -- Name: PK_class_cat_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3066,8 +3067,8 @@ ALTER TABLE ONLY class_cats
 
 
 --
--- TOC entry 2412 (class 2606 OID 46265)
--- Dependencies: 266 266 2610
+-- TOC entry 2418 (class 2606 OID 46265)
+-- Dependencies: 272 272 2616
 -- Name: PK_class_history_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3076,8 +3077,8 @@ ALTER TABLE ONLY student_class_history
 
 
 --
--- TOC entry 2331 (class 2606 OID 46267)
--- Dependencies: 201 201 2610
+-- TOC entry 2337 (class 2606 OID 46267)
+-- Dependencies: 207 207 2616
 -- Name: PK_class_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3086,8 +3087,8 @@ ALTER TABLE ONLY classes
 
 
 --
--- TOC entry 2327 (class 2606 OID 46269)
--- Dependencies: 199 199 2610
+-- TOC entry 2333 (class 2606 OID 46269)
+-- Dependencies: 205 205 2616
 -- Name: PK_class_subject; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3096,8 +3097,8 @@ ALTER TABLE ONLY class_subjects
 
 
 --
--- TOC entry 2323 (class 2606 OID 46271)
--- Dependencies: 197 197 2610
+-- TOC entry 2329 (class 2606 OID 46271)
+-- Dependencies: 203 203 2616
 -- Name: PK_class_subject_exam; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3106,8 +3107,8 @@ ALTER TABLE ONLY class_subject_exams
 
 
 --
--- TOC entry 2340 (class 2606 OID 46273)
--- Dependencies: 209 209 2610
+-- TOC entry 2346 (class 2606 OID 46273)
+-- Dependencies: 215 215 2616
 -- Name: PK_com_feedback_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3116,8 +3117,8 @@ ALTER TABLE ONLY communication_feedback
 
 
 --
--- TOC entry 2346 (class 2606 OID 46275)
--- Dependencies: 215 215 2610
+-- TOC entry 2352 (class 2606 OID 46275)
+-- Dependencies: 221 221 2616
 -- Name: PK_com_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3126,8 +3127,8 @@ ALTER TABLE ONLY communications
 
 
 --
--- TOC entry 2344 (class 2606 OID 46277)
--- Dependencies: 213 213 2610
+-- TOC entry 2350 (class 2606 OID 46277)
+-- Dependencies: 219 219 2616
 -- Name: PK_com_type_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3136,8 +3137,8 @@ ALTER TABLE ONLY communication_types
 
 
 --
--- TOC entry 2404 (class 2606 OID 46279)
--- Dependencies: 255 255 2610
+-- TOC entry 2410 (class 2606 OID 46279)
+-- Dependencies: 261 261 2616
 -- Name: PK_condition_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3146,8 +3147,8 @@ ALTER TABLE ONLY medical_conditions
 
 
 --
--- TOC entry 2350 (class 2606 OID 46281)
--- Dependencies: 219 219 2610
+-- TOC entry 2356 (class 2606 OID 46281)
+-- Dependencies: 225 225 2616
 -- Name: PK_credit_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3156,8 +3157,8 @@ ALTER TABLE ONLY credits
 
 
 --
--- TOC entry 2356 (class 2606 OID 46283)
--- Dependencies: 223 223 2610
+-- TOC entry 2362 (class 2606 OID 46283)
+-- Dependencies: 229 229 2616
 -- Name: PK_dept_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3166,8 +3167,8 @@ ALTER TABLE ONLY departments
 
 
 --
--- TOC entry 2338 (class 2606 OID 46285)
--- Dependencies: 207 207 2610
+-- TOC entry 2344 (class 2606 OID 46285)
+-- Dependencies: 213 213 2616
 -- Name: PK_email_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3176,8 +3177,8 @@ ALTER TABLE ONLY communication_emails
 
 
 --
--- TOC entry 2360 (class 2606 OID 46287)
--- Dependencies: 225 225 2610
+-- TOC entry 2366 (class 2606 OID 46287)
+-- Dependencies: 231 231 2616
 -- Name: PK_emp_cat_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3186,8 +3187,8 @@ ALTER TABLE ONLY employee_cats
 
 
 --
--- TOC entry 2364 (class 2606 OID 46289)
--- Dependencies: 227 227 2610
+-- TOC entry 2370 (class 2606 OID 46289)
+-- Dependencies: 233 233 2616
 -- Name: PK_emp_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3196,8 +3197,8 @@ ALTER TABLE ONLY employees
 
 
 --
--- TOC entry 2368 (class 2606 OID 46291)
--- Dependencies: 229 229 2610
+-- TOC entry 2374 (class 2606 OID 46291)
+-- Dependencies: 235 235 2616
 -- Name: PK_exam_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3206,8 +3207,8 @@ ALTER TABLE ONLY exam_marks
 
 
 --
--- TOC entry 2372 (class 2606 OID 46293)
--- Dependencies: 231 231 2610
+-- TOC entry 2378 (class 2606 OID 46293)
+-- Dependencies: 237 237 2616
 -- Name: PK_exam_type; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3216,8 +3217,8 @@ ALTER TABLE ONLY exam_types
 
 
 --
--- TOC entry 2376 (class 2606 OID 46295)
--- Dependencies: 233 233 2610
+-- TOC entry 2382 (class 2606 OID 46295)
+-- Dependencies: 239 239 2616
 -- Name: PK_fee_item_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3226,8 +3227,8 @@ ALTER TABLE ONLY fee_items
 
 
 --
--- TOC entry 2382 (class 2606 OID 46297)
--- Dependencies: 236 236 2610
+-- TOC entry 2388 (class 2606 OID 46297)
+-- Dependencies: 242 242 2616
 -- Name: PK_grade2_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3236,8 +3237,8 @@ ALTER TABLE ONLY grading2
 
 
 --
--- TOC entry 2378 (class 2606 OID 46299)
--- Dependencies: 235 235 2610
+-- TOC entry 2384 (class 2606 OID 46299)
+-- Dependencies: 241 241 2616
 -- Name: PK_grade_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3246,8 +3247,8 @@ ALTER TABLE ONLY grading
 
 
 --
--- TOC entry 2386 (class 2606 OID 46301)
--- Dependencies: 239 239 2610
+-- TOC entry 2392 (class 2606 OID 46301)
+-- Dependencies: 245 245 2616
 -- Name: PK_guardian_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3256,8 +3257,8 @@ ALTER TABLE ONLY guardians
 
 
 --
--- TOC entry 2392 (class 2606 OID 46303)
--- Dependencies: 243 243 2610
+-- TOC entry 2398 (class 2606 OID 46303)
+-- Dependencies: 249 249 2616
 -- Name: PK_installment_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3266,8 +3267,8 @@ ALTER TABLE ONLY installment_options
 
 
 --
--- TOC entry 2394 (class 2606 OID 45877)
--- Dependencies: 245 245 2610
+-- TOC entry 2400 (class 2606 OID 45877)
+-- Dependencies: 251 251 2616
 -- Name: PK_inv_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3276,8 +3277,8 @@ ALTER TABLE ONLY invoices
 
 
 --
--- TOC entry 2398 (class 2606 OID 46305)
--- Dependencies: 248 248 2610
+-- TOC entry 2404 (class 2606 OID 46305)
+-- Dependencies: 254 254 2616
 -- Name: PK_inv_item_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3286,8 +3287,8 @@ ALTER TABLE ONLY invoice_line_items
 
 
 --
--- TOC entry 2428 (class 2606 OID 46307)
--- Dependencies: 275 275 2610
+-- TOC entry 2434 (class 2606 OID 46307)
+-- Dependencies: 281 281 2616
 -- Name: PK_medical_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3296,8 +3297,8 @@ ALTER TABLE ONLY student_medical_history
 
 
 --
--- TOC entry 2396 (class 2606 OID 46309)
--- Dependencies: 246 246 2610
+-- TOC entry 2402 (class 2606 OID 46309)
+-- Dependencies: 252 252 2616
 -- Name: PK_payment_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3306,8 +3307,8 @@ ALTER TABLE ONLY payments
 
 
 --
--- TOC entry 2400 (class 2606 OID 46311)
--- Dependencies: 249 249 2610
+-- TOC entry 2406 (class 2606 OID 46311)
+-- Dependencies: 255 255 2616
 -- Name: PK_payment_inv_item_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3316,8 +3317,8 @@ ALTER TABLE ONLY payment_inv_items
 
 
 --
--- TOC entry 2406 (class 2606 OID 46313)
--- Dependencies: 259 259 2610
+-- TOC entry 2412 (class 2606 OID 46313)
+-- Dependencies: 265 265 2616
 -- Name: PK_payment_replace_item_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3326,8 +3327,8 @@ ALTER TABLE ONLY payment_replacement_items
 
 
 --
--- TOC entry 2434 (class 2606 OID 46315)
--- Dependencies: 283 283 2610
+-- TOC entry 2440 (class 2606 OID 46315)
+-- Dependencies: 289 289 2616
 -- Name: PK_perm_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3336,8 +3337,8 @@ ALTER TABLE ONLY user_permissions
 
 
 --
--- TOC entry 2316 (class 2606 OID 46317)
--- Dependencies: 191 191 2610
+-- TOC entry 2322 (class 2606 OID 46317)
+-- Dependencies: 197 197 2616
 -- Name: PK_post_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3346,8 +3347,8 @@ ALTER TABLE ONLY blog_posts
 
 
 --
--- TOC entry 2312 (class 2606 OID 46319)
--- Dependencies: 187 187 2610
+-- TOC entry 2318 (class 2606 OID 46319)
+-- Dependencies: 193 193 2616
 -- Name: PK_post_status_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3356,8 +3357,8 @@ ALTER TABLE ONLY blog_post_statuses
 
 
 --
--- TOC entry 2314 (class 2606 OID 46321)
--- Dependencies: 189 189 2610
+-- TOC entry 2320 (class 2606 OID 46321)
+-- Dependencies: 195 195 2616
 -- Name: PK_post_type_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3366,8 +3367,8 @@ ALTER TABLE ONLY blog_post_types
 
 
 --
--- TOC entry 2410 (class 2606 OID 46323)
--- Dependencies: 265 265 2610
+-- TOC entry 2416 (class 2606 OID 46323)
+-- Dependencies: 271 271 2616
 -- Name: PK_setting_name; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3376,8 +3377,8 @@ ALTER TABLE ONLY settings
 
 
 --
--- TOC entry 2342 (class 2606 OID 46325)
--- Dependencies: 211 211 2610
+-- TOC entry 2348 (class 2606 OID 46325)
+-- Dependencies: 217 217 2616
 -- Name: PK_sms_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3386,8 +3387,8 @@ ALTER TABLE ONLY communication_sms
 
 
 --
--- TOC entry 2422 (class 2606 OID 46327)
--- Dependencies: 271 271 2610
+-- TOC entry 2428 (class 2606 OID 46327)
+-- Dependencies: 277 277 2616
 -- Name: PK_student_fee_item; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3396,8 +3397,8 @@ ALTER TABLE ONLY student_fee_items
 
 
 --
--- TOC entry 2426 (class 2606 OID 46329)
--- Dependencies: 273 273 2610
+-- TOC entry 2432 (class 2606 OID 46329)
+-- Dependencies: 279 279 2616
 -- Name: PK_student_guardian_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3406,8 +3407,8 @@ ALTER TABLE ONLY student_guardians
 
 
 --
--- TOC entry 2414 (class 2606 OID 46331)
--- Dependencies: 268 268 2610
+-- TOC entry 2420 (class 2606 OID 46331)
+-- Dependencies: 274 274 2616
 -- Name: PK_student_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3416,8 +3417,8 @@ ALTER TABLE ONLY students
 
 
 --
--- TOC entry 2418 (class 2606 OID 46333)
--- Dependencies: 269 269 2610
+-- TOC entry 2424 (class 2606 OID 46333)
+-- Dependencies: 275 275 2616
 -- Name: PK_subject_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3426,8 +3427,8 @@ ALTER TABLE ONLY subjects
 
 
 --
--- TOC entry 2352 (class 2606 OID 46335)
--- Dependencies: 221 221 2610
+-- TOC entry 2358 (class 2606 OID 46335)
+-- Dependencies: 227 227 2616
 -- Name: PK_term_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3436,8 +3437,8 @@ ALTER TABLE ONLY terms
 
 
 --
--- TOC entry 2430 (class 2606 OID 46337)
--- Dependencies: 281 281 2610
+-- TOC entry 2436 (class 2606 OID 46337)
+-- Dependencies: 287 287 2616
 -- Name: PK_transport_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3446,8 +3447,8 @@ ALTER TABLE ONLY transport_routes
 
 
 --
--- TOC entry 2440 (class 2606 OID 86693)
--- Dependencies: 288 288 2610
+-- TOC entry 2446 (class 2606 OID 86693)
+-- Dependencies: 294 294 2616
 -- Name: PK_uniform_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3456,8 +3457,8 @@ ALTER TABLE ONLY fee_item_uniforms
 
 
 --
--- TOC entry 2436 (class 2606 OID 46339)
--- Dependencies: 285 285 2610
+-- TOC entry 2442 (class 2606 OID 46339)
+-- Dependencies: 291 291 2616
 -- Name: PK_user_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3466,8 +3467,8 @@ ALTER TABLE ONLY users
 
 
 --
--- TOC entry 2362 (class 2606 OID 46341)
--- Dependencies: 225 225 225 2610
+-- TOC entry 2368 (class 2606 OID 46341)
+-- Dependencies: 231 231 231 2616
 -- Name: U_active_emp_cat; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3476,8 +3477,8 @@ ALTER TABLE ONLY employee_cats
 
 
 --
--- TOC entry 2416 (class 2606 OID 46343)
--- Dependencies: 268 268 2610
+-- TOC entry 2422 (class 2606 OID 46343)
+-- Dependencies: 274 274 2616
 -- Name: U_admission_number; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3486,8 +3487,8 @@ ALTER TABLE ONLY students
 
 
 --
--- TOC entry 2329 (class 2606 OID 46345)
--- Dependencies: 199 199 199 2610
+-- TOC entry 2335 (class 2606 OID 46345)
+-- Dependencies: 205 205 205 2616
 -- Name: U_class_subject; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3496,8 +3497,8 @@ ALTER TABLE ONLY class_subjects
 
 
 --
--- TOC entry 2358 (class 2606 OID 46347)
--- Dependencies: 223 223 2610
+-- TOC entry 2364 (class 2606 OID 46347)
+-- Dependencies: 229 229 2616
 -- Name: U_dept_name; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3506,8 +3507,8 @@ ALTER TABLE ONLY departments
 
 
 --
--- TOC entry 2366 (class 2606 OID 46349)
--- Dependencies: 227 227 2610
+-- TOC entry 2372 (class 2606 OID 46349)
+-- Dependencies: 233 233 2616
 -- Name: U_emp_number; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3516,8 +3517,8 @@ ALTER TABLE ONLY employees
 
 
 --
--- TOC entry 2374 (class 2606 OID 46351)
--- Dependencies: 231 231 231 2610
+-- TOC entry 2380 (class 2606 OID 46351)
+-- Dependencies: 237 237 237 2616
 -- Name: U_exam_type_per_category; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3526,8 +3527,8 @@ ALTER TABLE ONLY exam_types
 
 
 --
--- TOC entry 2388 (class 2606 OID 46353)
--- Dependencies: 239 239 2610
+-- TOC entry 2394 (class 2606 OID 46353)
+-- Dependencies: 245 245 2616
 -- Name: U_id_number; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3536,8 +3537,8 @@ ALTER TABLE ONLY guardians
 
 
 --
--- TOC entry 2432 (class 2606 OID 46355)
--- Dependencies: 281 281 2610
+-- TOC entry 2438 (class 2606 OID 46355)
+-- Dependencies: 287 287 2616
 -- Name: U_route; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3546,8 +3547,8 @@ ALTER TABLE ONLY transport_routes
 
 
 --
--- TOC entry 2370 (class 2606 OID 46357)
--- Dependencies: 229 229 229 229 2610
+-- TOC entry 2376 (class 2606 OID 46357)
+-- Dependencies: 235 235 235 235 2616
 -- Name: U_student_exam_mark; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3556,8 +3557,8 @@ ALTER TABLE ONLY exam_marks
 
 
 --
--- TOC entry 2424 (class 2606 OID 46359)
--- Dependencies: 271 271 271 2610
+-- TOC entry 2430 (class 2606 OID 46359)
+-- Dependencies: 277 277 277 2616
 -- Name: U_student_fee_item; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3566,8 +3567,8 @@ ALTER TABLE ONLY student_fee_items
 
 
 --
--- TOC entry 2420 (class 2606 OID 46361)
--- Dependencies: 269 269 269 2610
+-- TOC entry 2426 (class 2606 OID 46361)
+-- Dependencies: 275 275 275 2616
 -- Name: U_subject_by_class_cat; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3576,8 +3577,8 @@ ALTER TABLE ONLY subjects
 
 
 --
--- TOC entry 2325 (class 2606 OID 46363)
--- Dependencies: 197 197 197 2610
+-- TOC entry 2331 (class 2606 OID 46363)
+-- Dependencies: 203 203 203 2616
 -- Name: U_subject_exam; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3586,8 +3587,8 @@ ALTER TABLE ONLY class_subject_exams
 
 
 --
--- TOC entry 2354 (class 2606 OID 46365)
--- Dependencies: 221 221 221 2610
+-- TOC entry 2360 (class 2606 OID 46365)
+-- Dependencies: 227 227 227 2616
 -- Name: U_term; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3596,8 +3597,8 @@ ALTER TABLE ONLY terms
 
 
 --
--- TOC entry 2442 (class 2606 OID 86695)
--- Dependencies: 288 288 2610
+-- TOC entry 2448 (class 2606 OID 86695)
+-- Dependencies: 294 294 2616
 -- Name: U_uniform; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3606,8 +3607,8 @@ ALTER TABLE ONLY fee_item_uniforms
 
 
 --
--- TOC entry 2438 (class 2606 OID 46367)
--- Dependencies: 285 285 2610
+-- TOC entry 2444 (class 2606 OID 46367)
+-- Dependencies: 291 291 2616
 -- Name: U_username; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3616,8 +3617,8 @@ ALTER TABLE ONLY users
 
 
 --
--- TOC entry 2334 (class 2606 OID 46369)
--- Dependencies: 203 203 2610
+-- TOC entry 2340 (class 2606 OID 46369)
+-- Dependencies: 209 209 2616
 -- Name: attachment_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3626,8 +3627,8 @@ ALTER TABLE ONLY communication_attachments
 
 
 --
--- TOC entry 2348 (class 2606 OID 46371)
--- Dependencies: 217 217 2610
+-- TOC entry 2354 (class 2606 OID 46371)
+-- Dependencies: 223 223 2616
 -- Name: countries_pk; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3636,8 +3637,8 @@ ALTER TABLE ONLY countries
 
 
 --
--- TOC entry 2384 (class 2606 OID 46373)
--- Dependencies: 236 236 2610
+-- TOC entry 2390 (class 2606 OID 46373)
+-- Dependencies: 242 242 2616
 -- Name: grading_unique_grade2_contraint; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3646,8 +3647,8 @@ ALTER TABLE ONLY grading2
 
 
 --
--- TOC entry 2380 (class 2606 OID 46375)
--- Dependencies: 235 235 2610
+-- TOC entry 2386 (class 2606 OID 46375)
+-- Dependencies: 241 241 2616
 -- Name: grading_unique_grade_contraint; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3656,8 +3657,8 @@ ALTER TABLE ONLY grading
 
 
 --
--- TOC entry 2321 (class 1259 OID 46376)
--- Dependencies: 195 195 2610
+-- TOC entry 2327 (class 1259 OID 46376)
+-- Dependencies: 201 201 2616
 -- Name: U_active_class_cat; Type: INDEX; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3665,8 +3666,8 @@ CREATE UNIQUE INDEX "U_active_class_cat" ON class_cats USING btree (class_cat_na
 
 
 --
--- TOC entry 2332 (class 1259 OID 46377)
--- Dependencies: 201 201 201 2610
+-- TOC entry 2338 (class 1259 OID 46377)
+-- Dependencies: 207 207 207 2616
 -- Name: U_active_class_name; Type: INDEX; Schema: app; Owner: postgres; Tablespace: 
 --
 
@@ -3674,8 +3675,8 @@ CREATE UNIQUE INDEX "U_active_class_name" ON classes USING btree (class_name, cl
 
 
 --
--- TOC entry 2603 (class 2618 OID 45881)
--- Dependencies: 245 2394 245 245 246 246 245 246 245 245 247 2610
+-- TOC entry 2609 (class 2618 OID 45881)
+-- Dependencies: 251 2400 251 251 252 252 251 252 251 251 253 2616
 -- Name: _RETURN; Type: RULE; Schema: app; Owner: postgres
 --
 
@@ -3683,8 +3684,8 @@ CREATE RULE "_RETURN" AS ON SELECT TO invoice_balances DO INSTEAD SELECT invoice
 
 
 --
--- TOC entry 2604 (class 2618 OID 45900)
--- Dependencies: 248 245 245 245 245 245 245 245 246 246 248 249 249 249 2394 250 2610
+-- TOC entry 2610 (class 2618 OID 45900)
+-- Dependencies: 254 251 251 251 251 251 251 251 252 252 254 255 255 255 2400 256 2616
 -- Name: _RETURN; Type: RULE; Schema: app; Owner: postgres
 --
 
@@ -3692,8 +3693,8 @@ CREATE RULE "_RETURN" AS ON SELECT TO invoice_balances2 DO INSTEAD SELECT invoic
 
 
 --
--- TOC entry 2461 (class 2606 OID 46378)
--- Dependencies: 215 205 2335 2610
+-- TOC entry 2467 (class 2606 OID 46378)
+-- Dependencies: 221 211 2341 2616
 -- Name: FK_audience_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3702,8 +3703,8 @@ ALTER TABLE ONLY communications
 
 
 --
--- TOC entry 2447 (class 2606 OID 46383)
--- Dependencies: 193 201 2330 2610
+-- TOC entry 2453 (class 2606 OID 46383)
+-- Dependencies: 199 207 2336 2616
 -- Name: FK_blog_class; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3712,8 +3713,8 @@ ALTER TABLE ONLY blogs
 
 
 --
--- TOC entry 2448 (class 2606 OID 46388)
--- Dependencies: 193 227 2363 2610
+-- TOC entry 2454 (class 2606 OID 46388)
+-- Dependencies: 199 233 2369 2616
 -- Name: FK_blog_teacher; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3722,8 +3723,8 @@ ALTER TABLE ONLY blogs
 
 
 --
--- TOC entry 2453 (class 2606 OID 46393)
--- Dependencies: 2319 201 195 2610
+-- TOC entry 2459 (class 2606 OID 46393)
+-- Dependencies: 2325 207 201 2616
 -- Name: FK_class_cat_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3732,8 +3733,8 @@ ALTER TABLE ONLY classes
 
 
 --
--- TOC entry 2494 (class 2606 OID 46398)
--- Dependencies: 195 269 2319 2610
+-- TOC entry 2500 (class 2606 OID 46398)
+-- Dependencies: 201 275 2325 2616
 -- Name: FK_class_cat_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3742,8 +3743,8 @@ ALTER TABLE ONLY subjects
 
 
 --
--- TOC entry 2490 (class 2606 OID 46403)
--- Dependencies: 266 201 2330 2610
+-- TOC entry 2496 (class 2606 OID 46403)
+-- Dependencies: 272 207 2336 2616
 -- Name: FK_class_history_class; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3752,8 +3753,8 @@ ALTER TABLE ONLY student_class_history
 
 
 --
--- TOC entry 2491 (class 2606 OID 46408)
--- Dependencies: 268 266 2413 2610
+-- TOC entry 2497 (class 2606 OID 46408)
+-- Dependencies: 274 272 2419 2616
 -- Name: FK_class_history_student; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3762,8 +3763,8 @@ ALTER TABLE ONLY student_class_history
 
 
 --
--- TOC entry 2449 (class 2606 OID 46413)
--- Dependencies: 197 2371 231 2610
+-- TOC entry 2455 (class 2606 OID 46413)
+-- Dependencies: 203 2377 237 2616
 -- Name: FK_class_subect_exam_type; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3772,8 +3773,8 @@ ALTER TABLE ONLY class_subject_exams
 
 
 --
--- TOC entry 2450 (class 2606 OID 46418)
--- Dependencies: 197 2326 199 2610
+-- TOC entry 2456 (class 2606 OID 46418)
+-- Dependencies: 203 2332 205 2616
 -- Name: FK_class_subject; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3782,8 +3783,8 @@ ALTER TABLE ONLY class_subject_exams
 
 
 --
--- TOC entry 2451 (class 2606 OID 46423)
--- Dependencies: 199 201 2330 2610
+-- TOC entry 2457 (class 2606 OID 46423)
+-- Dependencies: 205 207 2336 2616
 -- Name: FK_class_subject_class; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3792,8 +3793,8 @@ ALTER TABLE ONLY class_subjects
 
 
 --
--- TOC entry 2472 (class 2606 OID 46428)
--- Dependencies: 229 197 2322 2610
+-- TOC entry 2478 (class 2606 OID 46428)
+-- Dependencies: 235 203 2328 2616
 -- Name: FK_class_subject_exam; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3802,8 +3803,8 @@ ALTER TABLE ONLY exam_marks
 
 
 --
--- TOC entry 2452 (class 2606 OID 46433)
--- Dependencies: 199 269 2417 2610
+-- TOC entry 2458 (class 2606 OID 46433)
+-- Dependencies: 205 275 2423 2616
 -- Name: FK_class_subject_subject; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3812,8 +3813,8 @@ ALTER TABLE ONLY class_subjects
 
 
 --
--- TOC entry 2454 (class 2606 OID 46438)
--- Dependencies: 201 227 2363 2610
+-- TOC entry 2460 (class 2606 OID 46438)
+-- Dependencies: 207 233 2369 2616
 -- Name: FK_class_teacher; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3822,8 +3823,8 @@ ALTER TABLE ONLY classes
 
 
 --
--- TOC entry 2457 (class 2606 OID 46443)
--- Dependencies: 209 201 2330 2610
+-- TOC entry 2463 (class 2606 OID 46443)
+-- Dependencies: 215 207 2336 2616
 -- Name: FK_com_class_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3832,8 +3833,8 @@ ALTER TABLE ONLY communication_feedback
 
 
 --
--- TOC entry 2462 (class 2606 OID 46448)
--- Dependencies: 215 201 2330 2610
+-- TOC entry 2468 (class 2606 OID 46448)
+-- Dependencies: 221 207 2336 2616
 -- Name: FK_com_class_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3842,8 +3843,8 @@ ALTER TABLE ONLY communications
 
 
 --
--- TOC entry 2458 (class 2606 OID 46453)
--- Dependencies: 209 239 2385 2610
+-- TOC entry 2464 (class 2606 OID 46453)
+-- Dependencies: 215 245 2391 2616
 -- Name: FK_com_guardian_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3852,8 +3853,8 @@ ALTER TABLE ONLY communication_feedback
 
 
 --
--- TOC entry 2463 (class 2606 OID 46458)
--- Dependencies: 215 239 2385 2610
+-- TOC entry 2469 (class 2606 OID 46458)
+-- Dependencies: 221 245 2391 2616
 -- Name: FK_com_guardian_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3862,8 +3863,8 @@ ALTER TABLE ONLY communications
 
 
 --
--- TOC entry 2464 (class 2606 OID 46463)
--- Dependencies: 215 227 2363 2610
+-- TOC entry 2470 (class 2606 OID 46463)
+-- Dependencies: 221 233 2369 2616
 -- Name: FK_com_message_from; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3872,8 +3873,8 @@ ALTER TABLE ONLY communications
 
 
 --
--- TOC entry 2459 (class 2606 OID 46468)
--- Dependencies: 2413 209 268 2610
+-- TOC entry 2465 (class 2606 OID 46468)
+-- Dependencies: 2419 215 274 2616
 -- Name: FK_com_student_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3882,8 +3883,8 @@ ALTER TABLE ONLY communication_feedback
 
 
 --
--- TOC entry 2465 (class 2606 OID 46473)
--- Dependencies: 268 215 2413 2610
+-- TOC entry 2471 (class 2606 OID 46473)
+-- Dependencies: 274 221 2419 2616
 -- Name: FK_com_student_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3892,8 +3893,8 @@ ALTER TABLE ONLY communications
 
 
 --
--- TOC entry 2466 (class 2606 OID 46478)
--- Dependencies: 215 2343 213 2610
+-- TOC entry 2472 (class 2606 OID 46478)
+-- Dependencies: 221 2349 219 2616
 -- Name: FK_com_type_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3902,8 +3903,8 @@ ALTER TABLE ONLY communications
 
 
 --
--- TOC entry 2456 (class 2606 OID 46483)
--- Dependencies: 2345 207 215 2610
+-- TOC entry 2462 (class 2606 OID 46483)
+-- Dependencies: 2351 213 221 2616
 -- Name: FK_comm_email_comm; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3912,8 +3913,8 @@ ALTER TABLE ONLY communication_emails
 
 
 --
--- TOC entry 2460 (class 2606 OID 46488)
--- Dependencies: 211 2345 215 2610
+-- TOC entry 2466 (class 2606 OID 46488)
+-- Dependencies: 217 2351 221 2616
 -- Name: FK_comm_sms_comm; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3922,8 +3923,8 @@ ALTER TABLE ONLY communication_sms
 
 
 --
--- TOC entry 2468 (class 2606 OID 46493)
--- Dependencies: 2395 219 246 2610
+-- TOC entry 2474 (class 2606 OID 46493)
+-- Dependencies: 2401 225 252 2616
 -- Name: FK_credit_payment; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3932,8 +3933,8 @@ ALTER TABLE ONLY credits
 
 
 --
--- TOC entry 2469 (class 2606 OID 46498)
--- Dependencies: 219 268 2413 2610
+-- TOC entry 2475 (class 2606 OID 46498)
+-- Dependencies: 225 274 2419 2616
 -- Name: FK_credit_student; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3942,8 +3943,8 @@ ALTER TABLE ONLY credits
 
 
 --
--- TOC entry 2467 (class 2606 OID 46503)
--- Dependencies: 215 2311 187 2610
+-- TOC entry 2473 (class 2606 OID 46503)
+-- Dependencies: 221 2317 193 2616
 -- Name: FK_email_post_status; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3952,8 +3953,8 @@ ALTER TABLE ONLY communications
 
 
 --
--- TOC entry 2470 (class 2606 OID 46508)
--- Dependencies: 225 227 2359 2610
+-- TOC entry 2476 (class 2606 OID 46508)
+-- Dependencies: 231 233 2365 2616
 -- Name: FK_emp_cat_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3962,8 +3963,8 @@ ALTER TABLE ONLY employees
 
 
 --
--- TOC entry 2471 (class 2606 OID 46513)
--- Dependencies: 227 223 2355 2610
+-- TOC entry 2477 (class 2606 OID 46513)
+-- Dependencies: 233 229 2361 2616
 -- Name: FK_emp_dept_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3972,8 +3973,8 @@ ALTER TABLE ONLY employees
 
 
 --
--- TOC entry 2473 (class 2606 OID 46518)
--- Dependencies: 268 229 2413 2610
+-- TOC entry 2479 (class 2606 OID 46518)
+-- Dependencies: 274 235 2419 2616
 -- Name: FK_exam_student; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3982,8 +3983,8 @@ ALTER TABLE ONLY exam_marks
 
 
 --
--- TOC entry 2474 (class 2606 OID 46523)
--- Dependencies: 2351 229 221 2610
+-- TOC entry 2480 (class 2606 OID 46523)
+-- Dependencies: 2357 235 227 2616
 -- Name: FK_exam_term; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -3992,8 +3993,8 @@ ALTER TABLE ONLY exam_marks
 
 
 --
--- TOC entry 2475 (class 2606 OID 46528)
--- Dependencies: 195 231 2319 2610
+-- TOC entry 2481 (class 2606 OID 46528)
+-- Dependencies: 201 237 2325 2616
 -- Name: FK_exam_type_class_cat; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4002,8 +4003,8 @@ ALTER TABLE ONLY exam_types
 
 
 --
--- TOC entry 2476 (class 2606 OID 46533)
--- Dependencies: 199 241 2326 2610
+-- TOC entry 2482 (class 2606 OID 46533)
+-- Dependencies: 205 247 2332 2616
 -- Name: FK_homework_class_subject; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4012,8 +4013,8 @@ ALTER TABLE ONLY homework
 
 
 --
--- TOC entry 2477 (class 2606 OID 46538)
--- Dependencies: 187 2311 241 2610
+-- TOC entry 2483 (class 2606 OID 46538)
+-- Dependencies: 193 2317 247 2616
 -- Name: FK_homework_post_status; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4022,8 +4023,8 @@ ALTER TABLE ONLY homework
 
 
 --
--- TOC entry 2492 (class 2606 OID 46543)
--- Dependencies: 243 2391 268 2610
+-- TOC entry 2498 (class 2606 OID 46543)
+-- Dependencies: 249 2397 274 2616
 -- Name: FK_installment_option; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4032,8 +4033,8 @@ ALTER TABLE ONLY students
 
 
 --
--- TOC entry 2480 (class 2606 OID 46548)
--- Dependencies: 248 2421 271 2610
+-- TOC entry 2486 (class 2606 OID 46548)
+-- Dependencies: 254 2427 277 2616
 -- Name: FK_inv_item_fee_item; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4042,8 +4043,8 @@ ALTER TABLE ONLY invoice_line_items
 
 
 --
--- TOC entry 2481 (class 2606 OID 46553)
--- Dependencies: 245 2393 248 2610
+-- TOC entry 2487 (class 2606 OID 46553)
+-- Dependencies: 251 2399 254 2616
 -- Name: FK_inv_item_invoice; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4052,8 +4053,8 @@ ALTER TABLE ONLY invoice_line_items
 
 
 --
--- TOC entry 2478 (class 2606 OID 46558)
--- Dependencies: 245 2413 268 2610
+-- TOC entry 2484 (class 2606 OID 46558)
+-- Dependencies: 251 2419 274 2616
 -- Name: FK_invoice_student; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4062,8 +4063,8 @@ ALTER TABLE ONLY invoices
 
 
 --
--- TOC entry 2482 (class 2606 OID 46563)
--- Dependencies: 246 249 2395 2610
+-- TOC entry 2488 (class 2606 OID 46563)
+-- Dependencies: 252 255 2401 2616
 -- Name: FK_payment_fee_item_payment; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4072,8 +4073,8 @@ ALTER TABLE ONLY payment_inv_items
 
 
 --
--- TOC entry 2483 (class 2606 OID 46568)
--- Dependencies: 245 2393 249 2610
+-- TOC entry 2489 (class 2606 OID 46568)
+-- Dependencies: 251 2399 255 2616
 -- Name: FK_payment_inv; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4082,8 +4083,8 @@ ALTER TABLE ONLY payment_inv_items
 
 
 --
--- TOC entry 2484 (class 2606 OID 46573)
--- Dependencies: 2397 249 248 2610
+-- TOC entry 2490 (class 2606 OID 46573)
+-- Dependencies: 2403 255 254 2616
 -- Name: FK_payment_inv_item; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4092,8 +4093,8 @@ ALTER TABLE ONLY payment_inv_items
 
 
 --
--- TOC entry 2485 (class 2606 OID 46578)
--- Dependencies: 259 271 2421 2610
+-- TOC entry 2491 (class 2606 OID 46578)
+-- Dependencies: 265 277 2427 2616
 -- Name: FK_payment_item; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4102,8 +4103,8 @@ ALTER TABLE ONLY payment_replacement_items
 
 
 --
--- TOC entry 2486 (class 2606 OID 46583)
--- Dependencies: 246 2395 259 2610
+-- TOC entry 2492 (class 2606 OID 46583)
+-- Dependencies: 252 2401 265 2616
 -- Name: FK_payment_replace_item_payment; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4112,8 +4113,8 @@ ALTER TABLE ONLY payment_replacement_items
 
 
 --
--- TOC entry 2479 (class 2606 OID 46588)
--- Dependencies: 2413 268 246 2610
+-- TOC entry 2485 (class 2606 OID 46588)
+-- Dependencies: 2419 274 252 2616
 -- Name: FK_payments_student; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4122,8 +4123,8 @@ ALTER TABLE ONLY payments
 
 
 --
--- TOC entry 2443 (class 2606 OID 46593)
--- Dependencies: 2317 191 193 2610
+-- TOC entry 2449 (class 2606 OID 46593)
+-- Dependencies: 2323 197 199 2616
 -- Name: FK_post_blog; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4132,8 +4133,8 @@ ALTER TABLE ONLY blog_posts
 
 
 --
--- TOC entry 2444 (class 2606 OID 46598)
--- Dependencies: 187 191 2311 2610
+-- TOC entry 2450 (class 2606 OID 46598)
+-- Dependencies: 193 197 2317 2616
 -- Name: FK_post_status; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4142,8 +4143,8 @@ ALTER TABLE ONLY blog_posts
 
 
 --
--- TOC entry 2445 (class 2606 OID 46603)
--- Dependencies: 2313 189 191 2610
+-- TOC entry 2451 (class 2606 OID 46603)
+-- Dependencies: 2319 195 197 2616
 -- Name: FK_post_type; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4152,8 +4153,8 @@ ALTER TABLE ONLY blog_posts
 
 
 --
--- TOC entry 2446 (class 2606 OID 46608)
--- Dependencies: 227 191 2363 2610
+-- TOC entry 2452 (class 2606 OID 46608)
+-- Dependencies: 233 197 2369 2616
 -- Name: FK_posted_by; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4162,8 +4163,8 @@ ALTER TABLE ONLY blog_posts
 
 
 --
--- TOC entry 2487 (class 2606 OID 46613)
--- Dependencies: 263 2330 201 2610
+-- TOC entry 2493 (class 2606 OID 46613)
+-- Dependencies: 269 2336 207 2616
 -- Name: FK_report_class; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4172,8 +4173,8 @@ ALTER TABLE ONLY report_cards
 
 
 --
--- TOC entry 2488 (class 2606 OID 46618)
--- Dependencies: 263 2413 268 2610
+-- TOC entry 2494 (class 2606 OID 46618)
+-- Dependencies: 269 2419 274 2616
 -- Name: FK_report_student; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4182,8 +4183,8 @@ ALTER TABLE ONLY report_cards
 
 
 --
--- TOC entry 2489 (class 2606 OID 46623)
--- Dependencies: 263 2351 221 2610
+-- TOC entry 2495 (class 2606 OID 46623)
+-- Dependencies: 269 2357 227 2616
 -- Name: FK_report_term; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4192,8 +4193,8 @@ ALTER TABLE ONLY report_cards
 
 
 --
--- TOC entry 2496 (class 2606 OID 46628)
--- Dependencies: 271 2375 233 2610
+-- TOC entry 2502 (class 2606 OID 46628)
+-- Dependencies: 277 2381 239 2616
 -- Name: FK_student_fee_items; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4202,8 +4203,8 @@ ALTER TABLE ONLY student_fee_items
 
 
 --
--- TOC entry 2497 (class 2606 OID 46633)
--- Dependencies: 271 268 2413 2610
+-- TOC entry 2503 (class 2606 OID 46633)
+-- Dependencies: 277 274 2419 2616
 -- Name: FK_student_fee_items_student; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4212,8 +4213,8 @@ ALTER TABLE ONLY student_fee_items
 
 
 --
--- TOC entry 2498 (class 2606 OID 46638)
--- Dependencies: 2385 239 273 2610
+-- TOC entry 2504 (class 2606 OID 46638)
+-- Dependencies: 2391 245 279 2616
 -- Name: FK_student_guardian_guardian; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4222,8 +4223,8 @@ ALTER TABLE ONLY student_guardians
 
 
 --
--- TOC entry 2499 (class 2606 OID 46643)
--- Dependencies: 268 273 2413 2610
+-- TOC entry 2505 (class 2606 OID 46643)
+-- Dependencies: 274 279 2419 2616
 -- Name: FK_student_guardian_student; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4232,8 +4233,8 @@ ALTER TABLE ONLY student_guardians
 
 
 --
--- TOC entry 2500 (class 2606 OID 46648)
--- Dependencies: 2413 275 268 2610
+-- TOC entry 2506 (class 2606 OID 46648)
+-- Dependencies: 2419 281 274 2616
 -- Name: FK_student_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4242,8 +4243,8 @@ ALTER TABLE ONLY student_medical_history
 
 
 --
--- TOC entry 2493 (class 2606 OID 46653)
--- Dependencies: 281 268 2429 2610
+-- TOC entry 2499 (class 2606 OID 46653)
+-- Dependencies: 287 274 2435 2616
 -- Name: FK_student_route; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4252,8 +4253,8 @@ ALTER TABLE ONLY students
 
 
 --
--- TOC entry 2495 (class 2606 OID 46658)
--- Dependencies: 227 269 2363 2610
+-- TOC entry 2501 (class 2606 OID 46658)
+-- Dependencies: 233 275 2369 2616
 -- Name: FK_subject_teacher; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4262,8 +4263,8 @@ ALTER TABLE ONLY subjects
 
 
 --
--- TOC entry 2455 (class 2606 OID 46663)
--- Dependencies: 2345 203 215 2610
+-- TOC entry 2461 (class 2606 OID 46663)
+-- Dependencies: 2351 209 221 2616
 -- Name: com_id; Type: FK CONSTRAINT; Schema: app; Owner: postgres
 --
 
@@ -4272,7 +4273,7 @@ ALTER TABLE ONLY communication_attachments
 
 
 --
--- TOC entry 2615 (class 0 OID 0)
+-- TOC entry 2621 (class 0 OID 0)
 -- Dependencies: 10
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -4283,7 +4284,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2019-05-10 16:41:17
+-- Completed on 2019-06-13 15:08:00
 
 --
 -- PostgreSQL database dump complete

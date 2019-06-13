@@ -244,7 +244,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
                                 for (var v = 0; v < $scope.smsData.length; v++) {
                                     
                                     buildSmsToPost.message_recipients.push({
-                                        "phone_number": $scope.smsData[v].phone_number,
+                                        "phone_number": "+254" + $scope.smsData[v].phone_number,
                                         "recipient_name": $scope.smsData[v].recipient_name
                                     });
                                 }
@@ -277,7 +277,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
                                     };
                                     console.log(newMessage);
                                     
-                                  // Post the message
+                                    // Post the message
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/postSms.php",
+                                        data: { src: eachMsgId, school: window.location.host.split('.')[0] },
+                                        success: function (data, status, jqXHR) {
+                                            console.log("Data posted for processing.",data,status,jqXHR);
+                                        },
+                                        error: function (xhr) {
+                                            console.log("Error. Data not posted.");
+                                        }
+                                    });
+                                
+                                  /*
                                   // var url = "http://41.72.203.166/sms_api_staging/api/sendBulkSms";
                                   var url = "https://sms_api.eduweb.co.ke/api/sendBulkSms";
                                   $.ajax({
@@ -289,15 +302,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
                                           processData: true,
                                           success: function (data, status, jqXHR) {
                                               console.log("Success Func. Msg Sent");
-                                              console.log(data);
-                                              console.log(status);
-                                              console.log(jqXHR);
-                                              //alert("success..." + data);
+                                              console.log(data,status,jqXHR);
                                               //alert("Success. Message sent.");
                                           },
                                           error: function (xhr) {
                                               console.log("Error Func. Probably a false positive");
-                                              console.log("Batch number " + i);
                                               console.log(xhr);
                                               // Do not alert() an error message to the user as often times the api
                                               // may delay with a response therefore output an error. This is a false negative
@@ -309,7 +318,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
                                   // before continuing the loop we need to wait a bit - trying 1.5s
                                     console.log("Waiting 1.5s ...");
                                     sleep(1500);
-                                  
+                                  */
                                   
                                 }
         

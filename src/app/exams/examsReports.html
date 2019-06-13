@@ -1,10 +1,6 @@
 <div ng-controller="examsReportsCtrl">
 
     <style>
-        @import "components/overviewFiles/vendor/animate/animate.css";
-        @import "components/overviewFiles/vendor/select2/select2.min.css";
-        @import "components/overviewFiles/vendor/perfect-scrollbar/perfect-scrollbar.css";
-        @import "components/overviewFiles/css/util.css";
         @import "components/overviewFiles/css/reportStyles.css";
         @import "components/overviewFiles/css/jquery.dataTables.min.css";
         @import "components/overviewFiles/css/buttons.dataTables.min.css";
@@ -118,14 +114,14 @@
                             <h3 style="color:#000000;">{{reportTitle}}</h3>
 
                             <!-- class analysis table -->
-                            <div class='table100 ver1 m-b-110' ng-show="classAnalysisTable">
+                            <div class='table100 ver1 m-b-110' ng-show="classAnalysisTable" id="classAnalysisTableDiv">
                                 <table id='classAnalysisTable'>
                                     <div id='t1' class='table100-head'>
                                         <thead>
                                             <tr class='row100 head' id="tblHeader">
                                                 <th class='cell100 column2'>GND.</th>
-                                                <th class='cell100 column2'>STUDENT</th>
-                                                <th class='cell100 column2' ng-repeat="col in tableHeader">{{col.title}}</th>
+                                                <th class='cell100 column2'>STDNT.</th>
+                                                <th class='cell100 column2' ng-repeat="col in tableHeader">{{col.title | limitTo: 3}}</th>
                                                 <th class='cell100 column2'>POS</th>
                                             </tr>
                                         </thead>
@@ -144,14 +140,14 @@
                             </div>
 
                             <!-- stream analysis table -->
-                            <div class='table100 ver1 m-b-110' ng-show="streamAnalysisTable">
+                            <div class='table100 ver1 m-b-110' ng-show="streamAnalysisTable" id="streamAnalysisTableDiv">
                                 <table id='streamAnalysisTable'>
                                     <div id='t1' class='table100-head'>
                                         <thead>
                                             <tr class='row100 head' id="tblHeader">
                                                 <th class='cell100 column2'>GND.</th>
-                                                <th class='cell100 column2'>STUDENT</th>
-                                                <th class='cell100 column2' ng-repeat="col in tableHeader">{{col.title}}</th>
+                                                <th class='cell100 column2'>STDNT</th>
+                                                <th class='cell100 column2' ng-repeat="col in tableHeader">{{col.title  | limitTo: 3}}</th>
                                                 <th class='cell100 column2'>POS</th>
                                             </tr>
                                         </thead>
@@ -182,7 +178,8 @@
                             <!-- stream subjects table -->
                 		</div>
                 		<div class="tab-pane" id="2a">
-                            <h3>We use the class nav-pills instead of nav-tabs which automatically creates a background color for the tab</h3>
+                            <h3 style="color:#000000;">{{reportTitle}}</h3>
+                            <div id="chart"></div>
                 		</div>
                 	</div>
                 </div>
@@ -191,22 +188,8 @@
 		<!-- end reports body -->
 
 	</div>
-
-	<!-- <script src="components/overviewFiles/vendor/jquery/jquery-3.2.1.min.js"></script> -->
-	<script src="components/overviewFiles/vendor/bootstrap/js/popper.js"></script>
-	<!-- <script src="components/overviewFiles/vendor/bootstrap/js/bootstrap.min.js"></script> -->
-	<script src="components/overviewFiles/vendor/select2/select2.min.js"></script>
-	<script src="components/overviewFiles/vendor/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-	<script>
-		$('.js-pscroll').each(function(){
-			var ps = new PerfectScrollbar(this);
-
-			$(window).on('resize', function(){
-				ps.update();
-			})
-		});
-	</script>
-	<script src="components/overviewFiles/js/main.js"></script>
+    
+  <script src="components/overviewFiles/js/main.js"></script>
   <script src="components/overviewFiles/js/jquery.dataTables.min.js"></script>
   <script src="components/overviewFiles/js/dataTables.buttons.min.js"></script>
   <script src="components/overviewFiles/js/jszip.min.js"></script>

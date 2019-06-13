@@ -33,6 +33,7 @@ function($scope, $rootScope){
 		$scope.account_name_2 = data.account_name_2;
 		$scope.account_number_2 = data.account_number_2;
 		$scope.mpesa_details = data.mpesa_details;
+		$rootScope.currentUser = data.user;
 		
 		var bankOne = document.getElementById("bank_one");
 		var bankTwo = document.getElementById("bank_two");

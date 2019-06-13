@@ -24,7 +24,7 @@ header('Access-Control-Allow-Origin: *');
     <?php
     // include __DIR__ '/../api/lib/db.php';
     $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-    $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+    $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=pg_edu@8947");
     $result = pg_query($db,"SELECT communication_sms.com_id, communication_sms.creation_date as message_date, communications.message as message_text,
                     employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as message_by, communication_sms.first_name ||' ' || communication_sms.last_name AS recipient_name,
                     communication_sms.sim_number AS phone_number
@@ -121,6 +121,7 @@ header('Access-Control-Allow-Origin: *');
             };
             console.log(newMessage);
 
+            /*
             // Post the message
               var url = "http://41.72.203.166/sms_api_staging/api/sendBulkSms";
               $.ajax({
@@ -152,7 +153,7 @@ header('Access-Control-Allow-Origin: *');
               // before continuing the loop we need to wait a bit - trying 1.5s
                 console.log("Waiting 1.5s ...");
                 sleep(1500);
-              
+            */
               
         }
         

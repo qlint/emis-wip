@@ -160,8 +160,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					emp_id : $scope.employee.emp_id,
 					user_id : $rootScope.currentUser.user_id,
 					employee : {
+					    active : $scope.employee.active,
 						emp_number : $scope.employee.emp_number,
 						emp_cat_id : $scope.employee.emp_cat_id,
+						emp_id : $scope.employee.emp_id,
 						dept_id : $scope.employee.dept_id,
 						job_title : $scope.employee.job_title,
 						joined_date : ( $scope.employee.joined_date.startDate !== null ? moment($scope.employee.joined_date.startDate).format('YYYY-MM-DD') : null),
@@ -176,6 +178,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						password: $scope.employee.password,
 						user_type: $scope.employee.user_type,
 						login_active: ( $scope.employee.login_active ? 't' : 'f'),
+						id_number : $scope.employee.id_number,
+						telephone : $scope.employee.telephone,
+						subdmn: window.location.host.split('.')[0],
 						login_id: $scope.employee.login_id
 					}
 				}

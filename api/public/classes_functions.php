@@ -1241,15 +1241,30 @@ $app->get('/getClassCatsSummary', function () {
     try
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT class_cat_id, class_cat_name,
-							(select count(*)
-								from app.students
-								inner join app.classes
-								on students.current_class = classes.class_id
-								where class_cat_id = class_cats.class_cat_id AND students.active is TRUE) as num_students
-							FROM app.class_cats
-							WHERE active is true
-							ORDER BY class_cat_id");
+        $sth = $db->prepare("SELECT two.*, 
+                            	ARRAY(SELECT '{' || 'class_id:' || c.class_id || ',' || 'class_name:' || c.class_name || ',' || 'boys:' || (SELECT count(*) FROM app.students WHERE gender = 'M' AND active IS TRUE and current_class = c.class_id) || ',' || 'girls:' || (SELECT count(*) FROM app.students WHERE gender = 'F' AND active IS TRUE and current_class = c.class_id) || '}' FROM app.classes c WHERE class_cat_id = two.class_cat_id) AS classes
+                            FROM (
+                            	SELECT class_cat_id, class_cat_name, num_students,
+                            		(SELECT count(*) FROM app.students 
+                            		WHERE gender = 'M' AND active IS TRUE
+                            		AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = one.class_cat_id)) AS num_boys,
+                            		(SELECT count(*) FROM app.students 
+                            		WHERE gender = 'F' AND active IS TRUE
+                            		AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = one.class_cat_id)) AS num_girls,
+                            		(SELECT count(*) FROM app.students 
+                            		WHERE gender IS NULL AND active IS TRUE
+                            		AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = one.class_cat_id)) AS num_unassigned
+                            	FROM (
+                            		SELECT class_cat_id, class_cat_name,
+                            			(SELECT count(*) FROM app.students
+                            			INNER JOIN app.classes on students.current_class = classes.class_id
+                            			WHERE class_cat_id = class_cats.class_cat_id AND students.active IS TRUE) AS num_students
+                            		FROM app.class_cats
+                            		WHERE active is true
+                            		ORDER BY class_cat_id
+                            	)one
+                            	ORDER BY class_cat_id
+                            )two");
         $sth->execute();
 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);

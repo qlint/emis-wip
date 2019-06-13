@@ -208,7 +208,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 
 	$scope.getInvoice = function(key)
 	{
-		$scope.activeInvoice = key;
+	    $scope.activeInvoice = key;
 		$scope.invoiceLineItems = $scope.invoices[key];
 		$scope.totals.balance = angular.copy($scope.invoiceTotal[key]);
 		$scope.sumInvoice();

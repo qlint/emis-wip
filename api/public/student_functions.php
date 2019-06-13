@@ -891,6 +891,7 @@ $app->post('/addStudent', function () use($app) {
   $pickUpIndividualImage =       ( isset($allPostVars['pick_up_drop_off_individual_img']) ? $allPostVars['pick_up_drop_off_individual_img']: null);
   $installmentOption =      ( isset($allPostVars['installment_option']) ? $allPostVars['installment_option']: null);
   $routeId =                ( isset($allPostVars['route_id']) ? $allPostVars['route_id']: null);
+  $nemis =              ( isset($allPostVars['nemis']) ? $allPostVars['nemis']: null);
 
   // guardian fields
   $guardianData =         ( isset($allPostVars['guardians']) ? $allPostVars['guardians']: null);
@@ -922,11 +923,11 @@ $app->post('/addStudent', function () use($app) {
                                 hospitalized_description, current_medical_treatment, current_medical_treatment_description,
                                 other_medical_conditions, other_medical_conditions_description,
                                 emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual, 
-                                installment_option_id, new_student, transport_route_id, emergency_telephone_2, pick_up_drop_off_individual_phone, pick_up_drop_off_individual_img)
+                                installment_option_id, new_student, transport_route_id, emergency_telephone_2, pick_up_drop_off_individual_phone, pick_up_drop_off_individual_img, nemis)
             VALUES(:admissionNumber,:gender,:firstName,:middleName,:lastName,:dob,:studentCat,:studentType,:nationality,:studentImg, :currentClass, :paymentMethod, :active, :createdBy,
           :admissionDate, :marialStatusParents, :adopted, :adoptedAge, :maritalSeparationAge, :adoptionAware, :comments, :hasMedicalConditions, :hospitalized,
           :hospitalizedDesc, :currentMedicalTreatment, :currentMedicalTreatmentDesc, :otherMedicalConditions, :otherMedicalConditionsDesc,
-          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId, :emergencyPhone2, :pickUpIndividualPhone, :pickUpIndividualImage);");
+          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId, :emergencyPhone2, :pickUpIndividualPhone, :pickUpIndividualImage, :nemis);");
 
     $studentClassInsert = $db->prepare("INSERT INTO app.student_class_history(student_id,class_id,created_by)
                       VALUES(currval('app.students_student_id_seq'),:currentClass,:createdBy);");
@@ -1027,7 +1028,8 @@ $app->post('/addStudent', function () use($app) {
               ':installmentOption' => $installmentOption,
               ':newStudent' => $newStudent,
               ':routeId' => $routeId,
-              ':emergencyPhone2' => $emergencyPhone2
+              ':emergencyPhone2' => $emergencyPhone2,
+              ':nemis' => $nemis
     ) );
 
     $studentClassInsert->execute(array(':currentClass' => $currentClass,':createdBy' => $createdBy));
@@ -1216,6 +1218,7 @@ $app->put('/updateStudent', function () use($app) {
     $newStudent =       ( isset($allPostVars['details']['new_student']) ? $allPostVars['details']['new_student']: 'f');
     $admissionNumber =    ( isset($allPostVars['details']['admission_number']) ? $allPostVars['details']['admission_number']: null);
     $admissionDate =    ( isset($allPostVars['details']['admission_date']) ? $allPostVars['details']['admission_date']: null);
+    $nemis =          ( isset($allPostVars['details']['nemis']) ? $allPostVars['details']['nemis']: null);
   }
 
   if( isset($allPostVars['family']) )
@@ -1281,6 +1284,7 @@ $app->put('/updateStudent', function () use($app) {
             new_student = :newStudent,
             admission_date= :admissionDate,
             admission_number= :admissionNumber,
+            nemis = :nemis,
             modified_date = now(),
             modified_by = :userId
           WHERE student_id = :studentId"
@@ -1436,7 +1440,8 @@ $app->put('/updateStudent', function () use($app) {
               ':newStudent' => $newStudent,
               ':admissionDate' => $admissionDate,
               ':admissionNumber' => $admissionNumber,
-              ':userId' => $userId
+              ':userId' => $userId,
+              ':nemis' => $nemis
       ) );
       if( $updateClass )
       {

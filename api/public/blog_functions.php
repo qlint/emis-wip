@@ -1773,7 +1773,7 @@ $app = \Slim\Slim::getInstance();
   {
       $db = getDB();
       $sth = $db->prepare("SELECT cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
-                cf.message_from as posted_by,
+                cf.message_from as posted_by, cf.guardian_id, cf.student_id,
                 s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
                 cf.message_from as parent_full_name,
                 c.class_name, cf.opened
@@ -1818,7 +1818,7 @@ $app = \Slim\Slim::getInstance();
       $db = getDB();
 
       $sth = $db->prepare( "SELECT cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
-                cf.message_from as posted_by,
+                cf.message_from as posted_by, cf.guardian_id, cf.student_id,
                 s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
                 cf.message_from as parent_full_name,
                 c.class_name, cf.opened
