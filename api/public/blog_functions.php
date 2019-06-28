@@ -1203,7 +1203,7 @@ $app->post('/addCommunication', function () use($app) {
         {
           // school wide
           $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
-          $pullRecipients = $db->prepare("SELECT DISTINCT ON (guardians.first_name, guardians.last_name, telephone) guardians.first_name, guardians.last_name, telephone FROM app.guardians 
+          $pullRecipients = $db->prepare("SELECT DISTINCT ON (guardians.first_name, guardians.last_name, telephone) guardians.first_name, guardians.last_name, telephone FROM app.guardians
                                             INNER JOIN app.student_guardians USING (guardian_id)
                                             INNER JOIN app.students USING (student_id)
                                             WHERE guardians.active IS TRUE AND students.active IS TRUE AND telephone IS NOT null
@@ -1325,6 +1325,366 @@ $app->post('/addCommunication', function () use($app) {
     //   }
     //   // $insertAttachments->execute( array(':attachment2' => $attachment2) );
     // }
+
+    // if published, make entries into tables for email/sms service
+
+    if( $postStatus === 1 )
+    {
+
+      $pullRecipients->execute($params);
+      $results = $pullRecipients->fetchAll(PDO::FETCH_OBJ);
+
+      foreach($results as $result){
+         if( $sendAsEmail === 't' )
+         {
+            $insertEmail->execute( array(':email' => $result->email) );
+         }
+         else if( $sendAsSms === 't' )
+         {
+           $insertSMS->execute( array(':mobileNumber' => $result->telephone, ':firstName' => $result->first_name, ':lastName' => $result->last_name) );
+         }
+      }
+
+      // get the device ids to send a notification
+      if( $sendAsEmail === 't' && $audienceId == 1 || $sendAsEmail === 't' && $audienceId == 2 || $sendAsEmail === 't' && $audienceId == 5 || $sendAsEmail === 't' && $audienceId == 6 || $sendAsEmail === 't' && $audienceId == 7 )
+      {
+          $studentsToNotify->execute($params);
+          $results = $studentsToNotify->fetchAll(PDO::FETCH_OBJ);
+          $studentIds = array();
+          foreach($results as $result) {
+            $studentIds[] = $result->student_id;
+          }
+          $studentIdStr = '{' . implode(',', $studentIds) . '}';
+      }
+
+      $db->commit();
+      $db = null;
+
+      //  was published, need to add entry for notifications
+      $db = getMISDB();
+
+      // get all device ids
+      if( $sendAsEmail === 't' && $audienceId == 1 || $sendAsEmail === 't' && $audienceId == 2 || $sendAsEmail === 't' && $audienceId == 5 || $sendAsEmail === 't' && $audienceId == 6 || $sendAsEmail === 't' && $audienceId == 7 )
+      {
+          $getDeviceIds = $db->prepare("SELECT device_user_id
+                                        FROM parents
+                                        INNER JOIN parent_students
+                                        ON parents.parent_id = parent_students.parent_id
+                                        WHERE subdomain = :subdomain
+                                        AND student_id = any(:studentIds)");
+          $getDeviceIds->execute( array(':studentIds' => $studentIdStr, ':subdomain' => $subdomain) );
+          $results = $getDeviceIds->fetchAll(PDO::FETCH_OBJ);
+
+          $deviceIds = array();
+          foreach($results as $result) {
+            $id = $result->device_user_id;
+            if( !empty($id) && !in_array($id, $deviceIds) ) $deviceIds[] = $id;
+          }
+
+          if( count($deviceIds) > 0 ) {
+            $deviceIdStr = '{' . implode(',',$deviceIds) . '}';
+
+            $add = $db->prepare("INSERT INTO notifications(subdomain, device_user_ids, message)
+                                 VALUES(:subdomain, :deviceIds, :message)");
+            $add->execute(
+              array(
+                ':subdomain' => $subdomain,
+                ':deviceIds' => $deviceIdStr,
+                ':message' => $notifyMsg
+              )
+            );
+          }
+        }
+    }
+    else {
+      $db-commit();
+    }
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
+    $db = null;
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->post('/customAddCommunication', function () use($app) {
+  // Add communication
+
+
+
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+
+  $subject =    ( isset($allPostVars['post']['title']) ? $allPostVars['post']['title']: null);
+  $message =    ( isset($allPostVars['post']['body']) ? $allPostVars['post']['body']: null);
+  $attachment = ( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
+  // $attachment2 = ( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
+  // $attachment = ( isset($allPostVars['post']['attachment']) ? 'TRUE': null);
+  $audienceId = ( isset($allPostVars['post']['audience_id']) ? $allPostVars['post']['audience_id']: null);
+  $comTypeId =  ( isset($allPostVars['post']['com_type_id']) ? $allPostVars['post']['com_type_id']: null);
+  $studentId   =  ( isset($allPostVars['post']['student_id']) ? $allPostVars['post']['student_id']: null);
+  $guardianId = ( isset($allPostVars['post']['guardian_id']) ? $allPostVars['post']['guardian_id']: null);
+  $employeeId = ( isset($allPostVars['post']['emp_id']) ? $allPostVars['post']['emp_id']: null);
+  $classId =    ( isset($allPostVars['post']['class_id']) ? $allPostVars['post']['class_id']: null);
+  $sendAsEmail =  ( isset($allPostVars['post']['send_as_email']) ? $allPostVars['post']['send_as_email']: 'f');
+  $sendAsSms =  ( isset($allPostVars['post']['send_as_sms']) ? $allPostVars['post']['send_as_sms']: 'f');
+  $replyTo =    ( isset($allPostVars['post']['reply_to']) ? $allPostVars['post']['reply_to']: null);
+  $postStatus = ( isset($allPostVars['post']['post_status_id']) ? $allPostVars['post']['post_status_id']: null);
+  $messageFrom =  ( isset($allPostVars['post']['message_from']) ? $allPostVars['post']['message_from']: null);
+  $routeId =  ( isset($allPostVars['post']['transport_id']) ? $allPostVars['post']['transport_id']: null);
+  $feeItem =  ( isset($allPostVars['post']['fee_item']) ? $allPostVars['post']['fee_item']: null);
+  $sent =  ( isset($allPostVars['post']['sent']) ? $allPostVars['post']['sent']: null);
+  $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+
+
+
+  try
+  {
+    $db = getDB();
+    $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, sent, post_status_id, route, activity)
+               VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :sent, :postStatus, :route, :activity) RETURNING com_id AS postId");
+
+    if( $postStatus === 1 )
+    {
+
+      // get list of receipients
+      $subdomain = getSubDomain();
+      $schoolNameQry = $db->query("SELECT value FROM app.settings where name='School Name'");
+      $schoolName = $schoolNameQry->fetch(PDO::FETCH_OBJ);
+      $schoolName = $schoolName->value;
+
+      $params = array();
+      if( $sendAsEmail === 't' )
+      {
+        if( $audienceId === 1 )
+        {
+          // school wide
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+          $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE active is true AND email is not null
+                                          UNION
+                                          SELECT email FROM app.employees WHERE active is true AND email is not null");
+          $studentsToNotify = $db->prepare("SELECT student_id
+                                        FROM app.students
+                                        WHERE active is true");
+        }
+        else if( $audienceId === 2 )
+        {
+          // class specific
+          $className = $db->prepare("SELECT class_name
+                                FROM app.classes
+                              WHERE class_id = :classId");
+          $className->execute(array(':classId' => $classId));
+          $classNameResult = $className->fetch(PDO::FETCH_OBJ);
+          $className = $classNameResult->class_name;
+
+          $notifyMsg = "News posted from " . $className. ": " . $subject;
+          $pullRecipients = $db->prepare("SELECT email FROM app.guardians
+                                          INNER JOIN app.student_guardians
+                                            INNER JOIN app.students
+                                            ON student_guardians.student_id = students.student_id AND students.active is true
+                                          ON guardians.guardian_id = student_guardians.guardian_id
+                                          WHERE guardians.active is true
+                                          AND current_class = :classId");
+          $params = array(':classId' => $classId);
+
+          $studentsToNotify = $db->prepare("SELECT student_id
+                                        FROM app.students
+                                        WHERE current_class = :classId
+                                        AND active is true");
+
+        }
+        else if( $audienceId === 3 )
+        {
+          // all staff
+          $pullRecipients = $db->prepare("SELECT email FROM app.employees WHERE active is true");
+        }
+        else if( $audienceId === 4 )
+        {
+          // all teachers
+          $pullRecipients = $db->prepare("SELECT email FROM app.employees INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id WHERE employees.active is true AND LOWER(employee_cats.emp_cat_name) = LOWER('TEACHING')");
+        }
+        else if( $audienceId === 5 )
+        {
+          // specific parent
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+          $pullRecipients = $db->prepare("SELECT email FROM app.guardians WHERE guardian_id = :guardianId");
+          $params = array(':guardianId' => $guardianId);
+
+          $studentsToNotify = $db->prepare("SELECT students.student_id
+                                        FROM app.students
+                                        INNER JOIN app.student_guardians
+                                        ON students.student_id = student_guardians.student_id
+                                        WHERE guardian_id = :guardianId
+                                        ");
+        }
+        else if( $audienceId === 6 )
+        {
+          // recipients by transport routes
+          $pullRecipients = $db->prepare("SELECT guardians.email
+                                          FROM app.guardians
+                                          INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                          INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                          INNER JOIN app.transport_routes ON students.transport_route_id = transport_routes.transport_id
+                                          INNER JOIN app.communications ON transport_routes.transport_id = communications.route
+                                          WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+
+          $notifyMsg = "Transport Route news posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT students.student_id FROM app.students
+                                            INNER JOIN app.transport_routes ON students.transport_route_id = transport_routes.transport_id
+                                            INNER JOIN app.communications ON transport_routes.transport_id = communications.route
+                                            WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+        }
+        else if( $audienceId === 7 )
+        {
+          // recipients by activity
+          $pullRecipients = $db->prepare("SELECT guardians.email
+                                          FROM app.guardians
+                                          INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                          INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                          INNER JOIN app.student_fee_items ON students.student_id = student_fee_items.student_id
+                                          INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+                                          INNER JOIN app.communications ON fee_items.fee_item = communications.activity
+                                          WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT students.student_id FROM app.students
+                                            INNER JOIN app.student_fee_items ON students.student_id = student_fee_items.student_id
+                                            INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+                                            INNER JOIN app.communications ON fee_items.fee_item = communications.activity
+                                            WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+        }
+
+        $insertEmail = $db->prepare("INSERT INTO app.communication_emails(com_id, email_address)
+                                     VALUES(CURRVAL('app.communications_com_id_seq'), :email)");
+
+      }
+      else if( $sendAsSms === 't' )
+      {
+        // TO DO how do we know their telephone number is their mobile device and they want to receive SMS...
+        if( $audienceId === 1 )
+        {
+          // school wide
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+          $pullRecipients = $db->prepare("SELECT DISTINCT ON (guardians.first_name, guardians.last_name, telephone) guardians.first_name, guardians.last_name, telephone FROM app.guardians
+                                            INNER JOIN app.student_guardians USING (guardian_id)
+                                            INNER JOIN app.students USING (student_id)
+                                            WHERE guardians.active IS TRUE AND students.active IS TRUE AND telephone IS NOT null
+                                          /*UNION
+                                          SELECT first_name, last_name, telephone FROM app.employees WHERE active is true AND telephone is not null*/");
+          $studentsToNotify = $db->prepare("SELECT student_id
+                                        FROM app.students
+                                        WHERE active is true");
+        }
+        else if( $audienceId === 2 )
+        {
+          // class specific
+          $className = $db->prepare("SELECT class_name
+                                FROM app.classes
+                              WHERE class_id = :classId");
+          $className->execute(array(':classId' => $classId));
+          $classNameResult = $className->fetch(PDO::FETCH_OBJ);
+          $className = $classNameResult->class_name;
+
+          $notifyMsg = "News posted from " . $className. ": " . $subject;
+          $pullRecipients = $db->prepare("SELECT guardians.telephone, guardians.first_name, guardians.last_name FROM app.guardians
+                                          INNER JOIN app.student_guardians
+                                            INNER JOIN app.students
+                                            ON student_guardians.student_id = students.student_id AND students.active is true
+                                          ON guardians.guardian_id = student_guardians.guardian_id
+                                          WHERE guardians.active is true
+                                          AND current_class = :classId");
+          $params = array(':classId' => $classId);
+
+          $studentsToNotify = $db->prepare("SELECT student_id
+                                        FROM app.students
+                                        WHERE current_class = :classId
+                                        AND active is true");
+        }
+        else if( $audienceId === 3 )
+        {
+          // all staff
+          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM app.employees WHERE active is true");
+        }
+        else if( $audienceId === 4 )
+        {
+          // all teachers
+          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM app.employees INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id WHERE employees.active is true AND LOWER(employee_cats.emp_cat_name) = LOWER('TEACHING')");
+          //$params = array($_POST["attachment"]);
+        }
+        else if( $audienceId === 5 )
+        {
+          // specific parent
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM app.guardians WHERE guardian_id = :guardianId");
+          $params = array(':guardianId' => $guardianId);
+
+        }
+        else if( $audienceId === 6 )
+        {
+          // recipients by transport routes
+          $pullRecipients = $db->prepare("SELECT guardians.first_name, guardians.last_name, guardians.telephone
+                                          FROM app.guardians
+                                          INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                          INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                          INNER JOIN app.transport_routes ON students.transport_route_id = transport_routes.transport_id
+                                          INNER JOIN app.communications ON transport_routes.transport_id = communications.route
+                                          WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+        }
+        else if( $audienceId === 7 )
+        {
+
+
+          // recipients by activity
+          $pullRecipients = $db->prepare("SELECT guardians.first_name, guardians.last_name, guardians.telephone
+                                          FROM app.guardians
+                                          INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                          INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                          INNER JOIN app.student_fee_items ON students.student_id = student_fee_items.student_id
+                                          INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+                                          INNER JOIN app.communications ON fee_items.fee_item = communications.activity
+                                          WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+
+
+        }
+        else if( $audienceId === 8 )
+        {
+          // recipients by employee department (drivers)
+          $pullRecipients = $db->prepare("SELECT employees.first_name, employees.last_name, employees.telephone
+                                          FROM app.employees
+                                          INNER JOIN app.employee_cats USING (emp_cat_id)
+                                          WHERE employees.active is true AND LOWER(employee_cats.emp_cat_name) = LOWER('Drivers')");
+
+
+        }
+        else if( $audienceId === 9 )
+        {
+          // specific employee
+          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM app.employees WHERE emp_id = :employeeId");
+          $params = array(':employeeId' => $employeeId);
+
+        }
+
+        $insertSMS = $db->prepare("INSERT INTO app.communication_sms(com_id, sim_number, first_name, last_name) VALUES(CURRVAL('app.communications_com_id_seq'), :mobileNumber, :firstName, :lastName)");
+      }
+
+    }
+
+
+
+    $db->beginTransaction();
+    $sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message ,
+            ':attachment' => $attachment , ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
+            ':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo, ':sent' => $sent,
+            ':messageFrom' => $messageFrom, ':postStatus' => $postStatus, ':route' => $routeId, ':activity' => $feeItem) );
 
     // if published, make entries into tables for email/sms service
 
@@ -1828,7 +2188,7 @@ $app = \Slim\Slim::getInstance();
             LEFT JOIN app.classes c USING (class_id)
             GROUP BY cf.com_feedback_id, subject, message, student_name, parent_full_name, class_name, opened
             ORDER BY post_id DESC" );
-            
+
       $sth->execute();
       $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -2021,6 +2381,69 @@ $app->put('/unPublishMessage', function () use($app) {
         $app->response()->setStatus(404);
         $app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getStudentsWithFeeBal', function () {
+  // Get blog post types
+
+$app = \Slim\Slim::getInstance();
+
+  try
+  {
+      $db = getDB();
+      $sth = $db->prepare("SELECT student_id, student_name, array_agg(parents) AS parents, fee_item, avg(total_due) AS total_due, avg(total_paid) AS total_paid, avg(balance) AS balance FROM (
+                          	SELECT student_id, student_name, '{\"name\":\"' || parent_full_name || '\",\"phone\":\"' || telephone || '\",\"id\":' || guardian_id || '}' AS parents, fee_item, total_due, total_paid, balance
+                          	FROM
+                          	(
+                          		SELECT DISTINCT(guardian_id) guardian_id, parent_full_name, telephone, student_id, student_name, array_to_string(array_agg(fee_item ORDER BY fee_item ASC),',') AS fee_item, payment_method, sum(invoice_total) AS total_due, sum(total_paid) AS total_paid, sum(total_paid) - sum(invoice_total) AS balance FROM (
+                          			SELECT invoices.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,
+                          				g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS parent_full_name, g.telephone,
+                          				invoices.inv_id,
+                          				invoice_line_items.amount as invoice_total, fee_item, student_fee_items.payment_method, inv_item_id,
+                          				(SELECT COALESCE(sum(payment_inv_items.amount), 0)
+                          				FROM app.payment_inv_items
+                          				INNER JOIN app.payments
+                          				ON payment_inv_items.payment_id = payments.payment_id AND reversed is false
+                          				WHERE inv_item_id = invoice_line_items.inv_item_id) as total_paid
+                          			FROM app.invoices
+                          			INNER JOIN app.students USING (student_id)
+                          			INNER JOIN app.student_guardians sg USING (student_id)
+                          			INNER JOIN app.guardians g USING (guardian_id)
+                          			INNER JOIN app.invoice_line_items
+                          			INNER JOIN app.student_fee_items
+                          			INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
+                          						ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id AND student_fee_items.active = true
+                          						ON invoices.inv_id = invoice_line_items.inv_id
+                          			WHERE invoices.canceled = false
+                          			ORDER BY student_name ASC
+                          		)p
+                          		GROUP BY guardian_id, parent_full_name, telephone, student_id, student_name, payment_method
+                          		ORDER BY student_name ASC
+                          	) q
+                          )r
+                          WHERE balance < 0
+                          GROUP BY student_id, student_name, fee_item");
+      $sth->execute();
+      $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+      if($results) {
+          $app->response->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo json_encode(array('response' => 'success', 'data' => $results ));
+          $db = null;
+      } else {
+          $app->response->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+          $db = null;
+      }
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+  $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
 
 });

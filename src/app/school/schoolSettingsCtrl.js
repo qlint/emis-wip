@@ -71,50 +71,52 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Mpesa Details' : angular.copy($rootScope.currentUser.settings['Mpesa Details']	),
 			'Use Feedback' : angular.copy($rootScope.currentUser.settings['Use Feedback']	),
 			'Use Autoadmission' : angular.copy($rootScope.currentUser.settings['Use Autoadmission']	),
+			'Clubs' : angular.copy($rootScope.currentUser.settings['Clubs']	),
+			'Houses' : angular.copy($rootScope.currentUser.settings['Houses']	),
 		}
-		
+
 		if($scope.settings['Bank Name 2'] == 'Null'){ $scope.settings['Bank Name 2'] = ''; }
 		if($scope.settings['Bank Branch 2'] == 'Null'){ $scope.settings['Bank Branch 2'] = ''; }
 		if($scope.settings['Account Name 2'] == 'Null'){ $scope.settings['Account Name 2'] = ''; }
 		if($scope.settings['Account Number 2'] == 'Null'){ $scope.settings['Account Number 2'] = ''; }
 		if($scope.settings['Mpesa Details'] == 'Null'){ $scope.settings['Mpesa Details'] = ''; }
-		
+
 		if($scope.settings['Use Feedback'] == 'true'){
-		    
+
 		    console.log("Checking status, feedback = " + $scope.settings['Use Autoadmission']);
 		    // Params ($selector, boolean)
             function setSwitchState(el, flag) {
                 el.attr('checked', flag);
             }
-            
+
             // change switch status
             setSwitchState($('#feedbackStat.switch-input'), true);
 		}
-		
+
 		if($scope.settings['Use Autoadmission'] == 'true'){
 		    $scope.autoAdmissionEn = true; // show automatic admissions options
-		    
+
 		    console.log("Checking status, auto admission = " + $scope.settings['Use Autoadmission']);
 		    // Params ($selector, boolean)
             function setSwitchState(el, flag) {
                 el.attr('checked', flag);
             }
-            
+
             // change switch status
             setSwitchState($('#autoAdmission.switch-input'), true);
 		}
 
 	}
-	
+
 	$scope.getFeedbackSetting = function(el){
-        
+
         // process the switch
-        
+
         $('#feedbackStat.switch-input').on('change', function() {
             var isChecked = $(this).is(':checked');
             var selectedData;
             var $switchLabel = $('#feedbackSwitch.switch-label');
-                        
+
             if($scope.settings[ 'Use Feedback' ] == "true"){
                 console.log("Feedback was true, now switcing to false");
                 selectedData = $switchLabel.attr('data-off');
@@ -122,20 +124,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
                 console.log("Feedback was false, now switching on");
                 selectedData = $switchLabel.attr('data-on');
             }
-                        
+
             console.log('Selected feedback = ' + selectedData);
-                      
+
         });
-                    
+
         // Params ($selector, boolean)
         function setSwitchState(el, flag) {
             console.log("Changing feedback switch status .....");
             el.attr('checked', flag);
         }
-        
+
         // change switch status
         setSwitchState($('#feedbackStat.switch-input'), true);
-        
+
         // make the change
         var postData = {
 			settings: [{
@@ -146,18 +148,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		}
         apiService.updateSettings(postData, createCompleted, apiError);
     }
-    
+
     $scope.automaticAdmissionNumbers = function(el){
-        
+
         $scope.autoAdmissionEn = true; // show automatic admissions options
-        
+
         // process the switch
-        
+
         $('#autoAdmission.switch-input').on('change', function() {
             var isChecked = $(this).is(':checked');
             var selectedData;
             var $switchLabel = $('#admissionSwitch.switch-label');
-                        
+
             if($scope.settings[ 'Use Autoadmission' ] == "true"){
                 console.log("Auto admission was true, now switcing to false");
                 selectedData = $switchLabel.attr('data-off');
@@ -165,20 +167,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
                 console.log("Auto admission was false, now switching on");
                 selectedData = $switchLabel.attr('data-on');
             }
-                        
+
             console.log('Selected auto admission = ' + selectedData);
-                      
+
         });
-                    
+
         // Params ($selector, boolean)
         function setSwitchState(el, flag) {
             console.log("Changing switch status .....");
             el.attr('checked', flag);
         }
-        
+
         // change switch status
         setSwitchState($('#autoAdmission.switch-input'), true);
-        
+
         var updateAdmission = {
 			settings: [{
 				    name: 'Use Autoadmission',

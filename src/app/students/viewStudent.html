@@ -202,7 +202,7 @@
 								</div>
 							</div>
 
-                            <!-- student type -->
+              <!-- student type -->
 							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.student_type.$dirty ) && studentForm.student_type.$invalid && studentForm.student_type.$error.required }">
 								<label for="new_student">Student Type</label>
 								<p class="form-control-static" ng-show="!edit">{{student.student_type}}</p>
@@ -213,13 +213,41 @@
 									<p ng-show="(studentForm.$submitted || studentForm.student_type.$dirty ) && studentForm.student_type.$invalid && studentForm.student_type.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Student Type is required.</p>
 								</div>
 							</div>
-							
+
 							<!-- nemis -->
 							<div class="col-sm-4">
 								<label for="nemis">NEMIS</label>
 								<p class="form-control-static" ng-show="!edit">{{student.nemis}}</p>
 								<div ng-show="edit">
 									<input type="text" name="nemis" ng-model="student.nemis" class="form-control"  >
+								</div>
+							</div>
+
+						</div>
+
+						<div class="row">
+
+							<!-- houses -->
+							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.house.$dirty ) && studentForm.house.$invalid }">
+								<label for="house">School House</label>
+								<p class="form-control-static" ng-show="!edit">{{student.house}}</p>
+								<div ng-show="edit">
+									<select name="house" ng-model="student.house" class="form-control">
+										<option value="{{item}}" ng-repeat="item in houses">{{item}}</option>
+									</select>
+
+								</div>
+							</div>
+
+							<!-- clubs -->
+							<div class="col-sm-4" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.club.$dirty ) && studentForm.club.$invalid }">
+								<label for="club">Club</label>
+								<p class="form-control-static" ng-show="!edit">{{student.club}}</p>
+								<div ng-show="edit">
+									<select name="club" ng-model="student.club" class="form-control">
+										<option value="{{item}}" ng-repeat="item in clubs">{{item}}</option>
+									</select>
+
 								</div>
 							</div>
 
@@ -304,7 +332,7 @@
 								<p ng-show="(studentForm.$submitted || studentForm.emergency_telephone.$dirty ) && studentForm.emergency_telephone.$invalid && studentForm.emergency_telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> A Valid Emergency Contact Telephone is required.</p>
 							</div>
 						</div>
-						
+
 						<!-- emergency telephone 2 -->
 						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.emergency_telephone_2.$dirty ) && studentForm.emergency_telephone_2.$invalid }">
 							<label for="emergency_telephone_2" class="col-sm-4 control-label">Contact Telephone 2</label>
@@ -324,7 +352,7 @@
 								<input type="text" name="pick_up_drop_off_individual" ng-model="student.pick_up_drop_off_individual" class="form-control"  >
 							</div>
 						</div>
-						
+
 						<!-- pick_up_drop_off_individual telephone -->
 						<div class="form-group">
 							<label for="pick_up_drop_off_individual_phone" class="col-sm-4 control-label">Phone</label>
@@ -397,12 +425,12 @@
 							</div>
 						</div>
 					</div>
-					
+
 					<div class="col-sm-6">
 						<h3>Pick Up / Drop Off Individual Image</h3>
-						
+
 						<!-- pic -->
-    					
+
 						<div class="form-group">
 						    <div class="col-sm-6">
         						<div class="pic-container">
@@ -420,7 +448,7 @@
     						</div>
 						</div>
 					</div>
-					
+
 				</div>
 
 			</script>
@@ -762,7 +790,7 @@
 												<option value="">-- select a route --</option>
 											</select>
 										</div>
-										
+
 										<div ng-if="item.fee_item == 'Uniform'">
 										    <table ng-show="showUniform" style="border:1px #000000 solid;">
 										        <thead>
@@ -777,7 +805,7 @@
 										        </tbody>
 										    </table>
 										</div>
-										
+
 									</td>
 									<td width="70">
 										<input type="text" name="fee_item_amount[]" ng-model="item.amount" class="form-control" placeholder="{{item.default_amount}}">
@@ -898,7 +926,7 @@
 				<p class="note" ng-show="parentPortalAcitve" style="margin-top:10px;border-top:1px solid #eee;padding-top:10px">
 					<sup>*</sup> The asterisk indicates that a report card is NOT published and not accessible to parents via the parent portal.
 				</p>
-				
+
 				<h2 ng-show="lowerSchool" ng-show="lowerSchool">Lower School Report Cards</h2>
 				<table id="resultsTable3" class="display dataTable clickable" cellspacing="0" width="100%" ng-show="lowerSchool">
 					<thead>
@@ -917,7 +945,7 @@
 									<input id="upload3_{{term.term_id}}" name="upload3_{{term.term_id}}" type="file" nv-file-select="" uploader="uploader3" style="width:33%;font-size:12px;filter:alpha(opacity: 0);" ng-click="documentReportCard(this)" />
 									Upload File
 									</label>
-									
+
 									<label for="deleteUpload3_{{term.term_id}}" class="deleteDocUpload1" ng-show="{{term.reportExists}}" ng-click="deleteDocumentReportCard(this)" >
 									    <!-- <input id="deleteUpload3_{{term.term_id}}" name="deleteUpload3_{{term.term_id}}" type="button" style="width:33%;font-size:12px;filter:alpha(opacity: 0);"/> -->
 									Remove

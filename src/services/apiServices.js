@@ -214,7 +214,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.getTansportRoutes = function (request, successFunction, errorFunction) {
 		ajaxService.AjaxGetWithData(request, path + "/getTansportRoutes", successFunction, errorFunction);
 	};
-	
+
 	this.getUniforms = function (request, successFunction, errorFunction) {
 		ajaxService.AjaxGetWithData(request, path + "/getUniforms", successFunction, errorFunction);
 	};
@@ -242,7 +242,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.updateRoutes = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateRoutes", successFunction, errorFunction, params);
 	};
-	
+
 	this.updateUniforms = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateUniforms", successFunction, errorFunction, params);
 	};
@@ -470,6 +470,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getStudentBalance/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getStudentsWithFeeBal = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getStudentsWithFeeBal", successFunction, errorFunction, params);
+	};
+
 	this.getStudentInvoices = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getStudentInvoices/" + param, successFunction, errorFunction, params);
 	};
@@ -545,7 +549,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.checkAdmNumber = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/checkAdmNumber/" + param, successFunction, errorFunction, params);
 	};
-	
+
 	this.getLatestAdmission = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getLatestAdmission", successFunction, errorFunction, params);
 	};
@@ -776,6 +780,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPost2(request, path + "/addCommunication", successFunction, errorFunction, params);
 	};
 
+	this.customAddCommunication = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/customAddCommunication", successFunction, errorFunction, params);
+	};
+
 	this.getCommunication = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getCommunication/" + param, successFunction, errorFunction, params);
 	};
@@ -829,11 +837,11 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.getStreamAnalysis = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getStreamAnalysis/" + param, successFunction, errorFunction, params);
 	};
-	
+
 	this.getOverallFinancials = function (param, successFunction, errorFunction) {
 		ajaxService.AjaxGet(path + "/getOverallFinancials/" + param, successFunction, errorFunction);
 	};
-	
+
 	this.getOverallStudentFeePayments = function (param, successFunction, errorFunction) {
 		ajaxService.AjaxGet(path + "/getOverallStudentFeePayments/" + param, successFunction, errorFunction);
 	};

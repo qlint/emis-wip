@@ -43,9 +43,8 @@ function($scope, $rootScope, apiService){
                     for(var j=0; j < output.length; j++){
                         output[j].tot = output[j].boys + output[j].girls;
                     }
-                    console.log("The output",output);
+                    
                     $scope.classCats[f].classes = output;
-                    console.log($scope.classCats[f].classes);
                     
                     function fromArrayToObject(keyValuePairs) {
                       return keyValuePairs.reduce((obj, [key, value]) => {
@@ -62,7 +61,6 @@ function($scope, $rootScope, apiService){
                         return value;
                       }
                     }
-				    console.log(replaceAll);
 				}
 				$scope.studentsLoading = false;
 			}
@@ -261,19 +259,13 @@ function($scope, $rootScope, apiService){
 			$scope.totalCount = result.data[0].total;
 			
 			if($scope.maleCount == "0"){
-			    //console.log("No male students found");
 			    var genderOverview = "Girls(" + $scope.femaleCount + ")";
-			    //console.log(genderOverview);
 			}else if($scope.femaleCount == "0"){
-			    //console.log("No female students found");
 			    var genderOverview = "Boys(" + $scope.maleCount + ")";
-			    //console.log(genderOverview);
 			}else{
 			    $('#studentModuleIcon').css('margin-top','27px');
-			    //console.log("Both genders found");
 			    var totalGnd = Number($scope.maleCount) + Number($scope.femaleCount);
 			    var genderOverview = "Boys(" + $scope.maleCount + ") Girls(" + $scope.femaleCount + ") Tot(" + totalGnd + ")";
-			    //console.log(genderOverview);
 			}
 			$scope.genderCount = genderOverview;
 		}

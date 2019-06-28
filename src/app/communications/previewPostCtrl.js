@@ -10,10 +10,8 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	console.log($scope.post);
 	
 
-	// for (var i = 0; i < data.post.attachment.length; i++){
-		$scope.post.attachment = data.post.attachment;
-		$scope.post.attachment = [$scope.post.attachment]; // remove this and acquire array dynamically
-	// }
+	$scope.post.attachment = data.post.attachment;
+	$scope.post.attachment = $scope.post.attachment.split(',');
 	
 	$scope.showAttachment = ($scope.post.attachment[0] == null ? false : true);
 	console.log("Is there an attachment? " + $scope.showAttachment);
@@ -226,7 +224,6 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	//END
 	
 	if( $scope.post.details === undefined ){ 
-	    console.log("scope post details is undefined");
 	    $scope.post.details = data.post;
 	}
 
@@ -237,22 +234,9 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	console.log($scope.post.details);
 
 	var attachments = data.post.attachment;
-	localStorage.setItem("attachmentsList", attachments);
-	var testing12 = localStorage.setItem("attachmentsList", attachments);
-	var returntestresults = localStorage.getItem("attachmentsList");
-	// console.log("Testing 1-2 || " + returntestresults);
-	// console.log(attachments);
 
-    $scope.attachments = [$scope.post.details.attachment];
+    $scope.attachments = $scope.post.details.attachment.split(',');
     console.log($scope.attachments);
-    // UNCOMMENT THIS
-    /*
-    if($scope.attachments !== undefined && $scope.attachments.length > 0){
-	    $scope.attachments = attachments.split(',');
-    }
-    */
-    
-	// console.log($scope.attachments[0]);
 
 	$scope.cancel = function()
 	{

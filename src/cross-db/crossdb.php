@@ -25,7 +25,7 @@
     	    
     	    $schoolDb = pg_connect("host=localhost port=5432 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
     	    // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
-    	    $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.students ADD COLUMN nemis character varying;"); // executing the query
+    	    $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.students ADD COLUMN club character varying;"); // executing the query
     	    /*
     	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Branch');");
     	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Branch 2');");

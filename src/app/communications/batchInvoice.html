@@ -1,0 +1,101 @@
+<!--
+<script type="text/javascript" src="components/excelgen/external/jquery-1.8.2.js"></script>
+<script type="text/javascript" src="components/excelgen/external/jszip.js"></script>
+<script type="text/javascript" src="components/excelgen/external/FileSaver.js"></script>
+<script type="text/javascript" src="components/excelgen/scripts/excel-gen.js"></script>
+<script type="text/javascript">
+				    $(document).ready(function () {
+                        $("#generate-excel-formatted").click(function () {
+                    		excel = new ExcelGen({
+                    			"src_id": "resultsTable2",
+                    			"show_header": true,
+                    			"type": "table"
+                    		});
+                            excel.generate();
+                    	});
+                    });
+</script>
+-->
+<form name="examForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(examForm)">
+	<div class="modal-header dialog-header-form">
+				<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Message Fee Balance To Parents</h4>
+			</div>
+			<div class="modal-body clearfix">
+
+				<!-- search form -->
+				<!--
+				<div class="modalDataFilter clearfix">
+
+					<div class="form-group">
+						<label for="class">Class</label>
+						<select name="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" required>
+							<option value="">--select class--</option>
+						</select>
+						<p ng-show="examForm.class_id.$invalid && (examForm.class_id.$touched || examForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class is required.</p>
+					</div>
+
+					<div class="form-group submit-btn">
+						<input type="button" class="btn btn-sm btn-info" ng-click="getStudentExams(examForm)" value="Load" />
+						<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
+					</div>
+				</div
+				-->
+				<!-- // end search form -->
+
+				<div>
+        		<h3>List Of All Students With Fee Balances</h3><br>
+						<div class="form-group" style="margin-left:auto;">
+							<label for="message_from">Message From:</label>
+							<select style="width:40%;" name="message_from" class="form-control" id="message_from" required>
+								<option>--select employee--</option>
+								<option ng-repeat="employee in employees track by $index" value="{{employee.emp_id}}" ng-model="filters.employee">{{employee.employee_name}}</option>
+							</select>
+							<p class="help-block"><i class="fa fa-exclamation-triangle"></i> Please select whom the message is from.</p>
+						</div>
+        </div>
+				<p ng-show="marksNotFound" class="error alert alert-danger">
+					{{errMsg}}
+				</p>
+				<div ng-hide="showTable" style="text-align:center;">
+					<h4>Working on it... Depending on the number of students, this might take some time.</h4>
+					<img src="assets/loading-one.gif" style="max-width:100px;" />
+				</div>
+
+				<table ng-show="showTable" id="resultsTable2" class="display dataTable" cellspacing="0" width="100%" style="border-collapse: collapse;">
+					<thead>
+						<tr>
+							<th>Parent</th>
+							<th>Telephone</th>
+							<th>Student</th>
+							<th>Message</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in feeBalances track by $index">
+							<td>
+							    <p ng-repeat="item2 in item.parents track by $index" id="{{item2.id}}">{{item2.name}}<p>
+							</td>
+							<td>
+							    <p ng-repeat="item3 in item.parents track by $index">{{item3.phone}}</p>
+							</td>
+							<td>{{item.student_name}}</td>
+							<td>
+							    <p ng-repeat="item4 in item.parents track by $index">{{item4.message}}</p>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" ng-click="cancel()">Cancel</button>
+				<button ng-click="sendBySms()" class="btn btn-primary">Send By SMS</button>
+				<button ng-click="sendByApp()" class="btn btn-primary">Send By App</button>
+				<!--
+				<script type="text/javascript" src="components/printThis.js"></script>
+				<button ng-click="printExams()" type="button" class="btn btn-success">Print</button>
+				<button ng-click="exportTableToCSV('mark_sheet.csv')" type="button" class="btn btn-success">Download CSV</button>
+				<button id="generate-excel-formatted" ng-click="exportTableToXLSS()" type="button" class="btn btn-success">Download Excel</button>
+				-->
+			</div>
+</form>

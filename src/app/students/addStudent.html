@@ -192,6 +192,15 @@
 								<p ng-show="(studentForm.$submitted || studentForm.status.$dirty ) && studentForm.status.$invalid && studentForm.status.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Status is required.</p>
 							</div>
 						</div>
+
+						<!-- house -->
+						<div class="form-group">
+							<label for="house" class="col-sm-4 control-label">School House</label>
+							<div class="col-sm-8">
+								<input type="text" name="house" ng-model="student.house" class="form-control"  >
+							</div>
+						</div>
+
 					</div>
 					<div class="col-sm-6">
 						<h3>Family History</h3>
@@ -276,7 +285,7 @@
 								<p ng-show="(studentForm.$submitted || studentForm.emergency_telephone.$dirty ) && studentForm.emergency_telephone.$invalid && studentForm.emergency_telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Telephone is required.</p>
 							</div>
 						</div>
-						
+
 						<!-- emergency telephone 2 -->
 						<div class="form-group" ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.emergency_telephone_2.$dirty ) && studentForm.emergency_telephone_2.$invalid }">
 							<label for="emergency_telephone_2" class="col-sm-4 control-label">Contact Telephone 2</label>
