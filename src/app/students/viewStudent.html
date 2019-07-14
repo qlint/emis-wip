@@ -1,3 +1,5 @@
+<style type="text/css">@import url("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/css/select2.min.css");</style>
+
 <form name="studentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(studentForm)">
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
@@ -244,10 +246,19 @@
 								<label for="club">Club</label>
 								<p class="form-control-static" ng-show="!edit">{{student.club}}</p>
 								<div ng-show="edit">
-									<select name="club" ng-model="student.club" class="form-control">
+									<select name="club[]" ng-model="student.club"  class="form-control multiSelect" multiple="multiple" style="height:{{clubSelectHght}}px" >
 										<option value="{{item}}" ng-repeat="item in clubs">{{item}}</option>
 									</select>
 
+								</div>
+							</div>
+
+							<!-- movement -->
+							<div class="col-sm-4">
+								<label for="movement">Movement</label>
+								<p class="form-control-static" ng-show="!edit">{{student.movement}}</p>
+								<div ng-show="edit">
+									<input type="text" name="movement" ng-model="student.movement" class="form-control"  >
 								</div>
 							</div>
 
@@ -957,6 +968,55 @@
 				</table>
 			</script>
 
+			<script type="text/ng-template" id="Transport">
+			    <h2>Student Transport Details</h2>
+				<div class="row">
+				    <div class="col-sm-12">
+				        <h3>Where does this student live? </h3>
+
+						<div class="form-group" style="margin-left:auto">
+							<label for="student_destination" class="col-sm-3 control-label">Neighborhood: </label>
+							<p class="form-control-static" ng-show="!edit">{{student.destination}}</p>
+							<div ng-show="edit" class="col-sm-6">
+								<select name="student_destination" ng-model="student.destination" class="form-control" style="height:35px;" id="studentHome">
+									<option value="">--select one--</option>
+									<option value="{{item}}" ng-repeat="item in routes">{{item}}</option>
+								</select>
+							</div>
+							<div ng-show="edit" class="col-sm-3">
+								<button type="button" class="btn btn-success pull-left" ng-click="saveDestination()">Save Neighborhood</button>
+							</div>
+						</div>
+				    </div>
+				    <div class="col-sm-12" style="margin-top:20px;">
+				        <h3>Transportation Details </h3>
+
+						<div class="form-group" style="margin-left:auto;">
+							<table style="width:100%;border:1px solid #404040;margin-left:auto;">
+							    <thead>
+							        <tr>
+    							        <th>Neighborhood</th>
+    							        <th>Bus</th>
+    							        <th>Trip</th>
+    							        <th>Bus Driver</th>
+    							        <th>Bus Assistant</th>
+							        </tr>
+							    </thead>
+							    <tbody>
+							        <tr ng-repeat="detail in bus track by $index">
+							            <td style="width:10%">{{detail.student_destination}}</td>
+							            <td style="width:10%">{{detail.bus}}</td>
+							            <td style="width:50%">{{detail.trip_name}}</td>
+							            <td style="width:15%">{{detail.driver_name}}</td>
+							            <td style="width:15%">{{detail.guide_name}}</td>
+							        </tr>
+							    </tbody>
+							</table>
+						</div>
+				    </div>
+				</div>
+			</script>
+
 			<script type="text/ng-template" id="News">
 				<h2>News</h2>
 				<p>This is a work in progress...</p>
@@ -966,7 +1026,7 @@
 			<button type="button" class="btn btn-danger pull-left" ng-click="adminDelete()">Delete</button>
 			<button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
 
-			<button type="submit" class="btn btn-success" ng-show="!studentForm.$pristine">
+			<button type="submit" class="btn btn-success" ng-show="!studentForm.$pristine" ng-hide="isNotNeeded" id="saveBtn">
 				<span ng-hide="saving">Save</span>
 				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
 			</button>

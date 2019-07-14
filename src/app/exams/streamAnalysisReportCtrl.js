@@ -225,14 +225,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						var subjectDetails = colRow.split(', '),
 							parentSubject = subjectDetails[1],
 							subjectName = subjectDetails[2];
-							
-						console.log("The subject details", subjectDetails);
 						
 						var hasChildren = ( parentSubject == '' && subjectsObj[subjectName].children.length > 0 ? true : false );
 						
 						var kiswSubj = 'Kiswahili';
 						$scope.tableHeader.push({
-							title: (hasChildren ? ( subjectName.toLowerCase() == kiswSubj.toLowerCase() ? 'Juml' : 'TOT') : formatTitle(subjectName)),
+							// title: (hasChildren ? ( subjectName.toLowerCase() == kiswSubj.toLowerCase() ? 'Juml' : 'TOT') : formatTitle(subjectName)),
+							title: (hasChildren ? ( subjectName.toLowerCase() == kiswSubj.toLowerCase() ? 'Juml' : 'TOT') : subjectName),
 							key: key,
 							isParent: (parentSubject == '' ? true : false)
 						});
@@ -293,6 +292,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	
 	var formatTitle = function(title)
 	{
+	    console.log($scope.filters);
 		var titleArray = title.split(' ');
 		var numWords = titleArray.length;
 		var i = 0;
@@ -327,7 +327,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			  result[index] = item; //a, b, c
 			  return result;
 			}, {})
-		console.log($scope.uniqueMn2);
 
 		//this takes our original array of # of stdnts who did a subject & divides to the ttl marks
 		var cnt = 0;
@@ -340,8 +339,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.divides2= $scope.divides.map(function(each_element){
 		    return Number(each_element.toFixed(2));
 		});
-		// $scope.divides2 = $scope.divides;
-		console.log($scope.divides2);
 		//the result of the above an array of the mean scores
 
 		//this takes the array above and converts it to an object

@@ -751,40 +751,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.errMsg = result.data;
 		}
 
-		function beautifyClassAnalysisTable() {
-			console.log("Attempting to beautify table");
-			// data tables - prepare the table for presentation and download
-		  var docName = $scope.filters.class.class_name;
-	    var targetTable = document.getElementById('classAnalysisTable').rows[0].cells.length;
-	    var orderCol = targetTable - 1;
-
-			$('#classAnalysisTable').DataTable( {
-	            fixedHeader: true,
-	            dom: 'Bfrtip',
-	            "columnDefs": [
-	                {"className": "dt-center", "targets": "_all"}
-	            ],
-	            buttons: [
-	                {
-	                    extend: 'excelHtml5',
-	                    title: docName + ' Class Analysis'
-	                },
-	                {
-	                    extend: 'csvHtml5',
-	                    title: docName + ' Class Analysis'
-	                },
-	                {
-	                    extend: 'pdfHtml5',
-	                    title: docName + ' Class Analysis'
-	                }
-	              ],
-	              "order": [[orderCol,"asc"]],
-	              "bStateSave": true
-	      } );
-	      // end data tables
-		}
-		setTimeout(beautifyClassAnalysisTable, 3000);
-
 	}
 	
 	var loadStreamMarks = function(response,status)
@@ -934,40 +900,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.errMsg = result.data;
 		}
 
-		function beautifyStreamAnalysisTable() {
-			console.log("Attempting to beautify table");
-			// data tables - prepare the table for presentation and download
-		  var docName = $scope.filters.class.class_name;
-	    var targetTable = document.getElementById('streamAnalysisTable').rows[0].cells.length;
-	    var orderCol = targetTable - 1;
-
-			$('#streamAnalysisTable').DataTable( {
-	            fixedHeader: true,
-	            dom: 'Bfrtip',
-	            "columnDefs": [
-	                {"className": "dt-center", "targets": "_all"}
-	            ],
-	            buttons: [
-	                {
-	                    extend: 'excelHtml5',
-	                    title: docName + ' Stream Analysis'
-	                },
-	                {
-	                    extend: 'csvHtml5',
-	                    title: docName + ' Stream Analysis'
-	                },
-	                {
-	                    extend: 'pdfHtml5',
-	                    title: docName + ' Stream Analysis'
-	                }
-	              ],
-	              "order": [[orderCol,"asc"]],
-	              "bStateSave": true
-	      } );
-	      // end data tables
-		}
-		setTimeout(beautifyStreamAnalysisTable, 3000);
-
 	}
 
 	$scope.gotoDiv1 = function(el) {
@@ -985,16 +917,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         
         $scope.classAnalysisTable = ( $scope.returnToClassAnalysis == true ? true : false);
         $scope.streamAnalysisTable = ( $scope.returnToStreamAnalysis == true ? true : false);
+        console.log("Can we return to the class analysis? " + $scope.classAnalysisTable);
       
         if($scope.classAnalysisTable == true){
 	            
 	            document.getElementById("classAnalysisTableDiv").style.display = "block";
+	            $scope.getStudentExams(); // refetch the data
                 document.getElementById("streamAnalysisTableDiv").style.display = "none";
 	            $scope.streamAnalysisTable = false;
 	            
 	    }else if($scope.streamAnalysisTable == true){
 	            
 	            document.getElementById("streamAnalysisTableDiv").style.display = "block";
+	            $scope.getStudentStreamExams(); // refetch the data
                 document.getElementById("classAnalysisTableDiv").style.display = "none";
 	            $scope.classAnalysisTable = false;
 	            
@@ -1033,20 +968,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                 $scope.showReport = true; // show the div
     	        document.getElementById("streamAnalysisTableDiv").style.display = "none";
                 document.getElementById("classAnalysisTableDiv").style.display = "none";
-                $scope.streamAnalysisTable = false; // hide the active table to pave way for charts visibility
-    	        $scope.classAnalysisTable = false; // hide the active table to pave way for charts visibility
+    	         
     	        $scope.activeChartTab = true; // show charts
     	        
     	        // we need to save the state of the first tab to prevent reloading on return
     	        if($scope.classAnalysisTable == true){
-    	            
-    	            $scope.returnToClassAnalysis = true;
+    	            $scope.classAnalysisTable = false; // hide the active table to pave way for charts visibility
+    	            $scope.returnToClassAnalysis = true; // enable returning to the above status
+    	            console.log("If we click on tab 1, will we go back to the class analysis? " + $scope.returnToClassAnalysis);
     	            $scope.returnToStreamAnalysis = false;
     	            $scope.makeClassPerformanceChart();
     	            
     	        }else if($scope.streamAnalysisTable == true){
-    	            
-    	            $scope.returnToStreamAnalysis = true;
+    	            $scope.streamAnalysisTable = false; // hide the active table to pave way for charts visibility
+    	            $scope.returnToStreamAnalysis = true; // enable returning to the above status
     	            $scope.returnToClassAnalysis = false;
     	            $scope.makeStreamPerformanceChart();
     	            
@@ -1128,6 +1063,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		var newWindowRef = window.open('http://' + domain + '/#/exams/analysis/print');
 		newWindowRef.printCriteria = data;
 	}
+	
+	$("#search").keyup(function () {
+        var value = this.value.toLowerCase().trim();
+    
+        $("table tr").each(function (index) {
+            if (!index) return;
+            $(this).find("td").each(function () {
+                var id = $(this).text().toLowerCase().trim();
+                var not_found = (id.indexOf(value) == -1);
+                $(this).closest('tr').toggle(!not_found);
+                return not_found;
+            });
+        });
+    });
 
 
 	$scope.refresh = function ()

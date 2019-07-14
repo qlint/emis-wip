@@ -2416,7 +2416,7 @@ $app = \Slim\Slim::getInstance();
                           			INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
                           						ON invoice_line_items.student_fee_item_id = student_fee_items.student_fee_item_id AND student_fee_items.active = true
                           						ON invoices.inv_id = invoice_line_items.inv_id
-                          			WHERE invoices.canceled = false
+                          			WHERE invoices.canceled = false AND students.active IS TRUE
                           			ORDER BY student_name ASC
                           		)p
                           		GROUP BY guardian_id, parent_full_name, telephone, student_id, student_name, payment_method

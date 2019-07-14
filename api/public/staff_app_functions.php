@@ -1886,7 +1886,8 @@ $app->post('/getStudentsFromClassInBus/:school', function ($school) {
   try
   {
     $db = setDBConnection($school);
-
+    
+    /*
     $fetchStudents = $db->prepare("SELECT student_id, student_name, class_name, array_agg('{' || 'guardian_id:' || guardian_id || ',' || 'guardian_name:' || guardian_name || ',' || 'relationship:' || relationship || ',' || 'telephone:' || telephone || '}') AS parents, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route FROM (
                                         SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
                                         	g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS guardian_name, sg.relationship, g.telephone,
@@ -1908,6 +1909,68 @@ $app->post('/getStudentsFromClassInBus/:school', function ($school) {
                                         AND s.current_class IN (".implode(',',$classId).")
                                 )a
                                 GROUP BY student_id, student_name, class_name, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route");
+    */
+    $fetchStudents = $db->prepare("SELECT * FROM
+                    				(
+                    				SELECT student_id, student_name, class_name, array_agg('{' || 'guardian_id:' || guardian_id || ',' || 'guardian_name:' || guardian_name || ',' || 'relationship:' || relationship || ',' || 'telephone:' || telephone || '}') AS parents, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route FROM (
+                                                            SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
+                                                            	g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS guardian_name, sg.relationship, g.telephone,
+                                                            	b.bus_driver AS driver_id, e1.first_name || ' ' || coalesce(e1.middle_name,'') || ' ' || e1.last_name AS driver_name,
+                                                            	b.bus_guide AS guide_id, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS assistant_name,
+                                                            	b.bus_id, b.bus_registration, b.bus_type, b.route_id, tr.route
+                                                            FROM app.students s
+                                                            INNER JOIN app.classes c ON s.current_class = c.class_id
+                                                            LEFT JOIN app.student_guardians sg USING (student_id)
+                                                            LEFT JOIN app.guardians g USING (guardian_id)
+                                                            INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                                                            INNER JOIN app.buses b ON tr.transport_id = b.route_id
+                                                            INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
+                                                            LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                                                            WHERE b.bus_id = :busId
+                                                            AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history) 
+                                        												THEN
+                                        													(
+                                        													SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
+                                        													AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
+                                        													AND student_id IS NOT NULL AND activity = :activity)
+                                        												ELSE 0 
+                                        											END)
+                                                            AND s.student_id NOT IN (SELECT student_id FROM app.student_buses WHERE bus_id = :busId)
+                                                            AND s.current_class IN (".implode(',',$classId).")
+                                                    )a
+                                                    GROUP BY student_id, student_name, class_name, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route
+                                                    )one
+                                                    UNION ALL
+                                                    (
+                                                    SELECT student_id, student_name, class_name, array_agg('{' || 'guardian_id:' || guardian_id || ',' || 'guardian_name:' || guardian_name || ',' || 'relationship:' || relationship || ',' || 'telephone:' || telephone || '}') AS parents, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route FROM (
+                                                            SELECT sb.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
+                                                            	g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS guardian_name, sg.relationship, g.telephone,
+                                                            	b.bus_driver AS driver_id, e1.first_name || ' ' || coalesce(e1.middle_name,'') || ' ' || e1.last_name AS driver_name,
+                                                            	b.bus_guide AS guide_id, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS assistant_name,
+                                                            	b.bus_id, b.bus_registration, b.bus_type, b.route_id, tr.route
+                                                            FROM app.student_buses sb
+                                                            INNER JOIN app.students s USING (student_id)
+                                                            INNER JOIN app.classes c ON s.current_class = c.class_id
+                                                            LEFT JOIN app.student_guardians sg USING (student_id)
+                                                            LEFT JOIN app.guardians g USING (guardian_id)
+                                                            INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                                                            INNER JOIN app.buses b ON sb.bus_id = b.bus_id AND tr.transport_id = b.route_id
+                                                            INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
+                                                            LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                                                            WHERE b.bus_id = :busId
+                                                            AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history) 
+                                        												THEN
+                                        													(
+                                        													SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
+                                        													AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
+                                        													AND student_id IS NOT NULL AND activity = :activity)
+                                        												ELSE 0 
+                                        											END)
+                                                            AND s.current_class IN (".implode(',',$classId).")
+                                                    )a
+                                                    GROUP BY student_id, student_name, class_name, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route
+                                                    )
+                                ");
 
     $db->beginTransaction();
 
@@ -1940,7 +2003,9 @@ $app->get('/getStudentsInARoute/:school/:routeId/:activity', function ($school,$
   {
     $db = setDBConnection($school);
 
-    $sth = $db->prepare("SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, s.current_class AS class_id, c.class_name,
+    $sth = $db->prepare("SELECT * FROM
+			(
+			SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, s.current_class AS class_id, c.class_name,
                         	s.transport_route_id AS transport_id, tr.route
                         FROM app.students s
                         INNER JOIN app.classes c ON s.current_class = c.class_id
@@ -1950,6 +2015,27 @@ $app->get('/getStudentsInARoute/:school/:routeId/:activity', function ($school,$
                         AND s.student_id NOT IN (SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
                                                 AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
                                                 AND student_id IS NOT NULL AND activity = :activity)
+                        AND s.student_id NOT IN (SELECT student_id FROM app.student_buses)
+                        )route
+                        UNION ALL
+                        (
+            			SELECT sb.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+            				s.current_class AS class_id, c.class_name, s.transport_route_id AS transport_id, tr.route
+            			FROM app.student_buses sb
+            			INNER JOIN app.students s USING (student_id)
+            			INNER JOIN app.classes c ON s.current_class = c.class_id
+            			INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+            			WHERE s.active IS TRUE
+            			AND tr.transport_id = :routeId
+            			AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history) 
+    												THEN
+    													(
+    													SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
+    													AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
+    													AND student_id IS NOT NULL AND activity = :activity)
+    												ELSE 0 
+    											END)
+                        )
                         ");
     $sth->execute( array(':routeId' => $routeId,':activity' => $activity) );
 

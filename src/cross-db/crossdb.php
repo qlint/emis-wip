@@ -16,28 +16,17 @@
     }
 
     // $queryInTextFile = file_get_contents('create-db.txt'); // for larger or more complex queries and create statements, we put in a text file
+    // echo $queryInTextFile ."<br>";
     
     foreach ($dbArray as $key => $value) {
         
-    	    $dbOutput = $key . ' : ' . $value . '<br>';
+    	    $dbOutput = $key . ' = ' . $value . '<br>';
     	    
-    	    // now we can create a second db connect for each of the db's above and execute a query on each
+    	    // now we can create a second db connection for each of the db's above and execute a query on each
     	    
     	    $schoolDb = pg_connect("host=localhost port=5432 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
     	    // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
-    	    $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.students ADD COLUMN club character varying;"); // executing the query
-    	    /*
-    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Branch');");
-    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Branch 2');");
-    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Name');");
-    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Bank Name 2');");
-    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Account Name');");
-    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Account Name 2');");
-    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Account Number');");
-    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Account Number 2');");
-    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.settings(name) VALUES ('Mpesa Details');");
-    	    */
-    	    
+    	    $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.students ADD COLUMN destination character varying;"); // executing the query
     	    echo $dbOutput; // just an output of all our db's
     }
 ?>

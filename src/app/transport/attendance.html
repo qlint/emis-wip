@@ -1,0 +1,119 @@
+<div ng-controller="attendanceCtrl">	
+	
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+		
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+		
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+			
+			<div class="clearfix">
+				<h1 id="pageTitle" class="t_title">Pick Up &amp; Drop Off Management</h1>
+			</div>
+			
+		</div>
+		
+		
+		
+		<div id="body-content" class="schoolBusBodySpacer">
+		    <!-- The below section appears if the current user IS NOT assigned to a schoolbus -->
+		    <div class="row" ng-show="nonTransport">
+		        <div class="col-md-8 col-md-offset-2">
+		            <h4 style="padding: 10px;box-shadow: 6px 10px 8px 0 rgba(0,0,0,0.2);border: 2px solid #01DC17;border-radius: 5px 20px 5px 20px;">{{notTeacherMessage}}</h4>
+		        </div>
+		    </div>
+		    
+		    <!-- The below section shows if current users is an employee but not assigned yet -->
+		    <div class="row" id="forNonAssigned">
+		        <div class="col-md-8 col-md-offset-2">
+		            <h4 style="padding: 10px;box-shadow: 6px 10px 8px 0 rgba(0,0,0,0.2);border: 2px solid #01DC17;border-radius: 5px 20px 5px 20px;">{{nonAssignedMessage}}</h4>
+		        </div>
+		    </div>
+		    
+		    <!-- The below section appears if the current user IS assigned to a schoolbus -->
+            <div id="checkNonAssigned" class="row" ng-hide="nonTransport">
+			
+    			<div class="col-sm-4 t_tabs">
+    				<div class="dashboard-panel">					
+    					<div class="dashboard-panel-header">
+    						<span class="pull-right fa fa-bus text-lg section-label t_icon"></span>
+    						<h2 class="boxTitle">What Do You Want To Do?</h2>
+    					</div>
+    					<div class="row dashboard-panel-body boxBody" style="padding-top:30px;padding-bottom:25px;">
+    						<div class="col-sm-5 stripped pickUp" ng-click="pickingUp()">
+    							<div><h4 class="center">Pick<br>Up<br>Students</h4></div>
+    						</div>
+    						<div class="col-sm-2"></div>
+    						<div class="col-sm-5 stripped dropOff" ng-click="droppingOff()">
+    							<div><h4 class="center">Drop<br>Off<br>Students</h4></div>
+    						</div>
+    					</div>
+    				</div>
+    				
+    			</div>
+    			
+    			<div class="col-sm-4 t_tabs" ng-show="activityStatus1">
+    				<div class="dashboard-panel">					
+    					<div class="dashboard-panel-header">
+    						<span class="pull-right fa fa-compass text-md section-label t_icon"></span>
+    						<h2 class="boxTitle">{{boxTitle1}}</h2>
+    					</div>
+    					<div class="row dashboard-panel-body boxBody">	
+    						<h4 style="margin-top:30px;">Select Route To {{selectRouteMessage}}</h4>
+    						<div class="row dashboard-panel-body boxBody">
+    						    <div class="col-sm-5 stripped pickUpSelectionDflt" style="margin-right:3%;" ng-click="getChildren(this)" ng-repeat="selection in transportData.assignedBuses track by $index">
+    						        <h4>{{selection.bus_type}}<br>{{selection.bus_registration}}</h4>
+    						        <p style="display:none;">{{selection.bus_id}}</p>
+        						</div>
+    						</div>
+    					</div>
+    				</div>
+    			</div>
+    			
+    			<div class="col-sm-4 t_tabs" ng-show="activityStatus2">
+    				<div class="dashboard-panel">					
+    					<div class="dashboard-panel-header">
+    						<span class="pull-right fa fa-user-plus text-md section-label t_icon"></span>
+    						<h2 class="boxTitle">{{boxTitle2}}{{theRoute}}</h2>						
+    					</div>
+    					<div class="row dashboard-panel-body boxBody">	
+    						<h4>Check-List </h4><h4 id="checklist"></h4>
+    						<table class="transportStudentList">
+                              <tr>
+                                <th>Student</th>
+                                <th>Check</th>
+                                <th>Absent</th>
+                              </tr>
+                              <tr ng-repeat="student in studentsInBus track by $index" ng-click="remove(this)">
+                                <td class="tdOne">{{student.student_name}} - {{student.class_name}}</td>
+                                <td class="tdCheckBox"><input type="checkbox" name="" value="{{student.student_id}}" ng-click="pickUpStdnt(this)" onclick="this.parentNode.parentNode.style.display = 'none'"></td>
+                                <td class="tdCheckBox"><input type="checkbox" name="" value="{{student.student_id}}" ng-click="dropOffStdnt(this)" onclick="this.parentNode.parentNode.style.display = 'none'"></td>
+                              </tr>
+                            </table>
+                            <!--
+                            <div class="btnSpacer"><button type="button" class="btn btn-primary" ng-click="redirectTransportHome()">{{pickUpOrDropOffStatus}}</button></div>
+                            -->
+                            <input type="hidden" id="sortOrd" value="0">
+                            <input type="hidden" id="sortOrd2" value="0">
+    					</div>
+    				</div>
+    			</div>
+    		
+    		</div>
+	    </div>
+		
+	</div>
+</div>
+
+
+

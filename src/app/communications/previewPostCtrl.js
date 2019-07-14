@@ -10,10 +10,10 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	console.log($scope.post);
 	
 
-	$scope.post.attachment = data.post.attachment;
-	$scope.post.attachment = $scope.post.attachment.split(',');
+	$scope.post.rawAttachment = data.post.attachment;
+	$scope.post.attachment = ($scope.post.rawAttachment != null ? $scope.post.attachment.split(',') : null);
 	
-	$scope.showAttachment = ($scope.post.attachment[0] == null ? false : true);
+	$scope.showAttachment = ($scope.post.rawAttachment == null ? false : true);
 	console.log("Is there an attachment? " + $scope.showAttachment);
 	
 	//this block allows a sys_admin to 'publish' messages posted by other users
@@ -235,7 +235,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 
 	var attachments = data.post.attachment;
 
-    $scope.attachments = $scope.post.details.attachment.split(',');
+    $scope.attachments = ($scope.post.rawAttachment != null ? $scope.post.details.attachment.split(',') : null);
     console.log($scope.attachments);
 
 	$scope.cancel = function()

@@ -71,6 +71,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Mpesa Details' : angular.copy($rootScope.currentUser.settings['Mpesa Details']	),
 			'Use Feedback' : angular.copy($rootScope.currentUser.settings['Use Feedback']	),
 			'Use Autoadmission' : angular.copy($rootScope.currentUser.settings['Use Autoadmission']	),
+			'Committees' : angular.copy($rootScope.currentUser.settings['Committees']	),
 			'Clubs' : angular.copy($rootScope.currentUser.settings['Clubs']	),
 			'Houses' : angular.copy($rootScope.currentUser.settings['Houses']	),
 		}

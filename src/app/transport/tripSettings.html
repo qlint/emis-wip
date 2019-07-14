@@ -1,0 +1,123 @@
+<div ng-controller="tripSettingsCtrl">
+
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+
+			<div class="clearfix">
+				<h1 id="pageTitle" class="t_title">Schoolbus Trips Creation &amp; Assignment</h1>
+			</div>
+
+		</div>
+
+
+
+		<div id="body-content" style="margin-top:125px;margin-left:25px;">
+
+    	<div class="row">
+
+    			<div class="col-sm-6 t_tabs" style="width:47%;">
+    				<div class="dashboard-panel">
+    					<div class="dashboard-panel-header">
+    						<span class="pull-right fa fa-bus text-lg section-label t_icon"></span>
+    						<h2 class="boxTitle">Create Trip</h2>
+    					</div>
+    					<div class="row dashboard-panel-body boxBody">
+    						<div class="stripped">
+    							<div>
+    							    <div><h4>Enter the name of the trip</h4></div>
+                                    <input id="tripName" type="text" name="trip_name" class="transportSelectWidth" style="width: 95%;border: 2px solid #404040;border-radius: 10px;height: 30px;"><br>
+                                </div>
+                                <div class="row" style="margin-left:auto;">
+                                    <div><h4>Restrict This Trip To Classes?</h4><br><p>*This is optional. If left blank, the trip will be available to all classes.</p></div>
+                                    <label class="col-sm-4 nopad-left" ng-repeat="cat in classCats track by $index"><input type="checkbox" value="{{cat.class_cat_id}}" name="class_cat[]" style="vertical-align:middle;">{{cat.class_cat_name}}</label>
+                                </div>
+    							<div class="btnSpacer">
+										<button type="button" class="btn btn-primary" ng-click="createTrip()">Create Trip</button>
+									</div>
+    							<div ng-show="tripCreation" class="btnSpacer" style="background-color: #00e673;height: 40px;width: 100%;border-radius: 10px;border: 2px solid #001a0d;">
+    							    <h3 style="text-align: center;font-size: 18px;margin-top: inherit;color: #000;">{{tripCreationStatus}}.</h3>
+    							</div>
+    						</div>
+    					</div>
+    				</div>
+
+    			</div>
+
+                <div class="col-sm-6 t_tabs" style="width:47%;">
+    				<div class="dashboard-panel">
+    					<div class="dashboard-panel-header">
+    						<span class="pull-right fa fa-compass text-md section-label t_icon"></span>
+    						<h2 class="boxTitle">Bus / Trip Assignment</h2>
+    					</div>
+    					<div class="row dashboard-panel-body boxBody">
+    						<h4>Add a bus to a trip plying given routes</h4>
+                            <h3>Select Trip</h3><br>
+                            <select id="slctdTrip2" style="width: 95%;border: 2px solid #000;height: 30px;border-radius: 10px;">
+                                <option value="">---SELECT A TRIP---</option>
+                                <option ng-repeat="trip in trips track by $index" value="{{trip.schoolbus_trip_id}}">{{trip.trip_name}}</option>
+                            </select>
+
+                            <h3>Select a bus for this trip</h3>
+                            <select name="bus" id="slctdBus" style="width: 95%;border: 2px solid #303030;border-radius: 10px;height: 30px;">
+                                <option value="">---SELECT SCHOOL BUS---</option>
+                                <option ng-repeat="bus in buses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} - {{bus.bus_registration}}<br><b> | {{bus.destinations}}</b></option>
+                            </select>
+
+                            <div class="btnSpacer">
+                              <button type="button" class="btn btn-primary" ng-click="updateTrip2()">Add Bus To This Trip</button>
+                            </div>
+    						<div ng-show="busAssignment" class="btnSpacer" style="background-color: #00e673;height: 40px;width: 100%;border-radius: 10px;border: 2px solid #001a0d;">
+    						    <h3 style="text-align: center;font-size: 18px;margin-top: inherit;color: #000;">{{busAssignmentStatus}}</h3>
+    						</div>
+    					</div>
+    				</div>
+    			</div>
+
+    		</div><!-- end row -->
+
+        <div class="row">
+    		    <div class="busmanagementtbl">
+    		        <h4 class="center">Existing Buses And Their Assignments</h4><hr>
+        		    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Bus Type</th>
+                                <th>Registration</th>
+                                <th>Destinations</th>
+                                <th>Trip</th>
+                                <th>Driver</th>
+                                <th>Guide</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in allTransportData track by $index"  ng-click="viewStudentsInBus(this)">
+                                <td width="10%">{{item.bus_type}}</td>
+                                <td width="10%">{{item.bus_registration}}</td>
+                                <td width="30%">{{item.destinations}}</td>
+                                <td width="20%">{{item.trip_name}}</td>
+                                <td width="15%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.driver_name}}</td>
+                                <td width="15%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.guide_name}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+    		</div><!-- end row -->
+
+	    </div>
+
+	</div>
+</div>

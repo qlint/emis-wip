@@ -195,6 +195,16 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true
 						},
+						'trips': {
+							'view': true,
+							'add': true,
+							'edit': true
+						},
+						'settings': {
+							'view': true,
+							'add': true,
+							'edit': true
+						},
 						'pick_up_and_drop_off': {
 							'view': true,
 							'add': true,
@@ -321,23 +331,33 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
     							'edit': true,
     						},
     					},
-    					'transport':{
-    						'school_bus': {
-    							'view': true,
-    							'add': true,
-    							'edit': true
-    						},
-    						'pick_up_and_drop_off': {
-    							'view': true,
-    							'add': true,
-    							'edit': true,
-    						},
-    						'mapped_history': {
-    							'view': true,
-    							'add': true,
-    							'edit': true,
-    						},
-    					}
+							'transport':{
+									'school_bus': {
+										'view': true,
+										'add': true,
+										'edit': true
+									},
+									'trips': {
+										'view': true,
+										'add': true,
+										'edit': true
+									},
+									'settings': {
+										'view': true,
+										'add': true,
+										'edit': true
+									},
+									'pick_up_and_drop_off': {
+										'view': true,
+										'add': true,
+										'edit': true,
+									},
+									'mapped_history': {
+										'view': true,
+										'add': true,
+										'edit': true,
+									},
+								}
 
 					};
 					break;
@@ -575,9 +595,19 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 					},
 					'transport':{
 						'school_bus': {
-							'view': true,
-							'add': true,
-							'edit': true
+							'view': false,
+							'add': false,
+							'edit': false
+						},
+						'trips': {
+							'view': false,
+							'add': false,
+							'edit': false
+						},
+						'settings': {
+							'view': false,
+							'add': false,
+							'edit': false
 						},
 						'pick_up_and_drop_off': {
     							'view': true,
@@ -667,24 +697,22 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				$rootScope.mainSubNavItems = item.subnav;
 			}
 		});
-		
+
 		// communications notifications icon
-		
+
 		if( $( "li:contains('Communications')" ) ){
     	    // console.log("Notification element");
     	    apiService.getFeedbackUnopenedCount({}, function(response){
     				var result = angular.fromJson(response);
-    				// console.log("The count",parseInt(result.data.count));
-    				
+
     				if( result.response == 'success' && parseInt(result.data.count) > 0 )
     				{
-    					// console.log(result.data);
     					$( "li a:contains('Communications')" ).append( "<span class='notifBox'>" + result.data.count + "</span>" );
     				}
-    				
+
     			}, function(){ console.log("There was an error counting notifications for feedback messages."); });
     	}
-        
+
 
 	}
 
@@ -758,8 +786,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 	$scope.openModal = function (section, view, size, item)
 	{
-
-		if( $('#filterLinks').hasClass('in') )
+        if( $('#filterLinks').hasClass('in') )
 		{
 			$('#subnav').trigger('click');
 		}

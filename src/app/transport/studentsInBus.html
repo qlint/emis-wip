@@ -1,0 +1,46 @@
+<form name="examForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(examForm)">
+	<div class="modal-header dialog-header-form">
+				<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Students in {{bus.bus_type}} - {{bus.registration}}</h4>
+			</div>
+			<div class="modal-body clearfix">
+				<div>
+        		    <h3>List Of All Students Plying {{bus.route}}</h3><br>
+                </div>
+
+				<div ng-hide="showTable" style="text-align:center;">
+					<h4>Just a moment, fetching Students in this bus...</h4>
+					<img src="assets/loading-one.gif" style="max-width:100px;" />
+				</div>
+
+                <style type="text/css">
+                    table#resultsTable2 tr:nth-child(even) {background: #CCC}
+                    table#resultsTable2 tr:nth-child(odd) {background: #FFF}
+                </style>
+				<table ng-show="showTable" id="resultsTable2" class="display dataTable" cellspacing="0" width="100%" style="border-collapse: collapse;">
+					<thead>
+						<tr>
+							<th width="40%">Student</th>
+							<th width="30%">Class</th>
+							<th width="30%">Home</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in studentsInBus track by $index">
+							<td width="40%">
+							    <p>{{item.student_name}}<p>
+							</td>
+							<td width="30%">
+							    <p>{{item.class_name}}<p>
+							</td>
+							<td width="30%">
+							    <p>{{item.student_destination}}<p>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" ng-click="cancel()">Close</button>
+			</div>
+</form>

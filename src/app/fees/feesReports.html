@@ -1,13 +1,11 @@
+<style type="text/css">
+    #resultsTable{width:100%;border:1px solid #404040;border-collapse:collapse;}
+    #resultsTable thead tr th,#resultsTable tbody tr td{padding:5px;border:#303030 1px solid;text-align:center;}
+    #resultsTable tbody tr:nth-child(odd){background:#e8e8e8;}
+</style>
 <div ng-controller="feesReportsCtrl">
 
-    <style>
-        @import "components/overviewFiles/vendor/perfect-scrollbar/perfect-scrollbar.css";
-        @import "components/overviewFiles/css/reportStyles.css";
-        @import "components/overviewFiles/css/jquery.dataTables.min.css";
-        @import "components/overviewFiles/css/buttons.dataTables.min.css";
-    </style>
-
-	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+   <div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
@@ -91,62 +89,55 @@
                 	<div class="tab-content clearfix">
                 		<div class="tab-pane active" id="1a">
                             <h3 style="color:#000000;">{{reportTitle}}</h3>
+                            <div><h4>Search Results: <span><input type="text" id="search" placeholder="  live search"></input></span></h4></div>
 
                             <!-- overall balances analysis table -->
-                            <div class='table100 ver1 m-b-110' ng-show="overallBalancesAnalysisTable" id="overallBalancesAnalysisTableDiv">
-                                <table id='overallBalancesAnalysisTable'>
-                                    <div id='t1' class='table100-head'>
+                            <div ng-show="overallBalancesAnalysisTable" id="overallBalancesAnalysisTableDiv">
+                                <table id='resultsTable'>
                                         <thead>
-                                            <tr class='row100 head' id="tblHeader">
-                                                <th class='cell100 column2'>FEE ITEM</th>
-                                                <th class='cell100 column2'>TOT. DUE</th>
-                                                <th class='cell100 column2'>TOT. PAID</th>
-                                                <th class='cell100 column2'>BALANCE</th>
+                                            <tr id="tblHeader">
+                                                <th>FEE ITEM</th>
+                                                <th>TOT. DUE</th>
+                                                <th>TOT. PAID</th>
+                                                <th>BALANCE</th>
                                             </tr>
                                         </thead>
-                                    </div>
-                                    <div class='table100-body js-pscroll'>
-                                        <tbody id="tblBody">
-                                            <tr class='row100 body' ng-repeat="item in overallBalances track by $index">
-                                                <td class='cell100 column2'>{{item.fee_item}}</td>
-                                                <td class='cell100 column2'>{{item.total_due}}</td>
-                                                <td class='cell100 column2'>{{item.total_paid}}</td>
-                                                <td class='cell100 column2'>{{item.balance}}</td>
+                                        <tbody>
+                                            <tr ng-repeat="item in overallBalances track by $index">
+                                                <td>{{item.fee_item}}</td>
+                                                <td>{{item.total_due}}</td>
+                                                <td>{{item.total_paid}}</td>
+                                                <td>{{item.balance}}</td>
                                             </tr>
                                         </tbody>
-                                    </div>
                                 </table>
                             </div>
 
                             <!-- student fee items analysis table -->
-                            <div class='table100 ver1 m-b-110' ng-show="studentFeeItemsAnalysisTable" id="studentFeeItemsAnalysisTableDiv">
-                                <table id='studentFeeItemsAnalysisTable'>
-                                    <div id='t1' class='table100-head'>
+                            <div ng-show="studentFeeItemsAnalysisTable" id="studentFeeItemsAnalysisTableDiv">
+                                <table id='resultsTable'>
                                         <thead>
-                                            <tr class='row100 head' id="tblHeader">
-                                                <th class='cell100 column2'>STUDENT</th>
-                                                <th class='cell100 column2'>INV #</th>
-                                                <th class='cell100 column2'>INVOICE DATE</th>
-                                                <th class='cell100 column2'>FEE ITEM</th>
-                                                <th class='cell100 column2'>DEFAULT AMT.</th>
-                                                <th class='cell100 column2'>AMT. PAID</th>
-                                                <th class='cell100 column2'>BALANCE</th>
+                                            <tr id="tblHeader">
+                                                <th>STUDENT</th>
+                                                <th>INV #</th>
+                                                <th>INVOICE DATE</th>
+                                                <th>FEE ITEM</th>
+                                                <th>DEFAULT AMT.</th>
+                                                <th>AMT. PAID</th>
+                                                <th>BALANCE</th>
                                             </tr>
                                         </thead>
-                                    </div>
-                                    <div class='table100-body js-pscroll'>
                                         <tbody id="tblBody">
-                                            <tr class='row100 body' ng-repeat="item in studentFeeItems track by $index">
-                                                <td class='cell100 column2'>{{item.student_name}}</td>
-                                                <td class='cell100 column2'>{{item.inv_id}}</td>
-                                                <td class='cell100 column2'>{{item.inv_date}}</td>
-                                                <td class='cell100 column2'>{{item.all_fee_items}}</td>
-                                                <td class='cell100 column2'>{{item.default_amt}}</td>
-                                                <td class='cell100 column2'>{{item.paid2}}</td>
-                                                <td class='cell100 column2'>{{item.balance}}</td>
+                                            <tr ng-repeat="item in studentFeeItems track by $index">
+                                                <td>{{item.student_name}}</td>
+                                                <td>{{item.inv_id}}</td>
+                                                <td>{{item.inv_date}}</td>
+                                                <td>{{item.all_fee_items}}</td>
+                                                <td>{{item.default_amt}}</td>
+                                                <td>{{item.paid2}}</td>
+                                                <td>{{item.balance}}</td>
                                             </tr>
                                         </tbody>
-                                    </div>
                                 </table>
                             </div>
                             
@@ -163,24 +154,5 @@
 		<!-- end reports body -->
 
 	</div>
-
-	<script src="components/overviewFiles/vendor/bootstrap/js/popper.js"></script>
-	<script src="components/overviewFiles/vendor/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-	<script>
-		$('.js-pscroll').each(function(){
-			var ps = new PerfectScrollbar(this);
-
-			$(window).on('resize', function(){
-				ps.update();
-			})
-		});
-	</script>
-	<script src="components/overviewFiles/js/main.js"></script>
-  <script src="components/overviewFiles/js/jquery.dataTables.min.js"></script>
-  <script src="components/overviewFiles/js/dataTables.buttons.min.js"></script>
-  <script src="components/overviewFiles/js/jszip.min.js"></script>
-  <script src="components/overviewFiles/js/pdfmake.min.js"></script>
-  <script src="components/overviewFiles/js/vfs_fonts.js"></script>
-  <script src="components/overviewFiles/js/buttons.html5.min.js"></script>
 
 </div>

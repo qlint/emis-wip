@@ -7,7 +7,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
   var initialLoad = true;
   $scope.filters = {};
   $scope.filters.status = 'true';
-  $scope.filters.date = {startDate:null, endDate:null}; 
+  $scope.filters.date = {startDate:null, endDate:null};
 
   var lastQueriedDateRange = null;
   var requery = false;
@@ -195,7 +195,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 			}
 
 		}, function(){});
-    
+
     // get transport routes
 		apiService.getTansportRoutes({}, function(response){
 			var result = angular.fromJson(response);
@@ -206,10 +206,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 			}
 
 		}, function(){});
-	
+
     var studentTypes = $rootScope.currentUser.settings['Student Types'];
 		$scope.studentTypes = studentTypes.split(',');
-    
+
     setTimeout(function(){
       var height = $('.full-height.datagrid').height();
       $('#grid1').css('height', height);
@@ -425,7 +425,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 
     // store the current status filter
     currentStatus = $scope.activeFilters.status;
-    
+
   }
 
   var filterStudents = function(clearTable)
@@ -455,14 +455,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
       filteredResults = filteredResults.filter(function(item) {
         if( item.student_type && item.student_type.toString() == $scope.activeFilters.student_type.toString() ) return item;
       });
-    }    
+    }
     if( $scope.activeFilters.course_id )
     {
-      filteredResults = filteredResults.filter(function(item) {         
+      filteredResults = filteredResults.filter(function(item) {
         if( item.enrolled_opt_courses && item.enrolled_opt_courses.indexOf($scope.activeFilters.course_id.toString()) > -1 ) return item;
       });
     }
-    
+
     if( $scope.activeFilters.route_id )
     {
       console.log($scope.activeFilters.route_id);
@@ -470,7 +470,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
         if( item.transport_route_id && item.transport_route_id.toString() == $scope.activeFilters.route_id.toString() ) return item;
       });
     }
-    
+
 
     $scope.students = filteredResults;
 
@@ -499,7 +499,122 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 
   $scope.exportData = function()
   {
-    $scope.gridApi.exporter.csvExport( 'visible', 'visible' );
+    // $scope.gridApi.exporter.csvExport( 'visible', 'visible' );
+    // show a loader to the end user
+
+    class XlsExport {
+  // data: array of objects with the data for each row of the table
+  // name: title for the worksheet
+  constructor(data, title = 'Worksheet') {
+    // input validation: new xlsExport([], String)
+    if (!Array.isArray(data) || (typeof title !== 'string' || Object.prototype.toString.call(title) !== '[object String]')) {
+      throw new Error('Invalid input types: new xlsExport(Array [], String)');
+    }
+
+    this._data = data;
+    this._title = title;
+  }
+
+  set setData(data) {
+    if (!Array.isArray(data)) throw new Error('Invalid input type: setData(Array [])');
+
+    this._data = data;
+  }
+
+  get getData() {
+    return this._data;
+  }
+
+  exportToXLS(fileName = 'export.xls') {
+    if (typeof fileName !== 'string' || Object.prototype.toString.call(fileName) !== '[object String]') {
+      throw new Error('Invalid input type: exportToCSV(String)');
+    }
+
+    const TEMPLATE_XLS = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"/>
+        <head><!--[if gte mso 9]><xml>
+        <x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{title}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml>
+        <![endif]--></head>
+        <body>{table}</body></html>`;
+    const MIME_XLS = 'application/vnd.ms-excel;base64,';
+
+    const parameters = {
+      title: this._title,
+      table: this.objectToTable(),
+    };
+    const computeOutput = TEMPLATE_XLS.replace(/{(\w+)}/g, (x, y) => parameters[y]);
+
+    const computedXLS = new Blob([computeOutput], {
+      type: MIME_XLS,
+    });
+    const xlsLink = window.URL.createObjectURL(computedXLS);
+    this.downloadFile(xlsLink, fileName);
+  }
+
+  exportToCSV(fileName = 'export.csv') {
+    if (typeof fileName !== 'string' || Object.prototype.toString.call(fileName) !== '[object String]') {
+      throw new Error('Invalid input type: exportToCSV(String)');
+    }
+    const computedCSV = new Blob([this.objectToSemicolons()], {
+      type: 'text/csv;charset=utf-8',
+    });
+    const csvLink = window.URL.createObjectURL(computedCSV);
+    this.downloadFile(csvLink, fileName);
+  }
+
+  downloadFile(output, fileName) {
+    const link = document.createElement('a');
+    document.body.appendChild(link);
+    link.download = fileName;
+    link.href = output;
+    link.click();
+  }
+
+  toBase64(string) {
+    return window.btoa(unescape(encodeURIComponent(string)));
+  }
+
+  objectToTable() {
+    // extract keys from the first object, will be the title for each column
+    const colsHead = `<tr>${Object.keys(this._data[0]).map(key => `<td>${key}</td>`).join('')}</tr>`;
+
+    const colsData = this._data.map(obj => [`<tr>
+                ${Object.keys(obj).map(col => `<td>${obj[col] ? obj[col] : ''}</td>`).join('')}
+            </tr>`]) // 'null' values not showed
+      .join('');
+
+    return `<table>${colsHead}${colsData}</table>`.trim(); // remove spaces...
+  }
+
+  objectToSemicolons() {
+    const colsHead = Object.keys(this._data[0]).map(key => [key]).join(';');
+    const colsData = this._data.map(obj => [ // obj === row
+      Object.keys(obj).map(col => [
+        obj[col], // row[column]
+      ]).join(';'), // join the row with ';'
+    ]).join('\n'); // end of row
+
+    return `${colsHead}\n${colsData}`;
+  }
+}
+
+  // meanwhile - fetch data
+  apiService.exportAllStudentDetails({}, function(response, status)
+	{
+		var result = angular.fromJson(response);
+		if( result.response == 'success')
+		{
+      $scope.studentsExport = result.data;
+      $scope.exportToXls = new XlsExport($scope.studentsExport, 'Student Data Workbook');
+      $scope.exportToXls.exportToXLS('Student_Data_Workbook.xls');
+    }else{
+      // failed to fetch data
+    }
+  }, apiError);
+  // $scope.exportToXls = new XlsExport($scope.students, 'Student Data Workbook');
+  // $scope.exportToXls.exportToXLS('Student_Data_Workbook.xls');
+
   }
 
   $scope.promoteStudents = function ()
@@ -520,7 +635,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
         classes: $scope.classes
       }
       $scope.openModal('students', 'promoteStudents', 'sm', data);
-      
+
     }
     else
     {
@@ -532,10 +647,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
       }
       $scope.openModal('students', 'promoteStudents', 'sm',data);
     }
-    
-    
+
+
   }
-  
+
   $scope.$on('refreshStudents', function(event, args) {
 
     $scope.loading = true;

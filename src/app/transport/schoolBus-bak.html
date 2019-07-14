@@ -1,0 +1,95 @@
+<div ng-controller="schoolBusCtrl">
+	
+	<div id="body-content">
+	
+    	<div class="subnavbar non-printable" ng-hide="isPrinting">
+    		<ul class="nav nav-tabs main-sub-nav" >
+    			<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+    		</ul>
+    	</div>
+
+		<div class="row">
+			
+			<div class="col-sm-4 t_tabs">
+				<div class="dashboard-panel">					
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-bus text-lg section-label t_icon"></span>
+						<h2 class="boxTitle">Create A School Bus</h2>
+					</div>
+					<div class="row dashboard-panel-body boxBody">
+						<div class="stripped">
+							<div><h4>Bus Registration</h4></div>
+							<div><input type="text" name="bus_registration" id="bus_registration"></div>
+							<div class="btnSpacer"><button type="button" class="btn btn-primary" ng-click="createBus()">Create Bus</button></div>
+						</div>
+					</div>
+				</div>
+				
+			</div>
+			
+			<div class="col-sm-4 t_tabs">
+				<div class="dashboard-panel">					
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-compass text-md section-label t_icon"></span>
+						<h2 class="boxTitle">Assign Bus To Route</h2>
+					</div>
+					<div class="row dashboard-panel-body boxBody">	
+						<h4>Select School Bus</h4>
+						<select>
+                          <option value="1">KCA 123A</option>
+                          <option value="2">KCB 345B</option>
+                          <option value="3">KCC 567C</option>
+                          <option value="4">KCD 789D</option>
+                        </select>
+						<h4>Route For This Bus</h4>
+						<select>
+                          <option value="1">Langata</option>
+                          <option value="2">Rongai</option>
+                          <option value="3">Karen</option>
+                          <option value="4">Nairobi West</option>
+                        </select>
+                        <div class="btnSpacer"><button type="button" class="btn btn-primary" ng-click="assignRoute()">Assign Route</button></div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-sm-4 t_tabs">
+				<div class="dashboard-panel" ng-show="permissions.fees.dashboard.view">					
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-user-plus text-md section-label t_icon"></span>
+						<h2 class="boxTitle">Assign Driver &amp; Guide To Bus</h2>						
+					</div>
+					<div class="row dashboard-panel-body boxBody">	
+						<h4>Select A School Bus Route</h4>
+						<select>
+                          <option value="1">Langata - KCA 123A</option>
+                          <option value="2">Rongai - KCB 345B</option>
+                          <option value="3">Karen - KCC 567C</option>
+                          <option value="4">Nairobi West - KCD 789D</option>
+                        </select>
+						<h4>Driver For This Bus</h4>
+						<select>
+                          <option value="1">Fred N.</option>
+                          <option value="2">Rick G.</option>
+                          <option value="3">Ben O.</option>
+                          <option value="4">Phillip T.</option>
+                        </select>
+                        <h4>Accompanying Guide For This Bus</h4>
+						<select>
+                          <option value="1">Lulu H.</option>
+                          <option value="2">Micheal A.</option>
+                          <option value="3">Monica S.</option>
+                          <option value="4">Ken Z.</option>
+                        </select>
+                        <div class="btnSpacer"><button type="button" class="btn btn-primary" ng-click="assignDriverAndGuide()">Assign Driver &amp; Guide</button></div>
+					</div>
+				</div>
+			</div>
+		
+		</div>
+		
+	</div>
+</div>
+
+
+

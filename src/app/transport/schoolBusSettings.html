@@ -1,0 +1,110 @@
+<div ng-controller="schoolBusSettingsCtrl">
+
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+
+			<div class="clearfix">
+				<h1 id="pageTitle" class="t_title">School Bus Settings</h1>
+				<h4 class="t_title">These settings will determine how the school bus module works as a whole</h4>
+			</div>
+
+		</div>
+
+
+
+		<div id="body-content" style="margin-top:125px;margin-left:25px;">
+    	<div class="row">
+
+    			<div class="col-sm-4 t_tabs">
+    				<div class="dashboard-panel">
+    					<div class="dashboard-panel-header">
+    						<span class="pull-right fa fa-bus text-lg section-label t_icon"></span>
+    						<h2 class="boxTitle">Route / Bus Assignment</h2>
+    					</div>
+    					<div class="row dashboard-panel-body boxBody">
+    						<div class="stripped">
+    							<div>
+    							    <div><h4>Who assigns a bus to a route?</h4></div>
+    							    <select id="assignerDefault" class="transportSelectWidth">
+    							        <option value="admin">School Management</option>
+                          <option value="teacher">Transport Department</option>
+                          <option value="all">Either of the above</option>
+                      </select>
+                    </div>
+    							<div>
+    							    <div><h4>Allow people other than management to assign a bus to a route?</h4></div>
+											<select id="assignerOther" class="transportSelectWidth">
+    							        <option value="true">Yes</option>
+                          <option value="false">No</option>
+                      </select>
+    							</div>
+
+    							<div class="btnSpacer">
+										<button type="button" class="btn btn-primary" ng-click="routeAssingSave()">Save</button>
+									</div>
+    							<div ng-show="busAssignment" class="btnSpacer" style="background-color: #00e673;height: 40px;width: 100%;border-radius: 10px;border: 2px solid #001a0d;">
+    							    <h3 style="text-align: center;font-size: 18px;margin-top: inherit;color: #000;">Success! School bus created.</h3>
+    							</div>
+    						</div>
+    					</div>
+    				</div>
+
+    			</div>
+
+    			<div class="col-sm-8 t_tabs" style="width:60%;">
+    				<div class="dashboard-panel">
+    					<div class="dashboard-panel-header">
+    						<span class="pull-right fa fa-compass text-md section-label t_icon"></span>
+    						<h2 class="boxTitle">Route Sharing</h2>
+    					</div>
+    					<div class="row dashboard-panel-body boxBody">
+    						<h4>Buses Sharing A Route</h4>
+    						<p style="font-size:14px;">*Click to set which students belong to which bus</p>
+    						<style type="text/css">
+                                table#selectBus tr:nth-child(even) {background: #CCC}
+                                table#selectBus tr:nth-child(odd) {background: #FFF}
+                            </style>
+    						<table id="selectBus" border="1">
+									<thead>
+										<tr>
+											<th width="20%">School buses</th>
+											<th width="75%">Route</th>
+											<th width="5%">Students</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr ng-repeat="item in sharedRoutes track by $index" ng-click="assignStudentToBus(this)">
+											<td width="20%">
+												<p ng-repeat="bus in item.buses track by $index">{{bus.bus_type}} - {{bus.bus_registration}}</p><br>
+											</td>
+											<td width="75%">{{item.route}}</td>
+											<td width="5%" style="text-align:center;">{{item.student_count}}</td>
+										</tr>
+									</tbody>
+								</table>
+    						<div ng-show="routeAssignment" class="btnSpacer" style="background-color: #00e673;height: 40px;width: 100%;border-radius: 10px;border: 2px solid #001a0d;">
+    						    <h3 style="text-align: center;font-size: 18px;margin-top: inherit;color: #000;">Success! Bus assigned to route.</h3>
+    						</div>
+    					</div>
+    				</div>
+    			</div>
+
+    		</div>
+	    </div>
+
+	</div>
+</div>

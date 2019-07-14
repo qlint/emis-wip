@@ -233,6 +233,15 @@
 									<p ng-show="schoolForm.mpesa_details.$invalid && (schoolForm.mpesa_details.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mpesa details are required.</p>
 								</div>
 							</div>
+							
+							<!-- Committees -->
+							<div class="form-group" ng-class="{ 'has-error' : schoolForm.committees.$invalid && (schoolForm.committees.$touched || schoolForm.$submitted) }">
+								<label for="committees" class="col-sm-4 control-label nopad-right"> School Committees</label>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" name="committees" ng-model="settings['Committees']" placeholder="Optional. Separate using comma" />
+
+								</div>
+							</div>
 
 							<!-- Clubs -->
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.clubs.$invalid && (schoolForm.clubs.$touched || schoolForm.$submitted) }">

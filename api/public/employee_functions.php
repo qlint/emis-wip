@@ -1,10 +1,10 @@
 <?php
 $app->get('/getAllEmployees(/:status)', function ($status) {
     //Show all employees
-	
+
 	$app = \Slim\Slim::getInstance();
- 
-    try 
+
+    try
     {
         $db = getDB();
         $sth = $db->prepare("SELECT emp_id, employees.emp_cat_id, employees.dept_id, emp_number, id_number, gender, first_name,
@@ -15,11 +15,11 @@ $app->get('/getAllEmployees(/:status)', function ($status) {
 							 FROM app.employees
 							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id AND employee_cats.active is true
 							 INNER JOIN app.departments ON employees.dept_id = departments.dept_id AND departments.active is TRUE
-							 WHERE employees.active = :status 
+							 WHERE employees.active = :status
 							 ORDER BY first_name, middle_name, last_name, emp_cat_name, dept_name");
-        $sth->execute( array(':status' => $status)); 
+        $sth->execute( array(':status' => $status));
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
- 
+
         if($results) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -31,7 +31,7 @@ $app->get('/getAllEmployees(/:status)', function ($status) {
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
- 
+
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -42,20 +42,20 @@ $app->get('/getAllEmployees(/:status)', function ($status) {
 
 $app->get('/getEmployee/:id', function () {
     //Show specific employee
-	
+
 	$app = \Slim\Slim::getInstance();
- 
-    try 
+
+    try
     {
         $db = getDB();
         $sth = $db->prepare("SELECT  emp_id, emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
 									middle_name, last_name, initials, dob, country, active, telephone, email, joined_date,
-									job_title, qualifications, experience, additional_info, emp_image
-							 FROM app.employee 
+									job_title, qualifications, experience, additional_info, emp_image, committee
+							 FROM app.employee
 							 WHERE emp_id = :id");
-        $sth->execute( array(':id' => $id)); 
+        $sth->execute( array(':id' => $id));
         $results = $sth->fetch(PDO::FETCH_OBJ);
- 
+
         if($results) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -67,7 +67,7 @@ $app->get('/getEmployee/:id', function () {
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
- 
+
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -78,9 +78,9 @@ $app->get('/getEmployee/:id', function () {
 
 $app->post('/addEmployee', function () use($app) {
     // Add employee
-	
+
 	$allPostVars = json_decode($app->request()->getBody(),true);
-	
+
 	$empCatId =			( isset($allPostVars['emp_cat_id']) ? $allPostVars['emp_cat_id']: null);
 	$deptId =			( isset($allPostVars['dept_id']) ? $allPostVars['dept_id']: null);
 	$empNumber =		( isset($allPostVars['emp_number']) ? $allPostVars['emp_number']: null);
@@ -109,28 +109,28 @@ $app->post('/addEmployee', function () use($app) {
 	$username =			( isset($allPostVars['username']) ? $allPostVars['username']: null);
 	$password =			( isset($allPostVars['password']) ? $allPostVars['password']: null);
 	$userType =			( isset($allPostVars['user_type']) ? $allPostVars['user_type']: null);
-	
 
-    try 
+
+    try
     {
         $db = getDB();
-        $insertEmp = $db->prepare("INSERT INTO app.employees(emp_cat_id, dept_id, emp_number, id_number, gender, first_name, middle_name, last_name, initials, dob, 
+        $insertEmp = $db->prepare("INSERT INTO app.employees(emp_cat_id, dept_id, emp_number, id_number, gender, first_name, middle_name, last_name, initials, dob,
 										country, active, telephone, email, joined_date, job_title, qualifications, experience, additional_info, created_by, emp_image,
-										next_of_kin_name, next_of_kin_telephone, next_of_kin_email) 
+										next_of_kin_name, next_of_kin_telephone, next_of_kin_email)
 							VALUES(:empCatId,:deptId,:empNumber,:idNumber,:gender,:firstName,:middleName,:lastName,:initials,:dob,
 										:country,:active,:telephone,:email,:joinedDate,:jobTitle,:qualifications,:experience,:additionalInfo,:createdBy,:empImage,
-										:nokName, :nokTelephone, :nokEmail)"); 
-		
+										:nokName, :nokTelephone, :nokEmail)");
+
 		if( $username !== null )
 		{
-			$insertUser = $db->prepare("INSERT INTO app.users(first_name, middle_name, last_name, username, password, email, user_type, created_by) 
+			$insertUser = $db->prepare("INSERT INTO app.users(first_name, middle_name, last_name, username, password, email, user_type, created_by)
 								VALUES(:firstName, :middleName, :lastName, :username, :password, :email, :userType, :createdBy)");
 			$updateEmp = $db->prepare("UPDATE app.employees
 										SET login_id = currval('app.user_user_id_seq')
-										WHERE emp_id = currval('app.employees_emp_id_seq');");		
-			
-		}		
-										
+										WHERE emp_id = currval('app.employees_emp_id_seq');");
+
+		}
+
 		$db->beginTransaction();
         $insertEmp->execute( array(':empCatId' => $empCatId,
 							':deptId' => $deptId,
@@ -157,23 +157,23 @@ $app->post('/addEmployee', function () use($app) {
 							':nokTelephone' => $nokTelephone,
 							':nokEmail' => $nokEmail
 		) );
-		
+
 		if( $username !== null )
-		{ 
+		{
 			$insertUser->execute( array(':firstName' => $firstName, ':middleName' => $middleName, ':lastName' => $lastName,
-							 ':username' => $username, ':password' => $password, ':email' => $email, ':userType' => $userType, 
+							 ':username' => $username, ':password' => $password, ':email' => $email, ':userType' => $userType,
 							 ':createdBy' => $createdBy	) );
 			$updateEmp->execute();
 		}
-		
+
 		$db->commit();
- 
+
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
         echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
- 
- 
+
+
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -184,19 +184,19 @@ $app->post('/addEmployee', function () use($app) {
 
 $app->put('/updateEmployee', function () use($app) {
     // Update employee
-	
+
 	$allPostVars = json_decode($app->request()->getBody(),true);
-	
+
 	$empId =			( isset($allPostVars['emp_id']) ? $allPostVars['emp_id']: null);
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
-	
+
 	$employeeDataOnly = ( isset($allPostVars['employee']) ? $allPostVars['employee']: null);
-	
+
 	$updatePersonal = false;
 	$updateEmployee = false;
-	
+
 	if( isset($allPostVars['personal']) )
-	{		
+	{
 		$idNumber =			( isset($allPostVars['personal']['id_number']) ? $allPostVars['personal']['id_number']: null);
 		$gender =			( isset($allPostVars['personal']['gender']) ? $allPostVars['personal']['gender']: null);
 		$firstName =		( isset($allPostVars['personal']['first_name']) ? $allPostVars['personal']['first_name']: null);
@@ -212,6 +212,7 @@ $app->put('/updateEmployee', function () use($app) {
 		$nokName =			( isset($allPostVars['personal']['next_of_kin_name']) ? $allPostVars['personal']['next_of_kin_name']: null);
 		$nokTelephone =		( isset($allPostVars['personal']['next_of_kin_telephone']) ? $allPostVars['personal']['next_of_kin_telephone']: null);
 		$nokEmail =			( isset($allPostVars['personal']['next_of_kin_email']) ? $allPostVars['personal']['next_of_kin_email']: null);
+		$house =			( isset($allPostVars['personal']['house']) ? $allPostVars['personal']['house']: null);
 		$updatePersonal = true;
 	}
 	if( isset($allPostVars['employee']) )
@@ -238,17 +239,18 @@ $app->put('/updateEmployee', function () use($app) {
 		$loginId =			( isset($allPostVars['employee']['login_id']) ? $allPostVars['employee']['login_id']: null);
 		$telephone =		( isset($allPostVars['employee']['telephone']) ? $allPostVars['employee']['telephone']: null);
 		$subdomain =		( isset($allPostVars['employee']['subdomain']) ? $allPostVars['employee']['subdomain']: null);
+		$committee =			( isset($allPostVars['employee']['committee']) ? $allPostVars['employee']['committee']: null);
 		$updateEmployee = true;
 	}
-	
+
 	$updateLogin = false;
 	$addLogin = false;
 	$updatePwd = false;
 
-    try 
+    try
     {
         $db = getDB();
-			
+
 		if( $updatePersonal )
 		{
 			$sth = $db->prepare("UPDATE app.employees
@@ -268,9 +270,10 @@ $app->put('/updateEmployee', function () use($app) {
 					next_of_kin_telephone = :nokTelephone,
 					next_of_kin_email = :nokEmail,
 					modified_date = now(),
-					modified_by = :userId
+					modified_by = :userId,
+					house = :house
 				WHERE emp_id = :empId");
-				
+
 				$sth->execute( array(':empId' => $empId,
 								':idNumber' => $idNumber,
 								':gender' => $gender,
@@ -287,7 +290,8 @@ $app->put('/updateEmployee', function () use($app) {
 								':nokName' => $nokName,
 								':nokTelephone' => $nokTelephone,
 								':nokEmail' => $nokEmail,
-								':userId' => $userId
+								':userId' => $userId,
+								':house' => $house
 			) );
 		}
 		if( $updateEmployee )
@@ -302,9 +306,10 @@ $app->put('/updateEmployee', function () use($app) {
 					experience = :experience,
 					additional_info = :additionalInfo,
 					modified_date = now(),
-					modified_by = :userId
+					modified_by = :userId,
+					committee = :committee
 				WHERE emp_id = :empId");
-				
+
 				if( $loginId !== null && $username !== null )
 				{
 					$updateLogin = true;
@@ -316,7 +321,7 @@ $app->put('/updateEmployee', function () use($app) {
 														modified_date = now(),
 														modified_by = :userId
 													WHERE user_id = :loginId
-										");	
+										");
 					}
 					else
 					{
@@ -328,23 +333,23 @@ $app->put('/updateEmployee', function () use($app) {
 														modified_date = now(),
 														modified_by = :userId
 													WHERE user_id = :loginId
-										");		
+										");
 					}
-								
-					
+
+
 				}
 				else if($loginId === null && $username !== null)
 				{
 					$addLogin = true;
-					$insertUser = $db->prepare("INSERT INTO app.users(first_name, middle_name, last_name, username, password, email, user_type, created_by) 
+					$insertUser = $db->prepare("INSERT INTO app.users(first_name, middle_name, last_name, username, password, email, user_type, created_by)
 												VALUES(:firstName, :middleName, :lastName, :username, :password, :email, :userType, :userId)");
 					$updateEmp = $db->prepare("UPDATE app.employees
 												SET login_id = currval('app.user_user_id_seq')
-												WHERE emp_id = :empId;");		
+												WHERE emp_id = :empId;");
 				}
-				
+
 				$db->beginTransaction();
-				
+
 				$sth->execute( array(':empId' => $empId,
 								':empCatId' => $empCatId,
 								':deptId' => $deptId,
@@ -354,9 +359,10 @@ $app->put('/updateEmployee', function () use($app) {
 								':qualifications' => $qualifications,
 								':experience' => $experience,
 								':additionalInfo' => $additionalInfo,
-								':userId' => $userId
-						) );	
-						
+								':userId' => $userId,
+								':committee' => $committee
+						) );
+
 				if( $updateLogin )
 				{
 					if( $updatePwd ) $updateUser->execute( array(':loginActive' => $loginActive, ':password' => $password,  ':userType' => $userType, ':userId' => $userId, ':loginId' => $loginId ) );
@@ -365,26 +371,26 @@ $app->put('/updateEmployee', function () use($app) {
 				else if( $addLogin )
 				{
 					$insertUser->execute( array(':firstName' => $firstName, ':middleName' => $middleName, ':lastName' => $lastName,
-												 ':username' => $username, ':password' => $password, ':email' => $email, ':userType' => $userType, 
+												 ':username' => $username, ':password' => $password, ':email' => $email, ':userType' => $userType,
 												 ':userId' => $userId	) );
 					$updateEmp->execute( array(':empId' => $empId) );
 				}
-								
+
 				$db->commit();
-				
+
 				// we use the same data to create or modify the data for app login
 				createStaffLogin($employeeDataOnly);
-			
+
 		}
-		
-		
- 
+
+
+
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
         echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
- 
- 
+
+
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -395,24 +401,24 @@ $app->put('/updateEmployee', function () use($app) {
 
 $app->get('/getAllTeachers(/:status)', function ($status=true) {
     //Show all teachers
-	
+
 	$app = \Slim\Slim::getInstance();
- 
-    try 
+
+    try
     {
         $db = getDB();
         $sth = $db->prepare("SELECT emp_id as teacher_id, employees.emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
          middle_name, last_name, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
          initials, dob, country, employees.active, telephone, email, joined_date,
          job_title, qualifications, experience, additional_info, emp_image
-        FROM app.employees 
+        FROM app.employees
         INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id
         WHERE LOWER(employee_cats.emp_cat_name) = LOWER('TEACHING')
-        AND employees.active = :status        
+        AND employees.active = :status
         ORDER BY first_name, middle_name, last_name");
-        $sth->execute( array(':status' => $status)); 
+        $sth->execute( array(':status' => $status));
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
- 
+
         if($results) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -424,7 +430,7 @@ $app->get('/getAllTeachers(/:status)', function ($status=true) {
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
- 
+
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -435,10 +441,10 @@ $app->get('/getAllTeachers(/:status)', function ($status=true) {
 
 $app->get('/getEmployeeDetails/:empId', function ($empId) {
     // Get employee details
-	
+
 	$app = \Slim\Slim::getInstance();
- 
-    try 
+
+    try
     {
         $db = getDB();
         $sth = $db->prepare("SELECT employees.*,
@@ -447,18 +453,18 @@ $app->get('/getEmployeeDetails/:empId', function ($empId) {
 									(select array_agg(class_name) from app.classes where teacher_id = employees.emp_id and classes.active is true) as classes,
 									(select array_agg(subject_name || ' (' || class_cat_name || ')') from app.subjects inner join app.class_cats using (class_cat_id) where teacher_id = employees.emp_id and subjects.active is true) as subjects,
 									username, user_type, users.active as login_active
-							 FROM app.employees 
+							 FROM app.employees
 							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id AND employee_cats.active is true
 							 INNER JOIN app.departments ON employees.dept_id = departments.dept_id AND departments.active is TRUE
 							 LEFT JOIN app.users ON employees.login_id = users.user_id
 							 WHERE emp_id = :empId");
-        $sth->execute( array(':empId' => $empId)); 
+        $sth->execute( array(':empId' => $empId));
         $results = $sth->fetch(PDO::FETCH_OBJ);
- 
+
         if($results) {
 			$results->classes = pg_array_parse($results->classes);
 			$results->subjects = pg_array_parse($results->subjects);
-			
+
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));
@@ -469,7 +475,7 @@ $app->get('/getEmployeeDetails/:empId', function ($empId) {
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
- 
+
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -481,17 +487,17 @@ $app->get('/getEmployeeDetails/:empId', function ($empId) {
 // ************** Employee Categories  ****************** //
 $app->get('/getEmployeeCats', function () {
     //Show all employee categories
-	
+
 	$app = \Slim\Slim::getInstance();
- 
-    try 
+
+    try
     {
         $db = getDB();
         $sth = $db->prepare("SELECT emp_cat_id, emp_cat_name FROM app.employee_cats WHERE active is true ORDER BY emp_cat_id");
         $sth->execute();
- 
+
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
- 
+
         if($results) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -503,7 +509,7 @@ $app->get('/getEmployeeCats', function () {
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
- 
+
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -514,32 +520,32 @@ $app->get('/getEmployeeCats', function () {
 
 $app->post('/addEmployeeCat', function () use($app) {
     // Add employee category
-	
+
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	$empCatName = ( isset($allPostVars['emp_cat_name']) ? $allPostVars['emp_cat_name']: null);
 	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
-	
-    try 
+
+    try
     {
        $db = getDB();
-        $sth1 = $db->prepare("INSERT INTO app.employee_cats(emp_cat_name,created_by) 
-            VALUES(:empCatName,:userId)"); 
-			
-		$sth2 = $db->prepare("SELECT currval('app.employee_cats_emp_cat_id_seq') as emp_cat_id");	
-		
+        $sth1 = $db->prepare("INSERT INTO app.employee_cats(emp_cat_name,created_by)
+            VALUES(:empCatName,:userId)");
+
+		$sth2 = $db->prepare("SELECT currval('app.employee_cats_emp_cat_id_seq') as emp_cat_id");
+
 		$db->beginTransaction();
 		$sth1->execute( array(':empCatName' => $empCatName, ':userId' => $userId) );
 		$sth2->execute();
 		$empCatId = $sth2->fetch(PDO::FETCH_OBJ);
-		$db->commit();		
-        
- 
+		$db->commit();
+
+
 		$result = new stdClass();
 		$result->emp_cat_id = $empCatId->emp_cat_id;
 		$result->emp_cat_name = $empCatName;
-	
+
 		if( $empCatId )
-		{ 
+		{
 			$app->response->setStatus(200);
 			$app->response()->headers->set('Content-Type', 'application/json');
 			echo json_encode(array("response" => "success", "data" => $result));
@@ -552,8 +558,8 @@ $app->post('/addEmployeeCat', function () use($app) {
             echo json_encode(array('response' => 'success', 'data' => $e->getMessage() ));
             $db = null;
 		}
- 
- 
+
+
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -564,29 +570,29 @@ $app->post('/addEmployeeCat', function () use($app) {
 
 $app->put('/updateEmployeeCat', function () use($app) {
     // Update employee category
-	
+
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	$empCatId = ( isset($allPostVars['emp_cat_id']) ? $allPostVars['emp_cat_id']: null);
 	$empCatName = ( isset($allPostVars['emp_cat_name']) ? $allPostVars['emp_cat_name']: null);
 	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
-	
-    try 
+
+    try
     {
        $db = getDB();
        $sth = $db->prepare("UPDATE app.employee_cats
 								SET emp_cat_name = :empCatName,
 									modified_date = now(),
 									modified_by = :userId
-								WHERE emp_cat_id = :empCatId"); 
-			
-		$sth->execute( array(':empCatId' => $empCatId, ':empCatName' => $empCatName, ':userId' => $userId) );	
-        
+								WHERE emp_cat_id = :empCatId");
+
+		$sth->execute( array(':empCatId' => $empCatId, ':empCatName' => $empCatName, ':userId' => $userId) );
+
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
         echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
- 
- 
+
+
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -597,32 +603,32 @@ $app->put('/updateEmployeeCat', function () use($app) {
 
 $app->put('/setEmployeeCatStatus', function () use($app) {
     // Update employee cat status
-	
+
 	$allPostVars = json_decode($app->request()->getBody(),true);
 	$empCatId = ( isset($allPostVars['emp_cat_id']) ? $allPostVars['emp_cat_id']: null);
 	$status =	( isset($allPostVars['status']) ? $allPostVars['status']: null);
 	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
-    try 
+    try
     {
         $db = getDB();
         $sth = $db->prepare("UPDATE app.employee_cats
 							SET active = :status,
 								modified_date = now(),
-								modified_by = :userId 
+								modified_by = :userId
 							WHERE emp_cat_id = :empCatId
-							"); 
-        $sth->execute( array(':empCatId' => $empCatId, 
-							 ':status' => $status, 
+							");
+        $sth->execute( array(':empCatId' => $empCatId,
+							 ':status' => $status,
 							 ':userId' => $userId
 					) );
- 
+
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
         echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
- 
- 
+
+
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -633,19 +639,19 @@ $app->put('/setEmployeeCatStatus', function () use($app) {
 
 $app->get('/checkEmpCat/:emp_cat_id', function ($empCatId) {
     // Check is employe cat can be deleted
-	
+
 	$app = \Slim\Slim::getInstance();
 
-    try 
+    try
     {
         $db = getDB();
         $sth = $db->prepare("SELECT count(emp_id) as num_employees
 								FROM app.employees
 								WHERE emp_cat_id = :empCatId");
         $sth->execute( array(':empCatId' => $empCatId ) );
- 
+
         $results = $sth->fetch(PDO::FETCH_OBJ);
- 
+
         if($results) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -657,7 +663,7 @@ $app->get('/checkEmpCat/:emp_cat_id', function ($empCatId) {
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
- 
+
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -668,25 +674,25 @@ $app->get('/checkEmpCat/:emp_cat_id', function ($empCatId) {
 
 $app->delete('/deleteEmpCat/:emp_cat_id', function ($empCatId) {
     // delete employee cat
-	
+
 	$app = \Slim\Slim::getInstance();
 
-    try 
+    try
     {
         $db = getDB();
 
-		$sth = $db->prepare("DELETE FROM app.employee_cats WHERE emp_cat_id = :empCatId");		
-										
+		$sth = $db->prepare("DELETE FROM app.employee_cats WHERE emp_cat_id = :empCatId");
+
 		$sth->execute( array(':empCatId' => $empCatId) );
- 
+
 		$app->response->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
         echo json_encode(array("response" => "success", "code" => 1));
         $db = null;
- 
- 
+
+
     } catch(PDOException $e) {
-		
+
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));

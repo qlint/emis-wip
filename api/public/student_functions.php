@@ -114,6 +114,82 @@ $app->get('/getAllParents', function () {
 
 });
 
+$app->get('/exportAllStudentDetails', function () {
+  //Get all student details
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT one.*, mother_name, mother_telephone, father_name, father_telephone
+                        FROM (
+                        	SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, admission_number, student_category, nationality,
+                        		class_name, CASE WHEN adopted IS FALSE THEN 'False' ELSE 'True' END AS adopted, emergency_name AS emergency_contact, emergency_relationship, emergency_telephone,
+                        		dob AS date_of_birth, pick_up_drop_off_individual, pick_up_drop_off_individual_phone, payment_method AS fee_payment_method, payment_plan_name AS payment_plan,
+                        		route, student_type, nemis, house, club, movement, destination AS neighborhood
+                        	FROM app.students s
+                        	INNER JOIN app.classes c ON s.current_class = c.class_id
+                        	INNER JOIN app.installment_options io ON s.installment_option_id = io.installment_id
+                        	INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                        	WHERE s.active = true
+                        	ORDER BY student_name ASC, class_name ASC
+                        )one
+                        LEFT JOIN
+                        (
+                        	SELECT student_id, mother_name, mother_telephone, father_name, father_telephone
+                        	FROM (
+                        		SELECT * FROM
+                        		(
+                        		SELECT * FROM (
+                        			SELECT student_id,
+                        				CASE WHEN sg.relationship = 'Mother' THEN g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name END AS mother_name,
+                        				CASE WHEN sg.relationship = 'Mother' THEN telephone END AS mother_telephone
+                        			FROM app.student_guardians sg
+                        			INNER JOIN app.guardians g USING (guardian_id)
+                        			ORDER BY student_id ASC
+                        			)inner1 WHERE mother_name IS NOT NULL
+                        		)one
+                        		FULL OUTER JOIN
+                        		(
+                        		SELECT * FROM (
+                        			SELECT student_id,
+                        				CASE WHEN sg.relationship = 'Father' THEN g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name END AS father_name,
+                        				CASE WHEN sg.relationship = 'Father' THEN telephone END AS father_telephone
+                        			FROM app.student_guardians sg
+                        			INNER JOIN app.guardians g USING (guardian_id)
+                        			ORDER BY student_id ASC
+                        			)inner2 WHERE father_name IS NOT NULL
+                        		)two
+                        		USING (student_id)
+                        		ORDER BY student_id ASC
+                        	)three
+                        )four
+                        USING (student_id)");
+    $sth->execute();
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/studentGenderCount', function () {
   //count the number of students by the gender
 
@@ -894,6 +970,7 @@ $app->post('/addStudent', function () use($app) {
   $nemis =              ( isset($allPostVars['nemis']) ? $allPostVars['nemis']: null);
   $house =              ( isset($allPostVars['house']) ? $allPostVars['house']: null);
   $club =              ( isset($allPostVars['club']) ? $allPostVars['club']: null);
+  $movement =              ( isset($allPostVars['movement']) ? $allPostVars['movement']: null);
 
   // guardian fields
   $guardianData =         ( isset($allPostVars['guardians']) ? $allPostVars['guardians']: null);
@@ -925,11 +1002,11 @@ $app->post('/addStudent', function () use($app) {
                                 hospitalized_description, current_medical_treatment, current_medical_treatment_description,
                                 other_medical_conditions, other_medical_conditions_description,
                                 emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual,
-                                installment_option_id, new_student, transport_route_id, emergency_telephone_2, pick_up_drop_off_individual_phone, pick_up_drop_off_individual_img, nemis, house, club)
+                                installment_option_id, new_student, transport_route_id, emergency_telephone_2, pick_up_drop_off_individual_phone, pick_up_drop_off_individual_img, nemis, house, club, movement)
             VALUES(:admissionNumber,:gender,:firstName,:middleName,:lastName,:dob,:studentCat,:studentType,:nationality,:studentImg, :currentClass, :paymentMethod, :active, :createdBy,
           :admissionDate, :marialStatusParents, :adopted, :adoptedAge, :maritalSeparationAge, :adoptionAware, :comments, :hasMedicalConditions, :hospitalized,
           :hospitalizedDesc, :currentMedicalTreatment, :currentMedicalTreatmentDesc, :otherMedicalConditions, :otherMedicalConditionsDesc,
-          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId, :emergencyPhone2, :pickUpIndividualPhone, :pickUpIndividualImage, :nemis, :house, :club);");
+          :emergencyContact, :emergencyRelation, :emergencyPhone, :pickUpIndividual, :installmentOption, :newStudent, :routeId, :emergencyPhone2, :pickUpIndividualPhone, :pickUpIndividualImage, :nemis, :house, :club, :movement);");
 
     $studentClassInsert = $db->prepare("INSERT INTO app.student_class_history(student_id,class_id,created_by)
                       VALUES(currval('app.students_student_id_seq'),:currentClass,:createdBy);");
@@ -1033,7 +1110,8 @@ $app->post('/addStudent', function () use($app) {
               ':emergencyPhone2' => $emergencyPhone2,
               ':nemis' => $nemis,
               ':house' => $house,
-              ':club' => $club
+              ':club' => $club,
+              ':movement' => $movement
     ) );
 
     $studentClassInsert->execute(array(':currentClass' => $currentClass,':createdBy' => $createdBy));
@@ -1225,6 +1303,7 @@ $app->put('/updateStudent', function () use($app) {
     $nemis =          ( isset($allPostVars['details']['nemis']) ? $allPostVars['details']['nemis']: null);
     $house =          ( isset($allPostVars['details']['house']) ? $allPostVars['details']['house']: null);
     $club =          ( isset($allPostVars['details']['club']) ? $allPostVars['details']['club']: null);
+    $movement =          ( isset($allPostVars['details']['movement']) ? $allPostVars['details']['movement']: null);
   }
 
   if( isset($allPostVars['family']) )
@@ -1294,7 +1373,8 @@ $app->put('/updateStudent', function () use($app) {
             modified_date = now(),
             modified_by = :userId,
             house = :house,
-            club = :club
+            club = :club,
+            movement = :movement
           WHERE student_id = :studentId"
       );
 
@@ -1451,7 +1531,8 @@ $app->put('/updateStudent', function () use($app) {
               ':userId' => $userId,
               ':nemis' => $nemis,
               ':house' => $house,
-              ':club' => $club
+              ':club' => $club,
+              ':movement' => $movement
       ) );
       if( $updateClass )
       {
@@ -2017,6 +2098,35 @@ $app->post('/addMedicalConditions', function () use($app) {
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
     echo json_encode(array("response" => "success", "data" => $results));
+    $db = null;
+  } catch(PDOException $e) {
+    $db->rollBack();
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->post('/addStudentDestination', function () use($app) {
+  // Add student destination
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  $studentId =  ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+  $destination =  ( isset($allPostVars['destination']) ? $allPostVars['destination']: null);
+
+  try
+  {
+    $db = getDB();
+
+    $studentUpdate = $db->prepare("UPDATE app.students SET destination = :destination WHERE student_id = :studentId");
+    $db->beginTransaction();
+    $studentUpdate->execute(array(':studentId' => $studentId, ':destination' => $destination));
+    $db->commit();
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "data" => "Student's home updated successfully!"));
     $db = null;
   } catch(PDOException $e) {
     $db->rollBack();

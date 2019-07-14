@@ -43,7 +43,7 @@
 						<p class="meta"><b>Sent From:</b> {{post.details.posted_by}}</p>
 						<p class="meta"><b>Reply To:</b> {{post.reply_to}}</p>
 						<p class="meta"><b>Subject:</b> {{post.title}}</p>
-						<p ng-bind-html="post.body"></p>
+						<p ng-bind-html="post.body">{{post.body}}</p>
 						<p  ng-show="showAttachment">
 							<b>Attachment:</b>
 								<a target="_new" ng-repeat='item in attachments' href="assets/posts/{{item}}">
@@ -63,7 +63,7 @@
 						<p class="meta"><b>Type:</b> {{post.com_type}}</p>
 						<p class="meta"><b>Send To:</b> {{post.audience}} {{post.class_name}} {{post.parent_full_name}}</p>
 						<p class="meta"><b>Sent From:</b> {{post.posted_by}}</p>
-						<p class="meta"><b>Message:</b> {{post.title}}</p>
+						<p class="meta"><b>Message:</b> {{post.body}}</p>
 					</div>
 				</div>
 

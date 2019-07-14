@@ -1,12 +1,11 @@
+<style type="text/css">
+    #resultsTable{width:100%;border:1px solid #404040;border-collapse:collapse;}
+    #resultsTable thead tr th,#resultsTable tbody tr td{padding:5px;border:#303030 1px solid;text-align:center;}
+    #resultsTable tbody tr:nth-child(odd){background:#e8e8e8;}
+</style>
 <div ng-controller="examsReportsCtrl">
 
-    <style>
-        @import "components/overviewFiles/css/reportStyles.css";
-        @import "components/overviewFiles/css/jquery.dataTables.min.css";
-        @import "components/overviewFiles/css/buttons.dataTables.min.css";
-    </style>
-
-	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+    <div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
@@ -112,56 +111,48 @@
                 	<div class="tab-content clearfix">
                 		<div class="tab-pane active" id="1a">
                             <h3 style="color:#000000;">{{reportTitle}}</h3>
-
+                            <div><h4>Search Results: <span><input type="text" id="search" placeholder="  live search"></input></span></h4></div>
                             <!-- class analysis table -->
-                            <div class='table100 ver1 m-b-110' ng-show="classAnalysisTable" id="classAnalysisTableDiv">
-                                <table id='classAnalysisTable'>
-                                    <div id='t1' class='table100-head'>
+                            <div ng-show="classAnalysisTable" id="classAnalysisTableDiv">
+                                <table id='resultsTable'>
                                         <thead>
                                             <tr class='row100 head' id="tblHeader">
-                                                <th class='cell100 column2'>GND.</th>
-                                                <th class='cell100 column2'>STDNT.</th>
-                                                <th class='cell100 column2' ng-repeat="col in tableHeader">{{col.title | limitTo: 3}}</th>
-                                                <th class='cell100 column2'>POS</th>
+                                                <th>GND.</th>
+                                                <th>STUDENT.</th>
+                                                <th ng-repeat="col in tableHeader">{{col.title | limitTo: 3}}</th>
+                                                <th>POS</th>
                                             </tr>
                                         </thead>
-                                    </div>
-                                    <div class='table100-body js-pscroll'>
                                         <tbody id="tblBody">
-                                            <tr class='row100 body' ng-repeat="item in examMarks track by $index">
-                                                <td class='cell100 column2'>{{item.gender}}</td>
-                                                <td class='cell100 column2'>{{item.student_name}}</td>
-                                                <td class='cell100 column2' ng-repeat="col in tableHeader" ng-bind="displayClassAnalysisMark($parent.$index, col.key)"></td>
-                                                <td class='cell100 column2'>{{item.rank}}</td>
+                                            <tr ng-repeat="item in examMarks track by $index">
+                                                <td>{{item.gender}}</td>
+                                                <td>{{item.student_name}}</td>
+                                                <td ng-repeat="col in tableHeader" ng-bind="displayClassAnalysisMark($parent.$index, col.key)"></td>
+                                                <td>{{item.rank}}</td>
                                             </tr>
                                         </tbody>
-                                    </div>
                                 </table>
                             </div>
 
                             <!-- stream analysis table -->
-                            <div class='table100 ver1 m-b-110' ng-show="streamAnalysisTable" id="streamAnalysisTableDiv">
-                                <table id='streamAnalysisTable'>
-                                    <div id='t1' class='table100-head'>
+                            <div ng-show="streamAnalysisTable" id="streamAnalysisTableDiv">
+                                <table id='resultsTable'>
                                         <thead>
-                                            <tr class='row100 head' id="tblHeader">
-                                                <th class='cell100 column2'>GND.</th>
-                                                <th class='cell100 column2'>STDNT</th>
-                                                <th class='cell100 column2' ng-repeat="col in tableHeader">{{col.title  | limitTo: 3}}</th>
-                                                <th class='cell100 column2'>POS</th>
+                                            <tr id="tblHeader">
+                                                <th>GND.</th>
+                                                <th>STUDENT</th>
+                                                <th ng-repeat="col in tableHeader">{{col.title  | limitTo: 3}}</th>
+                                                <th>POS</th>
                                             </tr>
                                         </thead>
-                                    </div>
-                                    <div class='table100-body js-pscroll'>
                                         <tbody id="tblBody">
-                                            <tr class='row100 body' ng-repeat="item in examMarks track by $index">
-                                                <td class='cell100 column2'>{{item.gender}}</td>
-                                                <td class='cell100 column2'>{{item.student_name}}</td>
-                                                <td class='cell100 column2' ng-repeat="col in tableHeader" ng-bind="displayStreamAnalysisMark($parent.$index, col.key)"></td>
-                                                <td class='cell100 column2'>{{item.rank}}</td>
+                                            <tr ng-repeat="item in examMarks track by $index">
+                                                <td>{{item.gender}}</td>
+                                                <td>{{item.student_name}}</td>
+                                                <td ng-repeat="col in tableHeader" ng-bind="displayStreamAnalysisMark($parent.$index, col.key)"></td>
+                                                <td>{{item.rank}}</td>
                                             </tr>
                                         </tbody>
-                                    </div>
                                 </table>
                             </div>
 
@@ -188,13 +179,5 @@
 		<!-- end reports body -->
 
 	</div>
-    
-  <script src="components/overviewFiles/js/main.js"></script>
-  <script src="components/overviewFiles/js/jquery.dataTables.min.js"></script>
-  <script src="components/overviewFiles/js/dataTables.buttons.min.js"></script>
-  <script src="components/overviewFiles/js/jszip.min.js"></script>
-  <script src="components/overviewFiles/js/pdfmake.min.js"></script>
-  <script src="components/overviewFiles/js/vfs_fonts.js"></script>
-  <script src="components/overviewFiles/js/buttons.html5.min.js"></script>
 
 </div>

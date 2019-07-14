@@ -1,0 +1,98 @@
+<div ng-controller="mappedHistoryCtrl">	
+	
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+		
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+		
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+			
+			<!-- search form -->
+			<div class="dataFilterForm">
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+				    <!-- bus select -->
+					<div class="form-group">
+						<label for="course">Bus</label>
+						<select name="bus" id="bus" class="form-control" ng-model="filters.bus_id">
+							<option ng-repeat="bus in buses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} {{bus.bus_registration}} - {{bus.route}}</option>
+						</select>
+					</div>
+					
+					<!-- activity -->
+					<div class="form-group">
+						<label for="course">Activity</label>
+						<select name="activity" id="activity" class="form-control" ng-model="filters.activity">
+							<option value="pickup">Pick Up</option>
+							<option value="dropoff">Drop Off</option>
+						</select>
+					</div>
+
+					<!-- date select -->
+					<div class="form-group">
+						<label for="status">Date</label>
+						<input type="date" id="date" name="trip-date" min="2019-01-01">
+					</div>
+
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="loadFilter()" value="Load" />
+						<!-- <img src="assets/spinner.gif" ng-show="loading" /> -->
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+				</form>
+			</div>
+			<!-- // end search form -->
+			
+			<div class="clearfix">
+				<h1 id="pageTitle" class="t_title">Bus Pick up and Drop Off History  (MARKERS DENOTE DROP / PICK-UP POINTS)</h1>
+			</div>
+			
+		</div>
+		
+		<!-- <style type="text/css"> @import url("components/css/mappedHistory.css"); </style> -->
+		<!-- OLD KEY <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true&libraries=geometry&key=AIzaSyCCoZ2jgETAWXJxDfZlyFJvBcne6ZRdXgY"></script> -->
+		<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=true&libraries=geometry&key=AIzaSyDlT1XR_NC_WD4kk0Vj_zDryvhFgWOMIl8"></script>
+		<style type="text/css">
+            #map_canvas {
+                width: 100%;
+                height: 500px;
+            }
+        </style>
+		<div id="body-content" class="schoolBusBodySpacer">
+            <div class="row">
+			
+    		    <div class="col-lg-12" style="margin-top:30px;">
+                    
+                    <div id="map_canvas"></div>
+    
+                    <script>
+                      // tell the embed parent frame the height of the content
+                      if (window.parent && window.parent.parent){
+                        window.parent.parent.postMessage(["resultsFrame", {
+                          height: document.body.getBoundingClientRect().height,
+                          slug: "9tfq5sqc"
+                        }], "*")
+                      }
+                    </script>
+                </div>	
+    		
+    		</div>
+	    </div>
+		
+	</div>
+</div>
+
+
+

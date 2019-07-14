@@ -10,7 +10,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.isTeacher = ($rootScope.currentUser.user_type == 'TEACHER' ? true : false);
 
 	$scope.parentsAndStudents = [];
-  $scope.showTable = false;
+    $scope.showTable = false;
+    function sleep(milliseconds) {
+                                    var start = new Date().getTime();
+                                    for (var i = 0; i < 1e7; i++) {
+                                        if ((new Date().getTime() - start) > milliseconds){
+                                            break;
+                                        }
+                                    }
+                                 }
 
 	var initializeController = function()
 	{
@@ -72,7 +80,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
                       var aParent = JSON.parse(perParent);
                       perParent = aParent;
 
-                      var parentMessage = "Dear " + aParent.name + ", \n Please top up " + perStudent.student_name + "'s fee balance of " + Math.round(Number(perStudent.balance))*-1 + " to ensure no interruption in studies. Thank you.";
+                      var parentMessage = "Dear " + aParent.name + ", \n Please pay fee balance of Ksh." +  Math.round(Number(perStudent.balance))*-1 + " for " + perStudent.student_name + " to avoid inconveniences. Thank you.";
                       aParent.message = parentMessage;
                       parentsArr.push(perParent);
                   });
@@ -125,7 +133,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					"message_text": parent.message,
 					"subscriber_name": school
 				};
-				console.log(parentMessage)
         var postObj = {};
         postObj.post = {
           com_date: new Date().toLocaleString(),
@@ -148,6 +155,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
         apiService.customAddCommunication(postObj,createCompleted,apiError);
 
 				// send the sms
+				
 				var xhr = new XMLHttpRequest();
 				xhr.open("POST", 'https://sms_api.eduweb.co.ke/api/sendBulkSms', true);
 				xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
@@ -160,7 +168,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				xhr.send(JSON.stringify(parentMessage));
 
 				// before continuing the loop we need to wait a bit - trying 1.5s
-				console.log("Waiting 1.0s ...");
+				
+				console.log(parentMessage,"Waiting 1.0s ...");
 				sleep(1100);
 
     });

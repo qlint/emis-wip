@@ -1,0 +1,51 @@
+<form name="examForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(examForm)">
+	<div class="modal-header dialog-header-form">
+				<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Assign Students To Particular Bus</h4>
+			</div>
+			<div class="modal-body clearfix">
+				<div>
+        		    <h3>List Of All Students Plying {{route}}</h3><br>
+                </div>
+				
+				<div ng-hide="showTable" style="text-align:center;">
+					<h4>Fetching Students in this route... Depending on the number of students, this might take some time.</h4>
+					<img src="assets/loading-one.gif" style="max-width:100px;" />
+				</div>
+                
+                <style type="text/css">
+                    table#resultsTable2 tr:nth-child(even) {background: #CCC}
+                    table#resultsTable2 tr:nth-child(odd) {background: #FFF}
+                </style>
+				<table ng-show="showTable" id="resultsTable2" class="display dataTable" cellspacing="0" width="100%" style="border-collapse: collapse;">
+					<thead>
+						<tr>
+							<th width="40%">Student</th>
+							<th width="20%">Bus</th>
+							<th width="40%"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in studentsToAssign track by $index">
+							<td width="40%">
+							    <p>{{item.student_name}} ({{item.class_name}})<p>
+							</td>
+							<td width="20%">
+							    <select id="student_{{item.student_id}}" name="selectedBus" ng-model="selectedBus" ng-change="updateStudentBus(this)" style="background-color: #ffffff;border: 2px solid #000000;border-radius: 5px;">
+                                    <option value="">Select A Bus</option>
+                                    <option ng-repeat="item2 in item.bus_options track by $index" value="{{item2.bus_id}}">{{item2.bus_type}} - {{item2.bus_registration}}</option>
+                                </select>
+							</td>
+							<td width="40%">
+							    <p ng-show="showPreassigned" style="font-size:15px;vertical-align:middle;">{{item.preassigned}}</p>
+							    <p id="status_student_{{item.student_id}}" ng-show="showLoader" style="font-size:15px;vertical-align:middle;"><img src="assets/loading-one.gif" style="max-width:16px;" /> <span> Updating...</span></p>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" ng-click="cancel()">Cancel</button>
+				<button ng-click="save()" class="btn btn-primary">Save</button>
+			</div>
+</form>

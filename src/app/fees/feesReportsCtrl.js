@@ -39,7 +39,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                 thePaid.push(label.total_paid);
                 theBalance.push(label.balance);
             });
-        	console.log("The labels are:",theLabels);
         	        
         	var barChartData = {
             	labels: theLabels,
@@ -147,15 +146,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                 }
                                 */
                                 for (var v = 0; v < paidLength; v++) {
-                                    console.log("The paid arr",thePaid);
                                     
                                     var fullPercentage = ((thePaid[v] / $scope.overallPaid) * 100) * 1.8;
                                     var roundedPercentage = fullPercentage.toFixed(1);
-                                    console.log(thePaid[v],"Overall = " + roundedPercentage);
                                     newPaidVals.push(Number(roundedPercentage));
                                 }
-                                console.log(newPaidVals);
-                                
                                 
                                 function getRandomColor() {
                                     var letters = '0123456789ABCDEF';
@@ -372,7 +367,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	    
 	    $scope.studentFeeItemsAnalysisTable = false; // hide the student fee items table if its already showing
 	    $scope.overallBalancesAnalysisTable = true; // show the table for overall balances analysis
-	    $scope.activeChartTab = false; // hide charts
 	    
 	    var request = $scope.filters.term_id;
     	apiService.getOverallFinancials(request, loadOverallBalances, apiError);
@@ -387,7 +381,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	    
 	    $scope.overallBalancesAnalysisTable = false; // hide the table for overall balances analysis if its already showing
 	    $scope.studentFeeItemsAnalysisTable = true; // show the student fee items table
-	    $scope.activeChartTab = false; // hide charts
 	    
 	    var request = $scope.filters.term_id;
 		apiService.getOverallStudentFeePayments(request, loadStudentPayments, apiError);
@@ -414,44 +407,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.errMsg = result.data;
 		}
 
-		function beautifyOverallBalancesAnalysisTable() {
-			// data tables - prepare the table for presentation and download
-		    var docName = "Overall School Balances Analysis";
-	        var targetTable = document.getElementById('overallBalancesAnalysisTable').rows[0].cells.length;
-	        var orderCol = targetTable - 1;
-
-			$('#overallBalancesAnalysisTable').DataTable( {
-	            fixedHeader: true,
-	            dom: 'Bfrtip',
-	            "columnDefs": [
-	                {"className": "dt-center", "targets": "_all"}
-	            ],
-	            buttons: [
-	                {
-	                    extend: 'excelHtml5',
-	                    title: docName
-	                },
-	                {
-	                    extend: 'csvHtml5',
-	                    title: docName
-	                },
-	                {
-	                    extend: 'pdfHtml5',
-	                    title: docName
-	                }
-	              ],
-	              "order": [[orderCol,"asc"]],
-	              "bStateSave": true
-	      } );
-	      // end data tables
-		}
-		setTimeout(beautifyOverallBalancesAnalysisTable, 3000);
-
 	}
 
 	$scope.gotoDiv1 = function(el) {
 	    
-	    console.log("First tab",el);
         var newHash = '1a';
         if ($location.hash() !== newHash) {
             $location.hash('1a');
@@ -463,20 +422,25 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
             // $anchorScroll();
         }
         
+        $scope.overallBalancesAnalysisTable = ( $scope.returnToOverallBalancesAnalysis == true ? true : false);
+        $scope.studentFeeItemsAnalysisTable = ( $scope.returnToStudentFeeItemsAnalysis == true ? true : false);
+        
         $scope.activeChartTab = false; // hide charts
         document.getElementById("canvasReport").style.display = "none";
         
         if($scope.overallBalancesAnalysisTable == true){
             
             document.getElementById("overallBalancesAnalysisTableDiv").style.display = "block";
+            $scope.getOverallBalances(); // refetch the data
             document.getElementById("studentFeeItemsAnalysisTableDiv").style.display = "none";
             $scope.studentFeeItemsAnalysisTable = false;
             
         }else if($scope.studentFeeItemsAnalysisTable == true){
             
-            $scope.overallBalancesAnalysisTable = false;
             document.getElementById("studentFeeItemsAnalysisTableDiv").style.display = "block";
+            $scope.getStudentPayments(); // refetch the data
             document.getElementById("overallBalancesAnalysisTableDiv").style.display = "none";
+            $scope.overallBalancesAnalysisTable = false;
             
         }else{
             
@@ -487,7 +451,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         	$scope.showReport = false; // hide the reports div until needed
         	$scope.overallBalancesAnalysisTable = false; // show the table for overall balances
         	$scope.studentFeeItemsAnalysisTable = false; // show the table for student fee items
-        	$scope.activeChartTab = false; // hide charts
         	
         	$("#overallBalancesAnalysisTable").DataTable().destroy();
         	$("#studentFeeItemsAnalysisTable").DataTable().destroy();
@@ -497,8 +460,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
      };
 
      $scope.gotoDiv2 = function(el) {
-         
-	    console.log("Second tab",el);
 	    
         var newHash = '2a';
         if ($location.hash() !== newHash) {
@@ -511,6 +472,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                 // script is now loaded and executed.
                 document.getElementById("1a").classList.remove("active");
 	            document.getElementById("2a").classList.add("active");
+	            
+	            $scope.activeChartTab = true; // show charts
 
                 if($scope.overallBalancesAnalysisTable == true){
                     
@@ -520,11 +483,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         	        $scope.studentFeeItemsAnalysisTable = false; // hide the active table to pave way for charts visibility
         	        document.getElementById("overallBalancesAnalysisTableDiv").style.display = "none";
         	        document.getElementById("studentFeeItemsAnalysisTableDiv").style.display = "none";
-        	        $scope.activeChartTab = true; // show charts
+        	        $scope.returnToOverallBalancesAnalysis = true;
         	        
         	        $scope.fetchOvrlBalances();
-        	        
-        			// document.getElementById("canvasReport").classList.remove("ng-hide");
         	        
         	    }else if($scope.studentFeeItemsAnalysisTable == true){
         	        
@@ -534,7 +495,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         	        $scope.studentFeeItemsAnalysisTable = false; // hide the active table to pave way for charts visibility
         	        document.getElementById("overallBalancesAnalysisTableDiv").style.display = "none";
         	        document.getElementById("studentFeeItemsAnalysisTableDiv").style.display = "none";
-        	        $scope.activeChartTab = true; // show charts
+        	        $scope.returnToStudentFeeItemsAnalysis = true;
         	        
         	        $scope.fetchBalances();
         	        
@@ -570,39 +531,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.errMsg = result.data;
 		}
 
-		function beautifyStudentPaymentsAnalysisTable() {
-			// data tables - prepare the table for presentation and download
-		    var docName = "Student Fee Payments Analysis";
-	        var targetTable = document.getElementById('studentFeeItemsAnalysisTable').rows[0].cells.length;
-	        var orderCol = targetTable - 1;
-
-			$('#studentFeeItemsAnalysisTable').DataTable( {
-	            fixedHeader: true,
-	            dom: 'Bfrtip',
-	            "columnDefs": [
-	                {"className": "dt-center", "targets": "_all"}
-	            ],
-	            buttons: [
-	                {
-	                    extend: 'excelHtml5',
-	                    title: docName
-	                },
-	                {
-	                    extend: 'csvHtml5',
-	                    title: docName
-	                },
-	                {
-	                    extend: 'pdfHtml5',
-	                    title: docName
-	                }
-	              ],
-	              "order": [[orderCol,"asc"]],
-	              "bStateSave": true
-	      } );
-	      // end data tables
-		}
-		setTimeout(beautifyStudentPaymentsAnalysisTable, 3000);
-
 	}
 
 	$scope.printReport = function()
@@ -628,7 +556,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		var newWindowRef = window.open('http://' + domain + '/#/exams/analysis/print');
 		newWindowRef.printCriteria = data;
 	}
-
+	
+	$("#search").keyup(function () {
+        var value = this.value.toLowerCase().trim();
+    
+        $("table tr").each(function (index) {
+            if (!index) return;
+            $(this).find("td").each(function () {
+                var id = $(this).text().toLowerCase().trim();
+                var not_found = (id.indexOf(value) == -1);
+                $(this).closest('tr').toggle(!not_found);
+                return not_found;
+            });
+        });
+    });
 
 	$scope.refresh = function ()
 	{

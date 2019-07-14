@@ -16,6 +16,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		else ajaxService.AjaxGet(path + "/getClassCats/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getStreamExamMarks = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStreamExamMarks/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getStreamPosition = function (param, successFunction, errorFunction, params) {
 		if( param === undefined ) ajaxService.AjaxGet(path + "/getStreamPosition", successFunction, errorFunction, params);
 		else ajaxService.AjaxGet(path + "/getStreamPosition/" + param, successFunction, errorFunction, params);
@@ -450,6 +454,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGetWithData(request, path + "/getAllParents", successFunction, errorFunction, params);
 	};
 
+	this.exportAllStudentDetails = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/exportAllStudentDetails", successFunction, errorFunction, params);
+	};
+
 	this.studentGenderCount = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/studentGenderCount", successFunction, errorFunction, params);
 	};
@@ -568,6 +576,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.postMedicalConditions = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addMedicalConditions", successFunction, errorFunction, params);
+	};
+
+	this.addStudentDestination = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addStudentDestination", successFunction, errorFunction, params);
 	};
 
 	this.updateMedicalConditions = function (request, successFunction, errorFunction, params) {
@@ -826,6 +838,109 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getCommunicationForSms = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getCommunicationForSms/" + param, successFunction, errorFunction, params);
+	};
+
+	/*********** Transport ***********/
+
+	this.createSchoolBus = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/createSchoolBus", successFunction, errorFunction, params);
+	};
+
+	this.getAllBuses = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllBuses/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getAllAssignedBuses = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllAssignedBuses/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getStudentTransportDetails = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStudentTransportDetails/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getBusDestinations = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getBusDestinations/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getBusDriverAndGuide = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getBusDriverAndGuide/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getActiveRoutes = function (param, successFunction, errorFunction, params) {
+	    console.log(path + "/getActiveRoutes/" + param);
+		ajaxService.AjaxGet(path + "/getActiveRoutes/" + param, successFunction, errorFunction, params);
+	};
+
+	this.assignBusToRoute = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/assignBusToRoute", successFunction, errorFunction, params);
+	};
+
+	this.getAllDrivers = function (param, successFunction, errorFunction) {
+		ajaxService.AjaxGet(path + "/getAllDrivers", successFunction, errorFunction);
+	};
+
+	this.getSchoolBusRouteSharing = function (param, successFunction, errorFunction) {
+		ajaxService.AjaxGet(path + "/getSchoolBusRouteSharing", successFunction, errorFunction);
+	};
+
+	this.getAllEmployeesExceptDrivers = function (param, successFunction, errorFunction) {
+		ajaxService.AjaxGet(path + "/getAllEmployeesExceptDrivers", successFunction, errorFunction);
+	};
+
+	this.assignPersonnelToBus = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/assignPersonnelToBus", successFunction, errorFunction, params);
+	};
+
+	this.getAllBusesRoutesAndDrivers = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllBusesRoutesAndDrivers/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getDriverOrGuideRouteBusStudents = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getDriverOrGuideRouteBusStudents/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getStudentsInBus = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStudentsInBus/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getStudentsInRoute = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStudentsInRoute/" + param, successFunction, errorFunction, params);
+	};
+
+	this.createSchoolBusHistory = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/createSchoolBusHistory", successFunction, errorFunction, params);
+	};
+
+	this.getAllSchoolBusTrips = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllSchoolBusTrips", successFunction, errorFunction, params);
+	};
+
+	this.getSchoolBusTrips = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getSchoolBusTrips/" + param, successFunction, errorFunction, params);
+	};
+
+	this.createSchoolBusTrip = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/createSchoolBusTrip", successFunction, errorFunction, params);
+	};
+
+	this.updateSchoolBusTrip = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/updateSchoolBusTrip", successFunction, errorFunction, params);
+	};
+
+	this.assignStudentToBus = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/assignStudentToBus", successFunction, errorFunction, params);
+	};
+
+	this.getAlreadyAssignedStudentsInBus = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAlreadyAssignedStudentsInBus", successFunction, errorFunction, params);
+	};
+
+	this.getBusesWithPickDropHistory = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getBusesWithPickDropHistory", successFunction, errorFunction, params);
+	};
+
+	this.getBusPickUpDropOffHistory = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getBusPickUpDropOffHistory/" + param, successFunction, errorFunction, params);
 	};
 
 	/*********** Reports ***********/

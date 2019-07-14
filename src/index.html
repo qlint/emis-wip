@@ -35,14 +35,15 @@
 	<link type="text/css" href="components/css/trix.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="css/template.css" rel="stylesheet">
+    <link href="css/template.css?v=22" rel="stylesheet">
+    <link href="components/css/transport.css?v=22" rel="stylesheet">
 
-	<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js?v=20"></script>
-    <script type="text/javascript" src="bower_components/angular/angular.min.js?v=20"></script>
-	<script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js?v=20"></script>
-	<script type="text/javascript" src="components/ui-grid/ui-grid.js?v=20"></script>
-	<!-- <script src="components/angular-file-upload2.min.js?v=20"></script>
-	<script src="components/upload-directives.js?v=20"></script> -->
+	<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js?v=22"></script>
+    <script type="text/javascript" src="bower_components/angular/angular.min.js?v=22"></script>
+	<script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js?v=22"></script>
+	<script type="text/javascript" src="components/ui-grid/ui-grid.js?v=22"></script>
+	<!-- <script src="components/angular-file-upload2.min.js?v=22"></script>
+	<script src="components/upload-directives.js?v=22"></script> -->
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
 
 </head>
@@ -126,89 +127,96 @@
       </div><!-- /.mainContainer-->
 	</div><!-- /.page-wrap-->
 
-	<script type="text/javascript" src="min/dependencies.min.js?v=20"></script>
-	<script type="text/javascript" src="components/datatables.js?v=20"></script>
-	<script type="text/javascript" src="components/trix.js?v=20"></script>
-	<script type="text/javascript" src="components/angular-trix.min.js?v=20"></script>
-	<!--script type="text/javascript" src="min/app.min.js?v=20"></script>-->
+	<script type="text/javascript" src="min/dependencies.min.js?v=22"></script>
+	<script type="text/javascript" src="components/datatables.js?v=22"></script>
+	<script type="text/javascript" src="components/trix.js?v=22"></script>
+	<script type="text/javascript" src="components/angular-trix.min.js?v=22"></script>
+	<!--script type="text/javascript" src="min/app.min.js?v=22"></script>-->
 
-	<script type="text/javascript" src="app/app.js?v=20"></script>
-	<script type="text/javascript" src="app/routing.js?v=20"></script>
+	<script type="text/javascript" src="app/app.js?v=22"></script>
+	<script type="text/javascript" src="app/routing.js?v=22"></script>
 
 	<!--FACTORY -->
-	<script type="text/javascript" src="services/authInterceptor.js?v=20"></script>
+	<script type="text/javascript" src="services/authInterceptor.js?v=22"></script>
 
 	<!--DIRECTIVES-->
-	<script type="text/javascript" src="app/directive.js?v=20"></script>
+	<script type="text/javascript" src="app/directive.js?v=22"></script>
 
 	<!--CONTROLLERS -->
-	<script type="text/javascript" src="app/globalFunctions.js?v=20"></script>
-	<script type="text/javascript" src="app/parentController.js?v=20"></script>
-	<script type="text/javascript" src="app/landingCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/dashboardCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/students/listStudentsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/students/addStudentCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/students/viewStudentCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/students/promoteStudentsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/staff/listStaffCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/staff/addEmployeeCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/staff/viewEmployeeCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/paymentFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/feesDashboardCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/openingBalancesCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/invoicesCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/invoiceCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/printInvoiceCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/invoiceFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/invoiceWizardCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/invoiceDetailsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/paymentsReceivedCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/paymentDetailsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/feeStructureCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/feeItemFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/receiptCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/printReceiptCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/printStatementCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/printCurrentTermStatementCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/fees/feesReportsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/departmentsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/departmentFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/gradingCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/datesCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/datesFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/subjectsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/subjectFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/classesCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/classFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/schoolSettingsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/school/gradingFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/listExamsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/addExamMarksCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/examTypesCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/reportCardCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/printReportCardCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/listReportCardsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/classAnalysisReportCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/streamAnalysisReportCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/printClassAnalysisCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/exams/examsReportsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/users/listUsersCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/users/userFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/communications/listPostsCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/communications/listHomeworkCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/communications/postFormCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/communications/previewPostCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/communications/listEmailsCtrl.js?v=20"></script>
-  <script type="text/javascript" src="app/communications/batchInvoiceCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/communications/feedbackCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/communications/previewFeedbackCtrl.js?v=20"></script>
-	<script type="text/javascript" src="app/login.js?v=20"></script>
+	<script type="text/javascript" src="app/globalFunctions.js?v=22"></script>
+	<script type="text/javascript" src="app/parentController.js?v=22"></script>
+	<script type="text/javascript" src="app/landingCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/dashboardCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/students/listStudentsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/students/addStudentCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/students/viewStudentCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/students/promoteStudentsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/staff/listStaffCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/staff/addEmployeeCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/staff/viewEmployeeCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/paymentFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/feesDashboardCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/openingBalancesCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/invoicesCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/invoiceCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/printInvoiceCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/invoiceFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/invoiceWizardCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/invoiceDetailsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/paymentsReceivedCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/paymentDetailsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/feeStructureCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/feeItemFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/receiptCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/printReceiptCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/printStatementCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/printCurrentTermStatementCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/fees/feesReportsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/departmentsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/departmentFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/gradingCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/datesCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/datesFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/subjectsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/subjectFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/classesCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/classFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/schoolSettingsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/school/gradingFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/listExamsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/addExamMarksCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/examTypesCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/reportCardCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/printReportCardCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/listReportCardsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/classAnalysisReportCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/streamAnalysisReportCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/printClassAnalysisCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/exams/examsReportsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/users/listUsersCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/users/userFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/communications/listPostsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/communications/listHomeworkCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/communications/postFormCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/communications/previewPostCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/communications/listEmailsCtrl.js?v=22"></script>
+  <script type="text/javascript" src="app/communications/batchInvoiceCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/communications/feedbackCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/communications/previewFeedbackCtrl.js?v=22"></script>
+  <script type="text/javascript" src="app/transport/schoolBusSettingsCtrl.js?v=22"></script>
+  <script type="text/javascript" src="app/transport/studentBusAssignCtrl.js?v=22"></script>
+  <script type="text/javascript" src="app/transport/studentsInBusCtrl.js?v=22"></script>
+  <script type="text/javascript" src="app/transport/tripSettingsCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/transport/schoolBusCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/transport/attendanceCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/transport/mappedHistoryCtrl.js?v=22"></script>
+	<script type="text/javascript" src="app/login.js?v=22"></script>
 
 	<!--SERVICES -->
-	<script type="text/javascript" src="services/auth.js?v=20"></script>
-	<script type="text/javascript" src="services/session.js?v=20"></script>
-	<script type="text/javascript" src="services/AjaxServices.js?v=20"></script>
-	<script type="text/javascript" src="services/apiServices.js?v=20"></script>
+	<script type="text/javascript" src="services/auth.js?v=22"></script>
+	<script type="text/javascript" src="services/session.js?v=22"></script>
+	<script type="text/javascript" src="services/AjaxServices.js?v=22"></script>
+	<script type="text/javascript" src="services/apiServices.js?v=22"></script>
 
 
 

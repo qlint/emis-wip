@@ -338,6 +338,41 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
+		.state('transport/settings', {
+      url: "/transport/settings",
+	  templateUrl: 'app/transport/schoolBusSettings.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
+		.state('transport/trips', {
+      url: "/transport/trips",
+	  templateUrl: 'app/transport/tripSettings.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
+    .state('transport/school_bus', {
+      url: "/transport/school_bus",
+	  templateUrl: 'app/transport/schoolBus.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
+    .state('transport/pick_up_and_drop_off', {
+      url: "/transport/pick_up_and_drop_off",
+	  templateUrl: 'app/transport/attendance.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
+    .state('transport/mapped_history', {
+      url: "/transport/mapped_history",
+	  templateUrl: 'app/transport/mappedHistory.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
 
 	;
 }]);
