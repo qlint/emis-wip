@@ -80,7 +80,11 @@ $app->get('/getStudentTransportDetails/:studentId', function ($studentId) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT s.student_id, s.destination AS student_destination, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.destinations, b.bus_driver,
+    $sth = $db->prepare("SELECT DISTINCT ON (trip_id)trip_id, one.student_id, student_destination, bus_id, bus, destinations, bus_driver, bus_guide, driver_name, guide_name,
+	trip_name, fee_item, three.route, amount
+FROM
+			(
+			SELECT s.student_id, s.destination AS student_destination, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.destinations, b.bus_driver,
                         	b.bus_guide,
                         	e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name,
                                 e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name, trip_name
@@ -89,7 +93,62 @@ $app->get('/getStudentTransportDetails/:studentId', function ($studentId) {
                         LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
                         LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
                         LEFT JOIN app.schoolbus_trips st USING (bus_id)
-                        WHERE student_id = :studentId");
+                        WHERE student_id = :studentId)one
+                        INNER JOIN
+			                     (
+                        SELECT student_id, UNNEST(string_to_array(trip_ids, ',')::int[]) AS trip_id
+                        FROM app.students
+                        WHERE student_id = :studentId)two
+                        USING (student_id)
+                        INNER JOIN
+                        (
+                        SELECT sfi.student_id, sfi.fee_item_id, fi.fee_item, tr.route, fi.default_amount, sfi.amount
+                  			FROM app.student_fee_items sfi
+                  			INNER JOIN app.fee_items fi USING (fee_item_id)
+                  			INNER JOIN app.students s USING (student_id)
+                  			INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                  			WHERE student_id = :studentId AND fee_item = 'Transport')three
+                                          ON two.student_id = three.student_id");
+    $sth->execute( array(':studentId' => $studentId) );
+
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getStudentTripOptions/:studentId', function ($studentId) {
+  //Show available student trip options
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT trip_id, trip_name, bus_type || ' ' || bus_registration AS trip_bus, destinations AS trip_destinations FROM (
+                          	SELECT st.schoolbus_trip_id AS trip_id, st.trip_name, b.bus_id, b.bus_type, b.bus_registration, b.destinations
+                          	FROM app.schoolbus_trips st
+                          	INNER JOIN app.buses b USING (bus_id)
+                          	INNER JOIN app.students s ON b.destinations ILIKE '%' || s.destination || '%'
+                          	WHERE b.destinations IS NOT NULL AND s.student_id = :studentId
+                          )a");
     $sth->execute( array(':studentId' => $studentId) );
 
     $results = $sth->fetchAll(PDO::FETCH_OBJ);

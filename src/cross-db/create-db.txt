@@ -1,18 +1,113 @@
-CREATE TABLE app.schoolbus_trips
-(
-  schoolbus_trip_id serial NOT NULL,
-  trip_name character varying,
-  trip_routes character varying,
-  bus_id integer,
-  creation_date timestamp without time zone NOT NULL DEFAULT now(),
-  modified_date timestamp without time zone DEFAULT now(),
-  CONSTRAINT "PK_schoolbus_trip_id" PRIMARY KEY (schoolbus_trip_id ),
-  CONSTRAINT bus_id FOREIGN KEY (bus_id)
-      REFERENCES app.buses (bus_id) MATCH FULL
-      ON UPDATE NO ACTION ON DELETE NO ACTION
-)
-WITH (
-  OIDS=FALSE
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.1.24
+-- Dumped by pg_dump version 9.1.24
+-- Started on 2019-07-16 10:25:29
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+SET search_path = app, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 203 (class 1259 OID 97685)
+-- Dependencies: 9
+-- Name: communication_audience; Type: TABLE; Schema: app; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE communication_audience (
+    audience_id integer NOT NULL,
+    audience character varying NOT NULL
+
 );
-ALTER TABLE app.schoolbus_trips
-  OWNER TO postgres;
+
+ALTER TABLE app.communication_audience OWNER TO postgres;
+
+--
+-- TOC entry 204 (class 1259 OID 97691)
+-- Dependencies: 203 9
+-- Name: communication_audience_audience_id_seq; Type: SEQUENCE; Schema: app; Owner: postgres
+--
+
+CREATE SEQUENCE communication_audience_audience_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE app.communication_audience_audience_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2269 (class 0 OID 0)
+-- Dependencies: 204
+-- Name: communication_audience_audience_id_seq; Type: SEQUENCE OWNED BY; Schema: app; Owner: postgres
+--
+
+ALTER SEQUENCE communication_audience_audience_id_seq OWNED BY communication_audience.audience_id;
+
+
+--
+-- TOC entry 2152 (class 2604 OID 98095)
+-- Dependencies: 204 203
+-- Name: audience_id; Type: DEFAULT; Schema: app; Owner: postgres
+--
+
+ALTER TABLE ONLY communication_audience ALTER COLUMN audience_id SET DEFAULT nextval('communication_audience_audience_id_seq'::regclass);
+
+
+--
+-- TOC entry 2263 (class 0 OID 97685)
+-- Dependencies: 203 2265
+-- Data for Name: communication_audience; Type: TABLE DATA; Schema: app; Owner: postgres
+--
+
+INSERT INTO communication_audience VALUES (1, 'All Parents');
+INSERT INTO communication_audience VALUES (2, 'Class Specific');
+INSERT INTO communication_audience VALUES (3, 'All Staff');
+INSERT INTO communication_audience VALUES (4, 'All Teachers');
+INSERT INTO communication_audience VALUES (5, 'Parent');
+INSERT INTO communication_audience VALUES (6, 'Transport Route');
+INSERT INTO communication_audience VALUES (7, 'Student Activity');
+INSERT INTO communication_audience VALUES (8, 'House');
+INSERT INTO communication_audience VALUES (9, 'Committee');
+INSERT INTO communication_audience VALUES (10, 'Staff Category');
+INSERT INTO communication_audience VALUES (11, 'Staff Department');
+INSERT INTO communication_audience VALUES (12, 'Student Type');
+
+
+--
+-- TOC entry 2270 (class 0 OID 0)
+-- Dependencies: 204
+-- Name: communication_audience_audience_id_seq; Type: SEQUENCE SET; Schema: app; Owner: postgres
+--
+
+SELECT pg_catalog.setval('communication_audience_audience_id_seq', 7, true);
+
+
+--
+-- TOC entry 2154 (class 2606 OID 98142)
+-- Dependencies: 203 203 2266
+-- Name: PK_audience_id; Type: CONSTRAINT; Schema: app; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY communication_audience
+    ADD CONSTRAINT "PK_audience_id" PRIMARY KEY (audience_id);
+
+
+-- Completed on 2019-07-16 10:25:30
+
+--
+-- PostgreSQL database dump complete
+--
+

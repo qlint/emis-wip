@@ -1,5 +1,7 @@
+<style type="text/css">
+    .table-striped tbody tr:hover{background-color:#80ffaa !important;cursor: pointer;font-weight: 900;}
+</style>
 <div ng-controller="schoolBusCtrl">
-
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
@@ -22,8 +24,6 @@
 			</div>
 
 		</div>
-
-
 
 		<div id="body-content" class="schoolBusBodySpacer">
             <div class="row">

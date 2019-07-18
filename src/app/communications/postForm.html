@@ -170,6 +170,86 @@
 							</div>
 						</div>
 					</div>
+					<div class="row" ng-if="isHouse">
+						<div class="col-sm-10">
+							<label for="house_name">Select the house:</label>
+							<div>
+								<ui-select ng-model="thehouse.selected" theme="select2" class="form-control" name="house_name" required>
+								  <ui-select-match placeholder="Select or search the house...">
+									<span>Guardians for students in {{$select.selected.house_name}} house</span>
+								  </ui-select-match>
+								  <ui-select-choices repeat="item in houses | filter: $select.search">
+								    <option value="" ng-bind-html="item.house_name | highlight: $select.search"></option>
+								  </ui-select-choices>
+								</ui-select>
+								<p ng-show="dataFilterForm.house_name.$invalid && (!dataFilterForm.house_name.$pristine || dataFilterForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a house.</p>
+							</div>
+						</div>
+					</div>
+					<div class="row" ng-if="isCommittee">
+						<div class="col-sm-10">
+							<label for="committee_name">Select the committee:</label>
+							<div>
+								<ui-select ng-model="thecommittee.selected" theme="select2" class="form-control" name="committee_name" required>
+								  <ui-select-match placeholder="Select or search the committee...">
+									<span>Staff in {{$select.selected.house_name}} committee</span>
+								  </ui-select-match>
+								  <ui-select-choices repeat="item in committees | filter: $select.search">
+								    <option value="" ng-bind-html="item.committee_name | highlight: $select.search"></option>
+								  </ui-select-choices>
+								</ui-select>
+								<p ng-show="dataFilterForm.committee_name.$invalid && (!dataFilterForm.committee_name.$pristine || dataFilterForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a committee.</p>
+							</div>
+						</div>
+					</div>
+					<div class="row" ng-if="isStudentType">
+						<div class="col-sm-10">
+							<label for="student_type">Select the student type:</label>
+							<div>
+								<ui-select ng-model="thestudenttype.selected" theme="select2" class="form-control" name="student_type" required>
+								  <ui-select-match placeholder="Select or search the student type...">
+									<span>Guardians for students who are {{$select.selected.student_type}}</span>
+								  </ui-select-match>
+								  <ui-select-choices repeat="item in studentTypes | filter: $select.search">
+								    <option value="" ng-bind-html="item.student_type | highlight: $select.search"></option>
+								  </ui-select-choices>
+								</ui-select>
+								<p ng-show="dataFilterForm.student_type.$invalid && (!dataFilterForm.student_type.$pristine || dataFilterForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a student type.</p>
+							</div>
+						</div>
+					</div>
+					<div class="row" ng-if="isStaffCategory">
+						<div class="col-sm-10">
+							<label for="emp_cat_name">Select a category:</label>
+							<div>
+								<ui-select ng-model="thecategory.selected" theme="select2" class="form-control" name="emp_cat_id" required>
+								  <ui-select-match placeholder="Select or search a category...">
+									<span>{{$select.selected.emp_cat_name}}</span>
+								  </ui-select-match>
+								  <ui-select-choices repeat="item in categories | filter: $select.search">
+								    <option value="" ng-bind-html="item.emp_cat_name | highlight: $select.search"></option>
+								  </ui-select-choices>
+								</ui-select>
+								<p ng-show="dataFilterForm.emp_cat_name.$invalid && (!dataFilterForm.emp_cat_name.$pristine || dataFilterForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a category.</p>
+							</div>
+						</div>
+					</div>
+					<div class="row" ng-if="isStaffDepartment">
+						<div class="col-sm-10">
+							<label for="dept_name">Select a department:</label>
+							<div>
+								<ui-select ng-model="thedepartment.selected" theme="select2" class="form-control" name="dept_id" required>
+								  <ui-select-match placeholder="Select or search a department...">
+									<span>{{$select.selected.dept_name}}</span>
+								  </ui-select-match>
+								  <ui-select-choices repeat="item in departments | filter: $select.search">
+								    <option value="" ng-bind-html="item.dept_name | highlight: $select.search"></option>
+								  </ui-select-choices>
+								</ui-select>
+								<p ng-show="dataFilterForm.dept_name.$invalid && (!dataFilterForm.dept_name.$pristine || dataFilterForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a department.</p>
+							</div>
+						</div>
+					</div>
 					<div class="row">
 						<div class="col-sm-10">
 							<label for="audience_id">How do you want to send this communication?</label>

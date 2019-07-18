@@ -1062,6 +1062,12 @@ $app->post('/addCommunication', function () use($app) {
   $messageFrom =  ( isset($allPostVars['post']['message_from']) ? $allPostVars['post']['message_from']: null);
   $routeId =  ( isset($allPostVars['post']['transport_id']) ? $allPostVars['post']['transport_id']: null);
   $feeItem =  ( isset($allPostVars['post']['fee_item']) ? $allPostVars['post']['fee_item']: null);
+  $deptId =  ( isset($allPostVars['post']['dept_id']) ? $allPostVars['post']['dept_id']: null);
+  $empCatId =  ( isset($allPostVars['post']['emp_cat_id']) ? $allPostVars['post']['emp_cat_id']: null);
+  $studentType =  ( isset($allPostVars['post']['student_type']) ? $allPostVars['post']['student_type']: null);
+  $houseName =  ( isset($allPostVars['post']['house_name']) ? $allPostVars['post']['house_name']: null);
+  $committeeName =  ( isset($allPostVars['post']['committee_name']) ? $allPostVars['post']['committee_name']: null);
+  $toEmployee =  ( isset($allPostVars['post']['to_employee']) ? $allPostVars['post']['to_employee']: null);
   $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
 
@@ -1070,8 +1076,8 @@ $app->post('/addCommunication', function () use($app) {
   try
   {
     $db = getDB();
-    $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, post_status_id, route, activity)
-               VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :postStatus, :route, :activity) RETURNING com_id AS postId");
+    $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, post_status_id, route, activity, dept_id, emp_cat_id, student_type, house_name, committee_name, to_employee)
+               VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :postStatus, :route, :activity, :deptId, :empCatId, :studentType, :houseName, :committeeName, :toEmployee) RETURNING com_id AS postId");
 
     // if( $attachment === 'TRUE' )
     // {
@@ -1191,6 +1197,94 @@ $app->post('/addCommunication', function () use($app) {
                                             INNER JOIN app.communications ON fee_items.fee_item = communications.activity
                                             WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
         }
+        else if( $audienceId === 8 )
+        {
+          // recipients by student's house
+          $pullRecipients = $db->prepare("SELECT g.email
+                                          FROM app.guardians g
+                                          INNER JOIN app.student_guardians sg ON g.guardian_id = sg.guardian_id
+                                          INNER JOIN app.students s ON sg.student_id = s.student_id
+                                          INNER JOIN app.communications c ON s.house = c.house
+                                          WHERE s.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
+
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT s.student_id FROM app.students s
+                                            INNER JOIN app.communications c ON s.house = c.house
+                                            WHERE s.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+        }
+        else if( $audienceId === 9 )
+        {
+          // recipients by employee's committee
+          $pullRecipients = $db->prepare("SELECT e.email
+                                          FROM app.employees e
+                                          INNER JOIN app.communications c ON e.committee = c.committee
+                                          WHERE e.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
+
+          $notifyMsg = "Committee News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT e.emp_id FROM app.employees e
+                                            INNER JOIN app.communications c ON e.house = c.house
+                                            WHERE e.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications)");
+        }
+        else if( $audienceId === 10 )
+        {
+          // recipients by employee's category
+          $pullRecipients = $db->prepare("SELECT e.email
+                                          FROM app.employees e
+                                          INNER JOIN app.communications c ON e.emp_cat_id = c.emp_cat_id
+                                          WHERE e.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
+
+          $notifyMsg = "Staff posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT e.emp_id FROM app.employees e
+                                            INNER JOIN app.communications c ON e.emp_cat_id = c.emp_cat_id
+                                            WHERE e.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications)");
+        }
+        else if( $audienceId === 11 )
+        {
+          // recipients by employee's category
+          $pullRecipients = $db->prepare("SELECT e.email
+                                          FROM app.employees e
+                                          INNER JOIN app.communications c ON e.dept_id = c.dept_id
+                                          WHERE e.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
+
+          $notifyMsg = "Department News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT e.emp_id FROM app.employees e
+                                            INNER JOIN app.communications c ON e.dept_id = c.dept_id
+                                            WHERE e.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications)");
+        }
+        else if( $audienceId === 12 )
+        {
+          // recipients by student's type
+          $pullRecipients = $db->prepare("SELECT g.email
+                                          FROM app.guardians g
+                                          INNER JOIN app.student_guardians sg ON g.guardian_id = sg.guardian_id
+                                          INNER JOIN app.students s ON sg.student_id = s.student_id
+                                          INNER JOIN app.communications c ON s.student_type = c.student_type
+                                          WHERE s.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
+
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT s.student_id FROM app.students s
+                                            INNER JOIN app.communications c ON s.student_type = c.student_type
+                                            WHERE s.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+        }
+        else if( $audienceId === 13 )
+        {
+          // recipients is one employee
+          $pullRecipients = $db->prepare("SELECT e.email
+                                          FROM app.employees e
+                                          INNER JOIN app.communications c ON e.emp_id = c.to_employee
+                                          WHERE e.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
+
+          $notifyMsg = "Department News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT e.emp_id FROM app.employees e
+                                            INNER JOIN app.communications c ON e.emp_id = c.to_employee
+                                            WHERE e.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications)");
+        }
 
         $insertEmail = $db->prepare("INSERT INTO app.communication_emails(com_id, email_address)
                                      VALUES(CURRVAL('app.communications_com_id_seq'), :email)");
@@ -1286,19 +1380,61 @@ $app->post('/addCommunication', function () use($app) {
         }
         else if( $audienceId === 8 )
         {
-          // recipients by employee department (drivers)
-          $pullRecipients = $db->prepare("SELECT employees.first_name, employees.last_name, employees.telephone
-                                          FROM app.employees
-                                          INNER JOIN app.employee_cats USING (emp_cat_id)
-                                          WHERE employees.active is true AND LOWER(employee_cats.emp_cat_name) = LOWER('Drivers')");
+          // recipients by the student's house
+          $pullRecipients = $db->prepare("SELECT g.first_name, g.last_name, g.telephone
+                                          FROM app.guardians g
+                                          INNER JOIN app.student_guardians sg ON g.guardian_id = sg.guardian_id
+                                          INNER JOIN app.students s ON s.student_id = sg.student_id
+                                          INNER JOIN app.communications c ON s.house = c.house
+                                          WHERE s.active is true AND c.com_id = (SELECT MAX(com_id) FROM app.communications)");
 
 
         }
         else if( $audienceId === 9 )
         {
-          // specific employee
-          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM app.employees WHERE emp_id = :employeeId");
-          $params = array(':employeeId' => $employeeId);
+          // employee committee
+          $pullRecipients = $db->prepare("SELECT e.first_name, e.last_name, e.telephone
+                                          FROM app.employees e
+                                          INNER JOIN app.communications c ON e.committee = c.committee
+                                          WHERE e.active is true AND c.com_id = (SELECT MAX(com_id) FROM app.communications)");
+
+        }
+        else if( $audienceId === 10 )
+        {
+          // employee category
+          $pullRecipients = $db->prepare("SELECT e.first_name, e.last_name, e.telephone
+                                          FROM app.employees e
+                                          INNER JOIN app.communications c ON e.emp_cat_id = c.emp_cat_id
+                                          WHERE e.active is true AND c.com_id = (SELECT MAX(com_id) FROM app.communications)");
+
+        }
+        else if( $audienceId === 11 )
+        {
+          // employee department
+          $pullRecipients = $db->prepare("SELECT e.first_name, e.last_name, e.telephone
+                                          FROM app.employees e
+                                          INNER JOIN app.communications c ON e.dept_id = c.dept_id
+                                          WHERE e.active is true AND c.com_id = (SELECT MAX(com_id) FROM app.communications)");
+
+        }
+        else if( $audienceId === 12 )
+        {
+          // employee department
+          $pullRecipients = $db->prepare("SELECT g.first_name, g.last_name, g.telephone
+                                          FROM app.guardians g
+                                          INNER JOIN app.student_guardians sg ON g.guardian_id = sg.guardian_id
+                                          INNER JOIN app.students s ON sg.student_id = s.student_id
+                                          INNER JOIN app.communications c ON s.student_type = c.student_type
+                                          WHERE g.active is true AND c.com_id = (SELECT MAX(com_id) FROM app.communications)");
+
+        }
+        else if( $audienceId === 13 )
+        {
+          // one employee
+          $pullRecipients = $db->prepare("SELECT e.first_name, e.last_name, e.telephone
+                                          FROM app.employees e
+                                          INNER JOIN app.communications c ON e.emp_id = c.to_employee
+                                          WHERE e.active is true AND c.com_id = (SELECT MAX(com_id) FROM app.communications)");
 
         }
 
@@ -1313,7 +1449,8 @@ $app->post('/addCommunication', function () use($app) {
     $sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message ,
             ':attachment' => $attachment , ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
             ':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo,
-            ':messageFrom' => $messageFrom, ':postStatus' => $postStatus, ':route' => $routeId, ':activity' => $feeItem) );
+            ':messageFrom' => $messageFrom, ':postStatus' => $postStatus, ':route' => $routeId, ':activity' => $feeItem,
+            ':deptId' => $deptId, ':studentType' => $studentType, ':committeeName' => $committeeName, ':empCatId' => $empCatId, ':houseName' => $houseName, ':toEmployee' => $toEmployee) );
 
     // if( $attachment === 'TRUE' )
     // {

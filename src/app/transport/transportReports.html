@@ -1,0 +1,181 @@
+<style type="text/css">
+    #resultsTable{width:100%;border:1px solid #404040;border-collapse:collapse;}
+    #resultsTable thead tr th,#resultsTable tbody tr td{padding:5px;border:#303030 1px solid;text-align:center;}
+    #resultsTable tbody tr:nth-child(odd){background:#e8e8e8;}
+</style>
+<div ng-controller="transportReportsCtrl">
+
+   <div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+			<!-- <h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+					<div class="btn" title="print" ng-click="printReport()"><a class="export-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div>
+					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
+				</div>
+			</div> -->
+
+			<div class="clearfix">
+				<h1 id="pageTitle">Transport Reports</h1>
+			</div>
+
+			<!-- search form -->
+			<div class="dataFilterForm">
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+					<!-- report select -->
+					<div class="form-group">
+						<label for="term">Report Type</label>
+						<select class="form-control" ng-model="filters.report_type" ng-change="trackReportType()" style="width:max-content !important;">
+							<option value="">--select report type--</option>
+              <option ng-repeat="reportType in reportTypes track by $index" value="{{reportType}}">{{reportType}}</option>
+						</select>
+					</div>
+
+          <!-- class select -->
+					<div class="form-group" ng-show="needsClass">
+						<label for="classes">Class</label>
+						<select id="classes" class="form-control" ng-model="filters.class" >
+							<option disabled>-- Select Class --</option>
+              <option ng-repeat="class in classes track by $index" value="{{class.class_id}}">{{class.class_name}}</option>
+						</select>
+					</div>
+
+          <div class="form-group" ng-show="needsStream">
+						<label for="classes">Stream</label>
+						<select id="stream" class="form-control" ng-model="filters.stream" >
+							<option disabled>-- Select Stream --</option>
+              <option ng-repeat="strm in stream track by $index" value="{{strm.stream_id}}">{{strm.stream_name}}</option>
+						</select>
+					</div>
+
+          <div class="form-group" ng-show="needsZone">
+						<label for="zone">Invoiced Zone</label>
+						<select id="zone" class="form-control" ng-model="filters.zone" >
+							<option disabled>-- Select Zone --</option>
+              <option ng-repeat="zone in transportRoutes track by $index" value="{{zone.transport_id}}">{{zone.route}}</option>
+						</select>
+					</div>
+
+          <div class="form-group" ng-show="needsBus">
+						<label for="buses">Bus</label>
+						<select id="buses" class="form-control" ng-model="filters.bus" >
+							<option disabled>-- Select Bus --</option>
+              <option ng-repeat="bus in buses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} - {{bus.bus_registration}}</option>
+						</select>
+					</div>
+
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="loadSelection()" value="Load" />
+						<img src="assets/spinner.gif" ng-show="loading" />
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+
+				</form>
+			</div>
+			<!-- // end search form -->
+
+
+		</div>
+
+		<!-- reports body -->
+		<div class="container-fluid" id="reportsSection">
+            <div class="row">
+
+                <div class="col-md-12 col-sm-12 reports-main-content">
+                <!--Main reports go here -->
+                <h1 ng-show="initialReportLoad">{{preLoadMessageH1}}</h1>
+                <h3 ng-show="initialReportLoad">{{preLoadMessageH3}}</h3>
+
+                <div id="exTab1" class="container" ng-show="showReport">
+                    <ul  class="nav nav-pills">
+                		<li class="active"><a ng-click="gotoDiv1(this)" data-toggle="tab">Table</a></li>
+                		<li><a ng-click="gotoDiv2(this)" data-toggle="tab">Charts &amp; Graphs</a></li>
+                	</ul>
+
+                	<div class="tab-content clearfix">
+                		<div class="tab-pane active" id="1a">
+                            <h3 style="color:#000000;">{{reportTitle}}</h3>
+                            <div><h4>Search Results: <span><input type="text" id="search" placeholder="  live search"></input></span></h4></div>
+
+                            <!-- all students with transport table -->
+                            <div ng-show="allWithTranspTable" id="allWithTranspTableDiv">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader">
+                                                <th>STUDENT</th>
+                                                <th>CLASS</th>
+                                                <th>NEIGHBORHOOD</th>
+                                                <th>TRANSP. ZONE</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in reportData track by $index">
+                                                <td>{{item.student_name}}</td>
+                                                <td>{{item.class_name}}</td>
+                                                <td>{{item.neighborhood}}</td>
+                                                <td>{{item.route}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+
+                            <!-- student fee items analysis table -->
+                            <div ng-show="studentFeeItemsAnalysisTable" id="studentFeeItemsAnalysisTableDiv">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader">
+                                                <th>STUDENT</th>
+                                                <th>INV #</th>
+                                                <th>INVOICE DATE</th>
+                                                <th>FEE ITEM</th>
+                                                <th>DEFAULT AMT.</th>
+                                                <th>AMT. PAID</th>
+                                                <th>BALANCE</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tblBody">
+                                            <tr ng-repeat="item in studentFeeItems track by $index">
+                                                <td>{{item.student_name}}</td>
+                                                <td>{{item.inv_id}}</td>
+                                                <td>{{item.inv_date}}</td>
+                                                <td>{{item.all_fee_items}}</td>
+                                                <td>{{item.default_amt}}</td>
+                                                <td>{{item.paid2}}</td>
+                                                <td>{{item.balance}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+
+                		</div>
+                		<div class="tab-pane" id="2a">
+                            <h3 style="color:#000000;">{{reportTitle}}</h3>
+                            <canvas id="canvasReport"></canvas>
+                            <div id="chart"></div>
+                		</div>
+                	</div>
+                </div>
+            </div>
+        </div>
+		<!-- end reports body -->
+
+	</div>
+
+</div>

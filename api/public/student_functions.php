@@ -2137,6 +2137,35 @@ $app->post('/addStudentDestination', function () use($app) {
 
 });
 
+$app->post('/addStudentTrips', function () use($app) {
+  // Add student destination
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  $studentId =  ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+  $tripIds =  ( isset($allPostVars['trip_ids']) ? $allPostVars['trip_ids']: null);
+
+  try
+  {
+    $db = getDB();
+
+    $studentUpdate = $db->prepare("UPDATE app.students SET trip_ids = :tripIds WHERE student_id = :studentId");
+    $db->beginTransaction();
+    $studentUpdate->execute(array(':studentId' => $studentId, ':tripIds' => $tripIds));
+    $db->commit();
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "data" => "Student's trip(s) updated successfully!"));
+    $db = null;
+  } catch(PDOException $e) {
+    $db->rollBack();
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->put('/updateMedicalConditions', function () use($app) {
   // update medical condition
   $allPostVars = json_decode($app->request()->getBody(),true);

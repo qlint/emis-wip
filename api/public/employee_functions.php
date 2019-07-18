@@ -40,6 +40,45 @@ $app->get('/getAllEmployees(/:status)', function ($status) {
 
 });
 
+$app->get('/exportAllStaffDetails', function () {
+  //Get all staff details
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as employee_name, initials, CASE WHEN gender = 'F' THEN 'Female' ELSE 'Male' END AS gender,
+                        	id_number, telephone, email, dob, country, emp_number, emp_cat_name AS category, dept_name AS department, job_title, qualifications, experience,
+                        	additional_info, next_of_kin_name, next_of_kin_telephone, house, committee
+                        FROM app.employees e
+                        INNER JOIN app.employee_cats USING (emp_cat_id)
+                        INNER JOIN app.departments USING (dept_id)
+                        ORDER BY employee_name ASC");
+    $sth->execute();
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/getEmployee/:id', function () {
     //Show specific employee
 

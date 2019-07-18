@@ -569,6 +569,48 @@ $app->get('/getOverallStudentFeePayments/:termId', function ($termId) {
 
 });
 
+$app->get('/getAllStudentsWithTransport', function () {
+  // Get all students taking transport
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT * FROM (
+                        	SELECT DISTINCT ON (s.student_id)s.student_id, first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, 
+                        		c.class_name, route, CASE WHEN s.destination IS NULL THEN 'Not Assigned' ELSE s.destination END AS neighborhood
+                        	FROM app.students s
+                        	INNER JOIN app.classes c ON s.current_class = c.class_id
+                        	INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                        	INNER JOIN app.student_fee_items sfi USING (student_id)
+                        	INNER JOIN app.fee_items USING (fee_item_id)
+                        )a
+                        ORDER BY student_name ASC");
+    $sth->execute(array());
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/getSomeReport', function () {
   //Some report
 

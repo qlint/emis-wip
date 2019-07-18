@@ -10,16 +10,16 @@ $app->post('/parentLogin', function () use($app) {
   try
   {
     $db = getLoginDB();
-    
-    $userCheckQry = $db->query("SELECT (CASE 
+
+    $userCheckQry = $db->query("SELECT (CASE
                                     		WHEN EXISTS (SELECT username FROM parents WHERE username = '$username') THEN 'proceed'
                                     		ELSE 'stop'
                                     	END) AS status");
     $userStatus = $userCheckQry->fetch(PDO::FETCH_OBJ);
     $userStatus = $userStatus->status;
-    
+
     if($userStatus === "proceed"){
-    
+
             $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
                           first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id, guardian_id AS school_guardian_id
                         FROM parents
@@ -29,9 +29,9 @@ $app->post('/parentLogin', function () use($app) {
                         AND active is true");
             $sth->execute( array(':username' => $username, ':password' => $pwd) );
             $result = $sth->fetch(PDO::FETCH_OBJ);
-        
+
             if($result) {
-                
+
                 // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -40,7 +40,7 @@ $app->post('/parentLogin', function () use($app) {
 				$trafficMonitor->execute( array() );
 				$mistrafficdb = null;
 				// traffic analysis end
-        
+
               // get the parents' students and add to result
               $sth1 = $db->prepare("SELECT student_id, guardian_id AS school_guardian_id, subdomain, dbusername, dbpassword
                                     FROM parent_students
@@ -49,7 +49,7 @@ $app->post('/parentLogin', function () use($app) {
               $sth1->execute(array(':parentId' => $result->parent_id));
               $students = $sth1->fetchAll(PDO::FETCH_OBJ);
               $db = null;
-        
+
               $studentDetails = Array();
               $curSubDomain = '';
               $studentsBySchool = Array();
@@ -74,28 +74,28 @@ $app->post('/parentLogin', function () use($app) {
                             WHERE student_id = :studentId  AND students.active IS TRUE");
                 $sth3->execute(array(':studentId' => $student->student_id));
                 $details = $sth3->fetch(PDO::FETCH_OBJ);
-        
+
                 if( $details ) {
                   $details->school = $student->subdomain;
-        
+
                   if( $details->student_id !== null )
                   {
                     $studentDetails[] = $details;
                     $curSubDomain = $student->subdomain;
-        
+
                     /* build an array for grabbing news */
                     $studentsBySchool[$curSubDomain][] = $student->student_id;
                   }
                 }
               }
-        
+
               /* get news for students, only want new once per school, and student specific news */
               $news = Array();
               foreach( $studentsBySchool as $school => $students )
               {
                 if( $db !== null ) $db = null;
                 $db = setDBConnection($school);
-        
+
                 $sth5 = $db->prepare("SELECT
                             com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
                             employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
@@ -116,25 +116,27 @@ $app->post('/parentLogin', function () use($app) {
                           WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
                           AND communications.sent IS TRUE
                           AND communications.post_status_id = 1
-                          AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) 
+                          AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
                           OR communications.class_id is null)
                           AND communications.audience_id NOT IN (3,4,7,9)
                           --AND students.active IS TRUE
+                          AND communications.com_type_id NOT IN (6)
+                          AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
                           ORDER BY creation_date desc");
-        
+
                 $studentsArray = "{" . implode(',',$students) . "}";
                 $sth5->execute(array(':studentIds' => $studentsArray));
                 $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
-        
+
               }
-        
+
               /* get sent messages by student's parent */
               $feedback = Array();
               foreach( $studentsBySchool as $school => $students )
               {
                 if( $db !== null ) $db = null;
                 $db = setDBConnection($school);
-        
+
                 $sth6 = $db->prepare("SELECT cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
                         cf.message_from as posted_by,
                         s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
@@ -148,38 +150,38 @@ $app->post('/parentLogin', function () use($app) {
                     AND s.active IS TRUE
                     GROUP BY cf.com_feedback_id, subject, message, student_name, parent_full_name, class_name, opened
                     ORDER BY post_id DESC");
-        
+
                 $studentsArray = "{" . implode(',',$students) . "}";
                 $sth6->execute(array(':studentIds' => $studentsArray));
                 $feedback[$school] = $sth6->fetchAll(PDO::FETCH_OBJ);
-        
+
               }
-        
+
               $result->students = $studentDetails;
               $result->news = $news;
               $result->feedback = $feedback;
-        
+
               $app->response->setStatus(200);
               $app->response()->headers->set('Content-Type', 'application/json');
               $db = null;
-        
+
               echo json_encode(array('response' => 'success', 'data' => $result ));
-        
+
             } else {
                 $app->response->setStatus(200);
                 $app->response()->headers->set('Content-Type', 'application/json');
                 echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
                 /*
                 $responseJSON = json_encode($theResponse);
-                // throw new PDOException('The username or password you have entered is incorrect.'); 
+                // throw new PDOException('The username or password you have entered is incorrect.');
                 throw new PDOException($responseJSON);
                 // throw new PDOException('The username you entered does not exist. Please confirm and try again.');
                 */
             }
-    
-    } else { 
-        if($userStatus === "stop"){ 
-            
+
+    } else {
+        if($userStatus === "stop"){
+
             // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -188,21 +190,21 @@ $app->post('/parentLogin', function () use($app) {
 				$trafficMonitor->execute( array() );
 				$mistrafficdb = null;
 				// traffic analysis end
-				
+
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array("response" => "error", "code" => 2, "data" => 'The username you entered does not exist. Please confirm and try again.'));
             /*
             $theResponse->data = 'The username you entered does not exist. Please confirm and try again.';
             $theResponse->status = array(2=>"The username you entered does not exist. Please confirm and try again.");
-            
+
             $responseJSON = json_encode($theResponse);
-            
-            // throw new PDOException('The username you entered does not exist. Please confirm and try again.'); 
-            throw new PDOException($responseJSON); 
+
+            // throw new PDOException('The username you entered does not exist. Please confirm and try again.');
+            throw new PDOException($responseJSON);
             */
-        } else { 
-            
+        } else {
+
             // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -211,17 +213,17 @@ $app->post('/parentLogin', function () use($app) {
 				$trafficMonitor->execute( array() );
 				$mistrafficdb = null;
 				// traffic analysis end
-				
+
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
             /*
             $theResponse->data = 'The password you have entered is incorrect. Please check the spelling and / or capitalization.';
             $theResponse->status = array(3=>"The password you have entered is incorrect. Please check the spelling and / or capitalization.");
-            
+
             $responseJSON = json_encode($theResponse);
-            // throw new PDOException('The username or password you have entered is incorrect.'); 
-            throw new PDOException($responseJSON); 
+            // throw new PDOException('The username or password you have entered is incorrect.');
+            throw new PDOException($responseJSON);
             */
         }
     }
@@ -258,7 +260,7 @@ $app->put('/updatePassword', function () use($app) {
 				$trafficMonitor->execute( array() );
 				$mistrafficdb = null;
 				// traffic analysis end
-				
+
       $sth2 = $db->prepare("UPDATE parents SET password = :newPwd WHERE parent_id = :userId");
       $sth2->execute( array(':userId' => $userId, ':newPwd' => $newPwd) );
       $app->response->setStatus(200);
@@ -267,7 +269,7 @@ $app->put('/updatePassword', function () use($app) {
     }
     else
     {
-        
+
         // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -275,8 +277,8 @@ $app->put('/updatePassword', function () use($app) {
 												VALUES('$subdom','parent-app failed login update')");
 				$trafficMonitor->execute( array() );
 				$mistrafficdb = null;
-				// traffic analysis end 
-				
+				// traffic analysis end
+
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
       echo json_encode(array("response" => "error", "data" => "Current password is incorrect." ));
@@ -306,7 +308,7 @@ $app->post('/updateDeviceUserId', function () use($app) {
     $sth->execute( array(':parentId' => $parentId, ':deviceUserId' => $deviceUserId) );
 
     $db = null;
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -349,7 +351,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
 				$trafficMonitor->execute( array() );
 				$mistrafficdb = null;
 				// traffic analysis end
-				
+
     $studentDetails = Array();
     $curSubDomain = '';
     $studentsBySchool = Array();
@@ -414,10 +416,12 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                   WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
                   AND communications.sent IS TRUE
                   AND communications.post_status_id = 1
-                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) 
+                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
                   OR communications.class_id is null)
                   AND communications.audience_id NOT IN (3,4,7,9)
                   --AND students.active IS TRUE
+                  AND communications.com_type_id NOT IN (6)
+                  AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
                   ORDER BY creation_date desc");
 
       $studentsArray = "{" . implode(',',$students) . "}";
@@ -425,7 +429,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
       $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
 
     }
-    
+
     /* get sent messages by student's parent */
       $feedback = Array();
       foreach( $studentsBySchool as $school => $students )
@@ -670,7 +674,7 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
       $results->pagination = $pagination;
       $results->posts = $posts;
     }
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -679,7 +683,75 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
 				$trafficMonitor->execute( array() );
 				$mistrafficdb = null;
 				// traffic analysis end
-				
+
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getGalleryCommunications/:school/:student_id', function ($school, $studentId) {
+    // Get homework associated with student for current week
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+    $db = setDBConnection($school);
+    $sth = $db->prepare("SELECT
+                com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
+                employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                audience, attachment, reply_to,
+                students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
+                guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
+                communications.guardian_id, communications.student_id, classes.class_name, post_status,
+                sent, sent_date, message_from,
+                case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method
+              FROM app.communications
+              LEFT JOIN app.students ON communications.student_id = students.student_id
+              LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
+              LEFT JOIN app.classes ON communications.class_id = classes.class_id
+              INNER JOIN app.employees ON communications.message_from = employees.emp_id
+              INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
+              INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
+              INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
+              WHERE communications.student_id IN (:studentId) OR communications.student_id is null
+              AND communications.sent IS TRUE
+              AND communications.post_status_id = 1
+              AND (communications.class_id = any(select current_class from app.students where student_id IN (:studentId))
+              OR communications.class_id is null)
+              AND communications.audience_id NOT IN (3,4,7,9)
+              AND communications.com_type_id = 6 AND communications.send_as_email IS TRUE
+              --AND students.active IS TRUE
+              AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
+              ORDER BY creation_date desc");
+
+    $sth->execute( array(':studentId' => $studentId) );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app viewing gallery')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
 
         if($results) {
             $app->response->setStatus(200);
@@ -724,7 +796,8 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
                         LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
                         WHERE student_id = :studentId
                         AND homework.post_status_id = 1
-                        AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
+                        --AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
+                        AND date_trunc('month', homework.creation_date) =  date_trunc('month', now())
                         --AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date OR due_date > now() )
                         AND students.active IS TRUE
                         ORDER BY homework.assigned_date DESC, subjects.sort_order
@@ -742,7 +815,7 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
     $sth->execute( array(':studentId' => $studentId) );
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
     */
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -831,7 +904,7 @@ $app->get('/getStudent/:school/:studentId', function ($school, $studentId) {
       $results4 = $sth4->fetchAll(PDO::FETCH_OBJ);
 
       $results->fee_items = $results4;
-      
+
       // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -966,7 +1039,7 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
-        
+
         // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1024,7 +1097,7 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
   }
-  
+
   // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1110,7 +1183,7 @@ $app->get('/getStudentPaymentsPortal/:school/:studentId', function ($school, $st
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1159,7 +1232,7 @@ $app->get('/getStudentCreditsPortal/:school/:studentId', function ($school, $stu
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1212,7 +1285,7 @@ $app->get('/getStudentArrearsPortal/:school/:studentId/:date', function ($school
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1260,7 +1333,7 @@ $app->get('/getStudentFeeItemsPortal/:school/:studentId', function ($school, $st
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
-        
+
         // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1321,7 +1394,7 @@ $app->get('/getStudentExamMarksPortal/:school/:student_id/:class/:term', functio
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
-        
+
         // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1502,7 +1575,7 @@ $app->get('/getStudentReportCards/:school/:student_id', function ($school, $stud
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1556,7 +1629,7 @@ $app->get('/getStudentReportCard/:school/:student_id/:class_id/:term_id', functi
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
-        
+
         // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1708,7 +1781,7 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
         echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
         $db = null;
     }
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1717,7 +1790,7 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
 				$trafficMonitor->execute( array() );
 				$mistrafficdb = null;
 				// traffic analysis end
-				
+
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -1776,7 +1849,7 @@ $app->get('/getInvoiceDetails/:school/:inv_id', function ($school,$invId) {
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();
@@ -1856,7 +1929,7 @@ $app->post('/addFeedback/:school', function ($school) {
     echo json_encode(array("response" => "success", 'data' => 'Message Posted'));
 
     $db = null;
-    
+
     // traffic analysis start
 				$mistrafficdb = getMISDB();
 				$subdom = getSubDomain();

@@ -21,7 +21,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	//$scope.loading = true;
 	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
 	$scope.nonTransport = ( $rootScope.currentUser.emp_id == null || $rootScope.currentUser.emp_id == undefined ? true : false );
-	$scope.notTeacherMessage = "You are viewing this page as a user who has not been assigned as a school bus guide or a school bus driver, therefore you cannot check off on picking up or dropping students." + "\n\n Please log in as a school bus guide to continue with this task.\n\n Also note that you need to be in an actual school bus to effectively perform this task as the system will need to acquire each student's pick up of drop off location.";
+	$scope.notTeacherMessage = "For mobility, this feature (Picking up / Dropping off students) is used from the mobile app. This allows the school to later track the movement of the school bus and where each student was picked or dropped off, in what order and at what time.";
 	
 	
 	var initializeController = function () 

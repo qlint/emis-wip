@@ -348,6 +348,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getAllTeachers/" + param, successFunction, errorFunction);
 	};
 
+	this.exportAllStaffDetails = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/exportAllStaffDetails", successFunction, errorFunction, params);
+	};
+
 	this.getAllEmployees = function (param, successFunction, errorFunction) {
 		ajaxService.AjaxGet(path + "/getAllEmployees/" + param, successFunction, errorFunction);
 	};
@@ -580,6 +584,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.addStudentDestination = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addStudentDestination", successFunction, errorFunction, params);
+	};
+
+	this.addStudentTrips = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addStudentTrips", successFunction, errorFunction, params);
 	};
 
 	this.updateMedicalConditions = function (request, successFunction, errorFunction, params) {
@@ -858,6 +866,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getStudentTransportDetails/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getStudentTripOptions = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStudentTripOptions/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getBusDestinations = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getBusDestinations/" + param, successFunction, errorFunction, params);
 	};
@@ -959,6 +971,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getOverallStudentFeePayments = function (param, successFunction, errorFunction) {
 		ajaxService.AjaxGet(path + "/getOverallStudentFeePayments/" + param, successFunction, errorFunction);
+	};
+
+	this.getAllStudentsWithTransport = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getAllStudentsWithTransport", successFunction, errorFunction, params);
 	};
 
 

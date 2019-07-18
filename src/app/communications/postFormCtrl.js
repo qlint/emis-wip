@@ -15,6 +15,11 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	$scope.theactivity = {};
 	$scope.theemployee = {};
 	$scope.theemployee2 = {};
+	$scope.thedepartment = {};
+	$scope.thecategory = {};
+	$scope.thestudenttype = {};
+	$scope.thehouse = {};
+	$scope.thecommittee = {};
 
 	$scope.edit = ( $state.params.action !== undefined && $state.params.action == 'edit' ? true : false );
 	$scope.post = ( $state.params.post !== undefined ? $state.params.post : {} );
@@ -37,7 +42,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		$scope.dates.assigned_date = {startDate:moment().format('YYYY-MM-DD')};
 		$scope.dates.due_date = {startDate:null};
 	}
-
+	
 	var initializeController = function()
 	{
 	    /* post_id was passed, editing a post */
@@ -110,6 +115,12 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 							$scope.selectedParent = $scope.post.full_parent_name;
 							$scope.selectedRoute = $scope.post.route;
 							$scope.selectedActivity = $scope.post.fee_item;
+							$scope.selectedDepartment = $scope.post.dept_name;
+							$scope.selectedCategory = $scope.post.emp_cat_name;
+							$scope.selectedStudentType = $scope.post.student_type;
+							$scope.selectedHouse = $scope.post.house_name;
+							$scope.selectedCommittee = $scope.post.committee_name;
+							$scope.selectedEmployee = $scope.post.employee_name;
 							$scope.post.send_method = ( $scope.post.send_as_sms ? 'sms' : 'email' );
 							$scope.selectedMethod = $scope.post.send_method.toUpperCase();
 							$scope.setupBlog = false;
@@ -181,6 +192,12 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				$scope.selectedParent = $scope.post.full_parent_name;
 				$scope.selectedRoute = $scope.post.route;
 				$scope.selectedActivity = $scope.post.fee_item;
+				$scope.selectedDepartment = $scope.post.dept_name;
+				$scope.selectedCategory = $scope.post.emp_cat_name;
+				$scope.selectedStudentType = $scope.post.student_type;
+				$scope.selectedHouse = $scope.post.house_name;
+				$scope.selectedCommittee = $scope.post.committee_name;
+				$scope.selectedEmployee = $scope.post.employee_name;
 				$scope.post.send_method = ( $scope.post.send_as_sms ? 'sms' : 'email' );
 				$scope.selectedMethod = $scope.post.send_method.toUpperCase();
 				if( $scope.post.send_method ==  'sms' ) $scope.post.title = $scope.post.message; // sms message is displayed in title field
@@ -438,12 +455,22 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		$scope.theemployee2.selected = undefined;
 		$scope.theroute.selected = undefined;
 		$scope.theactivity.selected = undefined;
+		$scope.thedepartment.selected = undefined;
+		$scope.thecategory.selected = undefined;
+		$scope.thestudenttype.selected = undefined;
+		$scope.thehouse.selected = undefined;
+		$scope.thecommittee.selected = undefined;
 		if( $scope.post.post_id === undefined ) $scope.filters.audience = undefined;
 		$scope.isParent = false;
 		$scope.isTransportRoute = false;
 		$scope.isStudentActivity = false;
 		$scope.isEmployee = false;
 		$scope.isClassSpecific = false;
+		$scope.isStaffDepartment = false;
+		$scope.isStaffCategory = false;
+		$scope.isStudentType = false;
+		$scope.isHouse = false;
+		$scope.isCommittee = false;
 		$scope.filters.audience_id = null;
 		$scope.isStudentFeedback = ( newVal.com_type == 'Student Feedback' ? true : false );
 
@@ -524,7 +551,65 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		{
 			apiService.getAllEmployees(true, loadEmployeesForComms, apiError);
 		}
+        // if department, show department select
+		$scope.thedepartment.selected = undefined;
+		$scope.isStaffDepartment = ( newVal.audience == 'Staff Department' ? true : false );
+		if( $scope.isStaffDepartment && $scope.dept_name === undefined )
+		{
+			apiService.getDepts(true, loadDepartments, apiError);
+		}
+		// if staff category, show staff category select
+		$scope.thecategory.selected = undefined;
+		$scope.isStaffCategory = ( newVal.audience == 'Staff Category' ? true : false );
+		if( $scope.isStaffCategory && $scope.emp_cat_name === undefined )
+		{
+			apiService.getEmpCats({}, function(response){
+				var result = angular.fromJson(response);
 
+				// store these as they do not change often
+				$scope.categories = (result.response == 'success' ? result.data : []);
+
+			}, function(){console.log("Error fetching staff categories")});
+		}
+		// if student type, show student type select
+		$scope.thestudenttype.selected = undefined;
+		$scope.isStudentType = ( newVal.audience == 'Student Type' ? true : false );
+		if( $scope.isStudentType && $scope.student_type === undefined )
+		{
+			$scope.studentTypes = [{student_type:'Day Scholar'},{student_type:'Boarder'}];
+		}
+		// if house, show house select
+		$scope.thehouse.selected = undefined;
+		$scope.isHouse = ( newVal.audience == 'House' ? true : false );
+		if( $scope.isHouse && $scope.house_name === undefined )
+		{
+		    $scope.houses = [];
+			if('Houses' in $rootScope.currentUser.settings){
+        		if($rootScope.currentUser.settings.Houses !== undefined || $rootScope.currentUser.settings.Houses !== null){
+        			$scope.housesRaw = $rootScope.currentUser.settings.Houses.split(',');
+        			$scope.housesRaw.forEach(function(perHouse) {
+                        let aHouse = {house_name:perHouse};
+                        $scope.houses.push(aHouse);
+                    });
+        		}
+        	}
+		}
+		// if committee, show committee select
+		$scope.thecommittee.selected = undefined;
+		$scope.isCommittee = ( newVal.audience == 'Committee' ? true : false );
+		if( $scope.isCommittee && $scope.committee_name === undefined )
+		{
+		    $scope.committees = [];
+			if('Committees' in $rootScope.currentUser.settings){
+        		if($rootScope.currentUser.settings.Committees != null || $rootScope.currentUser.settings.Committees != undefined){
+        			$scope.committeesRaw = $rootScope.currentUser.settings.Committees.split(',');
+        			$scope.committeesRaw.forEach(function(perCommittee) {
+                        let aCommittee = {committee_name:perCommittee};
+                        $scope.committees.push(aCommittee);
+                    });
+        		}
+        	}
+		}
 
 
 	})
@@ -566,6 +651,21 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		if( result.response == 'success')
 		{
 			$scope.fee_items = ( result.nodata ? {} : result.data );
+		}
+		else
+		{
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+
+	}
+	var loadDepartments = function(response)
+	{
+		var result = angular.fromJson(response);
+
+		if( result.response == 'success')
+		{
+			$scope.departments = ( result.nodata ? {} : result.data );
 		}
 		else
 		{
@@ -698,6 +798,11 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.selectedActivity = ( $scope.theactivity.selected !== undefined ? angular.copy($scope.theactivity.selected.fee_item) : undefined );
 			$scope.selectedClassName = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_name) : undefined );
 			$scope.selectedEmployee = ( $scope.theemployee2.selected !== undefined ? angular.copy($scope.theemployee2.selected.employee_full_name) : undefined );
+			$scope.selectedDepartment = ( $scope.thedepartment.selected !== undefined ? angular.copy($scope.thedepartment.selected.dept_name) : undefined );
+			$scope.selectedCategory = ( $scope.thecategory.selected !== undefined ? angular.copy($scope.thecategory.selected.emp_cat_name) : undefined );
+			$scope.selectedStudentType = ( $scope.thestudenttype.selected !== undefined ? angular.copy($scope.thestudenttype.selected.student_type) : undefined );
+			$scope.selectedHouse = ( $scope.thehouse.selected !== undefined ? angular.copy($scope.thehouse.selected.house_name) : undefined );
+			$scope.selectedCommittee = ( $scope.thecommittee.selected !== undefined ? angular.copy($scope.thecommittee.selected.committee_name) : undefined );
 			$scope.selectedMethod =	angular.copy($scope.filters.send_method).toUpperCase();
 
 			/* set variables to post of selected criteria */
@@ -707,6 +812,12 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.post.fee_item = ( $scope.theactivity.selected !== undefined ? angular.copy($scope.theactivity.selected.fee_item) : undefined );
 			$scope.post.class_id = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_id) : undefined );
 			$scope.post.emp_id = ( $scope.theemployee2.selected !== undefined ? angular.copy($scope.theemployee2.selected.emp_id) : undefined );
+			$scope.post.to_employee = ( $scope.theemployee2.selected !== undefined ? angular.copy($scope.theemployee2.selected.emp_id) : undefined );
+			$scope.post.dept_id = ( $scope.thedepartment.selected !== undefined ? angular.copy($scope.thedepartment.selected.dept_id) : undefined );
+			$scope.post.emp_cat_id = ( $scope.thecategory.selected !== undefined ? angular.copy($scope.thecategory.selected.emp_cat_id) : undefined );
+			$scope.post.student_type = ( $scope.thestudenttype.selected !== undefined ? angular.copy($scope.thestudenttype.selected.student_type) : undefined );
+			$scope.post.house_name = ( $scope.thehouse.selected !== undefined ? angular.copy($scope.thehouse.selected.house_name) : undefined );
+			$scope.post.committee_name = ( $scope.thecommittee.selected !== undefined ? angular.copy($scope.thecommittee.selected.committee_name) : undefined );
 			$scope.post.audience_id = angular.copy($scope.filters.audience.audience_id);
 			$scope.post.com_type_id = angular.copy($scope.filters.com_type.com_type_id);
 			$scope.post.send_method = angular.copy($scope.filters.send_method);
@@ -775,8 +886,14 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				parent_full_name : $scope.selectedParent,
 				route : $scope.selectedRoute,
 				activity : $scope.selectedActivity,
+				department : $scope.selectedDepartment,
+				category : $scope.selectedCategory,
+				student_type : $scope.selectedStudentType,
+				house : $scope.selectedHouse,
+				committee : $scope.selectedCommittee,
 				posted_by: ( $scope.isTeacher ? $rootScope.currentUser.full_name : ($scope.theemployee.selected !== undefined ? $scope.theemployee.selected.employee_name : '')),
 				attachment: $scope.attachment,
+				to_employee: $scope.selectedEmployee,
 				recipients: $scope.pullRecipients
 			}
 		}
@@ -932,7 +1049,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				}
 				$scope.post.attachment = attachmentArray.join(',');
 				console.log($scope.post);
-				console.log($scope.post.attachment);
 
 				if( $scope.isHomework )
 				{
@@ -966,24 +1082,21 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 						user_id: $rootScope.currentUser.user_id,
 						post: $scope.post
 					}
-					console.log("Inside save function");
 					console.log(data);
-          if( $scope.post.post_status_id === 1 )
-          {
-              console.log($scope.post);
-            var dlg = $dialogs.confirm('Publishing Communication', 'You have selected to publish this communication. This will cause the email/sms to be sent to the selected audience. You will no longer be able to edit this message. Do you wish to continue?',{size:'sm'});
-						var imageUploads = [$scope.post];
-						var seeImageUploads = JSON.stringify(imageUploads);
-						// console.log($scope);
-						console.log($scope.post);
-            dlg.result.then(function(btn){
-              apiService.addCommunication(data,createCompleted,apiError);
-            });
-          }
-          else
-          {
-            apiService.addCommunication(data,createCompleted,apiError);
-          }
+                      if( $scope.post.post_status_id === 1 )
+                      {
+                        console.log($scope.post);
+                        var dlg = $dialogs.confirm('Publishing Communication', 'You have selected to publish this communication. This will cause the email/sms to be sent to the selected audience. You will no longer be able to edit this message. Do you wish to continue?',{size:'sm'});
+            			var imageUploads = [$scope.post];
+            			var seeImageUploads = JSON.stringify(imageUploads);
+                        dlg.result.then(function(btn){
+                          apiService.addCommunication(data,createCompleted,apiError);
+                        });
+                      }
+                      else
+                      {
+                        apiService.addCommunication(data,createCompleted,apiError);
+                      }
 				}
 				else
 				{

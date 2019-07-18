@@ -373,6 +373,13 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
+		.state('transport/transport_reports', {
+      url: "/transport/transport_reports",
+	  templateUrl: 'app/transport/transportReports.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+      }
+    })
 
 	;
 }]);
