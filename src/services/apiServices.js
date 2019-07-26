@@ -879,8 +879,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 
 	this.getActiveRoutes = function (param, successFunction, errorFunction, params) {
-	    console.log(path + "/getActiveRoutes/" + param);
-		ajaxService.AjaxGet(path + "/getActiveRoutes/" + param, successFunction, errorFunction, params);
+	  ajaxService.AjaxGet(path + "/getActiveRoutes/" + param, successFunction, errorFunction, params);
 	};
 
 	this.assignBusToRoute = function (request, successFunction, errorFunction, params) {
@@ -977,6 +976,33 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGetWithData(request, path + "/getAllStudentsWithTransport", successFunction, errorFunction, params);
 	};
 
+	this.getAllStudentsInTrip = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllStudentsInTrip/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getAllStudentsInTranspZone = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getAllStudentsInTranspZone", successFunction, errorFunction, params);
+	};
+
+	this.getAllStudentsWithTranspBalance = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getAllStudentsWithTranspBalance", successFunction, errorFunction, params);
+	};
+
+	this.getClassStudentsWithTransp = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassStudentsWithTransp/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getClassStudentsInBus = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassStudentsInBus/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getClassStudentsInTrip = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassStudentsInTrip/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getClassStudentsInTranspZone = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassStudentsInTranspZone/" + param, successFunction, errorFunction, params);
+	};
 
 	return this;
 }]);

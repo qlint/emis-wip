@@ -130,9 +130,9 @@ $app->get('/exportAllStudentDetails', function () {
                         		dob AS date_of_birth, pick_up_drop_off_individual, pick_up_drop_off_individual_phone, payment_method AS fee_payment_method, payment_plan_name AS payment_plan,
                         		route, student_type, nemis, house, club, movement, destination AS neighborhood
                         	FROM app.students s
-                        	INNER JOIN app.classes c ON s.current_class = c.class_id
-                        	INNER JOIN app.installment_options io ON s.installment_option_id = io.installment_id
-                        	INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                        	LEFT JOIN app.classes c ON s.current_class = c.class_id
+                        	LEFT JOIN app.installment_options io ON s.installment_option_id = io.installment_id
+                        	LEFT JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
                         	WHERE s.active = true
                         	ORDER BY student_name ASC, class_name ASC
                         )one
@@ -2138,7 +2138,7 @@ $app->post('/addStudentDestination', function () use($app) {
 });
 
 $app->post('/addStudentTrips', function () use($app) {
-  // Add student destination
+  // Add student trips
   $allPostVars = json_decode($app->request()->getBody(),true);
 
   $studentId =  ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);

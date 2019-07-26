@@ -1,4 +1,5 @@
 <style type="text/css">
+    #exTab1 .tab-content {background-image: linear-gradient(180deg, rgba(27,120,0,1) 0%, rgba(255,255,255,1) 0.5%);}
     #resultsTable{width:100%;border:1px solid #404040;border-collapse:collapse;}
     #resultsTable thead tr th,#resultsTable tbody tr td{padding:5px;border:#303030 1px solid;text-align:center;}
     #resultsTable tbody tr:nth-child(odd){background:#e8e8e8;}
@@ -41,26 +42,39 @@
 					<!-- report select -->
 					<div class="form-group">
 						<label for="term">Report Type</label>
-						<select class="form-control" ng-model="filters.report_type" ng-change="trackReportType()" style="width:max-content !important;">
-							<option value="">--select report type--</option>
-              <option ng-repeat="reportType in reportTypes track by $index" value="{{reportType}}">{{reportType}}</option>
+						<select class="form-control" ng-model="filters.report_type" ng-change="trackReportType(this)" style="width:max-content !important;">
+							<option value="">--SELECT REPORT TYPE--</option>
+                            <option disabled>********** All Students **********</option>
+                            <option ng-repeat="all in reportTypes.allStudents track by $index" value="{{all}}">{{all}}</option>
+                            <option disabled>********** Class Students **********</option>
+                            <option ng-repeat="class in reportTypes.classStudents track by $index" value="{{class}}">{{class}}</option>
+						</select>
+					</div>
+					
+					<!-- trip select -->
+					<div class="form-group" ng-show="needsTrip">
+						<label for="trips">Trip</label>
+						<select id="trips" class="form-control" ng-model="filters.trip" >
+							<option disabled>-- Select Trip --</option>
+                            <option ng-repeat="trip in trips track by $index" value="{{trip.schoolbus_trip_id}}">{{trip.trip_name}}</option>
 						</select>
 					</div>
 
-          <!-- class select -->
+                    <!-- class select -->
 					<div class="form-group" ng-show="needsClass">
 						<label for="classes">Class</label>
 						<select id="classes" class="form-control" ng-model="filters.class" >
 							<option disabled>-- Select Class --</option>
-              <option ng-repeat="class in classes track by $index" value="{{class.class_id}}">{{class.class_name}}</option>
+                            <option ng-repeat="class in classCats track by $index" value="{{class.class_cat_id}}">{{class.class_cat_name}}</option>
 						</select>
 					</div>
 
-          <div class="form-group" ng-show="needsStream">
+                    <!-- stream select -->
+                    <div class="form-group" ng-show="needsStream">
 						<label for="classes">Stream</label>
 						<select id="stream" class="form-control" ng-model="filters.stream" >
 							<option disabled>-- Select Stream --</option>
-              <option ng-repeat="strm in stream track by $index" value="{{strm.stream_id}}">{{strm.stream_name}}</option>
+                            <option ng-repeat="strm in stream track by $index" value="{{strm.stream_id}}">{{strm.stream_name}}</option>
 						</select>
 					</div>
 
@@ -115,10 +129,10 @@
                             <div><h4>Search Results: <span><input type="text" id="search" placeholder="  live search"></input></span></h4></div>
 
                             <!-- all students with transport table -->
-                            <div ng-show="allWithTranspTable" id="allWithTranspTableDiv">
+                            <div ng-show="allWithTranspTable" id="allWithTranspTableDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>
                                         <thead>
-                                            <tr id="tblHeader">
+                                            <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th>STUDENT</th>
                                                 <th>CLASS</th>
                                                 <th>NEIGHBORHOOD</th>
@@ -137,28 +151,206 @@
                             </div>
 
                             <!-- student fee items analysis table -->
-                            <div ng-show="studentFeeItemsAnalysisTable" id="studentFeeItemsAnalysisTableDiv">
+                            <div ng-show="allStudentsInBus" id="allStudentsInBusDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>
                                         <thead>
-                                            <tr id="tblHeader">
+                                            <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th>STUDENT</th>
-                                                <th>INV #</th>
-                                                <th>INVOICE DATE</th>
-                                                <th>FEE ITEM</th>
-                                                <th>DEFAULT AMT.</th>
-                                                <th>AMT. PAID</th>
-                                                <th>BALANCE</th>
+                                                <th>CLASS</th>
+                                                <th>NEIGHBORHOOD</th>
+                                                <th>TRIP</th>
+                                                <th>DRIVER</th>
+                                                <th>ASSISTANT</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
-                                            <tr ng-repeat="item in studentFeeItems track by $index">
+                                            <tr ng-repeat="item in studentsInBus track by $index">
                                                 <td>{{item.student_name}}</td>
-                                                <td>{{item.inv_id}}</td>
-                                                <td>{{item.inv_date}}</td>
-                                                <td>{{item.all_fee_items}}</td>
-                                                <td>{{item.default_amt}}</td>
-                                                <td>{{item.paid2}}</td>
-                                                <td>{{item.balance}}</td>
+                                                <td>{{item.class_name}}</td>
+                                                <td>{{item.student_destination}}</td>
+                                                <td>{{item.trip_name}}</td>
+                                                <td>{{item.driver_name}}</td>
+                                                <td>{{item.guide_name}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- all students in a trip -->
+                            <div ng-show="allStudentsInTrip" id="allStudentsInTripDiv" style="max-height: 340px;overflow-y: scroll;">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader" style="background-color:#49E747;">
+                                                <th>STUDENT</th>
+                                                <th>CLASS</th>
+                                                <th>NEIGHBORHOOD</th>
+                                                <th>BUS</th>
+                                                <th>DRIVER</th>
+                                                <th>ASSISTANT</th>
+                                                <th>TRIP</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tblBody">
+                                            <tr ng-repeat="item in studentsInTrip track by $index">
+                                                <td>{{item.student_name}}</td>
+                                                <td>{{item.class_name}}</td>
+                                                <td>{{item.student_destination}}</td>
+                                                <td>{{item.bus}}</td>
+                                                <td>{{item.driver_name}}</td>
+                                                <td>{{item.guide_name}}</td>
+                                                <td>{{item.trip_name}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- all students in zones -->
+                            <div ng-show="allStudentsInZone" id="allStudentsInZoneDiv" style="max-height: 340px;overflow-y: scroll;">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader" style="background-color:#49E747;">
+                                                <th width="15%">STUDENT</th>
+                                                <th width="10%">CLASS</th>
+                                                <th width="10%">NEIGHBORHOOD</th>
+                                                <th width="55%">ZONE</th>
+                                                <th width="10%">AMOUNT</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tblBody">
+                                            <tr ng-repeat="item in studentsInZone track by $index">
+                                                <td width="15%">{{item.student_name}}</td>
+                                                <td width="10%">{{item.class_name}}</td>
+                                                <td width="10%">{{item.student_destination}}</td>
+                                                <td width="55%">{{item.route}}</td>
+                                                <td width="10%">{{item.amount}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- all students with balance -->
+                            <div ng-show="allStudentsWithBalance" id="allStudentsWithBalanceDiv" style="max-height: 340px;overflow-y: scroll;">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader" style="background-color:#49E747;">
+                                                <th width="10%">STUDENT</th>
+                                                <th width="10%">CLASS</th>
+                                                <th width="10%">NEIGHBORHOOD</th>
+                                                <th width="40%">ZONE</th>
+                                                <th width="10%">AMOUNT</th>
+                                                <th width="10%">PAYMENT</th>
+                                                <th width="10%">BALANCE</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tblBody">
+                                            <tr ng-repeat="item in studentsWithBalance track by $index">
+                                                <td width="10%">{{item.student_name}}</td>
+                                                <td width="10%">{{item.class_name}}</td>
+                                                <td width="10%">{{item.destination}}</td>
+                                                <td width="40%">{{item.route}}</td>
+                                                <td width="10%">{{item.amount}}</td>
+                                                <td width="10%">{{item.payment}}</td>
+                                                <td width="10%">{{item.balance}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+
+                            <!-- all students with transport in class table -->
+                            <div ng-show="classStdTrans" id="classStdTransDiv" style="max-height: 340px;overflow-y: scroll;">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader" style="background-color:#49E747;">
+                                                <th>STUDENT</th>
+                                                <th>CLASS</th>
+                                                <th>NEIGHBORHOOD</th>
+                                                <th>TRANSP. ZONE</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in classStudentsWithTransp track by $index">
+                                                <td>{{item.student_name}}</td>
+                                                <td>{{item.class_name}}</td>
+                                                <td>{{item.neighborhood}}</td>
+                                                <td>{{item.route}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- students in class in a bus -->
+                            <div ng-show="classStudentsInBus" id="classStudentsInBusDiv" style="max-height: 340px;overflow-y: scroll;">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader" style="background-color:#49E747;">
+                                                <th>STUDENT</th>
+                                                <th>CLASS</th>
+                                                <th>NEIGHBORHOOD</th>
+                                                <th>TRIP</th>
+                                                <th>DRIVER</th>
+                                                <th>ASSISTANT</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tblBody">
+                                            <tr ng-repeat="item in classStudentsInSelectedBus track by $index">
+                                                <td>{{item.student_name}}</td>
+                                                <td>{{item.class_name}}</td>
+                                                <td>{{item.student_destination}}</td>
+                                                <td>{{item.trip_name}}</td>
+                                                <td>{{item.driver_name}}</td>
+                                                <td>{{item.guide_name}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- class students in a trip -->
+                            <div ng-show="classStudentsInTrip" id="classStudentsInTripDiv" style="max-height: 340px;overflow-y: scroll;">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader" style="background-color:#49E747;">
+                                                <th>STUDENT</th>
+                                                <th>CLASS</th>
+                                                <th>NEIGHBORHOOD</th>
+                                                <th>BUS</th>
+                                                <th>DRIVER</th>
+                                                <th>ASSISTANT</th>
+                                                <th>TRIP</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tblBody">
+                                            <tr ng-repeat="item in classStudentsInSelectedTrip track by $index">
+                                                <td>{{item.student_name}}</td>
+                                                <td>{{item.class_name}}</td>
+                                                <td>{{item.student_destination}}</td>
+                                                <td>{{item.bus}}</td>
+                                                <td>{{item.driver_name}}</td>
+                                                <td>{{item.guide_name}}</td>
+                                                <td>{{item.trip_name}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- class students in zones -->
+                            <div ng-show="classStudentsInZone" id="classStudentsInZoneDiv" style="max-height: 340px;overflow-y: scroll;">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader" style="background-color:#49E747;">
+                                                <th width="15%">STUDENT</th>
+                                                <th width="10%">CLASS</th>
+                                                <th width="10%">NEIGHBORHOOD</th>
+                                                <th width="55%">ZONE</th>
+                                                <th width="10%">AMOUNT</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tblBody">
+                                            <tr ng-repeat="item in classStudentsInSelectedZone track by $index">
+                                                <td width="15%">{{item.student_name}}</td>
+                                                <td width="10%">{{item.class_name}}</td>
+                                                <td width="10%">{{item.student_destination}}</td>
+                                                <td width="55%">{{item.route}}</td>
+                                                <td width="10%">{{item.amount}}</td>
                                             </tr>
                                         </tbody>
                                 </table>

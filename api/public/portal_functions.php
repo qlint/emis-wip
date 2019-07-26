@@ -730,13 +730,14 @@ $app->get('/getGalleryCommunications/:school/:student_id', function ($school, $s
               INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
               INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
               INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-              WHERE communications.student_id IN (:studentId) OR communications.student_id is null
+              WHERE communications.com_type_id = 6
+              AND communications.student_id IN (:studentId) OR communications.student_id is null
               AND communications.sent IS TRUE
               AND communications.post_status_id = 1
               AND (communications.class_id = any(select current_class from app.students where student_id IN (:studentId))
               OR communications.class_id is null)
               AND communications.audience_id NOT IN (3,4,7,9)
-              AND communications.com_type_id = 6 AND communications.send_as_email IS TRUE
+              AND communications.send_as_email IS TRUE
               --AND students.active IS TRUE
               AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
               ORDER BY creation_date desc");
@@ -797,7 +798,7 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
                         WHERE student_id = :studentId
                         AND homework.post_status_id = 1
                         --AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
-                        AND date_trunc('month', homework.creation_date) =  date_trunc('month', now())
+                        AND homework.creation_date >  CURRENT_DATE - INTERVAL '3 months'
                         --AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date OR due_date > now() )
                         AND students.active IS TRUE
                         ORDER BY homework.assigned_date DESC, subjects.sort_order

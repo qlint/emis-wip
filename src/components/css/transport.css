@@ -1,10 +1,12 @@
 .t_tabs {
-    background-color: #949494;
-    min-height: 300px;
-    border-radius: 10px;
-    border: 3px solid #000000;
+    background-color: #eee;
+    height: 300px;
+    border-radius: 4px;
     width: 30%;
     margin-left: 10px;
+}
+#body-content h4 {
+    font-size: 14px;
 }
 .btnSpacer{
     margin-top: 10px;
@@ -12,17 +14,6 @@
 }
 .t_icon {
     border: 5px solid #949494;
-}
-.boxTitle {
-    font-weight: bold;
-    color: #000000;
-    background-color: #fff;
-    line-height: 30px;
-    border-radius: 10px;
-    padding-left: 10px;
-}
-.boxBody {
-    padding-left: 10px !important;
 }
 .schoolBusBodySpacer {
     margin-top: 100px;

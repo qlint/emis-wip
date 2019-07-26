@@ -90,6 +90,7 @@
 							<th>Student</th>
 							<th class="center" ng-repeat="col in tableHeader">{{col.title}}</th>
 							<th>G.TOT</th>
+							<th>AVG</th>
 							<th>POS</th>
 						</tr>
 					</thead>
@@ -99,6 +100,7 @@
 							<td id="{{item.student_id}}">{{item.student_name}}</td>
 							<td class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMark($parent.$index, col.key)"></td>
 							<td class="center strong">{{item.total}}</td>
+							<td class="center strong">{{(item.total / 500)*100 | limitTo: 4}}</td>
 							<td class="center strong">{{item.rank}}</td>
 						</tr>
 					</tbody>
@@ -109,11 +111,13 @@
 							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayTotalMark(col.key)"></th>
 							<th class="center strong"></th>
 							<th></th>
+							<th></th>
 						</tr>
 						<tr>
 						    <th></th>
 							<th class="right"></th>
 							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMeanScore(col.key)"></th>
+							<th></th>
 							<th></th>
 							<th></th>
 						</tr>

@@ -19,6 +19,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.entity_id = $scope.student.entity_id;
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 	$scope.schoolName = window.location.host.split('.')[0];
+	$scope.wantStreamPos = ( window.location.host.split('.')[0] == 'kingsinternational' ? true : false );
 
 	$scope.canPrint = false;
 
@@ -159,7 +160,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.canDelete = ( $scope.isTeacher ? false : true);
 			$scope.filters = data.filters;
 			$scope.isClassTeacher = ( $scope.student.class_teacher_id == $rootScope.currentUser.emp_id ? true : false);
-			$scope.isSchool = ( window.location.host.split('.')[0] == "kingsinternational" ? true : false);
+			$scope.isSchool = ( window.location.host.split('.')[0] == "kingsinternational" || window.location.host.split('.')[0] == "thomasburke" ? true : false);
 
 			// fetch the report cards subjects based on user type
 			getExamMarksforReportCard();
@@ -509,7 +510,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	var loadStreamPOsition = function(response, status)
 	{
 		var result = angular.fromJson(response);
-
 		// $scope.streamRank = result.data.streamRank;
 		
 		if(result.data.streamRank.length != 0){
@@ -522,11 +522,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
     		$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
     		$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
         }
-        
-		//	localStorage.setItem('printStreamRank', $scope.streamRankPosition);
-		//	var getPrintRank = localStorage.getItem("printStreamRank");
-		//	localStorage.setItem('printStreamRankOutOf', $scope.streamRankOutOf);
-		//	var getStreamRankOutOf = localStorage.getItem("printStreamRankOutOf");
 
 	}
 
@@ -568,7 +563,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 		// console.log(data);
 		$scope.examMarks = data.details;
-		if($scope.schoolName == "kingsinternational"){
+		if($scope.schoolName == "kingsinternational" || $scope.schoolName == "thomasburke"){
 		    $scope.overallSubjectMarks = data.subjectOverallByAvg;
     		$scope.overall = data.overallByAverage;
 		}else{

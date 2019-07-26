@@ -90,7 +90,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
               });
               $scope.routesUnsorted = [...new Set($scope.rawRoutes)];
               $scope.routes = $scope.routesUnsorted.sort();
-              console.log($scope.routes);
             }
           }
 

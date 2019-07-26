@@ -35,15 +35,15 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
 
 	var initializeController = function()
 	{
-    // get all buses
-    apiService.getAllAssignedBuses(true, function(response,status){
+    // get all active buses
+		var getBusesParam = true;
+		apiService.getAllBuses(getBusesParam, function(response,status){
 			var result = angular.fromJson(response);
 
 			if( result.response == 'success')
 			{
-				// $scope.buses = ( result.nodata ? [] : result.data );
-				$scope.buses = result.data;
-                console.log($scope.buses);
+					$scope.buses = ( result.nodata ? [] : result.data );
+
 			}
 			else
 			{

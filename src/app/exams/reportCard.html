@@ -326,21 +326,20 @@ function getChartPath()
 						</div>
 						<!-- stream position, out of, stream pos last term, out of -->
 						<div class="row" ng-hide="noRanking">
-						    <!--
-							<div ng-hide="isSchool" class="col-xs-1 nopad-right">
+						    
+							<div ng-hide="wantStreamPos" class="col-xs-1 nopad-right">
 								<label>Stream Position:</label>
 							</div>
-							<div ng-hide="isSchool" class="col-xs-3 lesspad">
+							<div ng-hide="wantStreamPos" class="col-xs-3 lesspad">
 								<p class="form-control-static inline">{{streamRankPosition}}</p> / <p class="form-control-static inline">{{streamRankOutOf}}</p>
 							</div>
 
-							<div ng-hide="isSchool" class="col-xs-2 nopad-right">
+							<div ng-hide="wantStreamPos" class="col-xs-2 nopad-right">
 								<label>Stream Last Term:</label>
 							</div>
-							<div ng-hide="isSchool" class="col-xs-2 lesspad">
+							<div ng-hide="wantStreamPos" class="col-xs-2 lesspad">
 								<p class="form-control-static inline">{{streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{streamRankOutOfLastTerm||'--'}}</p>
 							</div>
-							-->
 
 							<div ng-show="isSchool" class="col-xs-2 nopad-right">
 								<label>Current Term Marks:</label>

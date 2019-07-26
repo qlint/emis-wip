@@ -87,10 +87,26 @@ function setDBConnection($subDomain)
 
 function getSubDomain()
 {
-	$referrer = ( isset($_SERVER['HTTP_X_SCHOOL_IDENTIFIER']) ? $_SERVER['HTTP_X_SCHOOL_IDENTIFIER'] : '');
-	return $referrer;
+	// $referrer = ( isset($_SERVER['HTTP_X_SCHOOL_IDENTIFIER']) ? $_SERVER['HTTP_X_SCHOOL_IDENTIFIER'] : '');
+	// return $referrer;
 
-
+    if(isset($_SERVER['HTTP_REFERER'])) {
+            
+    	$url = $_SERVER['HTTP_REFERER'];
+    	$parsedUrl = parse_url($url);
+    	$host = explode('.', $parsedUrl['host']);
+    	$schoolSubdomain = $host[0];
+    	// var_dump($schoolSubdomain); // echo's school subdomain eg "dev"
+    	return $schoolSubdomain;
+    
+    }
+    else
+    {
+       //it was not sent, perform your default actions here
+       $referrer = ( isset($_SERVER['HTTP_X_SCHOOL_IDENTIFIER']) ? $_SERVER['HTTP_X_SCHOOL_IDENTIFIER'] : '');
+       return $referrer;
+       // note that the above initiates OPTIONS request which is vulnerable
+    }
 	/*
 	$referrer = ( isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'http://hog.eduweb.localhost/');
 	$data = explode('.', $referrer); // Get the sub-domain here

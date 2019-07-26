@@ -29,17 +29,16 @@
 
     	<div class="row">
 
-    			<div class="col-sm-6 t_tabs" style="width:47%;">
+    			<div class="col-sm-6 t_tabs" style="width:47%;height:370px;">
     				<div class="dashboard-panel">
     					<div class="dashboard-panel-header">
-    						<span class="pull-right fa fa-bus text-lg section-label t_icon"></span>
-    						<h2 class="boxTitle">Create Trip</h2>
+    						<h2>Create Trip</h2>
     					</div>
-    					<div class="row dashboard-panel-body boxBody">
+    					<div class="row dashboard-panel-body">
     						<div class="stripped">
     							<div>
     							    <div><h4>Enter the name of the trip</h4></div>
-                                    <input id="tripName" type="text" name="trip_name" class="transportSelectWidth" style="width: 95%;border: 2px solid #404040;border-radius: 10px;height: 30px;"><br>
+                                    <input id="tripName" type="text" name="trip_name" class="transportSelectWidth" style="width: 95%;border-radius: 4px;"><br>
                                 </div>
                                 <div class="row" style="margin-left:auto;">
                                     <div><h4>Restrict This Trip To Classes?</h4><br><p>*This is optional. If left blank, the trip will be available to all classes.</p></div>
@@ -48,8 +47,8 @@
     							<div class="btnSpacer">
 										<button type="button" class="btn btn-primary" ng-click="createTrip()">Create Trip</button>
 									</div>
-    							<div ng-show="tripCreation" class="btnSpacer" style="background-color: #00e673;height: 40px;width: 100%;border-radius: 10px;border: 2px solid #001a0d;">
-    							    <h3 style="text-align: center;font-size: 18px;margin-top: inherit;color: #000;">{{tripCreationStatus}}.</h3>
+    							<div ng-show="tripCreation" class="btnSpacer" style="background-color: #00e673;height: 25px;width: 97%;border-radius: 4px;border: 1px solid #001a0d;">
+    							    <h3 style="text-align: center;font-size: 18px;margin-top:auto;color: #000;">{{tripCreationStatus}}.</h3>
     							</div>
     						</div>
     					</div>
@@ -57,31 +56,30 @@
 
     			</div>
 
-                <div class="col-sm-6 t_tabs" style="width:47%;">
+                <div class="col-sm-6 t_tabs" style="width:47%;height:370px;">
     				<div class="dashboard-panel">
     					<div class="dashboard-panel-header">
-    						<span class="pull-right fa fa-compass text-md section-label t_icon"></span>
-    						<h2 class="boxTitle">Bus / Trip Assignment</h2>
+    						<h2>Bus / Trip Assignment</h2>
     					</div>
-    					<div class="row dashboard-panel-body boxBody">
-    						<h4>Add a bus to a trip plying given routes</h4>
-                            <h3>Select Trip</h3><br>
-                            <select id="slctdTrip2" style="width: 95%;border: 2px solid #000;height: 30px;border-radius: 10px;">
+    					<div class="row dashboard-panel-body">
+    						<p style="font-style:italic;">* Add a bus to a trip plying given routes</p>
+                            <h4>Select Trip</h4>
+                            <select id="slctdTrip2" style="width: 95%;border-radius: 4px;">
                                 <option value="">---SELECT A TRIP---</option>
                                 <option ng-repeat="trip in trips track by $index" value="{{trip.schoolbus_trip_id}}">{{trip.trip_name}}</option>
                             </select>
 
-                            <h3>Select a bus for this trip</h3>
-                            <select name="bus" id="slctdBus" style="width: 95%;border: 2px solid #303030;border-radius: 10px;height: 30px;">
+                            <h4>Select a bus for this trip</h4>
+                            <select name="bus" id="slctdBus" style="width: 95%;border-radius: 4px;">
                                 <option value="">---SELECT SCHOOL BUS---</option>
-                                <option ng-repeat="bus in buses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} - {{bus.bus_registration}}<br><b> | {{bus.destinations}}</b></option>
+                                <option ng-repeat="bus in buses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} - {{bus.bus_registration}}</option>
                             </select>
 
                             <div class="btnSpacer">
                               <button type="button" class="btn btn-primary" ng-click="updateTrip2()">Add Bus To This Trip</button>
                             </div>
-    						<div ng-show="busAssignment" class="btnSpacer" style="background-color: #00e673;height: 40px;width: 100%;border-radius: 10px;border: 2px solid #001a0d;">
-    						    <h3 style="text-align: center;font-size: 18px;margin-top: inherit;color: #000;">{{busAssignmentStatus}}</h3>
+    						<div ng-show="busAssignment" class="btnSpacer" style="background-color: #00e673;height: 25px;width: 97%;border-radius: 4px;border: 1px solid #001a0d;">
+    						    <h3 style="text-align: center;font-size: 18px;margin-top:auto;color: #000;">{{busAssignmentStatus}}</h3>
     						</div>
     					</div>
     				</div>
@@ -91,9 +89,9 @@
 
         <div class="row">
     		    <div class="busmanagementtbl">
-    		        <h4 class="center">Existing Buses And Their Assignments</h4><hr>
+    		        <h4 class="center">Existing Buses And Their Assignments</h4>
         		    <table class="table table-striped">
-                        <thead>
+                        <thead style="background-color:#49E747;">
                             <tr>
                                 <th>Bus Type</th>
                                 <th>Registration</th>

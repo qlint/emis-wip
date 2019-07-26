@@ -222,6 +222,26 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				}
 
 				$scope.examMarks = result.data;
+
+				function sumObjVals( obj ) {
+				  var sum = 0;
+				  for( var el in obj ) {
+				    if( obj.hasOwnProperty( el ) ) {
+				      sum += parseFloat( obj[el] );
+				    }
+				  }
+				  return sum;
+				}
+
+				function removeNumbersLessThan(num, obj) {
+				    for (var property in obj) {
+				        if (obj[property] < num) {
+				            delete obj[property];
+				        }
+				    }
+				}
+
+				// use the above functions to calculate the total marks percentage
 				$scope.totalStudents = result.data.length;
 
 				/* loop through the first exam mark result to build the table columns */
@@ -290,11 +310,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							subjectName = subjectDetails[2];
 
 						console.log("The subject details", subjectDetails);
+						if(subjectDetails[3] == "100"){
+							console.log("Name contains 100",value);
+						}
 
 						var hasChildren = ( parentSubject == '' && subjectsObj[subjectName].children.length > 0 ? true : false );
 
 						$scope.tableHeader.push({
-							title: (hasChildren ? ( subjectName == 'Kiswahili' ? 'Juml' : 'TOT') : formatTitle(subjectName)),
+							// title: (hasChildren ? ( subjectName == 'Kiswahili' ? 'Juml' : 'TOT') : formatTitle(subjectName)),
+							title: formatTitle(subjectName),
 							key: key,
 							isParent: (parentSubject == '' ? true : false)
 						});

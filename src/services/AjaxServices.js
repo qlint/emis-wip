@@ -9,7 +9,7 @@
 			$http({
 				method: 'POST',
 				url: route,
-				headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				transformRequest: function(obj) {
 					var str = [];
 					for(var p in obj)
@@ -29,7 +29,7 @@
 			$http({
 				method: 'POST',
 				url: route,
-				headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				data: data
 			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
@@ -43,7 +43,7 @@
 			$http({
 				method: 'PUT',
 				url: route,
-				headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				data: data
 			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
@@ -57,7 +57,7 @@
 			$http({
 					method: 'DELETE',
 					url: route,
-					headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
+					// headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
 			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
 			}).error(function (response) {
@@ -70,7 +70,7 @@
 			$http({
 				method: 'GET',
 				url: route,
-				headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
+				// headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
 			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);
 				return response;
@@ -85,7 +85,7 @@
 			$http({
 				method: 'GET',
 				url: route,
-				headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
+				// headers: {'X-SCHOOL-IDENTIFIER': $rootScope.clientIdentifier},
 				params: data
 			}).success(function (response, status, headers, config) {
 				successFunction(response, status, extras);

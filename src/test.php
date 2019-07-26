@@ -35,11 +35,11 @@ header('Access-Control-Allow-Origin: *');
   echo "subdomain = " . array_shift((explode('.', $_SERVER['HTTP_HOST'])));
   echo "<br><br>";
   $school = array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-  if( $school == "localhost:8008" )
+  if( $school == "kingsinternational" )
   {
-    echo "Nimefika";
+    echo "This is ". $school;
   }else{
-    echo "Sijafika bado";
+    echo "The subdomain is not " . $school;
   }
   echo "<br><br>";
   echo ("http://".array_shift((explode('.', $_SERVER['HTTP_HOST']))).".eduweb.co.ke");

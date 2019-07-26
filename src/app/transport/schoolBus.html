@@ -31,10 +31,9 @@
     			<div class="col-sm-4 t_tabs">
     				<div class="dashboard-panel">
     					<div class="dashboard-panel-header">
-    						<span class="pull-right fa fa-bus text-lg section-label t_icon"></span>
-    						<h2 class="boxTitle">Create A School Bus</h2>
+    						<h2>Create A School Bus</h2>
     					</div>
-    					<div class="row dashboard-panel-body boxBody">
+    					<div class="row dashboard-panel-body">
     						<div class="stripped">
     							<div>
     							    <div><h4>Type of School Bus</h4></div>
@@ -46,11 +45,11 @@
                                 </div>
     							<div>
     							    <div><h4>Registration Number</h4></div>
-    							    <input type="text" name="bus_registration" id="busReg" style="text-transform:uppercase">
+    							    <input type="text" name="bus_registration" id="busReg" style="text-transform:uppercase;width:100%;" placeholder="KXX 000Z">
     							</div>
     							<div class="btnSpacer"><button type="button" class="btn btn-primary" ng-click="createBus()">Create Bus</button></div>
-    							<div ng-show="busCreation" class="btnSpacer" style="background-color: #00e673;height: 40px;width: 100%;border-radius: 10px;border: 2px solid #001a0d;">
-    							    <h3 style="text-align: center;font-size: 18px;margin-top: inherit;color: #000;">Success! School bus created.</h3>
+    							<div ng-show="busCreation" class="btnSpacer" style="background-color: #00e673;height: 25px;width: 97%;border-radius: 4px;border: 1px solid #001a0d;">
+    							    <h3 style="text-align: center;font-size: 18px;margin-top:auto;color: #000;">Success! School bus created.</h3>
     							</div>
     						</div>
     					</div>
@@ -61,22 +60,21 @@
     			<div class="col-sm-4 t_tabs">
     				<div class="dashboard-panel">
     					<div class="dashboard-panel-header">
-    						<span class="pull-right fa fa-compass text-md section-label t_icon"></span>
-    						<h2 class="boxTitle">Assign Bus To Route</h2>
+    						<h2>Assign Bus To Route</h2>
     					</div>
-    					<div class="row dashboard-panel-body boxBody">
+    					<div class="row dashboard-panel-body">
     						<h4>Select School Bus</h4>
     						<select id="theBusId" class="transportSelectWidth">
     						    <option ng-repeat="bus in allBuses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} - {{bus.bus_registration}}</option>
                             </select>
     						<h4>Routes / Destinations For This Bus</h4>
-    						<select name="selectedRoutes[]" id="multiRoute" multiple style="width:95%;height:100px;border:2px solid #303030;border-radius:5px;" ng-model="selectedRoutes" ng-click="selectRoutes()">
+    						<select name="selectedRoutes[]" id="multiRoute" multiple style="width:100%;height:90px;" ng-model="selectedRoutes" ng-click="selectRoutes()">
                                 <option ng-repeat="route in routes track by $index" value="{{route}}">{{route}}</option>
                             </select>
                             <p><b>Current Selection:</b> {{selectedRoutesJOined}}</p>
                             <div class="btnSpacer"><button type="button" class="btn btn-primary" ng-click="assignRoute()">Assign Route</button></div>
-                            <div ng-show="routeAssignment" class="btnSpacer" style="background-color: #00e673;height: 40px;width: 100%;border-radius: 10px;border: 2px solid #001a0d;">
-    						    <h3 style="text-align: center;font-size: 18px;margin-top: inherit;color: #000;">Success! Bus assigned to route.</h3>
+                            <div ng-show="routeAssignment" class="btnSpacer" style="background-color: #00e673;height: 25px;width: 97%;border-radius: 4px;border: 1px solid #001a0d;">
+    						    <h3 style="text-align: center;font-size: 18px;margin-top:auto;color: #000;">Success! Bus assigned to route.</h3>
     						</div>
     					</div>
     				</div>
@@ -85,14 +83,14 @@
     			<div class="col-sm-4 t_tabs">
     				<div class="dashboard-panel">
     					<div class="dashboard-panel-header">
-    						<span class="pull-right fa fa-user-plus text-md section-label t_icon"></span>
-    						<h2 class="boxTitle">Assign Driver &amp; Guide To Bus</h2>
+    						<h2>Assign Driver &amp; Guide To Bus</h2>
     					</div>
-    					<div class="row dashboard-panel-body boxBody">
-    						<h4>Select A School Bus Route</h4>
+    					<div class="row dashboard-panel-body">
+    						<h4>Select A School Bus</h4>
     						<select class="transportSelectWidth" id="routedBuses">
-    						    <option ng-repeat="assignedBus in allAssignedBuses track by $index" value="{{assignedBus.bus_id}}">{{assignedBus.bus_registration}} - {{assignedBus.route.length < 30 ? assignedBus.route : assignedBus.route | limitTo: 30}}{{assignedBus.route.length > 30 ? "..." : ""}}</option>
-                            </select>
+    						    <!--<option ng-repeat="assignedBus in allAssignedBuses track by $index" value="{{assignedBus.bus_id}}">{{assignedBus.bus_registration}} - {{assignedBus.destinations.length < 30 ? assignedBus.destinations : assignedBus.destinations | limitTo: 30}}{{assignedBus.destinations.length > 30 ? "..." : ""}}</option>-->
+                    <option ng-repeat="bus in allBuses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} - {{bus.bus_registration}}</option>
+                </select>
     						<h4>Driver For This Bus</h4>
     						<select class="transportSelectWidth" id="allDrivers">
     						    <option ng-repeat="driver in drivers track by $index" value="{{driver.emp_id}}">{{driver.driver_name}}</option>
@@ -102,8 +100,8 @@
     						    <option ng-repeat="assistant in assistants track by $index" value="{{assistant.emp_id}}">{{assistant.assistant_name}}</option>
                             </select>
                             <div class="btnSpacer"><button type="button" class="btn btn-primary" ng-click="assignDriverAndGuide()">Assign Driver &amp; Guide</button></div>
-                            <div ng-show="assignedPersonnel" class="btnSpacer" style="background-color: #00e673;height: 40px;width: 100%;border-radius: 10px;border: 2px solid #001a0d;">
-    						    <h3 style="text-align: center;font-size: 18px;margin-top: inherit;color: #000;">Bus assignemnt success!</h3>
+                            <div ng-show="assignedPersonnel" class="btnSpacer" style="background-color: #00e673;height: 25px;width: 97%;border-radius: 4px;border: 1px solid #001a0d;">
+    						    <h3 style="text-align: center;font-size: 18px;margin-top:auto;color: #000;">Bus assignemnt success!</h3>
     						</div>
     					</div>
     				</div>
@@ -113,9 +111,9 @@
 
     		<div class="row">
     		    <div class="busmanagementtbl">
-    		        <h4 class="center">Existing Buses And Their Assignments</h4><hr>
+    		        <h4 class="center">Existing Buses And Their Assignments</h4>
         		    <table class="table table-striped">
-                        <thead>
+                        <thead style="background-color:#49E747;">
                             <tr>
                                 <th>Bus Type</th>
                                 <th>Registration</th>

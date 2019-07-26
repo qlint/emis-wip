@@ -579,7 +579,7 @@ $app->get('/getAllStudentsWithTransport', function () {
     $db = getDB();
 
     $sth = $db->prepare("SELECT * FROM (
-                        	SELECT DISTINCT ON (s.student_id)s.student_id, first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, 
+                        	SELECT DISTINCT ON (s.student_id)s.student_id, first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
                         		c.class_name, route, CASE WHEN s.destination IS NULL THEN 'Not Assigned' ELSE s.destination END AS neighborhood
                         	FROM app.students s
                         	INNER JOIN app.classes c ON s.current_class = c.class_id
@@ -587,7 +587,7 @@ $app->get('/getAllStudentsWithTransport', function () {
                         	INNER JOIN app.student_fee_items sfi USING (student_id)
                         	INNER JOIN app.fee_items USING (fee_item_id)
                         )a
-                        ORDER BY student_name ASC");
+                        ORDER BY class_name ASC, student_name ASC");
     $sth->execute(array());
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -608,6 +608,324 @@ $app->get('/getAllStudentsWithTransport', function () {
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
+
+});
+
+$app->get('/getAllStudentsInTrip/:tripId', function ($tripId) {
+  // All students in trip
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
+                        	SELECT student_id, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination FROM (
+                        		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                        			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination
+                        		FROM app.students s
+                        		INNER JOIN app.classes c ON s.current_class = c.class_id
+                        		WHERE s.active IS TRUE
+                        	)one
+                        	INNER JOIN app.schoolbus_trips st ON one.trip_id = st.schoolbus_trip_id
+                        	INNER JOIN app.buses USING (bus_id)
+                        	WHERE trip_id = :tripId
+                        )two
+                        LEFT JOIN app.employees e ON two.bus_driver = e.emp_id
+                        LEFT JOIN app.employees e2 ON two.bus_guide = e2.emp_id
+                        ORDER BY class_name ASC, student_name ASC");
+    $sth->execute(array(':tripId' => $tripId));
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getAllStudentsInTranspZone', function () {
+  // Get all students in their transport zones
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT student_id, student_name, class_name, student_destination, route, amount FROM (
+                    		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                    			s.destination AS student_destination, s.transport_route_id
+                    		FROM app.students s
+                    		INNER JOIN app.classes c ON s.current_class = c.class_id
+                    		WHERE s.active IS TRUE
+                    	)one
+                    	INNER JOIN app.transport_routes tr ON one.transport_route_id = tr.transport_id
+                    	ORDER BY class_name ASC, student_name ASC");
+    $sth->execute(array());
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getAllStudentsWithTranspBalance', function () {
+  // Get all students with transport balace
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT *, amount-payment AS balance FROM (
+                        	SELECT sfi.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name, destination,
+                        		sfi.fee_item_id, fi.fee_item, tr.route, fi.default_amount, sfi.amount, COALESCE(pii.amount, 0) AS payment
+                        	FROM app.student_fee_items sfi
+                        	INNER JOIN app.fee_items fi USING (fee_item_id)
+                        	INNER JOIN app.students s USING (student_id)
+                        	INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                        	LEFT JOIN app.invoice_line_items ili USING (student_fee_item_id)
+                        	LEFT JOIN app.payment_inv_items pii USING (inv_item_id)
+                        	INNER JOIN app.classes c ON s.current_class = c.class_id
+                        )one
+                        ORDER BY class_name ASC, student_name ASC");
+    $sth->execute(array());
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getClassStudentsWithTransp/:classCatId', function ($classCatId) {
+  // All students with transport in class
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT * FROM (
+                        	SELECT DISTINCT ON (s.student_id)s.student_id, first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                        		c.class_name, route, CASE WHEN s.destination IS NULL THEN 'Not Assigned' ELSE s.destination END AS neighborhood
+                        	FROM app.students s
+                        	INNER JOIN app.classes c ON s.current_class = c.class_id
+                        	INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                        	INNER JOIN app.student_fee_items sfi USING (student_id)
+                        	INNER JOIN app.fee_items USING (fee_item_id)
+                        	WHERE s.current_class IN (SELECT class_id FROM app.classes c WHERE c.class_cat_id = :classCatId)
+                        )a
+                        ORDER BY class_name ASC, student_name ASC");
+    $sth->execute(array(':classCatId' => $classCatId));
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getClassStudentsInBus/:busId/:classCatId', function ($busId,$classCatId) {
+  // Get class students in the given school bus
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+     $sth = $db->prepare("SELECT student_id, student_name, student_destination, bus_id, bus, destinations, bus_driver, bus_guide, driver_name, guide_name, trip_name, class_cats, class_name FROM (
+                          	SELECT student_id, student_name, current_class, student_destination, bus_id, bus, destinations, bus_driver, bus_guide, driver_name, guide_name, trip_name, class_cats
+                          	FROM (
+                          		SELECT *, string_to_array(class_cats,',')::int[] AS class_cats_arr FROM (
+                          			SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, current_class,
+                          				s.destination AS student_destination, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus,
+                          				b.destinations, b.bus_driver,
+                                                  	b.bus_guide,
+                                                  	e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name,
+                                                          e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name,
+                                                          st.trip_name, st.class_cats
+                                                  FROM app.buses b
+                                                  INNER JOIN app.students s ON b.destinations ILIKE '%' || s.destination || '%'
+                                                  LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
+                                                  LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                                                  LEFT JOIN app.schoolbus_trips st USING (bus_id)
+                                                  WHERE bus_id = :busId AND s.current_class IN (SELECT class_id FROM app.classes c WHERE c.class_cat_id = :classCatId)
+                          		)one
+                          	)two
+                          )three
+                          INNER JOIN app.classes c ON c.class_id = current_class
+                          ORDER BY class_name ASC, student_name ASC");
+    $sth->execute( array(':busId' => $busId, ':classCatId' => $classCatId) );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+} catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
+$app->get('/getClassStudentsInTrip/:tripId/:classCatId', function ($tripId,$classCatId) {
+  // Get class students in the trip
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+     $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
+                          	SELECT student_id, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination FROM (
+                          		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                          			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination
+                          		FROM app.students s
+                          		INNER JOIN app.classes c ON s.current_class = c.class_id
+                          		WHERE s.active IS TRUE
+                              AND s.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = :classCatId)
+                          	)one
+                          	INNER JOIN app.schoolbus_trips st ON one.trip_id = st.schoolbus_trip_id
+                          	INNER JOIN app.buses USING (bus_id)
+                          	WHERE trip_id = :tripId
+                          )two
+                          LEFT JOIN app.employees e ON two.bus_driver = e.emp_id
+                          LEFT JOIN app.employees e2 ON two.bus_guide = e2.emp_id
+                          ORDER BY class_name ASC, student_name ASC");
+    $sth->execute( array(':tripId' => $tripId, ':classCatId' => $classCatId) );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+} catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
+$app->get('/getClassStudentsInTranspZone/:classCatId', function ($classCatId) {
+  // Get class students in the transport zone
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+     $sth = $db->prepare("SELECT student_id, student_name, class_name, student_destination, route, amount FROM (
+                    		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                    			s.destination AS student_destination, s.transport_route_id
+                    		FROM app.students s
+                    		INNER JOIN app.classes c ON s.current_class = c.class_id
+                    		WHERE s.active IS TRUE AND s.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = :classCatId)
+                    	)one
+                    	INNER JOIN app.transport_routes tr ON one.transport_route_id = tr.transport_id
+                    	ORDER BY class_name ASC, student_name ASC");
+    $sth->execute( array(':classCatId' => $classCatId) );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+} catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
 
 });
 
