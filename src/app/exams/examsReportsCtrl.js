@@ -25,7 +25,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	$scope.showReport = false; // hide the reports div until needed
 	$scope.classAnalysisTable = false; // show the table for class analysis
 	$scope.streamAnalysisTable = false; // show the table for stream analysis
-	
+
 	$scope.returnToClassAnalysis = false;
 	$scope.returnToStreamAnalysis = false;
 
@@ -36,7 +36,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         var highArrClone = [];
         var lowArrClone = [];
         $scope.examMarks.forEach(function(element) {
-            
+
             delete element.gender;
             delete element.student_id;
             delete element.student_name;
@@ -44,91 +44,91 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
             delete element.rank;
             delete element.total;
             delete element.total_mark;
-            
+
             Object.keys(element).forEach(function (item) {
             	var itemsArr = item.split(',');
                 var newItem = itemsArr[2].trim().replace(/'/g, "");
-                
+
                 element[newItem] = element[item];
                 delete element[item];
             });
-            
+
             rawStudentMarks.push(element);
             highArrClone.push(element);
             lowArrClone.push(element);
         });
-        
+
         var subjects = [];
         var highestMarks = [];
         var lowestMarks = [];
         var avgMarks = [];
-        
+
         // this will populate our subjects[]
         function getSubjectLabels(){
-            
+
             var theSubjects = rawStudentMarks[0];
             Object.keys(theSubjects).forEach(function (subjectNm) {
             	subjects.push(subjectNm);
             });
-            
+
         }
         getSubjectLabels();
         console.log("Subject labels",subjects);
-        
+
         // this will populate our avgMarks[]
         function getAvgMarks(){
-            
+
             for(var k = 0; k < subjects.length; k++){
-                    
+
                 $scope.summation = function(items, prop){
                     return items.reduce( function(a, b){
                         return a + b[prop];
                     }, 0);
                 };
-                
+
                 var perSubjectTotal = $scope.summation(rawStudentMarks, subjects[k]);
                 var perSubjectAvg = perSubjectTotal / rawStudentMarks.length;
-                avgMarks.push(Number(perSubjectAvg.toFixed(1)));  
+                avgMarks.push(Number(perSubjectAvg.toFixed(1)));
             }
 
         }
         getAvgMarks();
         console.log("The average marks",avgMarks);
-        
+
         // this will populate our highestMarks[]
         function getHighestMarks(){
             /*
             subjects.forEach(function(highestSubj) {
                 var highestPerSubject = Math.max.apply(Math,highArrClone.map( function(o){console.log(o); return o[highestSubj];} ));
-                
+
                 highestMarks.push(highestPerSubject);
             });
             */
             for(var j = 0; j < subjects.length; j++){
-                
+
                 var highestPerSubject = Math.max.apply(Math,highArrClone.map( function(o){return o[subjects[j]];} ));
-                
-                highestMarks.push(highestPerSubject);  
+
+                highestMarks.push(highestPerSubject);
             }
-            
+
         }
         getHighestMarks();
         console.log("The highest marks",highestMarks);
-        
+
         // this will populate our lowestMarks[]
         function getLowestMarks(){
-            
+
             for(var h = 0; h < subjects.length; h++){
-                    
+
                 var lowestPerSubject = Math.min.apply(Math,lowArrClone.map( function(o){return o[subjects[h]];} ));
-                
-                lowestMarks.push(lowestPerSubject);  
+
+                lowestMarks.push(lowestPerSubject);
             }
-            
+
         }
         getLowestMarks();
         console.log("The lowest marks",lowestMarks);
-        
+
         // build the chart
         var options = {
             chart: {
@@ -178,7 +178,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                 },
             },
             markers: {
-                
+
                 size: 6
             },
             xaxis: {
@@ -210,16 +210,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 
         chart.render();
     }
-    
+
     $scope.makeStreamPerformanceChart = function()
     {
-        
+
         // console.log("Exam mars",$scope.examMarks);
         var rawStreamStudentMarks = [];
         var highStreamArrClone = [];
         var lowStreamArrClone = [];
         $scope.examMarks.forEach(function(element) {
-            
+
             delete element.gender;
             delete element.student_id;
             delete element.student_name;
@@ -227,91 +227,91 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
             delete element.rank;
             delete element.total;
             delete element.total_mark;
-            
+
             Object.keys(element).forEach(function (item) {
             	var itemsArr = item.split(',');
                 var newItem = itemsArr[2].trim().replace(/'/g, "");
-                
+
                 element[newItem] = element[item];
                 delete element[item];
             });
-            
+
             rawStreamStudentMarks.push(element);
             highStreamArrClone.push(element);
             lowStreamArrClone.push(element);
         });
-        
+
         var subjects_stream = [];
         var highestMarks_stream = [];
         var lowestMarks_stream = [];
         var avgMarks_stream = [];
-        
+
         // this will populate our subjects_stream[]
         function getSubjectLabels(){
-            
+
             var theSubjects = rawStreamStudentMarks[0];
             Object.keys(theSubjects).forEach(function (subjectNm) {
             	subjects_stream.push(subjectNm);
             });
-            
+
         }
         getSubjectLabels();
         console.log("Subject labels",subjects_stream);
-        
+
         // this will populate our avgMarks_stream[]
         function getAvgMarks(){
-            
+
             for(var k = 0; k < subjects_stream.length; k++){
-                    
+
                 $scope.summation = function(items, prop){
                     return items.reduce( function(a, b){
                         return a + b[prop];
                     }, 0);
                 };
-                
+
                 var perSubjectTotal = $scope.summation(rawStreamStudentMarks, subjects_stream[k]);
                 var perSubjectAvg = perSubjectTotal / rawStreamStudentMarks.length;
-                avgMarks_stream.push(Number(perSubjectAvg.toFixed(1)));  
+                avgMarks_stream.push(Number(perSubjectAvg.toFixed(1)));
             }
 
         }
         getAvgMarks();
         console.log("The average marks",avgMarks_stream);
-        
+
         // this will populate our highestMarks_stream[]
         function getHighestMarks(){
             /*
             subjects.forEach(function(highestSubj) {
                 var highestPerSubject = Math.max.apply(Math,highArrClone.map( function(o){console.log(o); return o[highestSubj];} ));
-                
+
                 highestMarks.push(highestPerSubject);
             });
             */
             for(var j = 0; j < subjects_stream.length; j++){
-                
+
                 var highestPerSubject = Math.max.apply(Math,highStreamArrClone.map( function(o){return o[subjects_stream[j]];} ));
-                
-                highestMarks_stream.push(highestPerSubject);  
+
+                highestMarks_stream.push(highestPerSubject);
             }
-            
+
         }
         getHighestMarks();
         console.log("The highest marks",highestMarks_stream);
-        
+
         // this will populate our lowestMarks_stream[]
         function getLowestMarks(){
-            
+
             for(var h = 0; h < subjects_stream.length; h++){
-                    
+
                 var lowestPerSubject = Math.min.apply(Math,lowStreamArrClone.map( function(o){return o[subjects_stream[h]];} ));
-                
-                lowestMarks_stream.push(lowestPerSubject);  
+
+                lowestMarks_stream.push(lowestPerSubject);
             }
-            
+
         }
         getLowestMarks();
         console.log("The lowest marks",lowestMarks_stream);
-        
+
         // build the chart
         var options = {
             chart: {
@@ -361,7 +361,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                 },
             },
             markers: {
-                
+
                 size: 6
             },
             xaxis: {
@@ -392,29 +392,29 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         );
 
         chart.render();
-        
+
     }
-    
+
     $scope.makeClassMeanChart = function()
     {
         //
     }
-    
+
     $scope.makeStreamMeanChart = function()
     {
         //
     }
-    
+
     $scope.makeClassGradesChart = function()
     {
         //
     }
-    
+
     $scope.makeStreamGradesChart = function()
     {
         //
     }
-    
+
 	var initializeController = function ()
 	{
 		// get classes
@@ -579,8 +579,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		$scope.streamAnalysisTable = false;
 		$scope.classAnalysisTable = true; // show the table for class analysis
 
-		var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id + '/' + $scope.filters.term_id;
-		
+		var request = $scope.filters.class_id + '/' + $scope.filters.term_id;
+
 		apiService.getClassAnalysis(request, loadMarks, apiError);
 	}
 
@@ -600,7 +600,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		$scope.classAnalysisTable = false;
 		$scope.streamAnalysisTable = true; // show the table for stream analysis
 
-		var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id + '/' + $scope.filters.term_id;
+		var request = $scope.filters.class_id + '/' + $scope.filters.term_id;
 		apiService.getStreamAnalysis(request, loadStreamMarks, apiError);
 	}
 
@@ -692,7 +692,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						var subjectDetails = colRow.split(', '),
 							parentSubject = subjectDetails[1],
 							subjectName = subjectDetails[2];
-                        
+
 						var hasChildren = ( parentSubject == '' && subjectsObj[subjectName].children.length > 0 ? true : false );
 
 						$scope.tableHeader.push({
@@ -752,7 +752,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		}
 
 	}
-	
+
 	var loadStreamMarks = function(response,status)
 	{
 		$scope.loading = false;
@@ -907,32 +907,32 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         var newHash = '1a';
         if ($location.hash() !== newHash) {
             $location.hash('1a');
-            
+
             document.getElementById("2a").classList.remove("active");
 	        document.getElementById("1a").classList.add("active");
-	        
+
         } else {
             //$anchorScroll();
         }
-        
+
         $scope.classAnalysisTable = ( $scope.returnToClassAnalysis == true ? true : false);
         $scope.streamAnalysisTable = ( $scope.returnToStreamAnalysis == true ? true : false);
         console.log("Can we return to the class analysis? " + $scope.classAnalysisTable);
-      
+
         if($scope.classAnalysisTable == true){
-	            
+
 	            document.getElementById("classAnalysisTableDiv").style.display = "block";
 	            $scope.getStudentExams(); // refetch the data
                 document.getElementById("streamAnalysisTableDiv").style.display = "none";
 	            $scope.streamAnalysisTable = false;
-	            
+
 	    }else if($scope.streamAnalysisTable == true){
-	            
+
 	            document.getElementById("streamAnalysisTableDiv").style.display = "block";
 	            $scope.getStudentStreamExams(); // refetch the data
                 document.getElementById("classAnalysisTableDiv").style.display = "none";
 	            $scope.classAnalysisTable = false;
-	            
+
 	    }else{
         	   // no selection made yet
         	   $scope.preLoadMessageH1 = "MAKE A SELECTION ABOVE TO LOAD A REPORT";
@@ -943,12 +943,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
             	$scope.classAnalysisTable = false; // show the table for overall balances
             	$scope.streamAnalysisTable = false; // show the table for student fee items
             	$scope.activeChartTab = false; // hide charts
-            	
+
             	$("#classAnalysisTable").DataTable().destroy();
             	$("#streamAnalysisTable").DataTable().destroy();
             	initializeController();
         }
-      
+
      };
 
      $scope.gotoDiv2 = function(el) {
@@ -956,21 +956,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         var newHash = '2a';
         if ($location.hash() !== newHash) {
             $location.hash('2a');
-        
+
             // lets first load chart.js
             $.getScript('/components/overviewFiles/js/apexcharts.js', function()
             {
                 // script is now loaded and executed.
                 document.getElementById("1a").classList.remove("active");
     	        document.getElementById("2a").classList.add("active");
-    	        
+
     	        // hide the active table to pave way for charts visibility
                 $scope.showReport = true; // show the div
     	        document.getElementById("streamAnalysisTableDiv").style.display = "none";
                 document.getElementById("classAnalysisTableDiv").style.display = "none";
-    	         
+
     	        $scope.activeChartTab = true; // show charts
-    	        
+
     	        // we need to save the state of the first tab to prevent reloading on return
     	        if($scope.classAnalysisTable == true){
     	            $scope.classAnalysisTable = false; // hide the active table to pave way for charts visibility
@@ -978,19 +978,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
     	            console.log("If we click on tab 1, will we go back to the class analysis? " + $scope.returnToClassAnalysis);
     	            $scope.returnToStreamAnalysis = false;
     	            $scope.makeClassPerformanceChart();
-    	            
+
     	        }else if($scope.streamAnalysisTable == true){
     	            $scope.streamAnalysisTable = false; // hide the active table to pave way for charts visibility
     	            $scope.returnToStreamAnalysis = true; // enable returning to the above status
     	            $scope.returnToClassAnalysis = false;
     	            $scope.makeStreamPerformanceChart();
-    	            
+
     	        }else{
             	   // no selection made yet
             	}
-    	        
+
             });
-            
+
       } else {
         // $anchorScroll();
       }
@@ -1014,7 +1014,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	{
 		return $scope.examMarks[index][key] || '-';
 	}
-	
+
 	$scope.displayStreamAnalysisMark = function(index, key)
 	{
 		return $scope.examMarks[index][key] || '-';
@@ -1024,7 +1024,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	{
 		return $scope.totalMarks[key] || '-' ;
 	}
-	
+
 	$scope.displayStreamAnalysisTotalMark = function(key)
 	{
 		return $scope.totalMarks[key] || '-' ;
@@ -1034,12 +1034,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	{
 		return Math.round($scope.totalMarks[key]/$scope.totalStudents,1) || '-' ;
 	}
-	
+
 	$scope.displayStreamAnalysisMeanScore = function(key)
 	{
 		return Math.round($scope.totalMarks[key]/$scope.totalStudents,1) || '-' ;
 	}
 
+	/*
 	$scope.printReport = function()
 	{
 		var selectedTerm = $scope.terms.filter(function(item){
@@ -1063,10 +1064,34 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		var newWindowRef = window.open('http://' + domain + '/#/exams/analysis/print');
 		newWindowRef.printCriteria = data;
 	}
-	
+	*/
+	$scope.exportData = function()
+	{
+		// get the currently viewable report
+		if($scope.filters.analysis == "class_performace"){
+			var reportTableId = 'resultsTable'; var reportName = 'Class Performace Report';
+		}else if($scope.filters.analysis == "class_mean"){
+			//
+		}else if($scope.filters.analysis == "class_grades"){
+			//
+		}else if($scope.filters.analysis == "class_subjects"){
+			//
+		}else if($scope.filters.analysis == "stream_performace"){
+			var reportTableId = 'resultsTable'; var reportName = 'Stream Performace Report';
+		}else if($scope.filters.analysis == "stream_mean"){
+			//
+		}else if($scope.filters.analysis == "stream_grades"){
+			//
+		}else if($scope.filters.analysis == "stream_subjects"){
+			//
+		}
+
+		exportTableToExcel(reportTableId, reportName);
+	}
+
 	$("#search").keyup(function () {
         var value = this.value.toLowerCase().trim();
-    
+
         $("table tr").each(function (index) {
             if (!index) return;
             $(this).find("td").each(function () {
@@ -1077,6 +1102,37 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
             });
         });
     });
+
+		function exportTableToExcel(tableID, filename = ''){
+		    var downloadLink;
+		    var dataType = 'application/vnd.ms-excel';
+		    var tableSelect = document.getElementById(tableID);
+		    var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+
+		    // Specify file name
+		    filename = filename?filename+'.xls':'excel_data.xls';
+
+		    // Create download link element
+		    downloadLink = document.createElement("a");
+
+		    document.body.appendChild(downloadLink);
+
+		    if(navigator.msSaveOrOpenBlob){
+		        var blob = new Blob(['\ufeff', tableHTML], {
+		            type: dataType
+		        });
+		        navigator.msSaveOrOpenBlob( blob, filename);
+		    }else{
+		        // Create a link to the file
+		        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+
+		        // Setting the file name
+		        downloadLink.download = filename;
+
+		        //triggering the function
+		        downloadLink.click();
+		    }
+		}
 
 
 	$scope.refresh = function ()

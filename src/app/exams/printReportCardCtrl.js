@@ -7,6 +7,7 @@ function($scope, $rootScope){
 	var initializeController = function()
 	{
 		$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
+		$scope.wantAutomatedComments = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
 
 		var data = window.printCriteria;
 		$rootScope.isPrinting = true;
@@ -28,7 +29,7 @@ function($scope, $rootScope){
 		//$scope.total_overall_mark = data.total_overall_mark;
 		$scope.reportCardType = data.report_card_type;
 		$scope.chart_path = data.chart_path;
-		$scope.isSchool = ( window.location.host.split('.')[0] == "kingsinternational" ? true : false);
+		$scope.isSchool = ( window.location.host.split('.')[0] == "kingsinternational" || window.location.host.split('.')[0] == "thomasburke" ? true : false);
 		$scope.rmks = data.rmks;
 		$scope.subj_name = data.subj_name;
 		$scope.noRanking = data.noRanking;

@@ -76,7 +76,30 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.filters.class_id = $scope.classes[0].class_id;
 			$scope.getStudentReportCards();
 		}
-
+        
+        //get all students
+        var loadStudents = function(response,status, params)
+        {
+            var result = angular.fromJson(response);
+            if( result.response == 'success')
+            {
+              if( result.nodata ) var formatedResults = [];
+              else {
+                // make adjustments to student data
+                var formatedResults = $rootScope.formatStudentData(result.data);
+              }
+        
+              $scope.students = formatedResults;
+              console.log("students loaded success",$scope.students);
+        
+            }
+            else
+            {
+              $scope.error = true;
+              $scope.errMsg = result.data;
+            }
+        }
+        apiService.getAllStudents(true, loadStudents, apiError);
 		
 	}
 	$timeout(initializeController,1);
@@ -341,6 +364,96 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			adding: true
 		}
 		$scope.openModal('exams', 'reportCard', 'lg', data);
+	}
+	
+	var BulkData = [];
+	$scope.bulkPrint = function(term_name)
+	{
+	    console.log("Bulk print should initiate");
+		BulkData = [];
+		console.log($scope.filters);
+		term_name  = $scope.filters.term_name;
+		angular.forEach($scope.studentReports, function(item,key)
+		{
+            var student = $scope.students.find(function (stud) { return stud.student_id === key; });
+            var studentTermObj = $scope.studentReports[student.student_id];
+            console.log(studentTermObj);
+            if(studentTermObj.hasOwnProperty(term_name)){
+                var studentsWithExams = function(response,status)
+          	    {
+    
+              		var result = angular.fromJson( response );
+              		if( result.response == 'success' )
+              		{
+              			if( result.nodata )
+              			{
+              				$scope.students2 = {};
+              				$scope.reportsNotFound = true;
+              				$scope.errMsg = "No students found. Try another criteria.";
+              			}
+              			else
+              			{
+        
+              				var rawFilteredStudents = result.data;
+                            console.log("Succeses. Students found!");
+                            $scope.students2 = rawFilteredStudents.reduce(function(acc, cur, i) { acc[i] = cur; return acc; }, {});
+        
+              			}
+              		}
+              		else
+              		{
+              			console.log("There might be an API issue");
+              			$scope.errMsg = result.data;
+              		}
+              	}
+                var paramForFilter = $scope.filters.class_id + '/' + $scope.filters.term_name;
+                console.log(paramForFilter);
+                apiService.getClassStudentsWithExamInTerm(paramForFilter, studentsWithExams, apiError);
+    
+                setTimeout(function(){ console.log("Students with report cards are >>"); },1000);
+                setTimeout(function(){ console.log($scope.students2); },1000);
+    
+      			var class_id = $scope.studentReports[student.student_id][term_name].class_id;
+      			var class_obj = $scope.classes.find(function (obj) { return obj.class_id === class_id; });
+    
+      			var data =
+      				{
+      					student : student,
+      					report_card_id: $scope.studentReports[student.student_id][term_name].report_card_id,
+      					class_name : $scope.studentReports[student.student_id][term_name].class_name,
+      					class_id : $scope.studentReports[student.student_id][term_name].class_id,
+      					published: $scope.studentReports[student.student_id][term_name].published,
+      					term_id: $scope.studentReports[student.student_id][term_name].term_id,
+      					entity_id: $scope.studentReports[student.student_id][term_name].entity_id,
+      					term_name : term_name,
+      					year: $scope.studentReports[student.student_id][term_name].year,
+      					report_card_type: $scope.studentReports[student.student_id][term_name].report_card_type,
+      					teacher_id: $scope.studentReports[student.student_id][term_name].teacher_id,
+      					teacher_name: $scope.studentReports[student.student_id][term_name].teacher_name,
+      					date: $scope.studentReports[student.student_id][term_name].date,
+      					reportData: $scope.studentReports[student.student_id][term_name].data,
+      					adding: false,
+      					filters:{
+      						term:{
+      							term_name:term_name,
+      							term_id: $scope.studentReports[student.student_id][term_name].term_id,
+      						},
+      						class:{
+      							class_id: $scope.studentReports[student.student_id][term_name].class_id,
+      							class_cat_id: $scope.activeFilters.class_cat_id
+      						}
+      					}
+    
+      				};
+    
+      				BulkData[student.student_id] = data;
+            }
+
+
+		});
+
+		$scope.openModal('exams', 'reportCardData', 'sm', angular.fromJson(BulkData));
+
 	}
 	
 	$scope.$on('refreshReportCards', function(event, args) {

@@ -16,10 +16,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.thestudent = {};
 	$scope.examTypes = {};
 	$scope.comments = {};
+	$scope.principal_comment = {};
 	$scope.entity_id = $scope.student.entity_id;
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 	$scope.schoolName = window.location.host.split('.')[0];
 	$scope.wantStreamPos = ( window.location.host.split('.')[0] == 'kingsinternational' ? true : false );
+	$scope.wantAutomatedComments = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
+	$scope.isSpecialExam = (window.location.host.split('.')[0] == 'mico' ? true : false);
 
 	$scope.canPrint = false;
 
@@ -52,13 +55,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	    if($scope.schoolName == "lasalle" && $scope.entity_id <= 6){
 	        getGrading2();
 	    }
-	    
+
 		if( $scope.reportCardType == 'Standard' )
 		{
 			// get exam types
-			
+
 			apiService.getExamTypes($scope.filters.class.class_cat_id, function(response){
-			    
+
 				var result = angular.fromJson(response);
 				if( result.response == 'success')
 				{
@@ -126,7 +129,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	var initReportCard = function()
 	{
 		if( data.reportData !== undefined )
-		{   
+		{
 		    // console.log(data.reportData);
 			/* passing in a report to view, load it */
 			$scope.savedReportData = angular.fromJson(data.reportData);
@@ -168,7 +171,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		}
 	}
-	
+
 	// playgroup text area expand - start
 	$scope.resizeTextarea = function resizeTextarea(el) {
 	    var textAreaElement = "pgSubj" + el.item.subject_id;
@@ -193,7 +196,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 
 	}
-	
+
 	var getGrading2 = function()
 	{
 
@@ -203,12 +206,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			if( result.response == 'success')
 			{
 			    $scope.grades2 = ( result.nodata ? [] : result.data );
-                
+
 				$scope.grades2 = $scope.grades2.map(function(item2){
 					item2.mark_range = item2.min_mark + ' - ' + item2.max_mark;
 					return item2;
 				});
-				
+
 			}
 			else
 			{
@@ -340,7 +343,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
 			if( $scope.isTeacher && !$scope.isClassTeacher ){ params += '/' + $rootScope.currentUser.emp_id };
 			// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
-			
+
 			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6 || $scope.entity_id == undefined || $scope.entity_id == null) ){
 				// console.log("Lsl. Lower Sch.");
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
@@ -373,7 +376,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params += '/' + $rootScope.currentUser.emp_id;
 			// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
-			
+
 			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6) ){
 				// console.log("Lsl. Lower Sch.");
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
@@ -387,7 +390,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params += '/' + $rootScope.currentUser.emp_id;
 			// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
-			
+
 			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6 || $scope.entity_id == undefined || $scope.entity_id == null) ){
 				// console.log("Lsl. Lower Sch.");
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
@@ -401,7 +404,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params += '/' + $rootScope.currentUser.emp_id;
 			// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
-			
+
 			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6 || $scope.entity_id == undefined || $scope.entity_id == null) ){
 				// console.log("Lsl. Lower Sch.");
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
@@ -439,26 +442,26 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.showReportCard = true;
 				$scope.reportData = {};
 				$scope.reportData.subjects = result.data;
-				
+
 				// this if logic is simply to enable us indent subjects appropriately on the report card by adding some object keys
 				if($scope.reportCardType == 'Playgroup' && $scope.schoolName == 'lasalle'){
-				    
+
 				    var parentSubjectIds = [];
-				    
+
 				    for (var s = 0; s < $scope.reportData.subjects.length; s++) {
 				        $scope.reportData.subjects[s].child = ( $scope.reportData.subjects[s].parent_subject_id != null ? 'first' : 'parent');
 				        $scope.reportData.subjects[s].indent = ( $scope.reportData.subjects[s].parent_subject_id != null ? '30' : '0');
-				        
+
 				        if($scope.reportData.subjects[s].child == 'first'){ parentSubjectIds.push($scope.reportData.subjects[s].subject_id); }
                     }
-                    
+
                     for (var t = 0; t < $scope.reportData.subjects.length; t++) {
                             if( $scope.reportData.subjects[t].child == 'first' ){
                                 $scope.reportData.subjects[t].child = (parentSubjectIds.indexOf($scope.reportData.subjects[t].parent_subject_id) == -1 ? 'first' : 'second');
                                 $scope.reportData.subjects[t].indent = (parentSubjectIds.indexOf($scope.reportData.subjects[t].parent_subject_id) == -1 ? '30' : '60');
                             }
                     }
-                    
+
 				}
 				// end of indentation logic
 
@@ -483,20 +486,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						})[0];
 						if( orgData !== undefined )
 						{
-							if( $scope.reportCardType == 'Kindergarten'){ 
+							if( $scope.reportCardType == 'Kindergarten'){
 							    item.remarks = angular.copy(orgData.remarks);
-							}else if( $scope.reportCardType == 'Playgroup'){ 
+							}else if( $scope.reportCardType == 'Playgroup'){
 							    item.remarks = angular.copy(orgData.remarks);
 							    item.indent = angular.copy(orgData.indent);
-							}else{ 
-							    item.skill_level = angular.copy(orgData.skill_level); 
+							}else{
+							    item.skill_level = angular.copy(orgData.skill_level);
 							}
 						}
 					});
 
 				}
-				
-				if( $scope.reportCardType == 'Playgroup'){ 
+
+				if( $scope.reportCardType == 'Playgroup'){
 					$scope.reportData.subjects = $scope.savedReportData.subjects;
 				}
 
@@ -511,7 +514,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 		var result = angular.fromJson(response);
 		// $scope.streamRank = result.data.streamRank;
-		
+
 		if(result.data.streamRank.length != 0){
     		$scope.streamRankPosition = result.data.streamRank[0].position;
     		$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
@@ -528,7 +531,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	var loadExamMarks = function(response, status)
 	{
 		var result = angular.fromJson(response);
-		
+
 		if( result.response == 'success')
 		{
 			if( result.details === false )
@@ -565,6 +568,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.examMarks = data.details;
 		if($scope.schoolName == "kingsinternational" || $scope.schoolName == "thomasburke"){
 		    $scope.overallSubjectMarks = data.subjectOverallByAvg;
+		    console.log($scope.overallSubjectMarks);
     		$scope.overall = data.overallByAverage;
 		}else{
 		    $scope.overallSubjectMarks = data.subjectOverall;
@@ -633,17 +637,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 
 		/* remove any exam types that have not been used for this report card */
-		
+
 		// get exam types
-			
+
 			apiService.getExamTypes($scope.filters.class.class_cat_id, function(response){
-			    
+
 				var result = angular.fromJson(response);
 				if( result.response == 'success')
 				{
 				    $rootScope.rawExamTypes = result.data;
 				}
-				
+
         		$scope.examTypes = $scope.rawExamTypes.filter(function(item){
         			var found = $scope.examMarks.filter(function(item2){
         				if( item.exam_type == item2.exam_type ) return item2;
@@ -652,7 +656,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
         		});
 
 			}, apiError);
-			
+
 // 		console.log($scope.rawExamTypes);
 // 		$scope.examTypes = $scope.rawExamTypes.filter(function(item){
 // 			var found = $scope.examMarks.filter(function(item2){
@@ -683,9 +687,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					item.overall_mark = overall.percentage;
 					item.overall_grade = overall.grade;
 					//item.position = overall.rank;
-					
+					var subjNm = item.subject_name;
+					if( subjNm == "Kiswahili" || subjNm == "KISWAHILI" ){
+						item.comment = overall.kiswahili_comment;
+					}else{
+						item.comment = overall.comment;
+						if( $scope.schoolName == 'thomasburke' ){ item.remarks = overall.comment; }
+					}
+
 					// automated comments
-					item.comment = overall.kiswahili_comment;
+					// item.comment = overall.kiswahili_comment;
 
 					total_marks += parseInt(overall.total_mark);
 					total_grade_weight += parseInt(overall.total_grade_weight);
@@ -732,8 +743,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				var orgData = $scope.originalData.subjects.filter(function(newItem){
 					if( newItem.subject_name == item.subject_name ) return newItem;
 				})[0];
-				if( orgData !== undefined ) 	item.remarks = angular.copy(orgData.remarks);
-				
+				if( $scope.schoolName != 'thomasburke' ){ if( orgData !== undefined ) 	item.remarks = angular.copy(orgData.remarks); }
+
 				// automated comments
 				if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6 || $scope.entity_id == undefined || $scope.entity_id == null) ){
 				    var overall = $scope.overallSubjectMarks.filter(function(item2){
@@ -742,8 +753,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
     				// console.log(overall);
     				if( overall ) 	item.remarks = overall.kiswahili_comment;
 				}
+				if( $scope.schoolName == 'thomasburke' ){
+				    var overall = $scope.overallSubjectMarks.filter(function(item2){
+    					if( item.subject_name == item2.subject_name ) return item2;
+    				})[0];
+    				console.log(overall);
+    				if(item.subject_name == "Kiswahili"){
+    					if( overall ) 	item.remarks = overall.kiswahili_comment;
+    				}else{
+    					if( overall ) 	item.remarks = overall.comment;
+    				}
+				}
 				// end automated comments
-				
+
 			});
 		}
 
@@ -1040,7 +1062,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			noRanking: $scope.noRanking,
 			isClassTeacher: $scope.isClassTeacher
 		}
-        
+
 		var domain = window.location.host;
 		var newWindowRef = window.open('https://' + domain + '/#/exams/report_card/print');
 		newWindowRef.printCriteria = criteria;
@@ -1120,7 +1142,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		{
 			var reportData = angular.copy($scope.reportData);
 		}
-        
+
 		var data = {
 			user_id: $rootScope.currentUser.user_id,
 			student_id: $scope.student.student_id,
@@ -1131,7 +1153,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			report_data : JSON.stringify(reportData),
 			published: $scope.report.published || 'f'
 		}
-        
+
 		apiService.addReportCard(data,createCompleted,apiError);
 
 	}

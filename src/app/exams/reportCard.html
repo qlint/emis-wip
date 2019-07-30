@@ -1,3 +1,6 @@
+<style type="text/css" media="print">
+    
+</style>
 <script type="text/javascript">
 
 var chartPath = "";
@@ -237,9 +240,9 @@ function getChartPath()
 					<div class="col-xs-8">
 						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
 						<div class="school-address">
-							<p>{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
-							<p>Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
-							<p>Email: {{currentUser.settings['Email Address']}}</p>
+							<p ng-hide="wantAutomatedComments">{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
+							<p ng-hide="wantAutomatedComments">Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
+							<p ng-hide="wantAutomatedComments">Email: {{currentUser.settings['Email Address']}}</p>
 						</div>
 						<h2 class="report-card-title">Progress Report</h2>
 					</div>
@@ -304,7 +307,7 @@ function getChartPath()
 						<!-- position, out of, pos last term, out of -->
 						<div class="row" ng-hide="noRanking">
 							<div class="col-xs-1 nopad-right">
-								<label>Position:</label>
+								<label>{{wantAutomatedComments ? 'Stream Position:':'Position:'}}</label>
 							</div>
 							<div class="col-xs-3 lesspad">
 								<p class="form-control-static inline">{{overall.rank}}</p> / <p class="form-control-static inline">{{overall.position_out_of}}</p>
@@ -326,16 +329,16 @@ function getChartPath()
 						</div>
 						<!-- stream position, out of, stream pos last term, out of -->
 						<div class="row" ng-hide="noRanking">
-						    
+
 							<div ng-hide="wantStreamPos" class="col-xs-1 nopad-right">
-								<label>Stream Position:</label>
+								<label>{{wantAutomatedComments ? 'Class Position:':'Stream Position:'}}</label>
 							</div>
 							<div ng-hide="wantStreamPos" class="col-xs-3 lesspad">
 								<p class="form-control-static inline">{{streamRankPosition}}</p> / <p class="form-control-static inline">{{streamRankOutOf}}</p>
 							</div>
 
 							<div ng-hide="wantStreamPos" class="col-xs-2 nopad-right">
-								<label>Stream Last Term:</label>
+								<label>{{wantAutomatedComments ? 'Class Last Term:':'Stream Last Term:'}}</label>
 							</div>
 							<div ng-hide="wantStreamPos" class="col-xs-2 lesspad">
 								<p class="form-control-static inline">{{streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{streamRankOutOfLastTerm||'--'}}</p>
@@ -399,7 +402,7 @@ function getChartPath()
 						</tfoot>
 					</table>
 
-					
+
 					<div id="{{noRanking ? 'tblGroup1':'chartDiv'}}" class="row {{noRanking ? 'tblGroup1':'chartDiv'}} cbc1">
 					    <div class="col-md-3"></div>
 						<div class="col-md-6">
@@ -428,7 +431,7 @@ function getChartPath()
 						</div>
 						<div class="col-md-3"></div>
 					</div>
-					
+
 					<!-- CBC tables - Competency Based Curriculum -->
 					<div ng-show="noRanking" class="row tblGroup1 cbc2">
 					    <div class="col-md-1"></div>
@@ -523,7 +526,7 @@ function getChartPath()
 						</div>
 						<div class="col-md-1"></div>
 					</div>
-					
+
 					<!-- CBC tables - Competency Based Curriculum -->
 					<div ng-show="noRanking" class="row tblGroup1 cbc3">
 					    <div class="col-md-1"></div>
@@ -791,19 +794,19 @@ function getChartPath()
 
 
 					<div id="graphresult"></div>
-						
+
 						<table ng-hide="noRanking" width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2">
+								<td colspan="2" ng-hide="wantAutomatedComments">
 									<label>General Comments:</label>
-									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
+									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="1" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{comments.non_exam_comments}}</p>
 								</td>
 							</tr>
 							<tr ng-show="isAdmin || isClassTeacher">
 								<td width="75%">
 									<label>Class Teacher Comments:</label>
-									<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
+									<textarea ng-show="!isPrinting" name="teacher-comments" rows="1" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{comments.teacher_comments}}</p>
 								</td>
 								<td>
@@ -814,7 +817,7 @@ function getChartPath()
 							<tr ng-show="isAdmin || isClassTeacher">
 								<td>
 									<label>Head Teacher Comments:</label>
-									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()" ng-readonly="isClassTeacher"></textarea>
+									<textarea ng-show="!isPrinting" name="principle-comments" rows="1" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()" ng-readonly="isClassTeacher"></textarea>
 									<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{comments.principle_comments}}</p>
 								</td>
 								<td>
@@ -998,7 +1001,7 @@ function getChartPath()
 						<h3>Remarks</h3>
 						<table width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2">
+								<td colspan="2" ng-hide="wantAutomatedComments">
 									<label>General Comments:</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
@@ -1180,7 +1183,7 @@ function getChartPath()
 						<h3>Remarks</h3>
 						<table width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2">
+								<td colspan="2" ng-hide="wantAutomatedComments">
 									<label>General Comments:</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
@@ -1289,7 +1292,7 @@ function getChartPath()
 						<h3>Remarks</h3>
 						<table width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2">
+								<td colspan="2" ng-hide="wantAutomatedComments">
 									<label>GENERAL COMMENTS:</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
@@ -1453,7 +1456,7 @@ function getChartPath()
 							</tr>
 						</tbody>
 					</table>
-					
+
 					<div ng-hide="isSchool" style="margin-bottom:10px;" id="pgKeyDiv">
     					<table class="display dataTable" id="pgKey" cellspacing="0" border="1" width="70%" style="margin-left:auto;margin-right:auto;width:30% !important;">
     					    <thead>
@@ -1490,7 +1493,7 @@ function getChartPath()
 						<h3>Remarks</h3>
 						<table width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2">
+								<td colspan="2" ng-hide="wantAutomatedComments">
 									<label>GENERAL COMMENTS:</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>

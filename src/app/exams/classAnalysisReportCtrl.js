@@ -196,6 +196,33 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$( document ).ready(function() {
 			setTimeout(function() {
 			    $('.main-datagrid .dataTables_filter').css('left',"450px");
+			    
+			    // from the DOM
+        		var allGtots = [];
+        		var allAvgs = [];
+        		var getGrandTots = document.getElementsByClassName("gtot");
+        		var getAvgs = document.getElementsByClassName("avg");
+        		
+                for (var i = 0; i < getGrandTots.length; i++) {
+                  var eachGtot = parseInt(getGrandTots[i].innerText);
+                  // console.log("This tot: " + eachGtot);
+                  allGtots.push(eachGtot);
+                }
+                for (var j = 0; j < getAvgs.length; j++) {
+                  var eachAvg = parseInt(getAvgs[j].innerText);
+                  // console.log("This avg: " + eachAvg);
+                  allAvgs.push(eachAvg);
+                }
+                $scope.totGtot = allGtots.reduce(function(acc, val) { return acc + val; }, 0);
+                $scope.totAvg = allAvgs.reduce(function(acc, val) { return acc + val; }, 0);
+                console.log($scope.totGtot,$scope.totAvg);
+                var averageTot = $scope.totGtot/allGtots.length;
+                $scope.avgGtot = averageTot.toFixed(2);
+                
+                var avergeAvg = $scope.totAvg/allAvgs.length;
+                $scope.avgAvg = avergeAvg.toFixed(2);
+                console.log($scope.avgGtot,$scope.avgAvg);
+        
 			}, 2000);
 		});
 	}
@@ -600,7 +627,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			},
 			tableHeader: $scope.tableHeader,
 			examMarks: $scope.examMarks,
-			totalMarks: $scope.totalMarks
+			totalMarks: $scope.totalMarks,
+			totGtot: $scope.totGtot,
+            totAvg: $scope.totAvg,
+            avgGtot: $scope.avgGtot,
+            avgAvg: $scope.avgAvg
 		}
 		var domain = window.location.host;
 		var newWindowRef = window.open('https://' + domain + '/#/exams/analysis/print');

@@ -1,5 +1,5 @@
 <?php
-$app->get('/getClassAnalysis/:classId/:examType/:term', function ($classId,$examTypeId,$termId) {
+$app->get('/getClassAnalysis/:classId/:term', function ($classId,$termId) {
   // Compute class analysis for upper classes (4-8)
 
   $app = \Slim\Slim::getInstance();
@@ -7,11 +7,12 @@ $app->get('/getClassAnalysis/:classId/:examType/:term', function ($classId,$exam
   try
   {
     // need to make sure class, term and type are integers
-	if( is_numeric($classId) && is_numeric($termId)  && is_numeric($examTypeId) )
+	if( is_numeric($classId) && is_numeric($termId) )
 	{
         $db = getDB();
 
-        $query = "select app.colpivot('_exam_marks', 'SELECT gender, first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name,classes.class_id,subject_name
+        $query = "select app.colpivot('_exam_marks', 'SELECT gender, student_name, class_id, subject_name, parent_subject_name, student_id, round(sum(mark)/3) AS mark, round(avg(grade_weight)) AS grade_weight, sort_order FROM (
+						SELECT gender, first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name,classes.class_id,subject_name
 							  ,coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name
 							  ,exam_type,exam_marks.student_id,mark,grade_weight,subjects.sort_order
 						FROM app.exam_marks
@@ -26,34 +27,40 @@ $app->get('/getClassAnalysis/:classId/:examType/:term', function ($classId,$exam
 						INNER JOIN app.students ON exam_marks.student_id = students.student_id
 						WHERE class_subjects.class_id = $classId
 						AND term_id = $termId
-						AND class_subject_exams.exam_type_id = $examTypeId
 						AND subjects.use_for_grading is true
 						AND students.active is true
-						WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
+						WINDOW w AS (PARTITION BY students.student_id ORDER BY subjects.sort_order, mark desc)
+						ORDER BY student_name ASC
+					)one
+					GROUP BY gender, student_name, class_id, subject_name, parent_subject_name, student_id, sort_order
+					ORDER BY student_name ASC
 						',
-						array['gender','student_id','student_name','exam_type'], array['sort_order','parent_subject_name','subject_name','grade_weight'], '#.mark', null);";
+						array['gender','student_id','student_name'], array['sort_order','parent_subject_name','subject_name','grade_weight'], '#.mark', null);";
         $query2 = "select *,
 									(
 										SELECT rank FROM (
 											SELECT student_id, total_mark, rank() over w as rank
 											FROM (
-												SELECT exam_marks.student_id,
-													coalesce(sum(case when subjects.parent_subject_id is null then
-														mark
-													end),0) as total_mark
-												FROM app.exam_marks
-												INNER JOIN app.class_subject_exams
-												INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-												INNER JOIN app.class_subjects
-												INNER JOIN app.subjects
-													ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
-													ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-												    ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-												INNER JOIN app.students ON exam_marks.student_id = students.student_id
-												WHERE class_subjects.class_id = $classId
-												AND term_id = $termId AND class_subject_exams.exam_type_id = $examTypeId
-												AND students.active is true
-												GROUP BY exam_marks.student_id
+												SELECT student_id, round(avg(total_mark)) AS total_mark FROM (
+													SELECT exam_marks.student_id,
+														coalesce(sum(case when subjects.parent_subject_id is null then
+															mark
+														end),0) as total_mark, class_subject_exams.exam_type_id
+													FROM app.exam_marks
+													INNER JOIN app.class_subject_exams
+													INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+													INNER JOIN app.class_subjects
+													INNER JOIN app.subjects
+														ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
+														ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+													    ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+													INNER JOIN app.students ON exam_marks.student_id = students.student_id
+													WHERE class_subjects.class_id = $classId
+													AND term_id = $termId
+													AND students.active is true
+													GROUP BY exam_marks.student_id, class_subject_exams.exam_type_id
+													ORDER BY student_id DESC
+												)b GROUP BY student_id
 											) a
 											WINDOW w AS (ORDER BY total_mark desc)
 										) q
@@ -61,31 +68,33 @@ $app->get('/getClassAnalysis/:classId/:examType/:term', function ($classId,$exam
 									) as rank,
 									(
 										SELECT total_mark FROM (
-											SELECT student_id, total_mark, rank() over w as rank
+											SELECT student_id, total_mark
 											FROM (
-												SELECT exam_marks.student_id,
-													coalesce(sum(case when subjects.parent_subject_id is null then
-														mark
-													end),0) as total_mark
-												FROM app.exam_marks
-												INNER JOIN app.class_subject_exams
-												INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-												INNER JOIN app.class_subjects
-												INNER JOIN app.subjects
-													ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
-													ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-												    ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-												INNER JOIN app.students ON exam_marks.student_id = students.student_id
-												WHERE class_subjects.class_id = $classId
-												AND term_id = $termId AND class_subject_exams.exam_type_id = $examTypeId
-												AND students.active is true
-												GROUP BY exam_marks.student_id
+												SELECT student_id, round(avg(total_mark)) AS total_mark FROM (
+													SELECT exam_marks.student_id,
+														coalesce(sum(case when subjects.parent_subject_id is null then
+															mark
+														end),0) as total_mark, class_subject_exams.exam_type_id
+													FROM app.exam_marks
+													INNER JOIN app.class_subject_exams
+													INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+													INNER JOIN app.class_subjects
+													INNER JOIN app.subjects
+														ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
+														ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+													    ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+													INNER JOIN app.students ON exam_marks.student_id = students.student_id
+													WHERE class_subjects.class_id = $classId
+													AND term_id = $termId
+													AND students.active is true
+													GROUP BY exam_marks.student_id, class_subject_exams.exam_type_id
+													ORDER BY student_id DESC
+												)b GROUP BY student_id
 											) a
-											WINDOW w AS (ORDER BY total_mark desc)
 										) q
 										WHERE student_id = _exam_marks.student_id
 									) as total_mark
-									from _exam_marks order by exam_type, rank;";
+									from _exam_marks order by rank;";
 
         $sth1 = $db->prepare($query);
     	$sth2 = $db->prepare($query2);
@@ -117,7 +126,7 @@ $app->get('/getClassAnalysis/:classId/:examType/:term', function ($classId,$exam
 
 });
 
-$app->get('/getStreamAnalysis/:classId/:examType/:term', function ($classId,$examTypeId,$termId) {
+$app->get('/getStreamAnalysis/:classId/:term', function ($classId,$termId) {
   // Compute class analysis for upper classes (4-8)
 
   $app = \Slim\Slim::getInstance();
@@ -125,11 +134,12 @@ $app->get('/getStreamAnalysis/:classId/:examType/:term', function ($classId,$exa
   try
   {
     // need to make sure class, term and type are integers
-	if( is_numeric($classId) && is_numeric($termId)  && is_numeric($examTypeId) )
+	if( is_numeric($classId) && is_numeric($termId) )
 	{
         $db = getDB();
 
-        $query = "select app.colpivot('_exam_marks', 'SELECT gender, first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name,classes.class_id,subject_name
+        $query = "select app.colpivot('_exam_marks', 'SELECT gender, student_name, class_id, subject_name, parent_subject_name, student_id, round(sum(mark)/3) AS mark, round(avg(grade_weight)) AS grade_weight, sort_order FROM (
+						SELECT gender, first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name,classes.class_id,subject_name
 							  ,coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name
 							  ,exam_type,exam_marks.student_id,mark,grade_weight,subjects.sort_order
 						FROM app.exam_marks
@@ -142,35 +152,42 @@ $app->get('/getStreamAnalysis/:classId/:examType/:term', function ($classId,$exa
 						                        ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
 						                        ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 						INNER JOIN app.students ON exam_marks.student_id = students.student_id
-						WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes INNER JOIN app.class_cats USING (class_cat_id) WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $classId)))
+						WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id IN (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $classId))))
 						AND term_id = $termId
-            AND exam_types.sort_order = (SELECT sort_order FROM app.exam_types WHERE exam_type_id = $examTypeId)
 						AND subjects.use_for_grading is true
 						AND students.active is true
-						WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order, mark desc)
+						WINDOW w AS (PARTITION BY students.student_id ORDER BY subjects.sort_order, mark desc)
+						ORDER BY student_name ASC
+					)one
+					GROUP BY gender, student_name, class_id, subject_name, parent_subject_name, student_id, sort_order
+					ORDER BY student_name ASC
 						',
-						array['gender','student_id','student_name','exam_type'], array['sort_order','parent_subject_name','subject_name','grade_weight'], '#.mark', null);";
+						array['gender','student_id','student_name'], array['sort_order','parent_subject_name','subject_name','grade_weight'], '#.mark', null);";
         $query2 = "select *,
 									(
 										SELECT rank FROM (
 											SELECT student_id, total_mark, rank() over w as rank
 											FROM (
-												SELECT exam_marks.student_id,
-													coalesce(sum(case when subjects.parent_subject_id is null then
-														mark
-													end),0) as total_mark
-												FROM app.exam_marks
-												INNER JOIN app.class_subject_exams
-												INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-												INNER JOIN app.class_subjects
-												INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
-													ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-												    ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-												INNER JOIN app.students ON exam_marks.student_id = students.student_id
-												WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes INNER JOIN app.class_cats USING (class_cat_id) WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $classId)))
-												AND term_id = $termId AND exam_types.sort_order = (SELECT sort_order FROM app.exam_types WHERE exam_type_id = $examTypeId)
-												AND students.active is true
-												GROUP BY exam_marks.student_id
+												SELECT student_id, round(avg(total_mark)) AS total_mark FROM (
+													SELECT exam_marks.student_id,
+														coalesce(sum(case when subjects.parent_subject_id is null then
+															mark
+														end),0) as total_mark, class_subject_exams.exam_type_id
+													FROM app.exam_marks
+													INNER JOIN app.class_subject_exams
+													INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+													INNER JOIN app.class_subjects
+													INNER JOIN app.subjects
+														ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
+														ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+													    ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+													INNER JOIN app.students ON exam_marks.student_id = students.student_id
+													WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id IN (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $classId))))
+													AND term_id = $termId
+													AND students.active is true
+													GROUP BY exam_marks.student_id, class_subject_exams.exam_type_id
+													ORDER BY student_id DESC
+												)b GROUP BY student_id
 											) a
 											WINDOW w AS (ORDER BY total_mark desc)
 										) q
@@ -178,30 +195,33 @@ $app->get('/getStreamAnalysis/:classId/:examType/:term', function ($classId,$exa
 									) as rank,
 									(
 										SELECT total_mark FROM (
-											SELECT student_id, total_mark, rank() over w as rank
+											SELECT student_id, total_mark
 											FROM (
-												SELECT exam_marks.student_id,
-													coalesce(sum(case when subjects.parent_subject_id is null then
-														mark
-													end),0) as total_mark
-												FROM app.exam_marks
-												INNER JOIN app.class_subject_exams
-												INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-												INNER JOIN app.class_subjects
-												INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
-													ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-												    ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-												INNER JOIN app.students ON exam_marks.student_id = students.student_id
-												WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes INNER JOIN app.class_cats USING (class_cat_id) WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $classId)))
-												AND term_id = $termId AND exam_types.sort_order = (SELECT sort_order FROM app.exam_types WHERE exam_type_id = $examTypeId)
-												AND students.active is true
-												GROUP BY exam_marks.student_id
+												SELECT student_id, round(avg(total_mark)) AS total_mark FROM (
+													SELECT exam_marks.student_id,
+														coalesce(sum(case when subjects.parent_subject_id is null then
+															mark
+														end),0) as total_mark, class_subject_exams.exam_type_id
+													FROM app.exam_marks
+													INNER JOIN app.class_subject_exams
+													INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+													INNER JOIN app.class_subjects
+													INNER JOIN app.subjects
+														ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND subjects.use_for_grading is true
+														ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+													    ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+													INNER JOIN app.students ON exam_marks.student_id = students.student_id
+													WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id IN (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = $classId))))
+													AND term_id = $termId
+													AND students.active is true
+													GROUP BY exam_marks.student_id, class_subject_exams.exam_type_id
+													ORDER BY student_id DESC
+												)b GROUP BY student_id
 											) a
-											WINDOW w AS (ORDER BY total_mark desc)
 										) q
 										WHERE student_id = _exam_marks.student_id
 									) as total_mark
-									from _exam_marks order by exam_type, rank;";
+									from _exam_marks order by rank;";
 
         $sth1 = $db->prepare($query);
     	$sth2 = $db->prepare($query2);

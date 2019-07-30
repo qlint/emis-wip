@@ -25,6 +25,11 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		else ajaxService.AjaxGet(path + "/getStreamPosition/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getSpecialStreamPosition = function (param, successFunction, errorFunction, params) {
+		if( param === undefined ) ajaxService.AjaxGet(path + "/getStreamPosition", successFunction, errorFunction, params);
+		else ajaxService.AjaxGet(path + "/getSpecialStreamPosition/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getClassCatsSummary = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getClassCatsSummary", successFunction, errorFunction, params);
 	};
@@ -439,6 +444,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getLowerSchoolExamMarksforReportCard = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getLowerSchoolExamMarksforReportCard/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getSpecialExamMarksforReportCard = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getSpecialExamMarksforReportCard/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getSpecialLowerSchoolExamMarksforReportCard = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getSpecialLowerSchoolExamMarksforReportCard/" + param, successFunction, errorFunction, params);
 	};
 
 	this.addReportCard = function (request, successFunction, errorFunction, params) {

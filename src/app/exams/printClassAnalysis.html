@@ -2,6 +2,10 @@
 	table {border-collapse: collapse !important;}
 	table tr{padding-top:0 !important;padding-bottom:0 !important;margin-top:0 !important;margin-bottom:0 !important;}
 	th, td{padding: 0 !important;}
+
+	.plainTemplate{width:100%;border:1px solid #404040;border-collapse:collapse;}
+	.plainTemplate thead tr th,.plainTemplate tbody tr td,.plainTemplate tfoot tr th{padding:4px;border:#000000 1px solid;text-align:center;}
+	.plainTemplate{font-family: Arial, Helvetica, sans-serif;font-size:12px;}
 </style>
 		<div class="receipt">
 			<img ng-if="useLetterhead" ng-hide="hideImages" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
@@ -10,7 +14,7 @@
 				<div class="col-xs-2" ng-hide="hideImages">
 					<img src="{{'assets/schools/' + currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" />
 				</div>
-				<div class="col-xs-10 receipt-header">
+				<div class="col-xs-10 receipt-header"style="margin-bottom:0px !important;">
 					<!-- <h2 class="receipt-title">Report</h2> -->
 					<h1 class="receipt-school-name">{{currentUser.settings['School Name']}}</h1>
 					<!--
@@ -24,8 +28,9 @@
 			</div>
 
 			<div class="">
-				<h4 class="modal-title">Class Analysis : {{title}}</h4>
-				<table width="100%" ng-show="!loading" cellspacing=0>
+				<h4 ng-hide="isPlain" class="modal-title">Class Analysis : {{title}}</h4>
+				<h4 ng-show="isPlain" class="modal-title">Class Merit List : {{title}}</h4>
+				<table ng-hide="isPlain" width="100%" ng-show="!loading" cellspacing=0>
 					<thead>
 						<tr>
 							<th width="25%">Student</th>
@@ -58,6 +63,51 @@
 							<th width="3%"></th>
 							<th width="3%"></th>
 							<th width="3%"></th>
+						</tr>
+					</tfoot>
+				</table>
+
+				<!-- this template is for Thomas Burke ie plain print out -->
+				<table ng-show="isPlain" width="100%" ng-show="!loading" cellspacing=0 class="plainTemplate">
+					<thead>
+						<tr>
+							<th width="3%"></th>
+							<th width="25%">OUT OF</th>
+							<th width="3%" class="center" ng-repeat="ky in tableHeader">{{ky.outOf}}</th>
+							<th width="3%"></th>
+							<th width="3%"></th>
+						</tr>
+						<tr>
+							<th width="3%">POS</th>
+							<th width="25%">Student</th>
+							<th width="3%" class="center" ng-repeat="col in tableHeader">{{col.title}}</th>
+							<th width="3%">G.TOT</th>
+							<th width="3%">AVG</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in examMarks track by $index" height="22px" style="height:22px;">
+							<td width="3%" class="center strong">{{item.rank}}</td>
+							<td style="font-weight:bold;" width="25%" id="{{item.student_id}}">{{item.student_name}}</td>
+							<td width="3%" class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}">{{examMarks[$parent.$index][col.key]}}</td>
+							<td width="3%" class="center strong gtots">{{item.total}}</td>
+							<td width="3%" class="center strong avg">{{(item.total / 500)*100 | limitTo: 4}}</td>
+						</tr>
+					</tbody>
+					<tfoot style="border:1px solid #404040;border-collapse:collapse;">
+						<tr style="border:1px solid #404040;border-collapse:collapse;">
+							<th width="3%" style="border:1px solid #404040;border-collapse:collapse;"></th>
+							<th width="25%" style="border:1px solid #404040;border-collapse:collapse;font-size:14px;" class="right">TOTAL MARKS</th>
+							<th width="3%" style="border:1px solid #404040;border-collapse:collapse;font-size:12px;" class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}">{{totalMarks[col.key]}}</th>
+							<th width="3%" style="border:1px solid #404040;border-collapse:collapse;font-size:12px;" class="center strong">{{totGtot}}</th>
+							<th width="3%" style="border:1px solid #404040;border-collapse:collapse;font-size:12px;">{{totAvg}}</th>
+						</tr>
+						<tr style="border:1px solid #404040;border-collapse:collapse;">
+							<th width="3%" style="border:1px solid #404040;border-collapse:collapse;"></th>
+							<th width="25%" style="border:1px solid #404040;border-collapse:collapse;font-size:14px;" class="right">MEAN SCORE</th>
+							<th width="3%" style="border:1px solid #404040;border-collapse:collapse;font-size:12px;" class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMeanScore(col.key)"></th>
+							<th width="3%" style="border:1px solid #404040;border-collapse:collapse;font-size:12px;">{{avgGtot}}</th>
+							<th width="3%" style="border:1px solid #404040;border-collapse:collapse;font-size:12px;">{{avgAvg}}</th>
 						</tr>
 					</tfoot>
 				</table>
