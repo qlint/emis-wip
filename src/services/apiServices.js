@@ -379,6 +379,16 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		else	ajaxService.AjaxGet(path + "/getExamTypes/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getSpecialExamTypes = function (param, successFunction, errorFunction, params) {
+		if( param === undefined ) ajaxService.AjaxGet(path + "/getSpecialExamTypes", successFunction, errorFunction, params);
+		else	ajaxService.AjaxGet(path + "/getSpecialExamTypes/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getNonSpecialExamTypes = function (param, successFunction, errorFunction, params) {
+		if( param === undefined ) ajaxService.AjaxGet(path + "/getNonSpecialExamTypes", successFunction, errorFunction, params);
+		else	ajaxService.AjaxGet(path + "/getNonSpecialExamTypes/" + param, successFunction, errorFunction, params);
+	};
+
 	this.deleteExamType = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxDelete(path + "/deleteExamType/" + param, successFunction, errorFunction, params);
 	};

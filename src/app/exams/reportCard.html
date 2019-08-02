@@ -1,5 +1,5 @@
 <style type="text/css" media="print">
-    
+
 </style>
 <script type="text/javascript">
 
@@ -794,10 +794,109 @@ function getChartPath()
 
 
 					<div id="graphresult"></div>
+					
+					<div class="progress-report-student" ng-show="isSpecialExam_yet">
+						<!-- position, out of, pos last term, out of -->
+						<div class="row" ng-hide="noRanking">
+							<div class="col-xs-1 nopad-right">
+								<label>Muslim Position:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static inline">{{specialOverall.rank}}</p> / <p class="form-control-static inline">{{specialOverall.position_out_of}}</p>
+							</div>
+
+							<div class="col-xs-2 nopad-right">
+								<label>Pos Last Term:</label>
+							</div>
+							<div class="col-xs-2 lesspad">
+								<p class="form-control-static inline">{{specialOverallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{specialOverallLastTerm.position_out_of||'--'}}</p>
+							</div>
+
+							<div class="col-xs-2 nopad-right">
+								<label>Last Term Marks:</label>
+							</div>
+							<div class="col-xs-2 lesspad">
+								<p class="form-control-static inline">{{specialOverallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline">{{specialOverallLastTerm.total_grade_weight||'-'}}</p>
+							</div>
+						</div>
+						<!-- stream position, out of, stream pos last term, out of -->
+						<div class="row" ng-hide="noRanking">
+
+							<div ng-hide="wantStreamPos" class="col-xs-1 nopad-right">
+								<label>MUslim Stream Pos:</label>
+							</div>
+							<div ng-hide="wantStreamPos" class="col-xs-3 lesspad">
+								<p class="form-control-static inline">{{specialStreamRankPosition}}</p> / <p class="form-control-static inline">{{specialStreamRankOutOf}}</p>
+							</div>
+
+							<div ng-hide="wantStreamPos" class="col-xs-2 nopad-right">
+								<label>Muslim Stream Pos. Last Term</label>
+							</div>
+							<div ng-hide="wantStreamPos" class="col-xs-2 lesspad">
+								<p class="form-control-static inline">{{specialStreamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{specialStreamRankOutOfLastTerm||'--'}}</p>
+							</div>
+
+							<div ng-show="isSchool" class="col-xs-2 nopad-right">
+								<label>MUslim Marks:</label>
+							</div>
+							<div ng-show="isSchool" class="col-xs-2 lesspad">
+								<p class="form-control-static inline">{{specialOverall.current_term_marks||'-'}}</p> / <p class="form-control-static inline">{{specialOverall.current_term_marks_out_of||'-'}}</p>
+							</div>
+						</div>
+					</div>
+
+					<table class="display dataTable" cellspacing="0" width="100%" ng-show="isSpecialExam_yet">
+						<thead>
+							<tr>
+								<th rowspan="3" class="center">{{subj_name}}</th>
+								<!-- <th class="center double-border" colspan="{{noRanking ? specialExamTypes.length*2:specialExamTypes.length*3}}">Marks</th> -->
+								<th class="center double-border" colspan="{{noRanking ? specialExamTypes.length*2 : isSchool? specialExamTypes.length*2 : specialExamTypes.length*3}}">Marks</th>
+								<th ng-show="isSchool" rowspan="2" colspan="2" class="center double-border">Overall</th>
+								<th class="center double-border" rowspan="3" width="300">{{rmks}}</th>
+								<th ng-hide="noRanking" class="center" rowspan="3">Teacher<br>Int.</th>
+							</tr>
+							<tr>
+								<th class="center double-border" colspan="{{noRanking ? 2 : isSchool ? 2 : 3}}" ng-repeat="item in specialExamTypes">{{item.exam_type}}</th>
+							</tr>
+							<tr>
+								<th class="center double-border" ng-repeat-start="item in specialExamTypes">{{noRanking ?'Mark %':'Mark'}}</th>
+								<th ng-hide="noRanking || isSchool" class="center">Out Of</th> <!--undo the ng-repeat-end -->
+								<th class="center" ng-repeat-end="">Grade</th>
+								<th ng-show="isSchool" class="center double-border">Avg</th>
+							    <th ng-show="isSchool" class="center">Grade</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="item in specialReportData.subjects track by $index">
+								<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
+								<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in specialExamTypes">{{item.marks[examType.exam_type].mark}}</td>
+								<td  ng-hide="noRanking || isSchool" class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
+								<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
+								<td ng-show="isSchool" class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
+								<td ng-show="isSchool" class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
+								<td class="double-border">
+									<span ng-show="isPrinting">{{item.remarks}}</span>
+									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
+								</td>
+								<td ng-hide="noRanking">{{item.initials}}</td>
+							</tr>
+						</tbody>
+						<tfoot>
+							<tr>
+								<th class="center">{{noRanking ? '_':'Total'}}</th>
+								<th class="center double-border" ng-repeat-start="examType in specialExamTypes">{{noRanking ? '_':specialTotals[examType.exam_type].total_mark}}</th>
+								<th ng-hide="noRanking || isSchool" class="center">{{specialTotals[examType.exam_type].total_grade_weight}}</th>
+								<th class="center" ng-repeat-end=""></th>
+								<th ng-show="isSchool" class="center double-border getpercentage">{{specialOverall.percentage}}%</th>
+								<th ng-show="isSchool" class="center">{{specialOverall.grade}}</th>
+								<th colspan="2" class="center double-border"></th>
+							</tr>
+						</tfoot>
+					</table>
 
 						<table ng-hide="noRanking" width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2" ng-hide="wantAutomatedComments">
+								<td colspan="2" ng-hide="noGeneralComments">
 									<label>General Comments:</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="1" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{comments.non_exam_comments}}</p>
@@ -816,7 +915,7 @@ function getChartPath()
 							</tr>
 							<tr ng-show="isAdmin || isClassTeacher">
 								<td>
-									<label>Head Teacher Comments:</label>
+									<label>{{schoolName == 'kingsinternational' ? 'Principal Comments:' : 'Head Teacher Comments:'}}</label>
 									<textarea ng-show="!isPrinting" name="principle-comments" rows="1" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()" ng-readonly="isClassTeacher"></textarea>
 									<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{comments.principle_comments}}</p>
 								</td>
@@ -1001,7 +1100,7 @@ function getChartPath()
 						<h3>Remarks</h3>
 						<table width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2" ng-hide="wantAutomatedComments">
+								<td colspan="2" ng-hide="noGeneralComments">
 									<label>General Comments:</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
@@ -1020,7 +1119,7 @@ function getChartPath()
 							</tr>
 							<tr ng-show="isAdmin">
 								<td>
-									<label>Head Teacher Comments:</label>
+									<label>{{schoolName == 'kingsinternational' ? 'Principal Comments:' : 'Head Teacher Comments:'}}</label>
 									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>
 								</td>
@@ -1183,7 +1282,7 @@ function getChartPath()
 						<h3>Remarks</h3>
 						<table width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2" ng-hide="wantAutomatedComments">
+								<td colspan="2" ng-hide="noGeneralComments">
 									<label>General Comments:</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
@@ -1202,7 +1301,7 @@ function getChartPath()
 							</tr>
 							<tr ng-show="isAdmin">
 								<td>
-									<label>Head Teacher Comments:</label>
+									<label>{{schoolName == 'kingsinternational' ? 'Principal Comments:' : 'Head Teacher Comments:'}}</label>
 									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.principle_comments}}</p>
 								</td>
@@ -1292,7 +1391,7 @@ function getChartPath()
 						<h3>Remarks</h3>
 						<table width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2" ng-hide="wantAutomatedComments">
+								<td colspan="2" ng-hide="noGeneralComments">
 									<label>GENERAL COMMENTS:</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>
@@ -1493,7 +1592,7 @@ function getChartPath()
 						<h3>Remarks</h3>
 						<table width="100%">
 							<tr ng-show="isSchool">
-								<td colspan="2" ng-hide="wantAutomatedComments">
+								<td colspan="2" ng-hide="noGeneralComments">
 									<label>GENERAL COMMENTS:</label>
 									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="3" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
 									<p ng-show="isPrinting" class="form-control-static">{{comments.non_exam_comments}}</p>

@@ -140,9 +140,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
     		}
 				apiService.getAllStudentsWithTransport({}, fetchAllStudentsWithTransp, apiError);
     }
-    	
+
     $scope.fetchClassStudentsWithTransport = function()
-    {       
+    {
             let classId = $scope.filters.class;
     	    var fetchClassStudentsWithTransp = function(response,status){
     		    var result = angular.fromJson( response );
@@ -217,7 +217,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	    {
 	        var result = angular.fromJson(response);
 	    		if( result.response == 'success')
-	    		{   
+	    		{
 	    		    // setTimeout(function(){ $scope.studentsInTrip = ( result.nodata ? [] : result.data ); console.log($scope.studentsInTrip); }, 2000);
 	    		    $scope.studentsInTrip = ( result.nodata ? [] : result.data );
 	    			// console.log($scope.studentsInTrip);
@@ -247,7 +247,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		apiService.getAllStudentsInTrip(filterId, loadStudentsInTrip, apiError);
 
 	}
-	
+
 	$scope.fetchAllStudentsInZone = function(){
 		var loadStudentsInZone = function(response,status){
     		    var result = angular.fromJson( response );
@@ -282,7 +282,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		apiService.getAllStudentsInTranspZone({}, loadStudentsInZone, apiError);
 
 	}
-	
+
 	$scope.fetchAllStudentsWithBalance = function(){
 		var loadStudentsWithBalance = function(response,status){
     		    var result = angular.fromJson( response );
@@ -317,7 +317,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		apiService.getAllStudentsWithTranspBalance({}, loadStudentsWithBalance, apiError);
 
 	}
-	
+
 	$scope.fetchClassStudentsInBus = function(){
 		// get the bus & classs id
 		let busId = $scope.filters.bus;
@@ -354,7 +354,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		apiService.getClassStudentsInBus(busId + '/' + classCatId, loadClassStudentsInBus, apiError);
 
 	}
-	
+
 	$scope.fetchClassStudentsInTrip = function(){
 		// get the trip and class id
 		let tripId = $scope.filters.trip;
@@ -363,7 +363,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	    {
 	        var result = angular.fromJson(response);
 	    		if( result.response == 'success')
-	    		{   
+	    		{
 	    		    $scope.classStudentsInSelectedTrip = ( result.nodata ? [] : result.data );
 	    			// console.log($scope.studentsInTrip);
 						$scope.showReport = true;
@@ -392,7 +392,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		apiService.getClassStudentsInTrip(tripId + '/' + classCatId, loadClassStudentsInTrip, apiError);
 
 	}
-	
+
 	$scope.fetchClassStudentsInZone = function(){
 	    // get the class id
 	    let classCatId = $scope.filters.class;
@@ -458,7 +458,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			}
 
 		}, apiError);
-		
+
 		apiService.getAllSchoolBusTrips({}, function(response){
           var result = angular.fromJson(response);
           if( result.response == 'success')
@@ -472,7 +472,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
               $scope.trips = result.data;
             }
           }
-    
+
         }, function(){console.log("There was an error fetching the existing trips.")});
 
 	}
@@ -747,26 +747,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 
 	$scope.printReport = function()
 	{
-		var selectedTerm = $scope.terms.filter(function(item){
-			if( item.term_id == $scope.filters.term_id ) return item;
-		})[0];
-		var selectedExam =  $scope.examTypes.filter(function(item){
-			if( item.exam_type_id == $scope.filters.exam_type_id ) return item;
-		})[0];
-
-		var data = {
-			criteria: {
-				class_name: $scope.selectedClass,
-				term: selectedTerm.term_name,
-				exam_type: selectedExam.exam_type
-			},
-			tableHeader: $scope.tableHeader,
-			examMarks: $scope.examMarks,
-			totalMarks: $scope.totalMarks
+		function printData()
+		{
+		   var divToPrint=document.getElementById("resultsTable");
+		   var newWin= window.open("");
+		   newWin.document.write(divToPrint.outerHTML);
+			 newWin.document.write('<html><head><title>Print Report.</title><link rel="stylesheet" type="text/css" href="css/printReportsStyles.css"></head><body>');
+			 // newWin.document.write($("#resultsTable").html());
+			 setTimeout(function(){
+				 newWin.print();
+			   newWin.close();
+			 }, 3000);
+		   // newWin.print();
+		   // newWin.close();
 		}
-		var domain = window.location.host;
-		var newWindowRef = window.open('http://' + domain + '/#/exams/analysis/print');
-		newWindowRef.printCriteria = data;
+		printData();
 	}
 
 	$("#search").keyup(function () {

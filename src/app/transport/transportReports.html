@@ -22,13 +22,15 @@
 					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
 				</ul>
 			</div>
-			<!-- <h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
 					<div class="btn" title="print" ng-click="printReport()"><a class="export-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div>
+          <!--
 					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
+          -->
 				</div>
-			</div> -->
+			</div>
 
 			<div class="clearfix">
 				<h1 id="pageTitle">Transport Reports</h1>
@@ -50,7 +52,7 @@
                             <option ng-repeat="class in reportTypes.classStudents track by $index" value="{{class}}">{{class}}</option>
 						</select>
 					</div>
-					
+
 					<!-- trip select -->
 					<div class="form-group" ng-show="needsTrip">
 						<label for="trips">Trip</label>
@@ -175,7 +177,7 @@
                                         </tbody>
                                 </table>
                             </div>
-                            
+
                             <!-- all students in a trip -->
                             <div ng-show="allStudentsInTrip" id="allStudentsInTripDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>
@@ -203,7 +205,7 @@
                                         </tbody>
                                 </table>
                             </div>
-                            
+
                             <!-- all students in zones -->
                             <div ng-show="allStudentsInZone" id="allStudentsInZoneDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>
@@ -227,7 +229,7 @@
                                         </tbody>
                                 </table>
                             </div>
-                            
+
                             <!-- all students with balance -->
                             <div ng-show="allStudentsWithBalance" id="allStudentsWithBalanceDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>
@@ -277,7 +279,7 @@
                                         </tbody>
                                 </table>
                             </div>
-                            
+
                             <!-- students in class in a bus -->
                             <div ng-show="classStudentsInBus" id="classStudentsInBusDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>
@@ -303,7 +305,7 @@
                                         </tbody>
                                 </table>
                             </div>
-                            
+
                             <!-- class students in a trip -->
                             <div ng-show="classStudentsInTrip" id="classStudentsInTripDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>
@@ -331,7 +333,7 @@
                                         </tbody>
                                 </table>
                             </div>
-                            
+
                             <!-- class students in zones -->
                             <div ng-show="classStudentsInZone" id="classStudentsInZoneDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>

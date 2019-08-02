@@ -19,6 +19,7 @@ $app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($sta
 								due_date,
 								case when now()::date > due_date and balance < 0 then now()::date - due_date else 0 end as days_overdue,
 								term_name,
+								students.student_category,
 								invoice_balances2.term_id,
 								date_part('year', terms.start_date) as year
 							FROM app.invoice_balances2
@@ -638,14 +639,14 @@ $app->get('/getBanking', function () {
                             ON q8.join8 = q9.join9
                             ");
         */
-        $sth = $db->prepare("SELECT (SELECT value as bank_name FROM app.settings WHERE name = 'Bank Name') AS bank_name, 
-                                    (SELECT value as bank_branch FROM app.settings WHERE name = 'Bank Branch') AS bank_branch, 
-                                    (SELECT value as account_name FROM app.settings WHERE name = 'Account Name') AS account_name, 
-                                    (SELECT value as account_number FROM app.settings WHERE name = 'Account Number') AS account_number, 
-                                    (SELECT value as bank_name_2 FROM app.settings WHERE name = 'Bank Name 2') AS bank_name_2, 
-                                    (SELECT value as bank_branch_2 FROM app.settings WHERE name = 'Bank Branch 2') AS bank_branch_2, 
-                                    (SELECT value as account_name_2 FROM app.settings WHERE name = 'Account Name 2') AS account_name_2, 
-                                    (SELECT value as account_number_2 FROM app.settings WHERE name = 'Account Number 2') AS account_number_2, 
+        $sth = $db->prepare("SELECT (SELECT value as bank_name FROM app.settings WHERE name = 'Bank Name') AS bank_name,
+                                    (SELECT value as bank_branch FROM app.settings WHERE name = 'Bank Branch') AS bank_branch,
+                                    (SELECT value as account_name FROM app.settings WHERE name = 'Account Name') AS account_name,
+                                    (SELECT value as account_number FROM app.settings WHERE name = 'Account Number') AS account_number,
+                                    (SELECT value as bank_name_2 FROM app.settings WHERE name = 'Bank Name 2') AS bank_name_2,
+                                    (SELECT value as bank_branch_2 FROM app.settings WHERE name = 'Bank Branch 2') AS bank_branch_2,
+                                    (SELECT value as account_name_2 FROM app.settings WHERE name = 'Account Name 2') AS account_name_2,
+                                    (SELECT value as account_number_2 FROM app.settings WHERE name = 'Account Number 2') AS account_number_2,
                                     (SELECT value as mpesa_details FROM app.settings WHERE name = 'Mpesa Details') AS mpesa_details
                             ");
 		$sth->execute();

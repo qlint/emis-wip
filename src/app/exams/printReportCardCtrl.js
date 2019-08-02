@@ -8,6 +8,7 @@ function($scope, $rootScope){
 	{
 		$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
 		$scope.wantAutomatedComments = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
+		$scope.schoolName = window.location.host.split('.')[0];
 
 		var data = window.printCriteria;
 		$rootScope.isPrinting = true;
@@ -34,7 +35,8 @@ function($scope, $rootScope){
 		$scope.subj_name = data.subj_name;
 		$scope.noRanking = data.noRanking;
 		$scope.isClassTeacher = data.isClassTeacher;
-
+		$scope.noGeneralComments = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'thomasburke' ? true : false );
+		$scope.wantStreamPos = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'lasalle' ? true : false );
 
 		$scope.loading = false;
 
