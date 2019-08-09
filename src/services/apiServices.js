@@ -953,6 +953,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getSchoolBusTrips/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getBusTrips = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getBusTrips/" + param, successFunction, errorFunction, params);
+	};
+
 	this.createSchoolBusTrip = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/createSchoolBusTrip", successFunction, errorFunction, params);
 	};

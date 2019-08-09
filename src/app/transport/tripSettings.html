@@ -63,17 +63,34 @@
     					</div>
     					<div class="row dashboard-panel-body">
     						<p style="font-style:italic;">* Add a bus to a trip plying given routes</p>
-                            <h4>Select Trip</h4>
-                            <select id="slctdTrip2" style="width: 95%;border-radius: 4px;">
-                                <option value="">---SELECT A TRIP---</option>
-                                <option ng-repeat="trip in trips track by $index" value="{{trip.schoolbus_trip_id}}">{{trip.trip_name}}</option>
-                            </select>
+                <h4>Select a bus for this trip</h4>
+                <select name="bus" id="slctdBus" style="width: 95%;border-radius: 4px;" ng-model="busTrips" ng-change="showTrips(this)">
+                    <option value="">---SELECT SCHOOL BUS---</option>
+                    <option ng-repeat="bus in buses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} - {{bus.bus_registration}}</option>
+                </select>
 
-                            <h4>Select a bus for this trip</h4>
-                            <select name="bus" id="slctdBus" style="width: 95%;border-radius: 4px;">
-                                <option value="">---SELECT SCHOOL BUS---</option>
-                                <option ng-repeat="bus in buses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} - {{bus.bus_registration}}</option>
-                            </select>
+                <table ng-show="changedTrip" class="table table-striped" style="width: 95%;border: 1px solid #000000; margin-top: 5px;">
+                  <thead>
+                    <tr>
+                      <th>Existing Trips</th>
+                      <th>Remove</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="trp in thisBusTrips track by $index">
+                      <td>{{trp.trip_name}}</td>
+                      <td>
+                        <span ng-click="deleteBusTrip(trp.bus_trip_id)" class="glyphicon glyphicon-trash text-danger"></span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <h4>Select Trip</h4>
+                <select id="slctdTrip2" style="width: 95%;border-radius: 4px;">
+                    <option value="">---SELECT A TRIP---</option>
+                    <option ng-repeat="trip in trips track by $index" value="{{trip.schoolbus_trip_id}}">{{trip.trip_name}}</option>
+                </select>
 
                             <div class="btnSpacer">
                               <button type="button" class="btn btn-primary" ng-click="updateTrip2()">Add Bus To This Trip</button>
@@ -95,8 +112,8 @@
                             <tr>
                                 <th>Bus Type</th>
                                 <th>Registration</th>
-                                <th>Destinations</th>
                                 <th>Trip</th>
+                                <th>Destinations</th>
                                 <th>Driver</th>
                                 <th>Guide</th>
                             </tr>
@@ -105,8 +122,8 @@
                             <tr ng-repeat="item in allTransportData track by $index"  ng-click="viewStudentsInBus(this)">
                                 <td width="10%">{{item.bus_type}}</td>
                                 <td width="10%">{{item.bus_registration}}</td>
-                                <td width="30%">{{item.destinations}}</td>
-                                <td width="20%">{{item.trip_name}}</td>
+                                <td width="10%">{{item.trip_name}}</td>
+                                <td width="40%">{{item.destinations}}</td>
                                 <td width="15%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.driver_name}}</td>
                                 <td width="15%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.guide_name}}</td>
                             </tr>

@@ -44,12 +44,47 @@ $app->get('/getAllAssignedBuses/:status', function ($status) {
 
     $sth = $db->prepare("SELECT buses.bus_id, bus_type, bus_registration, destinations, trip_name
                         FROM app.buses
-                        LEFT JOIN app.schoolbus_trips st USING (bus_id)
+                        LEFT JOIN app.schoolbus_bus_trips USING (bus_id)
+                        LEFT JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
                         WHERE buses.active = :status
                         ORDER BY bus_id DESC");
     $sth->execute( array(':status' => $status) );
 
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getBusDestinations/:busId', function ($busId) {
+  //Get the selected bus' destinations
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT destinations FROM app.buses WHERE bus_id = :busId");
+    $sth->execute( array(':busId' => $busId) );
+
+    $results = $sth->fetch(PDO::FETCH_OBJ);
 
     if($results) {
         $app->response->setStatus(200);
@@ -80,23 +115,27 @@ $app->get('/getStudentTransportDetails/:studentId', function ($studentId) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT DISTINCT ON (two.trip_id)two.trip_id, one.student_id, student_destination, bus_id, bus, destinations, bus_driver, bus_guide, driver_name, guide_name,
-	trip_name, fee_item, three.route, amount
+    $sth = $db->prepare("SELECT DISTINCT ON (two.trip_id)two.trip_id, one.student_id, student_destination, bus_id, bus, destinations, bus_driver, bus_guide, driver_name, driver_telephone, guide_name,
+	trip_name, fee_item, three.route, amount, parent_name, parent_telephone
 FROM
 			(
         SELECT raw1.*, trip_name
 				FROM (
   					SELECT s.student_id, s.destination AS student_destination, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.destinations, b.bus_driver,
   						b.bus_guide, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id,
-  						e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name,
-  						e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name
+  						e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name, e.telephone AS driver_telephone,
+  						e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name,
+  						g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_name, g.telephone AS parent_telephone
   					FROM app.buses b
   					INNER JOIN app.students s ON b.destinations ILIKE '%' || s.destination || '%'
+  					LEFT JOIN app.student_guardians sg USING (student_id)
+  					LEFT JOIN app.guardians g USING (guardian_id)
   					LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
   					LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
   					WHERE student_id = :studentId
   				)raw1
-				INNER JOIN app.schoolbus_trips st ON raw1.bus_id = st.bus_id AND raw1.trip_id = st.schoolbus_trip_id
+				INNER JOIN app.schoolbus_bus_trips sbt ON raw1.bus_id = sbt.bus_id AND raw1.trip_id = sbt.bus_trip_id
+				INNER JOIN app.schoolbus_trips st ON st.schoolbus_trip_id = sbt.schoolbus_trip_id
                       )one
                         INNER JOIN
 			                     (
@@ -111,7 +150,8 @@ FROM
                   			INNER JOIN app.fee_items fi USING (fee_item_id)
                   			INNER JOIN app.students s USING (student_id)
                   			INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
-                  			WHERE student_id = :studentId AND fee_item = 'Transport')three
+                  			WHERE student_id = :studentId
+                  			AND fee_item = 'Transport')three
                                           ON two.student_id = three.student_id");
     $sth->execute( array(':studentId' => $studentId) );
 
@@ -147,11 +187,13 @@ $app->get('/getStudentTripOptions/:studentId', function ($studentId) {
     $db = getDB();
 
     $sth = $db->prepare("SELECT trip_id, trip_name, bus_type || ' ' || bus_registration AS trip_bus, destinations AS trip_destinations FROM (
-                          	SELECT st.schoolbus_trip_id AS trip_id, st.trip_name, b.bus_id, b.bus_type, b.bus_registration, b.destinations
+                          	SELECT sbt.bus_trip_id AS trip_id, st.trip_name, b.bus_id, b.bus_type, b.bus_registration, b.destinations
                           	FROM app.schoolbus_trips st
+                          	INNER JOIN app.schoolbus_bus_trips sbt USING (schoolbus_trip_id)
                           	INNER JOIN app.buses b USING (bus_id)
                           	INNER JOIN app.students s ON b.destinations ILIKE '%' || s.destination || '%'
-                          	WHERE b.destinations IS NOT NULL AND s.student_id = :studentId
+                          	WHERE b.destinations IS NOT NULL
+                          	AND s.student_id = :studentId
                           )a");
     $sth->execute( array(':studentId' => $studentId) );
 
@@ -310,8 +352,9 @@ $app->get('/getAllBusesRoutesAndDrivers/:status', function ($status) {
                         	FROM app.buses
                         	FULL OUTER JOIN app.employees e ON buses.bus_driver = e.emp_id
                         	FULL OUTER JOIN app.employees e2 ON buses.bus_guide = e2.emp_id
-                          FULL OUTER JOIN app.schoolbus_trips ON buses.bus_id = schoolbus_trips.bus_id
-                        	WHERE buses.active = :status
+                        	FULL OUTER JOIN app.schoolbus_bus_trips USING (bus_id)
+				FULL OUTER JOIN app.schoolbus_trips USING (schoolbus_trip_id)
+				WHERE buses.active = :status
                         	ORDER BY bus_id DESC
                         )A");
     $sth->execute( array(':status' => $status) );
@@ -413,7 +456,8 @@ $app->get('/getStudentsInBus/:busId', function ($busId) {
                                                   INNER JOIN app.students s ON b.destinations ILIKE '%' || s.destination || '%'
                                                   LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
                                                   LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
-                                                  LEFT JOIN app.schoolbus_trips st USING (bus_id)
+                                                  LEFT JOIN app.schoolbus_bus_trips sbt USING (bus_id)
+                                                  LEFT JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
                                                   WHERE bus_id = :busId
                           		)one
                           	)two
@@ -726,9 +770,49 @@ $app->get('/getSchoolBusTrips/:tripId', function ($tripId) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT * FROM app.schoolbus_trips WHERE schoolbus_trip_id = :tripId");
+    $sth = $db->prepare("SELECT st.schoolbus_trip_id, trip_name, bus_id, class_cats
+                          FROM app.schoolbus_trips st
+                          LEFT JOIN app.schoolbus_bus_trips USING (schoolbus_trip_id)
+                          LEFT JOIN app.buses USING (bus_id)
+                          WHERE st.schoolbus_trip_id = :tripId");
     $sth->execute(array(':tripId' => $tripId));
     $results = $sth->fetch(PDO::FETCH_OBJ);
+
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getBusTrips/:busId', function ($busId) {
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT sbt.bus_trip_id, st.schoolbus_trip_id, trip_name, bus_id, bus_type || ' - ' || bus_registration AS bus, st.class_cats
+                          FROM app.schoolbus_trips st
+                          INNER JOIN app.schoolbus_bus_trips sbt USING (schoolbus_trip_id)
+                          INNER JOIN app.buses b USING (bus_id)
+                          WHERE sbt.bus_id = :busId");
+    $sth->execute(array(':busId' => $busId));
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
 
     if($results) {
@@ -760,12 +844,12 @@ $app->post('/createSchoolBusTrip', function () use($app) {
   {
     $db = getDB();
 
-    $busInsert = $db->prepare("INSERT INTO app.schoolbus_trips(trip_name,class_cats)
+    $tripInsert = $db->prepare("INSERT INTO app.schoolbus_trips(trip_name,class_cats)
             VALUES(:tripName, :classCats);");
 
     $db->beginTransaction();
 
-    $busInsert->execute( array(':tripName' => $tripName, ':classCats' => $classCats) );
+    $tripInsert->execute( array(':tripName' => $tripName, ':classCats' => $classCats) );
 
     $db->commit();
 
@@ -788,24 +872,27 @@ $app->post('/updateSchoolBusTrip', function () use($app) {
   // Add student
   $allPostVars = json_decode($app->request()->getBody(),true);
   $tripId = ( isset($allPostVars['trip_id']) ? $allPostVars['trip_id']: null);
-  $routes = ( isset($allPostVars['routes']) ? $allPostVars['routes']: null);
   $busId = ( isset($allPostVars['bus_id']) ? $allPostVars['bus_id']: null);
+  $delete = ( isset($allPostVars['delete']) ? $allPostVars['delete']: null);
+  $deleteId = ( isset($allPostVars['bus_trip_id']) ? $allPostVars['bus_trip_id']: null);
 
   try
   {
     $db = getDB();
 
-    if($busId === null){
-      $busInsert = $db->prepare("UPDATE app.schoolbus_trips SET trip_routes = :routes WHERE schoolbus_trip_id = :tripId;");
+    if($delete === 'NO' || $delete === null){
+      $busTripInsert = $db->prepare("INSERT INTO app.schoolbus_bus_trips(schoolbus_trip_id, bus_id)
+                                  VALUES (:tripId, :busId);");
 
       $db->beginTransaction();
-      $busInsert->execute( array(':routes' => $routes, ':tripId' => $tripId) );
+      $busTripInsert->execute( array(':busId' => $busId, ':tripId' => $tripId) );
       $db->commit();
-    }else{
-      $busInsert = $db->prepare("UPDATE app.schoolbus_trips SET bus_id = :busId WHERE schoolbus_trip_id = :tripId;");
+    }elseif($delete === 'YES'){
+      $busTripDelete = $db->prepare("DELETE FROM app.schoolbus_bus_trips
+                                  WHERE bus_trip_id = :deleteId;");
 
       $db->beginTransaction();
-      $busInsert->execute( array(':busId' => $busId, ':tripId' => $tripId) );
+      $busTripDelete->execute( array(':deleteId' => $deleteId) );
       $db->commit();
     }
     $app->response->setStatus(200);

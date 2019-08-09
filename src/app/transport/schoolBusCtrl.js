@@ -16,6 +16,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.alert = {};
 	$scope.refreshing = false;
 	$scope.rawRoutes = [];
+	$scope.newRawRoutes = [];
 	//$scope.loading = true;
 
 
@@ -89,7 +90,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
                 });
               });
               $scope.routesUnsorted = [...new Set($scope.rawRoutes)];
-              $scope.routes = $scope.routesUnsorted.sort();
+              // $scope.routes = $scope.routesUnsorted.sort();
+              $scope.routes0 = $scope.routesUnsorted.sort();
+              // console.log("Start here",$scope.routes0);
+              $scope.routes0.forEach(function(newRoutesArr) {
+                  var newRouteSplit = newRoutesArr.split(" - ").pop();
+                  console.log(newRouteSplit);
+                  // newRouteSplit.trim();
+                  $scope.newRawRoutes.push(newRouteSplit);
+              });
+              var newRoutesUnsorted = [...new Set($scope.newRawRoutes)];
+              $scope.routes = newRoutesUnsorted.sort();
             }
           }
 
@@ -158,7 +169,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
     $scope.selectRoutes = function()
 	{
 	    var currSelection = $('#multiRoute').val();
-    	$scope.selectedRoutesJOined = currSelection.join();
+    	$scope.selectedRoutesJoined = currSelection.join();
 	    $scope.selectedRoutes = currSelection;
 	}
 
@@ -166,10 +177,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	    let busChange = $("#theBusId").val();
         apiService.getBusDestinations(busChange, function(response,status){
 			var result = angular.fromJson(response);
-
 			if( result.response == 'success')
 			{
-					var thisBus = ( result.nodata ? [] : result.data );
+					var thisBus = ( result.nodata ? null : result.data );
 					$scope.selectedRoutes = (thisBus.destinations == null ? [] : thisBus.destinations.split(','));
 			}
 			else
@@ -269,7 +279,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	    // acquire the input values
 	    var busId = $( "#theBusId" ).val();
 	    var routeId = $( "#theRouteId" ).val();
-	    var destinations = $scope.selectedRoutesJOined;
+	    var destinations = $scope.selectedRoutesJoined;
 
 	    var assignData = {
 	        "bus_id": parseInt(busId),

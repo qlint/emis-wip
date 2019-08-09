@@ -54,6 +54,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 		$scope.addingFeeItem = false;
 		$scope.rawRoutes = [];
+		$scope.newRawRoutes = [];
 	}
 	else if( data.section == 'fee_items' )
 	{
@@ -265,7 +266,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
                         });
                     });
                     $scope.routesUnsorted = [...new Set($scope.rawRoutes)];
-                    $scope.routes = $scope.routesUnsorted.sort();
+                    // $scope.routes = $scope.routesUnsorted.sort();
+                    $scope.routes0 = $scope.routesUnsorted.sort();
+                      $scope.routes0.forEach(function(newRoutesArr) {
+                          var newRouteSplit = newRoutesArr.split(" - ").pop();
+                          $scope.newRawRoutes.push(newRouteSplit);
+                      });
+                      var newRoutesUnsorted = [...new Set($scope.newRawRoutes)];
+                      $scope.routes = newRoutesUnsorted.sort();
 
 				}
 			}
@@ -493,7 +501,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			var result = angular.fromJson(response);
 			$scope.getStudentBusDetails($scope.student.student_id);
 			$scope.getStudentTripOptions();
-				
+			setTimeout(initializeController,1000);
+			let BtnEl = document.getElementById("saveHood");
+			console.log(BtnEl);
+			BtnEl.innnerText = "Saved Successfully";
+			setTimeout(function(){ BtnEl.innnerText = "Save Neighborhood"; }, 2500);
 		}, apiError);
 	}
 	

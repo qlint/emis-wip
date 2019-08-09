@@ -18,13 +18,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.specialExamTypes = {};
 	$scope.comments = {};
 	$scope.principal_comment = {};
-	$scope.entity_id = $scope.student.entity_id;
+	$scope.entity_id = ($scope.student.entity_id == null || $scope.student.entity_id == undefined ? null : $scope.student.entity_id);
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 	$scope.schoolName = window.location.host.split('.')[0];
 	$scope.wantStreamPos = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'lasalle' ? true : false );
 	$scope.wantAutomatedComments = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
 	$scope.isSpecialExam = (window.location.host.split('.')[0] == 'mico' ? true : false);
-	$scope.isSpecialExam_yet = false;
 	$scope.noGeneralComments = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'thomasburke' ? true : false );
 
 	$scope.canPrint = false;

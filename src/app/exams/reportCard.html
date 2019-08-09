@@ -795,7 +795,7 @@ function getChartPath()
 
 					<div id="graphresult"></div>
 					
-					<div class="progress-report-student" ng-show="isSpecialExam_yet">
+					<div class="progress-report-student" ng-show="isSpecialExam">
 						<!-- position, out of, pos last term, out of -->
 						<div class="row" ng-hide="noRanking">
 							<div class="col-xs-1 nopad-right">
@@ -845,7 +845,7 @@ function getChartPath()
 						</div>
 					</div>
 
-					<table class="display dataTable" cellspacing="0" width="100%" ng-show="isSpecialExam_yet">
+					<table class="display dataTable" cellspacing="0" width="100%" ng-show="isSpecialExam">
 						<thead>
 							<tr>
 								<th rowspan="3" class="center">{{subj_name}}</th>

@@ -12,13 +12,14 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
     $scope.tripAssignment = false;
     $scope.busAssignment = false;
     $scope.selectedRoutes = null;
+    $scope.changedTrip = false;
 
     var ccParams = ( $rootScope.currentUser.user_type == 'TEACHER' ? $rootScope.currentUser.emp_id : undefined);
-	apiService.getClassCats(ccParams, function(response){
-		var result = angular.fromJson(response);
-        if( result.response == 'success')	$scope.classCats = result.data;
+  	apiService.getClassCats(ccParams, function(response){
+  		var result = angular.fromJson(response);
+          if( result.response == 'success')	$scope.classCats = result.data;
 
-	}, function(){});
+  	}, function(){});
 
     $("#multiRoute").mousedown(function(e){
       e.preventDefault();
@@ -136,6 +137,35 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
       },apiError);
   }
 
+  $scope.busTrips = null;
+  $scope.showTrips = function (el){
+    let busTrip = parseInt(el.busTrips);
+    console.log("This bus id = " + busTrip);
+
+    apiService.getBusTrips(busTrip, function(response){
+      var result = angular.fromJson(response);
+      if( result.response == 'success')
+      {
+        if( result.nodata !== undefined)
+        {
+          $scope.thisBusTrips = [];
+        }
+        else
+        {
+          $scope.thisBusTrips = result.data;
+          if($scope.thisBusTrips == null || $scope.thisBusTrips == undefined){
+            $scope.thisBusTrips = [];
+            $scope.changedTrip = false;
+          }else{
+            $scope.changedTrip = true;
+          }
+          console.log($scope.thisBusTrips);
+        }
+      }
+
+    }, function(){console.log("There was an error fetching the existing trips.")});
+  }
+
   $scope.viewStudentsInBus = function(el)
 	{
 	    console.log("Bus row clicked :: ",el);
@@ -157,7 +187,8 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
 
     var updateTrip = {
         "trip_id": theTrip,
-        "routes": theRoutes
+        "routes": theRoutes,
+        "delete": "NO"
     };
     apiService.updateSchoolBusTrip(updateTrip,function(response,status){
           // var result = angular.fromJson(response);
@@ -173,11 +204,12 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
     var theTrip = document.getElementById("slctdTrip2").value;
     var theBus = document.getElementById("slctdBus").value;
 
-    var updateTrip = {
-        "trip_id": theTrip,
-        "bus_id": theBus
+    var updateTrip2 = {
+        "trip_id": parseInt(theTrip),
+        "bus_id": parseInt(theBus),
+        "delete": "NO"
     };
-    apiService.updateSchoolBusTrip(updateTrip,function(response,status){
+    apiService.updateSchoolBusTrip(updateTrip2,function(response,status){
           // var result = angular.fromJson(response);
           $scope.busAssignment = true;
           $scope.busAssignmentStatus = "Success! Bus assigned to trip.";
@@ -185,6 +217,18 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
 
       },apiError);
 
+  }
+
+  $scope.deleteBusTrip = function (el){
+    console.log(el);
+    var deleteTrip = {
+        "bus_trip_id": parseInt(el),
+        "delete": "YES"
+    };
+    apiService.updateSchoolBusTrip(deleteTrip,function(response,status){
+          setTimeout(initializeController,1000);
+          $scope.changedTrip = false;
+      },apiError);
   }
 
   $('#slctdTrip').on('change', function() {
