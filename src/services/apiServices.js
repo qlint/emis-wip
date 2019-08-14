@@ -1030,6 +1030,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.getClassStudentsInTranspZone = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getClassStudentsInTranspZone/" + param, successFunction, errorFunction, params);
 	};
+	
+	this.getAllStudentsInBusInTrip = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllStudentsInBusInTrip/" + param, successFunction, errorFunction, params);
+	};
+	
+	this.getClassStudentsInBusInTrip = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassStudentsInBusInTrip/" + param, successFunction, errorFunction, params);
+	};
 
 	return this;
 }]);

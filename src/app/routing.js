@@ -338,13 +338,6 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
-		.state('transport/settings', {
-      url: "/transport/settings",
-	  templateUrl: 'app/transport/schoolBusSettings.html',
-      data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
-      }
-    })
 		.state('transport/trips', {
       url: "/transport/trips",
 	  templateUrl: 'app/transport/tripSettings.html',

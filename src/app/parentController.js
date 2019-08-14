@@ -200,16 +200,13 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true
 						},
-						'settings': {
-							'view': true,
-							'add': true,
-							'edit': true
-						},
+						/*
 						'pick_up_and_drop_off': {
 							'view': true,
 							'add': true,
 							'edit': true,
 						},
+						*/
 						'mapped_history': {
 							'view': true,
 							'add': true,
@@ -347,16 +344,13 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 										'add': true,
 										'edit': true
 									},
-									'settings': {
-										'view': true,
-										'add': true,
-										'edit': true
-									},
+									/*
 									'pick_up_and_drop_off': {
 										'view': true,
 										'add': true,
 										'edit': true,
 									},
+									*/
 									'mapped_history': {
 										'view': true,
 										'add': true,
@@ -614,16 +608,13 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': false,
 							'edit': false
 						},
-						'settings': {
-							'view': false,
-							'add': false,
-							'edit': false
-						},
+						/*
 						'pick_up_and_drop_off': {
     							'view': true,
     							'add': true,
     							'edit': true,
     					},
+							*/
     					'mapped_history': {
     							'view': true,
     							'add': true,

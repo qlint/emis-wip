@@ -28,12 +28,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 									'All Students Who Use A Bus',
 									'All Students In A Trip',
 									'All Students In Transport Zone',
-									'All Students With Transport Balance'],
+									'All Students With Transport Balance',
+									'All Students In A Trip Who Use A Bus'],
 		classStudents:['Class Students With Transport',
 									'Class Students Who Use A Bus',
 									'Class Students In A Trip',
 									'Class Students In Transport Zone',
-									'Class Students With Transport Balance']
+									'Class Students With Transport Balance',
+									'Class Students In A Trip Who Use A Bus']
 	};
 
 	$scope.filters.report_type = 'All Students With Transport';
@@ -126,10 +128,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.allStudentsInTrip = false;
 						$scope.allStudentsInZone = false;
 						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = false;
 						$scope.classStdTrans = false;
 						$scope.classStudentsInBus = false;
 						$scope.classStudentsInTrip = false;
 						$scope.classStudentsInZone = false;
+						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
         		}
@@ -161,10 +165,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.allStudentsInTrip = false;
 						$scope.allStudentsInZone = false;
 						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = false;
 						$scope.classStdTrans = true;
 						$scope.classStudentsInBus = false;
 						$scope.classStudentsInTrip = false;
 						$scope.classStudentsInZone = false;
+						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
         		}
@@ -191,10 +197,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.allStudentsInTrip = false;
 						$scope.allStudentsInZone = false;
 						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = false;
 						$scope.classStdTrans = false;
 						$scope.classStudentsInBus = false;
 						$scope.classStudentsInTrip = false;
 						$scope.classStudentsInZone = false;
+						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
 	    			console.log("Fetching students in the bus",$scope.studentsInBus);
 	    		}
@@ -227,10 +235,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.allStudentsInZone = false;
 						$scope.allStudentsInTrip = true;
 						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = false;
 						$scope.classStdTrans = false;
 						$scope.classStudentsInBus = false;
 						$scope.classStudentsInTrip = false;
 						$scope.classStudentsInZone = false;
+						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
 					if($scope.studentsInTrip.length == 0){
 					    console.log("No data found for this selection");
@@ -267,10 +277,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.allStudentsInTrip = false;
 						$scope.allStudentsInZone = true;
 						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = false;
 						$scope.classStdTrans = false;
 						$scope.classStudentsInBus = false;
 						$scope.classStudentsInTrip = false;
 						$scope.classStudentsInZone = false;
+						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
         		}
@@ -302,10 +314,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.allStudentsInTrip = false;
 						$scope.allStudentsInZone = false;
 						$scope.allStudentsWithBalance = true;
+						$scope.allStudentsInTripInBus = false;
 						$scope.classStdTrans = false;
 						$scope.classStudentsInBus = false;
 						$scope.classStudentsInTrip = false;
 						$scope.classStudentsInZone = false;
+						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
         		}
@@ -335,11 +349,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.allStudentsInTrip = false;
 						$scope.allStudentsInZone = false;
 						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = false;
 						$scope.classStdTrans = false;
 						$scope.classStudentsInBus = true;
 						$scope.classStudentsInTrip = false;
 						$scope.classStudentsInZone = false;
 						$scope.initialReportLoad = false;
+						$scope.classStudentsInTripInBus = false;
 	    			if($scope.classStudentsInSelectedBus.length == 0){
 	    			    $scope.classStudentsInBus = [{student_name: 'No Records', class_name: 'No Records', student_destination: 'No Records', trip_name: 'No Records', driver_name: 'No Records', guide_name: 'No Records'}];
 	    			}
@@ -372,10 +388,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.allStudentsInZone = false;
 						$scope.allStudentsInTrip = false;
 						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = false;
 						$scope.classStdTrans = false;
 						$scope.classStudentsInBus = false;
 						$scope.classStudentsInTrip = true;
 						$scope.classStudentsInZone = false;
+						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
 					if($scope.classStudentsInSelectedTrip.length == 0){
 					    console.log("No data found for this selection");
@@ -414,10 +432,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.allStudentsInTrip = false;
 						$scope.allStudentsInZone = false;
 						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = false;
 						$scope.classStdTrans = false;
 						$scope.classStudentsInBus = false;
 						$scope.classStudentsInTrip = false;
 						$scope.classStudentsInZone = true;
+						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
         		}
@@ -428,6 +448,85 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
     		}
 		apiService.getClassStudentsInTranspZone(classCatId, loadClassStudentsInZone, apiError);
 
+	}
+	
+	$scope.fetchAllStudentsInTripInBus = function(){
+	    let busId = $scope.filters.bus;
+	    let tripId = $scope.filters.trip;
+	    let thisParam = busId + '/' + tripId;
+	    
+	    var fetchAllStudentsInBusInTrip = function(response,status){
+    		    var result = angular.fromJson( response );
+        		if( result.response == 'success' )
+        		{
+        			if( result.nodata )
+        			{
+        				$scope.classStudentsWithTransp = [];
+        			}
+        			else
+        			{
+        				$scope.allStudentsInBusInTrp = result.data;
+						$scope.showReport = true;
+						$scope.allWithTranspTable = false;
+						$scope.allStudentsInBus = false;
+						$scope.allStudentsInTrip = false;
+						$scope.allStudentsInZone = false;
+						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = true;
+						$scope.classStdTrans = false;
+						$scope.classStudentsInBus = false;
+						$scope.classStudentsInTrip = false;
+						$scope.classStudentsInZone = false;
+						$scope.classStudentsInTripInBus = false;
+						$scope.initialReportLoad = false;
+        			}
+        		}
+        		else
+        		{
+        			$scope.errMsg = result.data;
+        		}
+    		}
+			apiService.getAllStudentsInBusInTrip(thisParam, fetchAllStudentsInBusInTrip, apiError);
+	}
+	
+	$scope.fetchClassStudentsInTripInBus = function(){
+	    let classId = $scope.filters.class;
+	    let busId = $scope.filters.bus;
+	    let tripId = $scope.filters.trip;
+	    let thisParam = classId + '/' + busId + '/' + tripId;
+	    
+	    var fetchClassStudentsInBusInTrip = function(response,status){
+    		    var result = angular.fromJson( response );
+        		if( result.response == 'success' )
+        		{
+        			if( result.nodata )
+        			{
+        				$scope.classStudentsWithTransp = [];
+        			}
+        			else
+        			{
+        				$scope.classStudentsInBusInTrp = result.data;
+						$scope.showReport = true;
+						$scope.allWithTranspTable = false;
+						$scope.allStudentsInBus = false;
+						$scope.allStudentsInTrip = false;
+						$scope.allStudentsInZone = false;
+						$scope.allStudentsWithBalance = false;
+						$scope.allStudentsInTripInBus = false;
+						$scope.classStdTrans = false;
+						$scope.classStudentsInBus = false;
+						$scope.classStudentsInTrip = false;
+						$scope.classStudentsInZone = false;
+						$scope.classStudentsInTripInBus = true;
+						$scope.initialReportLoad = false;
+        			}
+        		}
+        		else
+        		{
+        			$scope.errMsg = result.data;
+        		}
+    		}
+			apiService.getClassStudentsInBusInTrip(thisParam, fetchClassStudentsInBusInTrip, apiError);
 	}
 
 	var initializeController = function ()
@@ -540,6 +639,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.needsZone = false;
 			$scope.needsBus = false;
 			$scope.needsTrip = false;
+		}else if(selectedReport == 'All Students In A Trip Who Use A Bus'){
+		    $scope.needsClass = false;
+			$scope.needsStream = false;
+			$scope.needsZone = false;
+			$scope.needsBus = true;
+			$scope.needsTrip = true;
+		}else if(selectedReport == 'Class Students In A Trip Who Use A Bus'){
+		    $scope.needsClass = true;
+			$scope.needsStream = false;
+			$scope.needsZone = false;
+			$scope.needsBus = true;
+			$scope.needsTrip = true;
 		}
 	}
 
@@ -563,6 +674,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		    $scope.fetchClassStudentsInTrip();
 		}else if($scope.filters.report_type == 'Class Students In Transport Zone'){
 		    $scope.fetchClassStudentsInZone();
+		}else if($scope.filters.report_type == 'All Students In A Trip Who Use A Bus'){
+		    $scope.fetchAllStudentsInTripInBus();
+		}else if($scope.filters.report_type == 'Class Students In A Trip Who Use A Bus'){
+		    $scope.fetchClassStudentsInTripInBus();
 		}else{
 			// make a valid selection message
 			$scope.preLoadMessageH1 = "";

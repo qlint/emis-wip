@@ -648,7 +648,8 @@ $app->get('/getAllStudentsInTrip/:tripId', function ($tripId) {
                         		INNER JOIN app.classes c ON s.current_class = c.class_id
                         		WHERE s.active IS TRUE
                         	)one
-                        	INNER JOIN app.schoolbus_trips st ON one.trip_id = st.schoolbus_trip_id
+                        	INNER JOIN app.schoolbus_bus_trips sbt ON one.trip_id = sbt.bus_trip_id
+                        	INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
                         	INNER JOIN app.buses USING (bus_id)
                         	WHERE trip_id = :tripId
                         )two
@@ -830,7 +831,8 @@ $app->get('/getClassStudentsInBus/:busId/:classCatId', function ($busId,$classCa
                                                   INNER JOIN app.students s ON b.destinations ILIKE '%' || s.destination || '%'
                                                   LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
                                                   LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
-                                                  LEFT JOIN app.schoolbus_trips st USING (bus_id)
+                                                  INNER JOIN app.schoolbus_bus_trips sbt USING (bus_id)
+                                                  LEFT JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
                                                   WHERE bus_id = :busId AND s.current_class IN (SELECT class_id FROM app.classes c WHERE c.class_cat_id = :classCatId)
                           		)one
                           	)two
@@ -878,14 +880,114 @@ $app->get('/getClassStudentsInTrip/:tripId/:classCatId', function ($tripId,$clas
                           		WHERE s.active IS TRUE
                               AND s.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = :classCatId)
                           	)one
-                          	INNER JOIN app.schoolbus_trips st ON one.trip_id = st.schoolbus_trip_id
+                          	INNER JOIN app.schoolbus_bus_trips sbt ON one.trip_id = sbt.bus_trip_id
+                          	INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
                           	INNER JOIN app.buses USING (bus_id)
-                          	WHERE trip_id = :tripId
+                          	WHERE sbt.bus_trip_id = :tripId
                           )two
                           LEFT JOIN app.employees e ON two.bus_driver = e.emp_id
                           LEFT JOIN app.employees e2 ON two.bus_guide = e2.emp_id
                           ORDER BY class_name ASC, student_name ASC");
     $sth->execute( array(':tripId' => $tripId, ':classCatId' => $classCatId) );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+} catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
+$app->get('/getAllStudentsInBusInTrip/:busId/:tripId', function ($busId,$tripId) {
+  // Get class students in the trip
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+     $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
+                          	SELECT student_id, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination FROM (
+                          		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                          			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination
+                          		FROM app.students s
+                          		INNER JOIN app.classes c ON s.current_class = c.class_id
+                          		WHERE s.active IS TRUE
+                          	)one
+                          	INNER JOIN app.schoolbus_bus_trips sbt ON one.trip_id = sbt.bus_trip_id
+                          	INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
+                          	INNER JOIN app.buses USING (bus_id)
+				            WHERE sbt.schoolbus_trip_id = :tripId
+                          	AND sbt.bus_id = :busId
+                          )two
+                          LEFT JOIN app.employees e ON two.bus_driver = e.emp_id
+                          LEFT JOIN app.employees e2 ON two.bus_guide = e2.emp_id
+                          ORDER BY class_name ASC, student_name ASC");
+    $sth->execute( array(':tripId' => $tripId, ':busId' => $busId) );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+} catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
+$app->get('/getClassStudentsInBusInTrip/:classCatId/:busId/:tripId', function ($classCatId,$busId,$tripId) {
+  // Get class students in the trip
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+     $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
+                          	SELECT student_id, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination FROM (
+                          		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                          			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination
+                          		FROM app.students s
+                          		INNER JOIN app.classes c ON s.current_class = c.class_id
+                          		WHERE s.active IS TRUE
+                              AND s.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = :classCatId)
+                          	)one
+                          	INNER JOIN app.schoolbus_bus_trips sbt ON one.trip_id = sbt.bus_trip_id
+                          	INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
+                          	INNER JOIN app.buses USING (bus_id)
+				            WHERE sbt.schoolbus_trip_id = :tripId
+                          	AND sbt.bus_id = :busId
+                          )two
+                          LEFT JOIN app.employees e ON two.bus_driver = e.emp_id
+                          LEFT JOIN app.employees e2 ON two.bus_guide = e2.emp_id
+                          ORDER BY class_name ASC, student_name ASC");
+    $sth->execute( array(':tripId' => $tripId, ':classCatId' => $classCatId, ':busId' => $busId) );
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
     if($results) {

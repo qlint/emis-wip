@@ -471,7 +471,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     			{	
     					$scope.bus = ( result.nodata ? [] : result.data );
     					if($scope.bus.length == 0){
-    					    $scope.bus[0] = {student_destination: 'N/A', bus: 'N/A', driver_name: 'N/A', guide_name: 'N/A', trip_name: 'N/A', fee_item: 'NOT INVOICED', amount: 'N/A', route: 'N/A'};
+    					    $scope.bus[0] = {student_destination: 'N/A', bus: 'N/A', driver_name: 'N/A', driver_telephone: 'N/A', guide_name: 'N/A', trip_name: 'N/A', fee_item: 'NOT INVOICED', amount: 'N/A', route: 'N/A'};
     					}
     			}
     			else
@@ -503,7 +503,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.getStudentTripOptions();
 			setTimeout(initializeController,1000);
 			let BtnEl = document.getElementById("saveHood");
-			console.log(BtnEl);
+			// console.log(BtnEl);
 			BtnEl.innnerText = "Saved Successfully";
 			setTimeout(function(){ BtnEl.innnerText = "Save Neighborhood"; }, 2500);
 		}, apiError);
@@ -699,7 +699,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 		else if( tab == 'Transport' )
 		{
-		    console.log("Transport");
+		    // console.log("Transport");
 		    document.getElementById("saveBtn").style.display = "none";
 		    $scope.saving = false;
 		    

@@ -8,12 +8,13 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
     try
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT class_id, class_name, class_cat_id, classes.teacher_id, classes.active, report_card_type,
+        $sth = $db->prepare("SELECT c.class_id, c.class_name, c.class_cat_id, cc.entity_id, c.teacher_id, c.active, report_card_type,
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name
-							FROM app.classes
-							LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
-							WHERE classes.active = :status
-							ORDER BY sort_order");
+							FROM app.classes c
+							INNER JOIN app.class_cats cc USING (class_cat_id)
+							LEFT JOIN app.employees ON c.teacher_id = employees.emp_id
+							WHERE c.active = :status
+							ORDER BY c.sort_order");
        $sth->execute( array(':status' => $status ) );
 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -109,7 +110,7 @@ $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $sta
     try
     {
         $db = getDB();
-		$sth = $db->prepare("SELECT classes.class_id, class_name, classes.class_cat_id, classes.teacher_id, classes.active, class_cat_name,
+		$sth = $db->prepare("SELECT classes.class_id, class_name, classes.class_cat_id, entity_id, classes.teacher_id, classes.active, class_cat_name,
 					first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
 					(select array_agg(distinct subject_name)
 						from app.class_subjects
@@ -136,7 +137,7 @@ $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $sta
 					   (class_subjects.class_id = blogs.class_id AND subjects.teacher_id = blogs.teacher_id)
 					WHERE (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
 					AND classes.active = :status
-					GROUP BY classes.class_id, class_name, classes.class_cat_id, classes.teacher_id, classes.active, class_cat_name,
+					GROUP BY classes.class_id, class_name, classes.class_cat_id, entity_id, classes.teacher_id, classes.active, class_cat_name,
 					teacher_name, subjects, num_students, blog_id, blog_name
 					ORDER BY classes.sort_order");
 
@@ -207,6 +208,49 @@ $app->get('/getAllClassExams/:class_id(/:exam_type_id/:teacher_id)', function ($
 		}
 
 		$query .= " ORDER BY exam_types.sort_order, subjects.sort_order";
+
+        $sth = $db->prepare($query);
+        $sth->execute( $params  );
+
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+             $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+			$app->response()->setStatus(404);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getClassStudentsWithExamInTerm/:class_id/:term_id', function ($classId, $termId) {
+    //Return all associated class subject exams, including the parent subjects
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+				$query = "SELECT r.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, r.class_id, c.class_name, cc.class_cat_id,
+										cc.class_cat_name, cc.entity_id, r.term_id, t.term_name
+									FROM app.report_cards r
+									INNER JOIN app.students s USING (student_id)
+									INNER JOIN app.classes c USING (class_id)
+									INNER JOIN app.class_cats cc USING (class_cat_id)
+									INNER JOIN app.terms t USING (term_id)
+									WHERE r.class_id = :classId and t.term_name = :termId";
+				$params = array(':classId' => $classId, ':termId' => $termId);
 
         $sth = $db->prepare($query);
         $sth->execute( $params  );
@@ -1241,17 +1285,17 @@ $app->get('/getClassCatsSummary', function () {
     try
     {
         $db = getDB();
-        $sth = $db->prepare("SELECT two.*, 
+        $sth = $db->prepare("SELECT two.*,
                             	ARRAY(SELECT '{' || 'class_id:' || c.class_id || ',' || 'class_name:' || c.class_name || ',' || 'boys:' || (SELECT count(*) FROM app.students WHERE gender = 'M' AND active IS TRUE and current_class = c.class_id) || ',' || 'girls:' || (SELECT count(*) FROM app.students WHERE gender = 'F' AND active IS TRUE and current_class = c.class_id) || '}' FROM app.classes c WHERE class_cat_id = two.class_cat_id) AS classes
                             FROM (
                             	SELECT class_cat_id, class_cat_name, num_students,
-                            		(SELECT count(*) FROM app.students 
+                            		(SELECT count(*) FROM app.students
                             		WHERE gender = 'M' AND active IS TRUE
                             		AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = one.class_cat_id)) AS num_boys,
-                            		(SELECT count(*) FROM app.students 
+                            		(SELECT count(*) FROM app.students
                             		WHERE gender = 'F' AND active IS TRUE
                             		AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = one.class_cat_id)) AS num_girls,
-                            		(SELECT count(*) FROM app.students 
+                            		(SELECT count(*) FROM app.students
                             		WHERE gender IS NULL AND active IS TRUE
                             		AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = one.class_cat_id)) AS num_unassigned
                             	FROM (

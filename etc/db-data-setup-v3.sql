@@ -13,12 +13,20 @@ INSERT INTO blog_post_types VALUES (2, 'Homework');
 SELECT pg_catalog.setval('blog_post_types_post_type_id_seq', 2, true);
 
 -- set communication audiences
-INSERT INTO communication_audience VALUES (1, 'School Wide');
-INSERT INTO communication_audience VALUES (2, 'Class Specific');
-INSERT INTO communication_audience VALUES (3, 'All Staff');
-INSERT INTO communication_audience VALUES (4, 'All Teachers');
-INSERT INTO communication_audience VALUES (5, 'Parent');
-SELECT pg_catalog.setval('communication_audience_audience_id_seq', 5, true);
+INSERT INTO communication_audience (audience_id, audience) VALUES (1, 'All Parents');
+INSERT INTO communication_audience (audience_id, audience) VALUES (2, 'Class Specific');
+INSERT INTO communication_audience (audience_id, audience) VALUES (3, 'All Staff');
+INSERT INTO communication_audience (audience_id, audience) VALUES (4, 'All Teachers');
+INSERT INTO communication_audience (audience_id, audience) VALUES (5, 'Parent');
+INSERT INTO communication_audience (audience_id, audience) VALUES (6, 'Transport Route');
+INSERT INTO communication_audience (audience_id, audience) VALUES (7, 'Student Activity');
+INSERT INTO communication_audience (audience_id, audience) VALUES (8, 'House');
+INSERT INTO communication_audience (audience_id, audience) VALUES (9, 'Committee');
+INSERT INTO communication_audience (audience_id, audience) VALUES (10, 'Staff Category');
+INSERT INTO communication_audience (audience_id, audience) VALUES (11, 'Staff Department');
+INSERT INTO communication_audience (audience_id, audience) VALUES (12, 'Student Type');
+INSERT INTO communication_audience (audience_id, audience) VALUES (13, 'Employee');
+SELECT pg_catalog.setval('communication_audience_audience_id_seq', 13, true);
 
 -- set communications types
 INSERT INTO communication_types VALUES (1, 'General');
@@ -282,7 +290,7 @@ INSERT INTO settings VALUES ('Student Categories', 'Regular,Scholership,Fully Sp
 INSERT INTO settings VALUES ('Medical Conditions', 'Allergies,Asthma,Convulsions,Diabetes,Disability,Ear Problems,Epilepsy,Eye Problems,Extreme Tiredness,Fainting Spells,Frequent Headaches,Memory Problems,Meningitis,Sleeping Problems,Other');
 INSERT INTO settings VALUES ('Titles', 'Mr,Mrs,Ms,Dr');
 INSERT INTO settings VALUES ('Initial Year', date_part('year',now()));
-INSERT INTO settings VALUES ('Payment Methods', 'Cash,Cheque,Bank Transfer');
+INSERT INTO settings VALUES ('Payment Methods', 'Cash,Cheque,Bank Transfer,MPESA');
 INSERT INTO settings VALUES ('Term Start Month', '1');
 INSERT INTO settings VALUES ('Payment Options', 'Annually,Installments');
 INSERT INTO settings VALUES ('Frequencies', 'per term,yearly,once');
