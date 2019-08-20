@@ -25,7 +25,13 @@
     	    // now we can create a second db connection for each of the db's above and execute a query on each
     	    
     	    $schoolDb = pg_connect("host=localhost port=5432 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
-    	    $executeOnSchoolDb = pg_query($schoolDb,'ALTER TABLE app.schoolbus_trips ADD COLUMN class_cats character varying;'); // executing the query
+    	    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO app.communication_audience(audience_id, audience) 
+                                                    VALUES (14, 'All Students In Neighborhood(s)'),
+                                                    (15, 'All Students In A Trip'),
+                                                    (16, 'All Students In Neighborhood(s) In Trip'),
+                                                    (17, 'Class Students In Neighborhood(s)'),
+                                                    (18, 'Class Students In A Trip'),
+                                                    (19, 'Class Students In Neighborhood(s) In Trip');"); // executing the query
     	    echo $dbOutput; // just an output of all our db's
     }
 ?>

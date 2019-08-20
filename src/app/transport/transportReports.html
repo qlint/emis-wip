@@ -58,7 +58,7 @@
 						<label for="trips">Trip</label>
 						<select id="trips" class="form-control" ng-model="filters.trip" >
 							<option disabled>-- Select Trip --</option>
-                            <option ng-repeat="trip in trips track by $index" value="{{trip.schoolbus_trip_id}}">{{trip.trip_name}}</option>
+              <option ng-repeat="trip in trips track by $index" value="{{trip.schoolbus_trip_id}}">{{trip.trip_name}}</option>
 						</select>
 					</div>
 
@@ -67,16 +67,16 @@
 						<label for="classes">Class</label>
 						<select id="classes" class="form-control" ng-model="filters.class" >
 							<option disabled>-- Select Class --</option>
-                            <option ng-repeat="class in classCats track by $index" value="{{class.class_cat_id}}">{{class.class_cat_name}}</option>
+              <option ng-repeat="class in classCats track by $index" value="{{class.class_cat_id}}">{{class.class_cat_name}}</option>
 						</select>
 					</div>
 
-                    <!-- stream select -->
-                    <div class="form-group" ng-show="needsStream">
+          <!-- stream select -->
+          <div class="form-group" ng-show="needsStream">
 						<label for="classes">Stream</label>
 						<select id="stream" class="form-control" ng-model="filters.stream" >
 							<option disabled>-- Select Stream --</option>
-                            <option ng-repeat="strm in stream track by $index" value="{{strm.stream_id}}">{{strm.stream_name}}</option>
+              <option ng-repeat="strm in stream track by $index" value="{{strm.stream_id}}">{{strm.stream_name}}</option>
 						</select>
 					</div>
 
@@ -279,7 +279,7 @@
                                         </tbody>
                                 </table>
                             </div>
-                            
+
                             <!-- all students in a bus in a trip -->
                             <div ng-show="allStudentsInTripInBus" id="allStudentsInTripInBusDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>
@@ -361,7 +361,7 @@
                                         </tbody>
                                 </table>
                             </div>
-                            
+
                             <!-- class students in a bus in a trip -->
                             <div ng-show="classStudentsInTripInBus" id="classStudentsInTripInBusDiv" style="max-height: 340px;overflow-y: scroll;">
                                 <table id='resultsTable'>

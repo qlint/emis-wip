@@ -212,6 +212,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true,
 						},
+						'transport_communications': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
 						'transport_reports': {
 							'view': true,
 							'add': true,
@@ -352,6 +357,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 									},
 									*/
 									'mapped_history': {
+										'view': true,
+										'add': true,
+										'edit': true,
+									},
+									'transport_communications': {
 										'view': true,
 										'add': true,
 										'edit': true,
@@ -620,6 +630,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
     							'add': true,
     							'edit': true,
     					},
+							'transport_communications': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
 							'transport_reports': {
 								'view': true,
 								'add': true,

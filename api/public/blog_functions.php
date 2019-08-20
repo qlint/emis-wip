@@ -903,7 +903,7 @@ $app->get('/getCommunicationOptions', function () {
   {
     $db = getDB();
     $sth1 = $db->prepare("SELECT * FROM app.communication_types ORDER BY com_type");
-    $sth2 = $db->prepare("SELECT * FROM app.communication_audience ORDER BY audience");
+    $sth2 = $db->prepare("SELECT * FROM app.communication_audience WHERE audience_id < 13 ORDER BY audience");
     $sth1->execute();
     $sth2->execute();
     $types = $sth1->fetchAll(PDO::FETCH_OBJ);
@@ -1553,10 +1553,7 @@ $app->post('/addCommunication', function () use($app) {
 $app->post('/customAddCommunication', function () use($app) {
   // Add communication
 
-
-
   $allPostVars = json_decode($app->request()->getBody(),true);
-
 
   $subject =    ( isset($allPostVars['post']['title']) ? $allPostVars['post']['title']: null);
   $message =    ( isset($allPostVars['post']['body']) ? $allPostVars['post']['body']: null);
@@ -1579,8 +1576,14 @@ $app->post('/customAddCommunication', function () use($app) {
   $sent =  ( isset($allPostVars['post']['sent']) ? $allPostVars['post']['sent']: null);
   $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
-
-
+  // these are for use only when posting from the transport module
+  $transportFilters = ( isset($allPostVars['post']['filters']) ? $allPostVars['post']['filters']: null);
+  if($transportFilters !== null){
+    $neighborhoodSelect =  ( isset($allPostVars['post']['filters']['neighborhoods']) ? $allPostVars['post']['filters']['neighborhoods']: null);
+    $classCatSelect =  ( isset($allPostVars['post']['filters']['class_cat_id']) ? $allPostVars['post']['filters']['class_cat_id']: null);
+    $tripIdSelect =  ( isset($allPostVars['post']['filters']['schoolbus_trip_id']) ? $allPostVars['post']['filters']['schoolbus_trip_id']: null);
+    $busIdSelect =  ( isset($allPostVars['post']['filters']['bus_id']) ? $allPostVars['post']['filters']['bus_id']: null);
+  }
 
   try
   {
@@ -1699,6 +1702,135 @@ $app->post('/customAddCommunication', function () use($app) {
                                             INNER JOIN app.communications ON fee_items.fee_item = communications.activity
                                             WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
         }
+        else if( $audienceId === 14 )
+        {
+          // recipients by student neighborhood
+          $pullRecipients = $db->prepare("SELECT guardians.email
+                                          FROM app.guardians
+                                          INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                          INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                          WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'");
+
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT students.student_id FROM app.students
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'");
+        }
+        else if( $audienceId === 15 )
+        {
+          // recipients by student schoolbus trip
+          $pullRecipients = $db->prepare("SELECT email FROM (
+                                            SELECT guardians.email, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.guardians
+                                            INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                            INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                            WHERE students.active = TRUE
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT student_id FROM (
+                                            SELECT students.student_id, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.students
+                                            WHERE students.active = TRUE
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+        }
+        else if( $audienceId === 16 )
+        {
+          // recipients by students in neighborhood in schoolbus trip
+          $pullRecipients = $db->prepare("SELECT email FROM (
+                                            SELECT guardians.email, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.guardians
+                                            INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                            INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT student_id FROM (
+                                            SELECT students.student_id, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.students
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+        }
+        else if( $audienceId === 17 )
+        {
+          // recipients by class students in neighborhood
+          $pullRecipients = $db->prepare("SELECT guardians.email
+                                          FROM app.guardians
+                                          INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                          INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                          WHERE students.active = TRUE
+                                          AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                          AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)");
+
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT students.student_id
+                                          FROM app.students
+                                          WHERE students.active = TRUE
+                                          AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                          AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)");
+        }
+        else if( $audienceId === 18 )
+        {
+          // recipients by class students in schoolbus trip
+          $pullRecipients = $db->prepare("SELECT email FROM (
+                                            SELECT guardians.email, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.guardians
+                                            INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                            INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                            WHERE students.active = TRUE
+                                            AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT student_id FROM (
+                                            SELECT students.student_id, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.students
+                                            WHERE students.active = TRUE
+                                            AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+        }
+        else if( $audienceId === 19 )
+        {
+          // recipients by class students in neighborhood in schoolbus trip
+          $pullRecipients = $db->prepare("SELECT email FROM (
+                                            SELECT guardians.email, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.guardians
+                                            INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                            INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                            AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+
+          $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
+
+          $studentsToNotify = $db->prepare("SELECT student_id FROM (
+                                            SELECT students.student_id, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.students
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                            AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+        }
 
         $insertEmail = $db->prepare("INSERT INTO app.communication_emails(com_id, email_address)
                                      VALUES(CURRVAL('app.communications_com_id_seq'), :email)");
@@ -1807,6 +1939,86 @@ $app->post('/customAddCommunication', function () use($app) {
           // specific employee
           $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM app.employees WHERE emp_id = :employeeId");
           $params = array(':employeeId' => $employeeId);
+
+        }
+        else if( $audienceId === 14 )
+        {
+          // students in neighborhood
+          $pullRecipients = $db->prepare("SELECT guardians.first_name, guardians.last_name, guardians.telephone
+                                          FROM app.guardians
+                                          INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                          INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                          WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'");
+
+        }
+        else if( $audienceId === 15 )
+        {
+          // students in schoolbus trip
+          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM (
+                                            SELECT guardians.first_name, guardians.last_name, guardians.telephone, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.guardians
+                                            INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                            INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                            WHERE students.active = TRUE
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+
+        }
+        else if( $audienceId === 16 )
+        {
+          // students in neighborhood in trip
+          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM (
+                                            SELECT guardians.first_name, guardians.last_name, guardians.telephone, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.guardians
+                                            INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                            INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+
+        }
+        else if( $audienceId === 17 )
+        {
+          // class students in neighborhood
+          $pullRecipients = $db->prepare("SELECT guardians.first_name, guardians.last_name, guardians.telephone
+                                          FROM app.guardians
+                                          INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                          INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                          WHERE students.active = TRUE
+                                          AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                          AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)");
+
+        }
+        else if( $audienceId === 18 )
+        {
+          // class students in schoolbus trip
+          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM (
+                                            SELECT guardians.first_name, guardians.last_name, guardians.telephone, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.guardians
+                                            INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                            INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                            WHERE students.active = TRUE
+                                            AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
+
+        }
+        else if( $audienceId === 19 )
+        {
+          // class students in neighborhood in schoolbus trip
+          $pullRecipients = $db->prepare("SELECT first_name, last_name, telephone FROM (
+                                            SELECT guardians.first_name, guardians.last_name, guardians.telephone, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
+                                            FROM app.guardians
+                                            INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
+                                            INNER JOIN app.students ON student_guardians.student_id = students.student_id
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                            AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)
+                                          )one
+                                          INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
+                                          WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
 
         }
 

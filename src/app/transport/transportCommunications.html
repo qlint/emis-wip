@@ -1,0 +1,143 @@
+<style type="text/css">
+    .table-striped tbody tr:hover{background-color:#80ffaa !important;cursor: pointer;font-weight: 900;}
+</style>
+<div ng-controller="transportCommunicationsCtrl">
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+
+			<div class="clearfix">
+				<h1 id="pageTitle" class="t_title">Transport Communications Dashboard</h1>
+			</div>
+
+		</div>
+
+		<div id="body-content" style="margin-top:125px;margin-left:25px;">
+
+    	<div class="row">
+
+    			<div class="col-sm-6 t_tabs" style="width:47%;height:370px;">
+    				<div class="dashboard-panel">
+    					<div class="dashboard-panel-header">
+    						<h2>Select The Audience</h2>
+    					</div>
+    					<div class="row dashboard-panel-body">
+    						<div class="stripped">
+    							<div>
+    							    <div><h4>Who Is This Message To?</h4></div>
+                      <select name="audience" id="slctdAudience" style="width: 95%;border-radius: 4px;" ng-model="selectedAudience" ng-change="showMessageBox(this)">
+                          <option disabled>---SELECT THE AUDIENCE---</option>
+                          <option ng-repeat="audnce in transportAudience track by $index" value="{{audnce}}">{{audnce}}</option>
+                      </select><br>
+                  </div>
+                  <div class="row" style="margin-left:auto;">
+                      <div><h4>Please Make A Selection</h4><br><p>*All selection fields are required.</p></div>
+                      <div class="col-sm-4 nopad-left" ng-show="needsHood">
+                        <select name="selectedRoutes[]" id="multiRoute" multiple style="width:100%;height:90px;" ng-model="selectedHoods" ng-click="selectRoutes()">
+                          <option ng-repeat="zone in zones track by $index" value="{{zone}}">{{zone}}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-4 nopad-left" ng-show="needsClass">
+                        <h4>Class</h4>
+                        <select ng-model="selectedClass">
+                          <option disabled>---CLASS---</option>
+                          <option ng-repeat="cat in classCats track by $index" value="{{cat.class_cat_id}}">{{cat.class_cat_name}}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-4 nopad-left" ng-show="needsTrip">
+                        <h4>Trip</h4>
+                        <select ng-model="selectedTrip">
+                          <option disabled>---TRIP---</option>
+                          <option ng-repeat="trip in trips track by $index" value="{{trip.schoolbus_trip_id}}">{{trip.trip_name}}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-4 nopad-left" ng-show="needsBus">
+                        <h4>Bus</h4>
+                        <select ng-model="selectedBus">
+                          <option disabled>---BUS---</option>
+                          <option ng-repeat="bus in buses track by $index" value="{{bus.bus_id}}">{{bus.bus_type}} - {{bus.bus_registration}}</option>
+                        </select>
+                      </div>
+                  </div>
+    							<div class="btnSpacer">
+										<button type="button" class="btn btn-primary" ng-click="typeMessage()">Continue</button>
+									</div>
+    							<div ng-show="msgCreation" class="btnSpacer" style="background-color: #00e673;height: 25px;width: 97%;border-radius: 4px;border: 1px solid #001a0d;">
+    							    <h3 style="text-align: center;font-size: 18px;margin-top:auto;color: #000;">{{msgCreationStatus}}.</h3>
+    							</div>
+    						</div>
+    					</div>
+    				</div>
+
+    			</div>
+
+          <div class="col-sm-6 t_tabs" style="width:47%;height:370px;">
+    				<div class="dashboard-panel">
+    					<div class="dashboard-panel-header">
+    						<h2>Pick The Message Type &amp; Enter The Message</h2>
+    					</div>
+              <div class="row" style="margin-left:auto;">
+                  <label class="col-sm-4 nopad-left"><input id="smsCheck" type="radio" value="sms" name="msgType" ng-model="selectedType" style="vertical-align:middle;" disabled>Send Via SMS</label>
+                  <label class="col-sm-4 nopad-left"><input id="appCheck" type="radio" value="app" name="msgType" ng-model="selectedType" style="vertical-align:middle;" disabled>Send Via Mobile App</label>
+                  <label class="col-sm-4 nopad-left"><input id="bothCheck" type="radio" value="both" name="msgType" ng-model="selectedType" style="vertical-align:middle;" disabled>Send To Both SMS &amp; App</label>
+              </div>
+    					<div class="row dashboard-panel-body">
+    						<textarea id="theMsg" name="message" ng-model="messageBody" rows="8" cols="95" style="border:1px solid #000000;border-radius:4px;width:100%;" disabled></textarea>
+
+                <div class="btnSpacer">
+                  <button id="postMsg" type="button" class="btn btn-primary" ng-click="postTransportMsg()" disabled>Send Message</button>
+                </div>
+    						<div ng-show="postMsgStatus" class="btnSpacer" style="background-color: #00e673;height: 25px;width: 97%;border-radius: 4px;border: 1px solid #001a0d;">
+    						    <h3 style="text-align: center;font-size: 18px;margin-top:auto;color: #000;">{{postMsgStatusText}}</h3>
+    						</div>
+    					</div>
+    				</div>
+    			</div>
+
+    		</div><!-- end row -->
+
+        <div class="row">
+    		    <div class="busmanagementtbl">
+    		        <h4 class="center">Previous Messages Log</h4>
+        		    <table class="table table-striped">
+                        <thead style="background-color:#49E747;">
+                            <tr>
+                                <th>Date</th>
+                                <th>Audience</th>
+                                <th>Specific</th>
+                                <th>Message</th>
+                                <th>Recipients</th>
+                                <th>Success</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in allTransportData track by $index"  ng-click="viewStudentsInBus(this)">
+                                <td width="10%">{{item.bus_type}}</td>
+                                <td width="10%">{{item.bus_registration}}</td>
+                                <td width="10%">{{item.trip_name}}</td>
+                                <td width="40%">{{item.destinations}}</td>
+                                <td width="15%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.driver_name}}</td>
+                                <td width="15%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.guide_name}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+    		</div><!-- end row -->
+
+	    </div>
+
+	</div>
+</div>

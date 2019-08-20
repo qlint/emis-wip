@@ -6,7 +6,7 @@
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 			<h4 class="modal-title">REPORT CARDS BULK PRINT  {{term.term_name}}</h4>
 		</div>
-		<div class="modal-body progress-report {{reportCardType|lowercase}}" ng-show="false">
+		<div class="modal-body progress-report {{reportCardType|lowercase}}" ng-show="true">
 
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
@@ -1199,7 +1199,7 @@
 		<div class="modal-footer">
 
 		<img src="assets/spinner.gif" />
-			<div class="pull-left" ng-show="true">
+			<div class="pull-left" ng-show="false">
 				<p class="error alert alert-danger">
 				Loading Bulk Data. Please wait!
 			</p>

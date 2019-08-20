@@ -441,28 +441,24 @@ $app->get('/getStudentsInBus/:busId', function ($busId) {
   {
     $db = getDB();
 
-     $sth = $db->prepare("SELECT student_id, student_name, student_destination, bus_id, bus, destinations, bus_driver, bus_guide, driver_name, guide_name, trip_name, class_cats, class_name FROM (
-                          	SELECT student_id, student_name, current_class, student_destination, bus_id, bus, destinations, bus_driver, bus_guide, driver_name, guide_name, trip_name, class_cats
-                          	FROM (
-                          		SELECT *, string_to_array(class_cats,',')::int[] AS class_cats_arr FROM (
-                          			SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, current_class,
-                          				s.destination AS student_destination, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus,
-                          				b.destinations, b.bus_driver,
-                                                  	b.bus_guide,
-                                                  	e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name,
-                                                          e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name,
-                                                          st.trip_name, st.class_cats
-                                                  FROM app.buses b
-                                                  INNER JOIN app.students s ON b.destinations ILIKE '%' || s.destination || '%'
-                                                  LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
-                                                  LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
-                                                  LEFT JOIN app.schoolbus_bus_trips sbt USING (bus_id)
-                                                  LEFT JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
-                                                  WHERE bus_id = :busId
-                          		)one
-                          	)two
-                          )three
-                          INNER JOIN app.classes c ON c.class_id = current_class");
+     $sth = $db->prepare("SELECT one.*, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.destinations, b.bus_driver,
+                						b.bus_guide, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name,
+                						e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name, st.trip_name,
+                						st.class_cats
+                					FROM (
+                						SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, class_name, current_class,
+                                          				s.destination AS student_destination, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS student_trips
+                                                                  FROM app.students s
+                                                                  INNER JOIN app.classes c ON s.current_class = c.class_id
+                                                                  WHERE s.active IS TRUE
+                					)one
+                					INNER JOIN app.schoolbus_bus_trips sbt ON one.student_trips = sbt.bus_trip_id
+                                                        INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
+                                                        INNER JOIN app.buses b USING (bus_id)
+                                                        LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
+                					LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                					WHERE sbt.bus_id = :busId
+                					ORDER BY class_name ASC, student_name ASC");
     $sth->execute( array(':busId' => $busId) );
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
