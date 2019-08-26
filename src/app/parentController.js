@@ -807,7 +807,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 	$scope.openModal = function (section, view, size, item)
 	{
-        if( $('#filterLinks').hasClass('in') )
+		if( $('#filterLinks').hasClass('in') )
 		{
 			$('#subnav').trigger('click');
 		}

@@ -150,7 +150,7 @@ function getChartPath()
 		</div> -->
     <div class="modal-footer">
 			<button type="button" class="btn btn-info" ng-click="cancel()">Close</button>
-			<button id="printAll" type="button" class="btn btn-success"><i class="glyphicon glyphicon-print"></i> Print</button>
+			<button id="printAll" type="button" class="btn btn-primary"><i class="glyphicon glyphicon-print"></i> Print</button>
 		</div>
 
 		<div id="allReports" class="modal-body progress-report {{reportCardType|lowercase}}">
@@ -214,11 +214,19 @@ function getChartPath()
 			<div ng-show="true" ng-repeat="student in AllData track by $index">
 
 				<div>
-				<!-- <div class="receipt-header-letterhead row" ng-if="useLetterhead">
-					<img class="center col-sm-3" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
-					<h2 class="receipt-title col-sm-6">Termly Assesment Report</h2>
-					<img class="col-sm-3" id="testdiv" src="assets/students/{{student.student_image}}" title="{{student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;max-width:150px;" />
-				</div>
+					<style type="text/css"> @import url("components/css/customSettingReportCard.css"); </style>
+
+					<div class="receipt-header-letterhead row" ng-if="useLetterhead">
+						<div class="col-sm-3">
+							<h2 class="receipt-title">Progress<br>Report</h2>
+						</div>
+						<div class="col-sm-6">
+							<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" style="max-width:99%; height:auto;" />
+						</div>
+						<div class="col-sm-3">
+							<img id="testdiv" src="assets/students/{{student.student.student_image}}" title="{{student.student.student_name}} Image" alt="{{student.student.student_name}} Image" style="max-width:150px; height:auto;float:right;" />
+						</div>
+					</div>
 
 				<div class="row progress-report-header"  ng-if="!useLetterhead">
 					<div class="col-xs-2">
@@ -227,13 +235,13 @@ function getChartPath()
 					<div class="col-xs-8">
 						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
 						<div class="school-address">
-							<p>{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
-							<p>Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
-							<p>Email: {{currentUser.settings['Email Address']}}</p>
+							<p ng-hide="wantAutomatedComments">{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
+							<p ng-hide="wantAutomatedComments">Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
+							<p ng-hide="wantAutomatedComments">Email: {{currentUser.settings['Email Address']}}</p>
 						</div>
-						<h2 class="report-card-title">Termly Assesment Report</h2>
+						<h2 class="report-card-title">Progress Report</h2>
 					</div>
-				</div> -->
+				</div>
 
 				<div ng-include="reportCardType"></div>
 
@@ -255,32 +263,6 @@ function getChartPath()
 						Report card has been re-created.
 						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
 					</div>
-					<div class="receipt-header-letterhead row" ng-if="useLetterhead">
-						<div class="col-sm-3 noPrint">
-							<h2 class="receipt-title">Termly<br>Assesment<br>Report</h2>
-						</div>
-						<div class="center col-sm-6">
-							<img src="assets/schools/{{currentUser.settings['Letterhead']}}" style="width:100%; height:auto;" />
-						</div>
-						<div class="col-sm-3 noPrint">
-							<img id="testdiv" src="assets/students/{{student.student.student_image}}" title="{{student.student.student_name}} Image" alt="{{student.student_name}} Image" style="float:right;" ng-style="{ 'width' : isStudentImage ? '50%' : '0%' }" />
-						</div>
-					</div>
-
-					<div class="row progress-report-header"  ng-if="!useLetterhead">
-						<div class="col-xs-2">
-							<img src="assets/schools/{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" />
-						</div>
-						<div class="col-xs-8">
-							<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
-							<div class="school-address">
-								<p>{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
-								<p>Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
-								<p>Email: {{currentUser.settings['Email Address']}}</p>
-							</div>
-							<h2 class="report-card-title">Termly Assesment Report</h2>
-						</div>
-					</div>
 					<div class="progress-report-student">
 						<!-- name and adm number -->
 						<div class="row">
@@ -297,28 +279,13 @@ function getChartPath()
 								<p class="form-control-static">{{student.student.admission_number}}</p>
 							</div>
 						</div>
-						<!-- kcpe marks and school house -->
-						<div class="row">
-							<div class="col-xs-1 nopad-right">
-								<label class="">KCPE Marks:</label>
-							</div>
-							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{student.student.kcpe_marks}}</p>
-							</div>
-							<div class="col-xs-1 nopad-right">
-								<label>House:</label>
-							</div>
-							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{student.student.school_house}}</p>
-							</div>
-						</div>
 						<!-- class, term and year -->
 						<div class="row">
 							<div class="col-xs-1 nopad-right">
 								<label>Class:</label>
 							</div>
 							<div class="col-xs-3 lesspad">
-								<p class="form-control-static">{{student.report.class_name}}</p>
+								<p class="form-control-static">{{student.student.class_name}}</p>
 							</div>
 							<div class="col-xs-1 nopad-right">
 								<label>Term:</label>
@@ -334,9 +301,9 @@ function getChartPath()
 							</div>
 						</div>
 						<!-- position, out of, pos last term, out of -->
-						<div class="row">
+						<div class="row" ng-hide="noRanking">
 							<div class="col-xs-1 nopad-right">
-								<label>Position:</label>
+								<label>{{wantAutomatedComments ? 'Stream Position:':'Position:'}}</label>
 							</div>
 							<div class="col-xs-3 lesspad">
 								<p class="form-control-static inline">{{student.overall.rank}}</p> / <p class="form-control-static inline">{{student.overall.position_out_of}}</p>
@@ -357,26 +324,27 @@ function getChartPath()
 							</div>
 						</div>
 						<!-- stream position, out of, stream pos last term, out of -->
-						<div class="row">
-							<div class="col-xs-1 nopad-right">
-								<label>Stream Position:</label>
+						<div class="row" ng-hide="noRanking">
+
+							<div ng-hide="wantStreamPos" class="col-xs-1 nopad-right">
+								<label>{{wantAutomatedComments ? 'Class Position:':'Stream Position:'}}</label>
 							</div>
-							<div class="col-xs-3 lesspad">
-								<p class="form-control-static inline">{{student.streamRankPosition}}</p> / <p class="form-control-static inline">{{student.streamRankOutOf}}</p>
+							<div ng-hide="wantStreamPos" class="col-xs-3 lesspad">
+								<p class="form-control-static inline">{{student.streamRankPosition||'-'}}</p> / <p class="form-control-static inline">{{student.streamRankOutOf||'--'}}</p>
 							</div>
 
-							<div class="col-xs-2 nopad-right">
-								<label>Stream Pos Last Term:</label>
+							<div ng-hide="wantStreamPos" class="col-xs-2 nopad-right">
+								<label>{{wantAutomatedComments ? 'Class Last Term:':'Stream Last Term:'}}</label>
 							</div>
-							<div class="col-xs-2 lesspad">
+							<div ng-hide="wantStreamPos" class="col-xs-2 lesspad">
 								<p class="form-control-static inline">{{student.streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{student.streamRankOutOfLastTerm||'--'}}</p>
 							</div>
 
-							<div class="col-xs-2 nopad-right">
+							<div ng-show="isSchool" class="col-xs-2 nopad-right">
 								<label>Current Term Marks:</label>
 							</div>
-							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{student.thisTermMarks||'-'}}</p> / <p class="form-control-static inline">{{student.thisTermMarksOutOf||'-'}}</p>
+							<div ng-show="isSchool" class="col-xs-2 lesspad">
+								<p class="form-control-static inline">{{student.overall.current_term_marks||'-'}}</p> / <p class="form-control-static inline">{{student.overall.current_term_marks_out_of||'-'}}</p>
 							</div>
 						</div>
 					</div>
@@ -384,136 +352,471 @@ function getChartPath()
 					<table class="display dataTable" cellspacing="0" width="100%">
 						<thead>
 							<tr>
-								<th rowspan="3" class="center">Subject</th>
-								<th class="center double-border" colspan="{{student.examTypes.length*3}}">Marks</th>
-								<th id="colsHidden" rowspan="2" colspan="{{ isSchool ? '4' : '2'}}" class="center double-border isSchool colsHidden">Overall</th>
-								<!-- <th rowspan="2" colspan="4" class="center double-border isSchool">Overall</th> -->
-								<th class="center double-border remarks" rowspan="3" width="300">Remarks</th>
-								<th class="center" rowspan="3">Teacher<br>Int.</th>
+								<th rowspan="3" class="center">{{subj_name}}</th>
+								<!-- <th class="center double-border" colspan="{{noRanking ? examTypes.length*2:examTypes.length*3}}">Marks</th> -->
+								<th class="center double-border" colspan="{{noRanking ? examTypes.length*2 : isSchool? examTypes.length*2 : examTypes.length*3}}">Marks</th>
+								<th ng-show="isSchool" rowspan="2" colspan="2" class="center double-border">Overall</th>
+								<th class="center double-border" rowspan="3" width="300">{{rmks}}</th>
+								<th ng-hide="noRanking" class="center" rowspan="3">Teacher<br>Int.</th>
 							</tr>
 							<tr>
-								<th class="center double-border" colspan="3" ng-repeat="item in student.examTypes">{{item.exam_type}}</th>
+								<th class="center double-border" colspan="{{noRanking ? 2 : isSchool ? 2 : 3}}" ng-repeat="item in examTypes">{{item.exam_type}}</th>
 							</tr>
 							<tr>
-								<th class="center double-border" ng-repeat-start="item in student.examTypes">Mark</th>
-								<th class="center">Out Of</th>
+								<th class="center double-border" ng-repeat-start="item in examTypes">{{noRanking ?'Mark %':'Mark'}}</th>
+								<th ng-hide="noRanking || isSchool" class="center">Out Of</th> <!--undo the ng-repeat-end -->
 								<th class="center" ng-repeat-end="">Grade</th>
-								<!-- <th class="center double-border isSchool">CAT 30%</th> -->
-								<th ng-show="isSchool" class="center double-border isSchool hideColTillEt">CAT 30%</th>
-								<!-- <th class="center double-border isSchool">END 70%</th> -->
-								<th ng-show="isSchool" class="center double-border isSchool hideColTillEt">END 70%</th>
-								<th class="center double-border">Avg</th>
-								<th class="center">Grade</th>
+								<th ng-show="isSchool" class="center double-border">Avg</th>
+							    <th ng-show="isSchool" class="center">Grade</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr ng-repeat="item in student.reportData.subjects track by $index">
 								<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
-								<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in student.examTypes">{{item.marks[examType.exam_type].mark}}</td>
-								<td class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
+								<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
+								<td  ng-hide="noRanking || isSchool" class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
 								<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
-								<td ng-show="isSchool" class="center strong double-border isSchool hideColTillEt"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td>
-								<!-- <td class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot30}}</span></td> -->
-								<td ng-show="isSchool" class="center strong double-border isSchool hideColTillEt"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td>
-								<!-- <td class="center strong double-border isSchool"><span ng-hide="item.parent_subject_name!==null">{{item.tot70}}</span></td> -->
-								<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
-								<td class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
-								<td class="remarks double-border">
-									<span class="span-border">{{item.remarks}}</span>
-									<!-- <input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" /> -->
-									<!-- <input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" readonly style="background-color:#ffffff;" /> -->
+								<td ng-show="isSchool" class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
+								<td ng-show="isSchool" class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
+								<td class="double-border">
+									<span ng-show="isPrinting">{{item.remarks}}</span>
+									<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
 								</td>
-								<td>{{item.initials}}</td>
+								<td ng-hide="noRanking">{{item.initials}}</td>
 							</tr>
 						</tbody>
 						<tfoot>
 							<tr>
-								<th class="center">Total</th>
-								<th class="center double-border" ng-repeat-start="examType in examTypes">{{student.totals[examType.exam_type].total_mark}}</th>
-								<th class="center">{{student.totals[examType.exam_type].total_grade_weight}}</th>
+								<th class="center">{{noRanking ? '_':'Total'}}</th>
+								<th class="center double-border" ng-repeat-start="examType in examTypes">{{noRanking ? '_':student.totals[examType.exam_type].total_mark}}</th>
+								<th ng-hide="noRanking || isSchool" class="center">{{student.totals[examType.exam_type].total_grade_weight}}</th>
 								<th class="center" ng-repeat-end=""></th>
-								<th ng-show="isSchool" class="center isSchool hideColTillEt"></th>
-								<!-- <th class="center isSchool"></th> -->
-								<th ng-show="isSchool" class="center isSchool hideColTillEt"></th>
-								<!-- <th class="center isSchool"></th> -->
-								<th class="center double-border getpercentage">{{student.thisTermPercentage}}%</th>
-								<th class="center">{{student.thisTermGrade}}</th>
+								<th ng-show="isSchool" class="center double-border getpercentage">{{student.overall.percentage}}%</th>
+								<th ng-show="isSchool" class="center">{{student.overall.grade}}</th>
 								<th colspan="2" class="center double-border"></th>
 							</tr>
 						</tfoot>
 					</table>
 
-					<div class="row">
+					<div id="{{noRanking ? 'tblGroup1':'chartDiv'}}" class="row {{noRanking ? 'tblGroup1':'chartDiv'}} cbc1">
+					    <div class="col-md-3"></div>
 						<div class="col-md-6">
-							<img  class="col-md-6" id="url"   src="{{chart_path}}" onError="this.onerror=null;this.src='assets/x.png';this.style.height='65px';this.style.width='400px';"  />
-						</div>
-						<div class="col-md-6">
-							<table id="avaragesTable" class="display dataTable" cellspacing="0" width="100%">
+							<img ng-hide="noRanking" class="col-md-6"  style="width:400px;height:200px;" id="hidecolumn url"   src="{{student.chart_path}}"  />
+							<table ng-show="noRanking" id="avaragesTable3" class="display dataTable" cellspacing="0" width="85%" border="1">
 							  <tr>
-							    <th colspan="4" style="text-align:center;">FORM {{student.report.class_name}}</th>
+							    <th colspan="4" style="text-align:center;">KEY TABLE</th>
 							  </tr>
 							  <tr>
-							    <th  class="center">Term</th>
-							    <th  class="center">Pos</th>
-							    <th  class="center">Out Of</th>
+							    <th colspan="2" style="text-align:center;">Details</th>
+							    <th colspan="2" style="text-align:center;">Grade</th>
+							  </tr>
+							  <tr>
+							    <th  class="center">Key</th>
+							    <th  class="center">Comment</th>
 							    <th  class="center">Grade</th>
+							    <th  class="center">Range</th>
 							  </tr>
-							  <tr>
-							    <td  class="center">{{student.report.term}}</td>
-							    <td  class="center">{{student.streamRankPosition}}</td>
-							    <td  class="center">{{student.streamRankOutOf}}</td>
-							    <td  class="center">{{student.overall.grade}}</td>
-							  </tr>
-							  <tr>
-									<td  class="center">-</td>
-                  <td  class="center">{{student.streamRankPositionLastTerm||'-'}}</td>
-							    <td  class="center">{{student.streamRankOutOfLastTerm||'--'}}</td>
-							    <td  class="center">{{student.overallLastTerm.grade||'--'}}</td>
+							  <tr ng-repeat="item in grades2 track by $index">
+							    <td  class="center">{{item.kiswahili_comment}}</td>
+							    <td  class="center">{{item.comment}}</td>
+							    <td  class="center">{{item.grade2}}</td>
+							    <td  class="center">{{item.min_mark}} - {{item.max_mark}}</td>
 							  </tr>
 							</table>
 						</div>
+						<div class="col-md-3"></div>
 					</div>
 
+					<!-- CBC tables - Competency Based Curriculum -->
+					<div ng-show="noRanking" class="row tblGroup1 cbc2">
+					    <div class="col-md-1"></div>
+						<div class="col-md-10">
+							<table id="avaragesTable3" class="display dataTable" cellspacing="0" width="100%" border="1">
+							  <tr>
+							    <th colspan="3" style="text-align:center;">ACQUISITION OF COMPETENCIES</th>
+							  </tr>
+							  <tr>
+							    <th  class="center">Competency</th>
+							    <th  class="center">Performance Indicators (EE, ME, AE, BE)</th>
+							    <th  class="center">Teacher's Comment</th>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Communication and collaboration
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc[0]" ng-change="updateReport()" />
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc_teacher[0]" ng-change="updateReport()" />
+							    </td>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Critical thinking and problem solving
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc[1]" ng-change="updateReport()" />
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc_teacher[1]" ng-change="updateReport()" />
+							    </td>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Imagination and creativity
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc[2]" ng-change="updateReport()" />
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc_teacher[2]" ng-change="updateReport()" />
+							    </td>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Learning to learn
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc[3]" ng-change="updateReport()" />
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc_teacher[3]" ng-change="updateReport()" />
+							    </td>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Digital literacy
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc[4]" ng-change="updateReport()" />
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc_teacher[4]" ng-change="updateReport()" />
+							    </td>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Self-efficacy
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc[5]" ng-change="updateReport()" />
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc_teacher[5]" ng-change="updateReport()" />
+							    </td>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Citizenship
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc[6]" ng-change="updateReport()" />
+							    </td>
+							    <td  class="center">
+							        <input ng-show="!isPrinting" type="text" name="competency1" class="form-control" ng-model="comments.cbc_teacher[6]" ng-change="updateReport()" />
+							    </td>
+							  </tr>
+							</table>
+						</div>
+						<div class="col-md-1"></div>
+					</div>
 
+					<!-- CBC tables - Competency Based Curriculum -->
+					<div ng-show="noRanking" class="row tblGroup1 cbc3">
+					    <div class="col-md-1"></div>
+						<div class="col-md-10">
+							<table id="avaragesTable3" class="display dataTable" cellspacing="0" width="100%" border="1">
+							  <tr>
+							    <th colspan="5" style="text-align:center;">GENERAL CONDUCT AND BEHAVIOUR</th>
+							  </tr>
+							  <tr>
+							    <th  class="center">Behaviour and Work Habits</th>
+							    <th  class="center">Excellent</th>
+							    <th  class="center">Good</th>
+							    <th  class="center">Satisfactory</th>
+							    <th  class="center">Cause For Concern</th>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Punctuality
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[0]=='Excellent'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[0]"
+										value="Excellent"
+										ng-model="comments.cbc_general[0]"
+										id="cbc_excellent[0]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_excellent[0]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[0]=='Good'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[0]"
+										value="Good"
+										ng-model="comments.cbc_general[0]"
+										id="cbc_good[0]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_good[0]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[0]=='Satisfactory'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[0]"
+										value="Satisfactory"
+										ng-model="comments.cbc_general[0]"
+										id="cbc_satisfactory[0]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_satisfactory[0]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[0]=='Cause For Concern'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[0]"
+										value="Cause For Concern"
+										ng-model="comments.cbc_general[0]"
+										id="cbc_concern[0]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_concern[0]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Time Management
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[1]=='Excellent'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[1]"
+										value="Excellent"
+										ng-model="comments.cbc_general[1]"
+										id="cbc_excellent[1]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_excellent[1]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[1]=='Good'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[1]"
+										value="Good"
+										ng-model="comments.cbc_general[1]"
+										id="cbc_good[1]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_good[1]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[1]=='Satisfactory'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[1]"
+										value="Satisfactory"
+										ng-model="comments.cbc_general[1]"
+										id="cbc_satisfactory[1]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_satisfactory[1]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[1]=='Cause For Concern'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[1]"
+										value="Cause For Concern"
+										ng-model="comments.cbc_general[1]"
+										id="cbc_concern[1]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_concern[1]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Following Instructions
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[2]=='Excellent'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[2]"
+										value="Excellent"
+										ng-model="comments.cbc_general[2]"
+										id="cbc_excellent[2]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_excellent[2]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[2]=='Good'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[2]"
+										value="Good"
+										ng-model="comments.cbc_general[2]"
+										id="cbc_good[2]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_good[2]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[2]=='Satisfactory'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[2]"
+										value="Satisfactory"
+										ng-model="comments.cbc_general[2]"
+										id="cbc_satisfactory[2]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_satisfactory[2]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[2]=='Cause For Concern'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[2]"
+										value="Cause For Concern"
+										ng-model="comments.cbc_general[2]"
+										id="cbc_concern[2]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_concern[2]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							  </tr>
+							  <tr>
+							    <td  class="center">
+							        Respect For Others
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[3]=='Excellent'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[3]"
+										value="Excellent"
+										ng-model="comments.cbc_general[3]"
+										id="cbc_excellent[3]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_excellent[3]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[2]=='Good'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[3]"
+										value="Good"
+										ng-model="comments.cbc_general[3]"
+										id="cbc_good[3]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_good[3]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[2]=='Satisfactory'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[3]"
+										value="Satisfactory"
+										ng-model="comments.cbc_general[3]"
+										id="cbc_satisfactory[3]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_satisfactory[3]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							    <td  class="center">
+							        <span ng-if="isPrinting"><i class="fa fa-check" ng-show="comments.cbc_general[2]=='Cause For Concern'"></i></span>
+									<div class="checklist-option" ng-if="!isPrinting" >
+									<input ng-if="!isPrinting"
+										type="radio"
+										name="cbc_category[3]"
+										value="Cause For Concern"
+										ng-model="comments.cbc_general[3]"
+										id="cbc_concern[3]"
+										ng-change="updateReport()"
+										/>
+										<label for="cbc_concern[3]" title="Click to check this option"><span class="checkbox-span"></span></label>
+									</div>
+							    </td>
+							  </tr>
+							</table>
+						</div>
+						<div class="col-md-1"></div>
+					</div>
 
 					<div id="graphresult"></div>
-					<div class="progress-report-remarks">
-						<h3>Remarks</h3>
-						<table width="100%">
+
+					<table ng-hide="noRanking" width="100%">
+							<tr ng-show="isSchool">
+								<td colspan="2" ng-hide="noGeneralComments">
+									<label>General Comments:</label>
+									<textarea ng-show="!isPrinting" name="non-exam-comments" rows="1" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{student.comments.non_exam_comments}}</p>
+								</td>
+							</tr>
 							<tr ng-show="isAdmin || isClassTeacher">
 								<td width="75%">
 									<label>Class Teacher Comments:</label>
-									<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
-									<p ng-show="isPrinting" class="form-control-static">{{student.comments.teacher_comments}}</p>
+									<textarea ng-show="!isPrinting" name="teacher-comments" rows="1" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{student.comments.teacher_comments}}</p>
 								</td>
 								<td>
-									<p class="form-control-static">{{student.comments.teacher_name}}</p>
-									<label>Sign:</label>
+								    <label>Sign:</label>
+									<p class="form-control-static" style="font-size:11px !important;">{{student.comments.teacher_name}}</p>
 								</td>
 							</tr>
-							<tr ng-show="isAdmin">
+							<tr ng-show="isAdmin || isClassTeacher">
 								<td>
-									<label>Principal Comments:</label>
-									<textarea ng-show="!isPrinting" name="principle-comments" rows="3" class="form-control" ng-model="overall.principal_comment" readonly style="background-color:#ffffff;"></textarea>
-									<p ng-show="isPrinting" class="form-control-static">{{student.comments.principal_comment}}</p>
+									<label>{{schoolName == 'kingsinternational' ? 'Principal Comments:' : 'Head Teacher Comments:'}}</label>
+									<textarea ng-show="!isPrinting" name="principle-comments" rows="1" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()" ng-readonly="isClassTeacher"></textarea>
+									<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{student.comments.principle_comments}}</p>
 								</td>
 								<td>
-									<p class="form-control-static" ng-show="isPrinting">{{student.comments.head_teacher_name}}</p>
+								    <label>Sign:</label>
+									<p class="form-control-static" ng-show="isPrinting" style="font-size:11px !important;">{{student.comments.head_teacher_name}}</p>
 									<input ng-show="!isPrinting" type="text" name="head_teacher_name" class="form-control" ng-model="comments.head_teacher_name" ng-change="updateReport()" />
-
-									<label>Sign:</label>
-								</td>
-							</tr>
-							<tr ng-show="isAdmin">
-								<td>
-									<label>Parent/Guardian Comments:</label>
-									<textarea ng-show="isPrinting" name="principle-comments" rows="1" class="form-control"></textarea>
-								</td>
-								<td>
-									<p class="form-control-static" ng-show="isPrinting">Parent/ Guardian Name <span>( ______________________ )</span></p>
-									<input ng-show="isPrinting" type="text" name="head_teacher_name" class="form-control" />
-
-									<label>Sign:</label>
 								</td>
 							</tr>
 						</table>
@@ -521,16 +824,37 @@ function getChartPath()
 							<tr>
 								<td>
 									<label>Closing Date:</label>
-									<p class="form-control-static">{{student.currentTermEndDate|date}}</p>
+									<p class="form-control-static" style="font-size:11px !important;">{{student.currentTermEndDate|date}}</p>
 								</td>
 								<td>
 									<label>Next Term Begins:</label>
-									<p class="form-control-static">{{student.nextTermStartDate|date}}</p>
+									<p class="form-control-static" style="font-size:11px !important;">{{student.nextTermStartDate|date}}</p>
 								</td>
 							</tr>
 						</table>
-					</div>
-					<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif;visibility: visible !important;">{{motto}}</div>
+						<table width="100%" ng-show="noRanking">
+						    <tr ng-show="isAdmin || isClassTeacher">
+								<td width="75%">
+									<label>TERMLY REPORTS: <br>Teacher's comments on attainment of competencies</label>
+									<textarea ng-show="!isPrinting" name="teacher-comments" rows="3" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
+									<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{student.comments.teacher_comments}}</p>
+								</td>
+								<td>
+								    <label>Sign:</label>
+									<p class="form-control-static" style="font-size:11px !important;">{{student.comments.teacher_name}}</p>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<label>Teacher's Name:</label>
+									<p class="form-control-static" style="font-size:11px !important;">{{student.report.teacher_name}}</p>
+								</td>
+								<td>
+									<label>Signature:</label>
+									<p class="form-control-static">________________________________________</p>
+								</td>
+							</tr>
+						</table>
 				</script>
 
 				<script type="text/ng-template" id="Standard-v.2">

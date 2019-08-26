@@ -1,0 +1,317 @@
+.modal-body {
+    position: relative;
+    padding: 15px;
+}
+*, :after, :before {
+    box-sizing: border-box;
+}
+body {color: #333;
+    font: 12px Arial, Verdana, Helvetica, sans-serif;
+}
+.select2-results, html {
+    -webkit-tap-highlight-color: transparent;
+}
+.ng-hide:not(.ng-hide-animate) {
+    display: none !important;
+}
+.alert-warning {
+    background-color: #fcf8e3 !important;
+}
+.alert {
+    padding: 5px 15px;
+}
+.alert-warning {
+    color: #8a6d3b;
+    border-color: #faebcc;
+}
+.alert {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+.receipt-header-letterhead {
+    text-align: center;
+}
+.row {
+    margin-right: -15px;
+    margin-left: -15px;
+}
+.btn-group-vertical>.btn-group:after, .btn-group-vertical>.btn-group:before, .btn-toolbar:after, .btn-toolbar:before,
+.clearfix:after, .clearfix:before, .container-fluid:after, .container-fluid:before, .container:after, .container:before,
+.dl-horizontal dd:after, .dl-horizontal dd:before, .form-horizontal .form-group:after, .form-horizontal .form-group:before,
+.modal-footer:after, .modal-footer:before, .modal-header:after, .modal-header:before, .nav:after, .nav:before, .navbar-collapse:after,
+.navbar-collapse:before, .navbar-header:after, .navbar-header:before, .navbar:after, .navbar:before, .pager:after, .pager:before,
+.panel-body:after, .panel-body:before, .row:after, .row:before {
+    display: table;
+    content: " ";
+}
+.btn-group-vertical>.btn-group:after, .btn-toolbar:after, .clearfix:after, .container-fluid:after, .container:after, .dl-horizontal dd:after,
+.form-horizontal .form-group:after, .modal-footer:after, .modal-header:after, .nav:after, .navbar-collapse:after, .navbar-header:after,
+.navbar:after, .pager:after, .panel-body:after, .row:after {
+    clear: both;
+}
+.btn-group-vertical>.btn-group:after, .btn-group-vertical>.btn-group:before, .btn-toolbar:after, .btn-toolbar:before, .clearfix:after,
+.clearfix:before, .container-fluid:after, .container-fluid:before, .container:after, .container:before, .dl-horizontal dd:after, .dl-horizontal dd:before,
+.form-horizontal .form-group:after, .form-horizontal .form-group:before, .modal-footer:after, .modal-footer:before, .modal-header:after, .modal-header:before,
+.nav:after, .nav:before, .navbar-collapse:after, .navbar-collapse:before, .navbar-header:after, .navbar-header:before, .navbar:after, .navbar:before, .pager:after,
+.pager:before, .panel-body:after, .panel-body:before, .row:after, .row:before {
+    display: table;
+    content: " ";
+}
+@media (min-width: 768px){
+  .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9 {
+      float: left;
+  }
+}
+.col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 {
+    position: relative;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+.receipt-header-letterhead {
+    text-align: center;
+    max-height: 50%;
+    page-break-before: always !important;
+}
+.receipt-header-letterhead h2 {
+    padding: 3px 5px;
+    text-transform: uppercase;
+    margin: 0 0 15px 0;
+    font-size: 15px;
+}
+.receipt-header-letterhead .noPrint h2, .receipt-header-letterhead .noPrint img{
+  display: none !important;
+}
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+    font-family: inherit;
+    font-weight: 500;
+    line-height: 1.1;
+    color: inherit;
+}
+.center {
+    text-align: center;
+}
+@media (min-width: 768px){
+  .col-sm-6 {
+      width: 50%;
+  }
+}
+@media (min-width: 768px){
+  .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9 {
+      float: left;
+  }
+}
+.col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 {
+    position: relative;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+img {
+    vertical-align: middle;
+}
+hr, img {
+    border: 0;
+}
+@media (min-width: 768px){
+  .col-sm-3 {
+      width: 25%;
+  }
+}
+.remarks {
+    width: 150px;
+}
+.col-xs-1 {
+    width: 8.33333333%;
+}
+.nopad-right {
+    padding-right: 0;
+}
+.col-xs-1 {
+    position: relative;
+    min-height: 1px;
+    padding-left: 15px;
+}
+.col-xs-1 {
+    float: left;
+}
+label {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+.lesspad {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.col-xs-5 {
+    width: 41.66666667%;
+}
+.col-xs-5 {
+    position: relative;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+.col-xs-5 {
+    float: left;
+}
+.progress-report p.form-control-static {
+    border-bottom: 1px dotted #bbb;
+    padding: 0 3px 0 3px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-align: left;
+    margin-top: 1px;
+    line-height: 10px;
+}
+p {
+    margin: 0 0 10px;
+}
+.col-xs-3 {
+    width: 25%;
+}
+.col-xs-3 {
+    position: relative;
+    min-height: 1px;
+    float: left;
+}
+.col-xs-2 {
+    width: 16.66666667%;
+}
+.col-xs-2 {
+    position: relative;
+    min-height: 1px;
+    padding-left: 15px;
+}
+.col-xs-2 {
+    float: left;
+}
+.progress-report p.form-control-static.inline {
+    display: inline-block;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+.progress-report table {
+    border-top: 1px solid #777;
+    border-bottom: 1px solid #777;
+    margin-bottom: 10px;
+    margin-top: 5px;
+}
+table.dataTable {
+    box-sizing: content-box;
+}
+table.dataTable {
+    width: 100%;
+    margin: 0 auto;
+    clear: both;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+table {
+    background-color: transparent;
+}
+#avaragesTable {
+  margin-top: 1px !important;
+}
+@media print {
+  #avaragesTable {
+    margin-top: -65px !important;
+  }
+}
+.progress-report table tr:first-child th:first-child {
+    border-left: none;
+}
+.progress-report table thead th {
+    background-color: #fff !important;
+    color: #000 !important;
+    font-weight: bold;
+    border-bottom: 1px solid #aaa !important;
+}
+.progress-report table th {
+    padding: 1px 4px !important;
+    font-size: 11px;
+}
+table.dataTable th {
+    box-sizing: content-box;
+}
+th.center {
+    text-align: center;
+}
+.progress-report table .double-border {
+    border-left: 3px double #aaa;
+}
+.progress-report table thead th {
+    background-color: #fff !important;
+    color: #000 !important;
+    font-weight: bold;
+    border-bottom: 1px solid #aaa !important;
+}
+table.dataTable tbody tr {
+    background-color: #fff;
+}
+.progress-report .strong {
+    font-weight: 700;
+}
+.modal-content .modalForm input[type=text] {
+    padding: 3px;
+}
+.form-control[readonly] {
+    opacity: 1;
+}
+.progress-report table input {
+    height: 20px !important;
+    border-radius: 0;
+}
+.form-control, output {
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #555;
+    display: block;
+}
+.progress-report table tfoot th {
+    border-top: 3px double #aaa !important;
+    font-weight: bold;
+}
+.progress-report table tfoot th {
+    border-top: 3px double #aaa !important;
+    font-weight: bold;
+}
+@media (min-width: 992px){
+  .col-md-6 {
+      width: 50%;
+      float: left;
+  }
+}
+.modal-content h3 {
+    font-size: 14px;
+    border-bottom: 1px solid #ddd;
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    font-weight: 600;
+}
+.progress-report-remarks {
+  margin-top: 5px;
+}
+.progress-report .progress-report-remarks table tr td {
+    padding: 5px !important;
+    border-bottom: 1px solid #ddd !important;
+    vertical-align: top;
+}
+textarea.form-control {
+    width:100%;
+    max-height: 35px;
+}
+img#url {
+  width: 300px;
+  height: 150px;
+}
+.progress-report .progress-report-remarks p.form-control-static {
+    border-bottom: none;
+    font-size: 10pt;
+    line-height: 14pt;
+}

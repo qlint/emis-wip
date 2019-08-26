@@ -483,31 +483,31 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							console.log(result.data);
 						}
 					}
+					// console.log("Class students", $scope.classStudents[i]);
 					apiService.getStudentReportCards($scope.classStudents[i].student_id, loadBpReportCards, apiError);
-					// let arrLen = $scope.classStudents.length - 1;
-					// if(i == arrLen){ console.log(i,arrLen,$scope.studentReports2);}
 				}
 		// }
 		// rptCardsForBp();
 
 	  console.log("Bulk print initiated");
-		console.log($scope.filters);
+		// console.log($scope.filters);
 		BulkData = [];
 		var term_name  = $scope.filters.term.term_name;
 
 		$scope.studentReports = $scope.studentReports2;
 		setTimeout(function(){
-			// console.log("Student reports ::: ",$scope.studentReports2,$scope.studentReports);
-		angular.forEach($scope.studentReports, function(item,key)
+			// console.log("Student reports ::: ",$scope.studentReports);
+			// console.log("Reports two ::: ",$scope.studentReports2);
+		angular.forEach($scope.studentReports2, function(item,key)
 		{
 			// console.log("Student reports item",item,"key = " + key);
       var student = $scope.classStudents.find(function (stud) { if(stud.student_id == key){return stud;} });
 			// console.log(student);
 			// var student = key;
-      var studentTermObj = $scope.studentReports[key];
-      console.log("Student term obj :::",studentTermObj);
+      var studentTermObj = $scope.studentReports2[key];
+      // console.log("Student term obj :::",studentTermObj);
       if(studentTermObj.hasOwnProperty(term_name)){
-				console.log("This students has data from needed term",term_name);
+								// console.log("This students has data from needed term",term_name);
                 var studentsWithExams = function(response,status)
           	    {
 
@@ -526,7 +526,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
               				var rawFilteredStudents = result.data;
                             // console.log("Succeses. Students found!");
                             $scope.students2 = rawFilteredStudents.reduce(function(acc, cur, i) { acc[i] = cur; return acc; }, {});
-														console.log($scope.students2);
+														// console.log($scope.students2);
               			}
               		}
               		else
@@ -536,47 +536,49 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
               		}
               	}
                 var paramForFilter = $scope.filters.class.class_id + '/' + $scope.filters.term.term_name;
-                console.log("Param for filter :::",paramForFilter);
+                // console.log("Param for filter :::",paramForFilter);
                 apiService.getClassStudentsWithExamInTerm(paramForFilter, studentsWithExams, apiError);
 
                 // setTimeout(function(){ console.log("Students with report cards are >>"); },1000);
                 // setTimeout(function(){ console.log($scope.students2); },1000);
 								// console.log("Student reports",$scope.studentReports);
-		      			var class_id = $scope.studentReports[key][term_name].class_id;
+		      			var class_id = $scope.studentReports2[key][term_name].class_id;
 		      			var class_obj = $scope.classes.find(function (obj) { return obj.class_id === class_id; });
 								// console.log("Class Obj",class_obj);
 
       			var data =
       				{
-      					student : student,
-      					report_card_id: $scope.studentReports[key][term_name].report_card_id,
-      					class_name : $scope.studentReports[key][term_name].class_name,
-      					class_id : $scope.studentReports[key][term_name].class_id,
-      					published: $scope.studentReports[key][term_name].published,
-      					term_id: $scope.studentReports[key][term_name].term_id,
-      					entity_id: $scope.studentReports[key][term_name].entity_id,
+      					// student : student,
+								student: $scope.classStudents[key],
+      					report_card_id: $scope.studentReports2[key][term_name].report_card_id,
+      					class_name : $scope.studentReports2[key][term_name].class_name,
+      					class_id : $scope.studentReports2[key][term_name].class_id,
+      					published: $scope.studentReports2[key][term_name].published,
+      					term_id: $scope.studentReports2[key][term_name].term_id,
+      					// entity_id: $scope.studentReports2[key][term_name].entity_id,
+								entity_id: $scope.filters.class.entity_id,
       					term_name : term_name,
-      					year: $scope.studentReports[key][term_name].year,
-      					report_card_type: $scope.studentReports[key][term_name].report_card_type,
-      					teacher_id: $scope.studentReports[key][term_name].teacher_id,
-      					teacher_name: $scope.studentReports[key][term_name].teacher_name,
-      					date: $scope.studentReports[key][term_name].date,
-      					reportData: $scope.studentReports[key][term_name].data,
+      					year: $scope.studentReports2[key][term_name].year,
+      					report_card_type: $scope.studentReports2[key][term_name].report_card_type,
+      					teacher_id: $scope.studentReports2[key][term_name].teacher_id,
+      					teacher_name: $scope.studentReports2[key][term_name].teacher_name,
+      					date: $scope.studentReports2[key][term_name].date,
+      					reportData: $scope.studentReports2[key][term_name].data,
       					adding: false,
       					filters:{
       						term:{
       							term_name:term_name,
-      							term_id: $scope.studentReports[key][term_name].term_id,
+      							term_id: $scope.studentReports2[key][term_name].term_id,
       						},
       						class:{
-      							class_id: $scope.studentReports[key][term_name].class_id,
+      							class_id: $scope.studentReports2[key][term_name].class_id,
       							class_cat_id: $scope.filters.class.class_cat_id,
 										entity_id: $scope.filters.class.entity_id
       						}
       					}
 
       				};
-
+							// console.log(data);
       				BulkData[key] = data;
             }
 

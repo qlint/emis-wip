@@ -234,6 +234,208 @@ $app->post('/parentLogin', function () use($app) {
   }
 });
 
+$app->get('/registrationStatus/:phone', function ($phoneNumber){
+  // error_reporting(E_ALL);  // uncomment this only when testing
+  // ini_set('display_errors', 1); // uncomment this only when testing
+  // Get the registration status
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = pg_connect("host=localhost port=5432 dbname=eduweb_mis user=postgres password=pg_edu@8947");
+
+    // Query 1 - Get all databases
+    $fetchDbs = pg_query($db,"SELECT subdomain FROM clients WHERE active IS TRUE");
+
+    $dbArray = array(); // we'll put our db's here
+    $statusResults = array(); // this will contain boolean results from all databases
+
+    while ($dbResults = pg_fetch_assoc($fetchDbs))
+    {
+        $dbCreate = 'eduweb_' . $dbResults['subdomain']; // full name of the db's
+        array_push($dbArray,$dbCreate); // push into dbArray the value of dbCreate
+    }
+    // now $dbArray has all databases we need to look up data (phone numbers)
+    foreach ($dbArray as $key => $value) {
+      // db connect for each school
+
+      	$dbhost="localhost";
+      	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5432" : "5434");
+      	$dbuser = "postgres";
+      	$dbpass = "pg_edu@8947";
+      	$dbname = $value;
+      	$dbConnection = new PDO("pgsql:host=$dbhost;port=$dbport;dbname=$dbname", $dbuser, $dbpass);
+      	$dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+      $schoolDb = $dbConnection; // the db connect
+      $executeOnSchoolDb = $schoolDb->query("SELECT (CASE
+                                                        WHEN EXISTS (SELECT telephone FROM app.guardians WHERE telephone = '$phoneNumber') THEN 'Proceed Registration'
+                                                        ELSE 'Stop'
+                                                      END) AS registration_status;");
+      $regStatus = $executeOnSchoolDb->fetch(PDO::FETCH_OBJ);
+      $regStatus = $regStatus->registration_status;
+
+      if($regStatus === 'Proceed Registration'){ array_push($statusResults,"TRUE"); }else{ array_push($statusResults,"FALSE"); }
+    }
+
+    // we now search through our array of status results for a boolean true
+    $valueToSearch = "TRUE"; // this will mean the phone number exists in one of the db's
+    if (($i = array_search($valueToSearch, $statusResults)) !== FALSE)
+    {
+        // loop will terminate
+
+        // this will generate our unique code
+        function getRandomString($length = 5) {
+            $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $string = '';
+
+            for ($i = 0; $i < $length; $i++) {
+                $string .= $characters[mt_rand(0, strlen($characters) - 1)];
+            }
+
+            return $string;
+        }
+        $uniqueCode = getRandomString();
+
+        $insertRegCode = pg_query($db,"INSERT INTO registration_codes(telephone, code)
+                                        VALUES ('$phoneNumber', '$uniqueCode');");
+
+        // first we need to change the phone format to +[code]phone
+        $firstChar = substr($phoneNumber, 0, 1);
+        if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
+        // we now create & send the actual sms
+        $registrationMessageObj = new stdClass();
+        $registrationMessageObj->message_recipients = Array();
+        $registrationMessageObj->message_by = "Eduweb Mobile App Registration";
+        $registrationMessageObj->message_date = date('Y-m-d H:i:s');
+        $registrationMessageObj->message_text = "Your unique code for the Eduweb Mobile App registration is $uniqueCode ";
+        $registrationMessageObj->subscriber_name = "dev";// $school;
+
+
+        $msgRecipientsObj = new stdClass();
+        $msgRecipientsObj->recipient_name = "User of $phoneNumber";
+        $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
+        array_push($registrationMessageObj->message_recipients, clone $msgRecipientsObj);
+
+        // send the message
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($registrationMessageObj)); // the data to post
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+
+        $resp = curl_exec($ch);
+
+        if($resp === false)
+        {
+          $app->response()->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found but there seems to be a slight problem sending the SMS. Please try again.", "error" => curl_error($ch) ));
+        }
+        else
+        {
+          $app->response()->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password. Test with ($uniqueCode)" ));
+        }
+
+        curl_close($ch);
+
+        // $app->response()->setStatus(200);
+        // $app->response()->headers->set('Content-Type', 'application/json');
+        // echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password." ));
+
+    }else{
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'Success', 'message' => "The submitted phone record has not been found in our system. Please use a phone number that you use with the school." ));
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->get('/checkRegCode/:phone/:code', function ($phone,$code) {
+    //Show currency
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+      $db = getLoginDB();
+
+      $checkCode = $db->query("SELECT (CASE
+                                          WHEN EXISTS (SELECT telephone,code FROM registration_codes WHERE telephone = '$phone' AND code='$code') THEN 'proceed'
+                                          ELSE 'stop'
+                                        END) AS status");
+      $userStatus = $checkCode->fetch(PDO::FETCH_OBJ);
+      $userStatus = $userStatus->status;
+
+        if($userStatus === "proceed") {
+            $updateToValidated = $db->query("UPDATE registration_codes SET status= TRUE
+                                            WHERE telephone='$phone' AND code='$code';");
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'validated' => true, 'data' => 'Your phone number has been validated. Proceed to set up your password.' ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'validated' => false, 'data' => 'Either your phone number could not be found or the entered code is wrong, hence not validated yet.' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/registerPwd', function () use($app) {
+  // update users device id
+  $allPostVars = $app->request->post();
+  $pwd = $allPostVars['pwd'];
+  $phone = $allPostVars['phone'];
+
+  try
+  {
+    $db = getLoginDB();
+
+    $sth = $db->prepare("UPDATE parents SET password = :pwd WHERE username = :phone");
+    $sth->execute( array(':pwd' => $pwd, ':phone' => $phone) );
+
+    $db = null;
+
+    // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','parent-app user registration')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "code" => 1));
+    $db = null;
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
 $app->put('/updatePassword', function () use($app) {
   // update password
   $allPostVars = json_decode($app->request()->getBody(),true);
