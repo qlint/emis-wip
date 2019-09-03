@@ -4,47 +4,37 @@ var chartPath = "";
 function done(){
 	var canvas = document.getElementById('line1');
 	var dataURL = canvas.toDataURL('image/png', 1.0);
-
 	var getUrl = window.location;
 	var baseUrl = getUrl .protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
-
 	//Save
 
 	try {
     var elem = document.getElementById('line1Chart');
     elem.parentNode.removeChild(elem);
-
-		var file_name = '';
-
-		$.ajax({
+	var file_name = '';
+	$.ajax({
 	         type: "POST",
 	         url: "save_chart.php",
 	         data: { src: dataURL }
-	      }).done(function(path){
-
-						chartPath = baseUrl + '/assets/charts/' + path +  '.png';
-						console.log(chartPath);
-
-				});
-		}
-		catch(err) {
+	     }).done(function(path){
+            chartPath = baseUrl + '/assets/charts/' + path +  '.png';
+			console.log(chartPath);
+		});
+	}
+	catch(err) {
 		    alert(err.message);
-		}
-
-	//Change path
+	}
 
 }
 
 function getChartPath()
-	{
-		return  chartPath;
-	}
+{
+	return  chartPath;
+}
 
-
-	function initChart1(ctx,lineChartData)
-	{
-
-		window.myLine1 = Chart.Line(ctx, {
+function initChart1(ctx,lineChartData)
+{
+    window.myLine1 = Chart.Line(ctx, {
 			type: 'line',
 			data: lineChartData,
 			options: {
@@ -85,13 +75,7 @@ function getChartPath()
 			}
 		});
 
-
-
 	}
-
-
-
-
 
 	function initChart2(ctx, lineChartData)
 	{
@@ -148,7 +132,7 @@ function getChartPath()
 			<button style="float:right;" type="button" class="btn btn-success" ng-click="print()" ><i class="glyphicon glyphicon-print"></i> Print</button>
 
 		</div> -->
-    <div class="modal-footer">
+        <div class="modal-footer">
 			<button type="button" class="btn btn-info" ng-click="cancel()">Close</button>
 			<button id="printAll" type="button" class="btn btn-primary"><i class="glyphicon glyphicon-print"></i> Print</button>
 		</div>
@@ -211,7 +195,8 @@ function getChartPath()
 			</div>
 			<!-- // end search form -->
 
-			<div ng-show="true" ng-repeat="student in AllData track by $index">
+			<!-- <div ng-show="true" ng-repeat="student in allDataArr track by $index"> -->
+			<div ng-show="true" ng-repeat="student in classBulkData track by $index">
 
 				<div>
 					<style type="text/css"> @import url("components/css/customSettingReportCard.css"); </style>
@@ -228,126 +213,124 @@ function getChartPath()
 						</div>
 					</div>
 
-				<div class="row progress-report-header"  ng-if="!useLetterhead">
-					<div class="col-xs-2">
-						<img src="assets/schools/{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" />
-					</div>
-					<div class="col-xs-8">
-						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
-						<div class="school-address">
-							<p ng-hide="wantAutomatedComments">{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
-							<p ng-hide="wantAutomatedComments">Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
-							<p ng-hide="wantAutomatedComments">Email: {{currentUser.settings['Email Address']}}</p>
-						</div>
-						<h2 class="report-card-title">Progress Report</h2>
-					</div>
-				</div>
+    				<div class="row progress-report-header"  ng-if="!useLetterhead">
+    					<div class="col-xs-2">
+    						<img src="assets/schools/{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" />
+    					</div>
+    					<div class="col-xs-8">
+    						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
+    						<div class="school-address">
+    							<p ng-hide="wantAutomatedComments">{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
+    							<p ng-hide="wantAutomatedComments">Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
+    							<p ng-hide="wantAutomatedComments">Email: {{currentUser.settings['Email Address']}}</p>
+    						</div>
+    						<h2 class="report-card-title">Progress Report</h2>
+    					</div>
+    				</div>
 
-				<div ng-include="reportCardType"></div>
+				    <div ng-include="reportCardType"></div>
 
-				<style type="text/css"> @import url("components/css/bulkPrint.css"); </style>
-				<script type="text/ng-template" id="Standard">
-					<div ng-show="savedReport" class="alert alert-warning">
-						You are viewing a previously saved report card. If this student's exam marks were updated, click 'Re-Create' to generate a new report card.
-						<button type="button" class="btn btn-sm btn-info" ng-click="recreateReport()">Re-Create</button>
-						<div ng-show="differences.length>0">
-							The following changes have been found:
-							<ul>
-								<li ng-repeat="diff in differences">
-									<strong>{{diff.subject_name}} {{diff.exam_type}} {{diff.change}}</strong>
-								</li>
-							</ul>
-						</div>
-					</div>
-					<div ng-show="recreated" class="alert alert-success">
-						Report card has been re-created.
-						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
-					</div>
-					<div class="progress-report-student">
-						<!-- name and adm number -->
-						<div class="row">
-							<div class="col-xs-1 nopad-right">
-								<label class="">Name:</label>
-							</div>
-							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{student.student.student_name}}</p>
-							</div>
-							<div class="col-xs-1 nopad-right">
-								<label>Adm No:</label>
-							</div>
-							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{student.student.admission_number}}</p>
-							</div>
-						</div>
-						<!-- class, term and year -->
-						<div class="row">
-							<div class="col-xs-1 nopad-right">
-								<label>Class:</label>
-							</div>
-							<div class="col-xs-3 lesspad">
-								<p class="form-control-static">{{student.student.class_name}}</p>
-							</div>
-							<div class="col-xs-1 nopad-right">
-								<label>Term:</label>
-							</div>
-							<div class="col-xs-3 lesspad">
-								<p class="form-control-static">{{student.report.term}}</p>
-							</div>
-							<div class="col-xs-1 nopad-right">
-								<label>Year:</label>
-							</div>
-							<div class="col-xs-3 lesspad">
-								<p class="form-control-static">{{student.report.year}}</p>
-							</div>
-						</div>
-						<!-- position, out of, pos last term, out of -->
-						<div class="row" ng-hide="noRanking">
-							<div class="col-xs-1 nopad-right">
-								<label>{{wantAutomatedComments ? 'Stream Position:':'Position:'}}</label>
-							</div>
-							<div class="col-xs-3 lesspad">
-								<p class="form-control-static inline">{{student.overall.rank}}</p> / <p class="form-control-static inline">{{student.overall.position_out_of}}</p>
-							</div>
-
-							<div class="col-xs-2 nopad-right">
-								<label>Pos Last Term:</label>
-							</div>
-							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{student.overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{student.overallLastTerm.position_out_of||'--'}}</p>
-							</div>
-
-							<div class="col-xs-2 nopad-right">
-								<label>Last Term Marks:</label>
-							</div>
-							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{student.overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline">{{student.overallLastTerm.total_grade_weight||'-'}}</p>
-							</div>
-						</div>
-						<!-- stream position, out of, stream pos last term, out of -->
-						<div class="row" ng-hide="noRanking">
-
-							<div ng-hide="wantStreamPos" class="col-xs-1 nopad-right">
-								<label>{{wantAutomatedComments ? 'Class Position:':'Stream Position:'}}</label>
-							</div>
-							<div ng-hide="wantStreamPos" class="col-xs-3 lesspad">
-								<p class="form-control-static inline">{{student.streamRankPosition||'-'}}</p> / <p class="form-control-static inline">{{student.streamRankOutOf||'--'}}</p>
-							</div>
-
-							<div ng-hide="wantStreamPos" class="col-xs-2 nopad-right">
-								<label>{{wantAutomatedComments ? 'Class Last Term:':'Stream Last Term:'}}</label>
-							</div>
-							<div ng-hide="wantStreamPos" class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{student.streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{student.streamRankOutOfLastTerm||'--'}}</p>
-							</div>
-
-							<div ng-show="isSchool" class="col-xs-2 nopad-right">
-								<label>Current Term Marks:</label>
-							</div>
-							<div ng-show="isSchool" class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{student.overall.current_term_marks||'-'}}</p> / <p class="form-control-static inline">{{student.overall.current_term_marks_out_of||'-'}}</p>
-							</div>
-						</div>
-					</div>
+				    <style type="text/css"> @import url("components/css/bulkPrint.css"); </style>
+				    <script type="text/ng-template" id="Standard">
+    					<div ng-show="savedReport" class="alert alert-warning">You are viewing a previously saved report card. If this student's exam marks were updated, click 'Re-Create' to generate a new report card.
+    						<button type="button" class="btn btn-sm btn-info" ng-click="recreateReport()">Re-Create</button>
+    						<div ng-show="differences.length>0">
+    							The following changes have been found:
+    							<ul>
+    								<li ng-repeat="diff in differences">
+    									<strong>{{diff.subject_name}} {{diff.exam_type}} {{diff.change}}</strong>
+    								</li>
+    							</ul>
+    						</div>
+    					</div>
+    					<div ng-show="recreated" class="alert alert-success">Report card has been re-created.
+    						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
+    					</div>
+					    <div class="progress-report-student">
+						    <!-- name and adm number -->
+    						<div class="row">
+    							<div class="col-xs-1 nopad-right">
+    								<label class="">Name:</label>
+    							</div>
+    							<div class="col-xs-5 lesspad">
+    								<p class="form-control-static">{{student.student.student_name}}</p>
+    							</div>
+    							<div class="col-xs-1 nopad-right">
+    								<label>Adm No:</label>
+    							</div>
+    							<div class="col-xs-5 lesspad">
+    								<p class="form-control-static">{{student.student.admission_number}}</p>
+    							</div>
+    						</div>
+						    <!-- class, term and year -->
+    						<div class="row">
+    							<div class="col-xs-1 nopad-right">
+    								<label>Class:</label>
+    							</div>
+    							<div class="col-xs-3 lesspad">
+    								<p class="form-control-static">{{student.student.class_name}}</p>
+    							</div>
+    							<div class="col-xs-1 nopad-right">
+    								<label>Term:</label>
+    							</div>
+    							<div class="col-xs-3 lesspad">
+    								<p class="form-control-static">{{student.report.term}}</p>
+    							</div>
+    							<div class="col-xs-1 nopad-right">
+    								<label>Year:</label>
+    							</div>
+    							<div class="col-xs-3 lesspad">
+    								<p class="form-control-static">{{student.report.year}}</p>
+    							</div>
+    						</div>
+    						<!-- position, out of, pos last term, out of -->
+    						<div class="row" ng-hide="noRanking">
+    							<div class="col-xs-1 nopad-right">
+    								<label>{{wantAutomatedComments ? 'Stream Position:':'Position:'}}</label>
+    							</div>
+    							<div class="col-xs-3 lesspad">
+    								<p class="form-control-static inline">{{student.overall.rank}}</p> / <p class="form-control-static inline">{{student.overall.position_out_of}}</p>
+    							</div>
+    
+    							<div class="col-xs-2 nopad-right">
+    								<label>Pos Last Term:</label>
+    							</div>
+    							<div class="col-xs-2 lesspad">
+    								<p class="form-control-static inline">{{student.overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{student.overallLastTerm.position_out_of||'--'}}</p>
+    							</div>
+    
+    							<div class="col-xs-2 nopad-right">
+    								<label>Last Term Marks:</label>
+    							</div>
+    							<div class="col-xs-2 lesspad">
+    								<p class="form-control-static inline">{{student.overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline">{{student.overallLastTerm.total_grade_weight||'-'}}</p>
+    							</div>
+    						</div>
+    						<!-- stream position, out of, stream pos last term, out of -->
+    						<div class="row" ng-hide="noRanking">
+    
+    							<div ng-hide="wantStreamPos" class="col-xs-1 nopad-right">
+    								<label>{{wantAutomatedComments ? 'Class Position:':'Stream Position:'}}</label>
+    							</div>
+    							<div ng-hide="wantStreamPos" class="col-xs-3 lesspad">
+    								<p class="form-control-static inline">{{student.streamRankPosition||'-'}}</p> / <p class="form-control-static inline">{{student.streamRankOutOf||'--'}}</p>
+    							</div>
+    
+    							<div ng-hide="wantStreamPos" class="col-xs-2 nopad-right">
+    								<label>{{wantAutomatedComments ? 'Class Last Term:':'Stream Last Term:'}}</label>
+    							</div>
+    							<div ng-hide="wantStreamPos" class="col-xs-2 lesspad">
+    								<p class="form-control-static inline">{{student.streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{student.streamRankOutOfLastTerm||'--'}}</p>
+    							</div>
+    
+    							<div ng-show="isSchool" class="col-xs-2 nopad-right">
+    								<label>Current Term Marks:</label>
+    							</div>
+    							<div ng-show="isSchool" class="col-xs-2 lesspad">
+    								<p class="form-control-static inline">{{student.overall.current_term_marks||'-'}}</p> / <p class="form-control-static inline">{{student.overall.current_term_marks_out_of||'-'}}</p>
+    							</div>
+    						</div>
+    					</div>
 
 					<table class="display dataTable" cellspacing="0" width="100%">
 						<thead>

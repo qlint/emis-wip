@@ -4,6 +4,7 @@
     #resultsTable thead tr th,#resultsTable tbody tr td{padding:5px;border:#303030 1px solid;text-align:center;}
     #resultsTable tbody tr:nth-child(odd){background:#e8e8e8;}
 </style>
+<script src="components/jquery.table2excel.js"></script>
 <div ng-controller="transportReportsCtrl">
 
    <div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
@@ -26,9 +27,9 @@
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
 					<div class="btn" title="print" ng-click="printReport()"><a class="export-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div>
-          <!--
+
 					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
-          -->
+
 				</div>
 			</div>
 
@@ -132,7 +133,7 @@
 
                             <!-- all students with transport table -->
                             <div ng-show="allWithTranspTable" id="allWithTranspTableDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="allWithTranspTableDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th>STUDENT</th>
@@ -154,7 +155,7 @@
 
                             <!-- student fee items analysis table -->
                             <div ng-show="allStudentsInBus" id="allStudentsInBusDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="allStudentsInBusDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th>STUDENT</th>
@@ -180,7 +181,7 @@
 
                             <!-- all students in a trip -->
                             <div ng-show="allStudentsInTrip" id="allStudentsInTripDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="allStudentsInTripDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th>STUDENT</th>
@@ -208,7 +209,7 @@
 
                             <!-- all students in zones -->
                             <div ng-show="allStudentsInZone" id="allStudentsInZoneDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="allStudentsInZoneDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th width="15%">STUDENT</th>
@@ -232,7 +233,7 @@
 
                             <!-- all students with balance -->
                             <div ng-show="allStudentsWithBalance" id="allStudentsWithBalanceDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="allStudentsWithBalanceDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th width="10%">STUDENT</th>
@@ -260,7 +261,7 @@
 
                             <!-- all students with transport in class table -->
                             <div ng-show="classStdTrans" id="classStdTransDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="classStdTransDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th>STUDENT</th>
@@ -282,7 +283,7 @@
 
                             <!-- all students in a bus in a trip -->
                             <div ng-show="allStudentsInTripInBus" id="allStudentsInTripInBusDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="allStudentsInTripInBusDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th>STUDENT</th>
@@ -310,7 +311,7 @@
 
                             <!-- students in class in a bus -->
                             <div ng-show="classStudentsInBus" id="classStudentsInBusDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="classStudentsInBusDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th>STUDENT</th>
@@ -336,7 +337,7 @@
 
                             <!-- class students in a trip -->
                             <div ng-show="classStudentsInTrip" id="classStudentsInTripDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="classStudentsInTripDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th>STUDENT</th>
@@ -392,7 +393,7 @@
 
                             <!-- class students in zones -->
                             <div ng-show="classStudentsInZone" id="classStudentsInZoneDiv" style="max-height: 340px;overflow-y: scroll;">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="classStudentsInZoneDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
                                                 <th width="15%">STUDENT</th>

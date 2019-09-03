@@ -497,124 +497,82 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
     $rootScope.wipNotice();
   }
 
+  $scope.exportDataToCsv = function()
+  {
+        function convertArrayOfObjectsToCSV(args) {
+            var result, ctr, keys, columnDelimiter, lineDelimiter, data;
+
+            data = args.data || null;
+            if (data == null || !data.length) {
+                return null;
+            }
+
+            columnDelimiter = args.columnDelimiter || ',';
+            lineDelimiter = args.lineDelimiter || '\n';
+
+            keys = Object.keys(data[0]);
+
+            result = '';
+            result += keys.join(columnDelimiter);
+            result += lineDelimiter;
+
+            data.forEach(function(item) {
+                ctr = 0;
+                keys.forEach(function(key) {
+                    if (ctr > 0) result += columnDelimiter;
+
+                    result += item[key];
+                    ctr++;
+                });
+                result += lineDelimiter;
+            });
+
+            return result;
+        }
+
+        function downloadCSV(args) {
+            apiService.exportAllStudentDetails({}, function(response, status)
+            	{
+            		var result = angular.fromJson(response);
+            		if( result.response == 'success')
+            		{
+                    $scope.studentsExport = result.data;
+                    for(let x=0;x<$scope.studentsExport.length;x++){
+                      $scope.studentsExport[x].route = $scope.studentsExport[x].route.replace(/,/g, "/");
+                      $scope.studentsExport[x].club = $scope.studentsExport[x].club.replace(/,/g, "/");
+                    }
+
+                    var data, filename, link;
+                    var csv = convertArrayOfObjectsToCSV({
+                        data: $scope.studentsExport
+                    });
+                    if (csv == null) return;
+
+                    filename = args.filename || 'All Students - All Data Export.csv';
+
+                    if (!csv.match(/^data:text\/csv/i)) {
+                        csv = 'data:text/csv;charset=utf-8,' + csv;
+                    }
+                    data = encodeURI(csv);
+
+                    link = document.createElement('a');
+                    link.setAttribute('href', data);
+                    link.setAttribute('download', filename);
+                    link.click();
+
+                }else{
+                  // failed to fetch data
+                }
+              }, apiError);
+
+        }
+
+        downloadCSV({ filename: "all-students-all-data.csv" });
+  }
+
   $scope.exportData = function()
   {
-    // $scope.gridApi.exporter.csvExport( 'visible', 'visible' );
-    // show a loader to the end user
-
-    class XlsExport {
-  // data: array of objects with the data for each row of the table
-  // name: title for the worksheet
-  constructor(data, title = 'Worksheet') {
-    // input validation: new xlsExport([], String)
-    if (!Array.isArray(data) || (typeof title !== 'string' || Object.prototype.toString.call(title) !== '[object String]')) {
-      throw new Error('Invalid input types: new xlsExport(Array [], String)');
-    }
-
-    this._data = data;
-    this._title = title;
-  }
-
-  set setData(data) {
-    if (!Array.isArray(data)) throw new Error('Invalid input type: setData(Array [])');
-
-    this._data = data;
-  }
-
-  get getData() {
-    return this._data;
-  }
-
-  exportToXLS(fileName = 'export.xls') {
-    if (typeof fileName !== 'string' || Object.prototype.toString.call(fileName) !== '[object String]') {
-      throw new Error('Invalid input type: exportToCSV(String)');
-    }
-
-    const TEMPLATE_XLS = `
-        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-        <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"/>
-        <head><!--[if gte mso 9]><xml>
-        <x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{title}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml>
-        <![endif]--></head>
-        <body>{table}</body></html>`;
-    const MIME_XLS = 'application/vnd.ms-excel;base64,';
-
-    const parameters = {
-      title: this._title,
-      table: this.objectToTable(),
-    };
-    const computeOutput = TEMPLATE_XLS.replace(/{(\w+)}/g, (x, y) => parameters[y]);
-
-    const computedXLS = new Blob([computeOutput], {
-      type: MIME_XLS,
-    });
-    const xlsLink = window.URL.createObjectURL(computedXLS);
-    this.downloadFile(xlsLink, fileName);
-  }
-
-  exportToCSV(fileName = 'export.csv') {
-    if (typeof fileName !== 'string' || Object.prototype.toString.call(fileName) !== '[object String]') {
-      throw new Error('Invalid input type: exportToCSV(String)');
-    }
-    const computedCSV = new Blob([this.objectToSemicolons()], {
-      type: 'text/csv;charset=utf-8',
-    });
-    const csvLink = window.URL.createObjectURL(computedCSV);
-    this.downloadFile(csvLink, fileName);
-  }
-
-  downloadFile(output, fileName) {
-    const link = document.createElement('a');
-    document.body.appendChild(link);
-    link.download = fileName;
-    link.href = output;
-    link.click();
-  }
-
-  toBase64(string) {
-    return window.btoa(unescape(encodeURIComponent(string)));
-  }
-
-  objectToTable() {
-    // extract keys from the first object, will be the title for each column
-    const colsHead = `<tr>${Object.keys(this._data[0]).map(key => `<td>${key}</td>`).join('')}</tr>`;
-
-    const colsData = this._data.map(obj => [`<tr>
-                ${Object.keys(obj).map(col => `<td>${obj[col] ? obj[col] : ''}</td>`).join('')}
-            </tr>`]) // 'null' values not showed
-      .join('');
-
-    return `<table>${colsHead}${colsData}</table>`.trim(); // remove spaces...
-  }
-
-  objectToSemicolons() {
-    const colsHead = Object.keys(this._data[0]).map(key => [key]).join(';');
-    const colsData = this._data.map(obj => [ // obj === row
-      Object.keys(obj).map(col => [
-        obj[col], // row[column]
-      ]).join(';'), // join the row with ';'
-    ]).join('\n'); // end of row
-
-    return `${colsHead}\n${colsData}`;
-  }
-}
-
-  // meanwhile - fetch data
-  apiService.exportAllStudentDetails({}, function(response, status)
-	{
-		var result = angular.fromJson(response);
-		if( result.response == 'success')
-		{
-      $scope.studentsExport = result.data;
-      $scope.exportToXls = new XlsExport($scope.studentsExport, 'Student Data Workbook');
-      $scope.exportToXls.exportToXLS('Student_Data_Workbook.xls');
-    }else{
-      // failed to fetch data
-    }
-  }, apiError);
-  // $scope.exportToXls = new XlsExport($scope.students, 'Student Data Workbook');
-  // $scope.exportToXls.exportToXLS('Student_Data_Workbook.xls');
-
+    $scope.gridApi.exporter.csvExport( 'visible', 'visible' );
   }
 
   $scope.promoteStudents = function ()

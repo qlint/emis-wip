@@ -985,6 +985,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getBusPickUpDropOffHistory/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getTransportCards = function (param, successFunction, errorFunction) {
+		ajaxService.AjaxGet(path + "/getTransportCards/" + param, successFunction, errorFunction);
+	};
+
 	/*********** Reports ***********/
 
 	this.getClassAnalysis = function (param, successFunction, errorFunction, params) {

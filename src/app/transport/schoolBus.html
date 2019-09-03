@@ -1,5 +1,126 @@
 <style type="text/css">
     .table-striped tbody tr:hover{background-color:#80ffaa !important;cursor: pointer;font-weight: 900;}
+    /* The Modal (background) */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 5000; /* Sit on top */
+      padding-top: 10%; /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+    
+    /* Modal Content */
+    .modal-content {
+      position: relative;
+      background-color: #fefefe;
+      margin: auto;
+      padding: 0;
+      border: 1px solid #888;
+      width: 50%;
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+      -webkit-animation-name: animatetop;
+      -webkit-animation-duration: 0.4s;
+      animation-name: animatetop;
+      animation-duration: 0.4s
+    }
+    
+    /* Add Animation */
+    @-webkit-keyframes animatetop {
+      from {top:-300px; opacity:0} 
+      to {top:0; opacity:1}
+    }
+    
+    @keyframes animatetop {
+      from {top:-300px; opacity:0}
+      to {top:0; opacity:1}
+    }
+    
+    /* The Close Button */
+    .close {
+      color: white;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    
+    .close:hover,
+    .close:focus {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    
+    .modal-header {
+      padding: 0px 15px !important;
+      background-color: #5cb85c;
+      color: white;
+    }
+    
+    .modal-body {padding: 2px 16px;}
+    
+    .modal-footer {
+      padding: 2px 16px;
+      background-color: #5cb85c;
+      color: white;
+    }
+    
+    .dropbtn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 16px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .dropbtn:hover, .dropbtn:focus {
+      background-color: #3e8e41;
+    }
+    
+    #myInput {
+      box-sizing: border-box;
+      background-image: url('searchicon.png');
+      background-position: 14px 12px;
+      background-repeat: no-repeat;
+      font-size: 16px;
+      padding: 14px 20px 12px 45px;
+      border: none;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    #myInput:focus {outline: 3px solid #ddd;}
+    
+    .drpdown {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .drpdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f6f6f6;
+      min-width: 230px;
+      overflow: auto;
+      border: 1px solid #ddd;
+      z-index: 1;
+    }
+    
+    .drpdown-content a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+    
+    .drpdown a:hover {background-color: #ddd;}
+    
+    .show {display: block;}
 </style>
 <div ng-controller="schoolBusCtrl">
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
@@ -18,10 +139,16 @@
 					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
 				</ul>
 			</div>
-
+            <h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+					<div class="btn" title="t-card" ng-click="generateTcards()"><a class="export-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Generate Transport Cards</span></a></div>
+				</div>
+			</div>
 			<div class="clearfix">
 				<h1 id="pageTitle" class="t_title">School Bus Management</h1>
 			</div>
+			
 
 		</div>
 
@@ -137,6 +264,68 @@
                 </div>
     		</div>
 	    </div>
+	    
+	    <!-- Transport cards Modal -->
+        <div id="transportCards" class="modal">
+        
+          <!-- Modal content -->
+          <div class="modal-content">
+            <div class="modal-header" style="padding: 0px 15px !important;">
+              <span class="close">&times;</span>
+              <h2>Transport Cards</h2>
+            </div>
+            <div class="modal-body">
+              <h3>Select the mode of transport cards generation: Single Student or All Students</h3>
+              <div class="row">
+                <div class="col-sm-6">
+                    <div class="drpdown">
+                      <button ng-click="singleStudent()" class="dropbtn">Single Student</button>
+                      <div id="myDropdown" class="drpdown-content">
+                        <input type="text" placeholder="Search.." id="myInput" ng-keyup="filterFunction()">
+                        <a ng-repeat="student in allStudents track by $index" id="{{student.student_id}}" ng-click="loadTcard(this)">{{student.first_name}} {{student.middle_name == null? student.last_name : student.middle_name}} {{student.middle_name == null? '': student.last_name}} - {{student.class_name}}</a>
+                      </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <button ng-click="loadTcard(this)" class="dropbtn">All Students</button>
+                </div>
+              </div>
+              <!-- the transport card -->
+              <div>
+                <div style="width:60%;margin-left:10px;border:2px solid #000000;margin-top:10px">
+                    <h2 style="text-align:center;">TRANSPORT CARD</h2>
+                    <div class="row" style="border:1px solid #000000;width:98%;margin-left:1%;">
+                        <div class="col-sm-4"><p>NAME:</p></div><div class="col-sm-8"><p>CELINE NJOKI WAMBUI</p></div>
+                        <div class="col-sm-4"><p>ADMISSION:</p></div><div class="col-sm-8"><p>PS2621</p></div>
+                        <div class="col-sm-4"><p>CLASS:</p></div><div class="col-sm-8"><p>Grade 1 East</p></div>
+                        <div class="col-sm-4"><p>NEIGHBORHOOD:</p></div><div class="col-sm-8"><p>Buruburu Phase 3</p></div>
+                    </div>
+                    <div class="row" style="margin-top:7px;border:1px solid #000000;width:98%;margin-left:1%;">
+                        <h4 style="text-align:center;font-weight:900;text-transform:uppercase;text-decoration:underline;">Morning Trip</h4>
+                        <div class="col-sm-4"><p>TRIP:</p></div><div class="col-sm-8"><p>Morning Trip 1</p></div>
+                        <div class="col-sm-4"><p>BUS:</p></div><div class="col-sm-8"><p>KAV 085Q</p></div>
+                        <div class="col-sm-4"><p>DRIVER:</p></div><div class="col-sm-8"><p>Norman Njoroge Wanjiku</p></div>
+                        <div class="col-sm-4"><p>CONTACT:</p></div><div class="col-sm-8"><p>0722302704</p></div>
+                    </div>
+                    <div class="row" style="margin-top:7px;border:1px solid #000000;width:98%;margin-left:1%;">
+                        <h4 style="text-align:center;font-weight:900;text-transform:uppercase;text-decoration:underline;">Evening Trip</h4>
+                        <div class="col-sm-4"><p>TRIP:</p></div><div class="col-sm-8"><p>Evening Trip 1</p></div>
+                        <div class="col-sm-4"><p>BUS:</p></div><div class="col-sm-8"><p>KCH 594Q</p></div>
+                        <div class="col-sm-4"><p>DRIVER:</p></div><div class="col-sm-8"><p>George NJiguna Nyangi</p></div>
+                        <div class="col-sm-4"><p>CONTACT:</p></div><div class="col-sm-8"><p>0724095045</p></div>
+                    </div>
+                    <div class="row" style="margin-top:7px;border:1px solid #000000;width:98%;margin-left:1%;">
+                        <div class="col-sm-4"><p>BILLED:</p></div><div class="col-sm-8"><p>YES</p></div>
+                    </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <h2 style="text-align:center;color:#000000;">Be Sure Your Printer setting is set to "Letter" paper size</h2>
+            </div>
+          </div>
+        
+        </div>
 
 	</div>
 </div>

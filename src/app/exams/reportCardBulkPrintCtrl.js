@@ -3,9 +3,11 @@
 angular.module('eduwebApp').
 controller('reportCardBulkPrintCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$timeout','$window','$parse',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window, $parse){
-	// console.log(data);
+	console.log("First on rootscope",$rootScope.classBulkPrint[0]);
+	$scope.classBulkData = $rootScope.classBulkPrint;
 	// console.log("School = " + window.location.host.split('.')[0]);
 	$scope.AllData2 ={};
+	$scope.allDataArr = [];
 
 		angular.forEach(data, function(value, key) {
 			$scope.AllData2[key] = value;
@@ -21,7 +23,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				}
 
 		});
-	console.log($scope.AllData2,$scope.AllData2);
+	// console.log($scope.AllData2,$scope.AllData2);
 	data = $scope.AllData2[0];
 	$rootScope.isPrinting = false;
 	$scope.student = null
@@ -38,7 +40,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 	$scope.entity_id = null
 	$scope.canPrint = false;
-	$scope.isSchool = window.location.host.split('.')[0];
+	$scope.isSchool = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'lasalle' ? true : false );
 	$scope.schoolName = window.location.host.split('.')[0];
 	$scope.wantStreamPos = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'lasalle' ? true : false );
 	$scope.wantAutomatedComments = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
@@ -55,7 +57,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
 
 	$scope.chart_path = "";
-	console.log($scope);
+	// console.log($scope);
 	if( $scope.AllData[0].filters.class.class_cat_id == 21 || $scope.AllData[0].filters.class.class_cat_id == 5 || $scope.AllData[0].filters.class.class_cat_id == 6 || $scope.AllData[0].filters.class.class_cat_id == 7 || $scope.AllData[0].filters.class.class_cat_id == 8 || $scope.AllData[0].filters.class.class_cat_id == 9 ){
 	    $scope.noRanking = ( window.location.host.split('.')[0] == 'lasalle' ? true : false );
 	    if( $scope.noRanking == true ){
@@ -128,7 +130,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	var initReportCard = function()
 	{
-		console.log("Initializing report card",data);
+		// console.log("Initializing report card",data);
 		if( data.reportData !== undefined )
 		{
 
@@ -170,7 +172,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.isClassTeacher = ( $scope.student.class_teacher_id == $rootScope.currentUser.emp_id ? true : false);
 			$scope.isSchool = ( window.location.host.split('.')[0] == "kingsinternational" || window.location.host.split('.')[0] == "thomasburke" ? true : false);
 			// console.log("school = "+ window.location.host.split('.')[0] + " and isSchool = " + $scope.isSchool);
-			console.log("data_key = " + $scope.data_key);
+			// console.log("data_key = " + $scope.data_key);
 			$scope.AllData[$scope.data_key].nextTermStartDate = $scope.nextTermStartDate;
 			$scope.AllData[$scope.data_key].currentTermEndDate = $scope.currentTermEndDate;
 			$scope.AllData[$scope.data_key].report = $scope.report;
@@ -332,6 +334,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 		else
 		{
+			// console.log("Getting exam marks for reportcard without params");
 			getExamMarksforReportCard();
 			getStudentReportCard();
 			//var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
@@ -454,7 +457,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.streamRankLastTerm = result.data.streamRankLastTerm;
 				$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
 				$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
-				console.log("Stream ranking");
+				// console.log("Stream ranking");
 
 		// $scope.streamRankPosition = result.data.streamRank[0].position;
 		// $scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
@@ -463,7 +466,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		// $scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
 		// $scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
 
-		console.log("Stream last term = (" + $scope.streamRankPositionLastTerm + "/" + $scope.streamRankOutOfLastTerm + ")");
+		// console.log("Stream last term = (" + $scope.streamRankPositionLastTerm + "/" + $scope.streamRankOutOfLastTerm + ")");
 
 			localStorage.setItem('printStreamRank', $scope.streamRankPosition);
 			var getPrintRank = localStorage.getItem("printStreamRank");
@@ -478,7 +481,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.streamRankLastTerm = result.data.streamRankLastTerm;
 				$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
 				$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
-				console.log("Stream last term");
+				// console.log("Stream last term");
 
 		$scope.AllData[$scope.data_key].streamRankOutOf = $scope.streamRankOutOf;
 		$scope.AllData[$scope.data_key].streamRankOutOfLastTerm = $scope.streamRankOutOfLastTerm;
@@ -489,6 +492,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	var loadExamMarks = function(response, status)
 	{
+		// console.log("Loading exam marks");
 		var result = angular.fromJson(response);
 
 
@@ -533,8 +537,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	var buildReportBody = function(data)
 	{
 		var student_id = data.details[0].student_id;
-		console.log(student_id)
-		console.log("vvvvvvv >> " + $scope.student.student_id)
+		// console.log(student_id)
+		// console.log("vvvvvvv >> " + $scope.student.student_id)
 
 		var school = window.location.host.split('.')[0];
 
@@ -544,11 +548,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		if (school == "kingsinternational" || school == "thomasburke"){
 			$scope.overall = data.overallByAverage;
 			$scope.thisTermMarks = data.overallByAverage.current_term_marks;
-			console.log("overall data by avg");
+			// console.log("overall data by avg");
 		}else{
 			$scope.overall = data.overall;
 			$scope.thisTermMarks = data.overall.current_term_marks;
-			console.log("overall data - norma");
+			// console.log("overall data - norma");
 			// console.log($scope.overall);
 		}
 		$scope.overallLastTerm = data.overallLastTerm;
@@ -560,10 +564,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.currentClassPosition = data.currentClassPosition[0];
 		if (school == "kingsinternational" || school == "thomasburke"){
 			$scope.overallSubjectMarks = data.subjectOverallByAvg;
-			console.log("sbj ovrl by avg");
+			// console.log("sbj ovrl by avg");
 		}else{
 			$scope.overallSubjectMarks = data.subjectOverall;
-			console.log("sbj ovrl normal");
+			// console.log("sbj ovrl normal");
 		}
 		// $scope.thisTermMarks = data.overall.current_term_marks;
 		$scope.thisTermMarksOutOf = data.overall.current_term_marks_out_of;
@@ -750,8 +754,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.AllData[student_id].comments = $scope.comments;
 			$scope.AllData[student_id].principal_comment = $scope.principal_comment;
 
-			console.log("ALL DATA")
-			console.log($scope.AllData)
+			// console.log("ALL DATA")
+			// console.log($scope.AllData)
 
 
 	}
@@ -760,7 +764,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	function callAtTimeout(param) {
 
 	$scope.chart_path = getChartPath();
-	console.log("GETTTING CHART" + param)
+	// console.log("GETTTING CHART" + param)
 			$scope.AllData[param].chart_path = $scope.chart_path;
 			$scope.Done_getChart_path = true;
 
@@ -961,6 +965,40 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		$scope.AllData[$scope.data_key].examTypes = $scope.examTypes;
 	}
+
+	angular.forEach($scope.AllData, function(value, key) {
+		console.log("This student is id="+value.student.student_id);
+		let i=0;
+		for(i;i < $rootScope.classBulkPrint.length;i++){
+			console.log("Looping the students",$rootScope.classBulkPrint[i].examMarks);
+			if(value.student.student_id == $rootScope.classBulkPrint[i].student.student_id){
+				console.log("Match for student " + value.student.student_id + " and " + $rootScope.classBulkPrint[i].student.student_id);
+				value.overall = $rootScope.classBulkPrint[i].overall;
+				value.overallLastTerm = $rootScope.classBulkPrint[i].overallLastTerm;
+				value.report = $rootScope.classBulkPrint[i].report;
+				value.streamRankPosition = $rootScope.classBulkPrint[i].streamRankPosition;
+				value.streamRankOutOf = $rootScope.classBulkPrint[i].streamRankOutOf;
+				value.streamRankLastTerm = $rootScope.classBulkPrint[i].streamRankLastTerm;
+				value.streamRankOutOfLastTerm = $rootScope.classBulkPrint[i].streamRankOutOfLastTerm;
+				value.current_term_marks = $rootScope.classBulkPrint[i].current_term_marks;
+				value.current_term_marks_out_of = $rootScope.classBulkPrint[i].current_term_marks_out_of;
+				value.examMarks = $rootScope.classBulkPrint[i].examMarks;
+				value.examTypes = $rootScope.classBulkPrint[i].examTypes;
+				value.graphPoints = $rootScope.classBulkPrint[i].graphPoints;
+				value.isClassTeacher = $rootScope.classBulkPrint[i].isClassTeacher;
+				value.overallSubjectMarks = $rootScope.classBulkPrint[i].overallSubjectMarks;
+				value.performanceData = $rootScope.classBulkPrint[i].performanceData;
+				value.performanceLabels = $rootScope.classBulkPrint[i].performanceLabels;
+				value.thisTermGrade = $rootScope.classBulkPrint[i].thisTermGrade;
+				value.thisTermMarks = $rootScope.classBulkPrint[i].thisTermMarks;
+				value.thisTermMarksOutOf = $rootScope.classBulkPrint[i].thisTermMarksOutOf;
+				value.thisTermPercentage = $rootScope.classBulkPrint[i].thisTermPercentage;
+				value.totals = $rootScope.classBulkPrint[i].totals;
+			}
+		}
+		$scope.allDataArr.push(value);
+	});
+	console.log($scope.allDataArr);
 
 	$scope.recreateReport = function()
 	{

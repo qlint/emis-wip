@@ -449,12 +449,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		apiService.getClassStudentsInTranspZone(classCatId, loadClassStudentsInZone, apiError);
 
 	}
-	
+
 	$scope.fetchAllStudentsInTripInBus = function(){
 	    let busId = $scope.filters.bus;
 	    let tripId = $scope.filters.trip;
 	    let thisParam = busId + '/' + tripId;
-	    
+
 	    var fetchAllStudentsInBusInTrip = function(response,status){
     		    var result = angular.fromJson( response );
         		if( result.response == 'success' )
@@ -488,13 +488,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
     		}
 			apiService.getAllStudentsInBusInTrip(thisParam, fetchAllStudentsInBusInTrip, apiError);
 	}
-	
+
 	$scope.fetchClassStudentsInTripInBus = function(){
 	    let classId = $scope.filters.class;
 	    let busId = $scope.filters.bus;
 	    let tripId = $scope.filters.trip;
 	    let thisParam = classId + '/' + busId + '/' + tripId;
-	    
+
 	    var fetchClassStudentsInBusInTrip = function(response,status){
     		    var result = angular.fromJson( response );
         		if( result.response == 'success' )
@@ -857,6 +857,110 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		{
 			$scope.errMsg = result.data;
 		}
+
+	}
+
+	$scope.exportData = function(){
+
+		if($scope.allWithTranspTable == true){
+			var divToExport=document.getElementById("allWithTranspTableDiv");
+			var rows = document.querySelectorAll('table.allWithTranspTableDiv tr[style="display: table-row;"]');
+		}else if($scope.allStudentsInBus == true){
+			var divToExport=document.getElementById("allStudentsInBusDiv");
+			var rows = document.querySelectorAll('table.allStudentsInBusDiv tr[style="display: table-row;"]');
+		}else if($scope.allStudentsInTrip == true){
+			var divToExport=document.getElementById("allStudentsInTripDiv");
+			var attr = $('table.allStudentsInTripDiv tr').attr('style');
+			if(typeof attr !== typeof undefined && attr !== false){
+				console.log("Table is unfiltered");
+			}else{
+				console.log("Table has been filtered");
+			}
+
+			var rows = document.querySelectorAll('table.allStudentsInTripDiv tr[style="display: table-row;"]');
+			if(rows.length == 0){
+				var rows = document.querySelectorAll('table.allStudentsInTripDiv tr');
+			}
+		}else if($scope.allStudentsInZone){
+			var divToExport=document.getElementById("allStudentsInZoneDiv");
+			var rows = document.querySelectorAll('table.allStudentsInZoneDiv tr[style="display: table-row;"]');
+		}else if($scope.allStudentsWithBalance == true){
+			var divToExport=document.getElementById("allStudentsWithBalanceDiv");
+			var rows = document.querySelectorAll('table.allStudentsWithBalanceDiv tr[style="display: table-row;"]');
+		}else if($scope.classStdTrans == true){
+			var divToExport=document.getElementById("classStdTransDiv");
+			var rows = document.querySelectorAll('table.classStdTransDiv tr[style="display: table-row;"]');
+		}else if($scope.allStudentsInTripInBus == true){
+			var divToExport=document.getElementById("allStudentsInTripInBusDiv");
+			var rows = document.querySelectorAll('table.allStudentsInTripInBusDiv tr[style="display: table-row;"]');
+		}else if($scope.classStudentsInBus == true){
+			var divToExport=document.getElementById("classStudentsInBusDiv");
+			var rows = document.querySelectorAll('table.classStudentsInBusDiv tr[style="display: table-row;"]');
+		}else if($scope.classStudentsInTrip == true){
+			var divToExport=document.getElementById("classStudentsInTripDiv");
+			var rows = document.querySelectorAll('table.classStudentsInTripDiv tr[style="display: table-row;"]');
+		}else if($scope.classStudentsInTripInBus == true){
+			var divToExport=document.getElementById("classStudentsInTripInBusDiv");
+			var rows = document.querySelectorAll('table.classStudentsInTripInBus tr[style="display: table-row;"]');
+		}else if($scope.classStudentsInZone == true){
+			var divToExport=document.getElementById("classStudentsInZoneDiv");
+			var rows = document.querySelectorAll('table.classStudentsInZoneDiv tr[style="display: table-row;"]');
+		}
+
+		function downloadCSV(csv, filename) {
+		    var csvFile;
+		    var downloadLink;
+
+		    // CSV file
+		    csvFile = new Blob([csv], {type: "text/csv"});
+
+		    // Download link
+		    downloadLink = document.createElement("a");
+
+		    // File name
+		    downloadLink.download = filename;
+
+		    // Create a link to the file
+		    downloadLink.href = window.URL.createObjectURL(csvFile);
+
+		    // Hide download link
+		    downloadLink.style.display = "none";
+
+		    // Add the link to DOM
+		    document.body.appendChild(downloadLink);
+
+		    // Click download link
+		    downloadLink.click();
+		}
+
+		function exportTableToCSV(filename) {
+		    var csv = [];
+		    // var rows = document.querySelectorAll('table tr[style*="display: table-row;"]');
+				console.log("rows data",typeof rows);
+				var headerRow = divToExport.querySelectorAll('table thead tr')[0];
+				var titles = headerRow.querySelectorAll("th");
+				var titlesText = [];
+				for(let x=0; x<titles.length;x++){
+					titlesText.push(titles[x].innerText);
+				}
+				var titlesToCsv = titlesText.join(',');
+				console.log(titlesToCsv);
+				csv.push(titlesToCsv);
+
+		    for (var i = 0; i < rows.length; i++) {
+		        var row = [], cols = rows[i].querySelectorAll("td, th");
+
+		        for (var j = 0; j < cols.length; j++)
+		            row.push(cols[j].innerText);
+
+		        csv.push(row.join(","));
+		    }
+
+		    // Download CSV file
+		    downloadCSV(csv.join("\n"), filename);
+		}
+
+		exportTableToCSV($scope.filters.report_type + '.csv');
 
 	}
 

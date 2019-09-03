@@ -123,7 +123,29 @@ $app->get('/exportAllStudentDetails', function () {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT one.*, mother_name, mother_telephone, father_name, father_telephone
+    $sth = $db->prepare("SELECT
+	student_id, student_name,
+	case when admission_number IS NOT NULL then admission_number else '-' end as admission_number,
+	student_category, nationality, class_name, adopted,
+	case when emergency_contact IS NOT NULL then emergency_contact else '-' end as emergency_contact,
+	case when emergency_relationship IS NOT NULL then emergency_relationship else '-' end as emergency_relationship,
+	case when emergency_telephone IS NOT NULL then emergency_telephone else '-' end as emergency_telephone,
+	case when date_of_birth IS NOT NULL then date_of_birth else '-' end as date_of_birth,
+	case when pick_up_drop_off_individual IS NOT NULL then pick_up_drop_off_individual else '-' end as pick_up_drop_off_individual,
+	case when pick_up_drop_off_individual_phone IS NOT NULL then pick_up_drop_off_individual_phone else '-' end as pick_up_drop_off_individual_phone,
+	fee_payment_method, payment_plan,
+	case when route IS NOT NULL then route else '-' end as route,
+	case when student_type IS NOT NULL then student_type else '-' end as student_type,
+	case when nemis is not null then nemis else '-' end as nemis,
+	case when house is not null then house else '-' end as house,
+	case when club IS NOT NULL then club else '-' end as club,
+	case when movement IS NOT NULL then movement else '-' end as movement,
+	case when mother_name IS NOT NULL then mother_name else '-' end as mother_name,
+	case when mother_telephone IS NOT NULL then mother_telephone else '-' end as mother_telephone,
+	case when father_name IS NOT NULL then father_name else '-' end as father_name,
+	case when father_telephone IS NOT NULL then father_telephone else '-' end as father_telephone
+FROM (
+			SELECT one.*, mother_name, mother_telephone, father_name, father_telephone
                         FROM (
                         	SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, admission_number, student_category, nationality,
                         		class_name, CASE WHEN adopted IS FALSE THEN 'False' ELSE 'True' END AS adopted, emergency_name AS emergency_contact, emergency_relationship, emergency_telephone,
@@ -166,7 +188,9 @@ $app->get('/exportAllStudentDetails', function () {
                         		ORDER BY student_id ASC
                         	)three
                         )four
-                        USING (student_id)");
+                        USING (student_id)
+)five
+ORDER BY student_name ASC");
     $sth->execute();
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 

@@ -18,6 +18,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.rawRoutes = [];
 	$scope.newRawRoutes = [];
 	//$scope.loading = true;
+	$scope.showTcard = false;
 
 
 	$("#multiRoute").mousedown(function(e){
@@ -31,6 +32,24 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 	var initializeController = function ()
 	{
+	    // get all students
+	    var loadStudents = function(response,status, params)
+          {
+            var result = angular.fromJson(response);
+
+            if( result.response == 'success')
+            {
+              $scope.allStudents = result.data;
+              // console.log(result.data);
+            }
+            else
+            {
+              $scope.error = true;
+              $scope.errMsg = result.data;
+            }
+          }
+	    apiService.getAllStudents(true, loadStudents, apiError);
+
 		// get classes
 		var requests = [];
 
@@ -95,7 +114,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
               // console.log("Start here",$scope.routes0);
               $scope.routes0.forEach(function(newRoutesArr) {
                   var newRouteSplit = newRoutesArr.split(" - ").pop();
-                  console.log(newRouteSplit);
+                  // console.log(newRouteSplit);
                   // newRouteSplit.trim();
                   $scope.newRawRoutes.push(newRouteSplit);
               });
@@ -165,6 +184,91 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 	}
 	$timeout(initializeController,1);
+
+	$scope.singleStudent = function(){
+	    document.getElementById("myDropdown").classList.toggle("show");
+	}
+
+	$scope.filterFunction = function() {
+      var input, filter, ul, li, a, i;
+      input = document.getElementById("myInput");
+      filter = input.value.toUpperCase();
+      var div = document.getElementById("myDropdown");
+      a = div.getElementsByTagName("a");
+      for (i = 0; i < a.length; i++) {
+        var txtValue = a[i].textContent || a[i].innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          a[i].style.display = "";
+        } else {
+          a[i].style.display = "none";
+        }
+      }
+    }
+
+	$scope.generateTcards = function(){
+	    // Get the modal
+        var modal = document.getElementById("transportCards");
+
+        modal.style.display = "block";
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+          modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        }
+	}
+
+	$scope.loadTcard = function(el){
+	    // console.log(el.student);
+	    $scope.showTcard = true;
+
+	    function fetchTheTcards(param){
+	        // fetch them
+					let postParam = param;
+    	    var loadCardsData = function(response,status)
+              {
+                var result = angular.fromJson(response);
+
+                if( result.response == 'success')
+                {
+                  $scope.studentTranpCards = result.data;
+									console.log($scope.studentTranpCards);
+                }
+                else
+                {
+                  $scope.error = true;
+                  $scope.errMsg = result.data;
+                }
+              }
+    	    apiService.getTransportCards(postParam, loadCardsData, apiError);
+	    }
+
+	    function loadAllTcards(){
+	        console.log("Fetching all t cards");
+	        fetchTheTcards(null)
+	    }
+
+	    function loadStudentTcard(){
+	        console.log("Fetching student t card");
+	        fetchTheTcards(el.student.student_id)
+	    }
+
+	    if(el.student == undefined){
+	        loadAllTcards();
+	    }else{
+	        loadStudentTcard();
+	    }
+
+	}
 
     $scope.selectRoutes = function()
 	{

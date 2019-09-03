@@ -1131,4 +1131,95 @@ $app->get('/getAlreadyAssignedStudentsInBus', function () {
 
 });
 
+$app->get('/getTransportCards/:studentId', function ($studentId) {
+    //Show transport cards
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        if($studentId === null){
+          $sth = $db->prepare("SELECT student_id, student_name, class_name, neighborhood, billed,
+                              			array_agg('{\"trip_id\":' || student_trip_id || ',\"trip_name\":\"' || trip_name || '\",\"bus\":\"' || bus || '\",\"driver_name\":\"' || driver_name || '\",\"driver_telephone\":\"' || driver_telephone || '\"}') AS trip_details
+                              		FROM (
+                              			SELECT two.*, st.trip_name
+                              			FROM (
+                              				SELECT one.*, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.bus_driver AS driver_id, b.bus_guide AS guide_id,
+                              					e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name, e.telephone AS driver_telephone,
+                                					e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name
+                              				FROM (
+                              					SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                              						s.destination AS student_destination, s.admission_number, class_name, s.destination AS neighborhood, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS student_trip_id,
+                              						CASE WHEN s.transport_route_id IS NOT NULL THEN 'YES' ELSE 'NO' END AS billed
+                                					FROM app.students s
+                                					INNER JOIN app.classes c ON s.current_class = c.class_id
+                                					WHERE s.active IS TRUE AND s.trip_ids IS NOT NULL AND s.transport_route_id IS NOT NULL
+                                				)one
+                                				INNER JOIN app.buses b ON b.destinations ILIKE '%' || one.neighborhood || '%'
+                                				LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
+                                				LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                                				ORDER BY student_id ASC
+                                			)two
+                                			INNER JOIN app.schoolbus_bus_trips sbt ON two.bus_id = sbt.bus_id AND two.student_trip_id = sbt.bus_trip_id
+                                			INNER JOIN app.schoolbus_trips st ON sbt.schoolbus_trip_id = st.schoolbus_trip_id
+                                			ORDER BY student_id ASC
+                                		)three
+                                		GROUP BY student_id, student_name, class_name, neighborhood, billed
+                                		ORDER BY student_id ASC");
+          $sth->execute();
+          $results = $sth->fetchAll(PDO::FETCH_OBJ);
+        }else{
+          $sth = $db->prepare("		SELECT student_id, student_name, class_name, neighborhood, billed,
+                              			array_agg('{\"trip_id\":' || student_trip_id || ',\"trip_name\":\"' || trip_name || '\",\"bus\":\"' || bus || '\",\"driver_name\":\"' || driver_name || '\",\"driver_telephone\":\"' || driver_telephone || '\"}') AS trip_details
+                              		FROM (
+                              			SELECT two.*, st.trip_name
+                              			FROM (
+                              				SELECT one.*, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.bus_driver AS driver_id, b.bus_guide AS guide_id,
+                              					e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name, e.telephone AS driver_telephone,
+                                					e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name
+                              				FROM (
+                              					SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                              						s.destination AS student_destination, s.admission_number, class_name, s.destination AS neighborhood, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS student_trip_id,
+                              						CASE WHEN s.transport_route_id IS NOT NULL THEN 'YES' ELSE 'NO' END AS billed
+                                					FROM app.students s
+                                					INNER JOIN app.classes c ON s.current_class = c.class_id
+                                					WHERE s.active IS TRUE AND s.trip_ids IS NOT NULL AND s.transport_route_id IS NOT NULL
+                                				)one
+                                				INNER JOIN app.buses b ON b.destinations ILIKE '%' || one.neighborhood || '%'
+                                				LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
+                                				LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                                				ORDER BY student_id ASC
+                                			)two
+                                			INNER JOIN app.schoolbus_bus_trips sbt ON two.bus_id = sbt.bus_id AND two.student_trip_id = sbt.bus_trip_id
+                                			INNER JOIN app.schoolbus_trips st ON sbt.schoolbus_trip_id = st.schoolbus_trip_id
+                                			ORDER BY student_id ASC
+                                		)three
+                                    WHERE student_id = :studentId
+                                		GROUP BY student_id, student_name, class_name, neighborhood, billed
+                                		ORDER BY student_id ASC");
+          $sth->execute( array(':studentId' => $studentId) );
+          $results = $sth->fetchAll(PDO::FETCH_OBJ);
+        }
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+  $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 ?>
