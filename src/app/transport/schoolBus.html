@@ -14,7 +14,7 @@
       background-color: rgb(0,0,0); /* Fallback color */
       background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
     }
-    
+
     /* Modal Content */
     .modal-content {
       position: relative;
@@ -29,18 +29,18 @@
       animation-name: animatetop;
       animation-duration: 0.4s
     }
-    
+
     /* Add Animation */
     @-webkit-keyframes animatetop {
-      from {top:-300px; opacity:0} 
+      from {top:-300px; opacity:0}
       to {top:0; opacity:1}
     }
-    
+
     @keyframes animatetop {
       from {top:-300px; opacity:0}
       to {top:0; opacity:1}
     }
-    
+
     /* The Close Button */
     .close {
       color: white;
@@ -48,28 +48,28 @@
       font-size: 28px;
       font-weight: bold;
     }
-    
+
     .close:hover,
     .close:focus {
       color: #000;
       text-decoration: none;
       cursor: pointer;
     }
-    
+
     .modal-header {
       padding: 0px 15px !important;
       background-color: #5cb85c;
       color: white;
     }
-    
+
     .modal-body {padding: 2px 16px;}
-    
+
     .modal-footer {
       padding: 2px 16px;
       background-color: #5cb85c;
       color: white;
     }
-    
+
     .dropbtn {
       background-color: #4CAF50;
       color: white;
@@ -77,12 +77,13 @@
       font-size: 16px;
       border: none;
       cursor: pointer;
+      line-height: 0px;
     }
-    
+
     .dropbtn:hover, .dropbtn:focus {
       background-color: #3e8e41;
     }
-    
+
     #myInput {
       box-sizing: border-box;
       background-image: url('searchicon.png');
@@ -93,14 +94,14 @@
       border: none;
       border-bottom: 1px solid #ddd;
     }
-    
+
     #myInput:focus {outline: 3px solid #ddd;}
-    
+
     .drpdown {
       position: relative;
       display: inline-block;
     }
-    
+
     .drpdown-content {
       display: none;
       position: absolute;
@@ -110,17 +111,46 @@
       border: 1px solid #ddd;
       z-index: 1;
     }
-    
+
     .drpdown-content a {
       color: black;
       padding: 12px 16px;
       text-decoration: none;
       display: block;
     }
-    
     .drpdown a:hover {background-color: #ddd;}
-    
     .show {display: block;}
+    @media print {
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 5000; /* Sit on top */
+        padding-top: 10%; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      }
+
+      /* Modal Content */
+      .modal-content {
+        position: relative;
+        background-color: #fefefe;
+        margin: auto;
+        padding: 0;
+        border: 1px solid #888;
+        width: 50%;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+        -webkit-animation-name: animatetop;
+        -webkit-animation-duration: 0.4s;
+        animation-name: animatetop;
+        animation-duration: 0.4s
+      }
+      .modal-body {padding: 2px 16px;}
+    }
 </style>
 <div ng-controller="schoolBusCtrl">
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
@@ -148,7 +178,7 @@
 			<div class="clearfix">
 				<h1 id="pageTitle" class="t_title">School Bus Management</h1>
 			</div>
-			
+
 
 		</div>
 
@@ -264,12 +294,12 @@
                 </div>
     		</div>
 	    </div>
-	    
+
 	    <!-- Transport cards Modal -->
         <div id="transportCards" class="modal">
-        
+
           <!-- Modal content -->
-          <div class="modal-content">
+          <div class="modal-content" style="margin-top:-5%;">
             <div class="modal-header" style="padding: 0px 15px !important;">
               <span class="close">&times;</span>
               <h2>Transport Cards</h2>
@@ -289,33 +319,29 @@
                 <div class="col-sm-6">
                     <button ng-click="loadTcard(this)" class="dropbtn">All Students</button>
                 </div>
+                <div class="col-sm-12" ng-show="cardsLoaded" style="text-align:center;margin-top:5px;">
+                  <button ng-click="printTcards()" class="dropbtn" style="margin-left:auto;margin-right:auto;width:50%;">PRINT TRANSPORT CARD(S)</button>
+                </div>
               </div>
               <!-- the transport card -->
-              <div>
-                <div style="width:60%;margin-left:10px;border:2px solid #000000;margin-top:10px">
+              <div id="printCards">
+                <div style="width:100%;margin-left:10px;border:2px solid #000000;margin-top:10px" ng-repeat="item in studentTranpCards track by $index">
                     <h2 style="text-align:center;">TRANSPORT CARD</h2>
                     <div class="row" style="border:1px solid #000000;width:98%;margin-left:1%;">
-                        <div class="col-sm-4"><p>NAME:</p></div><div class="col-sm-8"><p>CELINE NJOKI WAMBUI</p></div>
-                        <div class="col-sm-4"><p>ADMISSION:</p></div><div class="col-sm-8"><p>PS2621</p></div>
-                        <div class="col-sm-4"><p>CLASS:</p></div><div class="col-sm-8"><p>Grade 1 East</p></div>
-                        <div class="col-sm-4"><p>NEIGHBORHOOD:</p></div><div class="col-sm-8"><p>Buruburu Phase 3</p></div>
+                        <div class="col-sm-4"><p>NAME:</p></div><div class="col-sm-8"><p>{{item.student_name}}</p></div>
+                        <div class="col-sm-4"><p>ADMISSION:</p></div><div class="col-sm-8"><p>{{item.admission_number}}</p></div>
+                        <div class="col-sm-4"><p>CLASS:</p></div><div class="col-sm-8"><p>{{item.class_name}}</p></div>
+                        <div class="col-sm-4"><p>NEIGHBORHOOD:</p></div><div class="col-sm-8"><p>{{item.neighborhood}}</p></div>
                     </div>
-                    <div class="row" style="margin-top:7px;border:1px solid #000000;width:98%;margin-left:1%;">
-                        <h4 style="text-align:center;font-weight:900;text-transform:uppercase;text-decoration:underline;">Morning Trip</h4>
-                        <div class="col-sm-4"><p>TRIP:</p></div><div class="col-sm-8"><p>Morning Trip 1</p></div>
-                        <div class="col-sm-4"><p>BUS:</p></div><div class="col-sm-8"><p>KAV 085Q</p></div>
-                        <div class="col-sm-4"><p>DRIVER:</p></div><div class="col-sm-8"><p>Norman Njoroge Wanjiku</p></div>
-                        <div class="col-sm-4"><p>CONTACT:</p></div><div class="col-sm-8"><p>0722302704</p></div>
+                    <div ng-repeat="trip in item.tripDetails track by $index" class="row" style="margin-top:7px;border:1px solid #000000;width:98%;margin-left:1%;">
+                        <h4 style="text-align:center;font-weight:900;text-transform:uppercase;text-decoration:underline;">Trip {{$index == 0 ? 'One' : ($index == 1 ? 'Two' : ($index == 2 ? 'Three' : 'Four'))}}</h4>
+                        <div class="col-sm-4"><p>TRIP:</p></div><div class="col-sm-8"><p>{{trip.trip_name}}</p></div>
+                        <div class="col-sm-4"><p>BUS:</p></div><div class="col-sm-8"><p>{{trip.bus}}</p></div>
+                        <div class="col-sm-4"><p>DRIVER:</p></div><div class="col-sm-8"><p>{{trip.driver_name}}</p></div>
+                        <div class="col-sm-4"><p>CONTACT:</p></div><div class="col-sm-8"><p>{{trip.driver_telephone}}</p></div>
                     </div>
-                    <div class="row" style="margin-top:7px;border:1px solid #000000;width:98%;margin-left:1%;">
-                        <h4 style="text-align:center;font-weight:900;text-transform:uppercase;text-decoration:underline;">Evening Trip</h4>
-                        <div class="col-sm-4"><p>TRIP:</p></div><div class="col-sm-8"><p>Evening Trip 1</p></div>
-                        <div class="col-sm-4"><p>BUS:</p></div><div class="col-sm-8"><p>KCH 594Q</p></div>
-                        <div class="col-sm-4"><p>DRIVER:</p></div><div class="col-sm-8"><p>George NJiguna Nyangi</p></div>
-                        <div class="col-sm-4"><p>CONTACT:</p></div><div class="col-sm-8"><p>0724095045</p></div>
-                    </div>
-                    <div class="row" style="margin-top:7px;border:1px solid #000000;width:98%;margin-left:1%;">
-                        <div class="col-sm-4"><p>BILLED:</p></div><div class="col-sm-8"><p>YES</p></div>
+                    <div class="row" style="margin-top:7px;border:1px solid #000000;width:98%;margin-left:1%;margin-bottom:2px;">
+                        <div class="col-sm-4"><p>BILLED:</p></div><div class="col-sm-8"><p>{{item.billed}}</p></div>
                     </div>
                 </div>
               </div>
@@ -324,7 +350,7 @@
               <h2 style="text-align:center;color:#000000;">Be Sure Your Printer setting is set to "Letter" paper size</h2>
             </div>
           </div>
-        
+
         </div>
 
 	</div>

@@ -1139,8 +1139,8 @@ $app->get('/getTransportCards/:studentId', function ($studentId) {
     try
     {
         $db = getDB();
-        if($studentId === null){
-          $sth = $db->prepare("SELECT student_id, student_name, class_name, neighborhood, billed,
+        if($studentId === "0"){
+          $sth = $db->prepare("SELECT student_id, admission_number, student_name, class_name, neighborhood, billed,
                               			array_agg('{\"trip_id\":' || student_trip_id || ',\"trip_name\":\"' || trip_name || '\",\"bus\":\"' || bus || '\",\"driver_name\":\"' || driver_name || '\",\"driver_telephone\":\"' || driver_telephone || '\"}') AS trip_details
                               		FROM (
                               			SELECT two.*, st.trip_name
@@ -1165,12 +1165,12 @@ $app->get('/getTransportCards/:studentId', function ($studentId) {
                                 			INNER JOIN app.schoolbus_trips st ON sbt.schoolbus_trip_id = st.schoolbus_trip_id
                                 			ORDER BY student_id ASC
                                 		)three
-                                		GROUP BY student_id, student_name, class_name, neighborhood, billed
-                                		ORDER BY student_id ASC");
+                                		GROUP BY student_id, admission_number, student_name, class_name, neighborhood, billed
+                                		ORDER BY class_name ASC, student_name ASC");
           $sth->execute();
           $results = $sth->fetchAll(PDO::FETCH_OBJ);
         }else{
-          $sth = $db->prepare("		SELECT student_id, student_name, class_name, neighborhood, billed,
+          $sth = $db->prepare("		SELECT student_id, admission_number, student_name, class_name, neighborhood, billed,
                               			array_agg('{\"trip_id\":' || student_trip_id || ',\"trip_name\":\"' || trip_name || '\",\"bus\":\"' || bus || '\",\"driver_name\":\"' || driver_name || '\",\"driver_telephone\":\"' || driver_telephone || '\"}') AS trip_details
                               		FROM (
                               			SELECT two.*, st.trip_name
@@ -1196,8 +1196,8 @@ $app->get('/getTransportCards/:studentId', function ($studentId) {
                                 			ORDER BY student_id ASC
                                 		)three
                                     WHERE student_id = :studentId
-                                		GROUP BY student_id, student_name, class_name, neighborhood, billed
-                                		ORDER BY student_id ASC");
+                                		GROUP BY student_id, admission_number, student_name, class_name, neighborhood, billed
+                                		ORDER BY class_name ASC, student_name ASC");
           $sth->execute( array(':studentId' => $studentId) );
           $results = $sth->fetchAll(PDO::FETCH_OBJ);
         }

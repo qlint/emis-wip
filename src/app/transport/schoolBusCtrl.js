@@ -19,6 +19,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.newRawRoutes = [];
 	//$scope.loading = true;
 	$scope.showTcard = false;
+	$scope.cardsLoaded = false;
 
 
 	$("#multiRoute").mousedown(function(e){
@@ -241,6 +242,32 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
                 if( result.response == 'success')
                 {
                   $scope.studentTranpCards = result.data;
+									$scope.studentTranpCards.forEach(function(item) {
+										let formatRawTrip = item.trip_details.substring(2, item.trip_details.length-2);
+										item.tripDetails = formatRawTrip.replace(/\\/g, '').replace(/"}/gi, '"}__').split('__');
+										item.tripDetails = item.tripDetails.filter(function (el) {
+										  return el != "";
+										});
+										for(let i=0;i < item.tripDetails.length;i++){
+											if(i>0){
+												item.tripDetails[i] = item.tripDetails[i].substring(3,item.tripDetails[i].length);
+												item.tripDetails[i] = JSON.parse(item.tripDetails[i]);
+											}
+										}
+										/*
+										for(let j=0;j < item.tripDetails.length;j++){
+											item.tripDetails[j] = JSON.parse(item.tripDetails[j]);
+										}
+										*/
+									});
+									for(let k=0;k < $scope.studentTranpCards.length;k++){
+										let firstTrip = $scope.studentTranpCards[k].tripDetails;
+										for(let l=0;l < firstTrip.length; l++){
+											if(l<1){
+												$scope.studentTranpCards[k].tripDetails[l] = JSON.parse($scope.studentTranpCards[k].tripDetails[l]);
+											}
+										}
+									}
 									console.log($scope.studentTranpCards);
                 }
                 else
@@ -254,7 +281,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 	    function loadAllTcards(){
 	        console.log("Fetching all t cards");
-	        fetchTheTcards(null)
+	        fetchTheTcards(0)
 	    }
 
 	    function loadStudentTcard(){
@@ -267,7 +294,27 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	    }else{
 	        loadStudentTcard();
 	    }
+			$scope.cardsLoaded = true;
+	}
 
+	$scope.printTcards = function(){
+		/*
+		let body = document.getElementsByTagName("BODY")[0];
+		body.style.visibility = 'hidden';
+		document.getElementById('printCards').style.visibility = 'visible';
+		*/
+		$.getScript('/components/printThis.js', function()
+		{
+			$('#printCards').printThis({
+				importCSS: true,
+				importStyle: true,
+				loadCSS: "/css/template.min.css",
+				removeInline: false,
+				printDelay: 10000,
+				copyTagClasses: true
+			});
+		});
+		// window.print();
 	}
 
     $scope.selectRoutes = function()

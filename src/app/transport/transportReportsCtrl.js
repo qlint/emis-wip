@@ -968,7 +968,29 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	{
 		function printData()
 		{
-		   var divToPrint=document.getElementById("resultsTable");
+			if($scope.allWithTranspTable == true){
+			 var divToPrint=document.getElementById("allWithTranspTableDiv").firstElementChild;
+		 }else if($scope.allStudentsInBus == true){
+			 var divToPrint=document.getElementById("allStudentsInBusDiv").firstElementChild;
+		 }else if($scope.allStudentsInTrip == true){
+			 var divToPrint=document.getElementById("allStudentsInTripDiv").firstElementChild;
+		 }else if($scope.allStudentsInZone){
+			 var divToPrint=document.getElementById("allStudentsInZoneDiv").firstElementChild;
+		 }else if($scope.allStudentsWithBalance == true){
+			 var divToPrint=document.getElementById("allStudentsWithBalanceDiv").firstElementChild;
+		 }else if($scope.classStdTrans == true){
+			 var divToPrint=document.getElementById("classStdTransDiv").firstElementChild;
+		 }else if($scope.allStudentsInTripInBus == true){
+			 var divToPrint=document.getElementById("allStudentsInTripInBusDiv").firstElementChild;
+		 }else if($scope.classStudentsInBus == true){
+			 var divToPrint=document.getElementById("classStudentsInBusDiv").firstElementChild;
+		 }else if($scope.classStudentsInTrip == true){
+			 var divToPrint=document.getElementById("classStudentsInTripDiv").firstElementChild;
+		 }else if($scope.classStudentsInTripInBus == true){
+			 var divToPrint=document.getElementById("classStudentsInTripInBusDiv").firstElementChild;
+		 }else if($scope.classStudentsInZone == true){
+			 var divToPrint=document.getElementById("classStudentsInZoneDiv").firstElementChild;
+		 }
 		   var newWin= window.open("");
 		   newWin.document.write(divToPrint.outerHTML);
 			 newWin.document.write('<html><head><title>Print Report.</title><link rel="stylesheet" type="text/css" href="css/printReportsStyles.css"></head><body>');

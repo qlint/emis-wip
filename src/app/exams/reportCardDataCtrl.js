@@ -682,12 +682,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 
 						var school = window.location.host.split('.')[0];
 
-							$scope.streamRankPosition = result.data.streamRank[0].position;
-							$scope.streamRankOutOf = result.data.streamRank[0].position_out_of;
+							$scope.streamRankPosition = (result.data.streamRank != undefined ? result.data.streamRank[0].position : null);
+							$scope.streamRankOutOf = (result.data.streamRank != undefined ? result.data.streamRank[0].position_out_of : null);
 
 							$scope.streamRankLastTerm = result.data.streamRankLastTerm;
-							$scope.streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
-							$scope.streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of;
+							$scope.streamRankPositionLastTerm = (result.data.streamRankLastTerm != undefined ? result.data.streamRankLastTerm[0].position : null);
+							$scope.streamRankOutOfLastTerm = (result.data.streamRankLastTerm != undefined ? result.data.streamRankLastTerm[0].position_out_of : null);
 							// console.log("Stream by points");
 
 					// console.log("Stream last term = (" + $scope.streamRankPositionLastTerm + "/" + $scope.streamRankOutOfLastTerm + ")");

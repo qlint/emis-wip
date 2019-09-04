@@ -3,9 +3,13 @@
 angular.module('eduwebApp').
 controller('reportCardBulkPrintCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$timeout','$window','$parse',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window, $parse){
-	console.log("First on rootscope",$rootScope.classBulkPrint[0]);
-	$scope.classBulkData = $rootScope.classBulkPrint;
-	// console.log("School = " + window.location.host.split('.')[0]);
+	setTimeout(function(){
+		console.log("First on rootscope",$rootScope.classBulkPrint[0]);
+
+		$scope.examTypes = $rootScope.classBulkPrint[0].examTypes;
+		console.log("Exam Types",$scope.examTypes);
+		$scope.classBulkData = $rootScope.classBulkPrint;
+	}, 10000);
 	$scope.AllData2 ={};
 	$scope.allDataArr = [];
 
@@ -34,7 +38,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.filters =  [];
 	$scope.adding = false
 	$scope.thestudent = {};
-	$scope.examTypes = {};
+	// $scope.examTypes = {};
 	$scope.comments = {};
 	$scope.principal_comment = {};
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
@@ -624,28 +628,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		/* remove any exam types that have not been used for this report card */
+		/*
 		$scope.examTypes = $scope.rawExamTypes.filter(function(item){
 			var found = $scope.examMarks.filter(function(item2){
 				if( item.exam_type == item2.exam_type ) return item2;
@@ -654,9 +638,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		});
 
 		$scope.AllData[student_id].examTypes = $scope.examTypes;
-
-
-
+        */
+        
 		/* group the results by subject */
 		$scope.reportData = {};
 		$scope.reportData.subjects = groupExamMarks( $scope.examMarks );
@@ -958,21 +941,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		});
 
 		/* remove any exam types that have not been used for this report card */
+		/*
 		$scope.examTypes = $scope.rawExamTypes.filter(function(item){
 			var found = (examTypesUsed.indexOf(item.exam_type) > -1 ? true : false);
 			if( found ) return item;
 		});
 
 		$scope.AllData[$scope.data_key].examTypes = $scope.examTypes;
+		*/
 	}
 
 	angular.forEach($scope.AllData, function(value, key) {
-		console.log("This student is id="+value.student.student_id);
 		let i=0;
 		for(i;i < $rootScope.classBulkPrint.length;i++){
-			console.log("Looping the students",$rootScope.classBulkPrint[i].examMarks);
 			if(value.student.student_id == $rootScope.classBulkPrint[i].student.student_id){
-				console.log("Match for student " + value.student.student_id + " and " + $rootScope.classBulkPrint[i].student.student_id);
 				value.overall = $rootScope.classBulkPrint[i].overall;
 				value.overallLastTerm = $rootScope.classBulkPrint[i].overallLastTerm;
 				value.report = $rootScope.classBulkPrint[i].report;
@@ -1221,6 +1203,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		apiService.addReportCard(data,createCompleted,apiError);
 
+	}
+	
+	$scope.printAllReportCards = function()
+	{
+		function printData()
+		{
+		   var divToPrint=document.getElementById("fullPrint");
+		   var newWin= window.open("");
+		   newWin.document.write(divToPrint.outerHTML);
+			 newWin.document.write('<html><head><title>Report Cards Bulk Print.</title><link rel="stylesheet" type="text/css" href="css/bulkPrintReportCards.css"></head><body>');
+			 setTimeout(function(){
+				 // newWin.print();
+			   // newWin.close();
+			 }, 3000);
+		   // newWin.print();
+		   // newWin.close();
+		}
+		printData();
 	}
 
 	var createCompleted = function ( response, status, params )

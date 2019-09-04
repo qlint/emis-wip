@@ -472,6 +472,79 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 					};
 					break;
+					case "ADMIN-TRANSPORT":
+						$rootScope.permissions = {
+							'dashboard':{
+								'view': true,
+							},
+							'students':{
+								'view': true,
+								'add': false,
+								'edit': false,
+								'import': false
+							},
+							'school':{
+								'school_settings': {
+									'view': true,
+									'add': false,
+									'edit': false,
+								},
+								'school_dates': {
+									'view': true,
+									'add': false,
+									'edit': false,
+								}
+
+							},
+							'communications':{
+								'send_email' : {
+									'view': true,
+									'add': false,
+									'edit': false,
+								},
+								'feedback' : {
+								'view': true,
+								'add': false,
+								'edit': false,
+									}
+							},
+								'transport':{
+										'school_bus': {
+											'view': true,
+											'add': true,
+											'edit': true
+										},
+										'trips': {
+											'view': true,
+											'add': true,
+											'edit': true
+										},
+										/*
+										'pick_up_and_drop_off': {
+											'view': true,
+											'add': true,
+											'edit': true,
+										},
+										*/
+										'mapped_history': {
+											'view': true,
+											'add': true,
+											'edit': true,
+										},
+										'transport_communications': {
+											'view': true,
+											'add': true,
+											'edit': true,
+										},
+										'transport_reports': {
+											'view': true,
+											'add': true,
+											'edit': true,
+										},
+									}
+
+						};
+						break;
 			case "FINANCE":
 					$rootScope.permissions = {
 						'dashboard':{

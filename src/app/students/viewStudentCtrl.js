@@ -18,7 +18,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     }
     $scope.isDynamicMovement = (window.location.host.split('.')[0] == 'thomasburke' ? true : false);
     $scope.selectTrip = [];
-    
+
     $("#multiClub").mousedown(function(e){
 	    e.preventDefault();
       	var select = this;
@@ -27,7 +27,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
         setTimeout(function(){select.scrollTop = scroll;}, 0);
         $(select).focus();
     }).mousemove(function(e){e.preventDefault()});
-    
+
     $scope.selectClubs = function()
 	{
 	    var currSelection = $('#multiClub').val();
@@ -49,6 +49,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		    $scope.tabs = ['Details','Family','Fees'];
 		}else if( $rootScope.currentUser.user_type == 'FINANCE' ){
 		    $scope.tabs = ['Details','Fees'];
+		}else if( $rootScope.currentUser.user_type == 'ADMIN-TRANSPORT' ){
+		    $scope.tabs = ['Transport'];
 		}else{
 		    $scope.tabs = ['Details','Family','Medical History','Fees','Exams','Report Cards','Transport'];
 		}
@@ -256,7 +258,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
                        if( item.transport_id == $scope.student.transport_route_id ) return item;
                     })[0];
                     if( $scope.student.transport_route !== undefined ) $scope.showTransport = true;
-                    
+
                     $scope.transportRoutes.forEach(function(routesArr) {
                         var routeSplit = routesArr.route.split(',');
                         routeSplit.forEach(function(rtName) {
@@ -353,7 +355,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     				}
 			    }
 			    $scope.student.trip_ids = ( $scope.student.trip_ids == null || $scope.student.trip_ids == '' || $scope.student.trip_ids == "''" ? [] : $scope.student.trip_ids.split(',') );
-			    
+
 				$scope.lowerSchool = ( $scope.student.entity_id < 7 ? true : false );
 
 				$scope.existsImg = ( $scope.student.student_image === undefined || $scope.student.student_image === null ? true : false );
@@ -461,14 +463,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 		});
 	}
-	
+
 	$scope.getStudentBusDetails = function(student_id)
 	{
 	    apiService.getStudentTransportDetails($scope.student.student_id, function(response,status){
     			var result = angular.fromJson(response);
-    				
+
     			if( result.response == 'success')
-    			{	
+    			{
     					$scope.bus = ( result.nodata ? [] : result.data );
     					if($scope.bus.length == 0){
     					    $scope.bus[0] = {student_destination: 'N/A', bus: 'N/A', driver_name: 'N/A', driver_telephone: 'N/A', guide_name: 'N/A', trip_name: 'N/A', fee_item: 'NOT INVOICED', amount: 'N/A', route: 'N/A'};
@@ -479,10 +481,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     					$scope.error = true;
     					$scope.errMsg = result.data;
     			}
-    				
+
     		}, apiError);
 	}
-	
+
 	$scope.savingTransport = false;
 	if($scope.currentTab == 'Transport'){
 	    $scope.saving = false;
@@ -490,7 +492,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	}else if($scope.currentTab != 'Transport'){
 	    $scope.savingTransport = false;
 	}
-	
+
 	$scope.saveDestination = function(){
 	    // post obj
 	    var param = {
@@ -508,24 +510,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			setTimeout(function(){ BtnEl.innnerText = "Save Neighborhood"; }, 2500);
 		}, apiError);
 	}
-	
+
 	$scope.getStudentTripOptions = function(){
 	    // get options
 	    apiService.getStudentTripOptions($scope.student.student_id, function(response,status){
     			var result = angular.fromJson(response);
     			if( result.response == 'success')
-    			{	
+    			{
     				$scope.tripsData = ( result.nodata ? [] : result.data );
     				$scope.trips = $scope.tripsData;
     				$scope.showTripUpdateMsg = false;
-    				
-    				setTimeout(function(){ 
-    				    if( $scope.student.trip_ids.length > 0){ 
-            			        for(let d = 0; d < $scope.student.trip_ids.length; d++){ 
-            			            $scope.student.trip_ids[d] = parseInt($scope.student.trip_ids[d]); 
+
+    				setTimeout(function(){
+    				    if( $scope.student.trip_ids.length > 0){
+            			        for(let d = 0; d < $scope.student.trip_ids.length; d++){
+            			            $scope.student.trip_ids[d] = parseInt($scope.student.trip_ids[d]);
             			            let checkBoxId = "tripCheck_" + $scope.student.trip_ids[d];
             			            document.getElementById(checkBoxId).checked = true;
-            			        } 
+            			        }
             			}
     				}, 2000);
     			}
@@ -534,7 +536,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     				$scope.error = true;
     				$scope.errMsg = result.data;
     			}
-    				
+
     		}, apiError);
 	}
 
@@ -702,10 +704,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		    // console.log("Transport");
 		    document.getElementById("saveBtn").style.display = "none";
 		    $scope.saving = false;
-		    
+
 		    $scope.getStudentBusDetails($scope.student.student_id);
 		    $scope.getStudentTripOptions();
-		    
+
 		    $scope.selectedTrip = function(el)
         	{
         	    if( $scope.selectTrip.includes(el.trip.trip_id) == true ){
@@ -720,7 +722,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
             	}
             	// console.log("Trip to post",$scope.selectTrip);
         	}
-        	
+
         	$scope.saveTrip = function()
         	{
         		var trips = ($scope.selectTrip.length > 0 ? $scope.selectTrip.join(',') : null);
@@ -729,7 +731,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
         	        student_id: $scope.student.student_id,
         	        trip_ids: trips
         	    }
-        	    
+
         	    apiService.addStudentTrips(tripParam, function(response,status){
         			var result = angular.fromJson(response);
         			$scope.showTripUpdateMsg = true;
@@ -738,7 +740,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
         			$scope.getStudentTripOptions();
         		}, apiError);
         	}
-		    
+
 		}
 		$scope.currentTab = tab;
 	}
