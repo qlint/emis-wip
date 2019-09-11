@@ -483,19 +483,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'edit': false,
 								'import': false
 							},
-							'school':{
-								'school_settings': {
-									'view': true,
-									'add': false,
-									'edit': false,
-								},
-								'school_dates': {
-									'view': true,
-									'add': false,
-									'edit': false,
-								}
-
-							},
 							'communications':{
 								'send_email' : {
 									'view': true,

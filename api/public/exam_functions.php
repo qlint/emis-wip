@@ -126,7 +126,8 @@ $app->post('/addExamType', function () use($app) {
 	$examType =		( isset($allPostVars['exam_type']) ? $allPostVars['exam_type']: null);
 	$classCatId =	( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
-	$specialExam =		( isset($allPostVars['special_exam']) ? $allPostVars['special_exam']: null);
+	$specialExam =		( isset($allPostVars['special_exam']) ? $allPostVars['special_exam']: false);
+	if($specialExam === false){ $specialExam = 0; }elseif ($specialExam === true) {$specialExam = 1; }
 
 	try
 	{
@@ -134,6 +135,7 @@ $app->post('/addExamType', function () use($app) {
 
 		$sth0 = $db->prepare("SELECT max(sort_order) as sort_order FROM app.exam_types WHERE class_cat_id = :classCatId");
 		/* get the next number for sort order */
+		
 		$sth1 = $db->prepare("INSERT INTO app.exam_types(exam_type, class_cat_id, sort_order, created_by, is_special_exam)
 								VALUES(:examType, :classCatId, :sortOrder, :userId, :specialExam)");
 		$sth2 = $db->prepare("SELECT * FROM app.exam_types WHERE exam_type_id = currval('app.exam_types_exam_type_id_seq')");

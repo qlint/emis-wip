@@ -20,7 +20,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	//$scope.loading = true;
 	$scope.showTcard = false;
 	$scope.cardsLoaded = false;
-
+	$scope.schoolName = $rootScope.currentUser.settings["School Name"];
 
 	$("#multiRoute").mousedown(function(e){
 	    e.preventDefault();
@@ -104,9 +104,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
               $scope.transportRoutes.forEach(function(routesArr) {
                 var routeSplit = routesArr.route.split(',');
                 routeSplit.forEach(function(rtName) {
-                  var s1 = rtName.substring(rtName.indexOf(")")+1);
-                  s1.trim();
-                  $scope.rawRoutes.push(s1.toUpperCase());
+                  let s1 = rtName.substring(rtName.indexOf(")")+1);
+                  let s2 = s1.trim();
+                  $scope.rawRoutes.push(s2.toUpperCase());
                 });
               });
               $scope.routesUnsorted = [...new Set($scope.rawRoutes)];
@@ -268,6 +268,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 											}
 										}
 									}
+									$scope.studentTranpCards.forEach(function(student) {
+									  for(let i=0;i < student.tripDetails.length;i++){
+											let theTrip = student.tripDetails[i].trip_name.toLowerCase();
+											if(theTrip.includes('morning')){
+												student.tripDetails[i].trip_time = 'MORNING';
+											}else if(theTrip.includes('evening')){
+												student.tripDetails[i].trip_time = 'EVENING';
+											}
+										}
+									});
 									console.log($scope.studentTranpCards);
                 }
                 else
@@ -308,7 +318,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$('#printCards').printThis({
 				importCSS: true,
 				importStyle: true,
-				loadCSS: "/css/template.min.css",
+				loadCSS: ["/min/css/dependencies.min.css","/css/template.css"],
 				removeInline: false,
 				printDelay: 10000,
 				copyTagClasses: true

@@ -75,6 +75,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.studentLoading = true;
 
 	$scope.edit = ($rootScope.permissions.students.edit ? true : false );
+	// $scope.editTransport = ($rootScope.permissions.transport.edit ? true : false );
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 
 
@@ -262,9 +263,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
                     $scope.transportRoutes.forEach(function(routesArr) {
                         var routeSplit = routesArr.route.split(',');
                         routeSplit.forEach(function(rtName) {
-                          var s1 = rtName.substring(rtName.indexOf(")")+1);
-                          s1.trim();
-                          $scope.rawRoutes.push(s1.toUpperCase());
+                          let s1 = rtName.substring(rtName.indexOf(")")+1);
+                          let s2 = s1.trim();
+                          $scope.rawRoutes.push(s2.toUpperCase());
                         });
                     });
                     $scope.routesUnsorted = [...new Set($scope.rawRoutes)];
@@ -471,7 +472,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
     			if( result.response == 'success')
     			{
-    					$scope.bus = ( result.nodata ? [] : result.data );
+							$scope.bus = ( result.nodata ? [] : result.data );
     					if($scope.bus.length == 0){
     					    $scope.bus[0] = {student_destination: 'N/A', bus: 'N/A', driver_name: 'N/A', driver_telephone: 'N/A', guide_name: 'N/A', trip_name: 'N/A', fee_item: 'NOT INVOICED', amount: 'N/A', route: 'N/A'};
     					}
@@ -499,15 +500,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	        student_id: $scope.student.student_id,
 	        destination: $('#studentHome').val()
 	    }
+			if(param.destination == ''){param.destination = null};
 	    apiService.addStudentDestination(param, function(response,status){
 			var result = angular.fromJson(response);
-			$scope.getStudentBusDetails($scope.student.student_id);
-			$scope.getStudentTripOptions();
-			setTimeout(initializeController,1000);
-			let BtnEl = document.getElementById("saveHood");
-			// console.log(BtnEl);
-			BtnEl.innnerText = "Saved Successfully";
-			setTimeout(function(){ BtnEl.innnerText = "Save Neighborhood"; }, 2500);
+			console.log("Neighborhood saved");
+			setTimeout(initializeController,100);
+			let btnEl = document.getElementById("saveHood");
+			// console.log(btnEl);
+			btnEl.innerText = "SAVED SUCCESSFULLY";
+			setTimeout(function(){
+				btnEl.innerText = "Save Neighborhood";
+				$scope.getStudentBusDetails($scope.student.student_id);
+				$scope.getStudentTripOptions();
+			}, 2500);
 		}, apiError);
 	}
 
@@ -517,7 +522,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     			var result = angular.fromJson(response);
     			if( result.response == 'success')
     			{
-    				$scope.tripsData = ( result.nodata ? [] : result.data );
+						$scope.tripsData = ( result.nodata ? [] : result.data );
     				$scope.trips = $scope.tripsData;
     				$scope.showTripUpdateMsg = false;
 
@@ -710,17 +715,32 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 		    $scope.selectedTrip = function(el)
         	{
+							if($scope.student.trip_ids.length > 0){
+								for(let x=0;x < $scope.student.trip_ids.length; x++){
+									let existingTrip = $scope.student.trip_ids[x];
+									if( $scope.selectTrip.includes(existingTrip) == false ){
+										console.log("Push to selectTrip[]",$scope.selectTrip);
+										if(existingTrip != null || existingTrip != undefined){
+											$scope.selectTrip.push(existingTrip);
+										}
+									}else if( $scope.selectTrip.includes(existingTrip) == true ){
+										console.log("No push",$scope.selectTrip);
+									}
+								}
+							}
         	    if( $scope.selectTrip.includes(el.trip.trip_id) == true ){
             	   // remove from arr
+								 console.log("Trip Id " + el.trip.trip_id + " already is selected, so we remove it");
             	   var index = $scope.selectTrip.indexOf(el.trip.trip_id);
                     if (index > -1) {
                        $scope.selectTrip.splice(index, 1);
                     }
             	}else if( $scope.selectTrip.includes(el.trip.trip_id) == false ){
             	    // add to arr
+									console.log("Trip Id " + el.trip.trip_id + " is not in our current selection, so we add it");
             	   $scope.selectTrip.push(el.trip.trip_id);
             	}
-            	// console.log("Trip to post",$scope.selectTrip);
+							console.log("Trip to post",$scope.selectTrip);
         	}
 
         	$scope.saveTrip = function()

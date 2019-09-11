@@ -274,6 +274,7 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
             array_push($dbArray,$dbCreate); // push into dbArray the value of dbCreate
         }
         // now $dbArray has all databases we need to look up data (phone numbers)
+        $firstTimeFound = TRUE;
         foreach ($dbArray as $key => $value) {
           // db connect for each school
 
@@ -287,7 +288,7 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
 
           $schoolDb = $dbConnection; // the db connect
           $executeOnSchoolDb = $schoolDb->query("SELECT (CASE
-                                                            WHEN EXISTS (SELECT telephone FROM app.guardians WHERE telephone = '$phoneNumber') THEN 'Proceed Registration'
+                                                            WHEN EXISTS (SELECT telephone FROM app.guardians WHERE telephone = '$phoneNumber' AND active IS TRUE) THEN 'Proceed Registration'
                                                             ELSE 'Stop'
                                                           END) AS registration_status;");
           $regStatus = $executeOnSchoolDb->fetch(PDO::FETCH_OBJ);
@@ -295,26 +296,38 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
 
           if($regStatus === 'Proceed Registration'){
             array_push($statusResults,"TRUE");
-            $dataFrmSchoolDb = $schoolDb->query("SELECT guardian_id, first_name, middle_name, last_name, email, username, id_number, array_to_string(array_agg(student_id),',') AS student_ids, subdomain
-                                                FROM (
-                                                	SELECT guardian_id, first_name, middle_name, last_name, email, telephone AS username, id_number, student_id,
-								                        (SELECT CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'subdomain') THEN (SELECT value FROM app.settings WHERE name = 'subdomain') ELSE 'dev' END) AS subdomain
-                                                	FROM app.guardians
-                                                	INNER JOIN app.student_guardians USING (guardian_id)
-                                                	WHERE telephone = '$phoneNumber' AND guardians.active IS TRUE
-                                                )one
-                                                GROUP BY guardian_id, first_name, middle_name, last_name, email, username, id_number, subdomain;");
-            $parentData = $dataFrmSchoolDb->fetch(PDO::FETCH_OBJ);
-            // print_r($parentData->guardian_id);
-            $registrationData->guardian_id = $parentData->guardian_id;
-            $registrationData->first_name = $parentData->first_name;
-            $registrationData->middle_name = $parentData->middle_name;
-            $registrationData->last_name = $parentData->last_name;
-            $registrationData->email = $parentData->email;
-            $registrationData->username = $parentData->username;
-            $registrationData->id_number = $parentData->id_number;
-            $registrationData->student_ids = $parentData->student_ids;
-            $registrationData->subdomain = $parentData->subdomain;
+            // var_dump($dbArray[$key]); // use this to check which school(s) the record appears
+            if($firstTimeFound === TRUE){
+                if($value === $dbArray[$key]){
+                  $dataFrmSchoolDb = $schoolDb->query("SELECT guardian_id, first_name, middle_name, last_name, email, username, id_number, array_to_string(array_agg(student_id),',') AS student_ids, subdomain
+                                                      FROM (
+                                                      	SELECT guardian_id, first_name, middle_name, last_name, email, telephone AS username, id_number, student_id,
+      								                        (SELECT CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'subdomain') THEN (SELECT value FROM app.settings WHERE name = 'subdomain') ELSE 'dev' END) AS subdomain
+                                                      	FROM app.guardians
+                                                      	INNER JOIN app.student_guardians USING (guardian_id)
+                                                      	WHERE telephone = '$phoneNumber' AND guardians.active IS TRUE
+                                                      )one
+                                                      GROUP BY guardian_id, first_name, middle_name, last_name, email, username, id_number, subdomain;");
+                  $parentData = $dataFrmSchoolDb->fetch(PDO::FETCH_OBJ);
+
+                  // var_dump($parentData);
+                  $registrationData->guardian_id = $parentData->guardian_id;
+                  $registrationData->first_name = $parentData->first_name;
+                  $registrationData->middle_name = $parentData->middle_name;
+                  $registrationData->last_name = $parentData->last_name;
+                  $registrationData->email = $parentData->email;
+                  $registrationData->username = $parentData->username;
+                  $registrationData->id_number = $parentData->id_number;
+                  $registrationData->student_ids = $parentData->student_ids;
+                  $registrationData->subdomain = $parentData->subdomain;
+                }
+                $firstTimeFound = FALSE;
+            }else{
+              // we return an error for users in multiple schools
+              $app->response()->setStatus(200);
+              $app->response()->headers->set('Content-Type', 'application/json');
+              echo  json_encode(array('response' => 'Error', 'message' => "There seems to be an issue either with this phone number or your details. Please consult with your school.", "status" => "Cannot proceed with registration." ));
+            }
           }else{ array_push($statusResults,"FALSE"); }
         }
 

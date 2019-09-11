@@ -233,7 +233,7 @@
 									<p ng-show="schoolForm.mpesa_details.$invalid && (schoolForm.mpesa_details.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Mpesa details are required.</p>
 								</div>
 							</div>
-							
+
 							<!-- Committees -->
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.committees.$invalid && (schoolForm.committees.$touched || schoolForm.$submitted) }">
 								<label for="committees" class="col-sm-4 control-label nopad-right"> School Committees</label>
@@ -257,7 +257,7 @@
 								<label for="houses" class="col-sm-4 control-label nopad-right">School Houses</label>
 								<div class="col-sm-8">
 									<input type="text" class="form-control" name="houses" ng-model="settings['Houses']" placeholder="Optional. Separete using comma" />
-									
+
 								</div>
 							</div>
 
@@ -349,22 +349,37 @@
 					<div class="dashboard-panel-body row">
 					    <h5 class="col-sm-9 control-label nopad-right">Use Feedback module to get feedback messages from parents app? </h5>
 					    <label class="col-sm-3 switch">
-                            <input id="feedbackStat" class="switch-input" type="checkbox" ng-click="getFeedbackSetting(this)"/>
-                            <span id="feedbackSwitch" class="switch-label" data-on="Yes" data-off="No"></span>
-                            <span class="switch-handle"></span>
-                        </label>
+              	<input id="feedbackStat" class="switch-input" type="checkbox" ng-click="getFeedbackSetting(this)"/>
+                <span id="feedbackSwitch" class="switch-label" data-on="Yes" data-off="No"></span>
+                <span class="switch-handle"></span>
+              </label>
 					</div>
 
 					<div class="dashboard-panel-body row" style="margin-top: 7px;">
 					    <h5 class="col-sm-9 control-label nopad-right">Generate automatic admission numbers? </h5>
 					    <label class="col-sm-3 switch">
-                            <input id="autoAdmission" class="switch-input" type="checkbox" ng-click="automaticAdmissionNumbers(this)"/>
-                            <span id="admissionSwitch" class="switch-label" data-on="Yes" data-off="No"></span>
-                            <span class="switch-handle"></span>
-                        </label>
-                        <div class="col-sm-9" ng-show="autoAdmissionEn">
-                            <input type="text" value="school/year/001" style="border-radius: 7px;background-color: #d3d3d3;border: 2px solid #000000;" readonly /></span>
-                        </div>
+              	<input id="autoAdmission" class="switch-input" type="checkbox" ng-click="automaticAdmissionNumbers(this)"/>
+                <span id="admissionSwitch" class="switch-label" data-on="Yes" data-off="No"></span>
+                <span class="switch-handle"></span>
+              </label>
+              <div class="col-sm-9" ng-show="autoAdmissionEn">
+              	<input type="text" value="school/year/001" style="border-radius: 7px;background-color: #d3d3d3;border: 2px solid #000000;" readonly /></span>
+              </div>
+					</div>
+
+					<div class="dashboard-panel-body row" style="margin-top: 7px;">
+					    <h5 class="col-sm-5 control-label nopad-right">Mode of term exams calculation: </h5>
+					    <div class="col-sm-7">
+								<select name="exam_calculation" class="form-control" ng-model="settings['Exam Calculation']" ng-change="setExamCalculation(this)" >
+									<option value="" disabled>-----select calculation mode-----</option>
+									<option value="Average">Average the term's exams</option>
+									<option value="Summation">Sum the exams to 100%</option>
+									<option value="Last Exam">Use the last exam done only</option>
+								</select>
+              </div>
+              <div class="col-sm-9" ng-show="autoAdmissionEn">
+              	<input type="text" value="school/year/001" style="border-radius: 7px;background-color: #d3d3d3;border: 2px solid #000000;" readonly /></span>
+              </div>
 					</div>
 
 				</div>

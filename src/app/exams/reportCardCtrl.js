@@ -25,7 +25,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.wantAutomatedComments = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
 	$scope.isSpecialExam = (window.location.host.split('.')[0] == 'mico' ? true : false);
 	$scope.noGeneralComments = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'thomasburke' ? true : false );
-
+	$scope.calculationMode = $rootScope.currentUser.settings["Exam Calculation"];
+	// console.log($rootScope.currentUser.settings["Exam Calculation"]);
 	$scope.canPrint = false;
 
 	$scope.report = {};
@@ -660,16 +661,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 		// console.log(data);
 		$scope.examMarks = data.details;
-		if($scope.schoolName == "kingsinternational" || $scope.schoolName == "thomasburke"){
+		// if($scope.schoolName == "kingsinternational" || $scope.schoolName == "thomasburke"){
+		if($scope.calculationMode == "Average" || $scope.calculationMode == ""){
 		    $scope.overallSubjectMarks = data.subjectOverallByAvg;
 		    $scope.overall = data.overallByAverage;
 				$scope.overallLastTerm = data.overallLastTermByAverage;
 				// console.log($scope.overall);
 				$scope.comments.principle_comments = $scope.overall.principal_comment;
-		}else{
+		}else if($scope.calculationMode == "Last Exam"){
 		    $scope.overallSubjectMarks = data.subjectOverall;
     		$scope.overall = data.overall;
 				$scope.overallLastTerm = data.overallLastTerm;
+		}else if($scope.calculationMode == "Summation"){
+				// let's use average for now
+				$scope.overallSubjectMarks = data.subjectOverallByAvg;
+		    $scope.overall = data.overallByAverage;
+				$scope.overallLastTerm = data.overallLastTermByAverage;
+				// console.log($scope.overall);
+				$scope.comments.principle_comments = $scope.overall.principal_comment;
 		}
 		$scope.overallLastTerm = data.overallLastTerm;
 		$scope.graphPoints = data.graphPoints;
@@ -872,7 +881,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 		// console.log(data);
 		$scope.specialExamMarks = data.specialDetails;
-		if($scope.schoolName == "kingsinternational" || $scope.schoolName == "thomasburke"){
+		// if($scope.schoolName == "kingsinternational" || $scope.schoolName == "thomasburke"){
+		if($scope.calculationMode == "Average" || $scope.calculationMode == ""){
 		    $scope.specialOverallSubjectMarks = data.specialSubjectOverallByAvg;
     		$scope.specialOoverall = data.specialOverallByAverage;
 		}else{

@@ -74,6 +74,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Committees' : angular.copy($rootScope.currentUser.settings['Committees']	),
 			'Clubs' : angular.copy($rootScope.currentUser.settings['Clubs']	),
 			'Houses' : angular.copy($rootScope.currentUser.settings['Houses']	),
+			'Exam Calculation' : angular.copy($rootScope.currentUser.settings['Exam Calculation']),
 		}
 
 		if($scope.settings['Bank Name 2'] == 'Null'){ $scope.settings['Bank Name 2'] = ''; }
@@ -106,6 +107,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
             // change switch status
             setSwitchState($('#autoAdmission.switch-input'), true);
 		}
+		$scope.settings["Exam Calculation"] = ($scope.settings["Exam Calculation"] == undefined ? "" : $scope.settings["Exam Calculation"]);
+		console.log($scope.settings);
 
 	}
 
@@ -191,6 +194,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		}
         apiService.updateSettings(updateAdmission, createCompleted, apiError);
     }
+
+		$scope.setExamCalculation = function(el){
+			let selectedOption = el.settings["Exam Calculation"];
+			let updateExamCalculation = {
+				settings: [{
+							name: 'Exam Calculation',
+							value: selectedOption,
+							append: false
+				}]
+			}
+			apiService.updateSettings(updateExamCalculation, createCompleted, apiError);
+		}
 
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){
 		// need to watch the uploaded and manually set form to dirty if changed

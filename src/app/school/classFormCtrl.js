@@ -498,13 +498,12 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		$scope.save = function()
 		{
 			$scope.examType.user_id = $rootScope.currentUser.user_id;
-			if($scope.examType.special_exam == undefined){
-				$scope.examType.special_exam = false;
-			}else if($scope.examType.special_exam == "false"){
+			if($scope.examType.special_exam == undefined || $scope.examType.special_exam == "false"){
 				$scope.examType.special_exam = false;
 			}else if($scope.examType.special_exam == "true"){
 				$scope.examType.special_exam = true;
 			}
+			// console.log($scope.examType);
 			apiService.addExamType($scope.examType, createCompleted, apiError);
 		}; // end save
 

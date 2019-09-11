@@ -38,12 +38,12 @@
     						<div class="stripped">
     							<div>
     							    <div><h4>Enter the name of the trip</h4></div>
-                                    <input id="tripName" type="text" name="trip_name" class="transportSelectWidth" style="width: 95%;border-radius: 4px;"><br>
-                                </div>
-                                <div class="row" style="margin-left:auto;">
-                                    <div><h4>Restrict This Trip To Classes?</h4><br><p>*This is optional. If left blank, the trip will be available to all classes.</p></div>
-                                    <label class="col-sm-4 nopad-left" ng-repeat="cat in classCats track by $index"><input type="checkbox" value="{{cat.class_cat_id}}" name="class_cat[]" style="vertical-align:middle;">{{cat.class_cat_name}}</label>
-                                </div>
+                      <input id="tripName" type="text" name="trip_name" class="transportSelectWidth" style="width: 95%;border-radius: 4px;" pattern="[a-zA-Z0-9 ]+"><br>
+                  </div>
+                  <div class="row" style="margin-left:auto;">
+                      <div><h4>Restrict This Trip To Classes?</h4><br><p>*This is optional. If left blank, the trip will be available to all classes.</p></div>
+                      <label class="col-sm-4 nopad-left" ng-repeat="cat in classCats track by $index"><input type="checkbox" value="{{cat.class_cat_id}}" name="class_cat[]" style="vertical-align:middle;">{{cat.class_cat_name}}</label>
+                  </div>
     							<div class="btnSpacer">
 										<button type="button" class="btn btn-primary" ng-click="createTrip()">Create Trip</button>
 									</div>

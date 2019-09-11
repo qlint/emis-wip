@@ -734,7 +734,7 @@ $app->get('/getAllSchoolBusTrips', function () {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT * FROM app.schoolbus_trips");
+    $sth = $db->prepare("SELECT * FROM app.schoolbus_trips ORDER BY trip_name");
     $sth->execute();
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -1145,8 +1145,8 @@ $app->get('/getTransportCards/:studentId', function ($studentId) {
                               		FROM (
                               			SELECT two.*, st.trip_name
                               			FROM (
-                              				SELECT one.*, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.bus_driver AS driver_id, b.bus_guide AS guide_id,
-                              					e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name, e.telephone AS driver_telephone,
+                              				SELECT one.*, b.bus_id, b.bus_registration AS bus, b.bus_driver AS driver_id, b.bus_guide AS guide_id,
+                              					e.first_name || ' ' || e.last_name as driver_name, e.telephone AS driver_telephone,
                                 					e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name
                               				FROM (
                               					SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
