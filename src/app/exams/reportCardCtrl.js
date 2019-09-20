@@ -783,7 +783,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		angular.forEach( $scope.reportData.subjects, function(item,key){
 			if( item.use_for_grading )
 			{
-
+				
 				var overall = $scope.overallSubjectMarks.filter(function(item2){
 					if( item.subject_name == item2.subject_name ) return item2;
 				})[0];

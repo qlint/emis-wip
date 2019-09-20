@@ -18,7 +18,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     }
     $scope.isDynamicMovement = (window.location.host.split('.')[0] == 'thomasburke' ? true : false);
     $scope.selectTrip = [];
-
+		$scope.preFilteredTrips = [];
     $("#multiClub").mousedown(function(e){
 	    e.preventDefault();
       	var select = this;
@@ -315,6 +315,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     	}
 		apiService.getTermsByYear(currentYear, setCurrentYearTerms, function(){});
 
+		$scope.student.trip_ids = ( $scope.student.trip_ids == null || $scope.student.trip_ids == '' || $scope.student.trip_ids == "''" ? [] : $scope.student.trip_ids.split(',') );
+		for(let i=0;i < $scope.student.trip_ids.length;i++){
+			$scope.student.trip_ids[i] = parseInt($scope.student.trip_ids[i]);
+		}
+		$scope.selectTrip = $scope.student.trip_ids;
 
 	}
 	setTimeout(initializeController,100);
@@ -338,6 +343,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 				$scope.student = student[0];
 				$scope.hasDestination = ($scope.student.destination == null || $scope.student.destination == "''" || $scope.student.destination == "" || $scope.student.destination == " " ? false : true);
+				if($scope.hasDestination == true){
+					$scope.student.destination = $scope.student.destination.trim();
+				}
 				$scope.student.club = ($scope.student.club == null ? [] : $scope.student.club);
 				var selectedClubs = ($scope.student.club.length != 0 || $scope.student.club.length == 1 && $scope.student.club[0] != "" ? $scope.student.club.split(',') : null);
 				$scope.student.club = selectedClubs;
@@ -355,7 +363,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
         				}
     				}
 			    }
-			    $scope.student.trip_ids = ( $scope.student.trip_ids == null || $scope.student.trip_ids == '' || $scope.student.trip_ids == "''" ? [] : $scope.student.trip_ids.split(',') );
 
 				$scope.lowerSchool = ( $scope.student.entity_id < 7 ? true : false );
 
@@ -527,13 +534,32 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     				$scope.showTripUpdateMsg = false;
 
     				setTimeout(function(){
-    				    if( $scope.student.trip_ids.length > 0){
-            			        for(let d = 0; d < $scope.student.trip_ids.length; d++){
-            			            $scope.student.trip_ids[d] = parseInt($scope.student.trip_ids[d]);
-            			            let checkBoxId = "tripCheck_" + $scope.student.trip_ids[d];
-            			            document.getElementById(checkBoxId).checked = true;
+							let tripsArr = $scope.student.trip_ids.split(',');
+    				    if( tripsArr.length > 0){
+            			        for(let d = 0; d < tripsArr.length; d++){
+            			            tripsArr[d] = parseInt(tripsArr[d]);
+            			            let checkBoxId = "tripCheck_" + tripsArr[d];
+															// console.log("Check box id = " + checkBoxId);
+															let theElement = document.getElementById(checkBoxId);
+															if (typeof(theElement) != 'undefined' && theElement != null)
+															{
+	            			            theElement.checked = true;
+															}else{
+																// remove the non-existent id from our array of id's to post/update
+																tripsArr.splice(d, 1);
+															}
             			        }
             			}
+									console.log(tripsArr);
+									for(let y=0;y < tripsArr.length;y++){
+										tripsArr[y]=Number(tripsArr[y]);
+										let boxId = "tripCheck_" + tripsArr[y];
+										console.log(boxId);
+										let theBoxElement = document.getElementById(boxId);
+										theBoxElement.checked = true;
+									}
+									$scope.preFilteredTrips = tripsArr;
+									console.log($scope.preFilteredTrips);
     				}, 2000);
     			}
     			else
@@ -715,19 +741,25 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 		    $scope.selectedTrip = function(el)
         	{
+							// console.log("Student trips from db",$scope.student.trip_ids);
+							console.log("Pre filtered trips",$scope.preFilteredTrips);
+							/*
 							if($scope.student.trip_ids.length > 0){
 								for(let x=0;x < $scope.student.trip_ids.length; x++){
 									let existingTrip = $scope.student.trip_ids[x];
 									if( $scope.selectTrip.includes(existingTrip) == false ){
-										console.log("Push to selectTrip[]",$scope.selectTrip);
+										console.log("This was not previously selected, so we add it to our selected trips.",$scope.selectTrip);
 										if(existingTrip != null || existingTrip != undefined){
 											$scope.selectTrip.push(existingTrip);
 										}
 									}else if( $scope.selectTrip.includes(existingTrip) == true ){
-										console.log("No push",$scope.selectTrip);
+										console.log("This already was selected, no need to re-add it to our selected trips.",$scope.selectTrip);
 									}
 								}
 							}
+							console.log("Our selected trips now is ::: ",$scope.selectTrip);
+							*/
+							$scope.selectTrip = $scope.preFilteredTrips;
         	    if( $scope.selectTrip.includes(el.trip.trip_id) == true ){
             	   // remove from arr
 								 console.log("Trip Id " + el.trip.trip_id + " already is selected, so we remove it");

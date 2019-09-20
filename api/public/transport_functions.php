@@ -446,11 +446,12 @@ $app->get('/getStudentsInBus/:busId', function ($busId) {
                 						e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name, st.trip_name,
                 						st.class_cats
                 					FROM (
-                						SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, class_name, current_class,
-                                          				s.destination AS student_destination, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS student_trips
+                						SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, class_name, current_class,
+                                          				s.destination AS student_destination, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS student_trips, tr.route
                                                                   FROM app.students s
                                                                   INNER JOIN app.classes c ON s.current_class = c.class_id
-                                                                  WHERE s.active IS TRUE
+                                                                  INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                                                                  WHERE s.active IS TRUE AND s.transport_route_id IS NOT NULL
                 					)one
                 					INNER JOIN app.schoolbus_bus_trips sbt ON one.student_trips = sbt.bus_trip_id
                                                         INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
@@ -1146,7 +1147,7 @@ $app->get('/getTransportCards/:studentId', function ($studentId) {
                               			SELECT two.*, st.trip_name
                               			FROM (
                               				SELECT one.*, b.bus_id, b.bus_registration AS bus, b.bus_driver AS driver_id, b.bus_guide AS guide_id,
-                              					e.first_name || ' ' || e.last_name as driver_name, e.telephone AS driver_telephone,
+                              					e.first_name as driver_name, e.telephone AS driver_telephone,
                                 					e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name
                               				FROM (
                               					SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,

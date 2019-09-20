@@ -42,47 +42,13 @@
     }
 
     /* The Close Button */
-    .close {
-      color: white;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-    }
-
-    .close:hover,
-    .close:focus {
-      color: #000;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .modal-header {
-      padding: 0px 15px !important;
-      background-color: #5cb85c;
-      color: white;
-    }
-
+    .cloze {color: white;float: right;font-size: 28px;font-weight: bold;}
+    .cloze:hover,.cloze:focus {color: #000;text-decoration: none;cursor: pointer;}
+    .modal-header {padding: 0px 15px !important;background-color: #5cb85c;color: white;}
     .modal-body {padding: 2px 16px;}
-
-    .modal-footer {
-      padding: 2px 16px;
-      background-color: #5cb85c;
-      color: white;
-    }
-
-    .dropbtn {
-      background-color: #4CAF50;
-      color: white;
-      padding: 16px;
-      font-size: 16px;
-      border: none;
-      cursor: pointer;
-      line-height: 0px;
-    }
-
-    .dropbtn:hover, .dropbtn:focus {
-      background-color: #3e8e41;
-    }
+    .modal-footer {padding: 2px 16px;background-color: #5cb85c;color: white;}
+    .dropbtn {background-color: #4CAF50;color: white;padding: 16px;font-size: 16px;border: none;cursor: pointer;line-height: 0px;}
+    .dropbtn:hover, .dropbtn:focus {background-color: #3e8e41;}
 
     #myInput {
       box-sizing: border-box;
@@ -94,30 +60,10 @@
       border: none;
       border-bottom: 1px solid #ddd;
     }
-
     #myInput:focus {outline: 3px solid #ddd;}
-
-    .drpdown {
-      position: relative;
-      display: inline-block;
-    }
-
-    .drpdown-content {
-      display: none;
-      position: absolute;
-      background-color: #f6f6f6;
-      min-width: 230px;
-      overflow: auto;
-      border: 1px solid #ddd;
-      z-index: 1;
-    }
-
-    .drpdown-content a {
-      color: black;
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-    }
+    .drpdown {position: relative;display: inline-block;}
+    .drpdown-content {display: none;position: absolute;background-color: #f6f6f6;min-width: 230px;overflow: auto;border: 1px solid #ddd;z-index: 1;}
+    .drpdown-content a {color: black;padding: 12px 16px;text-decoration: none;display: block;}
     .drpdown a:hover {background-color: #ddd;}
     .show {display: block;}
     @media print {
@@ -160,9 +106,10 @@
       .col-sm-6 {width: 50%;float:left;}
       .col-sm-8 {width: 66.66666667%;}
       .col-sm-9 {width: 75%;}
+      .col-sm-12 {width: 100%;}
       p {margin: 0 0 10px;}
-      #printCards{width:50% !important;}
-      .even{page-break-after: always !important;}
+      #printCards{width:100% !important;}
+      div.breakBefore,.breakBefore{page-break-before: always !important;}
     }
 </style>
 <div ng-controller="schoolBusCtrl">
@@ -314,7 +261,7 @@
           <!-- Modal content -->
           <div class="modal-content" style="margin-top:-5%;">
             <div class="modal-header" style="padding: 0px 15px !important;">
-              <span class="close">&times;</span>
+              <span class="cloze">&times;</span>
               <h2>Transport Cards</h2>
             </div>
             <div class="modal-body">
@@ -337,31 +284,47 @@
                 </div>
               </div>
               <!-- the transport card -->
-              <div id="printCards">
-                <div style="width:100%;margin-left:10px;border:2px solid #000000;margin-top:10px" ng-repeat="item in studentTranpCards track by $index" ng-class="$even ? 'odd' : 'even'">
+              <div id="printCards" class="row" style="width:100%;margin-left:1px;">
+                <div class="col-sm-6" style="border:2px solid #000000;margin-top:10px;height:380px;{{$index != 0 && $index % 4 == 0 ? 'page-break-before: always !important;' : ''}}" ng-repeat="item in studentTranpCards track by $index" ng-class="$index != 0 && $index % 3 == 0 ? 'breakBefore' : 'noBreak'">
                     <h2 style="text-align:center;font-size:15px;margini-top:0px;margin-bottom:0px;">{{schoolName}}</h2>
                     <h3 style="text-align:center;font-size:13px;margin-top:0px;">TRANSPORT CARD</h3>
                     <div class="row" style="border:1px solid #000000;width:98%;margin-left:1%;">
                         <div class="col-sm-4"><p>NAME:</p></div><div class="col-sm-8"><p>{{item.student_name}}</p></div>
                         <div class="col-sm-4"><p>ADMISSION:</p></div><div class="col-sm-8"><p>{{item.admission_number}}</p></div>
                         <div class="col-sm-4"><p>CLASS:</p></div><div class="col-sm-8"><p>{{item.class_name}}</p></div>
-                        <div class="col-sm-4"><p>NEIGHBORHOOD:</p></div><div class="col-sm-8"><p>{{item.neighborhood}}</p></div>
+                        <div class="col-sm-4"><p>HOME:</p></div><div class="col-sm-8"><p>{{item.neighborhood}}</p></div>
                     </div>
                     <div class="row" style="margin-top:7px;border:1px solid #000000;width:98%;margin-left:1%;">
                       <div ng-repeat="trip in item.tripDetails track by $index" class="col-sm-6" style="border:1px solid #000000;">
-                        <div style="margin-left:-5%" ng-if="trip.trip_time == 'MORNING'">
-                          <h4 style="text-align:center;font-weight:900;text-transform:uppercase;text-decoration:underline;">{{trip.trip_time}}</h4>
-                          <div class="col-sm-3"><p>TRIP:</p></div><div class="col-sm-9"><p>{{trip.trip_name}}</p></div>
-                          <div class="col-sm-3"><p>BUS:</p></div><div class="col-sm-9"><p>{{trip.bus}}</p></div>
-                          <div class="col-sm-3"><p>DRIVER:</p></div><div class="col-sm-9"><p>{{trip.driver_name}}</p></div>
-                          <div class="col-sm-3"><p>CONTACT:</p></div><div class="col-sm-9"><p>{{trip.driver_telephone}}</p></div>
+                        <div class="row" ng-if="trip.trip_time == 'MORNING'">
+                          <h4 class="col-sm-12" style="text-align:center;font-weight:900;text-transform:uppercase;text-decoration:underline;">{{trip.trip_time}}</h4>
+                          <div clss="row">
+                            <div class="col-sm-4"><p><b>TRIP:</b></p></div><div class="col-sm-8"><p>{{trip.trip_name}}</p></div>
+                          </div>
+                          <div clss="row">
+                            <div class="col-sm-4"><p><b>BUS:</b></p></div><div class="col-sm-8"><p>{{trip.bus}}</p></div>
+                          </div>
+                          <div clss="row">
+                            <div class="col-sm-5"><p><b>DRIVER:</b></p></div><div class="col-sm-7"><p>{{trip.driver_name}}</p></div>
+                          </div>
+                          <div clss="row">
+                            <div class="col-sm-12"><p style="text-align:center;"><b>{{trip.driver_telephone}}</b></p></div>
+                          </div>
                         </div>
-                        <div style="margin-left:-5%" ng-if="trip.trip_time == 'EVENING'">
-                          <h4 style="text-align:center;font-weight:900;text-transform:uppercase;text-decoration:underline;">{{trip.trip_time}}</h4>
-                          <div class="col-sm-3"><p>TRIP:</p></div><div class="col-sm-9"><p>{{trip.trip_name}}</p></div>
-                          <div class="col-sm-3"><p>BUS:</p></div><div class="col-sm-9"><p>{{trip.bus}}</p></div>
-                          <div class="col-sm-3"><p>DRIVER:</p></div><div class="col-sm-9"><p>{{trip.driver_name}}</p></div>
-                          <div class="col-sm-3"><p>CONTACT:</p></div><div class="col-sm-9"><p>{{trip.driver_telephone}}</p></div>
+                        <div class="row" ng-if="trip.trip_time == 'EVENING'">
+                          <h4 class="col-sm-12" style="text-align:center;font-weight:900;text-transform:uppercase;text-decoration:underline;">{{trip.trip_time}}</h4>
+                          <div clss="row">
+                            <div class="col-sm-4"><p><b>TRIP:</b></p></div><div class="col-sm-8"><p>{{trip.trip_name}}</p></div>
+                          </div>
+                          <div clss="row">
+                            <div class="col-sm-4"><p><b>BUS:</b></p></div><div class="col-sm-8"><p>{{trip.bus}}</p></div>
+                          </div>
+                          <div clss="row">
+                            <div class="col-sm-5"><p><b>DRIVER:</b></p></div><div class="col-sm-7"><p>{{trip.driver_name}}</p></div>
+                          </div>
+                          <div clss="row">
+                            <div class="col-sm-12"><p style="text-align:center;"><b>{{trip.driver_telephone}}</b></p></div>
+                          </div>
                         </div>
                       </div>
                     </div>

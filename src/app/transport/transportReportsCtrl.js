@@ -122,19 +122,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         			else
         			{
         				$scope.reportData = result.data;
-						$scope.showReport = true;
-						$scope.allWithTranspTable = true;
-						$scope.allStudentsInBus = false;
-						$scope.allStudentsInTrip = false;
-						$scope.allStudentsInZone = false;
-						$scope.allStudentsWithBalance = false;
-						$scope.allStudentsInTripInBus = false;
-						$scope.classStdTrans = false;
-						$scope.classStudentsInBus = false;
-						$scope.classStudentsInTrip = false;
-						$scope.classStudentsInZone = false;
-						$scope.classStudentsInTripInBus = false;
-						$scope.initialReportLoad = false;
+								$scope.studentsWithTranspCount = $scope.reportData.length;
+								$scope.showReport = true;
+								$scope.allWithTranspTable = true;
+								$scope.allStudentsInBus = false;
+								$scope.allStudentsInTrip = false;
+								$scope.allStudentsInZone = false;
+								$scope.allStudentsWithBalance = false;
+								$scope.allStudentsInTripInBus = false;
+								$scope.classStdTrans = false;
+								$scope.classStudentsInBus = false;
+								$scope.classStudentsInTrip = false;
+								$scope.classStudentsInZone = false;
+								$scope.classStudentsInTripInBus = false;
+								$scope.initialReportLoad = false;
         			}
         		}
         		else
@@ -173,6 +174,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
+							$scope.classStdsWithTranspCount = $scope.classStudentsWithTransp.length;
         		}
         		else
         		{
@@ -191,6 +193,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	    		if( result.response == 'success')
 	    		{
 	    			$scope.studentsInBus = ( result.nodata ? [] : result.data );
+						$scope.studentsInBus.forEach(function(student) {
+							student.route = student.route.split(' - ')[0];
+						});
+						$scope.studentsInBusCount = $scope.studentsInBus.length;
 						$scope.showReport = true;
 						$scope.allWithTranspTable = false;
 						$scope.allStudentsInBus = true;
@@ -228,7 +234,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	    		{
 	    		    // setTimeout(function(){ $scope.studentsInTrip = ( result.nodata ? [] : result.data ); console.log($scope.studentsInTrip); }, 2000);
 	    		    $scope.studentsInTrip = ( result.nodata ? [] : result.data );
-	    			// console.log($scope.studentsInTrip);
+							$scope.studentsInTrip.forEach(function(student) {
+								student.route = student.route.split(' - ')[0];
+							});
+	    			$scope.studentsInTripCount = $scope.studentsInTrip.length;
 						$scope.showReport = true;
 						$scope.allWithTranspTable = false;
 						$scope.allStudentsInBus = false;
@@ -285,6 +294,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
+							$scope.studentsInZoneCount = $scope.studentsInZone.length;
         		}
         		else
         		{
@@ -302,8 +312,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         		{
         			if( result.nodata )
         			{
-        				$scope.studentsInZone = [];
-        				$scope.studentsInZone[0] = {student_name: 'No Records', class_name: 'No Records', destination: 'No Records', route: 'No Records', amount: 'No Records', payment: 'No Records', balance: 'No Records'};
+        					$scope.studentsWithBalance = [];
+        					$scope.studentsWithBalance[0] = {student_name: 'No Records', class_name: 'No Records', destination: 'No Records', route: 'No Records', amount: 'No Records', payment: 'No Records', balance: 'No Records'};
         			}
         			else
         			{
@@ -322,6 +332,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
+								$scope.studentsWithBalanceCount = 	$scope.studentsWithBalance.length;
         		}
         		else
         		{
@@ -343,6 +354,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	    		{
 	    			// $scope.classStudentsInSelectedBus = ( result.nodata ? [] : result.data );
 	    			$scope.classStudentsInSelectedBus = ( result.data == undefined || result.data ==null ? [] : result.data );
+						$scope.classStudentsInSelectedBus.forEach(function(student) {
+							student.route = student.route.split(' - ')[0];
+						});
 						$scope.showReport = true;
 						$scope.allWithTranspTable = false;
 						$scope.allStudentsInBus = false;
@@ -359,6 +373,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	    			if($scope.classStudentsInSelectedBus.length == 0){
 	    			    $scope.classStudentsInBus = [{student_name: 'No Records', class_name: 'No Records', student_destination: 'No Records', trip_name: 'No Records', driver_name: 'No Records', guide_name: 'No Records'}];
 	    			}
+						$scope.classStudentsInSelectedBusCount = $scope.classStudentsInSelectedBus.length;
 	    		}
 	    		else
 	    		{
@@ -381,7 +396,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	    		if( result.response == 'success')
 	    		{
 	    		    $scope.classStudentsInSelectedTrip = ( result.nodata ? [] : result.data );
-	    			// console.log($scope.studentsInTrip);
+							$scope.classStudentsInSelectedTrip.forEach(function(student) {
+								student.route = student.route.split(' - ')[0];
+							});
+	    			$scope.classStudentsInSelectedTripCount = $scope.classStudentsInSelectedTrip.length;
 						$scope.showReport = true;
 						$scope.allWithTranspTable = false;
 						$scope.allStudentsInBus = false;
@@ -440,6 +458,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
+							$scope.classStudentsInSelectedZoneCount = $scope.classStudentsInSelectedZone.length;
         		}
         		else
         		{
@@ -466,6 +485,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         			else
         			{
         				$scope.allStudentsInBusInTrp = result.data;
+								$scope.allStudentsInBusInTrp.forEach(function(student) {
+								  student.route = student.route.split(' - ')[0];
+								});
 						$scope.showReport = true;
 						$scope.allWithTranspTable = false;
 						$scope.allStudentsInBus = false;
@@ -480,6 +502,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
+							$scope.allStudentsInBusInTrpCount = $scope.allStudentsInBusInTrp.length;
         		}
         		else
         		{
@@ -506,6 +529,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         			else
         			{
         				$scope.classStudentsInBusInTrp = result.data;
+								$scope.classStudentsInBusInTrp.forEach(function(student) {
+									student.route = student.route.split(' - ')[0];
+								});
 						$scope.showReport = true;
 						$scope.allWithTranspTable = false;
 						$scope.allStudentsInBus = false;
@@ -520,6 +546,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.classStudentsInTripInBus = true;
 						$scope.initialReportLoad = false;
         			}
+							$scope.classStudentsInBusInTrpCount = $scope.classStudentsInBusInTrp.length;
         		}
         		else
         		{

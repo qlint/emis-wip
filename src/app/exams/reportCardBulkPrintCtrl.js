@@ -75,6 +75,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	    $scope.noRanking = false;
 	}
 
+	function sleep(milliseconds) {
+		console.log("Need to wait " + milliseconds + " milliseconds");
+			var start = new Date().getTime();
+			for (var i = 0; i < 1e7; i++) {
+					if ((new Date().getTime() - start) > milliseconds){
+							break;
+					}
+			}
+	 }
+
 	var initializeController = function()
 	{
 
@@ -639,7 +649,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		$scope.AllData[student_id].examTypes = $scope.examTypes;
         */
-        
+
 		/* group the results by subject */
 		$scope.reportData = {};
 		$scope.reportData.subjects = groupExamMarks( $scope.examMarks );
@@ -1204,19 +1214,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		apiService.addReportCard(data,createCompleted,apiError);
 
 	}
-	
+
 	$scope.printAllReportCards = function()
 	{
 		function printData()
 		{
 		   var divToPrint=document.getElementById("fullPrint");
 		   var newWin= window.open("");
+			 newWin.document.write('<html><head><title>Report Cards Bulk Print.</title><link rel="stylesheet" type="text/css" href="min/css/dependencies.min.css"><link rel="stylesheet" type="text/css" href="css/template.css"><link rel="stylesheet" type="text/css" href="css/bulkPrintReportCards.css"></head><body>');
 		   newWin.document.write(divToPrint.outerHTML);
-			 newWin.document.write('<html><head><title>Report Cards Bulk Print.</title><link rel="stylesheet" type="text/css" href="css/bulkPrintReportCards.css"></head><body>');
 			 setTimeout(function(){
-				 // newWin.print();
+				 sleep(15000);
+				 newWin.print();
 			   // newWin.close();
-			 }, 3000);
+			 }, 100);
 		   // newWin.print();
 		   // newWin.close();
 		}

@@ -197,11 +197,11 @@ function initChart1(ctx,lineChartData)
 			<!-- // end search form -->
 
 			<!-- <div ng-show="true" ng-repeat="student in allDataArr track by $index"> -->
+			<style type="text/css"> @import url("components/css/customSettingReportCard.css"); </style>
 			<div id="fullPrint">
 				<div ng-show="true" ng-repeat="student in classBulkData track by $index">
 
 					<div>
-						<style type="text/css"> @import url("components/css/customSettingReportCard.css"); </style>
 
 						<div class="receipt-header-letterhead row" ng-if="useLetterhead">
 							<div class="col-sm-3">
@@ -255,13 +255,13 @@ function initChart1(ctx,lineChartData)
 	    								<label class="">Name:</label>
 	    							</div>
 	    							<div class="col-xs-5 lesspad">
-	    								<p class="form-control-static">{{student.student.student_name}}</p>
+	    								<p class="form-control-static" style="border-bottom: 1px dotted #bbb;">{{student.student.student_name}}</p>
 	    							</div>
 	    							<div class="col-xs-1 nopad-right">
 	    								<label>Adm No:</label>
 	    							</div>
 	    							<div class="col-xs-5 lesspad">
-	    								<p class="form-control-static">{{student.student.admission_number}}</p>
+	    								<p class="form-control-static" style="border-bottom: 1px dotted #bbb;">{{student.student.admission_number}}</p>
 	    							</div>
 	    						</div>
 							    <!-- class, term and year -->
@@ -270,19 +270,19 @@ function initChart1(ctx,lineChartData)
 	    								<label>Class:</label>
 	    							</div>
 	    							<div class="col-xs-3 lesspad">
-	    								<p class="form-control-static">{{student.student.class_name}}</p>
+	    								<p class="form-control-static" style="border-bottom: 1px dotted #bbb;">{{student.student.class_name}}</p>
 	    							</div>
 	    							<div class="col-xs-1 nopad-right">
 	    								<label>Term:</label>
 	    							</div>
 	    							<div class="col-xs-3 lesspad">
-	    								<p class="form-control-static">{{student.report.term}}</p>
+	    								<p class="form-control-static" style="border-bottom: 1px dotted #bbb;">{{student.report.term}}</p>
 	    							</div>
 	    							<div class="col-xs-1 nopad-right">
 	    								<label>Year:</label>
 	    							</div>
 	    							<div class="col-xs-3 lesspad">
-	    								<p class="form-control-static">{{student.report.year}}</p>
+	    								<p class="form-control-static" style="border-bottom: 1px dotted #bbb;">{{student.report.year}}</p>
 	    							</div>
 	    						</div>
 	    						<!-- position, out of, pos last term, out of -->
@@ -291,21 +291,21 @@ function initChart1(ctx,lineChartData)
 	    								<label>{{wantAutomatedComments ? 'Stream Position:':'Position:'}}</label>
 	    							</div>
 	    							<div class="col-xs-3 lesspad">
-	    								<p class="form-control-static inline">{{student.overall.rank}}</p> / <p class="form-control-static inline">{{student.overall.position_out_of}}</p>
+	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overall.rank}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overall.position_out_of}}</p>
 	    							</div>
 
 	    							<div class="col-xs-2 nopad-right">
 	    								<label>Pos Last Term:</label>
 	    							</div>
 	    							<div class="col-xs-2 lesspad">
-	    								<p class="form-control-static inline">{{student.overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{student.overallLastTerm.position_out_of||'--'}}</p>
+	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overallLastTerm.position_out_of||'--'}}</p>
 	    							</div>
 
 	    							<div class="col-xs-2 nopad-right">
 	    								<label>Last Term Marks:</label>
 	    							</div>
 	    							<div class="col-xs-2 lesspad">
-	    								<p class="form-control-static inline">{{student.overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline">{{student.overallLastTerm.total_grade_weight||'-'}}</p>
+	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overallLastTerm.total_grade_weight||'-'}}</p>
 	    							</div>
 	    						</div>
 	    						<!-- stream position, out of, stream pos last term, out of -->
@@ -315,21 +315,21 @@ function initChart1(ctx,lineChartData)
 	    								<label>{{wantAutomatedComments ? 'Class Position:':'Stream Position:'}}</label>
 	    							</div>
 	    							<div ng-hide="wantStreamPos" class="col-xs-3 lesspad">
-	    								<p class="form-control-static inline">{{student.streamRankPosition||'-'}}</p> / <p class="form-control-static inline">{{student.streamRankOutOf||'--'}}</p>
+	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.streamRankPosition||'-'}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.streamRankOutOf||'--'}}</p>
 	    							</div>
 
 	    							<div ng-hide="wantStreamPos" class="col-xs-2 nopad-right">
 	    								<label>{{wantAutomatedComments ? 'Class Last Term:':'Stream Last Term:'}}</label>
 	    							</div>
 	    							<div ng-hide="wantStreamPos" class="col-xs-2 lesspad">
-	    								<p class="form-control-static inline">{{student.streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{student.streamRankOutOfLastTerm||'--'}}</p>
+	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.streamRankOutOfLastTerm||'--'}}</p>
 	    							</div>
 
 	    							<div ng-show="isSchool" class="col-xs-2 nopad-right">
 	    								<label>Current Term Marks:</label>
 	    							</div>
 	    							<div ng-show="isSchool" class="col-xs-2 lesspad">
-	    								<p class="form-control-static inline">{{student.overall.current_term_marks||'-'}}</p> / <p class="form-control-static inline">{{student.overall.current_term_marks_out_of||'-'}}</p>
+	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overall.current_term_marks||'-'}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overall.current_term_marks_out_of||'-'}}</p>
 	    							</div>
 	    						</div>
 	    					</div>
@@ -943,21 +943,21 @@ function initChart1(ctx,lineChartData)
 									<label>Position:</label>
 								</div>
 								<div class="col-xs-3 lesspad">
-									<p class="form-control-static inline">{{overall.rank}}</p> / <p class="form-control-static inline">{{overall.position_out_of}}</p>
+									<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{overall.rank}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{overall.position_out_of}}</p>
 								</div>
 
 								<div class="col-xs-2 nopad-right">
 									<label>Pos Last Term:</label>
 								</div>
 								<div class="col-xs-2 lesspad">
-									<p class="form-control-static inline">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{overallLastTerm.position_out_of||'--'}}</p>
+									<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{overallLastTerm.position_out_of||'--'}}</p>
 								</div>
 
 								<div class="col-xs-2 nopad-right">
 									<label>Last Term Marks:</label>
 								</div>
 								<div class="col-xs-2 lesspad">
-									<p class="form-control-static inline">{{overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline">{{overallLastTerm.total_grade_weight||'-'}}</p>
+									<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{overallLastTerm.total_grade_weight||'-'}}</p>
 								</div>
 							</div>
 						</div>
@@ -967,14 +967,14 @@ function initChart1(ctx,lineChartData)
 								<label>Stream Position:</label>
 							</div>
 							<div class="col-xs-3 lesspad">
-								<p class="form-control-static inline">{{streamRankPosition}}</p> / <p class="form-control-static inline">{{streamRankOutOf}}</p>
+								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{streamRankPosition}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{streamRankOutOf}}</p>
 							</div>
 
 							<div class="col-xs-2 nopad-right">
 								<label>Stream Pos Last Term:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{overallLastTerm.position_out_of||'--'}}</p>
+								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{overallLastTerm.position_out_of||'--'}}</p>
 							</div>
 
 							<!-- <div class="col-xs-2 nopad-right">
@@ -1617,33 +1617,15 @@ function initChart1(ctx,lineChartData)
 								</tr>
 							</table>
 						</div>
-						<div id="motto" style="text-align:center;font: italic bold 15px/30px Georgia, serif;visibility: visible !important;">{{motto}}</div>
-
-
+						<div class="breakBatch"></div>
 
 					</script>
-
-
 
 					<div class="main-chart-container" id="line1Chart" ng-model="graphPoints" name="graphPoints" ng-class="{'chartLoading': efficiencyLoading}">
 						<img src="assets/spinner-lrg.gif" class="spinner-lrg" ng-show="efficiencyLoading" />
 						<canvas id="line1" class="chart chart-line efficiency-chart"></canvas>
 					</div>
 
-
-
-	                <div ng-if="isAdmin && parentPortalAcitve">
-						<label>Publish this Report Card?</label>
-						<p>
-							<input type="checkbox" name="publish" value="true" ng-model="report.published" id="publish" ng-change="updateReport()" />
-							<label for="publish">Yes, allow parents access on parent site</label>
-						</p>
-					</div>
-
-
-					<div ng-show="saved && (isAdmin || isClassTeacher)" class="alert alert-success">
-						Report card has been saved! Click the 'Print' button below.
-					</div>
 				 <div>
 			<!-- 	 done -->
 				</div>

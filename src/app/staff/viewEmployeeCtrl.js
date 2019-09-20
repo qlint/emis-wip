@@ -168,6 +168,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						emp_image : ( uploader.queue[0] !== undefined ? $scope.filename : null),
 						active : ( $scope.employee.active ? 't' : 'f' ),
 						telephone : $scope.employee.telephone,
+						telephone2 : $scope.employee.telephone2,
 						email : $scope.employee.email,
 						next_of_kin_name : $scope.employee.next_of_kin_name,
 						next_of_kin_telephone : $scope.employee.next_of_kin_telephone,

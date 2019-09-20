@@ -599,14 +599,14 @@ $app->get('/getAllStudentsWithTransport', function () {
     $db = getDB();
 
     $sth = $db->prepare("SELECT * FROM (
-                        	SELECT DISTINCT ON (s.student_id)s.student_id, first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                        	SELECT DISTINCT ON (s.student_id)s.student_id, admission_number, first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
                         		c.class_name, route, CASE WHEN s.destination IS NULL THEN 'Not Assigned' ELSE s.destination END AS neighborhood
                         	FROM app.students s
                         	INNER JOIN app.classes c ON s.current_class = c.class_id
                         	INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
                         	INNER JOIN app.student_fee_items sfi USING (student_id)
                         	INNER JOIN app.fee_items USING (fee_item_id)
-                          WHERE s.active IS TRUE
+                          WHERE s.active IS TRUE AND s.transport_route_id IS NOT NULL
                         )a
                         ORDER BY class_name ASC, student_name ASC");
     $sth->execute(array());
@@ -642,12 +642,13 @@ $app->get('/getAllStudentsInTrip/:tripId', function ($tripId) {
     $db = getDB();
 
     $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
-                        	SELECT student_id, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination FROM (
-                        		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
-                        			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination
+                        	SELECT student_id, admission_number, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination, route FROM (
+                        		SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                        			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination, tr.route
                         		FROM app.students s
                         		INNER JOIN app.classes c ON s.current_class = c.class_id
-                        		WHERE s.active IS TRUE
+                            INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                        		WHERE s.active IS TRUE AND s.transport_route_id IS NOT NULL
                         	)one
                         	INNER JOIN app.schoolbus_bus_trips sbt ON one.trip_id = sbt.bus_trip_id
                         	INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
@@ -689,12 +690,12 @@ $app->get('/getAllStudentsInTranspZone', function () {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT student_id, student_name, class_name, student_destination, route, amount FROM (
-                    		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+    $sth = $db->prepare("SELECT student_id, admission_number, student_name, class_name, student_destination, route, amount FROM (
+                    		SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
                     			s.destination AS student_destination, s.transport_route_id
                     		FROM app.students s
                     		INNER JOIN app.classes c ON s.current_class = c.class_id
-                    		WHERE s.active IS TRUE
+                    		WHERE s.active IS TRUE AND s.transport_route_id IS NOT NULL
                     	)one
                     	INNER JOIN app.transport_routes tr ON one.transport_route_id = tr.transport_id
                     	ORDER BY class_name ASC, student_name ASC");
@@ -731,7 +732,7 @@ $app->get('/getAllStudentsWithTranspBalance', function () {
     $db = getDB();
 
     $sth = $db->prepare("SELECT *, amount-payment AS balance FROM (
-                        	SELECT sfi.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name, destination,
+                        	SELECT sfi.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name, destination,
                         		sfi.fee_item_id, fi.fee_item, tr.route, fi.default_amount, sfi.amount, COALESCE(pii.amount, 0) AS payment
                         	FROM app.student_fee_items sfi
                         	INNER JOIN app.fee_items fi USING (fee_item_id)
@@ -740,7 +741,7 @@ $app->get('/getAllStudentsWithTranspBalance', function () {
                         	LEFT JOIN app.invoice_line_items ili USING (student_fee_item_id)
                         	LEFT JOIN app.payment_inv_items pii USING (inv_item_id)
                         	INNER JOIN app.classes c ON s.current_class = c.class_id
-                          WHERE s.active IS TRUE
+                          WHERE s.active IS TRUE AND s.transport_route_id IS NOT NULL
                         )one
                         ORDER BY class_name ASC, student_name ASC");
     $sth->execute(array());
@@ -776,7 +777,7 @@ $app->get('/getClassStudentsWithTransp/:classCatId', function ($classCatId) {
     $db = getDB();
 
     $sth = $db->prepare("SELECT * FROM (
-                        	SELECT DISTINCT ON (s.student_id)s.student_id, first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                        	SELECT DISTINCT ON (s.student_id)s.student_id, admission_number, first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
                         		c.class_name, route, CASE WHEN s.destination IS NULL THEN 'Not Assigned' ELSE s.destination END AS neighborhood
                         	FROM app.students s
                         	INNER JOIN app.classes c ON s.current_class = c.class_id
@@ -784,7 +785,7 @@ $app->get('/getClassStudentsWithTransp/:classCatId', function ($classCatId) {
                         	INNER JOIN app.student_fee_items sfi USING (student_id)
                         	INNER JOIN app.fee_items USING (fee_item_id)
                         	WHERE s.current_class IN (SELECT class_id FROM app.classes c WHERE c.class_cat_id = :classCatId)
-                          AND s.active IS TRUE
+                          AND s.active IS TRUE AND s.transport_route_id IS NOT NULL
                         )a
                         ORDER BY class_name ASC, student_name ASC");
     $sth->execute(array(':classCatId' => $classCatId));
@@ -824,12 +825,13 @@ $app->get('/getClassStudentsInBus/:busId/:classCatId', function ($busId,$classCa
                 						e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name, st.trip_name,
                 						st.class_cats
                 					FROM (
-                						SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, class_name, current_class,
-                                          				s.destination AS student_destination, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS student_trips
+                						SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, class_name, current_class,
+                                          				s.destination AS student_destination, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS student_trips, tr.route
                                                                   FROM app.students s
                                                                   INNER JOIN app.classes c ON s.current_class = c.class_id
+                                                                  INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
                                                                   WHERE s.current_class IN (SELECT class_id FROM app.classes c WHERE c.class_cat_id = :classCatId)
-                                                                  AND s.active IS TRUE
+                                                                  AND s.active IS TRUE AND s.transport_route_id IS NOT NULL
                 					)one
                 					INNER JOIN app.schoolbus_bus_trips sbt ON one.student_trips = sbt.bus_trip_id
                                                         INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
@@ -871,12 +873,13 @@ $app->get('/getClassStudentsInTrip/:tripId/:classCatId', function ($tripId,$clas
     $db = getDB();
 
      $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
-                          	SELECT student_id, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination FROM (
-                          		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
-                          			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination
+                          	SELECT student_id, admission_number, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination, route FROM (
+                          		SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                          			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination, tr.route
                           		FROM app.students s
                           		INNER JOIN app.classes c ON s.current_class = c.class_id
-                          		WHERE s.active IS TRUE
+                              INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                          		WHERE s.active IS TRUE AND s.transport_route_id IS NOT NULL
                               AND s.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = :classCatId)
                           	)one
                           	INNER JOIN app.schoolbus_bus_trips sbt ON one.trip_id = sbt.bus_trip_id
@@ -920,17 +923,18 @@ $app->get('/getAllStudentsInBusInTrip/:busId/:tripId', function ($busId,$tripId)
     $db = getDB();
 
      $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
-                          	SELECT student_id, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination FROM (
-                          		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
-                          			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination
+                          	SELECT student_id, admission_number, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination, route FROM (
+                          		SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                          			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination, tr.route
                           		FROM app.students s
                           		INNER JOIN app.classes c ON s.current_class = c.class_id
-                          		WHERE s.active IS TRUE
+                          		INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                          		WHERE s.active IS TRUE AND s.transport_route_id IS NOT NULL
                           	)one
                           	INNER JOIN app.schoolbus_bus_trips sbt ON one.trip_id = sbt.bus_trip_id
                           	INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
                           	INNER JOIN app.buses USING (bus_id)
-				            WHERE sbt.schoolbus_trip_id = :tripId
+				WHERE sbt.schoolbus_trip_id = :tripId
                           	AND sbt.bus_id = :busId
                           )two
                           LEFT JOIN app.employees e ON two.bus_driver = e.emp_id
@@ -969,12 +973,13 @@ $app->get('/getClassStudentsInBusInTrip/:classCatId/:busId/:tripId', function ($
     $db = getDB();
 
      $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
-                          	SELECT student_id, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination FROM (
-                          		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
-                          			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination
+                          	SELECT student_id, admission_number, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination, route FROM (
+                          		SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+                          			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination, tr.route
                           		FROM app.students s
                           		INNER JOIN app.classes c ON s.current_class = c.class_id
-                          		WHERE s.active IS TRUE
+                              INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                          		WHERE s.active IS TRUE AND s.transport_route_id IS NOT NULL
                               AND s.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = :classCatId)
                           	)one
                           	INNER JOIN app.schoolbus_bus_trips sbt ON one.trip_id = sbt.bus_trip_id
@@ -1018,12 +1023,12 @@ $app->get('/getClassStudentsInTranspZone/:classCatId', function ($classCatId) {
   {
     $db = getDB();
 
-     $sth = $db->prepare("SELECT student_id, student_name, class_name, student_destination, route, amount FROM (
-                    		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
+     $sth = $db->prepare("SELECT student_id, admission_number, student_name, class_name, student_destination, route, amount FROM (
+                    		SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
                     			s.destination AS student_destination, s.transport_route_id
                     		FROM app.students s
                     		INNER JOIN app.classes c ON s.current_class = c.class_id
-                    		WHERE s.active IS TRUE AND s.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = :classCatId)
+                    		WHERE s.active IS TRUE AND s.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = :classCatId) AND s.transport_route_id IS NOT NULL
                     	)one
                     	INNER JOIN app.transport_routes tr ON one.transport_route_id = tr.transport_id
                     	ORDER BY class_name ASC, student_name ASC");

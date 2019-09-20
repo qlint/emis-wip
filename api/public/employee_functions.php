@@ -133,6 +133,7 @@ $app->post('/addEmployee', function () use($app) {
 	$country =			( isset($allPostVars['country']) ? $allPostVars['country']: null);
 	$active =			( isset($allPostVars['active']) ? $allPostVars['active']: 'f');
 	$telephone =		( isset($allPostVars['telephone']) ? $allPostVars['telephone']: null);
+	$telephone2 =		( isset($allPostVars['telephone2']) ? $allPostVars['telephone2']: null);
 	$email =			( isset($allPostVars['email']) ? $allPostVars['email']: null);
 	$joinedDate =		( isset($allPostVars['joined_date']) ? $allPostVars['joined_date']: null);
 	$jobTitle =			( isset($allPostVars['job_title']) ? $allPostVars['job_title']: null);
@@ -155,10 +156,10 @@ $app->post('/addEmployee', function () use($app) {
         $db = getDB();
         $insertEmp = $db->prepare("INSERT INTO app.employees(emp_cat_id, dept_id, emp_number, id_number, gender, first_name, middle_name, last_name, initials, dob,
 										country, active, telephone, email, joined_date, job_title, qualifications, experience, additional_info, created_by, emp_image,
-										next_of_kin_name, next_of_kin_telephone, next_of_kin_email)
+										next_of_kin_name, next_of_kin_telephone, next_of_kin_email, telephone2)
 							VALUES(:empCatId,:deptId,:empNumber,:idNumber,:gender,:firstName,:middleName,:lastName,:initials,:dob,
 										:country,:active,:telephone,:email,:joinedDate,:jobTitle,:qualifications,:experience,:additionalInfo,:createdBy,:empImage,
-										:nokName, :nokTelephone, :nokEmail)");
+										:nokName, :nokTelephone, :nokEmail, :telephone2)");
 
 		if( $username !== null )
 		{
@@ -184,6 +185,7 @@ $app->post('/addEmployee', function () use($app) {
 							':country' => $country,
 							':active' => $active,
 							':telephone' => $telephone,
+							':telephone2' => $telephone2,
 							':email' => $email,
 							':joinedDate' => $joinedDate,
 							':jobTitle' => $jobTitle,
@@ -246,6 +248,7 @@ $app->put('/updateEmployee', function () use($app) {
 		$country =			( isset($allPostVars['personal']['country']) ? $allPostVars['personal']['country']: null);
 		$active =			( isset($allPostVars['personal']['active']) ? $allPostVars['personal']['active']: 'f');
 		$telephone =		( isset($allPostVars['personal']['telephone']) ? $allPostVars['personal']['telephone']: null);
+		$telephone2 =		( isset($allPostVars['personal']['telephone2']) ? $allPostVars['personal']['telephone2']: null);
 		$email =			( isset($allPostVars['personal']['email']) ? $allPostVars['personal']['email']: null);
 		$empImage =			( isset($allPostVars['personal']['emp_image']) ? $allPostVars['personal']['emp_image']: null);
 		$nokName =			( isset($allPostVars['personal']['next_of_kin_name']) ? $allPostVars['personal']['next_of_kin_name']: null);
@@ -303,6 +306,7 @@ $app->put('/updateEmployee', function () use($app) {
 					country = :country,
 					active = :active,
 					telephone = :telephone,
+					telephone2 = :telephone2,
 					email = :email,
 					emp_image = :empImage,
 					next_of_kin_name = :nokName,
@@ -324,6 +328,7 @@ $app->put('/updateEmployee', function () use($app) {
 								':country' => $country,
 								':active' => $active,
 								':telephone' => $telephone,
+								':telephone2' => $telephone2,
 								':email' => $email,
 								':empImage' => $empImage,
 								':nokName' => $nokName,

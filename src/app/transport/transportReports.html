@@ -136,7 +136,8 @@
                                 <table id='resultsTable' class="allWithTranspTableDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th>STUDENT</th>
+                                                <th>ADM. #</th>
+                                                <th>STUDENTS ({{studentsWithTranspCount}})</th>
                                                 <th>CLASS</th>
                                                 <th>NEIGHBORHOOD</th>
                                                 <th>TRANSP. ZONE</th>
@@ -144,6 +145,7 @@
                                         </thead>
                                         <tbody>
                                             <tr ng-repeat="item in reportData track by $index">
+                                                <td>{{item.admission_number}}</td>
                                                 <td>{{item.student_name}}</td>
                                                 <td>{{item.class_name}}</td>
                                                 <td>{{item.neighborhood}}</td>
@@ -158,22 +160,24 @@
                                 <table id='resultsTable' class="allStudentsInBusDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th>STUDENT</th>
+                                                <th>ADM. #</th>
+                                                <th>STUDENTS ({{studentsInBusCount}})</th>
                                                 <th>CLASS</th>
                                                 <th>NEIGHBORHOOD</th>
                                                 <th>TRIP</th>
                                                 <th>DRIVER</th>
-                                                <th>ASSISTANT</th>
+                                                <th>ZONE</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
                                             <tr ng-repeat="item in studentsInBus track by $index">
+                                                <td>{{item.admission_number}}</td>
                                                 <td>{{item.student_name}}</td>
                                                 <td>{{item.class_name}}</td>
                                                 <td>{{item.student_destination}}</td>
                                                 <td>{{item.trip_name}}</td>
                                                 <td>{{item.driver_name}}</td>
-                                                <td>{{item.guide_name}}</td>
+                                                <td>{{item.route}}</td>
                                             </tr>
                                         </tbody>
                                 </table>
@@ -184,23 +188,25 @@
                                 <table id='resultsTable' class="allStudentsInTripDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th>STUDENT</th>
+                                                <th>ADM. #</th>
+                                                <th>STUDENT ({{studentsInTripCount}})</th>
                                                 <th>CLASS</th>
                                                 <th>NEIGHBORHOOD</th>
                                                 <th>BUS</th>
                                                 <th>DRIVER</th>
-                                                <th>ASSISTANT</th>
+                                                <th>ZONE</th>
                                                 <th>TRIP</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
                                             <tr ng-repeat="item in studentsInTrip track by $index">
+                                                <td>{{item.admission_number}}</td>
                                                 <td>{{item.student_name}}</td>
                                                 <td>{{item.class_name}}</td>
                                                 <td>{{item.student_destination}}</td>
                                                 <td>{{item.bus}}</td>
                                                 <td>{{item.driver_name}}</td>
-                                                <td>{{item.guide_name}}</td>
+                                                <td>{{item.route}}</td>
                                                 <td>{{item.trip_name}}</td>
                                             </tr>
                                         </tbody>
@@ -212,20 +218,22 @@
                                 <table id='resultsTable' class="allStudentsInZoneDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th width="15%">STUDENT</th>
+                                                <th width="4%">ADM. #</th>
+                                                <th width="15%">STUDENT ({{studentsInZoneCount}})</th>
                                                 <th width="10%">CLASS</th>
                                                 <th width="10%">NEIGHBORHOOD</th>
-                                                <th width="55%">ZONE</th>
-                                                <th width="10%">AMOUNT</th>
+                                                <th width="56%">ZONE</th>
+                                                <th width="5%">AMOUNT</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
                                             <tr ng-repeat="item in studentsInZone track by $index">
+                                                <td width="4%">{{item.admission_number}}</td>
                                                 <td width="15%">{{item.student_name}}</td>
                                                 <td width="10%">{{item.class_name}}</td>
                                                 <td width="10%">{{item.student_destination}}</td>
-                                                <td width="55%">{{item.route}}</td>
-                                                <td width="10%">{{item.amount}}</td>
+                                                <td width="56%">{{item.route}}</td>
+                                                <td width="5%">{{item.amount}}</td>
                                             </tr>
                                         </tbody>
                                 </table>
@@ -236,24 +244,26 @@
                                 <table id='resultsTable' class="allStudentsWithBalanceDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th width="10%">STUDENT</th>
+                                                <th width="5%">ADM. #</th>
+                                                <th width="10%">STUDENTS ({{studentsWithBalanceCount}})</th>
                                                 <th width="10%">CLASS</th>
                                                 <th width="10%">NEIGHBORHOOD</th>
-                                                <th width="40%">ZONE</th>
-                                                <th width="10%">AMOUNT</th>
-                                                <th width="10%">PAYMENT</th>
-                                                <th width="10%">BALANCE</th>
+                                                <th width="50%">ZONE</th>
+                                                <th width="5%">AMOUNT</th>
+                                                <th width="5%">PAYMENT</th>
+                                                <th width="5%">BALANCE</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
                                             <tr ng-repeat="item in studentsWithBalance track by $index">
+                                                <td width="5%">{{item.admission_number}}</td>
                                                 <td width="10%">{{item.student_name}}</td>
                                                 <td width="10%">{{item.class_name}}</td>
                                                 <td width="10%">{{item.destination}}</td>
-                                                <td width="40%">{{item.route}}</td>
-                                                <td width="10%">{{item.amount}}</td>
-                                                <td width="10%">{{item.payment}}</td>
-                                                <td width="10%">{{item.balance}}</td>
+                                                <td width="50%">{{item.route}}</td>
+                                                <td width="5%">{{item.amount}}</td>
+                                                <td width="5%">{{item.payment}}</td>
+                                                <td width="5%">{{item.balance}}</td>
                                             </tr>
                                         </tbody>
                                 </table>
@@ -264,7 +274,8 @@
                                 <table id='resultsTable' class="classStdTransDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th>STUDENT</th>
+                                                <th>ADM. #</th>
+                                                <th>STUDENTS ({{classStdsWithTranspCount}})</th>
                                                 <th>CLASS</th>
                                                 <th>NEIGHBORHOOD</th>
                                                 <th>TRANSP. ZONE</th>
@@ -272,6 +283,7 @@
                                         </thead>
                                         <tbody>
                                             <tr ng-repeat="item in classStudentsWithTransp track by $index">
+                                                <td>{{item.admission_number}}</td>
                                                 <td>{{item.student_name}}</td>
                                                 <td>{{item.class_name}}</td>
                                                 <td>{{item.neighborhood}}</td>
@@ -286,23 +298,25 @@
                                 <table id='resultsTable' class="allStudentsInTripInBusDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th>STUDENT</th>
+                                                <th>ADM. #</th>
+                                                <th>STUDENTS ({{allStudentsInBusInTrpCount}})</th>
                                                 <th>CLASS</th>
                                                 <th>NEIGHBORHOOD</th>
                                                 <th>BUS</th>
                                                 <th>DRIVER</th>
-                                                <th>ASSISTANT</th>
+                                                <th>ZONE</th>
                                                 <th>TRIP</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
                                             <tr ng-repeat="item in allStudentsInBusInTrp track by $index">
+                                                <td>{{item.admission_number}}</td>
                                                 <td>{{item.student_name}}</td>
                                                 <td>{{item.class_name}}</td>
                                                 <td>{{item.student_destination}}</td>
                                                 <td>{{item.bus}}</td>
                                                 <td>{{item.driver_name}}</td>
-                                                <td>{{item.guide_name}}</td>
+                                                <td>{{item.route}}</td>
                                                 <td>{{item.trip_name}}</td>
                                             </tr>
                                         </tbody>
@@ -314,22 +328,24 @@
                                 <table id='resultsTable' class="classStudentsInBusDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th>STUDENT</th>
+                                                <th>ADM. #</th>
+                                                <th>STUDENTS ({{classStudentsInSelectedBusCount}})</th>
                                                 <th>CLASS</th>
                                                 <th>NEIGHBORHOOD</th>
                                                 <th>TRIP</th>
                                                 <th>DRIVER</th>
-                                                <th>ASSISTANT</th>
+                                                <th>ZONE</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
                                             <tr ng-repeat="item in classStudentsInSelectedBus track by $index">
+                                                <td>{{item.admission_number}}</td>
                                                 <td>{{item.student_name}}</td>
                                                 <td>{{item.class_name}}</td>
                                                 <td>{{item.student_destination}}</td>
                                                 <td>{{item.trip_name}}</td>
                                                 <td>{{item.driver_name}}</td>
-                                                <td>{{item.guide_name}}</td>
+                                                <td>{{item.route}}</td>
                                             </tr>
                                         </tbody>
                                 </table>
@@ -340,23 +356,25 @@
                                 <table id='resultsTable' class="classStudentsInTripDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th>STUDENT</th>
+                                                <th>ADM. #</th>
+                                                <th>STUDENTS ({{classStudentsInSelectedTripCount}})</th>
                                                 <th>CLASS</th>
                                                 <th>NEIGHBORHOOD</th>
                                                 <th>BUS</th>
                                                 <th>DRIVER</th>
-                                                <th>ASSISTANT</th>
+                                                <th>ZONE</th>
                                                 <th>TRIP</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
                                             <tr ng-repeat="item in classStudentsInSelectedTrip track by $index">
+                                                <td>{{item.admission_number}}</td>
                                                 <td>{{item.student_name}}</td>
                                                 <td>{{item.class_name}}</td>
                                                 <td>{{item.student_destination}}</td>
                                                 <td>{{item.bus}}</td>
                                                 <td>{{item.driver_name}}</td>
-                                                <td>{{item.guide_name}}</td>
+                                                <td>{{item.route}}</td>
                                                 <td>{{item.trip_name}}</td>
                                             </tr>
                                         </tbody>
@@ -368,23 +386,25 @@
                                 <table id='resultsTable'>
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th>STUDENT</th>
+                                                <th>ADM. #</th>
+                                                <th>STUDENTS ({{classStudentsInBusInTrpCount}})</th>
                                                 <th>CLASS</th>
                                                 <th>NEIGHBORHOOD</th>
                                                 <th>BUS</th>
                                                 <th>DRIVER</th>
-                                                <th>ASSISTANT</th>
+                                                <th>ZONE</th>
                                                 <th>TRIP</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
                                             <tr ng-repeat="item in classStudentsInBusInTrp track by $index">
+                                                <td>{{item.admission_number}}</td>
                                                 <td>{{item.student_name}}</td>
                                                 <td>{{item.class_name}}</td>
                                                 <td>{{item.student_destination}}</td>
                                                 <td>{{item.bus}}</td>
                                                 <td>{{item.driver_name}}</td>
-                                                <td>{{item.guide_name}}</td>
+                                                <td>{{item.route}}</td>
                                                 <td>{{item.trip_name}}</td>
                                             </tr>
                                         </tbody>
@@ -396,20 +416,22 @@
                                 <table id='resultsTable' class="classStudentsInZoneDiv">
                                         <thead>
                                             <tr id="tblHeader" style="background-color:#49E747;">
-                                                <th width="15%">STUDENT</th>
+                                                <th width="5%">ADM. #</th>
+                                                <th width="15%">STUDENT ({{classStudentsInSelectedZoneCount}})</th>
                                                 <th width="10%">CLASS</th>
                                                 <th width="10%">NEIGHBORHOOD</th>
                                                 <th width="55%">ZONE</th>
-                                                <th width="10%">AMOUNT</th>
+                                                <th width="5%">AMOUNT</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tblBody">
                                             <tr ng-repeat="item in classStudentsInSelectedZone track by $index">
+                                                <td width="5%">{{item.admission_number}}</td>
                                                 <td width="15%">{{item.student_name}}</td>
                                                 <td width="10%">{{item.class_name}}</td>
                                                 <td width="10%">{{item.student_destination}}</td>
                                                 <td width="55%">{{item.route}}</td>
-                                                <td width="10%">{{item.amount}}</td>
+                                                <td width="5%">{{item.amount}}</td>
                                             </tr>
                                         </tbody>
                                 </table>

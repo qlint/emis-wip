@@ -480,7 +480,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'students':{
 								'view': true,
 								'add': false,
-								'edit': false,
+								'edit': true,
 								'import': false
 							},
 							'communications':{

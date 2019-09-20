@@ -195,8 +195,17 @@
 								</div>
 							</div>
 
+							<!-- phone number -->
+							<div class="col-sm-4">
+								<label for="telephone2">2<sup>nd</sup> Phone Number</label>
+								<p class="form-control-static" ng-show="!edit">{{employee.telephone2}}</p>
+								<div ng-show="edit">
+									<input type="text" name="telephone2" ng-model="employee.telephone2" class="form-control" />
+								</div>
+							</div>
+
 							<!-- email -->
-							<div class="col-sm-8" ng-class="{ 'has-error' : (empForm.$submitted || empForm.email.$dirty ) && empForm.email.$invalid && (empForm.email.$error.required || empForm.email.$error.email) }">
+							<div class="col-sm-4" ng-class="{ 'has-error' : (empForm.$submitted || empForm.email.$dirty ) && empForm.email.$invalid && (empForm.email.$error.required || empForm.email.$error.email) }">
 								<label for="email">Email</label>
 								<p class="form-control-static" ng-show="!edit">{{employee.email}}</p>
 								<div ng-show="edit">
@@ -361,18 +370,18 @@
 								</ul>
 							</div>
 						</div>
-						
+
 						<div class="row">
 							<!-- committees -->
 							<div class="col-sm-8">
 								<label for="committees">Available Committees</label>
-								
+
 								<em>Select one or more committees</em>
                                 <select ng-show="committees.length>0" ng-model="employee.committee" data-placeholder="Available committees" class="chosen-select" multiple tabindex="6">
                                     <option value=""></option>
                                     <option ng-repeat="school_committee in committees" value="{{school_committee}}">{{school_committee}}</option>
                                 </select>
-								
+
 							</div>
 							<div class="col-sm-4">
 								<label for="selected_committees">Assigned Committees</label>

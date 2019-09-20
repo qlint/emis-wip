@@ -70,7 +70,7 @@
         });
 
 
-        // $iframe.ready() and $iframe.load were inconsistent between browsers    
+        // $iframe.ready() and $iframe.load were inconsistent between browsers
         setTimeout(function() {
 
             var $doc = $iframe.contents(),
@@ -88,7 +88,7 @@
                     $head.append("<link type='text/css' rel='stylesheet' href='" + href + "' media='" + media + "'>")
                 }
             });
-            
+
             // import style tags
             if (opt.importStyle) $("style").each(function() {
                 $(this).clone().appendTo($head);

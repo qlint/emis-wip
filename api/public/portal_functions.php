@@ -598,6 +598,69 @@ $app->put('/updatePassword', function () use($app) {
   }
 });
 
+$app->get('/forgotPassword/:phone', function ($phoneNumber){
+  error_reporting(E_ALL);  // uncomment this only when testing
+  ini_set('display_errors', 1); // uncomment this only when testing
+  // Get the registration status
+
+  $file = "wordlist.txt";
+  $twoRndWords = Array();
+  // we need to merge two words eg "dog-town" so we create a loop of only 2
+  for ($x = 0; $x <= 1; $x++) {
+    // Convert the text fle into array and get text of each line in each array index
+    $file_arr = file($file);
+    // Total number of lines in file
+    $num_lines = count($file_arr);
+    // Getting the last array index number
+    $last_arr_index = $num_lines - 1;
+    // Random index number
+    $rand_index = rand(0, $last_arr_index);
+    // random text from a line. The line will be a random number within the indexes of the array
+    $rand_text = $file_arr[$rand_index];
+    array_push($twoRndWords,$rand_text);
+  }
+  $temporaryPwd = join("-",$twoRndWords);
+  echo $temporaryPwd;
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    //first check if this number is in use in active use ie taken
+    $db0 = getLoginDB();
+
+    $checkOne = $db0->query("SELECT (CASE
+                                    		WHEN EXISTS (SELECT * FROM (
+                                                      SELECT username AS phone FROM parents WHERE username = '$phoneNumber'
+                                                      )a
+                                                      LIMIT 1) THEN 'found'
+                                    		ELSE 'not-found'
+                                    	END) AS check_one, (SELECT parent_id FROM parents WHERE username = '$phoneNumber') AS parent_id");
+    $lineCheck = $checkOne->fetch(PDO::FETCH_OBJ);
+    $phoneCheck = $lineCheck->check_one;
+    $parentId = $lineCheck->parent_id;
+    $db0 = null;
+    if($phoneCheck === "found"){
+        $sth2 = $db->prepare("INSERT INTO forgot_password(usr_name, temp_pwd, parent_id)
+                              VALUES ('$results->first_name','$results->middle_name','$results->last_name','$results->email','$results->id_number','$results->username','$pwd',true) returning parent_id;");
+        $sth2->execute( array() );
+
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'message' => "Phone number has been found. A temporary password will be sent to your phone numer.", "status" => "Record found, sms sent." ));
+    }else{
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records.", "status" => "Phone number not found, no sms will be sent." ));
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
 $app->post('/updateDeviceUserId', function () use($app) {
   // update users device id
   $allPostVars = $app->request->post();

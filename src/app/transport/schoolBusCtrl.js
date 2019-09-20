@@ -213,7 +213,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
         modal.style.display = "block";
 
         // Get the <span> element that closes the modal
-        var span = document.getElementsByClassName("close")[0];
+        var span = document.getElementsByClassName("cloze")[0];
 
         // When the user clicks on <span> (x), close the modal
         span.onclick = function() {
@@ -320,8 +320,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				importStyle: true,
 				loadCSS: ["/min/css/dependencies.min.css","/css/template.css"],
 				removeInline: false,
-				printDelay: 10000,
-				copyTagClasses: true
+				printDelay: 1000,
+				copyTagClasses: true,
+				formValues: true
 			});
 		});
 		// window.print();

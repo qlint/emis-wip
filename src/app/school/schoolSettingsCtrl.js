@@ -108,7 +108,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
             setSwitchState($('#autoAdmission.switch-input'), true);
 		}
 		$scope.settings["Exam Calculation"] = ($scope.settings["Exam Calculation"] == undefined ? "" : $scope.settings["Exam Calculation"]);
-		console.log($scope.settings);
+		// console.log($scope.settings);
 
 	}
 
