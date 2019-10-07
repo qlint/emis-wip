@@ -1221,7 +1221,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		{
 		   var divToPrint=document.getElementById("fullPrint");
 		   var newWin= window.open("");
-			 newWin.document.write('<html><head><title>Report Cards Bulk Print.</title><link rel="stylesheet" type="text/css" href="min/css/dependencies.min.css"><link rel="stylesheet" type="text/css" href="css/template.css"><link rel="stylesheet" type="text/css" href="css/bulkPrintReportCards.css"></head><body>');
+			 newWin.document.write('<html><head><title>Report Cards Bulk Print.</title><link rel="stylesheet" type="text/css" href="css/template.css"><link rel="stylesheet" type="text/css" href="components/css/datatables.min.css"><link rel="stylesheet" type="text/css" href="css/bulkPrintReportCards.css"></head><body>');
 		   newWin.document.write(divToPrint.outerHTML);
 			 setTimeout(function(){
 				 sleep(15000);
@@ -1232,6 +1232,23 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		   // newWin.close();
 		}
 		printData();
+		/*
+		$.getScript('/components/printThis.js', function()
+		{
+			$('#fullPrint').printThis({
+				debug: false,
+		    importCSS: true,
+		    importStyle: true,
+		    printContainer: true,
+		    loadCSS: ["/min/css/dependencies.min.css","/css/template.css","/css/bulkPrintReportCards.css"],
+		    pageTitle: "Printing Batch Report Cards",
+		    removeInline: false,
+		    printDelay: 333,
+		    header: null,
+		    formValues: true
+      });
+		});
+		*/
 	}
 
 	var createCompleted = function ( response, status, params )

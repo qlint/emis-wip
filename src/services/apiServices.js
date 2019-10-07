@@ -537,6 +537,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getAllStudentExamMarks/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getResultSlips = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getResultSlips/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getAllStudentStreamMarks = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getAllStudentStreamMarks/" + param, successFunction, errorFunction, params);
 	};
@@ -1045,6 +1049,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getClassStudentsInBusInTrip = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getClassStudentsInBusInTrip/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getExamDeviations = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getExamDeviations/" + param, successFunction, errorFunction, params);
 	};
 
 	return this;

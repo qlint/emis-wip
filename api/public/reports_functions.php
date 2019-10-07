@@ -1055,6 +1055,80 @@ $app->get('/getClassStudentsInTranspZone/:classCatId', function ($classCatId) {
 
 });
 
+$app->get('/getExamDeviations/:class_id/:term_id/:exam_type_id', function ($classId,$termId,$examTypeId) {
+
+	// Get all exam types
+
+	$app = \Slim\Slim::getInstance();
+
+	try
+	{
+		$db = getDB();
+
+		$sth = $db->prepare("SELECT gender, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,classes.class_id,subject_name,
+								exam_type,exam_marks.student_id,mark,grade_weight,subjects.sort_order, admission_number, class_name
+							FROM app.exam_marks
+							INNER JOIN app.class_subject_exams
+							INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+							INNER JOIN app.class_subjects
+							INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+							INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+										ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+										ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+							INNER JOIN app.students ON exam_marks.student_id = students.student_id
+							WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = :classId))))
+							AND term_id = :term_id
+							AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = :classId))) AND sort_order = (SELECT sort_order FROM app.exam_types WHERE exam_type_id = :exam_type_id))
+							AND subjects.use_for_grading is true
+							AND students.active is true AND subjects.parent_subject_id IS NULL
+							WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY first_name ASC, middle_name ASC, last_name ASC, subjects.sort_order ASC, mark desc)");
+		$sth->execute(array(':classId' => $classId, ':term_id' => $termId, ':exam_type_id' => $examTypeId));
+		$currentExamResults = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		$sth2 = $db->prepare("SELECT gender, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name,classes.class_id,subject_name,
+								exam_type,exam_marks.student_id,mark,grade_weight,subjects.sort_order, admission_number, class_name
+							FROM app.exam_marks
+							INNER JOIN app.class_subject_exams
+							INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+							INNER JOIN app.class_subjects
+							INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+							INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
+										ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
+										ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+							INNER JOIN app.students ON exam_marks.student_id = students.student_id
+							WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = :classId))))
+							AND term_id = :term_id
+							AND class_subject_exams.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = :classId))) AND sort_order = ((SELECT sort_order FROM app.exam_types WHERE exam_type_id = :exam_type_id)-1))
+							AND subjects.use_for_grading is true
+							AND students.active is true AND subjects.parent_subject_id IS NULL
+							WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY first_name ASC, middle_name ASC, last_name ASC, subjects.sort_order ASC, mark desc)");
+		$sth2->execute(array(':classId' => $classId, ':term_id' => $termId, ':exam_type_id' => $examTypeId));
+		$previousExamResults = $sth2->fetchAll(PDO::FETCH_OBJ);
+
+		$results =  new stdClass();
+		$results->currentExamResults = $currentExamResults;
+		$results->previousExamResults = $previousExamResults;
+
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
+
 $app->get('/getSomeReport', function () {
   //Some report
 

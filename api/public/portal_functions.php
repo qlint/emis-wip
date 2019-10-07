@@ -635,24 +635,68 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
                                                       )a
                                                       LIMIT 1) THEN 'found'
                                     		ELSE 'not-found'
-                                    	END) AS check_one, (SELECT parent_id FROM parents WHERE username = '$phoneNumber') AS parent_id");
+                                      END) AS check_one, (SELECT parent_id FROM parents WHERE username = '$phoneNumber') AS parent_id,
+                                      (SELECT first_name FROM parents WHERE username = '$phoneNumber') AS parent_name");
     $lineCheck = $checkOne->fetch(PDO::FETCH_OBJ);
     $phoneCheck = $lineCheck->check_one;
     $parentId = $lineCheck->parent_id;
-    $db0 = null;
+    $parentName = $lineCheck->parent_name;
+    
     if($phoneCheck === "found"){
-        $sth2 = $db->prepare("INSERT INTO forgot_password(usr_name, temp_pwd, parent_id)
-                              VALUES ('$results->first_name','$results->middle_name','$results->last_name','$results->email','$results->id_number','$results->username','$pwd',true) returning parent_id;");
+        $sth2 = $db0->prepare("INSERT INTO forgot_password(usr_name, temp_pwd, parent_id)
+                              VALUES ('$phoneNumber','$temporaryPwd',$parentId);");
         $sth2->execute( array() );
 
-        $app->response()->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'message' => "Phone number has been found. A temporary password will be sent to your phone numer.", "status" => "Record found, sms sent." ));
+        // first we need to change the phone format to +[code]phone
+        $firstChar = substr($phoneNumber, 0, 1);
+        if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
+        // we now create & send the actual sms
+        $forgotPwdObj = new stdClass();
+        $forgotPwdObj->message_recipients = Array();
+        $forgotPwdObj->message_by = "Eduweb Mobile App Forgot Password";
+        $forgotPwdObj->message_date = date('Y-m-d H:i:s');
+        $forgotPwdObj->message_text = "Hello $parentName, use $temporaryPwd as your temporary password for the Eduweb Mobile App.";
+        $forgotPwdObj->subscriber_name = "kingsinternational";// to be replaced;
+
+
+        $msgRecipientsObj = new stdClass();
+        $msgRecipientsObj->recipient_name = "$parentName";
+        $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
+        array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
+
+        // send the message
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($forgotPwdObj)); // the data to post
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+
+        $resp = curl_exec($ch);
+
+        if($resp === false)
+        {
+          $app->response()->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo  json_encode(array('response' => 'Success', 'message' => "An error was encountered while attempting to SMS you your temporary password for confirmation and reset. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch) ));
+        }
+        else
+        {
+          $app->response()->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully" ));
+        }
+
+        curl_close($ch);
     }else{
       $app->response()->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
       echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records.", "status" => "Phone number not found, no sms will be sent." ));
     }
+    $db0 = null;
 
   } catch(PDOException $e) {
     $app->response()->setStatus(401);

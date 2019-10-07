@@ -18,6 +18,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.getReport = "reportTable";
 	$scope.loading = true;
 	$scope.studentReports2 = [];
+	$scope.preBulkLoadMsg = false;
 
 	var initializeController = function ()
 	{
@@ -370,6 +371,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	var BulkData = [];
 	$scope.bulkPrint = function()
 	{
+		$scope.preBulkLoad = "This operation may take a while. Please be patient as the system fetches the students in the selected class and computes all their exam results.";
+		$scope.preBulkLoadMsg = true;
 		// function rptCardsForBp(){
 				// filter the students to the chosen class
 				$scope.classStudents = $scope.students.filter(function (el) {
@@ -378,9 +381,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				// console.log("These class students",$scope.classStudents);
 
 				for(var i=0;i<$scope.classStudents.length;i++) {
-					let percentage = (i/$scope.classStudents.length)*100;
-					$scope.preBulkLoad = percentage + '%';
-					document.getElementById('preBulkLoad').style.dispaly = 'block';
 
 					var loadBpReportCards = function(response,status)
 					{
@@ -580,15 +580,23 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
       				};
 							// console.log(data);
       				BulkData[key] = data;
+							let iterations = $scope.studentReports2.length;
+							let lastIteration = iterations - 1;
+							if(key == lastIteration){
+								// console.log("We have reached the last iteration - open modal now.",key,lastIteration);
+								$scope.openModal('exams', 'reportCardData', 'sm', angular.fromJson(BulkData));
+							}
             }
 
 
 		});
 		},10000);
-
+		/*
 		setTimeout(function(){
 		 	$scope.openModal('exams', 'reportCardData', 'sm', angular.fromJson(BulkData));
 		},25000);
+		*/
+
 		// $scope.openModal('exams', 'reportCardData', 'sm', angular.fromJson(BulkData));
 
 	}
@@ -601,7 +609,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		var btn = document.getElementById("batchPreModal");
 
 		// Get the <span> element that closes the modal
-		var span = document.getElementsByClassName("close")[0];
+		var span = document.getElementsByClassName("cloze1")[0];
 
 		// When the user clicks the button, open the modal
 		btn.onclick = function() {
@@ -620,6 +628,135 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		  }
 		}
 
+	}
+
+	$scope.preResultSlips = function(){
+		// Get the modal
+		var modal = document.getElementById("batchPrntSlipParams");
+
+		// Get the button that opens the modal
+		var btn = document.getElementById("batchPreResultSlips");
+
+		// Get the <span> element that closes the modal
+		var span = document.getElementsByClassName("cloze2")[0];
+
+		// When the user clicks the button, open the modal
+		btn.onclick = function() {
+		  modal.style.display = "block";
+		}
+
+		// When the user clicks on <span> (x), close the modal
+		span.onclick = function() {
+		  modal.style.display = "none";
+		}
+
+		// When the user clicks anywhere outside of the modal, close it
+		window.onclick = function(event) {
+		  if (event.target == modal) {
+		    modal.style.display = "none";
+		  }
+		}
+
+		// load the current class selection's exam types to populate drop down
+		apiService.getExamTypes($scope.filters.class.class_cat_id, function(response){
+
+			var result = angular.fromJson(response);
+			if( result.response == 'success')
+			{
+					$scope.examTypes = result.data;
+					console.log("This class exam types",$scope.examTypes);
+			}
+
+		}, apiError);
+
+	}
+
+	$scope.bulkSlips = function()
+	{
+		console.log($scope.filters);
+		let request = $scope.filters.class.class_id + '/' + $scope.filters.term.term_id + '/' + $scope.filters.exam.exam_type_id;
+
+		var loadSlipResults = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				if( result.nodata )
+				{
+					$scope.resultSlips = [];
+				}
+				else
+				{
+					$scope.rawResultSlips = result.data;
+					$scope.studentResultSlips = [];
+
+					for(let i=0;i < $scope.rawResultSlips.length;i++){
+						$scope.studentResultSlips[i] = {};
+						$scope.studentResultSlips[i].exam_type = $scope.rawResultSlips[i].exam_type;
+						delete $scope.rawResultSlips[i].exam_type;
+						$scope.studentResultSlips[i].gender = $scope.rawResultSlips[i].gender;
+						delete $scope.rawResultSlips[i].gender;
+						$scope.studentResultSlips[i].rank = $scope.rawResultSlips[i].rank;
+						delete $scope.rawResultSlips[i].rank;
+						$scope.studentResultSlips[i].stream_rank = $scope.rawResultSlips[i].stream_rank;
+						delete $scope.rawResultSlips[i].stream_rank;
+						$scope.studentResultSlips[i].stream_out_of = $scope.rawResultSlips[i].stream_out_of;
+						delete $scope.rawResultSlips[i].stream_out_of;
+						$scope.studentResultSlips[i].class_name = $scope.rawResultSlips[i].class_name;
+						delete $scope.rawResultSlips[i].class_name;
+						$scope.studentResultSlips[i].admission_number = $scope.rawResultSlips[i].admission_number;
+						delete $scope.rawResultSlips[i].admission_number;
+						$scope.studentResultSlips[i].student_id = $scope.rawResultSlips[i].student_id;
+						delete $scope.rawResultSlips[i].student_id;
+						$scope.studentResultSlips[i].student_name = $scope.rawResultSlips[i].student_name;
+						delete $scope.rawResultSlips[i].student_name;
+						$scope.studentResultSlips[i].total_mark = $scope.rawResultSlips[i].total_mark;
+						delete $scope.rawResultSlips[i].total_mark;
+						$scope.studentResultSlips[i].overall_mean = $scope.rawResultSlips[i].overall_mean;
+						delete $scope.rawResultSlips[i].overall_mean;
+						$scope.studentResultSlips[i].term_name = $scope.filters.term.term_name;
+						$scope.studentResultSlips[i].exam_type = $scope.filters.exam.exam_type;
+					}
+					// console.log($scope.rawResultSlips,$scope.studentResultSlips);
+					for(let k=0;k < $scope.rawResultSlips.length;k++){
+						let subjects = [];
+						let rawSubjName = Object.keys($scope.rawResultSlips[k]);
+						// console.log("student :: " + $scope.studentResultSlips[k].student_name + " has :: ",rawSubjName);
+						rawSubjName.forEach(function(subj) {
+							let subjectDetails = {};
+						  let subjData = subj.split(',');
+							// console.log($scope.studentResultSlips[k].student_name + " has " + $scope.rawResultSlips[k][subj] + "/" + subjData[1] + " in " + subjData[0]);
+							subjectDetails.subject_name = subjData[1].replace(/'/g,"");
+							subjectDetails.out_of = subjData[2].trim().replace(/'/g,"");
+							subjectDetails.marks = $scope.rawResultSlips[k][subj];
+							subjects.push(subjectDetails);
+						});
+
+						$scope.studentResultSlips[k].exam_marks = subjects;
+						console.log($scope.studentResultSlips);
+						setTimeout(function(){
+						 	$scope.openModal('exams', 'reportCardSlips', 'lg', $scope.studentResultSlips);
+							setTimeout(function(){ document.getElementById('slipsForm').parentNode.style.width = '100%'; },3000);
+						},3000);
+					}
+				}
+			}
+		}
+		apiService.getResultSlips(request, loadSlipResults, apiError);
+	}
+
+	$scope.getClassExams = function(){
+		// load the current class selection's exam types to populate drop down
+		apiService.getExamTypes($scope.filters.class.class_cat_id, function(response){
+
+			var result = angular.fromJson(response);
+			if( result.response == 'success')
+			{
+					$scope.examTypes = result.data;
+					console.log("This class exam types",$scope.examTypes);
+			}
+
+		}, apiError);
 	}
 
 	$scope.$on('refreshReportCards', function(event, args) {

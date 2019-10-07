@@ -5,7 +5,7 @@
 
 	.plainTemplate{width:100%;border:1px solid #404040;border-collapse:collapse;}
 	.plainTemplate thead tr th,.plainTemplate tbody tr td,.plainTemplate tfoot tr th{padding:4px;border:#000000 1px solid;text-align:center;}
-	.plainTemplate{font-family: Arial, Helvetica, sans-serif;font-size:12px;}
+	.plainTemplate{font-family: Arial, Helvetica, sans-serif;font-size:11px;}
 </style>
 		<div class="receipt">
 			<img ng-if="useLetterhead" ng-hide="hideImages" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" />
@@ -74,8 +74,8 @@
 							<th width="3%"></th>
 							<th width="25%">OUT OF</th>
 							<th width="3%" class="center" ng-repeat="ky in tableHeader">{{ky.outOf}}</th>
-							<th width="3%"></th>
-							<th width="3%"></th>
+							<th width="3%">500</th>
+							<th width="3%">100</th>
 						</tr>
 						<tr>
 							<th width="3%">POS</th>
@@ -86,7 +86,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="item in examMarks track by $index" height="22px" style="height:22px;">
+						<tr ng-repeat="item in examMarks track by $index" height="20px" style="height:20px;">
 							<td width="3%" class="center strong">{{item.rank}}</td>
 							<td style="font-weight:bold;" width="25%" id="{{item.student_id}}">{{item.student_name}}</td>
 							<td width="3%" class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}">{{examMarks[$parent.$index][col.key]}}</td>

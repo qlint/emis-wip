@@ -1,0 +1,145 @@
+<style type="text/css">
+	@media print {
+	div.allSlips{page-break-inside: avoid !important;}
+	}
+</style>
+<form name="reportForm" id="slipsForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()" >
+		<div class="modal-header dialog-header-form">
+			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+			<h4 class="modal-title">REPORT SLIPS</h4>
+		</div>
+		<button type="button" class="btn btn-primary" id="printAllSlips" style="margin-left: 2%;margin-bottom: 2%;margin-top: 2%;">Print All Report Slips</button>
+		<div id="allSlips" class="modal-body progress-report">
+
+			<div class="allSlips" ng-repeat="slip in studentSlips track by $index" style="border: 1px solid #000000;margin-bottom: 5px;padding: 5px 5px 5px 5px;">
+
+				<div class="row progress-report-header"  ng-if="!useLetterhead">
+					<!--
+					<div class="col-xs-4">
+						<img src="assets/schools/{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" />
+					</div>
+					-->
+					<div class="col-xs-12">
+						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
+						<div class="school-address">
+							<h3>CONTINUOUS ASSESMENT TEST - REPORT SHEET</h3>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label class="">Name:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static" style="font-size:14px;">{{slip.student_name}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Adm No:</label>
+							</div>
+							<div class="col-xs-5 lesspad">
+								<p class="form-control-static" style="font-size:14px;">{{slip.admission_number}}</p>
+							</div>
+						</div>
+						<!-- class, term and year -->
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>{{switchToStream}}:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static" style="font-size:14px;">{{slip.class_name}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Term:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static" style="font-size:14px;">{{slip.term_name}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>Exam:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static" style="font-size:14px;">{{slip.exam_type}}</p>
+							</div>
+						</div>
+						<!-- class pos and stream pos -->
+						<div class="row">
+							<div class="col-xs-1 nopad-right">
+								<label>{{switchToStream}} Position:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static" style="font-size:14px;">{{slip.rank}} / {{slip.pos_out_of}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>{{switchToClass}} Position:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static" style="font-size:14px;">{{slip.stream_rank}} / {{slip.stream_out_of}}</p>
+							</div>
+							<div class="col-xs-1 nopad-right">
+								<label>{{switchToClass}} Mean:</label>
+							</div>
+							<div class="col-xs-3 lesspad">
+								<p class="form-control-static" style="font-size:14px;">{{slip.overall_mean}}</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="col-sm-12">
+						<table border="1" style="width:100%;margin-top:20px;margin-bottom:20px;">
+							<thead>
+								<tr>
+									<th>SUBJECT</th>
+									<th ng-repeat="subject in slip.exam_marks track by $index">{{subject.subject_name}}</th>
+									<th>G.TOT</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>MARKS</td>
+									<td ng-repeat="marks in slip.exam_marks track by $index">{{marks.marks}}</td>
+									<td>{{slip.total_mark}}</td>
+								</tr>
+								<tr>
+									<td>OUT OF</td>
+									<td ng-repeat="grade_weight in slip.exam_marks track by $index">{{grade_weight.out_of}}</td>
+									<td>500</td><!-- need to compute this from api -->
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<div class="col-sm-12">
+						<div>
+							<p>Class teacher's comments:</p>
+							<p>............................................................................................................................................................................................................... SIGN:.........................</p>
+						</div>
+						<div>
+							<p>Parent's/ guardian's comments:</p>
+							<p>............................................................................................................................................................................................................... SIGN:.........................</p>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+</form>
+<script type="text/javascript" src="components/printThis.js"></script>
+<script>
+    $('#printAllSlips').on("click", function () {
+      $('#allSlips').printThis({
+				debug: false,
+		    importCSS: true,
+		    importStyle: true,
+		    printContainer: true,
+		    loadCSS: ["/min/css/dependencies.min.css","/css/template.css"],
+		    pageTitle: "Reporrt Card Slips",
+		    removeInline: false,
+		    printDelay: 333,
+		    header: null,
+		    formValues: true
+      });
+    });
+  </script>

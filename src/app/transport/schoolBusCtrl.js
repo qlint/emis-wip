@@ -21,6 +21,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.showTcard = false;
 	$scope.cardsLoaded = false;
 	$scope.schoolName = $rootScope.currentUser.settings["School Name"];
+	$scope.showSignature = (window.location.host.split('.')[0] == 'thomasburke' ? true : false);
+	$scope.transpSignature = window.location.host.split('.')[0] + '-transport-signature.png';
 
 	$("#multiRoute").mousedown(function(e){
 	    e.preventDefault();
@@ -33,6 +35,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 	var initializeController = function ()
 	{
+		$rootScope.getCurrentTerm();
 	    // get all students
 	    var loadStudents = function(response,status, params)
           {
@@ -597,7 +600,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
     			$scope.error = true;
     			$scope.errMsg = result.data;
     		}
-    	}
+		}
+		setTimeout(function(){ 
+			console.log($rootScope.currentTermTitle);
+		$scope.currentTerm = "Term " + $rootScope.currentTermTitle;
+		}, 3000);
 
 	$scope.assignDriverAndGuide = function()
 	{

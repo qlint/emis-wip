@@ -682,12 +682,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 
 						var school = window.location.host.split('.')[0];
 
-							$scope.streamRankPosition = (result.data.streamRank != undefined ? result.data.streamRank[0].position : null);
-							$scope.streamRankOutOf = (result.data.streamRank != undefined ? result.data.streamRank[0].position_out_of : null);
+							$scope.streamRankPosition = (result.data.streamRank.length > 0 ? result.data.streamRank[0].position : null);
+							$scope.streamRankOutOf = (result.data.streamRank.length > 0 ? result.data.streamRank[0].position_out_of : null);
 
 							$scope.streamRankLastTerm = result.data.streamRankLastTerm;
-							$scope.streamRankPositionLastTerm = (result.data.streamRankLastTerm != undefined ? result.data.streamRankLastTerm[0].position : null);
-							$scope.streamRankOutOfLastTerm = (result.data.streamRankLastTerm != undefined ? result.data.streamRankLastTerm[0].position_out_of : null);
+							$scope.streamRankPositionLastTerm = ( result.data.streamRankLastTerm.length > 0 ? result.data.streamRankLastTerm[0].position : null);
+							$scope.streamRankOutOfLastTerm = (result.data.streamRankLastTerm.length > 0 ? result.data.streamRankLastTerm[0].position_out_of : null);
 							// console.log("Stream by points");
 
 					// console.log("Stream last term = (" + $scope.streamRankPositionLastTerm + "/" + $scope.streamRankOutOfLastTerm + ")");
@@ -706,20 +706,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 						$scope.studentReports[student_id].overall = data.overall;
 						$scope.studentReports[student_id].overallLastTerm = data.overallLastTerm;
 						$scope.studentReports[student_id].thisTermMarks = data.overall.current_term_marks;
-						$scope.studentReports[student_id].streamRankPosition = result.data.streamRank[0].position;
-						$scope.studentReports[student_id].streamRankOutOf = result.data.streamRank[0].position_out_of;
-						$scope.studentReports[student_id].streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
-						$scope.studentReports[student_id].streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of
+						$scope.studentReports[student_id].streamRankPosition = (result.data.streamRank.length > 0 ? result.data.streamRank[0].position : null);
+						$scope.studentReports[student_id].streamRankOutOf = (result.data.streamRank.length > 0 ? result.data.streamRank[0].position_out_of : null);
+						$scope.studentReports[student_id].streamRankPositionLastTerm = (result.data.streamRankLastTerm.length > 0 ? result.data.streamRankLastTerm[0].position : null);
+						$scope.studentReports[student_id].streamRankOutOfLastTerm = (result.data.streamRankLastTerm.length > 0 ? result.data.streamRankLastTerm[0].position_out_of : null);
 						// console.log("Normal Overall");
 						// console.log($scope.overall);
 					}
 					// $scope.overallLastTerm = data.overallLastTerm;
 					$scope.studentReports[student_id].graphPoints = data.graphPoints;
 					$scope.studentReports[student_id].currentClassPosition = (data.currentClassPosition == undefined ? null : data.currentClassPosition[0]);
-					$scope.studentReports[student_id].streamRankPosition = result.data.streamRank[0].position;
-					$scope.studentReports[student_id].streamRankOutOf = result.data.streamRank[0].position_out_of;
-					$scope.studentReports[student_id].streamRankPositionLastTerm = result.data.streamRankLastTerm[0].position;
-					$scope.studentReports[student_id].streamRankOutOfLastTerm = result.data.streamRankLastTerm[0].position_out_of
+					$scope.studentReports[student_id].streamRankPosition = (result.data.streamRank.length > 0 ? result.data.streamRank[0].position : null);
+					$scope.studentReports[student_id].streamRankOutOf = (result.data.streamRank.length > 0 ? result.data.streamRank[0].position_out_of : null);
+					$scope.studentReports[student_id].streamRankPositionLastTerm = (result.data.streamRankLastTerm.length > 0 ? result.data.streamRankLastTerm[0].position : null);
+					$scope.studentReports[student_id].streamRankOutOfLastTerm = (result.data.streamRankLastTerm.length > 0 ? result.data.streamRankLastTerm[0].position_out_of : null);
 					// console.log("Student obj", $scope.studentReports[student_id]);
 					if (school == "kingsinternational" || school == "thomasburke"){
 						$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallByAvg;

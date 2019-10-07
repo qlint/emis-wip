@@ -25,9 +25,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	$scope.showReport = false; // hide the reports div until needed
 	$scope.classAnalysisTable = false; // show the table for class analysis
 	$scope.streamAnalysisTable = false; // show the table for stream analysis
+	$scope.improvementsAnalysisTable = false; // show the table for improvements analysis
 
 	$scope.returnToClassAnalysis = false;
 	$scope.returnToStreamAnalysis = false;
+	$scope.returnToImprovementsAnalysis = false;
 
     $scope.makeClassPerformanceChart = function()
     {
@@ -556,6 +558,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			//
 		}else if($scope.filters.analysis == "stream_subjects"){
 			//
+		}else if($scope.filters.analysis == "improvement_report"){
+			$scope.getExamImprovement();
 		}else{
 			// make a valid selection message
 			$scope.preLoadMessageH1 = "";
@@ -578,6 +582,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		$scope.reportTitle = 'Class Analysis For ' + $scope.filters.class.class_name;
 		$scope.streamAnalysisTable = false;
 		$scope.classAnalysisTable = true; // show the table for class analysis
+		$scope.improvementsAnalysisTable = false;
 
 		var request = $scope.filters.class_id + '/' + $scope.filters.term_id;
 
@@ -599,9 +604,31 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		$scope.reportTitle = 'Stream Analysis For ' + $scope.filters.class.class_name;
 		$scope.classAnalysisTable = false;
 		$scope.streamAnalysisTable = true; // show the table for stream analysis
+		$scope.improvementsAnalysisTable = false;
 
 		var request = $scope.filters.class_id + '/' + $scope.filters.term_id;
 		apiService.getStreamAnalysis(request, loadStreamMarks, apiError);
+	}
+	
+	$scope.getExamImprovement = function()
+	{
+		$scope.examMarks = {};
+		$scope.totalMarks = {};
+		$scope.meanScores = {};
+		$scope.tableHeader = [];
+		$scope.marksNotFound = false;
+		$scope.getReport = "";
+
+		$scope.initialReportLoad = false; // initial items to show before any report is loaded
+		$scope.showReport = true; // show the div with the analysis table
+		// console.log($scope.filters);
+		$scope.reportTitle = 'Deviations Analysis';
+		$scope.classAnalysisTable = false;
+		$scope.streamAnalysisTable = false;
+		$scope.improvementsAnalysisTable = true; // show the table for improvement analysis
+
+		var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+		apiService.getExamDeviations(request, loadImprovementResults, apiError);
 	}
 
 	var loadMarks = function(response,status)
@@ -902,6 +929,142 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 
 	}
 
+	var loadImprovementResults = function(response,status)
+	{
+		$scope.loading = false;
+		var result = angular.fromJson( response );
+		if( result.response == 'success' )
+		{
+			if( result.nodata )
+			{
+				$scope.marksNotFound = true;
+				$scope.errMsg = "There are currently no exam marks entered for this search criteria.";
+			}
+			else
+			{
+
+				if( $scope.dataGrid !== undefined )
+				{
+					$('.fixedHeader-floating').remove();
+					$scope.dataGrid.clear();
+					$scope.dataGrid.destroy();
+				}
+
+				$scope.examMarks = result.data;
+				$scope.currentExamResults = $scope.examMarks.currentExamResults;
+				$scope.previousExamResults = $scope.examMarks.previousExamResults;
+				console.log($scope.examMarks);
+
+				$scope.allStudentsCurrent = [];
+
+				for(let x=0;x < $scope.currentExamResults.length;x++){
+					var studentObjs = $scope.currentExamResults.filter(obj => {
+						return obj.student_id === $scope.currentExamResults[x].student_id
+					  });
+					  // console.log(studentObjs);
+					
+					  var thisStudent = {};
+					  var theSubjects = [];
+					  for(let y=0;y < studentObjs.length;y++){
+						  if(y==0){
+							thisStudent = {
+								gender: studentObjs[0].gender,
+								student_name: studentObjs[0].student_name,
+								class_id: studentObjs[0].class_id,
+								exam_type: studentObjs[0].exam_type,
+								admission_number: studentObjs[0].admission_number,
+								class_name: studentObjs[0].class_name,
+								student_id: studentObjs[0].student_id,
+								subjects: []
+							};
+						  }
+						  let eachSubject = {
+											  subject_name:studentObjs[y].subject_name,
+											  grade_weight:studentObjs[y].grade_weight,
+											  mark:studentObjs[y].mark
+										};
+						thisStudent.subjects.push(eachSubject);
+					  }
+					  $scope.allStudentsCurrent[x] = thisStudent;
+				}
+				$scope.studentCurrentResults = Object.values($scope.allStudentsCurrent.reduce((acc,cur)=>Object.assign(acc,{[cur.student_id]:cur}),{}));
+				// console.log("Current results",$scope.studentCurrentResults);
+
+				$scope.allStudentsPrevious = [];
+
+				for(let q=0;q < $scope.previousExamResults.length;q++){
+					var studentObjs = $scope.previousExamResults.filter(obj => {
+						return obj.student_id === $scope.previousExamResults[q].student_id
+					  });
+					  // console.log(studentObjs);
+					
+					  var thisStudent = {};
+					  for(let r=0;r < studentObjs.length;r++){
+						  if(r==0){
+							thisStudent = {
+								gender: studentObjs[0].gender,
+								student_name: studentObjs[0].student_name,
+								class_id: studentObjs[0].class_id,
+								exam_type: studentObjs[0].exam_type,
+								admission_number: studentObjs[0].admission_number,
+								class_name: studentObjs[0].class_name,
+								student_id: studentObjs[0].student_id,
+								subjects: []
+							};
+						  }
+						  let eachSubject = {
+											  subject_name:studentObjs[r].subject_name,
+											  grade_weight:studentObjs[r].grade_weight,
+											  mark:studentObjs[r].mark
+										};
+						thisStudent.subjects.push(eachSubject);
+					  }
+					  $scope.allStudentsPrevious[q] = thisStudent;
+				}
+				$scope.studentPreviousResults = Object.values($scope.allStudentsPrevious.reduce((acc,cur)=>Object.assign(acc,{[cur.student_id]:cur}),{}));
+				// console.log($scope.studentPreviousResults);
+
+				for(let v=0;v < $scope.studentCurrentResults.length;v++){
+					$scope.studentPreviousResults.forEach(function(previousExam) {
+						if($scope.studentCurrentResults[v].student_id == previousExam.student_id){
+							let currentResults = $scope.studentCurrentResults[v].subjects;
+							let previousResults = previousExam.subjects;
+							let deviationResults = [];
+							let allSubjMarks = [];
+							for(let x=0;x < currentResults.length;x++){
+								if(currentResults[x].subject_name == previousResults[x].subject_name){
+									let arrLength = currentResults.length -1;
+									currentResults[x].mark = currentResults[x].mark - previousResults[x].mark;
+									allSubjMarks.push(currentResults[x].mark);
+									if(x == arrLength){
+										let total = allSubjMarks.reduce(function(acc, val) { return acc + val; }, 0);
+										// console.log("Last item i arr = " + x + " || ",total);
+										$scope.studentCurrentResults[v].total = total;
+										allSubjMarks = [];
+									}
+								}
+							}
+						}
+					  });
+				}
+				console.log("Deviations",$scope.studentCurrentResults);
+				// order from the most improved to least
+				$scope.studentCurrentResults = $scope.studentCurrentResults.sort((a, b) => (a.total > b.total) ? -1 : 1);
+				$scope.colsFromSubjects = $scope.studentCurrentResults[0].subjects;
+				$scope.cols = [];
+				$scope.colsFromSubjects.forEach(function(subject) {
+					$scope.cols.push(subject.subject_name);
+				});
+				
+			}
+		}
+		else
+		{
+			$scope.marksNotFound = true;
+			$scope.errMsg = result.data;
+		}
+	}
+	
 	$scope.gotoDiv1 = function(el) {
 	    console.log("First tab",el);
         var newHash = '1a';
@@ -916,36 +1079,52 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         }
 
         $scope.classAnalysisTable = ( $scope.returnToClassAnalysis == true ? true : false);
-        $scope.streamAnalysisTable = ( $scope.returnToStreamAnalysis == true ? true : false);
+		$scope.streamAnalysisTable = ( $scope.returnToStreamAnalysis == true ? true : false);
+		$scope.improvementsAnalysisTable = ( $scope.returnToImprovementsAnalysis == true ? true : false);
         console.log("Can we return to the class analysis? " + $scope.classAnalysisTable);
 
         if($scope.classAnalysisTable == true){
 
 	            document.getElementById("classAnalysisTableDiv").style.display = "block";
 	            $scope.getStudentExams(); // refetch the data
-                document.getElementById("streamAnalysisTableDiv").style.display = "none";
-	            $scope.streamAnalysisTable = false;
+				document.getElementById("streamAnalysisTableDiv").style.display = "none";
+				document.getElementById("improvementsAnalysisTableDiv").style.display = "none";
+				$scope.streamAnalysisTable = false;
+				$scope.improvementsAnalysisTable = false;
 
 	    }else if($scope.streamAnalysisTable == true){
 
 	            document.getElementById("streamAnalysisTableDiv").style.display = "block";
 	            $scope.getStudentStreamExams(); // refetch the data
-                document.getElementById("classAnalysisTableDiv").style.display = "none";
-	            $scope.classAnalysisTable = false;
+				document.getElementById("classAnalysisTableDiv").style.display = "none";
+				document.getElementById("improvementsAnalysisTableDiv").style.display = "none";
+				$scope.classAnalysisTable = false;
+				$scope.improvementsAnalysisTable = false;
 
-	    }else{
+	    }else if($scope.improvementsAnalysisTable == true){
+
+			document.getElementById("improvementsAnalysisTableDiv").style.display = "block";
+			$scope.getExamImprovement(); // refetch the data
+			document.getElementById("streamAnalysisTableDiv").style.display = "none";
+			document.getElementById("classAnalysisTableDiv").style.display = "none";
+			$scope.classAnalysisTable = false;
+			$scope.streamAnalysisTable = false;
+
+		}else{
         	   // no selection made yet
         	   $scope.preLoadMessageH1 = "MAKE A SELECTION ABOVE TO LOAD A REPORT";
 	           $scope.preLoadMessageH3 = "Supported reports are in tables, charts and graphs";
 
                $scope.initialReportLoad = true; // initial items to show before any report is loaded
                $scope.showReport = false; // hide the reports div until needed
-            	$scope.classAnalysisTable = false; // show the table for overall balances
-            	$scope.streamAnalysisTable = false; // show the table for student fee items
+            	$scope.classAnalysisTable = false; // show the table for class analysis
+				$scope.streamAnalysisTable = false; // show the table for stream analysis
+				$scope.improvementsAnalysisTable = false; // show the table for improvements
             	$scope.activeChartTab = false; // hide charts
 
             	$("#classAnalysisTable").DataTable().destroy();
-            	$("#streamAnalysisTable").DataTable().destroy();
+				$("#streamAnalysisTable").DataTable().destroy();
+				$("#improvementsAnalysisTable").DataTable().destroy();
             	initializeController();
         }
 
@@ -967,7 +1146,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
     	        // hide the active table to pave way for charts visibility
                 $scope.showReport = true; // show the div
     	        document.getElementById("streamAnalysisTableDiv").style.display = "none";
-                document.getElementById("classAnalysisTableDiv").style.display = "none";
+				document.getElementById("classAnalysisTableDiv").style.display = "none";
+				document.getElementById("improvementsAnalysisTableDiv").style.display = "none";
 
     	        $scope.activeChartTab = true; // show charts
 
@@ -1084,6 +1264,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			//
 		}else if($scope.filters.analysis == "stream_subjects"){
 			//
+		}else if($scope.filters.analysis == "improvement_report"){
+			var reportTableId = 'resultsTable'; var reportName = 'Improvement Report';
 		}
 
 		exportTableToExcel(reportTableId, reportName);

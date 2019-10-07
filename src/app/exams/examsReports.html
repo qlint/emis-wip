@@ -76,7 +76,9 @@
                               <option value="stream_performace">Stream Performance</option>
                               <option value="stream_mean">Stream Mean</option>
                               <option value="stream_grades">Stream Grades</option>
-                              <option value="stream_subjects">Stream Subjects</option>
+							  <option value="stream_subjects">Stream Subjects</option>
+							<option disabled>-- MORE --</option>
+							  <option value="improvement_report">Exam Improvement</option>
 						</select>
 					</div>
 
@@ -167,7 +169,29 @@
 
                             <!-- class subjects table -->
 
-                            <!-- stream subjects table -->
+							<!-- stream subjects table -->
+							
+							<!-- improvements table -->
+                            <div ng-show="improvementsAnalysisTable" id="improvementsAnalysisTableDiv">
+                                <table id='resultsTable'>
+                                        <thead>
+                                            <tr id="tblHeader">
+                                                <th>GND.</th>
+                                                <th>STUDENT</th>
+                                                <th ng-repeat="col in cols">{{col  | limitTo: 4}}</th>
+                                                <th>TOT</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tblBody">
+                                            <tr ng-repeat="item in studentCurrentResults track by $index">
+                                                <td>{{item.gender}}</td>
+                                                <td>{{item.student_name}}</td>
+                                                <td ng-repeat="subj in item.subjects">{{subj.mark}}</td>
+                                                <td>{{item.total}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
                 		</div>
                 		<div class="tab-pane" id="2a">
                             <h3 style="color:#000000;">{{reportTitle}}</h3>
