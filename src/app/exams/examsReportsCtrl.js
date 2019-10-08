@@ -609,7 +609,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		var request = $scope.filters.class_id + '/' + $scope.filters.term_id;
 		apiService.getStreamAnalysis(request, loadStreamMarks, apiError);
 	}
-	
+
 	$scope.getExamImprovement = function()
 	{
 		$scope.examMarks = {};
@@ -962,7 +962,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						return obj.student_id === $scope.currentExamResults[x].student_id
 					  });
 					  // console.log(studentObjs);
-					
+
 					  var thisStudent = {};
 					  var theSubjects = [];
 					  for(let y=0;y < studentObjs.length;y++){
@@ -997,7 +997,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						return obj.student_id === $scope.previousExamResults[q].student_id
 					  });
 					  // console.log(studentObjs);
-					
+
 					  var thisStudent = {};
 					  for(let r=0;r < studentObjs.length;r++){
 						  if(r==0){
@@ -1034,6 +1034,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 							for(let x=0;x < currentResults.length;x++){
 								if(currentResults[x].subject_name == previousResults[x].subject_name){
 									let arrLength = currentResults.length -1;
+									previousResults[x].mark = (previousResults[x].mark == undefined || previousResults[x].mark == null ? 0 : previousResults[x].mark);
+									currentResults[x].mark = (currentResults[x].mark == undefined || currentResults[x].mark == null ? 0 : currentResults[x].mark);
 									currentResults[x].mark = currentResults[x].mark - previousResults[x].mark;
 									allSubjMarks.push(currentResults[x].mark);
 									if(x == arrLength){
@@ -1055,7 +1057,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 				$scope.colsFromSubjects.forEach(function(subject) {
 					$scope.cols.push(subject.subject_name);
 				});
-				
+
 			}
 		}
 		else
@@ -1064,7 +1066,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.errMsg = result.data;
 		}
 	}
-	
+
 	$scope.gotoDiv1 = function(el) {
 	    console.log("First tab",el);
         var newHash = '1a';
@@ -1249,7 +1251,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	{
 		// get the currently viewable report
 		if($scope.filters.analysis == "class_performace"){
-			var reportTableId = 'resultsTable'; var reportName = 'Class Performace Report';
+			// var reportTableId = 'resultsTable'; var reportName = 'Class Performace Report';
+			var divToExport=document.getElementById("resultsTable");
+			var rows = document.querySelectorAll('table.classAnalysisTable tr');
 		}else if($scope.filters.analysis == "class_mean"){
 			//
 		}else if($scope.filters.analysis == "class_grades"){
@@ -1257,7 +1261,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		}else if($scope.filters.analysis == "class_subjects"){
 			//
 		}else if($scope.filters.analysis == "stream_performace"){
-			var reportTableId = 'resultsTable'; var reportName = 'Stream Performace Report';
+			// var reportTableId = 'resultsTable'; var reportName = 'Stream Performace Report';
+			var divToExport=document.getElementById("resultsTable");
+			var rows = document.querySelectorAll('table.streamAnalysisTable tr');
 		}else if($scope.filters.analysis == "stream_mean"){
 			//
 		}else if($scope.filters.analysis == "stream_grades"){
@@ -1265,10 +1271,67 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		}else if($scope.filters.analysis == "stream_subjects"){
 			//
 		}else if($scope.filters.analysis == "improvement_report"){
-			var reportTableId = 'resultsTable'; var reportName = 'Improvement Report';
+			// var reportTableId = 'resultsTable'; var reportName = 'Improvement Report';
+			var divToExport=document.getElementById("resultsTable");
+			var rows = document.querySelectorAll('table.improvementsAnalysisTable tr');
 		}
 
-		exportTableToExcel(reportTableId, reportName);
+		// exportTableToExcel(reportTableId, reportName); // ORIGINAL
+
+		function downloadCSV(csv, filename) {
+		    var csvFile;
+		    var downloadLink;
+
+		    // CSV file
+		    csvFile = new Blob([csv], {type: "text/csv"});
+
+		    // Download link
+		    downloadLink = document.createElement("a");
+
+		    // File name
+		    downloadLink.download = filename;
+
+		    // Create a link to the file
+		    downloadLink.href = window.URL.createObjectURL(csvFile);
+
+		    // Hide download link
+		    downloadLink.style.display = "none";
+
+		    // Add the link to DOM
+		    document.body.appendChild(downloadLink);
+
+		    // Click download link
+		    downloadLink.click();
+		}
+
+		function exportTableToCSV(filename) {
+		    var csv = [];
+		    // var rows = document.querySelectorAll('table tr[style*="display: table-row;"]');
+				console.log("rows data",typeof rows);
+				var headerRow = divToExport.querySelectorAll('table thead tr')[0];
+				var titles = headerRow.querySelectorAll("th");
+				var titlesText = [];
+				for(let x=0; x<titles.length;x++){
+					titlesText.push(titles[x].innerText);
+				}
+				var titlesToCsv = titlesText.join(',');
+				console.log(titlesToCsv);
+				csv.push(titlesToCsv);
+
+		    for (var i = 0; i < rows.length; i++) {
+		        var row = [], cols = rows[i].querySelectorAll("td, th");
+
+		        for (var j = 0; j < cols.length; j++)
+		            row.push(cols[j].innerText);
+
+		        csv.push(row.join(","));
+		    }
+
+		    // Download CSV file
+		    downloadCSV(csv.join("\n"), filename);
+		}
+
+		exportTableToCSV($scope.filters.analysis + '.csv');
 	}
 
 	$("#search").keyup(function () {
