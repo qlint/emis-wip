@@ -24,46 +24,8 @@ label {display: inline-block;max-width: 100%;margin-bottom: 5px;font-weight: 700
   label {display: inline-block;max-width: 100%;margin-bottom: 5px;font-weight: 700;}
   .progress-report p.form-control-static {border-bottom: 1px dotted #bbb;padding: 0 3px 0 3px !important;height: 18px !important;min-height: 18px !important;font-size: 18px;margin-bottom: 10px;text-align: left;margin-top: 1px;line-height: 10px;}
   .progress-report p.form-control-static.inline {display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;}
-  table.display.dataTable{
-    /* width:75% !important; */
-    width:100% !important;
-    float: left;
-  }
-  th.remarks, td.remarks{
-    width:20px !important;
-  }
-  /* table.display, table.display thead, table.display thead th, table.display tbody tr{border:1px solid #000000} */
-  div#breakBatch{page-break-before: always !important;}
-  div#nxtPage h3{
-    font-family:"Arial Black", Gadget, sans-serif;
-    font-weight:normal;
-    font-style:normal;
-    /* font-size:20px; */
-    line-height:22px;
-    text-align:center;
-  }
-  div#nxtPage table thead{
-    font-family:"Arial Black", Gadget, sans-serif;
-    font-weight:normal;
-    font-style:normal;
-    /* font-size:14px; */
-    line-height:33px;
-    text-align:left;
-  }
-  div#nxtPage table tbody{
-    font-family:Verdana, Geneva, sans-serif;
-    font-weight:normal;
-    font-style:normal;
-    /* font-size:31px; */
-    line-height:33px;
-    text-align:left;
-  }
   table.social_report{
     border: 1px solid black;
-  }
-  div#motto {
-    visibility: visible !important;
-    display: block;
   }
   img#url{
     float: right;
@@ -79,6 +41,5 @@ label {display: inline-block;max-width: 100%;margin-bottom: 5px;font-weight: 700
   .isSchool{
     visibility: visible !important;
   }
-  div.cbc1 {margin-top: -140px !important;}
 
 }

@@ -988,7 +988,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 					  $scope.allStudentsCurrent[x] = thisStudent;
 				}
 				$scope.studentCurrentResults = Object.values($scope.allStudentsCurrent.reduce((acc,cur)=>Object.assign(acc,{[cur.student_id]:cur}),{}));
-				// console.log("Current results",$scope.studentCurrentResults);
+				console.log("Current exam results",$scope.studentCurrentResults);
 
 				$scope.allStudentsPrevious = [];
 
@@ -1022,7 +1022,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 					  $scope.allStudentsPrevious[q] = thisStudent;
 				}
 				$scope.studentPreviousResults = Object.values($scope.allStudentsPrevious.reduce((acc,cur)=>Object.assign(acc,{[cur.student_id]:cur}),{}));
-				// console.log($scope.studentPreviousResults);
+				console.log("Previous exam results",$scope.studentPreviousResults);
 
 				for(let v=0;v < $scope.studentCurrentResults.length;v++){
 					$scope.studentPreviousResults.forEach(function(previousExam) {
@@ -1031,7 +1031,23 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 							let previousResults = previousExam.subjects;
 							let deviationResults = [];
 							let allSubjMarks = [];
+							let arrLength = currentResults.length -1;
 							for(let x=0;x < currentResults.length;x++){
+								previousResults.forEach(function(previousSubjects) {
+									if(currentResults[x].subject_name == previousSubjects.subject_name){
+										previousSubjects.mark = (previousSubjects.mark == undefined || previousSubjects.mark == null ? 0 : previousSubjects.mark);
+										let currentMark = (currentResults[x].mark == undefined || currentResults[x].mark == null ? 0 : currentResults[x].mark);
+										currentResults[x].mark = currentMark - previousSubjects.mark;
+										allSubjMarks.push(currentResults[x].mark);
+										if(x == arrLength){
+											let total = allSubjMarks.reduce(function(acc, val) { return acc + val; }, 0);
+											// console.log("Last item i arr = " + x + " || ",total);
+											$scope.studentCurrentResults[v].total = total;
+											allSubjMarks = [];
+										}
+									}
+								});
+								/*
 								if(currentResults[x].subject_name == previousResults[x].subject_name){
 									let arrLength = currentResults.length -1;
 									previousResults[x].mark = (previousResults[x].mark == undefined || previousResults[x].mark == null ? 0 : previousResults[x].mark);
@@ -1045,11 +1061,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 										allSubjMarks = [];
 									}
 								}
+								*/
 							}
 						}
 					  });
 				}
-				console.log("Deviations",$scope.studentCurrentResults);
+				// console.log("Deviations",$scope.studentCurrentResults);
 				// order from the most improved to least
 				$scope.studentCurrentResults = $scope.studentCurrentResults.sort((a, b) => (a.total > b.total) ? -1 : 1);
 				$scope.colsFromSubjects = $scope.studentCurrentResults[0].subjects;

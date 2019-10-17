@@ -121,6 +121,16 @@ function initChart1(ctx,lineChartData)
 	}
 
 </script>
+<style type="text/css">
+	table.dataTable thead.batchThead tr th{color:#000000;background-color:transparent !important;}
+	table.dataTable tbody.batchTbody tr td.double-border input{width:100% !important;}
+	div.eachStudent{break-inside: avoid !important;}
+	@media print {
+		table.dataTable thead.batchThead tr th{color:#000000;background-color:transparent !important;}
+		table.dataTable tbody.batchTbody tr td.double-border input{width:100% !important;}
+		div.eachStudent{break-inside: avoid !important;break-after: always !important;}
+	}
+</style>
 <form name="reportForm" id="reportForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()" ng-show="true" >
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
@@ -199,7 +209,7 @@ function initChart1(ctx,lineChartData)
 			<!-- <div ng-show="true" ng-repeat="student in allDataArr track by $index"> -->
 			<style type="text/css"> @import url("components/css/customSettingReportCard.css"); </style>
 			<div id="fullPrint">
-				<div ng-show="true" ng-repeat="student in classBulkData track by $index">
+				<div ng-show="true" ng-repeat="student in classBulkData track by $index" class="eachStudent">
 
 					<div>
 
@@ -230,7 +240,7 @@ function initChart1(ctx,lineChartData)
 	    					</div>
 	    				</div>
 
-					    <div ng-include="reportCardType"></div>
+					    <div ng-include="reportCardType" class="reportBody"></div>
 
 					    <style type="text/css"> @import url("components/css/bulkPrint.css"); </style>
 					    <script type="text/ng-template" id="Standard">
@@ -335,7 +345,7 @@ function initChart1(ctx,lineChartData)
 	    					</div>
 
 						<table class="display dataTable" cellspacing="0" width="100%">
-							<thead>
+							<thead class="batchThead">
 								<tr>
 									<th rowspan="3" class="center">{{subj_name}}</th>
 									<!-- <th class="center double-border" colspan="{{noRanking ? examTypes.length*2:examTypes.length*3}}">Marks</th> -->
@@ -348,34 +358,34 @@ function initChart1(ctx,lineChartData)
 									<th class="center double-border" colspan="{{noRanking ? 2 : isSchool ? 2 : 3}}" ng-repeat="item in examTypes">{{item.exam_type}}</th>
 								</tr>
 								<tr>
-									<th class="center double-border" ng-repeat-start="item in examTypes">{{noRanking ?'Mark %':'Mark'}}</th>
-									<th ng-hide="noRanking || isSchool" class="center">Out Of</th> <!--undo the ng-repeat-end -->
-									<th class="center" ng-repeat-end="">Grade</th>
+									<th class="center double-border slim" ng-repeat-start="item in examTypes">{{noRanking ?'Mark %':'Mark'}}</th>
+									<th ng-hide="noRanking || isSchool slim" class="center">Out Of</th> <!--undo the ng-repeat-end -->
+									<th class="center slim" ng-repeat-end="">Grade</th>
 									<th ng-show="isSchool" class="center double-border">Avg</th>
 								    <th ng-show="isSchool" class="center">Grade</th>
 								</tr>
 							</thead>
-							<tbody>
+							<tbody class="batchTbody">
 								<tr ng-repeat="item in student.reportData.subjects track by $index">
 									<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
-									<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
-									<td  ng-hide="noRanking || isSchool" class="center" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
-									<td class="center" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
+									<td class="center double-border slim" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
+									<td  ng-hide="noRanking || isSchool" class="center slim" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
+									<td class="center slim" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
 									<td ng-show="isSchool" class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
 									<td ng-show="isSchool" class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
 									<td class="double-border">
 										<span ng-show="isPrinting">{{item.remarks}}</span>
-										<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" ng-change="updateReport()" />
+										<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" value="{{item.remarks}}" onkeypress="return false;" />
 									</td>
-									<td ng-hide="noRanking">{{item.initials}}</td>
+									<td class="initilas" ng-hide="noRanking">{{item.initials}}</td>
 								</tr>
 							</tbody>
 							<tfoot>
 								<tr>
 									<th class="center">{{noRanking ? '_':'Total'}}</th>
-									<th class="center double-border" ng-repeat-start="examType in examTypes">{{noRanking ? '_':student.totals[examType.exam_type].total_mark}}</th>
-									<th ng-hide="noRanking || isSchool" class="center">{{student.totals[examType.exam_type].total_grade_weight}}</th>
-									<th class="center" ng-repeat-end=""></th>
+									<th class="center double-border slim" ng-repeat-start="examType in examTypes">{{noRanking ? '_':student.totals[examType.exam_type].total_mark}}</th>
+									<th ng-hide="noRanking || isSchool slim" class="center">{{student.totals[examType.exam_type].total_grade_weight}}</th>
+									<th class="center slim" ng-repeat-end=""></th>
 									<th ng-show="isSchool" class="center double-border getpercentage">{{student.overall.percentage}}%</th>
 									<th ng-show="isSchool" class="center">{{student.overall.grade}}</th>
 									<th colspan="2" class="center double-border"></th>
@@ -773,7 +783,7 @@ function initChart1(ctx,lineChartData)
 
 						<div id="graphresult"></div>
 
-						<table ng-hide="noRanking" width="100%">
+						<table ng-hide="noRanking" width="100%" class="afterCbc">
 								<tr ng-show="isSchool">
 									<td colspan="2" ng-hide="noGeneralComments">
 										<label>General Comments:</label>
@@ -986,7 +996,7 @@ function initChart1(ctx,lineChartData)
 						</div>
 
 						<table class="display dataTable" cellspacing="0" width="100%">
-							<thead>
+							<thead class="batchThead">
 								<tr>
 									<th rowspan="3" class="center">Subject</th>
 									<th class="center double-border" colspan="{{examTypes.length*3}}">Marks</th>
@@ -1005,7 +1015,7 @@ function initChart1(ctx,lineChartData)
 									<th class="center">Grade</th>
 								</tr>
 							</thead>
-							<tbody>
+							<tbody class="batchTbody">
 								<tr ng-repeat="item in reportData.subjects track by $index">
 									<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
 									<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
@@ -1245,7 +1255,7 @@ function initChart1(ctx,lineChartData)
 						</div>
 
 						<table class="display dataTable" cellspacing="0" width="100%">
-							<thead>
+							<thead class="batchThead">
 								<tr>
 									<th rowspan="3" class="center">Subject</th>
 									<th class="center double-border" colspan="{{examTypes.length*3}}">Marks</th>
@@ -1264,7 +1274,7 @@ function initChart1(ctx,lineChartData)
 									<th class="center">Grade</th>
 								</tr>
 							</thead>
-							<tbody>
+							<tbody class="batchTbody">
 								<tr ng-repeat="item in reportData.subjects track by $index">
 									<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
 									<td class="center double-border" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>

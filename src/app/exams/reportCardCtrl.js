@@ -174,6 +174,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.report.term = termName[1];
 
 			$scope.report.term_id = data.term_id;
+			$scope.updateReportTermId = data.term_id;
 			$scope.report.year = data.year;
 			$scope.report.published = data.published;
 			$scope.reportCardType = data.report_card_type;
@@ -377,7 +378,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.savedReport = false;
 			$scope.recreated = true;
 
-			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
+			// var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
+			var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.updateReportTermId;
 			if( $scope.isTeacher && !$scope.isClassTeacher ){ params += '/' + $rootScope.currentUser.emp_id };
 			// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
 
@@ -386,6 +388,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
 			}else{
 				// console.log("Upper Sch.");
+				console.log(params);
 				apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
 				if($scope.isSpecialExam == true){ apiService.getSpecialExamMarksforReportCard(params, loadSpecialExamMarks, apiError); }
 			}
@@ -604,7 +607,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			{
 
 				$scope.showReportCard = true;
-
+				console.log(result.data);
 				buildReportBody(result.data);
 				// $( "#remotegraph" ).load( "/studentgraph.html div#remotegraph" );
 
@@ -1400,7 +1403,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.save = function()
 	{
-    $scope.reportData.position = $scope.overall;
+		console.log($scope.reportData);
+    	$scope.reportData.position = $scope.overall;
 		$scope.reportData.stream_position = $scope.streamPosition;
 		$scope.reportData.position_last_term = $scope.overallLastTerm;
 		$scope.reportData.totals = $scope.totals;
@@ -1440,14 +1444,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		var data = {
 			user_id: $rootScope.currentUser.user_id,
 			student_id: $scope.student.student_id,
-			term_id : $scope.report.term_id,
+			// term_id: $scope.report.term_id,
+			term_id : $scope.updateReportTermId,
 			class_id : $scope.report.class_id,
 			report_card_type : $scope.reportCardType,
 			teacher_id : $scope.report.teacher_id,
-			report_data : JSON.stringify(reportData),
+			// report_data : JSON.stringify(reportData),
+			report_data : JSON.stringify($scope.reportData),
 			published: $scope.report.published || 'f'
 		}
-
+		console.log("Updata :::",data);
 		apiService.addReportCard(data,createCompleted,apiError);
 
 	}

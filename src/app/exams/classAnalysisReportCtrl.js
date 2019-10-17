@@ -40,11 +40,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						$scope.filters.class = $scope.classes[0];
 						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
 						deferred.resolve();
-					}
-					else
-					{
-						deferred.reject();
-					}
+					}else{ deferred.reject(); }
 
 				}, function(){deferred.reject();});
 			}
@@ -61,11 +57,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
 						$scope.filters.class_cat_id = ( $scope.classes[0] ? $scope.classes[0].class_cat_id : null);
 						deferred.resolve();
-					}
-					else
-					{
-						deferred.reject();
-					}
+					}else{ deferred.reject(); }
 
 				}, function(){deferred.reject();});
 			}
@@ -78,7 +70,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.filters.class_cat_id = $scope.classes[0].class_cat_id;
 			deferred.resolve();
 		}
-
 
 		// get terms
 		var deferred2 = $q.defer();
@@ -98,11 +89,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					})[0];
 					$scope.filters.term_id = currentTerm.term_id;
 					deferred2.resolve();
-				}
-				else
-				{
-					deferred2.reject();
-				}
+				}else{ deferred2.reject(); }
 
 			}, function(){deferred2.reject();});
 		}
@@ -165,13 +152,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				// for (var i = 0; i < $scope.doneSubject.count.length; i++){
 				// 		uniqueMean[i] = $scope.doneSubject.count;
 				// }
-				// console.log($scope.uniqueMean);
+				console.log("Unique mean > ",$scope.uniqueMean);
 
 			}
 		}
 		else
 		{
-			console.log("QUERY FAIL");
 			$scope.countNotFound = true;
 			$scope.errMsg = result.data;
 		}
@@ -206,22 +192,26 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
                 for (var i = 0; i < getGrandTots.length; i++) {
                   var eachGtot = parseInt(getGrandTots[i].innerText);
                   // console.log("This tot: " + eachGtot);
-                  allGtots.push(eachGtot);
+                  allGtots.push(Number(eachGtot));
                 }
                 for (var j = 0; j < getAvgs.length; j++) {
                   var eachAvg = parseInt(getAvgs[j].innerText);
                   // console.log("This avg: " + eachAvg);
-                  allAvgs.push(eachAvg);
+                  allAvgs.push(Number(eachAvg));
                 }
                 $scope.totGtot = allGtots.reduce(function(acc, val) { return acc + val; }, 0);
-                $scope.totAvg = allAvgs.reduce(function(acc, val) { return acc + val; }, 0);
-                console.log($scope.totGtot,$scope.totAvg);
-                var averageTot = $scope.totGtot/allGtots.length;
-                $scope.avgGtot = averageTot.toFixed(2);
+				$scope.totAvg = allAvgs.reduce(function(acc, val) { return acc + val; }, 0);
+				document.getElementById('totGtot').innerText = $scope.totGtot;
+				document.getElementById('totAvg').innerText = $scope.totAvg;
+                // console.log($scope.totGtot,$scope.totAvg);
+                var averageTot = Number($scope.totGtot)/allGtots.length;
+                $scope.avgGtot = Number(averageTot.toFixed(2));
                 
-                var avergeAvg = $scope.totAvg/allAvgs.length;
-                $scope.avgAvg = avergeAvg.toFixed(2);
-                console.log($scope.avgGtot,$scope.avgAvg);
+                var avergeAvg = Number($scope.totAvg)/allAvgs.length;
+                $scope.avgAvg = Number(avergeAvg.toFixed(2));
+				console.log($scope.avgGtot,$scope.avgAvg);
+				document.getElementById('gtotMean').innerText = $scope.avgGtot;
+				document.getElementById('avgMean').innerText = $scope.avgAvg;
         
 			}, 2000);
 		});
@@ -336,9 +326,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							parentSubject = subjectDetails[1],
 							subjectName = subjectDetails[2];
 
-						console.log("The subject details", subjectDetails);
+						// console.log("The subject details", subjectDetails);
 						if(subjectDetails[3] == "100"){
-							console.log("Name contains 100",value);
+							// console.log("Name contains 100",value);
 						}
 
 						var hasChildren = ( parentSubject == '' && subjectsObj[subjectName].children.length > 0 ? true : false );
@@ -440,7 +430,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			  result[index] = item; //a, b, c
 			  return result;
 			}, {})
-		console.log($scope.uniqueMn2);
+		// console.log($scope.uniqueMn2);
 
 		//this takes our original array of # of stdnts who did a subject & divides to the ttl marks
 		var cnt = 0;
@@ -454,7 +444,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		    return Number(each_element.toFixed(2));
 		});
 		// $scope.divides2 = $scope.divides;
-		console.log($scope.divides2);
+		// console.log($scope.divides2);
 		//the result of the above an array of the mean scores
 
 		//this takes the array above and converts it to an object

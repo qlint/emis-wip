@@ -26,7 +26,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		var deferred = $q.defer();
 		requests.push(deferred.promise);
 		
-		$scope.filters.class = 7; // We initialize the selection with class 4 as the default
+		$scope.filters.entity_id = 7; // We initialize the selection with class 4 as the default
 		
 		// get terms
 		var deferred2 = $q.defer();
@@ -66,6 +66,25 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		
 	}
 	$timeout(initializeController,1);
+
+	$scope.$watch('filters.entity_id',function(newVal,oldVal){
+		if( newVal == oldVal ) return;
+		console.log($scope.filters);
+		$scope.filters.entity_id = newVal.entity_id;
+		$scope.selectedClass = newVal.class_name;
+
+		// apiService.getExamTypes(newVal.class_cat_id, function(response){
+		apiService.getExamTypesByEntity(newVal.entity_id, function(response){
+			var result = angular.fromJson(response);
+			if( result.response == 'success' && !result.nodata ){
+				$scope.examTypes = result.data;
+				$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
+				$timeout(setSearchBoxPosition,10);
+			}
+		}, apiError);
+
+
+	});
 	
 	$scope.getTheCount = function()
 	{

@@ -2279,6 +2279,39 @@ $app->get('/getInvoiceDetails/:school/:inv_id', function ($school,$invId) {
 
 });
 
+$app->get('/getDocReport/:school/:studentId', function ($school,$studentId) {
+  //Show document report cards for the student
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = setDBConnection($school);
+
+    $sth = $db->prepare("SELECT * FROM app.lowersch_reportcards WHERE student_id = :studentId");
+    $sth->execute( array(':studentId' => $studentId));
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/getExamTypes/:school/:class_cat_id', function ($school, $classCatId) {
 
     // Get all exam types

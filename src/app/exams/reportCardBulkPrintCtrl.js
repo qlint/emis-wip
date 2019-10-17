@@ -1090,7 +1090,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 
 		var domain = window.location.host;
-		var newWindowRef = window.open('https://' + domain + '/#/exams/report_card/print');
+		var newWindowRef = window.open('https://' + domain + '/#/exams/bulk_report_card/print'); 
 		newWindowRef.printCriteria = criteria;
 	}
 
@@ -1224,6 +1224,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			 newWin.document.write('<html><head><title>Report Cards Bulk Print.</title><link rel="stylesheet" type="text/css" href="css/template.css"><link rel="stylesheet" type="text/css" href="components/css/datatables.min.css"><link rel="stylesheet" type="text/css" href="css/bulkPrintReportCards.css"></head><body>');
 		   newWin.document.write(divToPrint.outerHTML);
 			 setTimeout(function(){
+				 // we need to check if new window is done loading
 				 sleep(15000);
 				 newWin.print();
 			   // newWin.close();

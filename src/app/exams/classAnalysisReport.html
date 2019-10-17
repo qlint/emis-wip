@@ -109,22 +109,25 @@
 						    <th></th>
 							<th class="right">TOTAL MARKS</th>
 							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayTotalMark(col.key)"></th>
-							<th class="center strong">{{totGtot}}</th>
-							<th>{{totAvg}}</th>
+							<th class="center strong" id="totGtot"></th>
+							<th class="center strong" id="totAvg"></th>
 							<th></th>
 						</tr>
 						<tr>
 						    <th></th>
 							<th class="right"></th>
 							<th class="center" ng-repeat="col in tableHeader" ng-class="{'text-muted':!col.isParent, 'strong': col.isParent}" ng-bind="displayMeanScore(col.key)"></th>
-							<th>{{avgGtot}}</th>
-							<th>{{avgAvg}}</th>
+							<th></th>
+							<th></th>
 							<th></th>
 						</tr>
 						<tr style="border-collapse: collapse;text-align:left;">
 						    <th></th>
 							<th class="right">MEAN SCORE</th>
-							<th ng-repeat="item in divides2" class="center">{{item}}</td>
+							<th ng-repeat="item in divides2" class="center">{{item}}</th>
+							<th style="text-align:center;" id="gtotMean"></th>
+							<th style="text-align:center;" id="avgMean"></th>
+							<th></th>
 						</tr>
 					</tfoot>
 				</table>

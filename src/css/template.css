@@ -1643,6 +1643,10 @@ img.transpBg {max-height:190px;margin-left: 25%;margin-right: 25%;margin-top: -9
     table#pgKey {width: 30% !important; margin-left:auto !important; margin-right:auto !important;margin-bottom:10px !important;}
     div.thirdTable {margin-top: 20px !important;}
     div.progress-report-remarks.thirdTable table textarea.form-control {font-size: 11px !important;}
+    /* bulk report cards */
+    table.dataTable thead.batchThead tr th{color:#000000;background-color:transparent !important;}
+		table.dataTable tbody.batchTbody tr td.double-border input{width:100% !important;}
+		div.eachStudent{break-inside: avoid !important;break-after: always !important;}
 
   html, body {
     height: auto; }

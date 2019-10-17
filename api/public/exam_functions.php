@@ -38,6 +38,45 @@ $app->get('/getExamTypes/:class_cat_id', function ($classCatId) {
 
 });
 
+$app->get('/getExamTypesByEntity/:entity_id', function ($entityId) {
+
+	// Get all exam types
+
+	$app = \Slim\Slim::getInstance();
+
+	try
+	{
+		$db = getDB();
+
+		$sth = $db->prepare("SELECT exam_type_id, exam_type, exam_types.class_cat_id, class_cat_name
+							FROM app.exam_types
+							LEFT JOIN app.class_cats
+							ON exam_types.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
+							WHERE exam_types.class_cat_id = (SELECT class_cat_id FROM app.class_cats WHERE entity_id = :entityId LIMIT 1)
+							ORDER BY sort_order");
+		$sth->execute(array(':entityId' => $entityId));
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
+
 $app->get('/getSpecialExamTypes/:class_cat_id', function ($classCatId) {
 
 	// Get all exam types

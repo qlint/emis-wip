@@ -62,7 +62,7 @@ function($scope, $rootScope){
 		$scope.loading = false;
 
 		setTimeout( function(){
-			window.print();
+			// window.print();
 
 			setTimeout( function(){
 				$rootScope.isPrinting = false;
