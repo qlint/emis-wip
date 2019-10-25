@@ -1060,5 +1060,9 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getExamDeviations/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getGradesAttainment = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getGradesAttainment/" + param, successFunction, errorFunction, params);
+	};
+
 	return this;
 }]);

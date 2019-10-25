@@ -25,8 +25,9 @@
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
 					<!-- <div class="btn" title="print" ng-click="printReport()"><a class="export-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div> -->
-					<!-- <div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div> -->
-          <div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
+                    <!-- <div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div> -->
+                    <div class="btn" title="print" ng-click="printReport()"><a class="export-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div>
+                    <div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
 				</div>
 			</div>
 
@@ -70,15 +71,12 @@
 							<option disabled>-- CLASS REPORTS --</option>
                               <option value="class_performace">Class Performance</option>
                               <option value="class_mean">Class Mean</option>
-                              <option value="class_grades">Class Grades</option>
-                              <option value="class_subjects">Class Subjects</option>
                             <option disabled>-- STREAM REPORTS --</option>
                               <option value="stream_performace">Stream Performance</option>
                               <option value="stream_mean">Stream Mean</option>
-                              <option value="stream_grades">Stream Grades</option>
-							  <option value="stream_subjects">Stream Subjects</option>
 							<option disabled>-- MORE --</option>
-							  <option value="improvement_report">Exam Improvement</option>
+                              <option value="improvement_report">Exam Improvement</option>
+                              <option value="stream_grades">Grades Attainment</option>
 						</select>
 					</div>
 
@@ -163,13 +161,23 @@
 
                             <!-- stream means table -->
 
-                            <!-- class grades table -->
-
                             <!-- stream grades table -->
-
-                            <!-- class subjects table -->
-
-							<!-- stream subjects table -->
+                            <div ng-show="gradesAttainmentTable" id="gradesAttainmentTableDiv">
+                                <table id='resultsTable' class="gradesAnalysisTable">
+                                        <thead>
+                                            <tr id="tblHeader">
+                                                <th>CLASS</th>
+                                                <th ng-repeat="col in cols track by $index">{{col.grade}}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tblBody">
+                                            <tr ng-repeat="item in gradesAttained track by $index">
+                                                <td>{{item.class_name}}</td>
+                                                <td ng-repeat="grade in item.grades track by $index">{{grade.count}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
 
 							<!-- improvements table -->
                             <div ng-show="improvementsAnalysisTable" id="improvementsAnalysisTableDiv">

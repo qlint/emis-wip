@@ -721,7 +721,7 @@ $app->get('/getAllStudentStreamMarks/:entity/:term', function ($entityId,$termId
 		if( is_numeric($termId)  && is_numeric($entityId) )
 		{
 			$db = getDB();
-
+ 
 			$query = "SELECT app.colpivot('_exam_marks', 'SELECT gender, first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name,
                                                                       classes.class_id,subject_name,
                                                                       coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,

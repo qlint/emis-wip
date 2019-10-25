@@ -69,7 +69,8 @@
 
 /* -------------------------QUERY ------------------------- */
 
-$table3 = pg_query($db,"SELECT parent_name, relationship, user_name, password, student_name, class_name, device_user_id as device
+$table3 = pg_query($db,"SELECT parent_name, relationship, user_name, password, student_name, class_name, 
+                              (CASE WHEN device_user_id = '' THEN 'Not-Captured' ELSE device_user_id END) as device
                         FROM (
                         	SELECT p.first_name || ' ' || coalesce(p.middle_name,'') || ' ' || p.last_name AS parent_name, p.device_user_id, 
                         		p.username as user_name, p.password, ps.subdomain, ps.student_id,

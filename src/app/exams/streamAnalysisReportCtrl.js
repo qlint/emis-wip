@@ -67,14 +67,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	}
 	$timeout(initializeController,1);
 
-	$scope.$watch('filters.entity_id',function(newVal,oldVal){
-		if( newVal == oldVal ) return;
+	$scope.watchEntity = function(){
 		console.log($scope.filters);
-		$scope.filters.entity_id = newVal.entity_id;
-		$scope.selectedClass = newVal.class_name;
-
-		// apiService.getExamTypes(newVal.class_cat_id, function(response){
-		apiService.getExamTypesByEntity(newVal.entity_id, function(response){
+		apiService.getExamTypesByEntity($scope.filters.entity_id, function(response){
 			var result = angular.fromJson(response);
 			if( result.response == 'success' && !result.nodata ){
 				$scope.examTypes = result.data;
@@ -82,16 +77,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				$timeout(setSearchBoxPosition,10);
 			}
 		}, apiError);
-
-
-	});
+	}
 	
 	$scope.getTheCount = function()
 	{
 		$scope.doneSubject = {};
 		$scope.countNotFound = false;
 		
-		var entity = parseInt(document.getElementById('class').value, 10);
+		var entity = $scope.filters.entity_id;
 		var termText = document.getElementById('term').value;
 		var term = parseInt(termText.replace(/\D/g,''), 10);
 
@@ -139,7 +132,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.marksNotFound = false;
 		$scope.getReport = "";
 		
-		var entity = parseInt(document.getElementById('class').value, 10);
+		var entity = $scope.filters.entity_id;
 		var termText = document.getElementById('term').value;
 		var term = parseInt(termText.replace(/\D/g,''), 10);
 		

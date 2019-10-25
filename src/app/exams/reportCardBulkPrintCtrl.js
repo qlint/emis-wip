@@ -5,28 +5,21 @@ controller('reportCardBulkPrintCtrl', ['$scope', '$rootScope', '$uibModalInstanc
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window, $parse){
 	setTimeout(function(){
 		console.log("First on rootscope",$rootScope.classBulkPrint[0]);
-
 		$scope.examTypes = $rootScope.classBulkPrint[0].examTypes;
 		console.log("Exam Types",$scope.examTypes);
 		$scope.classBulkData = $rootScope.classBulkPrint;
 	}, 10000);
+	$scope.calculationMode = $rootScope.currentUser.settings["Exam Calculation"];
 	$scope.AllData2 ={};
 	$scope.allDataArr = [];
 
-		angular.forEach(data, function(value, key) {
-			$scope.AllData2[key] = value;
-			//console.log(value.reportData)
-		});
+	angular.forEach(data, function(value, key) {
+		$scope.AllData2[key] = value;
+		//console.log(value.reportData)
+	});
 	$scope.AllData = []; // $scope.AllData2;
 
-		angular.forEach(data, function(item,key)
-		{
-				if(item !== undefined)
-				{
-					$scope.AllData.push(item)
-				}
-
-		});
+	angular.forEach(data, function(item,key){ if(item !== undefined){ $scope.AllData.push(item) } });
 	// console.log($scope.AllData2,$scope.AllData2);
 	data = $scope.AllData2[0];
 	$rootScope.isPrinting = false;
@@ -557,13 +550,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		var school = window.location.host.split('.')[0];
 
 		$scope.examMarks = data.details;
-		// $scope.overallSubjectMarks = data.subjectOverall;
-		// $scope.overall = data.overall;
-		if (school == "kingsinternational" || school == "thomasburke"){
+		// if (school == "kingsinternational" || school == "thomasburke"){
+		if($scope.calculationMode == "Average" || $scope.calculationMode == ""){
 			$scope.overall = data.overallByAverage;
 			$scope.thisTermMarks = data.overallByAverage.current_term_marks;
 			// console.log("overall data by avg");
-		}else{
+		// }else{
+		}else if($scope.calculationMode == "Last Exam"){
 			$scope.overall = data.overall;
 			$scope.thisTermMarks = data.overall.current_term_marks;
 			// console.log("overall data - norma");
@@ -1217,11 +1210,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.printAllReportCards = function()
 	{
+		
 		function printData()
 		{
 		   var divToPrint=document.getElementById("fullPrint");
 		   var newWin= window.open("");
-			 newWin.document.write('<html><head><title>Report Cards Bulk Print.</title><link rel="stylesheet" type="text/css" href="css/template.css"><link rel="stylesheet" type="text/css" href="components/css/datatables.min.css"><link rel="stylesheet" type="text/css" href="css/bulkPrintReportCards.css"></head><body>');
+		   newWin.document.write('<html><head><title>Report Cards Bulk Print.</title><link rel="stylesheet" type="text/css" href="css/template.css"><link rel="stylesheet" type="text/css" href="components/css/datatables.min.css"><link rel="stylesheet" type="text/css" href="css/bulkPrintReportCards.css"></head><body>');
+		   // newWin.document.write('<html><head><title>Report Cards Bulk Print.</title><link type="text/css" href="min/css/dependencies.min.css" rel="stylesheet"><link type="text/css" href="components/ui-grid/ui-grid.min.css" rel="stylesheet"><link type="text/css" href="components/css/trix.css" rel="stylesheet"><link href="css/template.css" rel="stylesheet"></head><body>');
 		   newWin.document.write(divToPrint.outerHTML);
 			 setTimeout(function(){
 				 // we need to check if new window is done loading
@@ -1233,21 +1228,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		   // newWin.close();
 		}
 		printData();
+		
 		/*
 		$.getScript('/components/printThis.js', function()
 		{
 			$('#fullPrint').printThis({
-				debug: false,
-		    importCSS: true,
-		    importStyle: true,
-		    printContainer: true,
-		    loadCSS: ["/min/css/dependencies.min.css","/css/template.css","/css/bulkPrintReportCards.css"],
-		    pageTitle: "Printing Batch Report Cards",
-		    removeInline: false,
-		    printDelay: 333,
-		    header: null,
-		    formValues: true
-      });
+				importCSS: true,
+				importStyle: true,
+				loadCSS: ["/min/css/dependencies.min.css","/css/template.css","/components/css/datatables.min.css","/css/bulkPrintReportCards.css"],
+				pageTitle: "Printing Batch Report Cards",
+				removeInline: false,
+				printDelay: 333,
+				copyTagClasses: true,
+				formValues: true
+			});
 		});
 		*/
 	}

@@ -372,7 +372,7 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
             $registrationMessageObj->message_by = "Eduweb Mobile App Registration";
             $registrationMessageObj->message_date = date('Y-m-d H:i:s');
             $registrationMessageObj->message_text = "Hello $registrationData->first_name, Your code for the Eduweb Mobile App registration is $uniqueCode ";
-            $registrationMessageObj->subscriber_name = "kingsinternational";// $school;
+            $registrationMessageObj->subscriber_name = "api";// $school;
 
 
             $msgRecipientsObj = new stdClass();
@@ -599,9 +599,7 @@ $app->put('/updatePassword', function () use($app) {
 });
 
 $app->get('/forgotPassword/:phone', function ($phoneNumber){
-  error_reporting(E_ALL);  // uncomment this only when testing
-  ini_set('display_errors', 1); // uncomment this only when testing
-  // Get the registration status
+  // Forgot password
 
   $file = "wordlist.txt";
   $twoRndWords = Array();
@@ -619,8 +617,9 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
     $rand_text = $file_arr[$rand_index];
     array_push($twoRndWords,$rand_text);
   }
-  $temporaryPwd = join("-",$twoRndWords);
-  echo $temporaryPwd;
+  $pwdString = implode("-",$twoRndWords);
+  $temporaryPwd = preg_replace('~[\r\n]+~', '', $pwdString);
+  // echo $temporaryPwd;
 
   $app = \Slim\Slim::getInstance();
 
@@ -687,7 +686,7 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
         {
           $app->response()->setStatus(200);
           $app->response()->headers->set('Content-Type', 'application/json');
-          echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully" ));
+          echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully", "temporary-code" => $temporaryPwd ));
         }
 
         curl_close($ch);
@@ -697,6 +696,54 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
       echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records.", "status" => "Phone number not found, no sms will be sent." ));
     }
     $db0 = null;
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->get('/confirmTemporaryPassword/:phone/:tempPwd', function ($phoneNumber,$tempPwd){
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getLoginDB();
+
+    $checkPassword = $db->query("SELECT (CASE
+                                    		WHEN EXISTS (SELECT * FROM (
+                                                      SELECT usr_name AS phone FROM forgot_password WHERE usr_name = '$phoneNumber' AND temp_pwd = '$tempPwd'
+                                                      )a
+                                                      LIMIT 1) THEN 'found'
+                                    		ELSE 'not-found'
+                                      END) AS pwd_status, 
+                                      (SELECT temp_pwd FROM forgot_password WHERE usr_name = '$phoneNumber' AND temp_pwd = '$tempPwd') AS pwd,
+                                      (SELECT parent_id FROM forgot_password WHERE usr_name = '$phoneNumber' AND temp_pwd = '$tempPwd') AS parent_id");
+    $userCheck = $checkPassword->fetch(PDO::FETCH_OBJ);
+    $pwdCheck = $userCheck->pwd_status;
+    $pwd = $userCheck->pwd;
+    $parentId = $userCheck->parent_id;
+    
+    if($pwdCheck === "found"){
+        $sth2 = $db->prepare("UPDATE parents SET password = :pwd WHERE parent_id = :parentId;");
+        $sth2->execute( array(':parentId'=>$parentId, ':pwd'=>$pwd) );
+
+        // we now remove this record
+        $sth3 = $db->prepare("DELETE FROM forgot_password WHERE parent_id = :parentId AND temp_pwd = :pwd;");
+        $sth3->execute( array(':parentId'=>$parentId, ':pwd'=>$pwd) );
+
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'Success', 'message' => "Your password has been successfully reset. You can now log in and change it.", "status" => "Password reset successfully" ));
+
+    }else{
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records. Confirm the details and try again.", "status" => "Data not found." ));
+    }
+    $db = null;
 
   } catch(PDOException $e) {
     $app->response()->setStatus(401);

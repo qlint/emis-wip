@@ -36,7 +36,7 @@
 					<!-- class select -->
 					<div class="form-group">
 						<label for="class">Class</label>
-						<select name="entity" id="entity" class="form-control" ng-model="filters.entity_id">
+						<select name="entity" id="entity" class="form-control" ng-model="filters.entity_id" ng-change="watchEntity()">
 							<option value="11">Class 8</option>
 							<option value="10">Class 7</option>
 							<option value="9">Class 6</option>

@@ -379,7 +379,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				  return el.class_id == $scope.filters.class.class_id;
 				});
 				// console.log("These class students",$scope.classStudents);
-
+				$scope.studentsLength = $scope.classStudents.length;
 				for(var i=0;i<$scope.classStudents.length;i++) {
 
 					var loadBpReportCards = function(response,status)
@@ -483,6 +483,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							console.log(result.data);
 						}
 					}
+
 					// console.log("Class students", $scope.classStudents[i]);
 					apiService.getStudentReportCards($scope.classStudents[i].student_id, loadBpReportCards, apiError);
 				}
@@ -495,18 +496,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		var term_name  = $scope.filters.term.term_name;
 
 		$scope.studentReports = $scope.studentReports2;
+		
 		setTimeout(function(){
 			// console.log("Student reports ::: ",$scope.studentReports);
 			// console.log("Reports two ::: ",$scope.studentReports2);
 		angular.forEach($scope.studentReports2, function(item,key)
 		{
-			// console.log("Student reports item",item,"key = " + key);
-      var student = $scope.classStudents.find(function (stud) { if(stud.student_id == key){return stud;} });
+			// console.log("Student reports item and key",item, key);
+      		var student = $scope.classStudents.find(function (stud) { if(stud.student_id == key){return stud;} });
 			// console.log(student);
 			// var student = key;
-      var studentTermObj = $scope.studentReports2[key];
-      // console.log("Student term obj :::",studentTermObj);
-      if(studentTermObj.hasOwnProperty(term_name)){
+			var studentTermObj = $scope.studentReports2[key];
+			// console.log("Student term obj :::",studentTermObj);
+			if(studentTermObj.hasOwnProperty(term_name)){
 								// console.log("This students has data from needed term",term_name);
                 var studentsWithExams = function(response,status)
           	    {
@@ -561,7 +563,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
       					year: $scope.studentReports2[key][term_name].year,
       					report_card_type: $scope.studentReports2[key][term_name].report_card_type,
       					teacher_id: $scope.studentReports2[key][term_name].teacher_id,
-      					teacher_name: $scope.studentReports2[key][term_name].teacher_name,
+      					teacher_name: (window.location.host.split('.')[0] == 'thomasburke' ? $scope.studentReports2[key][term_name].teacher_name.match(/\b(\w)/g).join('') : $scope.studentReports2[key][term_name].teacher_name),
       					date: $scope.studentReports2[key][term_name].date,
       					reportData: $scope.studentReports2[key][term_name].data,
       					adding: false,
@@ -591,11 +593,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 		});
 		},10000);
-		/*
-		setTimeout(function(){
-		 	$scope.openModal('exams', 'reportCardData', 'sm', angular.fromJson(BulkData));
-		},25000);
-		*/
 
 		// $scope.openModal('exams', 'reportCardData', 'sm', angular.fromJson(BulkData));
 

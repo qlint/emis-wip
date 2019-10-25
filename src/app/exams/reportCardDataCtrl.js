@@ -9,6 +9,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 
 	$scope.studentReports =[]
 	$scope.studentReports = newBulkData;
+	$scope.calculationMode = $rootScope.currentUser.settings["Exam Calculation"];
 	// console.log($scope.studentReports);
 	$scope.data = newBulkData[0];
 	if( $scope.data == undefined || $scope.data == null){
@@ -696,13 +697,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 
 					$scope.studentReports[student_id].examMarks = data.details;
 					// $scope.overallSubjectMarks = data.subjectOverall;
-					// $scope.overall = data.overall;
-					if (school == "kingsinternational" || school == "thomasburke"){
+					// if (school == "kingsinternational" || school == "thomasburke"){
+					if($scope.calculationMode == "Average" || $scope.calculationMode == ""){
+						$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallByAvg;
 						$scope.studentReports[student_id].overall = data.overallByAverage;
 						$scope.studentReports[student_id].overallLastTerm = data.overallLastTermByAverage;
 						$scope.studentReports[student_id].thisTermMarks = data.overallByAverage.current_term_marks;
 						// console.log("Overall By avg");
-					}else{
+					// }else{
+					}else if($scope.calculationMode == "Last Exam"){
+						$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverall;
 						$scope.studentReports[student_id].overall = data.overall;
 						$scope.studentReports[student_id].overallLastTerm = data.overallLastTerm;
 						$scope.studentReports[student_id].thisTermMarks = data.overall.current_term_marks;
@@ -721,13 +725,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 					$scope.studentReports[student_id].streamRankPositionLastTerm = (result.data.streamRankLastTerm.length > 0 ? result.data.streamRankLastTerm[0].position : null);
 					$scope.studentReports[student_id].streamRankOutOfLastTerm = (result.data.streamRankLastTerm.length > 0 ? result.data.streamRankLastTerm[0].position_out_of : null);
 					// console.log("Student obj", $scope.studentReports[student_id]);
-					if (school == "kingsinternational" || school == "thomasburke"){
-						$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverallByAvg;
-						// console.log("overall by avg");
-					}else{
-						$scope.studentReports[student_id].overallSubjectMarks = data.subjectOverall;
-						// console.log("overall by normal");
-					}
 
 					// $scope.thisTermMarks = data.overall.current_term_marks;
 					$scope.studentReports[student_id].thisTermMarksOutOf = data.overall.current_term_marks_out_of;
@@ -866,6 +863,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 					{
 						// recreated a report, carry over the comments
 						$scope.studentReports[student_id].comments = angular.copy(studentData.originalData.comments) || {};
+						if($scope.studentReports[student_id].comments != undefined || $scope.studentReports[student_id].comments != {}){
+							let percentage = Math.round(([student_id]/$scope.studentReports.length)*100);
+							$scope.percentageMsg = "Processing Data :: " + percentage + '% complete.';
+							document.getElementById('progressMsg').innerText = $scope.percentageMsg;
+							if(percentage > 97){document.getElementById('progressMsg').style.display = 'none';}
+							console.log($scope.percentageMsg);
+
+							$scope.studentReports[student_id].comments.teacher_name = $scope.studentReports[student_id].comments.teacher_name;
+						}
 
 						angular.forEach( $scope.studentReports[student_id].reportData.subjects, function(item,key){
 
@@ -1561,7 +1567,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 			if(item !== undefined)
 			{
 				//initializeController(item, key)
-
 				$timeout(initializeController, 2000, true, item, key);
 			}
 
@@ -1607,7 +1612,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 			}
 
 		};
-		// console.log($scope.studentReports);
+		console.log("The student reports",$scope.studentReports);
 		$rootScope.classBulkPrint = $scope.studentReports;
 		$scope.openModal('exams', 'reportCardBulkPrint', 'lg', $scope.studentReports);
 

@@ -1129,6 +1129,68 @@ $app->get('/getExamDeviations/:class_id/:term_id/:exam_type_id', function ($clas
 
 });
 
+$app->get('/getGradesAttainment/:classId/:termId/:examTypeId', function ($classId,$termId,$examTypeId) {
+	// Get class students in the transport zone
+  
+	$app = \Slim\Slim::getInstance();
+  
+	try
+	{
+	  $db = getDB();
+  
+	   $sth = $db->prepare("SELECT class_name, grade, COUNT(grade) AS grade_count FROM (
+								SELECT class_name, student_id, coalesce(total,0) AS total, out_of, 
+									(SELECT grade FROM app.grading WHERE round((coalesce(total,0)::float/out_of)*100) between min_mark and max_mark) AS grade
+								FROM (
+									SELECT class_id, class_name, student_id, sum(mark) AS total, sum(out_of) AS out_of FROM (
+										SELECT c.class_id, c.class_name, em.student_id, em.term_id, em.mark, cse.grade_weight AS out_of
+										FROM app.exam_marks em
+										INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+										INNER JOIN app.class_subjects cs USING (class_subject_id)
+										INNER JOIN app.classes c USING (class_id)
+										INNER JOIN app.class_cats cc USING (class_cat_id)
+										WHERE cc.entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = :classId))
+										AND term_id = :termId
+										AND cse.exam_type_id IN (SELECT exam_type_id FROM app.exam_types WHERE sort_order = (SELECT sort_order FROM app.exam_types WHERE exam_type_id = :examTypeId) AND class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = :classId))
+										AND cse.grade_weight = 100
+									)one
+									GROUP BY student_id, class_id, class_name
+									ORDER BY total DESC
+								)two
+								ORDER BY total DESC
+							)three
+							GROUP BY class_name, grade");
+	  $sth->execute( array(':classId' => $classId, ':termId' => $termId, ':examTypeId' => $examTypeId) );
+	  $gradesAttainment = $sth->fetchAll(PDO::FETCH_OBJ);
+
+	  $sth2 = $db->prepare("SELECT grade FROM app.grading");
+	  $sth2->execute( array() );
+	  $schoolGrades = $sth2->fetchAll(PDO::FETCH_OBJ);
+
+	  $results =  new stdClass();
+	  $results->gradesAttainment = $gradesAttainment;
+	  $results->schoolGrades = $schoolGrades;
+  
+	  if($results) {
+		$app->response->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array('response' => 'success', 'data' => $results ));
+		$db = null;
+	  } else {
+		$app->response->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+		$db = null;
+	  }
+  
+  } catch(PDOException $e) {
+	  $app->response()->setStatus(200);
+	  $app->response()->headers->set('Content-Type', 'application/json');
+	  echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+  
+  });
+
 $app->get('/getSomeReport', function () {
   //Some report
 

@@ -26,10 +26,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	$scope.classAnalysisTable = false; // show the table for class analysis
 	$scope.streamAnalysisTable = false; // show the table for stream analysis
 	$scope.improvementsAnalysisTable = false; // show the table for improvements analysis
+	$scope.gradesAttainmentTable = false; // show the table for grades attainment
 
 	$scope.returnToClassAnalysis = false;
 	$scope.returnToStreamAnalysis = false;
 	$scope.returnToImprovementsAnalysis = false;
+	$scope.returnToGradesAttainmentAnalysis = false;
 
     $scope.makeClassPerformanceChart = function()
     {
@@ -546,18 +548,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.getStudentExams();
 		}else if($scope.filters.analysis == "class_mean"){
 			//
-		}else if($scope.filters.analysis == "class_grades"){
-			//
-		}else if($scope.filters.analysis == "class_subjects"){
-			//
 		}else if($scope.filters.analysis == "stream_performace"){
 			$scope.getStudentStreamExams();
 		}else if($scope.filters.analysis == "stream_mean"){
 			//
 		}else if($scope.filters.analysis == "stream_grades"){
-			//
-		}else if($scope.filters.analysis == "stream_subjects"){
-			//
+			$scope.getStreamGrades();
 		}else if($scope.filters.analysis == "improvement_report"){
 			$scope.getExamImprovement();
 		}else{
@@ -583,6 +579,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		$scope.streamAnalysisTable = false;
 		$scope.classAnalysisTable = true; // show the table for class analysis
 		$scope.improvementsAnalysisTable = false;
+		$scope.gradesAttainmentTable = false;
 
 		var request = $scope.filters.class_id + '/' + $scope.filters.term_id;
 
@@ -605,6 +602,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		$scope.classAnalysisTable = false;
 		$scope.streamAnalysisTable = true; // show the table for stream analysis
 		$scope.improvementsAnalysisTable = false;
+		$scope.gradesAttainmentTable = false;
 
 		var request = $scope.filters.class_id + '/' + $scope.filters.term_id;
 		apiService.getStreamAnalysis(request, loadStreamMarks, apiError);
@@ -626,9 +624,32 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		$scope.classAnalysisTable = false;
 		$scope.streamAnalysisTable = false;
 		$scope.improvementsAnalysisTable = true; // show the table for improvement analysis
+		$scope.gradesAttainmentTable = false;
 
 		var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
 		apiService.getExamDeviations(request, loadImprovementResults, apiError);
+	}
+
+	$scope.getStreamGrades = function()
+	{
+		$scope.examMarks = {};
+		$scope.totalMarks = {};
+		$scope.meanScores = {};
+		$scope.tableHeader = [];
+		$scope.marksNotFound = false;
+		$scope.getReport = "";
+
+		$scope.initialReportLoad = false; // initial items to show before any report is loaded
+		$scope.showReport = true; // show the div with the analysis table
+		// console.log($scope.filters);
+		$scope.reportTitle = 'Grades Attainment';
+		$scope.classAnalysisTable = false;
+		$scope.streamAnalysisTable = false;
+		$scope.improvementsAnalysisTable = false; 
+		$scope.gradesAttainmentTable = true; // show the table for grades attainment
+
+		var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+		apiService.getGradesAttainment(request, loadGradesAttainment, apiError); 
 	}
 
 	var loadMarks = function(response,status)
@@ -1084,6 +1105,126 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		}
 	}
 
+	var loadGradesAttainment = function(response,status)
+	{
+		$scope.loading = false;
+		var result = angular.fromJson( response );
+		if( result.response == 'success' )
+		{
+			if( result.nodata )
+			{
+				$scope.marksNotFound = true;
+				$scope.errMsg = "There are currently no exam marks entered for this search criteria.";
+			}
+			else
+			{
+
+				if( $scope.dataGrid !== undefined )
+				{
+					$('.fixedHeader-floating').remove();
+					$scope.dataGrid.clear();
+					$scope.dataGrid.destroy();
+				}
+
+				$scope.rawData = result.data;
+				$scope.cols = $scope.rawData.schoolGrades;
+				$scope.examMarks = $scope.rawData.gradesAttainment;
+				console.log($scope.examMarks);
+
+				$scope.gradesAttained = [];
+				var tempClassNames = [];
+				for(let x=0;x < $scope.examMarks.length;x++){
+					let eachClass = {};
+					if(x == 0){
+						eachClass.class_name = $scope.examMarks[x].class_name;
+						tempClassNames.push(eachClass.class_name);
+						eachClass.grades = [];
+						for(let y=0;y < $scope.cols.length;y++){
+							let initGrade = {grade:$scope.cols[y].grade,count:null};
+							eachClass.grades.push(initGrade);
+						}
+						for(let z=0;z < $scope.examMarks.length;z++){
+							if($scope.examMarks[z].class_name == eachClass.class_name){
+								for(let a=0;a < eachClass.grades.length;a++){
+									if($scope.examMarks[z].grade == eachClass.grades[a].grade){
+										eachClass.grades[a].count = $scope.examMarks[z].grade_count;
+										$scope.gradesAttained.push(eachClass);
+									}
+								}
+							}
+						}
+					}else{
+						if(tempClassNames.includes($scope.examMarks[x].class_name) == false){
+							eachClass.class_name = $scope.examMarks[x].class_name;
+							tempClassNames.push(eachClass.class_name);
+							eachClass.grades = [];
+							for(let y=0;y < $scope.cols.length;y++){
+								let initGrade = {grade:$scope.cols[y].grade,count:null};
+								eachClass.grades.push(initGrade);
+							}
+							for(let z=0;z < $scope.examMarks.length;z++){
+								if($scope.examMarks[z].class_name == eachClass.class_name){
+									for(let a=0;a < eachClass.grades.length;a++){
+										if($scope.examMarks[z].grade == eachClass.grades[a].grade){
+											eachClass.grades[a].count = $scope.examMarks[z].grade_count;
+											$scope.gradesAttained.push(eachClass);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				/*
+				$scope.examMarks.forEach(function(classElement, key) {
+					let thisClass = {};
+					if(key == 0){
+						thisClass.class_name = classElement.class_name;
+						tempClassNames.push(thisClass.class_name);
+						thisClass.grades = [];
+						for(let k=0;k < $scope.cols.length;k++){
+							if(classElement.grade == $scope.cols[k].grade){
+								let thisGrade = {grade:classElement.grade, count:classElement.grade_count};
+								thisClass.grades.push(thisGrade);
+							}
+							if(k == ($scope.cols.length - 1)){
+								$scope.gradesAttained.push(thisClass);
+							}
+						}
+					}else{
+						if(tempClassNames.includes(classElement.class_name) == false){
+							// create this object and push
+							thisClass.class_name = classElement.class_name;
+							console.log(thisClass.class_name);
+							tempClassNames.push(thisClass.class_name);
+							thisClass.grades = [];
+							for(let w=0;w < $scope.cols.length;w++){
+								if(classElement.grade == $scope.cols[w].grade){
+									console.log(w + "=" + $scope.cols[w].grade);
+									let thisGrade = {grade:classElement.grade, count:classElement.grade_count};
+									thisClass.grades.push(thisGrade);
+								}
+								if(w == ($scope.cols.length - 1)){
+									$scope.gradesAttained.push(thisClass);
+								}
+							}
+						}else if(tempClassNames.includes(classElement.class_name) == true){
+							
+						}
+					}
+				});
+				*/
+				let filterTheArr = $scope.gradesAttained;
+				$scope.gradesAttained = Array.from(new Set(filterTheArr.map(JSON.stringify))).map(JSON.parse);
+				// console.log($scope.gradesAttained);
+			}
+		}else{
+			$scope.marksNotFound = true;
+			$scope.errMsg = result.data;
+		}
+
+	}
+
 	$scope.gotoDiv1 = function(el) {
 	    console.log("First tab",el);
         var newHash = '1a';
@@ -1100,6 +1241,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         $scope.classAnalysisTable = ( $scope.returnToClassAnalysis == true ? true : false);
 		$scope.streamAnalysisTable = ( $scope.returnToStreamAnalysis == true ? true : false);
 		$scope.improvementsAnalysisTable = ( $scope.returnToImprovementsAnalysis == true ? true : false);
+		$scope.gradesAttainmentTable = ( $scope.returnToGradesAttainmentAnalysis == true ? true : false );
         console.log("Can we return to the class analysis? " + $scope.classAnalysisTable);
 
         if($scope.classAnalysisTable == true){
@@ -1108,8 +1250,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	            $scope.getStudentExams(); // refetch the data
 				document.getElementById("streamAnalysisTableDiv").style.display = "none";
 				document.getElementById("improvementsAnalysisTableDiv").style.display = "none";
+				document.getElementById("gradesAttainmentTableDiv").style.display = "none";
 				$scope.streamAnalysisTable = false;
 				$scope.improvementsAnalysisTable = false;
+				$scope.gradesAttainmentTable = false;
 
 	    }else if($scope.streamAnalysisTable == true){
 
@@ -1117,8 +1261,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	            $scope.getStudentStreamExams(); // refetch the data
 				document.getElementById("classAnalysisTableDiv").style.display = "none";
 				document.getElementById("improvementsAnalysisTableDiv").style.display = "none";
+				document.getElementById("gradesAttainmentTableDiv").style.display = "none";
 				$scope.classAnalysisTable = false;
 				$scope.improvementsAnalysisTable = false;
+				$scope.gradesAttainmentTable = false;
 
 	    }else if($scope.improvementsAnalysisTable == true){
 
@@ -1126,8 +1272,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.getExamImprovement(); // refetch the data
 			document.getElementById("streamAnalysisTableDiv").style.display = "none";
 			document.getElementById("classAnalysisTableDiv").style.display = "none";
+			document.getElementById("gradesAttainmentTableDiv").style.display = "none";
 			$scope.classAnalysisTable = false;
 			$scope.streamAnalysisTable = false;
+			$scope.gradesAttainmentTable = false;
+
+		}else if($scope.gradesAttainmentTable == true){
+
+			document.getElementById("gradesAttainmentTableDiv").style.display = "block";
+			$scope.getStreamGrades(); // refetch the data
+			document.getElementById("streamAnalysisTableDiv").style.display = "none";
+			document.getElementById("classAnalysisTableDiv").style.display = "none";
+			document.getElementById("improvementsAnalysisTableDiv").style.display = "none";
+			$scope.classAnalysisTable = false;
+			$scope.streamAnalysisTable = false;
+			$scope.improvementsAnalysisTable = false;
 
 		}else{
         	   // no selection made yet
@@ -1139,11 +1298,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
             	$scope.classAnalysisTable = false; // show the table for class analysis
 				$scope.streamAnalysisTable = false; // show the table for stream analysis
 				$scope.improvementsAnalysisTable = false; // show the table for improvements
+				$scope.gradesAttainmentTable = false; // show the table for grades attainment
             	$scope.activeChartTab = false; // hide charts
 
             	$("#classAnalysisTable").DataTable().destroy();
 				$("#streamAnalysisTable").DataTable().destroy();
 				$("#improvementsAnalysisTable").DataTable().destroy();
+				$("#gradesAnalysisTable").DataTable().destroy();
             	initializeController();
         }
 
@@ -1349,6 +1510,31 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		}
 
 		exportTableToCSV($scope.filters.analysis + '.csv');
+	}
+
+	$scope.printReport = function()
+	{
+		function printData()
+		{
+			if($scope.filters.analysis == "class_performace"){
+			 var divToPrint=document.getElementById("classAnalysisTableDiv").firstElementChild;
+		 }else if($scope.filters.analysis == "stream_performace"){
+			 var divToPrint=document.getElementById("streamAnalysisTableDiv").firstElementChild;
+		 }else if($scope.filters.analysis == "improvement_report"){
+			 var divToPrint=document.getElementById("improvementsAnalysisTableDiv").firstElementChild;
+		 }
+		   var newWin= window.open("");
+		   newWin.document.write(divToPrint.outerHTML);
+			 newWin.document.write('<html><head><title>Print Report.</title><link rel="stylesheet" type="text/css" href="css/printReportsStyles.css"></head><body>');
+			 // newWin.document.write($("#resultsTable").html());
+			 setTimeout(function(){
+				 newWin.print();
+			   newWin.close();
+			 }, 3000);
+		   // newWin.print();
+		   // newWin.close();
+		}
+		printData();
 	}
 
 	$("#search").keyup(function () {

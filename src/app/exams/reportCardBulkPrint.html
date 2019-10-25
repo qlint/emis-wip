@@ -147,64 +147,9 @@ function initChart1(ctx,lineChartData)
 			<!-- <button id="printAll" type="button" class="btn btn-primary"><i class="glyphicon glyphicon-print"></i> Print</button> -->
 			<button type="button" class="btn btn-primary" ng-click="printAllReportCards()" ><i class="glyphicon glyphicon-print"></i> Print</button>
 		</div>
+		<h1 id="progressMsg" style="text-align: center;color:#FF6800;">{{percentageMsg}}</h1>
 
 		<div id="allReports" class="modal-body progress-report {{reportCardType|lowercase}}">
-
-			<p ng-show="error" class="error alert alert-danger">
-				{{errMsg}}
-			</p>
-
-			<!-- search form -->
-			<div ng-hide="isPrinting || !adding" class="row header">
-			<div class="modalDataFilter clearfix">
-
-				<!-- student -->
-				<div class="form-group" ng-class="{ 'has-error' : reportForm.student.$invalid && (!reportForm.student.$pristine || reportForm.$submitted) }" ng-show=false>
-					<label for="student">Student</label>
-					<div ng-show="!showSelect"><p class="">{{student.student_name}}</p></div>
-					<div ng-show="showSelect">
-						<ui-select ng-model="thestudent.selected" theme="select2" class="form-control" name="student" required>
-						  <ui-select-match placeholder="Select or search a student...">
-							<span>{{$select.selected.student_name}}</span>
-							<button type="button" class="clear text-danger" ng-click="clearSelect($event)"><span class="glyphicon glyphicon-remove"></span></button>
-						  </ui-select-match>
-						  <ui-select-choices repeat="item in students | filter: $select.search">
-							<span ng-bind-html="item.student_name | highlight: $select.search"></span>
-						  </ui-select-choices>
-						</ui-select>
-						<p ng-show="reportForm.student.$invalid && (!reportForm.student.$pristine || reportForm.$submitted)" class="help-block">
-							<i class="fa fa-exclamation-triangle"></i> You must choose a student.</p>
-					</div>
-				</div>
-
-				<!-- class select -->
-				<div class="form-group" ng-class="{ 'has-error' : reportForm.class_id.$invalid && (!reportForm.class_id.$pristine || reportForm.$submitted) }">
-					<label for="class">Class</label>
-					<select name="class_id" id="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
-						<option value="">--select class--</option>
-					</select>
-					<p ng-show="reportForm.class_id.$invalid && (!reportForm.class_id.$pristine || reportForm.$submitted)" class="help-block">
-						<i class="fa fa-exclamation-triangle"></i> You must choose a class.</p>
-				</div>
-
-				<!-- term select -->
-				<div class="form-group" ng-class="{ 'has-error' : reportForm.term.$invalid && (!reportForm.term.$pristine || reportForm.$submitted) }">
-					<label for="term">Term</label>
-					<select name="term" class="form-control" ng-options="item.term_year_name for item in terms track by item.term_id" ng-model="filters.term" required>
-						<option value="">--select term--</option>
-					</select>
-					<p ng-show="reportForm.term.$invalid && (!reportForm.term.$pristine || reportForm.$submitted)" class="help-block">
-						<i class="fa fa-exclamation-triangle"></i> You must choose a term.</p>
-				</div>
-
-				<!-- search btn -->
-				<div class="form-group submit-btn">
-					<input type="button" class="btn btn-sm btn-info" ng-click="getProgressReport()" value="Load" />
-					<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
-				</div>
-			</div>
-			</div>
-			<!-- // end search form -->
 
 			<!-- <div ng-show="true" ng-repeat="student in allDataArr track by $index"> -->
 			<style type="text/css"> @import url("components/css/customSettingReportCard.css"); </style>
@@ -225,11 +170,22 @@ function initChart1(ctx,lineChartData)
 							</div>
 						</div>
 
-	    				<div class="row progress-report-header"  ng-if="!useLetterhead">
+	    				<div ng-show="isSchool" class="row progress-report-header"  ng-if="!useLetterhead">
 	    					<div class="col-xs-2">
 	    						<img src="assets/schools/{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" />
 	    					</div>
 	    					<div class="col-xs-8">
+	    						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
+	    						<div class="school-address">
+	    							<p ng-hide="wantAutomatedComments">{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
+	    							<p ng-hide="wantAutomatedComments">Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
+	    							<p ng-hide="wantAutomatedComments">Email: {{currentUser.settings['Email Address']}}</p>
+	    						</div>
+	    						<h2 class="report-card-title">Progress Report</h2>
+	    					</div>
+						</div>
+						<div ng-hide="isSchool" class="row progress-report-header"  ng-if="!useLetterhead">
+	    					<div class="col-xs-12" style="text-align: center;">
 	    						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
 	    						<div class="school-address">
 	    							<p ng-hide="wantAutomatedComments">{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
@@ -244,21 +200,7 @@ function initChart1(ctx,lineChartData)
 
 					    <style type="text/css"> @import url("components/css/bulkPrint.css"); </style>
 					    <script type="text/ng-template" id="Standard">
-	    					<div ng-show="savedReport" class="alert alert-warning">You are viewing a previously saved report card. If this student's exam marks were updated, click 'Re-Create' to generate a new report card.
-	    						<button type="button" class="btn btn-sm btn-info" ng-click="recreateReport()">Re-Create</button>
-	    						<div ng-show="differences.length>0">
-	    							The following changes have been found:
-	    							<ul>
-	    								<li ng-repeat="diff in differences">
-	    									<strong>{{diff.subject_name}} {{diff.exam_type}} {{diff.change}}</strong>
-	    								</li>
-	    							</ul>
-	    						</div>
-	    					</div>
-	    					<div ng-show="recreated" class="alert alert-success">Report card has been re-created.
-	    						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
-	    					</div>
-						    <div class="progress-report-student">
+	    					<div class="progress-report-student">
 							    <!-- name and adm number -->
 	    						<div class="row">
 	    							<div class="col-xs-1 nopad-right">
@@ -315,7 +257,7 @@ function initChart1(ctx,lineChartData)
 	    								<label>Last Term Marks:</label>
 	    							</div>
 	    							<div class="col-xs-2 lesspad">
-	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overallLastTerm.total_mark||'-'}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overallLastTerm.total_grade_weight||'-'}}</p>
+	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overallLastTerm.current_term_marks||'-'}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overallLastTerm.total_grade_weight||'-'}}</p>
 	    							</div>
 	    						</div>
 	    						<!-- stream position, out of, stream pos last term, out of -->
@@ -335,60 +277,63 @@ function initChart1(ctx,lineChartData)
 	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.streamRankOutOfLastTerm||'--'}}</p>
 	    							</div>
 
-	    							<div ng-show="isSchool" class="col-xs-2 nopad-right">
+	    							<div class="col-xs-2 nopad-right">
 	    								<label>Current Term Marks:</label>
 	    							</div>
-	    							<div ng-show="isSchool" class="col-xs-2 lesspad">
+	    							<div class="col-xs-2 lesspad">
 	    								<p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overall.current_term_marks||'-'}}</p> / <p class="form-control-static inline" style="border-bottom: 1px dotted #bbb;display: inline-block !important;padding-left: 10px !important;padding-right: 10px !important;">{{student.overall.current_term_marks_out_of||'-'}}</p>
 	    							</div>
 	    						</div>
 	    					</div>
 
-						<table class="display dataTable" cellspacing="0" width="100%">
+						<table class="display dataTable" cellspacing="0" width="100%" style="font:12px Arial, Verdana, Helvetica, sans-serif !important;border:1px solid #000000;">
 							<thead class="batchThead">
 								<tr>
-									<th rowspan="3" class="center">{{subj_name}}</th>
+									<th rowspan="3" class="center" width="10%" style="width:10%;">{{subj_name}}</th>
 									<!-- <th class="center double-border" colspan="{{noRanking ? examTypes.length*2:examTypes.length*3}}">Marks</th> -->
-									<th class="center double-border" colspan="{{noRanking ? examTypes.length*2 : isSchool? examTypes.length*2 : examTypes.length*3}}">Marks</th>
-									<th ng-show="isSchool" rowspan="2" colspan="2" class="center double-border">Overall</th>
-									<th class="center double-border" rowspan="3" width="300">{{rmks}}</th>
-									<th ng-hide="noRanking" class="center" rowspan="3">Teacher<br>Int.</th>
+									<th class="center" colspan="{{noRanking ? examTypes.length*2 : isSchool? examTypes.length*2 : examTypes.length*3}}" style="width:20% !important;" width="20%">Marks</th>
+									<th rowspan="2" colspan="2" class="center double-border" style="border-left:1px solid #000000;width:3% !important;" width="3%">Overall</th>
+									<th class="center double-border" rowspan="3" width="66%" style="width:66% !important;">{{rmks}}</th>
+									<th ng-hide="noRanking" class="center slim" rowspan="3" width="1%" style="width:1% !important;">Teacher<br>Int.</th>
 								</tr>
 								<tr>
 									<th class="center double-border" colspan="{{noRanking ? 2 : isSchool ? 2 : 3}}" ng-repeat="item in examTypes">{{item.exam_type}}</th>
 								</tr>
 								<tr>
 									<th class="center double-border slim" ng-repeat-start="item in examTypes">{{noRanking ?'Mark %':'Mark'}}</th>
-									<th ng-hide="noRanking || isSchool slim" class="center">Out Of</th> <!--undo the ng-repeat-end -->
+									<th ng-hide="noRanking || isSchool" class="center slim">out<br>of</th> <!--undo the ng-repeat-end -->
 									<th class="center slim" ng-repeat-end="">Grade</th>
-									<th ng-show="isSchool" class="center double-border">Avg</th>
-								    <th ng-show="isSchool" class="center">Grade</th>
+									<th class="center double-border">Avg</th>
+								    <th class="center" style="border-left:1px solid #000000;">Grade</th>
 								</tr>
 							</thead>
 							<tbody class="batchTbody">
 								<tr ng-repeat="item in student.reportData.subjects track by $index">
-									<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}">{{item.subject_name}}</td>
-									<td class="center double-border slim" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes">{{item.marks[examType.exam_type].mark}}</td>
-									<td  ng-hide="noRanking || isSchool" class="center slim" ng-class="{'strong': item.parent_subject_name===null}">{{item.marks[examType.exam_type].grade_weight}}</td>
-									<td class="center slim" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="">{{item.marks[examType.exam_type].grade}}</td>
-									<td ng-show="isSchool" class="center strong double-border"><span ng-hide="item.parent_subject_name!==null">{{item.overall_mark}}%</span></td>
-									<td ng-show="isSchool" class="center strong"><span ng-hide="item.parent_subject_name!==null">{{item.overall_grade}}</span></td>
+									<td ng-class="{'text-muted indent' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" style="font-weight:{{item.parent_subject_name===null ? 'bold' : 'normal'}}">{{item.subject_name}}</td>
+									<td class="center double-border slim" ng-class="{'strong': item.parent_subject_name===null}" ng-repeat-start="examType in examTypes" style="font-weight:{{item.parent_subject_name===null ? 'bold' : 'normal'}}">{{item.marks[examType.exam_type].mark}}</td>
+									<td  ng-hide="noRanking || isSchool" class="center slim" ng-class="{'strong': item.parent_subject_name===null}" style="font-weight:{{item.parent_subject_name===null ? 'bold' : 'normal'}}">{{item.marks[examType.exam_type].grade_weight}}</td>
+									<td class="center slim" ng-class="{'text-muted' : item.parent_subject_name!==null, 'strong': item.parent_subject_name===null}" ng-repeat-end="" style="font-weight:{{item.parent_subject_name===null ? 'bold' : 'normal'}}">{{item.marks[examType.exam_type].grade}}</td>
+									<td class="center strong double-border"><span ng-hide="item.parent_subject_name!==null" style="font-weight:{{item.parent_subject_name===null ? 'bold' : 'normal'}}">{{item.overall_mark}}%</span></td>
+									<td class="center strong"><span ng-hide="item.parent_subject_name!==null" style="font-weight:{{item.parent_subject_name===null ? 'bold' : 'normal'}}">{{item.overall_grade}}</span></td>
 									<td class="double-border">
+										<p>{{item.remarks}}</p>
+										<!--
 										<span ng-show="isPrinting">{{item.remarks}}</span>
 										<input ng-show="!isPrinting" type="text" name="remarks" class="form-control" ng-model="item.remarks" value="{{item.remarks}}" onkeypress="return false;" />
+										-->
 									</td>
-									<td class="initilas" ng-hide="noRanking">{{item.initials}}</td>
+									<td class="initilas slim" ng-show="isSchool">{{item.initials}}</td>
 								</tr>
 							</tbody>
 							<tfoot>
 								<tr>
 									<th class="center">{{noRanking ? '_':'Total'}}</th>
 									<th class="center double-border slim" ng-repeat-start="examType in examTypes">{{noRanking ? '_':student.totals[examType.exam_type].total_mark}}</th>
-									<th ng-hide="noRanking || isSchool slim" class="center">{{student.totals[examType.exam_type].total_grade_weight}}</th>
+									<th ng-hide="noRanking || isSchool" class="center slim">{{student.totals[examType.exam_type].total_grade_weight}}</th>
 									<th class="center slim" ng-repeat-end=""></th>
-									<th ng-show="isSchool" class="center double-border getpercentage">{{student.overall.percentage}}%</th>
-									<th ng-show="isSchool" class="center">{{student.overall.grade}}</th>
-									<th colspan="2" class="center double-border"></th>
+									<th class="center double-border getpercentage">{{student.overall.percentage}}%</th>
+									<th class="center">{{student.overall.grade}}</th>
+									<th colspan="2" class="center slim double-border"></th>
 								</tr>
 							</tfoot>
 						</table>
@@ -783,19 +728,17 @@ function initChart1(ctx,lineChartData)
 
 						<div id="graphresult"></div>
 
-						<table ng-hide="noRanking" width="100%" class="afterCbc">
+						<table ng-hide="noRanking" width="100%" class="afterCbc" style="font:12px Arial, Verdana, Helvetica, sans-serif !important;">
 								<tr ng-show="isSchool">
 									<td colspan="2" ng-hide="noGeneralComments">
 										<label>General Comments:</label>
-										<textarea ng-show="!isPrinting" name="non-exam-comments" rows="1" class="form-control" ng-model="comments.non_exam_comments" ng-change="updateReport()"></textarea>
-										<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{student.comments.non_exam_comments}}</p>
+										<p class="form-control-static" style="font-size:11px !important;">{{student.comments.non_exam_comments}}</p>
 									</td>
 								</tr>
 								<tr ng-show="isAdmin || isClassTeacher">
 									<td width="75%">
 										<label>Class Teacher Comments:</label>
-										<textarea ng-show="!isPrinting" name="teacher-comments" rows="1" class="form-control" ng-model="comments.teacher_comments" ng-change="updateReport()"></textarea>
-										<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{student.comments.teacher_comments}}</p>
+										<p class="form-control-static" style="font-size:11px !important;">{{student.comments.teacher_comments}}</p>
 									</td>
 									<td>
 									    <label>Sign:</label>
@@ -805,8 +748,7 @@ function initChart1(ctx,lineChartData)
 								<tr ng-show="isAdmin || isClassTeacher">
 									<td>
 										<label>{{schoolName == 'kingsinternational' ? 'Principal Comments:' : 'Head Teacher Comments:'}}</label>
-										<textarea ng-show="!isPrinting" name="principle-comments" rows="1" class="form-control" ng-model="comments.principle_comments" ng-change="updateReport()" ng-readonly="isClassTeacher"></textarea>
-										<p ng-show="isPrinting" class="form-control-static" style="font-size:11px !important;">{{student.comments.principle_comments}}</p>
+										<p class="form-control-static" style="font-size:11px !important;">{{student.comments.principle_comments}}</p>
 									</td>
 									<td>
 									    <label>Sign:</label>
@@ -815,7 +757,7 @@ function initChart1(ctx,lineChartData)
 									</td>
 								</tr>
 							</table>
-							<table width="100%">
+							<table width="100%" style="font:12px Arial, Verdana, Helvetica, sans-serif !important;">
 								<tr>
 									<td>
 										<label>Closing Date:</label>
@@ -827,7 +769,7 @@ function initChart1(ctx,lineChartData)
 									</td>
 								</tr>
 							</table>
-							<table width="100%" ng-show="noRanking">
+							<table width="100%" ng-show="noRanking" style="font:12px Arial, Verdana, Helvetica, sans-serif !important;">
 							    <tr ng-show="isAdmin || isClassTeacher">
 									<td width="75%">
 										<label>TERMLY REPORTS: <br>Teacher's comments on attainment of competencies</label>
@@ -995,21 +937,21 @@ function initChart1(ctx,lineChartData)
 							</div> -->
 						</div>
 
-						<table class="display dataTable" cellspacing="0" width="100%">
+						<table class="display dataTable" cellspacing="0" width="100%" style="font:12px Arial, Verdana, Helvetica, sans-serif !important;">
 							<thead class="batchThead">
 								<tr>
 									<th rowspan="3" class="center">Subject</th>
 									<th class="center double-border" colspan="{{examTypes.length*3}}">Marks</th>
 									<th rowspan="2" colspan="2" class="center double-border">Overall</th>
 									<th class="center double-border remarks" rowspan="3" width="300">Remarks</th>
-									<th class="center" rowspan="3">Teacher<br>Int.</th>
+									<th class="center slim" rowspan="3">Teacher<br>Int.</th>
 								</tr>
 								<tr>
 									<th class="center double-border" colspan="3" ng-repeat="item in examTypes">{{item.exam_type}}</th>
 								</tr>
 								<tr>
 									<th class="center double-border" ng-repeat-start="item in examTypes">Mark</th>
-									<th class="center">Out Of</th>
+									<th class="center">out<br>of</th>
 									<th class="center" ng-repeat-end="">Grade</th>
 									<th class="center double-border">Avg</th>
 									<th class="center">Grade</th>
@@ -1254,7 +1196,7 @@ function initChart1(ctx,lineChartData)
 							</div> -->
 						</div>
 
-						<table class="display dataTable" cellspacing="0" width="100%">
+						<table class="display dataTable" cellspacing="0" width="100%" style="font:12px Arial, Verdana, Helvetica, sans-serif !important;">
 							<thead class="batchThead">
 								<tr>
 									<th rowspan="3" class="center">Subject</th>
@@ -1268,7 +1210,7 @@ function initChart1(ctx,lineChartData)
 								</tr>
 								<tr>
 									<th class="center double-border" ng-repeat-start="item in examTypes">Mark</th>
-									<th class="center">Out Of</th>
+									<th class="center">out<br>of</th>
 									<th class="center" ng-repeat-end="">Grade</th>
 									<th class="center double-border">Avg</th>
 									<th class="center">Grade</th>
@@ -1426,7 +1368,7 @@ function initChart1(ctx,lineChartData)
 								</div>
 							</div>
 						</div>
-						<table class="display dataTable" cellspacing="0" width="100%">
+						<table class="display dataTable" cellspacing="0" width="100%" style="font:12px Arial, Verdana, Helvetica, sans-serif !important;">
 							<thead>
 								<tr>
 									<th class="center">Subject</th>
@@ -1538,7 +1480,7 @@ function initChart1(ctx,lineChartData)
 								</div>
 							</div>
 						</div>
-						<table class="display dataTable" cellspacing="0" width="100%">
+						<table class="display dataTable" cellspacing="0" width="100%" style="font:12px Arial, Verdana, Helvetica, sans-serif !important;">
 							<thead>
 								<tr>
 									<th class="center">Subject</th>

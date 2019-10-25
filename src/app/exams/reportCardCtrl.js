@@ -668,24 +668,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		if($scope.calculationMode == "Average" || $scope.calculationMode == ""){
 		    $scope.overallSubjectMarks = data.subjectOverallByAvg;
 		    $scope.overall = data.overallByAverage;
-				$scope.overallLastTerm = data.overallLastTermByAverage;
-				// console.log($scope.overall);
-				$scope.comments.principle_comments = $scope.overall.principal_comment;
+			$scope.overallLastTerm = data.overallLastTermByAverage;
+			console.log("Assigning by average",$scope.overallLastTerm);
+			// console.log($scope.overall);
+			// $scope.comments.teacher_name = (window.location.host.split('.')[0] == 'thomasburke' ? $scope.comments.teacher_name.split(' ')[0] : $scope.comments.teacher_name);
+			$scope.comments.teacher_name = $scope.comments.teacher_name;
+			// $scope.comments.principle_comments = $scope.overall.principal_comment;
 		}else if($scope.calculationMode == "Last Exam"){
+			console.log("Assigning by last exam");
 		    $scope.overallSubjectMarks = data.subjectOverall;
     		$scope.overall = data.overall;
-				$scope.overallLastTerm = data.overallLastTerm;
-		}else if($scope.calculationMode == "Summation"){
-				// let's use average for now
-				$scope.overallSubjectMarks = data.subjectOverallByAvg;
-		    $scope.overall = data.overallByAverage;
-				$scope.overallLastTerm = data.overallLastTermByAverage;
-				// console.log($scope.overall);
-				$scope.comments.principle_comments = $scope.overall.principal_comment;
+			$scope.overallLastTerm = data.overallLastTerm;
 		}
-		$scope.overallLastTerm = data.overallLastTerm;
 		$scope.graphPoints = data.graphPoints;
-
 
 		var performanceLabels = [];
 		var performanceData = [];
@@ -1445,7 +1440,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			user_id: $rootScope.currentUser.user_id,
 			student_id: $scope.student.student_id,
 			// term_id: $scope.report.term_id,
-			term_id : $scope.updateReportTermId,
+			term_id : ($scope.updateReportTermId == undefined ? $scope.filters.term_id : $scope.updateReportTermId),
 			class_id : $scope.report.class_id,
 			report_card_type : $scope.reportCardType,
 			teacher_id : $scope.report.teacher_id,
