@@ -77,7 +77,9 @@
     $term = (isset($_POST['submit']) ? $selected_val : $no_selection);
     $term_name = (isset($_POST['submit']) ? $selected_val : $no_selection);
     $class_name = "";
-    if($term == 1){$term_name = "Term 1";}elseif($term == 2){$term_name = "Term 2";}elseif($term == 3){$term_name = "Term 3";}
+    // if($term == 1){$term_name = "Term 1";}elseif($term == 2){$term_name = "Term 2";}elseif($term == 3){$term_name = "Term 3";}
+    $termName = pg_query($db,"SELECT term_name FROM app.terms WHERE term_id = $term;");
+    $term_name = pg_fetch_result($termName, 0, 0);
     ?>
     <div class="container-table100">
   	   <div class="wrap-table100">

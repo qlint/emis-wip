@@ -318,6 +318,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 				// store these as they do not change often
 				if( result.response == 'success')
 				{
+					console.log(result.data);
 					$rootScope.comTypes = $scope.comTypes = result.data.com_types;
 					$rootScope.comAudience = $scope.comAudience = result.data.audiences;
 					/*

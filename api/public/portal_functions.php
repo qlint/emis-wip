@@ -11,14 +11,41 @@ $app->post('/parentLogin', function () use($app) {
   {
     $db = getLoginDB();
 
-    $userCheckQry = $db->query("SELECT (CASE
-                                    		WHEN EXISTS (SELECT username FROM parents WHERE username = '$username') THEN 'proceed'
-                                    		ELSE 'stop'
-                                    	END) AS status");
+    $userCheckQry = $db->query("SELECT status, parent_id, guardian_id, student_id, subdomain
+                                FROM (
+                                	SELECT (CASE
+                                			WHEN EXISTS (SELECT username FROM parents WHERE username = '$username' AND active IS TRUE) THEN 'proceed' ELSE 'stop'
+                                  		END) AS status,
+                                  		(CASE
+                                  			WHEN EXISTS (SELECT parent_id FROM parents WHERE username = '$username' AND active IS TRUE)
+                                  			THEN (SELECT parent_id FROM parents WHERE username = '$username' AND active IS TRUE) ELSE 0
+                                  		END) AS parent_id
+                                )one
+                                LEFT JOIN parent_students USING (parent_id)");
     $userStatus = $userCheckQry->fetch(PDO::FETCH_OBJ);
-    $userStatus = $userStatus->status;
+    $theStatus = $userStatus->status;
+    // THE BELOW VALUES ARE USED ONLY WHEN status = 'proceed'
+    $theParentId = $userStatus->parent_id;
+    $theGuardianId = $userStatus->guardian_id;
+    $theStudentId = $userStatus->student_id;
+    $theSubDomain = $userStatus->subdomain;
+    $gStatus = '';
 
-    if($userStatus === "proceed"){
+    if($theStatus === "proceed"){
+      $getDb = setDBConnection($theSubDomain);
+      $checkIfStudentActive = $getDb->prepare("SELECT (CASE
+                                                    		WHEN EXISTS (SELECT active FROM app.student_guardians WHERE guardian_id = :guardianId AND active IS TRUE)
+                                                    		THEN 'proceed'
+                                                    		ELSE 'stop'
+                                                    	END) AS active");
+      $checkIfStudentActive->execute(array(':guardianId' => $theGuardianId));
+      $guardianStatus = $checkIfStudentActive->fetch(PDO::FETCH_OBJ);
+      $gStatus = $guardianStatus->active;
+    }else{
+      $gStatus = 'stop';
+    }
+
+    if($gStatus === "proceed"){
 
             $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
                           first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id, guardian_id AS school_guardian_id
@@ -118,7 +145,7 @@ $app->post('/parentLogin', function () use($app) {
                           AND communications.post_status_id = 1
                           AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
                           OR communications.class_id is null)
-                          AND communications.audience_id NOT IN (3,4,7,9)
+                          AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
                           --AND students.active IS TRUE
                           AND communications.com_type_id NOT IN (6)
                           AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
@@ -628,72 +655,82 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
     //first check if this number is in use in active use ie taken
     $db0 = getLoginDB();
 
-    $checkOne = $db0->query("SELECT (CASE
-                                    		WHEN EXISTS (SELECT * FROM (
-                                                      SELECT username AS phone FROM parents WHERE username = '$phoneNumber'
-                                                      )a
-                                                      LIMIT 1) THEN 'found'
-                                    		ELSE 'not-found'
-                                      END) AS check_one, (SELECT parent_id FROM parents WHERE username = '$phoneNumber') AS parent_id,
-                                      (SELECT first_name FROM parents WHERE username = '$phoneNumber') AS parent_name");
-    $lineCheck = $checkOne->fetch(PDO::FETCH_OBJ);
-    $phoneCheck = $lineCheck->check_one;
-    $parentId = $lineCheck->parent_id;
-    $parentName = $lineCheck->parent_name;
-    
-    if($phoneCheck === "found"){
-        $sth2 = $db0->prepare("INSERT INTO forgot_password(usr_name, temp_pwd, parent_id)
-                              VALUES ('$phoneNumber','$temporaryPwd',$parentId);");
-        $sth2->execute( array() );
+    $previousIncomplete = $db0->query("SELECT (CASE WHEN EXISTS (SELECT usr_name AS phone FROM forgot_password WHERE usr_name = '$phoneNumber') THEN 'incomplete-reset' ELSE 'continue' END) AS state");
+    $checkOne = $previousIncomplete->fetch(PDO::FETCH_OBJ);
+    $incompleteStatus = $checkOne->state;
+    if($incompleteStatus === "continue"){
 
-        // first we need to change the phone format to +[code]phone
-        $firstChar = substr($phoneNumber, 0, 1);
-        if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
-        // we now create & send the actual sms
-        $forgotPwdObj = new stdClass();
-        $forgotPwdObj->message_recipients = Array();
-        $forgotPwdObj->message_by = "Eduweb Mobile App Forgot Password";
-        $forgotPwdObj->message_date = date('Y-m-d H:i:s');
-        $forgotPwdObj->message_text = "Hello $parentName, use $temporaryPwd as your temporary password for the Eduweb Mobile App.";
-        $forgotPwdObj->subscriber_name = "kingsinternational";// to be replaced;
+      $checkOne = $db0->query("SELECT (CASE
+                                      		WHEN EXISTS (SELECT * FROM (
+                                                        SELECT username AS phone FROM parents WHERE username = '$phoneNumber'
+                                                        )a
+                                                        LIMIT 1) THEN 'found'
+                                      		ELSE 'not-found'
+                                        END) AS check_one, (SELECT parent_id FROM parents WHERE username = '$phoneNumber') AS parent_id,
+                                        (SELECT first_name FROM parents WHERE username = '$phoneNumber') AS parent_name");
+      $lineCheck = $checkOne->fetch(PDO::FETCH_OBJ);
+      $phoneCheck = $lineCheck->check_one;
+      $parentId = $lineCheck->parent_id;
+      $parentName = $lineCheck->parent_name;
+
+      if($phoneCheck === "found"){
+          $sth2 = $db0->prepare("INSERT INTO forgot_password(usr_name, temp_pwd, parent_id)
+                                VALUES ('$phoneNumber','$temporaryPwd',$parentId);");
+          $sth2->execute( array() );
+
+          // first we need to change the phone format to +[code]phone
+          $firstChar = substr($phoneNumber, 0, 1);
+          if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
+          // we now create & send the actual sms
+          $forgotPwdObj = new stdClass();
+          $forgotPwdObj->message_recipients = Array();
+          $forgotPwdObj->message_by = "Eduweb Mobile App Forgot Password";
+          $forgotPwdObj->message_date = date('Y-m-d H:i:s');
+          $forgotPwdObj->message_text = "Hello $parentName, use $temporaryPwd as your temporary password for the Eduweb Mobile App.";
+          $forgotPwdObj->subscriber_name = "api";// to be replaced;
 
 
-        $msgRecipientsObj = new stdClass();
-        $msgRecipientsObj->recipient_name = "$parentName";
-        $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
-        array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
+          $msgRecipientsObj = new stdClass();
+          $msgRecipientsObj->recipient_name = "$parentName";
+          $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
+          array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
 
-        // send the message
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_HEADER, FALSE);
-        curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($forgotPwdObj)); // the data to post
-        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+          // send the message
+          $ch = curl_init();
+          curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
+          curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+          curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+          curl_setopt($ch, CURLOPT_HEADER, FALSE);
+          curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+          curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($forgotPwdObj)); // the data to post
+          curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+          curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
 
-        $resp = curl_exec($ch);
+          $resp = curl_exec($ch);
 
-        if($resp === false)
-        {
-          $app->response()->setStatus(200);
-          $app->response()->headers->set('Content-Type', 'application/json');
-          echo  json_encode(array('response' => 'Success', 'message' => "An error was encountered while attempting to SMS you your temporary password for confirmation and reset. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch) ));
-        }
-        else
-        {
-          $app->response()->setStatus(200);
-          $app->response()->headers->set('Content-Type', 'application/json');
-          echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully", "temporary-code" => $temporaryPwd ));
-        }
+          if($resp === false)
+          {
+            $app->response()->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo  json_encode(array('response' => 'Success', 'message' => "An error was encountered while attempting to SMS you your temporary password for confirmation and reset. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch) ));
+          }
+          else
+          {
+            $app->response()->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully", "temporary-code" => $temporaryPwd ));
+          }
 
-        curl_close($ch);
+          curl_close($ch);
+      }else{
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records.", "status" => "Phone number not found, no sms will be sent." ));
+      }
     }else{
       $app->response()->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
-      echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records.", "status" => "Phone number not found, no sms will be sent." ));
+      echo  json_encode(array('response' => 'error', 'message' => "You seem to have previously tried to reset your password but did not complete the process.", "status" => "Incomplete password reset process detected." ));
     }
     $db0 = null;
 
@@ -718,14 +755,14 @@ $app->get('/confirmTemporaryPassword/:phone/:tempPwd', function ($phoneNumber,$t
                                                       )a
                                                       LIMIT 1) THEN 'found'
                                     		ELSE 'not-found'
-                                      END) AS pwd_status, 
+                                      END) AS pwd_status,
                                       (SELECT temp_pwd FROM forgot_password WHERE usr_name = '$phoneNumber' AND temp_pwd = '$tempPwd') AS pwd,
                                       (SELECT parent_id FROM forgot_password WHERE usr_name = '$phoneNumber' AND temp_pwd = '$tempPwd') AS parent_id");
     $userCheck = $checkPassword->fetch(PDO::FETCH_OBJ);
     $pwdCheck = $userCheck->pwd_status;
     $pwd = $userCheck->pwd;
     $parentId = $userCheck->parent_id;
-    
+
     if($pwdCheck === "found"){
         $sth2 = $db->prepare("UPDATE parents SET password = :pwd WHERE parent_id = :parentId;");
         $sth2->execute( array(':parentId'=>$parentId, ':pwd'=>$pwd) );
@@ -876,7 +913,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                   AND communications.post_status_id = 1
                   AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
                   OR communications.class_id is null)
-                  AND communications.audience_id NOT IN (3,4,7,9)
+                  AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
                   --AND students.active IS TRUE
                   AND communications.com_type_id NOT IN (6)
                   AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
@@ -1194,7 +1231,7 @@ $app->get('/getGalleryCommunications/:school/:student_id', function ($school, $s
               AND communications.post_status_id = 1
               AND (communications.class_id = any(select current_class from app.students where student_id IN (:studentId))
               OR communications.class_id is null)
-              AND communications.audience_id NOT IN (3,4,7,9)
+              AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
               AND communications.send_as_email IS TRUE
               --AND students.active IS TRUE
               AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
@@ -2335,7 +2372,11 @@ $app->get('/getDocReport/:school/:studentId', function ($school,$studentId) {
   {
     $db = setDBConnection($school);
 
-    $sth = $db->prepare("SELECT * FROM app.lowersch_reportcards WHERE student_id = :studentId");
+    $sth = $db->prepare("SELECT term_name, sch.class_id, class_name, lr.* FROM app.lowersch_reportcards lr
+                        INNER JOIN app.terms t USING (term_id)
+                        INNER JOIN app.student_class_history sch ON t.start_date >= sch.start_date AND t.end_date <= sch.end_date AND lr.student_id = sch.student_id
+                        INNER JOIN app.classes c USING (class_id)
+                        WHERE lr.student_id = :studentId");
     $sth->execute( array(':studentId' => $studentId));
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 

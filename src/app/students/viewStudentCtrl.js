@@ -442,6 +442,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					getFeeItems();
 				}
 			}
+			// console.log("Student dob = " + $scope.student.dob)
+			if($scope.student.dob != null || $scope.student.dob != ''){
+				setTimeout(function(){ 
+					document.getElementById('dob').value = $scope.student.dob;
+				}, 1000);
+			}
 			var today = new Date();
 			var dd = today.getDate();
 			var mm = today.getMonth()+1; //January is 0!
@@ -1877,7 +1883,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					uploader.queue[0].file.name = $scope.filename;
 					uploader.uploadAll();
 				}
-
+				// console.log(moment($scope.student.dob).format('DD/MM/YYYY'));
 				var postData = {
 					student_id : $scope.student.student_id,
 					user_id : $rootScope.currentUser.user_id,
@@ -1887,7 +1893,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						middle_name : $scope.student.middle_name,
 						last_name : $scope.student.last_name,
 						gender : $scope.student.gender,
-						dob: $scope.student.dob,
+						dob: document.getElementById('dob').value, // $scope.student.dob,
 						age: $scope.student.age,
 						nationality : $scope.student.nationality,
 						current_class : $scope.student.class_id,

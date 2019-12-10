@@ -65,11 +65,11 @@ function($scope, $rootScope){
 
 		setTimeout( function(){
 			window.print();
-
+			
 			setTimeout( function(){
 				$rootScope.isPrinting = false;
 				window.close();
-			}, 100);
+			}, 3000);
 		}, 100);
 
 	}

@@ -316,28 +316,177 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						    }
 						},
     					'timetables':{
-    						'create_class_timetable': {
-    							'view': true,
-    							'add': true,
-    							'edit': true,
-    							'import': true
-    						},
-    						'class_timetable': {
-    							'view': true,
-    							'add': true,
-    							'edit': true,
-    						},
-    						'create_teacher_timetable': {
-    							'view': true,
-    							'add': true,
-    							'edit': true,
-    						},
-    						'teacher_timetable': {
-    							'view': true,
-    							'add': true,
-    							'edit': true,
-    						},
-    					},
+						'create_class_timetable': {
+							'view': true,
+							'add': true,
+							'edit': true,
+							'import': true
+						},
+						'class_timetable': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+						'create_teacher_timetable': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+						'teacher_timetable': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+					},
+							'transport':{
+									'school_bus': {
+										'view': true,
+										'add': true,
+										'edit': true
+									},
+									'trips': {
+										'view': true,
+										'add': true,
+										'edit': true
+									},
+									/*
+									'pick_up_and_drop_off': {
+										'view': true,
+										'add': true,
+										'edit': true,
+									},
+									*/
+									'mapped_history': {
+										'view': true,
+										'add': true,
+										'edit': true,
+									},
+									'transport_communications': {
+										'view': true,
+										'add': true,
+										'edit': true,
+									},
+									'transport_reports': {
+										'view': true,
+										'add': true,
+										'edit': true,
+									},
+								}
+
+					};
+					break;
+					case "PRINCIPAL":
+					$rootScope.permissions = {
+						'dashboard':{
+							'view': true,
+						},
+						'students':{
+							'view': true,
+							'add': true,
+							'edit': true,
+							'import': true
+						},
+						'staff':{
+							'view': true,
+							'add': true,
+							'edit': true,
+							'import': true
+						},
+						'school':{
+							'school_settings': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'school_dates': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'grading': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'subjects': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'departments': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'classes': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							}
+
+						},
+						'exams':{
+							'exams': {
+								'view': true,
+								'add': true,
+								'edit': true,
+								'import': true
+							},
+							'exam_types': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'report_cards': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'class_analysis': {
+								'view': true,
+							},
+							'stream_analysis': {
+								'view': true,
+							},
+							'exam_reports': {
+								'view': true,
+							},
+						},
+						'communications':{
+							'send_email' : {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'feedback' : {
+							'view': true,
+							'add': true,
+							'edit': true,
+						    }
+						},
+    					'timetables':{
+						'create_class_timetable': {
+							'view': true,
+							'add': true,
+							'edit': true,
+							'import': true
+						},
+						'class_timetable': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+						'create_teacher_timetable': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+						'teacher_timetable': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+					},
 							'transport':{
 									'school_bus': {
 										'view': true,

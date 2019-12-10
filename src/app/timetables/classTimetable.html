@@ -1,0 +1,134 @@
+<div ng-controller="classTimetableCtrl">	
+	<style type="text/css">
+	.color1{background-color: #FF7C00 !important;}.color2{background-color: #00AAFF !important;}
+	.color3{background-color: #8300FF !important;}.color4{background-color: #FB00FF !important;}
+	.color5{background-color: #FF007C !important;}.color6{background-color: #FFD500 !important;}
+	.color7{background-color: #58D68D !important;}.color8{background-color: #A9CCE3 !important;}
+	.color9{background-color: #F0B27A !important;}.color10{background-color: #FFAAAA !important;}
+	.time-entry small{color:#000000 !important;font-weight: 600;}
+	</style>	
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+		
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+		
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+			
+			<div class="clearfix">
+				<h1 id="pageTitle">Select A Class And Term To View Timetable</h1>
+			</div>
+			
+			<!-- search form -->
+			<div class="dataFilterForm" style="width:40%;">	
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+					<!-- class select -->
+					<div class="form-group">
+						<label for="class">Class</label>	
+						<select name="class" id="classSelect" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" ng-change="loadSubjects()">
+							<option value="">--select class--</option>
+						</select>
+					</div>		
+
+					<!-- term select -->
+					<div class="form-group">
+						<label for="term">Term</label>	
+						<select id="termSelect" class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" >
+							<option value="">--select term--</option>
+						</select>	
+					</div>
+					
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+                        <input type="submit" class="btn btn-sm btn-info" ng-click="setUpTt()" value="Load Timetable" />
+                        <span style="display:inline-block !important;">
+                            <input type="submit" class="btn btn-sm btn-success" ng-click="downloadTimetable()" ng-show="recreateComplete" value="Download This Timetable" style="margin-left:2%;" />
+                        </span>
+						<img src="assets/spinner.gif" ng-show="loading" />
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+
+				</form>
+			</div>
+			<!-- // end search form -->
+		</div>
+		
+        <div class="ttView" id="body-content" style="margin-top:135px;background-color:#E0E0E0 !important;height:auto;">
+            <div id="donwloadTt">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="dashboard-panel" style="background-color:#E0E0E0;">					
+                            <div class="dashboard-panel-header" style="background-color:#E0E0E0">
+                                <h1 style="margin-left:20%;text-decoration:underline;">{{timetableTitle}}</h1>
+                            </div>
+                            <div class="row" ng-show="editMode">	
+                                <div class="loading-indicator ng-hide" ng-show="studentsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+                                <!-- TimeTable HTML -->
+                                <div style="margin-left:45px;margin-top:7px;background-color:#E0E0E0;">
+                                    <label for="day">Day:</label>
+                                    <select id="weekday" name="day">
+                                        <option value="hide">-- Day --</option>
+                                        <option value="monday">Monday</option>
+                                        <option value="tuesday">Tuesday</option>
+                                        <option value="wednesday">Wednesday</option>
+                                        <option value="thursday">Thursday</option>
+                                        <option value="friday">Friday</option>
+                                    </select> 
+                                    
+                                    <label for="subject">Subject:</label>
+                                    <select id="subject" name="subject">
+                                        <option value="hide">-- Subject --</option>
+                                        <option ng-repeat="subj in subjects track by $index" value="{{subj.subject_id}}">{{subj.subject_name}}</option>
+                                    </select>
+                                    
+                                    <label for="startTime">Start time:</label>
+                                    <input type="time" id="startTime" name="startTime"
+                                        min="7:00" max="18:00" value="" required>
+                                        
+                                    <label for="endTime">End time:</label>
+                                    <input type="time" id="endTime" name="endTime"
+                                        min="7:00" max="18:00" value="" required>
+                                        
+                                    <span class="form-group submit-btn" style="margin-left:15px;">
+                                        <input type="submit" class="btn btn-sm btn-info" ng-click="getClassTimetableParams()" value="Enter This Into Timetable" />
+                                        <img src="assets/spinner.gif" ng-show="loading" />
+                                    </span>
+                                    
+                                    <span class="form-group submit-btn" style="margin-left:15px;" ng-show="showSave">
+                                        <input type="submit" class="btn btn-sm btn-info" ng-click="saveTimetable()" value="Save This Timetable" />
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <!-- Maybe show the created timetable -->
+                        <style type="text/css"> @import url("components/timetable/styles/timetablejs.css"); </style>
+                        
+                        <div class="timetable" id="tt"></div>
+
+                        <script src="components/timetable/scripts/timetable.min.js"></script>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="timetable-holder" style="display:none;"></div>
+		
+	</div>
+</div>
+
+
+

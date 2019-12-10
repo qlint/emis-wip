@@ -6,6 +6,8 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	if(domain == 'eduweb.co.ke'){
 		// var path = 'http://67.219.189.47/api';
 		var path = 'https://eduweb.co.ke/api';
+	}else if(domain == '67.219.189.47'){
+		var path = 'https://67.219.189.47/api';
 	}else{
 		var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'https://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1	? 'https://api.eduweb.co.ke': 'https://api.eduweb.localhost'));
 	}
@@ -320,6 +322,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getTeacherClassSubjects/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getClassSubjects = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getClassSubjects/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getSubjects = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getSubjects/" + param, successFunction, errorFunction, params);
 	};
@@ -441,6 +447,23 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.setExamTypeSortOrder = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/setExamTypeSortOrder", successFunction, errorFunction, params);
+	};
+	
+	/*********** time tables ************/
+	this.addClassTimetable = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addClassTimetable", successFunction, errorFunction, params);
+	};
+
+	this.fetchClassTimetable = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/fetchClassTimetable/" + param, successFunction, errorFunction, params);
+	};
+
+	this.addTeacherTimetable = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addTeacherTimetable", successFunction, errorFunction, params);
+	};
+
+	this.fetchTeacherTimetable = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/fetchTeacherTimetable/" + param, successFunction, errorFunction, params);
 	};
 
 	/*********** report cards ***********/

@@ -181,6 +181,9 @@ require('subject_functions.php');
 // ************** Exam Marks  ****************** //
 require('exam_functions.php');
 
+// ************** Timetables  ****************** //
+require('timetable_functions.php');
+
 // ************** Report Cards  ****************** //
 require('report_card_functions.php');
 

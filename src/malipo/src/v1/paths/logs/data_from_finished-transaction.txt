@@ -1,0 +1,5 @@
+{"ResultDesc":"Confirmation Service request accepted successfully","ResultCode":"0"}
+{"ResultDesc":"Confirmation Service request accepted successfully","ResultCode":"0"}
+{"ResultDesc":"Confirmation Service request accepted successfully","ResultCode":"0"}
+{"ResultDesc":"Confirmation Service request accepted successfully","ResultCode":"0"}
+{"ResultDesc":"Confirmation Service request accepted successfully","ResultCode":"0"}

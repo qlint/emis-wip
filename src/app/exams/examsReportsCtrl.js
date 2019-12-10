@@ -16,6 +16,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	$scope.alert = {};
 	$scope.refreshing = false;
 	$scope.getReport = "examsTable";
+	$scope.interchangeLabels = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
 	//$scope.loading = true;
 
 	$scope.preLoadMessageH1 = "SELECT A CLASS FROM THE ABOVE FILTER TO LOAD A REPORT";

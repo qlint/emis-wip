@@ -23,6 +23,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.schoolName = window.location.host.split('.')[0];
 	$scope.wantStreamPos = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'lasalle' ? true : false );
 	$scope.wantAutomatedComments = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
+	$scope.interchangeLabels = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
 	$scope.isSpecialExam = (window.location.host.split('.')[0] == 'mico' ? true : false);
 	$scope.noGeneralComments = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'thomasburke' ? true : false );
 	$scope.calculationMode = $rootScope.currentUser.settings["Exam Calculation"];
@@ -201,6 +202,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.filters = data.filters;
 			$scope.isClassTeacher = ( $scope.student.class_teacher_id == $rootScope.currentUser.emp_id ? true : false);
 			$scope.isSchool = ( window.location.host.split('.')[0] == "kingsinternational" || window.location.host.split('.')[0] == "thomasburke" ? true : false);
+			$scope.hideStudentImg = ( window.location.host.split('.')[0] == "thomasburke" ? true : false);
+			$scope.hideLogo = ( window.location.host.split('.')[0] == "thomasburke" ? true : false);
 
 			// fetch the report cards subjects based on user type
 			getExamMarksforReportCard();
@@ -1330,7 +1333,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			graphPoints: $scope.graphPoints,
 			streamRankPosition: $scope.streamRankPosition,
 			streamRankOutOf: $scope.streamRankOutOf,
-			streamRankLastTerm: $scope.streamRankLastTerm,
+			streamRankPositionLastTerm: $scope.streamRankPositionLastTerm,
+			streamRankOutOfLastTerm: $scope.streamRankOutOfLastTerm,
 			overallLastTerm: $scope.overallLastTerm,
 			examTypes: $scope.examTypes,
 			// reportData: $scope.reportData,
@@ -1450,6 +1454,51 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 		console.log("Updata :::",data);
 		apiService.addReportCard(data,createCompleted,apiError);
+
+		// GENERATE PDF AND SAVE TO SERVER
+
+		let element = $("#showReportCard"); // the element we want to convert to pdf
+		/*
+		var blob = new Blob([element], {
+			"type": "text/html"
+		});
+		var reader = new FileReader();
+		reader.onload = function (evt) {
+			if (evt.target.readyState === 2) {
+				console.log(
+							// full data-uri
+							evt.target.result
+							// base64 portion of data-uri
+						, evt.target.result.slice(22, evt.target.result.length));
+				// window.open(evt.target.result)
+			};
+		};
+		reader.readAsDataURL(blob);
+		*/
+		
+		// load html2canvas script and execute code on success
+		$.getScript('/components/html2pdf.bundle2.js', function()
+		{
+			// first hide all elements we don't want on print
+			var myList = document.getElementsByClassName("hideForPrint");
+
+			for(let i=0;i < myList.length; i++){
+				myList[i].style.display="none";
+			}
+
+			// get screenshot
+			var reportCardElement = $("#showReportCard"); // the element we want to convert to pdf
+			var opt = {
+				margin:       0.5,
+				filename:     $scope.schoolName + '_' + $scope.student.student_id + '_termid_' + $scope.report.term_id + '_reportcard.pdf',
+				image:        { type: 'jpeg', quality: 0.98 },
+				html2canvas:  { scale: 2 },
+				jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
+			  };
+			html2pdf(document.getElementById('showReportCard'),opt);
+
+		});
+		
 
 	}
 

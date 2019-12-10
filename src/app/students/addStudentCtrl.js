@@ -28,10 +28,22 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.conditionSelection = [];
 	$scope.formError = false;
 
-	var detailsSection = ['new_student', 'admission_number', 'current_class', 'last_name', 'first_name', 'dob', 'gender', 'emergency_name', 'emergency_relationship', 'emergency_telephone'];
+	var detailsSection = ['new_student', 'admission_number', 'current_class', 'last_name', 'first_name', 'dob', 'gender', 'emergency_name', 'emergency_relationship', 'emergency_telephone', 'house', 'club'];
 	var guardianSection = ['father_last_name','father_first_name','father_id_number','father_telephone','father_email', 'mother_last_name','mother_first_name','mother_id_number','mother_telephone','mother_email'];
 	var feesSection = ['payment_method','installment_option'];
 	$scope.submitted = false;
+
+	if('Houses' in $rootScope.currentUser.settings){
+		if($rootScope.currentUser.settings.Houses !== undefined || $rootScope.currentUser.settings.Houses !== null){
+			$scope.houses = $rootScope.currentUser.settings.Houses.split(',');
+		}
+	}
+	if('Clubs' in $rootScope.currentUser.settings){
+		if($rootScope.currentUser.settings.Clubs !== undefined || $rootScope.currentUser.settings.Clubs !== null){
+			$scope.clubs = $rootScope.currentUser.settings.Clubs.split(',');
+			$scope.clubSelectHght = $scope.clubs.length * 9;
+		}
+	}
 
 	var initializeController = function()
 	{

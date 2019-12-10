@@ -1,5 +1,7 @@
-<style type="text/css" media="print">
-
+<style type="text/css">
+	@media print{
+		div#showReportCard {width:110% !important;margin-left:-25px !important;}
+	}
 </style>
 <script type="text/javascript">
 
@@ -218,10 +220,18 @@ function getChartPath()
 			</div>
 			<!-- // end search form -->
 
-			<div ng-show="showReportCard">
+			<div ng-show="showReportCard" id="showReportCard">
 				<style type="text/css"> @import url("components/css/customSettingReportCard.css"); </style>
 
-				<div class="receipt-header-letterhead row" ng-if="useLetterhead">
+				<div class="receipt-header-letterhead row" ng-show="hideStudentImg" ng-if="useLetterhead">
+					<div class="col-sm-12">
+						<h2 class="receipt-title">Progress<br>Report</h2>
+					</div>
+					<div class="col-sm-12">
+						<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" style="max-width:99%; height:auto;" />
+					</div>
+				</div>
+				<div class="receipt-header-letterhead row" ng-hide="hideStudentImg" ng-if="useLetterhead">
 					<div class="col-sm-3">
 						<h2 class="receipt-title">Progress<br>Report</h2>
 					</div>
@@ -234,15 +244,15 @@ function getChartPath()
 				</div>
 
 				<div class="row progress-report-header"  ng-if="!useLetterhead">
-					<div class="col-xs-2">
+					<div class="col-xs-2" ng-hide="hideLogo">
 						<img src="assets/schools/{{currentUser.settings.logo}}" title="{{currentUser.settings['School Name']}}" class="brand" />
 					</div>
-					<div class="col-xs-8">
+					<div class="col-xs-{{hideLogo == true ? '12' : '8'}}">
 						<h1 class="school-name">{{currentUser.settings['School Name']}}</h1>
 						<div class="school-address">
-							<p ng-hide="wantAutomatedComments">{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
-							<p ng-hide="wantAutomatedComments">Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
-							<p ng-hide="wantAutomatedComments">Email: {{currentUser.settings['Email Address']}}</p>
+							<p ng-hide="interchangeLabels">{{currentUser.settings['Address 1']}}, {{currentUser.settings['Address 2']}}</p>
+							<p ng-hide="interchangeLabels">Contact: {{currentUser.settings['Phone Number 2']}}, {{currentUser.settings['Phone Number']}}</p>
+							<p ng-hide="interchangeLabels">Email: {{currentUser.settings['Email Address']}}</p>
 						</div>
 						<h2 class="report-card-title">Progress Report</h2>
 					</div>
@@ -251,7 +261,7 @@ function getChartPath()
 				<div ng-include="reportCardType"></div>
 
 				<script type="text/ng-template" id="Standard">
-					<div ng-show="savedReport" class="alert alert-warning">
+					<div ng-show="savedReport" class="alert alert-warning hideForPrint">
 						You are viewing a previously saved report card. If this student's exam marks were updated, click 'Re-Create' to generate a new report card.
 						<button type="button" class="btn btn-sm btn-info" ng-click="recreateReport()">Re-Create</button>
 						<div ng-show="differences.length>0">
@@ -263,7 +273,7 @@ function getChartPath()
 							</ul>
 						</div>
 					</div>
-					<div ng-show="recreated" class="alert alert-success">
+					<div ng-show="recreated" class="alert alert-success hideForPrint">
 						Report card has been re-created.
 						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
 					</div>
@@ -307,48 +317,52 @@ function getChartPath()
 						<!-- position, out of, pos last term, out of -->
 						<div class="row" ng-hide="noRanking">
 							<div class="col-xs-1 nopad-right">
-								<label>{{wantAutomatedComments ? 'Stream Position:':'Position:'}}</label>
+								<label>{{interchangeLabels ? 'Stream Position:':'Position:'}}</label>
 							</div>
 							<div class="col-xs-3 lesspad">
-								<p class="form-control-static inline">{{overall.rank}}</p> / <p class="form-control-static inline">{{overall.position_out_of}}</p>
+									<p class="form-control-static inline">{{overall.rank}} / {{overall.position_out_of}}</p>
+								<!--<p class="form-control-static inline">{{overall.rank}}</p> / <p class="form-control-static inline">{{overall.position_out_of}}</p>-->
 							</div>
 
 							<div class="col-xs-2 nopad-right">
 								<label>Pos Last Term:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{overallLastTerm.position_out_of||'--'}}</p>
+									<p class="form-control-static inline">{{overallLastTerm.rank||'-'}} / {{overallLastTerm.position_out_of||'--'}}</p>
+								<!-- <p class="form-control-static inline">{{overallLastTerm.rank||'-'}}</p>  / <p class="form-control-static inline">{{overallLastTerm.position_out_of||'--'}}</p> -->
 							</div>
 
 							<div class="col-xs-2 nopad-right">
 								<label>Last Term Marks:</label>
 							</div>
 							<div class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{overallLastTerm.current_term_marks||'-'}}</p> / <p class="form-control-static inline">{{overallLastTerm.total_grade_weight||'-'}}</p>
+								<p class="form-control-static inline">{{overallLastTerm.current_term_marks||'-'}} / {{overallLastTerm.total_grade_weight||'-'}}</p>
 							</div>
 						</div>
 						<!-- stream position, out of, stream pos last term, out of -->
 						<div class="row" ng-hide="noRanking">
 
 							<div ng-hide="wantStreamPos" class="col-xs-1 nopad-right">
-								<label>{{wantAutomatedComments ? 'Class Position:':'Stream Position:'}}</label>
+								<label>{{interchangeLabels ? 'Class Position:':'Stream Position:'}}</label>
 							</div>
 							<div ng-hide="wantStreamPos" class="col-xs-3 lesspad">
-								<p class="form-control-static inline">{{streamRankPosition}}</p> / <p class="form-control-static inline">{{streamRankOutOf}}</p>
+								<p class="form-control-static inline">{{streamRankPosition}} / {{streamRankOutOf}}</</p>
+								<!-- <p class="form-control-static inline">{{streamRankPosition}}</p> / <p class="form-control-static inline">{{streamRankOutOf}}</p> -->
 							</div>
 
 							<div ng-hide="wantStreamPos" class="col-xs-2 nopad-right">
-								<label>{{wantAutomatedComments ? 'Class Last Term:':'Stream Last Term:'}}</label>
+								<label>{{interchangeLabels ? 'Class Last Term:':'Stream Last Term:'}}</label>
 							</div>
 							<div ng-hide="wantStreamPos" class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{streamRankOutOfLastTerm||'--'}}</p>
+									<p class="form-control-static inline">{{streamRankPositionLastTerm||'-'}} / {{streamRankOutOfLastTerm||'--'}}</p>
+								<!-- <p class="form-control-static inline">{{streamRankPositionLastTerm||'-'}}</p>  / <p class="form-control-static inline">{{streamRankOutOfLastTerm||'--'}}</p> -->
 							</div>
 
 							<div ng-show="isSchool" class="col-xs-2 nopad-right">
 								<label>Current Term Marks:</label>
 							</div>
 							<div ng-show="isSchool" class="col-xs-2 lesspad">
-								<p class="form-control-static inline">{{overall.current_term_marks||'-'}}</p> / <p class="form-control-static inline">{{overall.current_term_marks_out_of||'-'}}</p>
+								<p class="form-control-static inline">{{overall.current_term_marks||'-'}} / {{overall.current_term_marks_out_of||'-'}}</p>
 							</div>
 						</div>
 					</div>
@@ -965,7 +979,7 @@ function getChartPath()
 				</script>
 
 				<script type="text/ng-template" id="Standard-v.2">
-					<div ng-show="savedReport" class="alert alert-warning">
+					<div ng-show="savedReport" class="alert alert-warning hideForPrint">
 						You are viewing a previously saved report card. If this student's exam marks were updated, click 'Re-Create' to generate a new report card.
 						<button type="button" class="btn btn-sm btn-info" ng-click="recreateReport()">Re-Create</button>
 						<div ng-show="differences.length>0">
@@ -977,7 +991,7 @@ function getChartPath()
 							</ul>
 						</div>
 					</div>
-					<div ng-show="recreated" class="alert alert-success">
+					<div ng-show="recreated" class="alert alert-success hideForPrint">
 						Report card has been re-created.
 						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
 					</div>
@@ -1147,7 +1161,7 @@ function getChartPath()
 				</script>
 
 				<script type="text/ng-template" id="Standard-v.3">
-					<div ng-show="savedReport" class="alert alert-warning">
+					<div ng-show="savedReport" class="alert alert-warning hideForPrint">
 						You are viewing a previously saved report card. If this student's exam marks were updated, click 'Re-Create' to generate a new report card.
 						<button type="button" class="btn btn-sm btn-info" ng-click="recreateReport()">Re-Create</button>
 						<div ng-show="differences.length>0">
@@ -1159,7 +1173,7 @@ function getChartPath()
 							</ul>
 						</div>
 					</div>
-					<div ng-show="recreated" class="alert alert-success">
+					<div ng-show="recreated" class="alert alert-success hideForPrint">
 						Report card has been re-created.
 						<button type="button" class="btn btn-sm btn-info" ng-click="revertReport()">Revert</button>
 					</div>
@@ -1671,7 +1685,7 @@ function getChartPath()
 
 
 
-                <div ng-if="isAdmin && parentPortalAcitve">
+                <div ng-if="isAdmin && parentPortalAcitve" class="hideForPrint">
 					<label>Publish this Report Card?</label>
 					<p>
 						<input type="checkbox" name="publish" value="true" ng-model="report.published" id="publish" ng-change="updateReport()" />
@@ -1680,7 +1694,7 @@ function getChartPath()
 				</div>
 
 
-				<div ng-show="saved && (isAdmin || isClassTeacher)" class="alert alert-success">
+				<div ng-show="saved && (isAdmin || isClassTeacher)" class="alert alert-success hideForPrint">
 					Report card has been saved! Click the 'Print' button below.
 				</div>
 
@@ -1701,6 +1715,7 @@ function getChartPath()
     <div id="MainWrap" class="container">
 
 </div>
+<div id="previewImage"></div>
 
 
 

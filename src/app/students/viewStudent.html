@@ -127,13 +127,16 @@ input#tripCheck{transform: scale(1.3);}
 
 							<!-- dob -->
 							<div class="col-sm-3"  ng-class="{ 'has-error' : (studentForm.$submitted || studentForm.dob.$dirty ) && studentForm.dob.$invalid && studentForm.dob.$error.required }">
-								<label for="dob">Date of Birth (m/d/y)</label>
+								<label for="dob">Date of Birth</label>
 								<p class="form-control-static" ng-show="!edit">{{student.dob}}</p>
 								<div ng-show="edit">
-									<input type="text" name="dob" id="dob" class="form-control input-sm" ng-model="student.dob" placeholder="DD/MM/YYYY" required />
+									<div class="input-group">
+										<input type="text" name="dob" id="dob" date-range-picker class="form-control date-picker input-sm" ng-model="student.dob" options="{singleDatePicker: true,autoApply: true}" required>
+										<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
+									</div>
 									<p ng-show="(studentForm.$submitted || studentForm.dob.$dirty ) && studentForm.dob.$invalid && studentForm.dob.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Date of Birth is required.</p>
 								</div>
-							</div>
+							</div> 
 							<div class="col-sm-3">
 								<label for="dob">Age</label>
 								<p style="margin-top:4px;">{{student.age}} Years Old</p>

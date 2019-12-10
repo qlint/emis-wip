@@ -338,6 +338,34 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
       }
     })
+	.state('timetables/create_class_timetable', {
+      url: "/timetables/create_class_timetable",
+	  templateUrl: 'app/timetables/createClassTimetable.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
+	.state('timetables/class_timetable', {
+      url: "/timetables/class_timetable",
+	  templateUrl: 'app/timetables/classTimetable.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
+	.state('timetables/create_teacher_timetable', {
+      url: "/timetables/create_teacher_timetable",
+	  templateUrl: 'app/timetables/createTeacherTimetable.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
+	.state('timetables/teacher_timetable', {
+      url: "/timetables/teacher_timetable",
+	  templateUrl: 'app/timetables/teacherTimetable.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+      }
+    })
 		.state('transport/trips', {
       url: "/transport/trips",
 	  templateUrl: 'app/transport/tripSettings.html',

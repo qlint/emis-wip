@@ -135,8 +135,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		var entity = $scope.filters.entity_id;
 		var termText = document.getElementById('term').value;
 		var term = parseInt(termText.replace(/\D/g,''), 10);
+		console.log($scope.filters);
 		
-		var streamRequest = entity + '/' + term;
+		var streamRequest = entity + '/' + term + '/' + $scope.filters.exam_type_id;
 		
 		apiService.getAllStudentStreamMarks(streamRequest, loadMarks, apiError);
 		$scope.getTheCount();

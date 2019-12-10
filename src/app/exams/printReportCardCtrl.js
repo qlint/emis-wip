@@ -9,6 +9,8 @@ function($scope, $rootScope){
 		$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
 		$scope.wantAutomatedComments = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
 		$scope.schoolName = window.location.host.split('.')[0];
+		$scope.hideStudentImg = ( window.location.host.split('.')[0] == "thomasburke" ? true : false);
+		$scope.hideLogo = ( window.location.host.split('.')[0] == "thomasburke" ? true : false);
 
 		var data = window.printCriteria;
 		$rootScope.isPrinting = true;
@@ -25,6 +27,8 @@ function($scope, $rootScope){
 		$scope.graphPoints = angular.fromJson(data.graphPoints);
 		$scope.streamRankPosition = angular.fromJson(data.streamRankPosition);
 		$scope.streamRankOutOf = angular.fromJson(data.streamRankOutOf);
+		$scope.streamRankPositionLastTerm = angular.fromJson(data.streamRankPositionLastTerm);
+		$scope.streamRankOutOfLastTerm = angular.fromJson(data.streamRankOutOfLastTerm);
 		$scope.nextTermStartDate = data.nextTermStartDate;
 		$scope.currentTermEndDate = data.currentTermEndDate;
 		//$scope.total_overall_mark = data.total_overall_mark;
@@ -46,7 +50,7 @@ function($scope, $rootScope){
 			setTimeout( function(){
 				$rootScope.isPrinting = false;
 				window.close();
-			}, 100);
+			}, 3000);
 		}, 500);
 
 	}

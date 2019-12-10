@@ -903,7 +903,7 @@ $app->get('/getCommunicationOptions', function () {
   {
     $db = getDB();
     $sth1 = $db->prepare("SELECT * FROM app.communication_types ORDER BY com_type");
-    $sth2 = $db->prepare("SELECT * FROM app.communication_audience WHERE audience_id < 13 ORDER BY audience");
+    $sth2 = $db->prepare("SELECT * FROM app.communication_audience WHERE module is null ORDER BY audience");
     $sth1->execute();
     $sth2->execute();
     $types = $sth1->fetchAll(PDO::FETCH_OBJ);
@@ -1039,7 +1039,7 @@ $app = \Slim\Slim::getInstance();
 $app->post('/addCommunication', function () use($app) {
   // Add communication
 
-
+  date_default_timezone_set("Africa/Nairobi");
 
   $allPostVars = json_decode($app->request()->getBody(),true);
 

@@ -2753,7 +2753,9 @@ $app->get('/getDocReport/:studentId', function ($studentId) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT * FROM app.lowersch_reportcards WHERE student_id = :studentId");
+    $sth = $db->prepare("SELECT term_name, lr.* FROM app.lowersch_reportcards lr 
+                        INNER JOIN app.terms t USING (term_id)
+                        WHERE student_id = :studentId");
     $sth->execute( array(':studentId' => $studentId));
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 

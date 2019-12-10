@@ -18,11 +18,17 @@ function($http, $rootScope, $window, Session, AUTH_EVENTS, ajaxService) {
 		***************************/
 
 		var domain = window.location.host;
+		console.log("To" + domain);
 		// var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'http://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1  ? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost'));
 		// if(domain == '67.219.189.47'){
 		if(domain == 'eduweb.co.ke'){
 			// var path = 'http://67.219.189.47/api';
 			var path = 'https://eduweb.co.ke/api';
+			var subdomainArr = domain.split('/').reverse();
+			var subdomain = subdomainArr[3];
+		}else if(domain == '67.219.189.47'){
+			console.log("Using IP");
+			var path = 'https://67.219.189.47/api';
 			var subdomainArr = domain.split('/').reverse();
 			var subdomain = subdomainArr[3];
 		}else{

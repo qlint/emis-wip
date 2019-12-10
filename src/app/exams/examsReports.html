@@ -68,12 +68,12 @@
 					<div class="form-group">
 						<label for="analysis">Analysis</label>
 						<select id="analysis" class="form-control" ng-model="filters.analysis" >
-							<option disabled>-- CLASS REPORTS --</option>
-                              <option value="class_performace">Class Performance</option>
-                              <option value="class_mean">Class Mean</option>
-                            <option disabled>-- STREAM REPORTS --</option>
-                              <option value="stream_performace">Stream Performance</option>
-                              <option value="stream_mean">Stream Mean</option>
+							<option disabled>-- {{interchangeLabels == true ? 'STREAM' : 'CLASS'}} REPORTS --</option>
+                              <option value="class_performace">{{interchangeLabels == true ? 'Stream' : 'Class'}} Performance</option>
+                              <option value="class_mean">{{interchangeLabels == true ? 'Stream' : 'Class'}} Mean</option>
+                            <option disabled>-- {{interchangeLabels == true ? 'CLASS' : 'STREAM'}} REPORTS --</option>
+                              <option value="stream_performace">{{interchangeLabels == true ? 'Class' : 'Stream'}} Performance</option>
+                              <option value="stream_mean">{{interchangeLabels == true ? 'Class' : 'Stream'}} Mean</option>
 							<option disabled>-- MORE --</option>
                               <option value="improvement_report">Exam Improvement</option>
                               <option value="stream_grades">Grades Attainment</option>

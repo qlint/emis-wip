@@ -62,7 +62,7 @@
             <!-- ******************** QUERY ******************** -->
 
             <?php
-            $tableQuery = pg_query($db,"SELECT students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, gender, class_name,
+            $tableQuery = pg_query($db,"SELECT students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, admission_number, gender, class_name,
                                         	guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name AS parent_name, relationship,
                                         	telephone
                                         FROM app.students
@@ -80,6 +80,7 @@
                         <thead>
                             <tr class='row100 head'  id="tblHeader">
                                 <th class='cell100 column1'>STUDENT NAME</th>
+                                <th class='cell100 column2'>ADM. #</th>
                                 <th class='cell100 column6'>GND.</th>
                                 <th class='cell100 column2'>CLASS</th>
                                 <th class='cell100 column3'>PARENT</th>
@@ -94,6 +95,7 @@
                                while ($row3 = pg_fetch_assoc($tableQuery)) {
                                   echo "<tr class='row100 body'>";
                                      echo "<td class='cell100 column1'>" . $row3['student_name'] . "</td>";
+                                     echo "<td class='cell100 column2'>" . $row3['admission_number'] . "</td>";
                                      echo "<td class='cell100 column6'>" . $row3['gender'] . "</td>";
                                      echo "<td class='cell100 column2'>" . $row3['class_name'] . "</td>";
                                      echo "<td class='cell100 column3'>" . $row3['parent_name'] . "</td>";

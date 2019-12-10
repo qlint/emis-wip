@@ -81,6 +81,10 @@ header('Access-Control-Allow-Origin: *');
   $lastSegmentOfUrl = explode('/', $readUrl);
   echo "Last part of current url is " . end($lastSegmentOfUrl);
   echo "<br><br>";
+  
+  if (date_default_timezone_get()) {
+    echo 'date_default_timezone_set= ' . date_default_timezone_get() . '<br />';
+}
 
   ?>
 

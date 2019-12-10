@@ -1,0 +1,7 @@
+{
+            "ConversationID": "",
+            "OriginatorCoversationID": "",
+            "ResponseDescription": "success"
+        }
+        
+{"Envelope":{"encodingStyle":"http:\/\/schemas.xmlsoap.org\/soap\/encoding\/","Body":{"Fault":{"faultcode":"soap:Server","faultstring":"Execution of ServiceCallout SCO-AddURLVault failed. Reason: ResponseCode 409 is treated as error","faultactor":{},"detail":{"source":{"errorcode":"steps.servicecallout.ExecutionFailed"}}}}}}
