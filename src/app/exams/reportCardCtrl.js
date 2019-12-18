@@ -36,7 +36,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.showReportCard = false;
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
-	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
+	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'ADMIN' ? true : false );
 	//$scope.noRanking = ( window.location.host.split('.')[0] == 'lasalle' ? true : false );
 	if( data.filters.class.class_cat_id == 21 || data.filters.class.class_cat_id == 5 || data.filters.class.class_cat_id == 6 || data.filters.class.class_cat_id == 7 || data.filters.class.class_cat_id == 8 || data.filters.class.class_cat_id == 9 ){
 	    $scope.noRanking = ( window.location.host.split('.')[0] == 'lasalle' ? true : false );

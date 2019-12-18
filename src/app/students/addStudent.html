@@ -1,4 +1,6 @@
-
+<style type="text/css">
+	@import url("components/selectBox/vanillaSelectBox.css");
+</style>
 <form name="studentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(studentForm)">
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
@@ -119,7 +121,7 @@
 							<label for="dob" class="col-sm-4 control-label">Date of Birth</label>
 							<div class="col-sm-8">
 								<div class="input-group">
-									<input type="text" name="dob" id="dob" date-range-picker class="form-control date-picker input-sm" ng-model="student.dob" options="{singleDatePicker: true,autoApply: true}" required>
+									<input type="text" name="dob" id="dob" ng-click="getDob()" date-range-picker class="form-control date-picker input-sm" ng-model="student.dob" options="{singleDatePicker: true,autoApply: true}" required>
 									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 								</div>
 								<p ng-show="(studentForm.$submitted || studentForm.dob.$dirty ) && studentForm.dob.$invalid && studentForm.dob.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Date of Birth is required.</p>
@@ -208,15 +210,26 @@
 						</div>
 
 						<!-- clubs -->
+						<!--
 						<div class="form-group">
 							<label for="club" class="col-sm-4 control-label">Clubs</label>
-								<div class="col-sm-8">
-									<select name="club" ng-model="student.club" class="form-control">
-										<option value="">No Club</option>
-										<option value="{{item}}" ng-repeat="item in clubs">{{item}}</option>
-									</select>
-								</div>
+							<div class="col-sm-8">
+								<select name="club" ng-model="student.club" class="form-control">
+									<option value="">No Club</option>
+									<option value="{{item}}" ng-repeat="item in clubs">{{item}}</option>
+								</select>
 							</div>
+						</div>
+						-->
+						<div class="form-group">
+							<label for="club" class="col-sm-4 control-label">Clubs</label>
+							<div class="col-sm-8">
+								<select name="club" id="clubs" ng-model="student.club" multiple size="3" class="form-control">
+									<option value="">No Club</option>
+									<option value="{{item}}" ng-repeat="item in clubs">{{item}}</option>
+								</select>
+							</div>
+						</div>
 
 					</div>
 					<div class="col-sm-6">
@@ -619,3 +632,39 @@
 
 		</div>
 </form>
+<script type="text/javascript" src="components/selectBox/vanillaSelectBox.js"></script>
+<script type="text/javascript">
+setTimeout(function(){
+	let select2 = document.getElementById("clubs");
+	let selectBox2 = null;
+    function setEnable(id, isEnabled) {
+        if (id == "clubs" && selectBox2 != null) {
+            if (isEnabled) { selectBox2.enable(); } else { selectBox2.disable(); }
+        }
+    }
+    function empty(id) {
+        if (id == "clubs" && selectBox2 != null) { selectBox2.empty(); }
+    }
+    function doDestroy(id) {
+        if (id == "clubs" && selectBox2 != null) { selectBox2.destroy(); }
+    }
+    function init(id) {
+        if (id == "clubs") {
+            selectBox2 = new vanillaSelectBox("#clubs", { "maxHeight": 200, "search": true });
+        }
+    }
+    function setValues(id, value) {
+        if (id == "clubs" && selectBox2 != null) { selectBox2.setValue(value); }
+    }
+    function getValues(id) {
+        let result = [];
+        let collection = document.querySelectorAll("#" + id + " option");
+        collection.forEach(function (x) {
+            if (x.selected) { result.push(x.value); }
+        });
+        return result;
+    }
+	init("clubs");
+	document.getElementsByClassName('vsb-menu')[0].style.left = '18%';
+}, 3000);
+</script>

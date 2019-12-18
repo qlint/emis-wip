@@ -127,7 +127,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 							$scope.loadingPost = false;
 							if( $scope.post.send_method ==  'sms' ) $scope.post.title = $scope.post.message; // sms message is displayed in title field
 
-							if( $scope.noEmpId || $scope.isAdmin )
+							if( $scope.noEmpId || $scope.isAdmin || $scope.isAdmin2 )
 							{
 							    // get list of employees
 								apiService.getAllEmployees(true, loadEmployees, apiError);
@@ -828,7 +828,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	        // console.log($rootScope.currentUser);
 	        console.log("Sending msg to employee_id (theemployee2) = " + $scope.post.emp_id);
 	        // console.log("Original theemployee emp_id = " + angular.copy($scope.theemployee2.selected.emp_id));
-			if( $scope.isAdmin ) apiService.getAllEmployees(true, loadEmployees, apiError); // get list of employees
+			if( $scope.isAdmin || $scope.isAdmin2 ) apiService.getAllEmployees(true, loadEmployees, apiError); // get list of employees
 
 		}
 	}

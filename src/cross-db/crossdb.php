@@ -25,7 +25,7 @@
     	    // now we can create a second db connection for each of the db's above and execute a query on each
 
     	    $schoolDb = pg_connect("host=localhost port=5432 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
-            $executeOnSchoolDb = pg_query($schoolDb,"UPDATE app.communication_audience SET module = 'Transport' WHERE audience_id > 13;"); // executing the query
+            $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.students ADD COLUMN transfer_date date;"); // executing the query
             // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
     	    echo $dbOutput; // just an output of all our db's
     }

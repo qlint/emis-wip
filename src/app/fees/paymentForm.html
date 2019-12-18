@@ -69,7 +69,8 @@
 					<div class="form-group">
 						<label for="slip_cheque_no" class="col-sm-3 control-label nopad">Slip/Cheque No.</label>
 						<div class="col-sm-5">
-							<input type="text" name="slip_cheque_no" ng-model="payment.slip_cheque_no" class="form-control"  >
+							<input type="text" name="slip_cheque_no" ng-model="payment.slip_cheque_no" class="form-control" id="slip_cheque_no" required  >
+							<p ng-show="paymentForm.slip_cheque_no.$invalid && (paymentForm.slip_cheque_no.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Slip/Cheque No. is required.</p>
 						</div>
 					</div>
 

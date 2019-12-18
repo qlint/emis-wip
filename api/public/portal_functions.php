@@ -286,7 +286,7 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
     $db0 = null;
     if($lineInUse === "continue"){
 
-        $db = pg_connect("host=localhost port=5432 dbname=eduweb_mis user=postgres password=pg_edu@8947");
+        $db = pg_connect("host=localhost port=5433 dbname=eduweb_mis user=postgres password=pg_edu@8947");
 
         // Query 1 - Get all databases
         $fetchDbs = pg_query($db,"SELECT subdomain FROM clients WHERE active IS TRUE");
@@ -306,7 +306,7 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
           // db connect for each school
 
           	$dbhost="localhost";
-          	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5432" : "5434");
+          	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5433" : "5434");
           	$dbuser = "postgres";
           	$dbpass = "pg_edu@8947";
           	$dbname = $value;

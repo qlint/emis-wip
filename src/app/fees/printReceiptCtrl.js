@@ -29,8 +29,8 @@ function($scope, $rootScope){
 			setTimeout( function(){
 				$rootScope.isPrinting = false;
 				window.close();
-			}, 100);
-		}, 100);
+			}, 3000);
+		}, 3000);
 	}
 	setTimeout(initializeController,1);
 

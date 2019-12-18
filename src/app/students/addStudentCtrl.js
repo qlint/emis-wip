@@ -45,6 +45,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 
+	$scope.getDob = function(){
+		// $scope.student.dob = document.getElementById('dob').value
+		function dobScript(){
+			console.log(document.getElementById('dob').value);
+			$scope.student.dob1 = document.getElementById('dob').value;
+			return $scope.student.dob1;
+		}
+		document.getElementById('dob').addEventListener("focusout", dobScript);
+		// console.log($scope.student.dob);
+	}
+
 	var initializeController = function()
 	{
 		var studentCats = $rootScope.currentUser.settings['Student Categories'];
@@ -390,6 +401,23 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 			$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
 
+			// format clubs string before posting
+			var clubsArr = $('#clubs').val();
+			// check if there are any clubs selected
+			if(clubsArr == null || clubsArr == undefined || clubsArr == [] || clubsArr == ''){
+				$scope.student.club = null;
+			}else{
+				$scope.student.club = clubsArr.join(',');
+			}
+			console.log($scope.student.club);
+
+			// this doesn't exist in the add student yet so we set it to null
+			$scope.student.movement = null;
+
+			// also, lets get the DOB manually
+			console.log($scope.student.dob1);
+			$scope.student.dob = $scope.student.dob1;
+
 			var postData = angular.copy($scope.student);
 			postData.admission_date = moment($scope.student.admission_date.startDate).format('YYYY-MM-DD');
 			postData.current_class = $scope.student.current_class.class_id;
@@ -398,7 +426,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			postData.feeItems = $scope.feeItemSelection;
 			postData.optFeeItems = $scope.optFeeItemSelection;
 			postData.user_id = $rootScope.currentUser.user_id;
-      postData.route_id = $scope.student.transport_route !== undefined ? $scope.student.transport_route.transport_id : null;
+			postData.route_id = $scope.student.transport_route !== undefined ? $scope.student.transport_route.transport_id : null;
+			console.log(postData);
 
 
 			apiService.postStudent(postData, createCompleted, createError);
@@ -504,6 +533,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	var createError = function (response)
 	{
+		console.log(response);
 		var result = angular.fromJson( response );
 		$scope.formError = true;
 		if( result.data.indexOf('"U_admission_number"') > -1 )

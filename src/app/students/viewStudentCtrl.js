@@ -444,7 +444,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			// console.log("Student dob = " + $scope.student.dob)
 			if($scope.student.dob != null || $scope.student.dob != ''){
-				setTimeout(function(){ 
+				setTimeout(function(){
 					document.getElementById('dob').value = $scope.student.dob;
 				}, 1000);
 			}
@@ -1876,6 +1876,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			// going to only send data that is on the current tab
 			if( $scope.currentTab == 'Details' )
 			{
+
 				if( uploader.queue[0] !== undefined )
 				{
 					// need a unique filename
@@ -1893,7 +1894,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						middle_name : $scope.student.middle_name,
 						last_name : $scope.student.last_name,
 						gender : $scope.student.gender,
-						dob: document.getElementById('dob').value, // $scope.student.dob,
+						dob: document.getElementById('dob').value.replace(/\//g,"-"), // $scope.student.dob,
 						age: $scope.student.age,
 						nationality : $scope.student.nationality,
 						current_class : $scope.student.class_id,
@@ -1910,9 +1911,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
                         nemis: $scope.student.nemis,
 						house: $scope.student.house,
 						club: ($scope.student.club != null || $scope.student.club != undefined ? $scope.student.club.join(',') : null),
-						movement: $scope.student.movement
+						movement: $scope.student.movement,
+						transfer_date: null // document.getElementById('transfer_date').value // $scope.student.transfer_date
 					}
 				}
+				console.log(postData);
 			}
 			else if ( $scope.currentTab == 'Family' )
 			{
@@ -2349,6 +2352,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 
 		$scope.save = function(theForm)
 		{
+
 			// if( !theForm.$invalid && $scope.uniqueUsername !== false && $scope.uniqueIdNumber !== false )
 			if( $scope.uniqueUsername !== false && $scope.uniqueIdNumber !== false )
 			{

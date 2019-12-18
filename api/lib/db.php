@@ -7,7 +7,7 @@ function getDB()
 	if( isset($dbData->dbname) )
 	{
 		$dbhost="localhost";
-		$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5432" : "5434");
+		$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5433" : "5434");
 		$dbuser = $dbData->dbuser;
 		$dbpass = $dbData->dbpass;
 		$dbname = $dbData->dbname;
@@ -24,7 +24,7 @@ function getDB()
 function getMISDB()
 {
 	$dbhost="localhost";
-	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5432" : "5434");
+	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5433" : "5434");
 	$dbuser="postgres";
 	$dbpass="pg_edu@8947";
 	$dbname="eduweb_mis";
@@ -58,7 +58,7 @@ function getClientDBData()
 function getLoginDB()
 {
 	$dbhost="localhost";
-	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5432" : "5434");
+	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5433" : "5434");
 	$dbuser = "postgres";
 	$dbpass = "pg_edu@8947";
 	$dbname = "eduweb_mis";
@@ -76,7 +76,7 @@ function setDBConnection($subDomain)
 	$appData = $sth->fetch(PDO::FETCH_OBJ);
 
 	$dbhost="localhost";
-	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5432" : "5434");
+	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5433" : "5434");
 	$dbuser = $appData->dbusername;
 	$dbpass = $appData->dbpassword;
 	$dbname = "eduweb_" . $subDomain;
