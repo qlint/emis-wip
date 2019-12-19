@@ -119,6 +119,41 @@ $app->get('/getPaymentsDue(/:startDate/:endDate)', function ($startDate=null,$en
 
 });
 
+$app->get('/checkSlipNo/:slipChequeNo', function ($slipChequeNo) {
+    // Get all payment due for given date range
+  // TO DO: not using start and end dates, only pulling the current month
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+       $sth = $db->prepare("SELECT (CASE
+                                  		WHEN EXISTS (SELECT slip_cheque_no FROM app.payments WHERE slip_cheque_no = :slipChequeNo) THEN 'Duplicate Entry'
+                                  		ELSE 'New Entry'
+                                  	END) AS status");
+      $sth->execute( array(':slipChequeNo' => $slipChequeNo) );
+      $results = $sth->fetch(PDO::FETCH_OBJ);
+
+      if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getPaymentsPastDue(/:student_id)', function ($studentId=null) {
     // Get all payment due for given date range
   // TO DO: do I need to keep the student ID or can this be removed?

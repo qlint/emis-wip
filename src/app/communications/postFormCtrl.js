@@ -33,7 +33,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 	$scope.noEmpId = ( $rootScope.currentUser.emp_id === null ? true : false );
 	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
-	$scope.isAdmin2 = ( $rootScope.currentUser.user_type == 'ADMIN' ? true : false );
+	$scope.isAdmin2 = ( $rootScope.currentUser.user_type == 'ADMIN' || $rootScope.currentUser.user_type == 'PRINCIPAL' ? true : false );
 
     if( $scope.isHomework )
 	{
@@ -42,7 +42,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		$scope.dates.assigned_date = {startDate:moment().format('YYYY-MM-DD')};
 		$scope.dates.due_date = {startDate:null};
 	}
-	
+
 	var initializeController = function()
 	{
 	    /* post_id was passed, editing a post */
@@ -180,10 +180,10 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		}
 		else if( $scope.post.post_id !== undefined )
 		{
-		    
+
 			if( $scope.isEmail )
 			{
-			    
+
 				$scope.post.title = $scope.post.subject;
 				$scope.post.body = $scope.post.message;
 				$scope.attachment = $scope.post.attachment;
@@ -675,7 +675,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		}
 
 	}
-	
+
 	var loadEmployeesForComms = function(response)
 	{
 	    var result = angular.fromJson(response);
@@ -686,7 +686,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			console.log($scope.employeesForComms);
 
             $scope.employeeComms = [];
-            
+
             var z;
             for(z = 0; z < $scope.employeesForComms.length; z++){
                 var employeeObj = {

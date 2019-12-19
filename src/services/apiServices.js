@@ -448,7 +448,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.setExamTypeSortOrder = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/setExamTypeSortOrder", successFunction, errorFunction, params);
 	};
-	
+
 	/*********** time tables ************/
 	this.addClassTimetable = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addClassTimetable", successFunction, errorFunction, params);
@@ -685,6 +685,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getPaymentsDue = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getPaymentsDue/" + param, successFunction, errorFunction, params);
+	};
+
+	this.checkSlipNo = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/checkSlipNo/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getPaymentsPastDue = function (param, successFunction, errorFunction, params) {

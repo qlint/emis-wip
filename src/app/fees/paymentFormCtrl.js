@@ -19,6 +19,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.apply_to_all = [];
 	$scope.totalApplied = 0;
 	$scope.totalCredit = 0;
+	$scope.slip_check_ready = false;
 
 	var initializeController = function()
 	{
@@ -278,6 +279,25 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					emptyTable: settings.noResultsTxt
 				},
 			} );
+	}
+
+	$scope.checkSlipNo = function(){
+		// console.log($scope.payment.slip_cheque_no);
+		apiService.checkSlipNo($scope.payment.slip_cheque_no, function(response, status)
+		{
+			var result = angular.fromJson(response);
+
+			if( result.response == 'success')
+			{
+				$scope.checkSlipNoStatus = result.data.status;
+				console.log(result,$scope.checkSlipNoStatus);
+				$scope.slip_check_ready = true;
+			}
+			else
+			{
+				//
+			}
+		}, apiError);
 	}
 
 	var apiError = function (response, status)
