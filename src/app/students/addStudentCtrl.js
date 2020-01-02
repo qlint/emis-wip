@@ -27,6 +27,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.optFeeItemSelection = [];
 	$scope.conditionSelection = [];
 	$scope.formError = false;
+	$scope.schoolName = window.location.host.split('.')[0];
 
 	var detailsSection = ['new_student', 'admission_number', 'current_class', 'last_name', 'first_name', 'dob', 'gender', 'emergency_name', 'emergency_relationship', 'emergency_telephone', 'house', 'club'];
 	var guardianSection = ['father_last_name','father_first_name','father_id_number','father_telephone','father_email', 'mother_last_name','mother_first_name','mother_id_number','mother_telephone','mother_email'];
@@ -353,19 +354,26 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
                         			var result2 = angular.fromJson( response );
                         			if( result2.response == 'success' )
                         			{
-                        			    // console.log("Latest admission :: ",result2);
+																	// console.log("Latest admission :: ",result2);
                         			    var latestAdmission = result2.data.admission_number;
-
-                        			    if(latestAdmission.search(/-/) > -1){
-                        			        var lastSegment = latestAdmission.split('-').reverse()[0];
-                        			        var admissionIncrement = Number(lastSegment) + 1;
-                            			    var newAdmissionNumber = window.location.host.split('.')[0] + '-' + new Date().getFullYear() + '-' + admissionIncrement;
-                            			    $scope.student.admission_number = newAdmissionNumber;
-                        			    }else{
-                        			        var admissionIncrement = Number(latestAdmission) + 1;
-                            			    var newAdmissionNumber = window.location.host.split('.')[0] + '-' + new Date().getFullYear() + '-' + admissionIncrement;
-                            			    $scope.student.admission_number = newAdmissionNumber;
-                        			    }
+																	if($scope.schoolName == 'chrisco-educational-centre'){
+																			var shortYear = new Date().getFullYear().toString().substr(-2);
+																			var actualAdmissionStr = latestAdmission.substring(0,latestAdmission.length - 2);
+																			var newAdmNo = parseInt(actualAdmissionStr) + 1;
+		                        			    $scope.student.admission_number = newAdmNo + shortYear;
+																			console.log("New admission = " + $scope.student.admission_number);
+																	}else{
+																			if(latestAdmission.search(/-/) > -1){
+																					var lastSegment = latestAdmission.split('-').reverse()[0];
+																					var admissionIncrement = Number(lastSegment) + 1;
+																					var newAdmissionNumber = window.location.host.split('.')[0] + '-' + new Date().getFullYear() + '-' + admissionIncrement;
+																					$scope.student.admission_number = newAdmissionNumber;
+																			}else{
+																					var admissionIncrement = Number(latestAdmission) + 1;
+																					var newAdmissionNumber = window.location.host.split('.')[0] + '-' + new Date().getFullYear() + '-' + admissionIncrement;
+																					$scope.student.admission_number = newAdmissionNumber;
+																			}
+																	}
 
                         			}
 
