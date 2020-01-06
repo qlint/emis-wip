@@ -35,7 +35,7 @@
    // DB connect
    foreach ($schools as &$value) {
      $getDbname = 'eduweb_'.$value;
-     $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+     $db = pg_connect("host=localhost port=5433 dbname=".$getDbname." user=postgres password=postgres");
 
      $query = pg_query($db,"ALTER TABLE app.students
                             ADD COLUMN pick_up_drop_off_individual_img character varying");

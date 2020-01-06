@@ -20,12 +20,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.totalApplied = 0;
 	$scope.totalCredit = 0;
 	$scope.slip_check_ready = false;
+	$scope.bankSelected = false;
 
 	var initializeController = function()
 	{
 		var paymentMethods = $rootScope.currentUser.settings['Payment Methods'];
 		$scope.paymentMethods = paymentMethods.split(',');
 
+		$scope.paymentBanks = [
+													$rootScope.currentUser.settings['Bank Name'],
+													$rootScope.currentUser.settings['Bank Name 2']
+												];
+		console.log("Payment Banks",$scope.paymentBanks);
 
 		if( $scope.selectedStudent === undefined )
 		{
@@ -115,6 +121,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		},apiError);
 
 	});
+
+	$scope.checkMethod = function(){
+		console.log($scope.payment.payment_method);
+		if($scope.payment.payment_method == 'Bank receipts' || $scope.payment.payment_method == 'Bank transfer' || $scope.payment.payment_method == 'Cheque'){
+			$scope.bankSelected = true;
+		}else{
+			$scope.bankSelected = false;
+		}
+	}
 
 	$scope.selectAllItems = function(key, invoice)
 	{
@@ -440,6 +455,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				payment_date : moment($scope.payment.payment_date.startDate).format('YYYY-MM-DD'),
 				amount: $scope.payment.amount,
 				payment_method : $scope.payment.payment_method,
+				payment_bank : ($scope.payment.payment_method == 'Bank receipts' || $scope.payment.payment_method == 'Bank transfer' ? $scope.payment.payment_bank : null),
+				payment_bank_date : ($scope.payment.payment_method == 'Bank receipts' || $scope.payment.payment_method == 'Bank transfer' ? moment($scope.payment.payment_bank_date.startDate).format('YYYY-MM-DD') : null),
 				slip_cheque_no: $scope.payment.slip_cheque_no,
 				custom_receipt_no: $scope.payment.custom_receipt_no,
 				replacement_payment: ($scope.payment.replacement_payment ? 't' : 'f' ),
@@ -465,6 +482,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				payment_date : moment($scope.payment.payment_date.startDate).format('YYYY-MM-DD'),
 				amount: $scope.payment.amount,
 				payment_method : $scope.payment.payment_method,
+				payment_bank : ($scope.payment.payment_method == 'Bank receipts' || $scope.payment.payment_method == 'Bank transfer' ? $scope.payment.payment_bank : null),
+				payment_bank_date : ($scope.payment.payment_method == 'Bank receipts' || $scope.payment.payment_method == 'Bank transfer' ? moment($scope.payment.payment_bank_date.startDate).format('YYYY-MM-DD') : null),
 				slip_cheque_no: $scope.payment.slip_cheque_no,
 				custom_receipt_no: $scope.payment.custom_receipt_no,
 				replacement_payment: ($scope.payment.replacement_payment == 'true' ? 't' : 'f' ),

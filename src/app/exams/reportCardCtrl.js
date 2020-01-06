@@ -391,7 +391,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
 			}else{
 				// console.log("Upper Sch.");
-				console.log(params);
+				// console.log(params);
 				apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
 				if($scope.isSpecialExam == true){ apiService.getSpecialExamMarksforReportCard(params, loadSpecialExamMarks, apiError); }
 			}
@@ -610,7 +610,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			{
 
 				$scope.showReportCard = true;
-				console.log(result.data);
+				// console.log(result.data);
 				buildReportBody(result.data);
 				// $( "#remotegraph" ).load( "/studentgraph.html div#remotegraph" );
 
@@ -644,7 +644,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			{
 
 				$scope.showReportCard = true;
-				console.log("Special report data",result.data);
+				// console.log("Special report data",result.data);
 				buildSpecialReportBody(result.data);
 				// $( "#remotegraph" ).load( "/studentgraph.html div#remotegraph" );
 
@@ -672,13 +672,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		    $scope.overallSubjectMarks = data.subjectOverallByAvg;
 		    $scope.overall = data.overallByAverage;
 			$scope.overallLastTerm = data.overallLastTermByAverage;
-			console.log("Assigning by average",$scope.overallLastTerm);
+			// console.log("Assigning by average",$scope.overallLastTerm);
 			// console.log($scope.overall);
 			// $scope.comments.teacher_name = (window.location.host.split('.')[0] == 'thomasburke' ? $scope.comments.teacher_name.split(' ')[0] : $scope.comments.teacher_name);
 			$scope.comments.teacher_name = $scope.comments.teacher_name;
 			// $scope.comments.principle_comments = $scope.overall.principal_comment;
 		}else if($scope.calculationMode == "Last Exam"){
-			console.log("Assigning by last exam");
+			// console.log("Assigning by last exam");
 		    $scope.overallSubjectMarks = data.subjectOverall;
     		$scope.overall = data.overall;
 			$scope.overallLastTerm = data.overallLastTerm;
@@ -784,7 +784,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		angular.forEach( $scope.reportData.subjects, function(item,key){
 			if( item.use_for_grading )
 			{
-				
+
 				var overall = $scope.overallSubjectMarks.filter(function(item2){
 					if( item.subject_name == item2.subject_name ) return item2;
 				})[0];
@@ -1402,7 +1402,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.save = function()
 	{
-		console.log($scope.reportData);
+		// console.log($scope.reportData);
     	$scope.reportData.position = $scope.overall;
 		$scope.reportData.stream_position = $scope.streamPosition;
 		$scope.reportData.position_last_term = $scope.overallLastTerm;
@@ -1452,7 +1452,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			report_data : JSON.stringify($scope.reportData),
 			published: $scope.report.published || 'f'
 		}
-		console.log("Updata :::",data);
+		// console.log("Updata :::",data);
 		apiService.addReportCard(data,createCompleted,apiError);
 
 		// GENERATE PDF AND SAVE TO SERVER
@@ -1475,7 +1475,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		};
 		reader.readAsDataURL(blob);
 		*/
-		
+
 		// load html2canvas script and execute code on success
 		$.getScript('/components/html2pdf.bundle2.js', function()
 		{
@@ -1495,10 +1495,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				html2canvas:  { scale: 2 },
 				jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
 			  };
-			html2pdf(document.getElementById('showReportCard'),opt);
+			var reportCardPdf = html2pdf(document.getElementById('showReportCard'),opt);
+			console.log("The type of reportCardPdf is " + typeof reportCardPdf);
 
 		});
-		
+
 
 	}
 

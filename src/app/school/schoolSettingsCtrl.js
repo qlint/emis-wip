@@ -70,12 +70,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Account Number 2' : angular.copy($rootScope.currentUser.settings['Account Number 2']	),
 			'Mpesa Details' : angular.copy($rootScope.currentUser.settings['Mpesa Details']	),
 			'Use Feedback' : angular.copy($rootScope.currentUser.settings['Use Feedback']	),
+			'Use Receipt Items' : angular.copy($rootScope.currentUser.settings['Use Receipt Items'] ),
 			'Use Autoadmission' : angular.copy($rootScope.currentUser.settings['Use Autoadmission']	),
 			'Committees' : angular.copy($rootScope.currentUser.settings['Committees']	),
 			'Clubs' : angular.copy($rootScope.currentUser.settings['Clubs']	),
 			'Houses' : angular.copy($rootScope.currentUser.settings['Houses']	),
 			'Exam Calculation' : angular.copy($rootScope.currentUser.settings['Exam Calculation']),
 		}
+		if($scope.settings['Use Receipt Items'] == undefined){
+			$scope.settings['Use Receipt Items'] = "true";
+		}
+		console.log($scope.settings);
 
 		if($scope.settings['Bank Name 2'] == 'Null'){ $scope.settings['Bank Name 2'] = ''; }
 		if($scope.settings['Bank Branch 2'] == 'Null'){ $scope.settings['Bank Branch 2'] = ''; }
@@ -90,9 +95,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
             function setSwitchState(el, flag) {
                 el.attr('checked', flag);
             }
-
             // change switch status
             setSwitchState($('#feedbackStat.switch-input'), true);
+		}
+		if($scope.settings['Use Receipt Items'] == 'true'){
+			function setSwitchState2(el, flag) {
+				el.attr('checked', flag);
+			}
+			setSwitchState2($('#receiptStat.switch-input'), true);
 		}
 
 		if($scope.settings['Use Autoadmission'] == 'true'){
@@ -152,6 +162,47 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		}
         apiService.updateSettings(postData, createCompleted, apiError);
     }
+
+		$scope.getReceiptSetting = function(el){
+
+	        // process the switch
+
+	        $('#receiptStat.switch-input').on('change', function() {
+	            var isChecked = $(this).is(':checked');
+	            var selectedData;
+	            var $switchLabel = $('#receiptSwitch.switch-label');
+
+	            if($scope.settings[ 'Use Receipt Items' ] == "true"){
+	                console.log("Receipt items was true, now switcing to false");
+	                selectedData = $switchLabel.attr('data-off');
+	            } else {
+	                console.log("Receipt items was false, now switching on");
+	                selectedData = $switchLabel.attr('data-on');
+	            }
+
+	            console.log('Selected receipt mode = ' + selectedData);
+
+	        });
+
+	        // Params ($selector, boolean)
+	        function setSwitchState(el, flag) {
+	            console.log("Changing receipt switch status .....");
+	            el.attr('checked', flag);
+	        }
+
+	        // change switch status
+	        setSwitchState($('#receiptStat.switch-input'), true);
+
+	        // make the change
+	        var postData = {
+						settings: [{
+							    name: 'Use Receipt Items',
+			    				value: ( $scope.settings[ 'Use Receipt Items' ] == "false" ? "true" : "false" ),
+			    				append: false
+						}]
+					}
+	        apiService.updateSettings(postData, createCompleted, apiError);
+	    }
 
     $scope.automaticAdmissionNumbers = function(el){
 

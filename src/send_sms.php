@@ -24,7 +24,7 @@ header('Access-Control-Allow-Origin: *');
     <?php
     // include __DIR__ '/../api/lib/db.php';
     $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-    $db = pg_connect("host=localhost port=5432 dbname=".$getDbname." user=postgres password=postgres");
+    $db = pg_connect("host=localhost port=5433 dbname=".$getDbname." user=postgres password=postgres");
     $result = pg_query($db,"SELECT communication_sms.com_id, communication_sms.creation_date as message_date, communications.message as message_text,
                     employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as message_by, communication_sms.first_name ||' ' || communication_sms.last_name AS recipient_name,
                     communication_sms.sim_number AS phone_number
@@ -135,9 +135,9 @@ header('Access-Control-Allow-Origin: *');
                       }
               });
         }
-        
+
         alert("Success. " + recipientLength + " message(s) sent.");
-        
+
     </script>
 <h1><?php echo $subDomain; ?></h1>
 </body>

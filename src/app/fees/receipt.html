@@ -1,3 +1,26 @@
+<style>
+	@media print {
+		.row{
+			margin-right: -15px;
+			margin-left: -15px;
+		}
+		.row:before {
+			display: table;
+			content: " ";
+		}
+		.row:after {
+			clear: both;
+		}
+		.col-sm-6{
+			width: 50%;
+			float: left;
+			position: relative;
+	    min-height: 1px;
+	    padding-right: 15px;
+	    padding-left: 15px;
+		}
+	}
+</style>
 <form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">
 		<div class="modal-header dialog-header-form">
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
@@ -14,8 +37,8 @@
 			</div>
 
 			<div class="receipt-header-letterhead" ng-if="useLetterhead">
-				<img class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" style="max-width: 400px" />
-				<h2 class="receipt-title">Official Receipt</h2>
+				<img ng-show="removeHeader" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" style="max-width: 400px" />
+				<h2 class="receipt-title" style="{{removeHeader ? 'margin-top:105px;' : ''}}">Official Receipt</h2>
 			</div>
 			<h4 style="text-align:center;" ng-show="wantReceipt">{{payment.custom_receipt_no || '-'}}</h4>
 
@@ -44,7 +67,7 @@
 			</div>
 
 			<div class="">
-				<table class="display dataTable printInv" cellspacing="0" width="100%">
+				<table class="display dataTable printInv" cellspacing="0" width="100%" id="itemized" ng-show="itemized">
 					<thead>
 						<tr>
 							<th class="">Invoice No.</th>
@@ -73,13 +96,17 @@
 					</tfoot>
 				</table>
 
-				<div class="printInv">
-					<p class="text-group"><strong>Amount Paid:</strong> {{payment.amount|currency:""}} {{currency}}</p>
-					<!-- <p class="text-group"><strong>Outstanding Balance:</strong> {{ ( balanceDue > 0 ? '0' : balanceDue)|numeric }} {{currency}}</p> --> <!-- uncomment this if brackets are needed -->
-					<p class="text-group"><strong>Outstanding Balance:</strong> {{ balanceDue|numeric }} {{currency}}</p>
-					<p ng-show="hasCredit" class="text-group"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
-					<p class="text-group"><strong>{{payment.payment_method}}:</strong> {{payment.slip_cheque_no}}</p>
-					<p class="text-group"><strong>Official Stamp:</strong></p>
+				<div class="printInv" style="{{itemized ? '' : 'margin-top:20px;border:1px solid #000000;padding:3px;'}}">
+					<div class="row">
+						<p class="text-group col-sm-12"><strong>Amount Paid:</strong> {{payment.amount|currency:""}} {{currency}} <span style="margin-left:25%;"><strong>Bank:</strong> {{payment.payment_bank}}</span></p>
+						<!-- <p class="text-group"><strong>Outstanding Balance:</strong> {{ ( balanceDue > 0 ? '0' : balanceDue)|numeric }} {{currency}}</p> --> <!-- uncomment this if brackets are needed -->
+						<p class="text-group col-sm-12"><strong>Outstanding Balance:</strong> {{ balanceDue|numeric }} {{currency}} <span style="margin-left:19%;"><strong>Bank Date:</strong> {{payment.banking_date}}</span></p>
+						<p ng-show="hasCredit" class="text-group col-sm-12"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
+						<p class="text-group col-sm-12"><strong>{{payment.payment_method}}:</strong> {{payment.slip_cheque_no}}</p>
+
+						<p class="text-group col-sm-12" style="{{itemized ? '' : 'margin-bottom:30px;'}}"><strong>Official Stamp:</strong></p>
+					</div>
+
 				</div>
 
 			</div>

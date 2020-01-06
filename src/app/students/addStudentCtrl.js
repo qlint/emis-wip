@@ -361,7 +361,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 																			var actualAdmissionStr = latestAdmission.substring(0,latestAdmission.length - 2);
 																			var newAdmNo = parseInt(actualAdmissionStr) + 1;
 		                        			    $scope.student.admission_number = newAdmNo + shortYear;
-																			console.log("New admission = " + $scope.student.admission_number);
+																			// console.log("New admission = " + $scope.student.admission_number);
 																	}else{
 																			if(latestAdmission.search(/-/) > -1){
 																					var lastSegment = latestAdmission.split('-').reverse()[0];

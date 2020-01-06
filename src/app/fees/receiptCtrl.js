@@ -7,7 +7,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 	$scope.payment = data.payment;
 	$scope.student = data.student;
 	$scope.feeItems = data.feeItems;
-
+	$scope.receiptMode = $rootScope.currentUser.settings["Use Receipt Items"];
+	if($scope.receiptMode == undefined || $scope.receiptMode == "true"){
+		$scope.receiptMode = true;
+	}else{
+		$scope.receiptMode = false;
+	}
+	$scope.removeHeader = false;
 
 	var initializeController = function()
 	{
@@ -44,6 +50,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.paymentDetails = results.paymentItems;
 			$scope.payment.slip_cheque_no = results.payment.slip_cheque_no; // the transaction # for the mode of payment
 			$scope.payment.payment_method = results.payment.payment_method; // drop down for mode of payment
+			$scope.payment.payment_bank = results.payment.payment_bank;
+			$scope.payment.banking_date = results.payment.banking_date;
 			$scope.payment.custom_receipt_no = "Receipt #: " + results.payment.custom_receipt_no; // for schools that want to use custom receipt #'s
 			$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
 
@@ -51,7 +59,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 
 			if( invoiceItems.length > 0 )
 			{
-				var termName = invoiceItems[invoiceItems.length - 1].term_name; 
+				var termName = invoiceItems[invoiceItems.length - 1].term_name;
 				$scope.term_name = termName; // EDIT -- see ORIGINAL BELOW
 				var yearFromTermName = termName.split(' '); // just a test
 				console.log(yearFromTermName.slice(-1)[0]); // just a test - receipt term conflicts
@@ -59,7 +67,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 				termName = termName.split(' ');
 				// console.log("The invoice has " + invoiceItems.length + " items");
 				// $scope.term_name = (invoiceItems.length > 0 ? termName[1] : ''); // ORIGINAL
-				
+
 				// $scope.term_year = (invoiceItems.length > 0 ? invoiceItems[0].term_year : '');
 				$scope.term_year = (invoiceItems.length > 0 ? invoiceItems[invoiceItems.length-1].term_year : ''); // using last item in arr as term year
 				/*
@@ -150,7 +158,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
                 {
                  $scope.feeSummary.balance = $scope.feeSummary.balance.substr(1);
                 }
-                
+
 				$scope.balanceDue = $scope.feeSummary.balance;
 
 				if( parseFloat($scope.feeSummary.total_credit) > 0 )

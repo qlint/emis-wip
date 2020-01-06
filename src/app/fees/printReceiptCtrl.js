@@ -20,7 +20,13 @@ function($scope, $rootScope){
 		$scope.hasCredit = data.hasCredit;
 		$scope.custom_invoice_no = data.custom_invoice_no;
 		$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
-
+		$scope.removeHeader = ( window.location.host.split('.')[0] == "thomasburke" ? true : false);
+		$scope.receiptMode = $rootScope.currentUser.settings["Use Receipt Items"];
+		if($scope.receiptMode == undefined || $scope.receiptMode == "true"){
+			$scope.receiptMode = true;
+		}else{
+			$scope.receiptMode = false;
+		}
 		$scope.loading = false;
 
 		setTimeout( function(){

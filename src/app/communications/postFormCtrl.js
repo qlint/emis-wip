@@ -1074,7 +1074,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 					$scope.post.send_as_email = ( $scope.filters.send_method == 'email' ? 't' : 'f' );
 					$scope.post.send_as_sms = ( $scope.filters.send_method == 'sms' ? 't' : 'f' );
 
-					if( $scope.isTeacher || $scope.isAdmin2 ) {$scope.post.message_from = $rootScope.currentUser.emp_id;}
+					if( $scope.isTeacher ) {$scope.post.message_from = $rootScope.currentUser.emp_id;}
 					else { $scope.post.message_from = $scope.theemployee.selected.emp_id; }
 
 					if( $scope.post.send_method ==  'sms' ) $scope.post.body = $scope.post.title; // sms message is displayed in title field
