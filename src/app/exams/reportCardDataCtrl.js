@@ -82,7 +82,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, Bulkdata, 
 	//$scope.showReportCard = false;
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
-	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
+	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
 
 	if( $scope.filters.class.class_cat_id == 21 || $scope.filters.class.class_cat_id == 5 || $scope.filters.class.class_cat_id == 6 || $scope.filters.class.class_cat_id == 7 || $scope.filters.class.class_cat_id == 8 || $scope.filters.class.class_cat_id == 9 ){
 	    $scope.noRanking = ( window.location.host.split('.')[0] == 'lasalle' ? true : false );

@@ -26,7 +26,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	$scope.filters.send_method = 'email';
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 	$scope.noEmpId = ( $rootScope.currentUser.emp_id === null ? true : false );
-	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
+	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
 
 	if( $scope.isHomework )
 	{

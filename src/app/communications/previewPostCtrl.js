@@ -8,29 +8,29 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	$scope.post = angular.copy(data.post);
 	$scope.enUnPub = undefined;
 	console.log($scope.post);
-	
+
 
 	$scope.post.rawAttachment = data.post.attachment;
 	$scope.post.attachment = ($scope.post.rawAttachment != null ? $scope.post.attachment.split(',') : null);
-	
+
 	$scope.showAttachment = ($scope.post.rawAttachment == null ? false : true);
 	console.log("Is there an attachment? " + $scope.showAttachment);
-	
+
 	//this block allows a sys_admin to 'publish' messages posted by other users
 	//BEGIN
-	
+
 	//enable or disable publishing
-	$scope.enPub = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
-	
-	if( $rootScope.currentUser.user_type == 'SYS_ADMIN' ){
+	$scope.enPub = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
+
+	if( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ){
 	    //enable an unpublish button
 	    $scope.enUnPub = ( $scope.post.sent == true ? true : false );
-	    
+
 	    //this message's id
 	    var msgId = {
 			post_id: $scope.post.post_id
 		}
-		
+
 	    //the actual publishing
 	    $scope.pubPost = function()
     	{
@@ -39,13 +39,13 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
         		// check if this message is an unpublished sms
         		if( $scope.post.send_as_sms == true && $scope.post.sent == false )
             	{
-            	    $scope.unpublishedSms = true;		    
+            	    $scope.unpublishedSms = true;
             	}
-            	
+
             	if($scope.unpublishedSms == true){
-            	    
+
             	    // post the message
-            	    
+
                     $.ajax({
                         type: "POST",
                         url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/postSms.php",
@@ -57,18 +57,18 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                             console.log("Error. Data not posted.");
                         }
                     });
-                    
+
                     // Below is the old method of doing it - note there are 2 xhr methods, use one or the other if reverting to it
                     /*
             	    apiService.getCommunicationForSms($scope.post.post_id, function(response, status){
         					var result = angular.fromJson(response);
-        
+
         					if( result.response == 'success')
         					{
-        					    
+
         						$scope.smsData = result.data;
         						console.log($scope.smsData);
-        						
+
         						// this is a delay function - we'll use it to pause & wait for an ajax response
                                 function sleep(milliseconds) {
                                     var start = new Date().getTime();
@@ -79,7 +79,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                     }
                                  }
                                  // end delay function
-        						
+
         						var buildSmsToPost = {
                                     "message_by": $scope.smsData[0].message_by,
                                     "message_date": $scope.smsData[0].message_date,
@@ -87,7 +87,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                     "message_text": $scope.smsData[0].message_text,
                                     "subscriber_name": window.location.host.split('.')[0]
                                 };
-                                
+
                                 // insert recipients into 'message_recipients'
                                 for (var v = 0; v < $scope.smsData.length; v++) {
                                     buildSmsToPost.message_recipients.push({
@@ -95,15 +95,15 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                         "recipient_name": $scope.smsData[v].recipient_name
                                     });
                                 }
-                                
+
                                 console.log("Our built message :::",buildSmsToPost);
-                                
+
                                 // We need to divide the recipients into groups of less than 99 recipients, messages to over 99 fail
                                 var recipientLength = Object.keys(buildSmsToPost.message_recipients).length;
                                 // console.log("The message has (" + recipientLength + ") keys.");
-                                
-                                // In our case we will do groups of 80 recipients 
-                                
+
+                                // In our case we will do groups of 80 recipients
+
                                 var messageRep = buildSmsToPost.message_recipients.slice();
                                 for(var i = 0; i < recipientLength; i+=80){
                                     buildSmsToPost.message_recipients = messageRep.slice(i, i+80);
@@ -117,7 +117,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                       "subscriber_name": buildSmsToPost.subscriber_name
                                     };
                                     // console.log(newMessage);
-                                    
+
                                   // jquery ajax method
                                   // var url = "http://41.72.203.166/sms_api_staging/api/sendBulkSms";
                                   var url = "https://sms_api.eduweb.co.ke/api/sendBulkSms";
@@ -140,7 +140,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                               // alert("Success. Message Sent.");
                                           }
                                   });
-                                  
+
                                   // plain js xhr method
                                     var xhr = new XMLHttpRequest();
                                     xhr.open("POST", 'https://sms_api.eduweb.co.ke/api/sendBulkSms', true);
@@ -152,12 +152,12 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                                         }
                                     }
                                     xhr.send(JSON.stringify(newMessage));
-                                    
+
                                     // before continuing the loop we need to wait a bit - trying 1.5s
                                     console.log("Waiting 1.5s ...");
                                     sleep(1500);
                                 }
-        
+
         					}
         					else
         					{
@@ -168,7 +168,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
             	        */
             	}
             	// POST SMS - END
-            	
+
     		apiService.publishMessage(msgId,function(response){
     			var result = angular.fromJson( response );
     			if( result.response == 'success' )
@@ -180,19 +180,19 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                 	    apiService.getUnPublishedMsgCount({}, function(response){
                 				var result = angular.fromJson(response);
                 				// console.log(result);
-                				
+
                 				if( result.response == 'success')
                 				{
                 					// console.log(result.data);
                 					$( "li a:contains('Send Email')" ).html( "Send Email <span class='notifBox'>" + result.data.count + "</span>" );
                 				}
-                				
+
                 			}, apiError);
                 	}
     			}
     		},apiError);
     	}
-	    
+
 	    //unpublish emails (and sms) from app
 	    $scope.unPubPost = function()
     	{
@@ -207,23 +207,23 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                 	    apiService.getUnPublishedMsgCount({}, function(response){
                 				var result = angular.fromJson(response);
                 				// console.log(result);
-                				
+
                 				if( result.response == 'success')
                 				{
                 					// console.log(result.data);
                 					$( "li a:contains('Send Email')" ).html( "Send Email <span class='notifBox'>" + result.data.count + "</span>" );
                 				}
-                				
+
                 			}, apiError);
                 	}
     			}
     		},apiError);
     	}
 	}
-	
+
 	//END
-	
-	if( $scope.post.details === undefined ){ 
+
+	if( $scope.post.details === undefined ){
 	    $scope.post.details = data.post;
 	}
 
@@ -242,7 +242,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	{
 		$uibModalInstance.dismiss('canceled');
 	}; // end cancel
-	
+
 	var apiError = function (response, status)
 	{
 		var result = angular.fromJson( response );

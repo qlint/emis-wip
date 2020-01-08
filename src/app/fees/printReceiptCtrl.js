@@ -24,10 +24,19 @@ function($scope, $rootScope){
 		$scope.receiptMode = $rootScope.currentUser.settings["Use Receipt Items"];
 		if($scope.receiptMode == undefined || $scope.receiptMode == "true"){
 			$scope.receiptMode = true;
+			$scope.itemized = true;
 		}else{
 			$scope.receiptMode = false;
+			$scope.itemized = false;
 		}
 		$scope.loading = false;
+
+		var adjustBank = document.getElementById('bank_adjust');
+		adjustBank.removeAttribute("style");
+		adjustBank.style.marginLeft = '49%';
+		adjustBank.style.marginTop = '-6.5%';
+		document.getElementById('bnkName').style.margin = '0';
+		document.getElementById('bnkDate').style.margin = '0';
 
 		setTimeout( function(){
 			window.print();
@@ -35,8 +44,8 @@ function($scope, $rootScope){
 			setTimeout( function(){
 				$rootScope.isPrinting = false;
 				window.close();
-			}, 3000);
-		}, 3000);
+			}, 2500);
+		}, 2500);
 	}
 	setTimeout(initializeController,1);
 

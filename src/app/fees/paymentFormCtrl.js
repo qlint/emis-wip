@@ -29,7 +29,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 
 		$scope.paymentBanks = [
 													$rootScope.currentUser.settings['Bank Name'],
-													$rootScope.currentUser.settings['Bank Name 2']
+													$rootScope.currentUser.settings['Bank Name 2'],
+													$rootScope.currentUser.settings['Bank Name 3'],
+													$rootScope.currentUser.settings['Bank Name 4'],
+													$rootScope.currentUser.settings['Bank Name 5'],
 												];
 		console.log("Payment Banks",$scope.paymentBanks);
 

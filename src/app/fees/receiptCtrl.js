@@ -10,8 +10,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 	$scope.receiptMode = $rootScope.currentUser.settings["Use Receipt Items"];
 	if($scope.receiptMode == undefined || $scope.receiptMode == "true"){
 		$scope.receiptMode = true;
+		$scope.itemized = true;
 	}else{
 		$scope.receiptMode = false;
+		$scope.itemized = false;
 	}
 	$scope.removeHeader = false;
 

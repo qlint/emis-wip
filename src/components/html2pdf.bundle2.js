@@ -8785,6 +8785,7 @@ Worker.prototype.outputImg = function outputImg(type, options) {
 Worker.prototype.save = function save(filename) {
   // Set up function prerequisites.
   var prereqs = [function checkPdf() {
+    console.log("pdf prereqs",this.prop.pdf,typeof this.prop.pdf);
     return this.prop.pdf || this.toPdf();
   }];
 
@@ -9319,21 +9320,6 @@ var html2pdf = function html2pdf(src, opt) {
   }
 };
 html2pdf.Worker = Worker;
-
-var subdmn = window.location.host.split('.')[0];
-var theFile = html2pdf;
-
-// POST the file
-var formData = new FormData();
-formData.append('files[]', theFile);
-
-fetch('srvScripts/handle_file_upload.php', {
-    method: 'POST',
-    body: formData,
-}).then(response => {
-    console.log(response);
-});
-// end POST
 
 return html2pdf;
 

@@ -31,7 +31,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			}, apiError);
 	}
 
-	if( $rootScope.currentUser.user_type == 'SYS_ADMIN' ){
+	if( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ){
 	    if( $( "li:contains('Send Email')" ) ){
     	    // console.log("Send Email tab located");
     	    apiService.getUnPublishedMsgCount({}, function(response){

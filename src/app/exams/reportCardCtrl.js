@@ -36,7 +36,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.showReportCard = false;
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
-	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'ADMIN' ? true : false );
+	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
 	//$scope.noRanking = ( window.location.host.split('.')[0] == 'lasalle' ? true : false );
 	if( data.filters.class.class_cat_id == 21 || data.filters.class.class_cat_id == 5 || data.filters.class.class_cat_id == 6 || data.filters.class.class_cat_id == 7 || data.filters.class.class_cat_id == 8 || data.filters.class.class_cat_id == 9 ){
 	    $scope.noRanking = ( window.location.host.split('.')[0] == 'lasalle' ? true : false );
@@ -1496,7 +1496,23 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
 			  };
 			var reportCardPdf = html2pdf(document.getElementById('showReportCard'),opt);
-			console.log("The type of reportCardPdf is " + typeof reportCardPdf);
+			console.log(Promise.resolve(reportCardPdf));
+			setTimeout(function(){
+				var prmse = Promise.resolve(reportCardPdf);
+				prmse.then(function(val) {
+						// POST the file
+						var formData = new FormData();
+						formData.append('files[]', val);
+
+						fetch('srvScripts/handle_file_upload.php', {
+								method: 'POST',
+								body: formData,
+						}).then(response => {
+								console.log("resp frm handler",response);
+						});
+						// end POST
+				});
+			}, 5000);
 
 		});
 

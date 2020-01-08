@@ -6,7 +6,7 @@ function($scope, $rootScope){
 
 	var initializeController = function()
 	{
-		$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
+		$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
 		$scope.wantAutomatedComments = ( window.location.host.split('.')[0] == 'thomasburke' ? true : false );
 		$scope.schoolName = window.location.host.split('.')[0];
 		$scope.hideStudentImg = ( window.location.host.split('.')[0] == "thomasburke" ? true : false);

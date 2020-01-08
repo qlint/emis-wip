@@ -51,7 +51,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.showReportCard = false;
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
-	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
+	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
 
 	$scope.chart_path = "";
 	// console.log($scope);
@@ -1083,7 +1083,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 
 		var domain = window.location.host;
-		var newWindowRef = window.open('https://' + domain + '/#/exams/bulk_report_card/print'); 
+		var newWindowRef = window.open('https://' + domain + '/#/exams/bulk_report_card/print');
 		newWindowRef.printCriteria = criteria;
 	}
 
@@ -1210,7 +1210,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.printAllReportCards = function()
 	{
-		
+
 		function printData()
 		{
 		   var divToPrint=document.getElementById("fullPrint");
@@ -1228,7 +1228,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		   // newWin.close();
 		}
 		printData();
-		
+
 		/*
 		$.getScript('/components/printThis.js', function()
 		{

@@ -21,21 +21,21 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
       url: "/",
       templateUrl: "app/landing.html",
       data: {
-          authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
+          authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('login', {
       url: "/login",
       templateUrl: "app/login.html",
       data: {
-          authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
+          authorizedRoles: [USER_ROLES.admin, USER_ROLES.parent, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('dashboard', {
       url: "/dashboard",
 	  templateUrl: 'app/dashboard.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('students', {
@@ -46,7 +46,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/students/listStudents.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('staff', {
@@ -57,42 +57,42 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/staff/listStaff.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.staff, USER_ROLES.teacher, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('fees/dashboard', {
       url: "/fees/dashboard",
 	  templateUrl: 'app/fees/feesDashboard.html',
       data: {
-         authorizedRoles: [USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('fees/opening_balances', {
       url: "/fees/opening_balances",
 	  templateUrl: 'app/fees/openingBalances.html',
       data: {
-         authorizedRoles: [USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('fees/invoices', {
       url: "/fees/invoices/:balance_status",
 	  templateUrl: 'app/fees/invoices.html',
       data: {
-         authorizedRoles: [USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('fees/payments_received', {
       url: "/fees/payments_received",
 	  templateUrl: 'app/fees/paymentsReceived.html',
       data: {
-         authorizedRoles: [USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('fees/fee_structure', {
       url: "/fees/fee_structure",
 	  templateUrl: 'app/fees/feeStructure.html',
       data: {
-         authorizedRoles: [USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('fees/receipt/print', {
@@ -100,7 +100,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/fees/receipt.html',
 	  controller: 'printReceiptCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('fees/invoice/print', {
@@ -108,7 +108,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/fees/invoice.html',
 	  controller: 'printInvoiceCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('fees/statement/print', {
@@ -116,7 +116,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/fees/statement.html',
 	  controller: 'printStatementCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
     .state('fees/currentTermStatement/print', {
@@ -124,21 +124,21 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/fees/currentTermStatement.html',
 	  controller: 'printCurrentTermStatementCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
     .state('fees/fees_reports', {
       url: "/fees/fees_reports",
 	  templateUrl: 'app/fees/feesReports.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('school/departments', {
       url: "/school/departments",
 	  templateUrl: 'app/school/departments.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('school/classes', {
@@ -149,63 +149,63 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/school/classes.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('school/subjects', {
       url: "/school/subjects",
 	  templateUrl: 'app/school/subjects.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('my_classes/subjects', {
       url: "/school/subjects",
 	  templateUrl: 'app/school/subjects.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('school/grading', {
       url: "/school/grading",
 	  templateUrl: 'app/school/grading.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('school/school_dates', {
       url: "/school/school_dates",
 	  templateUrl: 'app/school/dates.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('school/school_settings', {
       url: "/school/school_settings",
 	  templateUrl: 'app/school/settings.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('exams/exams', {
       url: "/exams",
 	  templateUrl: 'app/exams/listExams.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('exams/exam_types', {
       url: "/exams/exam_types",
 	  templateUrl: 'app/exams/examTypes.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('exams/report_cards', {
       url: "/exams/report_cards",
 	  templateUrl: 'app/exams/listReportCards.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('exams/report_card/print', {
@@ -213,7 +213,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/exams/reportCard.html',
 	  controller: 'printReportCardCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('exams/bulk_report_card/print', {
@@ -221,21 +221,21 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	 	 templateUrl: 'app/exams/reportCardBulkPrint.html',
 	 	 controller: 'printReportCardBulkPrintCtrl',
 	 		 data: {
-	 				authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+	 				authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
 	 		 }
 	 	 })
 	.state('exams/class_analysis', {
       url: "/exams/class_analysis",
 	  templateUrl: 'app/exams/classAnalysisReport.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 		.state('exams/stream_analysis', {
 	      url: "/exams/stream_analysis",
 		  templateUrl: 'app/exams/streamAnalysisReport.html',
 	      data: {
-	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
 	      }
 	    })
 	.state('exams/analysis/print', {
@@ -243,7 +243,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  templateUrl: 'app/exams/printClassAnalysis.html',
 	  controller: 'printClassAnalysisCtrl',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 		// .state('exams/analysis/print', {
@@ -251,28 +251,28 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 		//   templateUrl: 'app/exams/printStreamAnalysis.html',
 		//   controller: 'printStreamAnalysisCtrl',
 	  //     data: {
-	  //        authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+	  //        authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
 	  //     }
 	  //   })
 	.state('exams/exam_reports', {
       url: "/exams/exam_reports",
 	  templateUrl: 'app/exams/examsReports.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('school_settings', {
       url: "/school_settings",
 	  templateUrl: 'app/school/settings.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('users', {
       url: "/users",
 	  templateUrl: 'app/users/listUsers.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('communications/blog_posts', {
@@ -282,7 +282,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/listPosts.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('communications/homework', {
@@ -293,7 +293,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/listHomework.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('communications/send_email', {
@@ -304,14 +304,14 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/listEmails.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
     .state('communications/feedback', {
       url: "/communications/feedback",
 	  templateUrl: 'app/communications/feedback.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('communications/add_post', {
@@ -324,7 +324,7 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/postForm.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('communications/edit_post', {
@@ -335,77 +335,77 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	  },
 	  templateUrl: 'app/communications/postForm.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 	.state('timetables/create_class_timetable', {
       url: "/timetables/create_class_timetable",
 	  templateUrl: 'app/timetables/createClassTimetable.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('timetables/class_timetable', {
       url: "/timetables/class_timetable",
 	  templateUrl: 'app/timetables/classTimetable.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('timetables/create_teacher_timetable', {
       url: "/timetables/create_teacher_timetable",
 	  templateUrl: 'app/timetables/createTeacherTimetable.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 	.state('timetables/teacher_timetable', {
       url: "/timetables/teacher_timetable",
 	  templateUrl: 'app/timetables/teacherTimetable.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 		.state('transport/trips', {
       url: "/transport/trips",
 	  templateUrl: 'app/transport/tripSettings.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
     .state('transport/school_bus', {
       url: "/transport/school_bus",
 	  templateUrl: 'app/transport/schoolBus.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
     .state('transport/pick_up_and_drop_off', {
       url: "/transport/pick_up_and_drop_off",
 	  templateUrl: 'app/transport/attendance.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
     .state('transport/mapped_history', {
       url: "/transport/mapped_history",
 	  templateUrl: 'app/transport/mappedHistory.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 		.state('transport/transport_reports', {
       url: "/transport/transport_reports",
 	  templateUrl: 'app/transport/transportReports.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
 		.state('transport/transport_communications', {
       url: "/transport/transport_communications",
 	  templateUrl: 'app/transport/transportCommunications.html',
       data: {
-         authorizedRoles: [USER_ROLES.admin, USER_ROLES.sys_admin, USER_ROLES.teacher]
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
 

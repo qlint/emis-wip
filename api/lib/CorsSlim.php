@@ -51,7 +51,7 @@ class CorsSlim extends \Slim\Middleware {
             $rsp->headers->set('Access-Control-Expose-Headers', $exposeHeaders);
         }
     }
-    
+
     protected function setMaxAge($req, $rsp) {
         if (isset($this->settings['maxAge'])) {
             $rsp->headers->set('Access-Control-Max-Age', $this->settings['maxAge']);
@@ -70,7 +70,7 @@ class CorsSlim extends \Slim\Middleware {
             if (is_array($allowMethods)) {
                 $allowMethods = implode(", ", $allowMethods);
             }
-            
+
             $rsp->headers->set('Access-Control-Allow-Methods', $allowMethods);
         }
     }

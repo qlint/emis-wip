@@ -68,6 +68,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Bank Branch 2' : angular.copy($rootScope.currentUser.settings['Bank Branch 2']	),
 			'Account Name 2' : angular.copy($rootScope.currentUser.settings['Account Name 2']	),
 			'Account Number 2' : angular.copy($rootScope.currentUser.settings['Account Number 2']	),
+			'Bank Name 3' : angular.copy($rootScope.currentUser.settings['Bank Name 3']	),
+			'Bank Branch 3' : angular.copy($rootScope.currentUser.settings['Bank Branch 3']	),
+			'Account Name 3' : angular.copy($rootScope.currentUser.settings['Account Name 3']	),
+			'Account Number 3' : angular.copy($rootScope.currentUser.settings['Account Number 3']	),
+			'Bank Name 4' : angular.copy($rootScope.currentUser.settings['Bank Name 4']	),
+			'Bank Branch 4' : angular.copy($rootScope.currentUser.settings['Bank Branch 4']	),
+			'Account Name 4' : angular.copy($rootScope.currentUser.settings['Account Name 4']	),
+			'Account Number 4' : angular.copy($rootScope.currentUser.settings['Account Number 4']	),
+			'Bank Name 5' : angular.copy($rootScope.currentUser.settings['Bank Name 5']	),
+			'Bank Branch 5' : angular.copy($rootScope.currentUser.settings['Bank Branch 5']	),
+			'Account Name 5' : angular.copy($rootScope.currentUser.settings['Account Name 5']	),
+			'Account Number 5' : angular.copy($rootScope.currentUser.settings['Account Number 5']	),
 			'Mpesa Details' : angular.copy($rootScope.currentUser.settings['Mpesa Details']	),
 			'Use Feedback' : angular.copy($rootScope.currentUser.settings['Use Feedback']	),
 			'Use Receipt Items' : angular.copy($rootScope.currentUser.settings['Use Receipt Items'] ),
@@ -86,6 +98,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		if($scope.settings['Bank Branch 2'] == 'Null'){ $scope.settings['Bank Branch 2'] = ''; }
 		if($scope.settings['Account Name 2'] == 'Null'){ $scope.settings['Account Name 2'] = ''; }
 		if($scope.settings['Account Number 2'] == 'Null'){ $scope.settings['Account Number 2'] = ''; }
+		if($scope.settings['Bank Name 3'] == 'Null'){ $scope.settings['Bank Name 3'] = ''; }
+		if($scope.settings['Bank Branch 3'] == 'Null'){ $scope.settings['Bank Branch 3'] = ''; }
+		if($scope.settings['Account Name 3'] == 'Null'){ $scope.settings['Account Name 3'] = ''; }
+		if($scope.settings['Account Number 3'] == 'Null'){ $scope.settings['Account Number 3'] = ''; }
+		if($scope.settings['Bank Name 4'] == 'Null'){ $scope.settings['Bank Name 4'] = ''; }
+		if($scope.settings['Bank Branch 4'] == 'Null'){ $scope.settings['Bank Branch 4'] = ''; }
+		if($scope.settings['Account Name 4'] == 'Null'){ $scope.settings['Account Name 4'] = ''; }
+		if($scope.settings['Account Number 4'] == 'Null'){ $scope.settings['Account Number 4'] = ''; }
+		if($scope.settings['Bank Name 5'] == 'Null'){ $scope.settings['Bank Name 5'] = ''; }
+		if($scope.settings['Bank Branch 5'] == 'Null'){ $scope.settings['Bank Branch 5'] = ''; }
+		if($scope.settings['Account Name 5'] == 'Null'){ $scope.settings['Account Name 5'] = ''; }
+		if($scope.settings['Account Number 5'] == 'Null'){ $scope.settings['Account Number 5'] = ''; }
 		if($scope.settings['Mpesa Details'] == 'Null'){ $scope.settings['Mpesa Details'] = ''; }
 
 		if($scope.settings['Use Feedback'] == 'true'){

@@ -20,7 +20,7 @@ function($scope, $rootScope){
 
 		}
 
-		$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' ? true : false );
+		$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
 
 		var data = window.printCriteria;
 		var getPrintRank = localStorage.getItem("printStreamRank");
