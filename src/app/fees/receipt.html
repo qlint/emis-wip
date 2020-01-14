@@ -20,7 +20,10 @@
 	    padding-left: 15px;
 		}
 		body{
-			font-family: Sans-Serif !important;
+			font-family: Georgia !important;
+			font-size: 20px !important;
+			font-style: normal !important;
+			font-variant: normal !important;
 		}
 	}
 </style>
@@ -39,8 +42,8 @@
 				<p>REVERSED</p>
 			</div>
 
-			<div class="receipt-header-letterhead" ng-if="useLetterhead">
-				<img ng-show="removeHeader" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" style="max-width: 400px" />
+			<div class="receipt-header-letterhead" ng-if="useLetterhead" style="{{removeHeader ? '' : 'margin-top:50px;'}}">
+				<img ng-show="!removeHeader" class="center" src="assets/schools/{{currentUser.settings['Letterhead']}}" style="max-width: 400px" />
 				<h2 class="receipt-title" style="{{removeHeader ? 'margin-top:105px;' : ''}}">Official Receipt</h2>
 			</div>
 			<h4 style="text-align:center;" ng-show="wantReceipt">{{payment.custom_receipt_no || '-'}}</h4>
@@ -61,11 +64,12 @@
 			</div>
 
 			<div style="{{itemized ? '':'margin-top:100px;'}}">
-				<p class="text-group"><strong>Student:</strong>&emsp;&emsp;&emsp; {{student.student_name}}</p>
-				<p class="text-group"><strong>Admission No:</strong> {{student.admission_number}}</p>
+			    <h2 style="text-align:center;padding-top:3%;" ng-show="!itemized" class="receipt-title">Receipt</h2>
+			    <p class="text-group" style="padding-bottom:7px;"><strong>Admission No:</strong> {{student.admission_number}}</p>
+				<p class="text-group" style="padding-bottom:7px;"><strong>Student:</strong>&emsp;&emsp;&emsp; {{student.student_name}}</p>
 				<p class="text-group"><strong>Class:</strong>&emsp;&emsp;&emsp;&emsp; {{student.class_name}}</p>
-				<div style="margin-left:50%;margin-top:-8%;">
-					<p class="text-group"><strong>Received:</strong>&emsp;&emsp; {{payment.payment_date|date}}</p>
+				<div id="termLabels" style="margin-left:65%;margin-top:-10%;">
+					<p class="text-group" style="padding-bottom:7px;"><strong>Received:</strong>&emsp;&emsp; {{payment.payment_date|date}}</p>
 					<!-- <span class="text-group"><strong>Term:</strong> {{term_name}}, {{term_year}}</span> -->
 					<p class="text-group"><strong>Term:</strong>&emsp;&emsp;&emsp;&emsp; {{term_name}}</p>
 				</div>
@@ -101,16 +105,19 @@
 					</tfoot>
 				</table>
 
-				<div class="printInv" style="{{itemized ? '' : 'margin-top:5%;border:1px solid #000000;padding:3px;'}}">
+				<p id="balbd" style="{{itemized ? '' : 'margin-top:9%;'}}"><strong>Bal. b/d:</strong> {{balanceBroughtFwd|numeric}}</p>
+				<div class="printInv" style="{{itemized ? '' : 'border:1px solid #000000;padding:3px;height:90px !important;'}}">
 					<div class="row">
-						<p class="text-group col-sm-12"><strong>Amount Paid:</strong> {{payment.amount|currency:""}} {{currency}}</p>
+						<p id="amountPaid" class="text-group col-sm-12" style="{{itemized ? 'padding-bottom:7px;':'padding-bottom:7px;'}}"><strong>Amount Paid:</strong> {{payment.amount|currency:""}} {{currency}}</p>
 						<!-- <p class="text-group"><strong>Outstanding Balance:</strong> {{ ( balanceDue > 0 ? '0' : balanceDue)|numeric }} {{currency}}</p> --> <!-- uncomment this if brackets are needed -->
-						<p class="text-group col-sm-12"><strong>Outstanding Balance:</strong> {{ balanceDue|numeric }} {{currency}}</p>
-						<p ng-show="hasCredit" class="text-group col-sm-12"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
-						<p class="text-group col-sm-12"><strong>{{payment.payment_method}}:</strong> {{payment.slip_cheque_no}}</p>
-						<div id="bank_adjust" class="col-sm-12" style="margin-left:50%;margin-top:-12%;">
+						<p class="text-group col-sm-12" style="{{itemized ? 'padding-bottom:7px !important;':'padding-bottom:7px;'}}"><strong>Outstanding Balance:</strong> {{ balanceDue|numeric }} {{currency}}</p>
+						<p ng-show="hasCredit" class="text-group col-sm-12" style="{{itemized ? 'padding-bottom:7px !important;':'padding-bottom:7px;'}}"><strong>Available Credit:</strong> {{credit|currency:""}} {{currency}}</p>
+						<p class="text-group col-sm-12" id="wordAmount" style="{{itemized ? 'padding-bottom:7px !important;':'padding-bottom:7px;'}}"><strong>Amount in words:</strong> {{receiptAmountInWords}}</p>
+						<p class="text-group col-sm-12" id="cashier" style="{{itemized ? 'padding-bottom:7px !important;':'padding-bottom:7px;'}}"><strong>Cashier's Name:</strong> {{cashierName}}</p>
+						<div id="bank_adjust" class="col-sm-12" style="{{itemized ? 'margin-left:62%;margin-top:-10%;':'margin-left:50%;margin-top:-14%;'}}">
 							<p id="bnkName"><strong>Bank:</strong> {{payment.payment_bank}}</p>
 							<p id="bnkDate"><strong>Bank Date:</strong> {{payment.banking_date}}</p>
+							<p id="paymentMethod"><strong>{{payment.payment_method}}:</strong> {{payment.slip_cheque_no}}</p>
 							<p><strong>Official Stamp:</strong></p>
 						</div>
 					</div>

@@ -1328,6 +1328,7 @@ $app->put('/updateStudent', function () use($app) {
     $house =          ( isset($allPostVars['details']['house']) ? $allPostVars['details']['house']: null);
     $club =          ( isset($allPostVars['details']['club']) ? $allPostVars['details']['club']: null);
     $movement =          ( isset($allPostVars['details']['movement']) ? $allPostVars['details']['movement']: null);
+    $transferDate =          ( isset($allPostVars['details']['transfer_date']) ? $allPostVars['details']['transfer_date']: null);
   }
 
   if( isset($allPostVars['family']) )
@@ -1398,7 +1399,8 @@ $app->put('/updateStudent', function () use($app) {
             modified_by = :userId,
             house = :house,
             club = :club,
-            movement = :movement
+            movement = :movement,
+            transfer_date = :transferDate
           WHERE student_id = :studentId"
       );
 
@@ -1556,7 +1558,8 @@ $app->put('/updateStudent', function () use($app) {
               ':nemis' => $nemis,
               ':house' => $house,
               ':club' => $club,
-              ':movement' => $movement
+              ':movement' => $movement,
+              ':transferDate' => $transferDate
       ) );
       if( $updateClass )
       {
@@ -2753,7 +2756,9 @@ $app->get('/getDocReport/:studentId', function ($studentId) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT * FROM app.lowersch_reportcards WHERE student_id = :studentId");
+    $sth = $db->prepare("SELECT term_name, lr.* FROM app.lowersch_reportcards lr 
+                        INNER JOIN app.terms t USING (term_id)
+                        WHERE student_id = :studentId");
     $sth->execute( array(':studentId' => $studentId));
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 

@@ -10,43 +10,9 @@ $app->post('/parentLogin', function () use($app) {
   try
   {
     $db = getLoginDB();
-
-    $userCheckQry = $db->query("SELECT status, parent_id, guardian_id, student_id, subdomain
-                                FROM (
-                                	SELECT (CASE
-                                			WHEN EXISTS (SELECT username FROM parents WHERE username = '$username' AND active IS TRUE) THEN 'proceed' ELSE 'stop'
-                                  		END) AS status,
-                                  		(CASE
-                                  			WHEN EXISTS (SELECT parent_id FROM parents WHERE username = '$username' AND active IS TRUE)
-                                  			THEN (SELECT parent_id FROM parents WHERE username = '$username' AND active IS TRUE) ELSE 0
-                                  		END) AS parent_id
-                                )one
-                                LEFT JOIN parent_students USING (parent_id)");
-    $userStatus = $userCheckQry->fetch(PDO::FETCH_OBJ);
-    $theStatus = $userStatus->status;
-    // THE BELOW VALUES ARE USED ONLY WHEN status = 'proceed'
-    $theParentId = $userStatus->parent_id;
-    $theGuardianId = $userStatus->guardian_id;
-    $theStudentId = $userStatus->student_id;
-    $theSubDomain = $userStatus->subdomain;
-    $gStatus = '';
-
-    if($theStatus === "proceed"){
-      $getDb = setDBConnection($theSubDomain);
-      $checkIfStudentActive = $getDb->prepare("SELECT (CASE
-                                                    		WHEN EXISTS (SELECT active FROM app.student_guardians WHERE guardian_id = :guardianId AND active IS TRUE)
-                                                    		THEN 'proceed'
-                                                    		ELSE 'stop'
-                                                    	END) AS active");
-      $checkIfStudentActive->execute(array(':guardianId' => $theGuardianId));
-      $guardianStatus = $checkIfStudentActive->fetch(PDO::FETCH_OBJ);
-      $gStatus = $guardianStatus->active;
-    }else{
-      $gStatus = 'stop';
-    }
-
-    if($gStatus === "proceed"){
-
+    
+    
+    
             $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
                           first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id, guardian_id AS school_guardian_id
                         FROM parents
@@ -56,18 +22,9 @@ $app->post('/parentLogin', function () use($app) {
                         AND active is true");
             $sth->execute( array(':username' => $username, ':password' => $pwd) );
             $result = $sth->fetch(PDO::FETCH_OBJ);
-
+        
             if($result) {
-
-                // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app login')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
+        
               // get the parents' students and add to result
               $sth1 = $db->prepare("SELECT student_id, guardian_id AS school_guardian_id, subdomain, dbusername, dbpassword
                                     FROM parent_students
@@ -76,7 +33,7 @@ $app->post('/parentLogin', function () use($app) {
               $sth1->execute(array(':parentId' => $result->parent_id));
               $students = $sth1->fetchAll(PDO::FETCH_OBJ);
               $db = null;
-
+        
               $studentDetails = Array();
               $curSubDomain = '';
               $studentsBySchool = Array();
@@ -93,36 +50,35 @@ $app->post('/parentLogin', function () use($app) {
                                first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
                                students.active, class_name, class_id, class_cat_id, report_card_type, admission_date, student_category, gender, dob, payment_method, payment_plan_name,
                                (SELECT value FROM app.settings WHERE name = 'School Name') as school_name,
-                               (SELECT value FROM app.settings WHERE name = 'subdomain') as school_subdomain,
-                               (SELECT value FROM app.settings WHERE name = 'Use Feedback') as use_feedback
+                               (SELECT value FROM app.settings WHERE name = 'subdomain') as school_subdomain
                             FROM app.students
                             INNER JOIN app.classes ON students.current_class = classes.class_id
                             LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
-                            WHERE student_id = :studentId  AND students.active IS TRUE");
+                            WHERE student_id = :studentId");
                 $sth3->execute(array(':studentId' => $student->student_id));
                 $details = $sth3->fetch(PDO::FETCH_OBJ);
-
+        
                 if( $details ) {
                   $details->school = $student->subdomain;
-
+        
                   if( $details->student_id !== null )
                   {
                     $studentDetails[] = $details;
                     $curSubDomain = $student->subdomain;
-
+        
                     /* build an array for grabbing news */
                     $studentsBySchool[$curSubDomain][] = $student->student_id;
                   }
                 }
               }
-
+        
               /* get news for students, only want new once per school, and student specific news */
               $news = Array();
               foreach( $studentsBySchool as $school => $students )
               {
                 if( $db !== null ) $db = null;
                 $db = setDBConnection($school);
-
+        
                 $sth5 = $db->prepare("SELECT
                             com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
                             employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
@@ -143,27 +99,23 @@ $app->post('/parentLogin', function () use($app) {
                           WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
                           AND communications.sent IS TRUE
                           AND communications.post_status_id = 1
-                          AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
-                          OR communications.class_id is null)
-                          AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
-                          --AND students.active IS TRUE
-                          AND communications.com_type_id NOT IN (6)
-                          AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
+                          AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
+                          AND communications.audience_id NOT IN (3,4,7,9)
                           ORDER BY creation_date desc");
-
+        
                 $studentsArray = "{" . implode(',',$students) . "}";
                 $sth5->execute(array(':studentIds' => $studentsArray));
                 $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
-
+        
               }
-
+        
               /* get sent messages by student's parent */
               $feedback = Array();
               foreach( $studentsBySchool as $school => $students )
               {
                 if( $db !== null ) $db = null;
                 $db = setDBConnection($school);
-
+        
                 $sth6 = $db->prepare("SELECT cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
                         cf.message_from as posted_by,
                         s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
@@ -174,392 +126,32 @@ $app->post('/parentLogin', function () use($app) {
                     LEFT JOIN app.guardians g USING (guardian_id)
                     LEFT JOIN app.classes c USING (class_id)
                     WHERE cf.student_id = any(:studentIds)
-                    AND s.active IS TRUE
                     GROUP BY cf.com_feedback_id, subject, message, student_name, parent_full_name, class_name, opened
                     ORDER BY post_id DESC");
-
+        
                 $studentsArray = "{" . implode(',',$students) . "}";
                 $sth6->execute(array(':studentIds' => $studentsArray));
                 $feedback[$school] = $sth6->fetchAll(PDO::FETCH_OBJ);
-
+        
               }
-
+        
               $result->students = $studentDetails;
               $result->news = $news;
               $result->feedback = $feedback;
-
+        
               $app->response->setStatus(200);
               $app->response()->headers->set('Content-Type', 'application/json');
               $db = null;
-
+        
               echo json_encode(array('response' => 'success', 'data' => $result ));
-
+        
             } else {
-                $app->response->setStatus(200);
-                $app->response()->headers->set('Content-Type', 'application/json');
-                echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
-                /*
-                $responseJSON = json_encode($theResponse);
-                // throw new PDOException('The username or password you have entered is incorrect.');
-                throw new PDOException($responseJSON);
-                // throw new PDOException('The username you entered does not exist. Please confirm and try again.');
-                */
+              throw new PDOException('The username or password you have entered is incorrect.');
             }
-
-    } else {
-        if($userStatus === "stop"){
-
-            // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app failed login')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array("response" => "error", "code" => 2, "data" => 'The username you entered does not exist. Please confirm and try again.'));
-            /*
-            $theResponse->data = 'The username you entered does not exist. Please confirm and try again.';
-            $theResponse->status = array(2=>"The username you entered does not exist. Please confirm and try again.");
-
-            $responseJSON = json_encode($theResponse);
-
-            // throw new PDOException('The username you entered does not exist. Please confirm and try again.');
-            throw new PDOException($responseJSON);
-            */
-        } else {
-
-            // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app failed login')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
-            /*
-            $theResponse->data = 'The password you have entered is incorrect. Please check the spelling and / or capitalization.';
-            $theResponse->status = array(3=>"The password you have entered is incorrect. Please check the spelling and / or capitalization.");
-
-            $responseJSON = json_encode($theResponse);
-            // throw new PDOException('The username or password you have entered is incorrect.');
-            throw new PDOException($responseJSON);
-            */
-        }
-    }
-  } catch(PDOException $e) {
-    $app->response()->setStatus(401);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-  }
-});
-
-$app->get('/registrationStatus/:phone', function ($phoneNumber){
-  error_reporting(E_ALL);  // uncomment this only when testing
-  ini_set('display_errors', 1); // uncomment this only when testing
-  // Get the registration status
-  $app = \Slim\Slim::getInstance();
-
-  try
-  {
-    //first check if this number is in use in active use ie taken
-    $db0 = getLoginDB();
-
-    $checkOne = $db0->query("SELECT (CASE
-                                    		WHEN EXISTS (SELECT * FROM (
-                                                      SELECT telephone AS phone FROM registration_codes WHERE telephone = '$phoneNumber'
-                                                      UNION ALL
-                                                      SELECT username AS phone FROM parents WHERE username = '$phoneNumber'
-                                                      )a
-                                                      LIMIT 1) THEN 'in-use'
-                                    		ELSE 'continue'
-                                    	END) AS check_one");
-    $lineInUse = $checkOne->fetch(PDO::FETCH_OBJ);
-    $lineInUse = $lineInUse->check_one;
-    $db0 = null;
-    if($lineInUse === "continue"){
-
-        $db = pg_connect("host=localhost port=5433 dbname=eduweb_mis user=postgres password=pg_edu@8947");
-
-        // Query 1 - Get all databases
-        $fetchDbs = pg_query($db,"SELECT subdomain FROM clients WHERE active IS TRUE");
-
-        $dbArray = array(); // we'll put our db's here
-        $statusResults = array(); // this will contain boolean results from all databases
-        $registrationData = new stdClass();
-
-        while ($dbResults = pg_fetch_assoc($fetchDbs))
-        {
-            $dbCreate = 'eduweb_' . $dbResults['subdomain']; // full name of the db's
-            array_push($dbArray,$dbCreate); // push into dbArray the value of dbCreate
-        }
-        // now $dbArray has all databases we need to look up data (phone numbers)
-        $firstTimeFound = TRUE;
-        foreach ($dbArray as $key => $value) {
-          // db connect for each school
-
-          	$dbhost="localhost";
-          	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5433" : "5434");
-          	$dbuser = "postgres";
-          	$dbpass = "pg_edu@8947";
-          	$dbname = $value;
-          	$dbConnection = new PDO("pgsql:host=$dbhost;port=$dbport;dbname=$dbname", $dbuser, $dbpass);
-          	$dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-          $schoolDb = $dbConnection; // the db connect
-          $executeOnSchoolDb = $schoolDb->query("SELECT (CASE
-                                                            WHEN EXISTS (SELECT telephone FROM app.guardians WHERE telephone = '$phoneNumber' AND active IS TRUE) THEN 'Proceed Registration'
-                                                            ELSE 'Stop'
-                                                          END) AS registration_status;");
-          $regStatus = $executeOnSchoolDb->fetch(PDO::FETCH_OBJ);
-          $regStatus = $regStatus->registration_status;
-
-          if($regStatus === 'Proceed Registration'){
-            array_push($statusResults,"TRUE");
-            // var_dump($dbArray[$key]); // use this to check which school(s) the record appears
-            if($firstTimeFound === TRUE){
-                if($value === $dbArray[$key]){
-                  $dataFrmSchoolDb = $schoolDb->query("SELECT guardian_id, first_name, middle_name, last_name, email, username, id_number, array_to_string(array_agg(student_id),',') AS student_ids, subdomain
-                                                      FROM (
-                                                      	SELECT guardian_id, first_name, middle_name, last_name, email, telephone AS username, id_number, student_id,
-      								                        (SELECT CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'subdomain') THEN (SELECT value FROM app.settings WHERE name = 'subdomain') ELSE 'dev' END) AS subdomain
-                                                      	FROM app.guardians
-                                                      	INNER JOIN app.student_guardians USING (guardian_id)
-                                                      	WHERE telephone = '$phoneNumber' AND guardians.active IS TRUE
-                                                      )one
-                                                      GROUP BY guardian_id, first_name, middle_name, last_name, email, username, id_number, subdomain;");
-                  $parentData = $dataFrmSchoolDb->fetch(PDO::FETCH_OBJ);
-
-                  // var_dump($parentData);
-                  $registrationData->guardian_id = $parentData->guardian_id;
-                  $registrationData->first_name = $parentData->first_name;
-                  $registrationData->middle_name = $parentData->middle_name;
-                  $registrationData->last_name = $parentData->last_name;
-                  $registrationData->email = $parentData->email;
-                  $registrationData->username = $parentData->username;
-                  $registrationData->id_number = $parentData->id_number;
-                  $registrationData->student_ids = $parentData->student_ids;
-                  $registrationData->subdomain = $parentData->subdomain;
-                }
-                $firstTimeFound = FALSE;
-            }else{
-              // we return an error for users in multiple schools
-              $app->response()->setStatus(200);
-              $app->response()->headers->set('Content-Type', 'application/json');
-              echo  json_encode(array('response' => 'Error', 'message' => "There seems to be an issue either with this phone number or your details. Please consult with your school.", "status" => "Cannot proceed with registration." ));
-            }
-          }else{ array_push($statusResults,"FALSE"); }
-        }
-
-        // we now search through our array of status results for a boolean true
-        $valueToSearch = "TRUE"; // this will mean the phone number exists in one of the db's
-        if (($i = array_search($valueToSearch, $statusResults)) !== FALSE)
-        {
-            // loop will terminate
-
-            // this will generate our unique code
-            function getRandomString($length = 5) {
-                // $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                $characters = '0123456789';
-                $string = '';
-
-                for ($i = 0; $i < $length; $i++) {
-                    $string .= $characters[mt_rand(0, strlen($characters) - 1)];
-                }
-
-                return $string;
-            }
-            $uniqueCode = getRandomString();
-            $insertRegCode = pg_query($db,"INSERT INTO registration_codes(telephone, code, guardian_id, first_name, middle_name, last_name, email, id_number, username, student_ids, subdomain)
-                                            VALUES ('$phoneNumber',
-                                                    '$uniqueCode',
-                                                    $registrationData->guardian_id,
-                                                    '$registrationData->first_name',
-                                                    '$registrationData->middle_name',
-                                                    '$registrationData->last_name',
-                                                    '$registrationData->email',
-                                                    '$registrationData->id_number',
-                                                    '$registrationData->username',
-                                                    '$registrationData->student_ids',
-                                                    '$registrationData->subdomain');");
-
-            // first we need to change the phone format to +[code]phone
-            $firstChar = substr($phoneNumber, 0, 1);
-            if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
-            // we now create & send the actual sms
-            $registrationMessageObj = new stdClass();
-            $registrationMessageObj->message_recipients = Array();
-            $registrationMessageObj->message_by = "Eduweb Mobile App Registration";
-            $registrationMessageObj->message_date = date('Y-m-d H:i:s');
-            $registrationMessageObj->message_text = "Hello $registrationData->first_name, Your code for the Eduweb Mobile App registration is $uniqueCode ";
-            $registrationMessageObj->subscriber_name = "api";// $school;
-
-
-            $msgRecipientsObj = new stdClass();
-            $msgRecipientsObj->recipient_name = "$registrationData->first_name $registrationData->last_name";
-            $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
-            array_push($registrationMessageObj->message_recipients, clone $msgRecipientsObj);
-
-            // send the message
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($ch, CURLOPT_HEADER, FALSE);
-            curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($registrationMessageObj)); // the data to post
-            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
-
-            $resp = curl_exec($ch);
-
-            if($resp === false)
-            {
-              $app->response()->setStatus(200);
-              $app->response()->headers->set('Content-Type', 'application/json');
-              echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found but there seems to be a slight problem sending the SMS. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch) ));
-            }
-            else
-            {
-              $app->response()->setStatus(200);
-              $app->response()->headers->set('Content-Type', 'application/json');
-              echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password.", "status" => "SMS sent successfully" ));
-            }
-
-            curl_close($ch);
-
-            // $app->response()->setStatus(200);
-            // $app->response()->headers->set('Content-Type', 'application/json');
-            // echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password." ));
-
-        }else{
-          $app->response()->setStatus(200);
-          $app->response()->headers->set('Content-Type', 'application/json');
-          echo  json_encode(array('response' => 'error', 'message' => "The submitted phone number has not been found in our system. Please use a phone number that you use with the school.", "status" => "Phone number not found." ));
-        }
-    }else{
-      $app->response()->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo  json_encode(array('response' => 'error', 'message' => "The submitted phone number is already in use, either by you or another user.", "status" => "Phone number already in use" ));
-    }
+    
 
   } catch(PDOException $e) {
     $app->response()->setStatus(401);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-  }
-});
-
-$app->get('/checkRegCode/:phone/:code', function ($phone,$code) {
-    //Show currency
-
-  $app = \Slim\Slim::getInstance();
-
-    try
-    {
-      $db = getLoginDB();
-
-      $checkCode = $db->query("SELECT (CASE
-                                          WHEN EXISTS (SELECT telephone,code FROM registration_codes WHERE telephone = '$phone' AND code='$code') THEN 'proceed'
-                                          ELSE 'stop'
-                                        END) AS status");
-      $userStatus = $checkCode->fetch(PDO::FETCH_OBJ);
-      $userStatus = $userStatus->status;
-
-        if($userStatus === "proceed") {
-            $updateToValidated = $db->query("UPDATE registration_codes SET status= TRUE
-                                            WHERE telephone='$phone' AND code='$code';");
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'validated' => true, 'data' => 'Your phone number has been validated. Proceed to set up your password.', 'status' => 'Validation passed.' ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'error', 'validated' => false, 'data' => 'Either your phone number could not be found or the entered code is wrong, hence not validated yet.', 'status' => 'Validation failed.' ));
-            $db = null;
-        }
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-    $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->post('/registerPwd', function () use($app) {
-  // update users device id
-  $allPostVars = $app->request->post();
-  $pwd = $allPostVars['pwd'];
-  $phone = $allPostVars['phone'];
-
-  try
-  {
-    $db = getLoginDB();
-    $sth = $db->query("SELECT * FROM registration_codes WHERE telephone = '$phone';");
-    $results = $sth->fetch(PDO::FETCH_OBJ);
-    $validationStatus = $results->status;
-    if($validationStatus === true){
-
-      $sth2 = $db->prepare("INSERT INTO parents(first_name, middle_name, last_name, email, id_number, username, password, active)
-                            VALUES ('$results->first_name','$results->middle_name','$results->last_name','$results->email','$results->id_number','$results->username','$pwd',true) returning parent_id;");
-      $sth2->execute( array() );
-      $thisParentsId = $sth2->fetch(PDO::FETCH_OBJ);
-      $thisParentsId = $thisParentsId->parent_id;
-
-      // insert parent student relation into db
-      $studentsArr = explode (",", $results->student_ids);
-      foreach ($studentsArr as &$studentId) {
-            $sth22 = $db->prepare("INSERT INTO parent_students(parent_id, guardian_id, student_id, subdomain, dbusername, dbpassword)
-                                    VALUES ($thisParentsId,
-                                            $results->guardian_id,
-                                            $studentId,
-                                            '$results->subdomain',
-                                            'postgres',
-                                            'pg_edu@8947');");
-            $sth22->execute( array() );
-      }
-
-      $sth3 = $db->prepare("DELETE FROM registration_codes WHERE telephone = '$phone'");
-      $sth3->execute( array() );
-
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array("response" => "success", "message" => "You have been successfully registered. You can now log in."));
-      $db = null;
-    }else{
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array("response" => "error", "message" => "Your phone number has not been validated yet. Please validate the code sent to you first by entering it in the mobile app."));
-      $db = null;
-    }
-
-    $db = null;
-
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app user registration')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
-    // $app->response->setStatus(200);
-    // $app->response()->headers->set('Content-Type', 'application/json');
-    // echo json_encode(array("response" => "success", "code" => 1));
-    // $db = null;
-
-  } catch(PDOException $e) {
-    $app->response()->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
@@ -583,15 +175,6 @@ $app->put('/updatePassword', function () use($app) {
     $result = $sth1->fetch(PDO::FETCH_OBJ);
     if( $result )
     {
-        // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app updated login')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
       $sth2 = $db->prepare("UPDATE parents SET password = :newPwd WHERE parent_id = :userId");
       $sth2->execute( array(':userId' => $userId, ':newPwd' => $newPwd) );
       $app->response->setStatus(200);
@@ -600,16 +183,6 @@ $app->put('/updatePassword', function () use($app) {
     }
     else
     {
-
-        // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app failed login update')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
       echo json_encode(array("response" => "error", "data" => "Current password is incorrect." ));
@@ -620,170 +193,6 @@ $app->put('/updatePassword', function () use($app) {
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-  }
-});
-
-$app->get('/forgotPassword/:phone', function ($phoneNumber){
-  // Forgot password
-
-  $file = "wordlist.txt";
-  $twoRndWords = Array();
-  // we need to merge two words eg "dog-town" so we create a loop of only 2
-  for ($x = 0; $x <= 1; $x++) {
-    // Convert the text fle into array and get text of each line in each array index
-    $file_arr = file($file);
-    // Total number of lines in file
-    $num_lines = count($file_arr);
-    // Getting the last array index number
-    $last_arr_index = $num_lines - 1;
-    // Random index number
-    $rand_index = rand(0, $last_arr_index);
-    // random text from a line. The line will be a random number within the indexes of the array
-    $rand_text = $file_arr[$rand_index];
-    array_push($twoRndWords,$rand_text);
-  }
-  $pwdString = implode("-",$twoRndWords);
-  $temporaryPwd = preg_replace('~[\r\n]+~', '', $pwdString);
-  // echo $temporaryPwd;
-
-  $app = \Slim\Slim::getInstance();
-
-  try
-  {
-    //first check if this number is in use in active use ie taken
-    $db0 = getLoginDB();
-
-    $previousIncomplete = $db0->query("SELECT (CASE WHEN EXISTS (SELECT usr_name AS phone FROM forgot_password WHERE usr_name = '$phoneNumber') THEN 'incomplete-reset' ELSE 'continue' END) AS state");
-    $checkOne = $previousIncomplete->fetch(PDO::FETCH_OBJ);
-    $incompleteStatus = $checkOne->state;
-    if($incompleteStatus === "continue"){
-
-      $checkOne = $db0->query("SELECT (CASE
-                                      		WHEN EXISTS (SELECT * FROM (
-                                                        SELECT username AS phone FROM parents WHERE username = '$phoneNumber'
-                                                        )a
-                                                        LIMIT 1) THEN 'found'
-                                      		ELSE 'not-found'
-                                        END) AS check_one, (SELECT parent_id FROM parents WHERE username = '$phoneNumber') AS parent_id,
-                                        (SELECT first_name FROM parents WHERE username = '$phoneNumber') AS parent_name");
-      $lineCheck = $checkOne->fetch(PDO::FETCH_OBJ);
-      $phoneCheck = $lineCheck->check_one;
-      $parentId = $lineCheck->parent_id;
-      $parentName = $lineCheck->parent_name;
-
-      if($phoneCheck === "found"){
-          $sth2 = $db0->prepare("INSERT INTO forgot_password(usr_name, temp_pwd, parent_id)
-                                VALUES ('$phoneNumber','$temporaryPwd',$parentId);");
-          $sth2->execute( array() );
-
-          // first we need to change the phone format to +[code]phone
-          $firstChar = substr($phoneNumber, 0, 1);
-          if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
-          // we now create & send the actual sms
-          $forgotPwdObj = new stdClass();
-          $forgotPwdObj->message_recipients = Array();
-          $forgotPwdObj->message_by = "Eduweb Mobile App Forgot Password";
-          $forgotPwdObj->message_date = date('Y-m-d H:i:s');
-          $forgotPwdObj->message_text = "Hello $parentName, use $temporaryPwd as your temporary password for the Eduweb Mobile App.";
-          $forgotPwdObj->subscriber_name = "api";// to be replaced;
-
-
-          $msgRecipientsObj = new stdClass();
-          $msgRecipientsObj->recipient_name = "$parentName";
-          $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
-          array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
-
-          // send the message
-          $ch = curl_init();
-          curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
-          curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
-          curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-          curl_setopt($ch, CURLOPT_HEADER, FALSE);
-          curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
-          curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($forgotPwdObj)); // the data to post
-          curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
-          curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
-
-          $resp = curl_exec($ch);
-
-          if($resp === false)
-          {
-            $app->response()->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo  json_encode(array('response' => 'Success', 'message' => "An error was encountered while attempting to SMS you your temporary password for confirmation and reset. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch) ));
-          }
-          else
-          {
-            $app->response()->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully", "temporary-code" => $temporaryPwd ));
-          }
-
-          curl_close($ch);
-      }else{
-        $app->response()->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records.", "status" => "Phone number not found, no sms will be sent." ));
-      }
-    }else{
-      $app->response()->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo  json_encode(array('response' => 'error', 'message' => "You seem to have previously tried to reset your password but did not complete the process.", "status" => "Incomplete password reset process detected." ));
-    }
-    $db0 = null;
-
-  } catch(PDOException $e) {
-    $app->response()->setStatus(401);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-  }
-});
-
-$app->get('/confirmTemporaryPassword/:phone/:tempPwd', function ($phoneNumber,$tempPwd){
-
-  $app = \Slim\Slim::getInstance();
-
-  try
-  {
-    $db = getLoginDB();
-
-    $checkPassword = $db->query("SELECT (CASE
-                                    		WHEN EXISTS (SELECT * FROM (
-                                                      SELECT usr_name AS phone FROM forgot_password WHERE usr_name = '$phoneNumber' AND temp_pwd = '$tempPwd'
-                                                      )a
-                                                      LIMIT 1) THEN 'found'
-                                    		ELSE 'not-found'
-                                      END) AS pwd_status,
-                                      (SELECT temp_pwd FROM forgot_password WHERE usr_name = '$phoneNumber' AND temp_pwd = '$tempPwd') AS pwd,
-                                      (SELECT parent_id FROM forgot_password WHERE usr_name = '$phoneNumber' AND temp_pwd = '$tempPwd') AS parent_id");
-    $userCheck = $checkPassword->fetch(PDO::FETCH_OBJ);
-    $pwdCheck = $userCheck->pwd_status;
-    $pwd = $userCheck->pwd;
-    $parentId = $userCheck->parent_id;
-
-    if($pwdCheck === "found"){
-        $sth2 = $db->prepare("UPDATE parents SET password = :pwd WHERE parent_id = :parentId;");
-        $sth2->execute( array(':parentId'=>$parentId, ':pwd'=>$pwd) );
-
-        // we now remove this record
-        $sth3 = $db->prepare("DELETE FROM forgot_password WHERE parent_id = :parentId AND temp_pwd = :pwd;");
-        $sth3->execute( array(':parentId'=>$parentId, ':pwd'=>$pwd) );
-
-        $app->response()->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'Success', 'message' => "Your password has been successfully reset. You can now log in and change it.", "status" => "Password reset successfully" ));
-
-    }else{
-      $app->response()->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records. Confirm the details and try again.", "status" => "Data not found." ));
-    }
-    $db = null;
-
-  } catch(PDOException $e) {
-    $app->response()->setStatus(401);
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
@@ -803,15 +212,6 @@ $app->post('/updateDeviceUserId', function () use($app) {
     $sth->execute( array(':parentId' => $parentId, ':deviceUserId' => $deviceUserId) );
 
     $db = null;
-
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app device user id updated')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
 
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -838,15 +238,6 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
     $students = $sth1->fetchAll(PDO::FETCH_OBJ);
     $db = null;
 
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app getting parents children and associated data')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
     $studentDetails = Array();
     $curSubDomain = '';
     $studentsBySchool = Array();
@@ -862,12 +253,11 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
       $sth3 = $db->prepare("SELECT student_id, first_name, middle_name, last_name, student_image, admission_number,
                      first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
                      students.active, class_name, class_id, class_cat_id, report_card_type, admission_date, student_category, gender, dob, payment_method, payment_plan_name,
-                     (SELECT value FROM app.settings WHERE name = 'School Name') as school_name,
-                     (SELECT value FROM app.settings WHERE name = 'Use Feedback') as use_feedback
+                     (SELECT value FROM app.settings WHERE name = 'School Name') as school_name
                   FROM app.students
                   INNER JOIN app.classes ON students.current_class = classes.class_id
                   LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
-                  WHERE student_id = :studentId AND students.active IS TRUE");
+                  WHERE student_id = :studentId");
       $sth3->execute(array(':studentId' => $student->student_id));
       $details = $sth3->fetch(PDO::FETCH_OBJ);
       if($details){
@@ -911,12 +301,8 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                   WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
                   AND communications.sent IS TRUE
                   AND communications.post_status_id = 1
-                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
-                  OR communications.class_id is null)
-                  AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
-                  --AND students.active IS TRUE
-                  AND communications.com_type_id NOT IN (6)
-                  AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
+                  AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds)) OR communications.class_id is null)
+                  AND communications.audience_id NOT IN (3,4,7,9)
                   ORDER BY creation_date desc");
 
       $studentsArray = "{" . implode(',',$students) . "}";
@@ -924,7 +310,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
       $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
 
     }
-
+    
     /* get sent messages by student's parent */
       $feedback = Array();
       foreach( $studentsBySchool as $school => $students )
@@ -942,7 +328,6 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
             LEFT JOIN app.guardians g USING (guardian_id)
             LEFT JOIN app.classes c USING (class_id)
             WHERE cf.student_id = any(:studentIds)
-            AND s.active IS TRUE
             GROUP BY cf.com_feedback_id, subject, message, student_name, parent_full_name, class_name, opened
             ORDER BY post_id DESC");
 
@@ -1001,41 +386,6 @@ $app->get('/getSchoolCurrency/:school', function ($school) {
         $app->response()->setStatus(404);
     $app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->get('/getGrading2/:school', function ($school) {
-    //Show lower school grading
-
-	$app = \Slim\Slim::getInstance();
-
-    try
-    {
-        $db = setDBConnection($school);
-        $sth = $db->prepare("SELECT *
-            FROM app.grading2
-			ORDER BY max_mark desc");
-        $sth->execute();
-
-        $results = $sth->fetchAll(PDO::FETCH_OBJ);
-
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
-
-    } catch(PDOException $e) {
-         $app->response()->setStatus(200);
-		 $app->response()->headers->set('Content-Type', 'application/json');
-         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
 });
@@ -1103,7 +453,6 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
                 AND blog_posts.post_status_id = 1
                -- AND blog_posts.post_type_id = 1
                 AND date_trunc('year', blog_posts.creation_date) =  date_trunc('year', now())
-                AND students.active IS TRUE
                 ORDER BY blog_posts.creation_date desc
                 ");
       $sth->execute( array(':studentId' => $studentId) );
@@ -1123,7 +472,6 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
                AND blog_posts.post_status_id = 1
               -- AND blog_posts.post_type_id = 1
                AND date_trunc('year', blog_posts.creation_date) =  date_trunc('year', now())
-               AND students.active IS TRUE
                 ");
 
       $sth2 = $db->prepare("SELECT post_id, blogs.blog_id, blog_posts.creation_date, title, post_type, body, blog_posts.post_status_id, post_status,
@@ -1170,85 +518,6 @@ $app->get('/getBlog/:school/:student_id(/:pageNumber)', function ($school, $stud
       $results->posts = $posts;
     }
 
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting blog posts')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
-
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(200);
-    $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->get('/getGalleryCommunications/:school/:student_id', function ($school, $studentId) {
-    // Get homework associated with student for current week
-
-  $app = \Slim\Slim::getInstance();
-
-    try
-    {
-    $db = setDBConnection($school);
-    $sth = $db->prepare("SELECT
-                com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
-                employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
-                audience, attachment, reply_to,
-                students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
-                guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
-                communications.guardian_id, communications.student_id, classes.class_name, post_status,
-                sent, sent_date, message_from,
-                case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method
-              FROM app.communications
-              LEFT JOIN app.students ON communications.student_id = students.student_id
-              LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
-              LEFT JOIN app.classes ON communications.class_id = classes.class_id
-              INNER JOIN app.employees ON communications.message_from = employees.emp_id
-              INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
-              INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
-              INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-              WHERE communications.com_type_id = 6
-              AND communications.student_id IN (:studentId) OR communications.student_id is null
-              AND communications.sent IS TRUE
-              AND communications.post_status_id = 1
-              AND (communications.class_id = any(select current_class from app.students where student_id IN (:studentId))
-              OR communications.class_id is null)
-              AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
-              AND communications.send_as_email IS TRUE
-              --AND students.active IS TRUE
-              AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
-              ORDER BY creation_date desc");
-
-    $sth->execute( array(':studentId' => $studentId) );
-    $results = $sth->fetchAll(PDO::FETCH_OBJ);
-
-        // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app viewing gallery')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
         if($results) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -1293,10 +562,9 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
                         WHERE student_id = :studentId
                         AND homework.post_status_id = 1
                         --AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
-                        AND homework.creation_date >  CURRENT_DATE - INTERVAL '3 months'
-                        --AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date OR due_date > now() )
-                        AND students.active IS TRUE
-                        ORDER BY homework.assigned_date DESC, subjects.sort_order
+                        AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date
+                             OR due_date > now() )
+                        ORDER BY homework.assigned_date, subjects.sort_order
                 ");
     $sth->execute( array(':studentId' => $studentId) );
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1311,15 +579,6 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
     $sth->execute( array(':studentId' => $studentId) );
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
     */
-
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting homework')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
 
         if($results) {
             $app->response->setStatus(200);
@@ -1359,7 +618,7 @@ $app->get('/getStudent/:school/:studentId', function ($school, $studentId) {
                FROM app.students
                INNER JOIN app.classes ON students.current_class = classes.class_id
                LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
-               WHERE student_id = :studentID AND students.active IS TRUE
+               WHERE student_id = :studentID
                ORDER BY first_name, middle_name, last_name");
         $sth->execute( array(':studentID' => $studentId));
         $results = $sth->fetch(PDO::FETCH_OBJ);
@@ -1400,15 +659,6 @@ $app->get('/getStudent/:school/:studentId', function ($school, $studentId) {
       $results4 = $sth4->fetchAll(PDO::FETCH_OBJ);
 
       $results->fee_items = $results4;
-
-      // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student information')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
 
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
@@ -1536,15 +786,6 @@ $app->get('/getStudentBalancePortal/:school/:studentId', function ($school, $stu
             $db = null;
         }
 
-        // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student fee balance')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
@@ -1593,15 +834,6 @@ $app->get('/getStudentInvoicesPortal/:school/:studentId', function ($school, $st
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
   }
-
-  // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student invoices')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
@@ -1680,15 +912,6 @@ $app->get('/getStudentPaymentsPortal/:school/:studentId', function ($school, $st
       $db = null;
     }
 
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student fee payments')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -1728,15 +951,6 @@ $app->get('/getStudentCreditsPortal/:school/:studentId', function ($school, $stu
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
-
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student fee credits')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
@@ -1782,15 +996,6 @@ $app->get('/getStudentArrearsPortal/:school/:studentId/:date', function ($school
       $db = null;
     }
 
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student fee arrears')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -1829,15 +1034,6 @@ $app->get('/getStudentFeeItemsPortal/:school/:studentId', function ($school, $st
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
-
-        // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student fee items')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
 
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
@@ -1891,15 +1087,6 @@ $app->get('/getStudentExamMarksPortal/:school/:student_id/:class/:term', functio
             $db = null;
         }
 
-        // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student exam marks')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -1922,13 +1109,13 @@ $app->get('/getStudentClasses/:school/:studentId', function ($school, $studentId
                 case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
               FROM app.students
               INNER JOIN app.classes ON students.current_class = classes.class_id
-              WHERE student_id = :studentId AND students.active IS TRUE
+              WHERE student_id = :studentId
               UNION
               SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
               FROM app.student_class_history
               INNER JOIN app.classes ON student_class_history.class_id = classes.class_id
               WHERE student_id = :studentId
-              AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId AND students.active IS TRUE)
+              AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId)
               ORDER BY ord");
     $sth->execute( array(':studentId' => $studentId) );
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -2054,7 +1241,7 @@ $app->get('/getStudentReportCards/:school/:student_id', function ($school, $stud
           INNER JOIN app.terms ON report_cards.term_id = terms.term_id
           LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
           WHERE report_cards.student_id = :studentId
-          AND published is true AND students.active IS TRUE
+          AND published is true
           ORDER BY report_card_id");
     $sth->execute( array(':studentId' => $studentId) );
 
@@ -2071,15 +1258,6 @@ $app->get('/getStudentReportCards/:school/:student_id', function ($school, $stud
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
     }
-
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student report card')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
 
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
@@ -2109,7 +1287,7 @@ $app->get('/getStudentReportCard/:school/:student_id/:class_id/:term_id', functi
           LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
           WHERE report_cards.student_id = :studentId
           AND report_cards.class_id = :classId
-          AND report_cards.term_id = :termId AND students.active IS TRUE");
+          AND report_cards.term_id = :termId");
     $sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) );
         $results = $sth->fetch(PDO::FETCH_OBJ);
 
@@ -2125,15 +1303,6 @@ $app->get('/getStudentReportCard/:school/:student_id/:class_id/:term_id', functi
             echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
             $db = null;
         }
-
-        // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app getting student report card')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
 
     } catch(PDOException $e) {
         $app->response()->setStatus(200);
@@ -2277,16 +1446,6 @@ $app->get('/getPaymentDetails/:school/:payment_id', function ($school, $paymentI
         echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
         $db = null;
     }
-
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app showing payment')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
   } catch(PDOException $e) {
     $app->response()->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -2328,7 +1487,7 @@ $app->get('/getInvoiceDetails/:school/:inv_id', function ($school,$invId) {
                 INNER JOIN app.classes
                 ON students.current_class = classes.class_id
               ON invoices.student_id = students.student_id
-              WHERE invoices.inv_id = :invId AND students.active IS TRUE
+              WHERE invoices.inv_id = :invId
               ORDER BY fee_item
               ) q");
     $sth->execute( array(':invId' => $invId) );
@@ -2344,52 +1503,6 @@ $app->get('/getInvoiceDetails/:school/:inv_id', function ($school,$invId) {
       $app->response()->headers->set('Content-Type', 'application/json');
       echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
       $db = null;
-    }
-
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app showing invoice')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
-  } catch(PDOException $e) {
-    $app->response()->setStatus(200);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-  }
-
-});
-
-$app->get('/getDocReport/:school/:studentId', function ($school,$studentId) {
-  //Show document report cards for the student
-
-  $app = \Slim\Slim::getInstance();
-
-  try
-  {
-    $db = setDBConnection($school);
-
-    $sth = $db->prepare("SELECT term_name, sch.class_id, class_name, lr.* FROM app.lowersch_reportcards lr
-                        INNER JOIN app.terms t USING (term_id)
-                        INNER JOIN app.student_class_history sch ON t.start_date >= sch.start_date AND t.end_date <= sch.end_date AND lr.student_id = sch.student_id
-                        INNER JOIN app.classes c USING (class_id)
-                        WHERE lr.student_id = :studentId");
-    $sth->execute( array(':studentId' => $studentId));
-    $results = $sth->fetchAll(PDO::FETCH_OBJ);
-
-    if($results) {
-        $app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array('response' => 'success', 'data' => $results ));
-        $db = null;
-    } else {
-        $app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-        $db = null;
     }
 
   } catch(PDOException $e) {
@@ -2463,21 +1576,11 @@ $app->post('/addFeedback/:school', function ($school) {
 
     $db = null;
 
-    // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$school','parent-app sending feedback')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
   } catch(PDOException $e) {
     $app->response()->setStatus(401);
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
 });
-
 
 ?>

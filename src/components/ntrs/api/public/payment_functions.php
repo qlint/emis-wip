@@ -119,6 +119,41 @@ $app->get('/getPaymentsDue(/:startDate/:endDate)', function ($startDate=null,$en
 
 });
 
+$app->get('/checkSlipNo/:slipChequeNo', function ($slipChequeNo) {
+    // Get all payment due for given date range
+  // TO DO: not using start and end dates, only pulling the current month
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+       $sth = $db->prepare("SELECT (CASE
+                                  		WHEN EXISTS (SELECT slip_cheque_no FROM app.payments WHERE slip_cheque_no = :slipChequeNo) THEN 'Duplicate Entry'
+                                  		ELSE 'New Entry'
+                                  	END) AS status");
+      $sth->execute( array(':slipChequeNo' => $slipChequeNo) );
+      $results = $sth->fetch(PDO::FETCH_OBJ);
+
+      if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getPaymentsPastDue(/:student_id)', function ($studentId=null) {
     // Get all payment due for given date range
   // TO DO: do I need to keep the student ID or can this be removed?
@@ -292,6 +327,8 @@ $app->post('/addPayment', function () use($app) {
   $paymentDate =      ( isset($allPostVars['payment_date']) ? $allPostVars['payment_date']: null);
   $amount =         ( isset($allPostVars['amount']) ? $allPostVars['amount']: null);
   $paymentMethod =    ( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
+  $paymentBank =    ( isset($allPostVars['payment_bank']) ? $allPostVars['payment_bank']: null);
+  $paymentBankDate =    ( isset($allPostVars['payment_bank_date']) ? $allPostVars['payment_bank_date']: null);
   $slipChequeNo =     ( isset($allPostVars['slip_cheque_no']) ? $allPostVars['slip_cheque_no']: null);
   $replacementPayment =   ( isset($allPostVars['replacement_payment']) ? $allPostVars['replacement_payment']: null);
   $lineItems =      ( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
@@ -305,8 +342,8 @@ $app->post('/addPayment', function () use($app) {
   try
   {
     $db = getDB();
-    $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by, custom_receipt_no)
-                  VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId, :custom_receipt_no)");
+    $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by, custom_receipt_no, payment_bank, banking_date)
+                  VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId, :custom_receipt_no, :paymentBank, :paymentBankDate)");
 
     $credit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount, created_by)
                   VALUES(:studentId, currval('app.payments_payment_id_seq'), :creditAmt, :userId)");
@@ -340,6 +377,8 @@ $app->post('/addPayment', function () use($app) {
 
     $payment->execute( array(':studentId' => $studentId,
                  ':paymentDate' => $paymentDate,
+                 ':paymentBank' => $paymentBank,
+                 ':paymentBankDate' => $paymentBankDate,
                  ':amount' => $amount,
                  ':paymentMethod' => $paymentMethod,
                  ':slipChequeNo' => $slipChequeNo,
@@ -445,7 +484,7 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 
     // get payment data
     $sth = $db->prepare("SELECT payments.payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, custom_receipt_no,
-                  payments.student_id, replacement_payment, reversed, reversed_date, credit_id --,payments.inv_id
+                  payments.student_id, replacement_payment, reversed, reversed_date, credit_id, payments.payment_bank, payments.banking_date --,payments.inv_id
               FROM app.payments
               LEFT JOIN app.credits ON payments.payment_id = credits.payment_id
               WHERE payments.payment_id = :paymentId

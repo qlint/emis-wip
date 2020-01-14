@@ -3,7 +3,7 @@
 // Prepare app
 $app = new \Slim\Slim();
 $corsOptions = array(
-    "origin" => "*",
+    "origin" => "https://ntarasiplay.co.ke",
     "exposeHeaders" => array("Content-Type", "X-Requested-With", "X-authentication", "X-client"),
     "allowMethods" => array('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS')
 );

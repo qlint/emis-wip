@@ -7,7 +7,7 @@ class CorsSlim extends \Slim\Middleware {
 
     public function __construct($settings = array()) {
         $this->settings = array_merge(array(
-                'origin' => '*',    // Wide Open!
+                'origin' => 'https://ntarasiplay.co.ke',    // Wide Open!
                 'allowMethods' => 'GET,HEAD,PUT,POST,DELETE'
                 ), $settings);
     }
@@ -91,19 +91,24 @@ class CorsSlim extends \Slim\Middleware {
         }
     }
 
-    protected function setCorsHeaders() {
-      if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-          header('Access-Control-Allow-Origin: *');
-          header('Access-Control-Allow-Methods: POST, GET, DELETE, PUT, PATCH, OPTIONS');
-          header('Access-Control-Allow-Headers: token, Content-Type');
-          header('Access-Control-Max-Age: 1728000');
-          header('Content-Length: 0');
-          header('Content-Type: text/plain');
-          die();
-      }
+    protected function setCorsHeaders($app) {
+        $req = $app->request();
+        $rsp = $app->response();
 
-      header('Access-Control-Allow-Origin: *');
-      header('Content-Type: application/json');
+        // http://www.html5rocks.com/static/images/cors_server_flowchart.png
+        // Pre-flight
+        if ($app->request->isOptions()) {
+            $this->setOrigin($req, $rsp);
+            $this->setMaxAge($req, $rsp);
+            $this->setAllowCredentials($req, $rsp);
+            $this->setAllowMethods($req, $rsp);
+            $this->setAllowHeaders($req, $rsp);
+        }
+        else {
+            $this->setOrigin($req, $rsp);
+            $this->setExposeHeaders($req, $rsp);
+            $this->setAllowCredentials($req, $rsp);
+        }
     }
 
     public function call() {
@@ -117,7 +122,7 @@ class CorsSlim extends \Slim\Middleware {
         $cors = new CorsSlim($settings);
         return function() use ($cors, $settings) {
             $app = (array_key_exists('appName', $settings)) ? \Slim\Slim::getInstance($settings['appName']) : \Slim\Slim::getInstance();
-            $cors->setCorsHeaders();
+            $cors->setCorsHeaders($app);
         };
     }
 }

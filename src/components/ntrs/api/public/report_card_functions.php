@@ -300,7 +300,10 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 											  , coalesce(sum(case when subjects.parent_subject_id is null then
 														grade_weight
 													end),0) as total_grade_weight
-											  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+											  ,(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+													INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+													INNER JOIN app.class_subjects cs USING (class_subject_id)
+													WHERE cs.class_id = :classId AND em.term_id = :termId) as position_out_of
 
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams
@@ -342,7 +345,15 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 		$sth3ByAverage = $db->prepare("SELECT total_mark, total_grade_weight, rank, percentage,
 	(SELECT grade FROM app.grading WHERE round((current_term_marks::float/current_term_marks_out_of::float)*100) between min_mark and max_mark) AS grade,
 	(SELECT principal_comment FROM app.grading WHERE round((current_term_marks::float/current_term_marks_out_of::float)*100) between min_mark and max_mark) AS principal_comment,
-	principal_comment, (select count(*) from app.students where active is true and current_class = :classId ) AS position_out_of,current_term_marks,current_term_marks_out_of
+	principal_comment, (SELECT COUNT(DISTINCT student_id) FROM (
+								SELECT student_id, mark FROM (
+									SELECT em.student_id, em.mark FROM app.exam_marks em
+									INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+									INNER JOIN app.class_subjects cs USING (class_subject_id)
+									WHERE cs.class_id = :classId AND em.term_id = :termId
+								)one WHERE mark IS NOT NULL
+							)two) AS position_out_of,
+	current_term_marks,current_term_marks_out_of
 FROM(
 	SELECT marks.total_mark, marks.total_grade_weight, positions.rank, percentages.percentage, percentages.grade, percentages.principal_comment, marks.position_out_of,
 		percentages.total_marks_percent as current_term_marks,
@@ -392,7 +403,14 @@ FROM(
 		FROM (
 			SELECT exam_marks.student_id,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
 				coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-				(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+				(SELECT COUNT(DISTINCT student_id) FROM (
+					SELECT student_id, mark FROM (
+						SELECT em.student_id, em.mark FROM app.exam_marks em
+						INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+						INNER JOIN app.class_subjects cs USING (class_subject_id)
+						WHERE cs.class_id = :classId AND em.term_id = :termId
+					)one WHERE mark IS NOT NULL
+				)two) as position_out_of
 			FROM app.exam_marks
 			INNER JOIN app.class_subject_exams
 			INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
@@ -457,7 +475,8 @@ FROM(
 					INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
 								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-					WHERE class_subjects.class_id = :classId
+					INNER JOIN app.students s USING (student_id)
+					WHERE class_subjects.class_id = :classId AND s.active IS TRUE
 					AND term_id = :termId AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND mark IS NOT NULL
 					GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, class_subject_exams.exam_type_id,
 						subjects.parent_subject_id,exam_marks.mark,class_subject_exams.grade_weight
@@ -507,7 +526,10 @@ FROM(
 				  , coalesce(sum(case when subjects.parent_subject_id is null then
 							grade_weight
 						end),0) as total_grade_weight
-				  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+				  ,(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+					INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+					INNER JOIN app.class_subjects cs USING (class_subject_id)
+					WHERE cs.class_id = :classId AND em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )) as position_out_of
 
 			FROM app.exam_marks
 			INNER JOIN app.class_subject_exams
@@ -549,7 +571,15 @@ FROM(
 		$sth40 = $db->prepare("SELECT total_mark, total_grade_weight, rank, percentage,
 		(SELECT grade FROM app.grading WHERE round((current_term_marks::float/current_term_marks_out_of::float)*100) between min_mark and max_mark) AS grade,
 		(SELECT principal_comment FROM app.grading WHERE round((current_term_marks::float/current_term_marks_out_of::float)*100) between min_mark and max_mark) AS principal_comment,
-		principal_comment, (select count(*) from app.students where active is true and current_class = :classId ) AS position_out_of,current_term_marks,current_term_marks_out_of
+		principal_comment, (SELECT COUNT(DISTINCT student_id) FROM (
+								SELECT student_id, mark FROM (
+									SELECT em.student_id, em.mark FROM app.exam_marks em
+									INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+									INNER JOIN app.class_subjects cs USING (class_subject_id)
+									WHERE cs.class_id = :classId AND em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+								)one WHERE mark IS NOT NULL
+							)two) AS position_out_of,
+		current_term_marks,current_term_marks_out_of
 	FROM(
 		SELECT marks.total_mark, marks.total_grade_weight, positions.rank, percentages.percentage, percentages.grade, percentages.principal_comment, marks.position_out_of,
 			percentages.total_marks_percent as current_term_marks,
@@ -578,8 +608,7 @@ FROM(
 									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
 									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 						WHERE class_subjects.class_id = :classId
-						AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
-						AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND student_id = :studentId AND mark IS NOT NULL
+						AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND student_id = :studentId AND mark IS NOT NULL
 						GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, class_subject_exams.exam_type_id
 					) q
 					GROUP BY q.sort_order,q.subject_name
@@ -594,14 +623,20 @@ FROM(
 					INNER JOIN app.class_subjects ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 					WHERE student_id = a.student_id
-					AND class_subjects.class_id = :classId 
-					AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+					AND class_subjects.class_id = :classId AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 					) AS temp
 				), 1 as num_exam_types
 			FROM (
 				SELECT exam_marks.student_id,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
 					coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-					(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+					(SELECT COUNT(DISTINCT student_id) FROM (
+						SELECT student_id, mark FROM (
+							SELECT em.student_id, em.mark FROM app.exam_marks em
+							INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+							INNER JOIN app.class_subjects cs USING (class_subject_id)
+							WHERE cs.class_id = :classId AND em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+						)one WHERE mark IS NOT NULL
+					)two) as position_out_of
 				FROM app.exam_marks
 				INNER JOIN app.class_subject_exams
 				INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
@@ -611,10 +646,9 @@ FROM(
 							ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 				INNER JOIN app.students ON exam_marks.student_id = students.student_id
 				WHERE class_subjects.class_id = :classId
-				AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
-				AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND students.active is true AND mark IS NOT NULL
+				AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND students.active is true AND mark IS NOT NULL
 				/*hack by tom, remember to remove*/
-				AND class_subject_exams.exam_type_id = (SELECT  exam_type_id FROM app.exam_types WHERE exam_type_id=(select distinct exam_type_id from app.class_subject_exams cse inner join app.exam_marks em on cse.class_sub_exam_id=em.class_sub_exam_id where em.student_id=:studentId and em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) order by exam_type_id DESC LIMIT 1)) GROUP BY exam_marks.student_id
+				AND class_subject_exams.exam_type_id = (SELECT  exam_type_id FROM app.exam_types WHERE exam_type_id=(select distinct exam_type_id from app.class_subject_exams cse inner join app.exam_marks em on cse.class_sub_exam_id=em.class_sub_exam_id where em.student_id=:studentId and em.term_id=(select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) order by exam_type_id DESC LIMIT 1)) GROUP BY exam_marks.student_id
 			) a WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)
 		) q WHERE student_id = :studentId) AS marks
 		FULL OUTER JOIN
@@ -636,9 +670,9 @@ FROM(
 							INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 										ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
 										ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-							WHERE class_subjects.class_id = :classId
-							AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
-							AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND student_id = :studentId
+							INNER JOIN app.students s USING (student_id)
+							WHERE class_subjects.class_id = :classId AND s.active IS TRUE
+							AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND student_id = :studentId
 							AND mark IS NOT NULL
 							GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, count, class_subject_exams.exam_type_id
 							ORDER BY sort_order ASC
@@ -668,9 +702,9 @@ FROM(
 						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
 									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
 									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-						WHERE class_subjects.class_id = :classId
-						AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
-						AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND mark IS NOT NULL
+						INNER JOIN app.students s USING (student_id)
+						WHERE class_subjects.class_id = :classId AND s.active IS TRUE
+						AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND mark IS NOT NULL
 						GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order, use_for_grading, class_subject_exams.exam_type_id,
 							subjects.parent_subject_id,exam_marks.mark,class_subject_exams.grade_weight
 						ORDER BY student_id ASC
@@ -913,7 +947,10 @@ $app->get('/getSpecialExamMarksforReportCard/:student_id/:class/:term(/:teacherI
 											  , coalesce(sum(case when subjects.parent_subject_id is null then
 														grade_weight
 													end),0) as total_grade_weight
-											  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+											  ,(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+												INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+												INNER JOIN app.class_subjects cs USING (class_subject_id)
+												WHERE cs.class_id = :classId AND em.term_id = :termId) as position_out_of
 
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams
@@ -955,7 +992,11 @@ $app->get('/getSpecialExamMarksforReportCard/:student_id/:class/:term(/:teacherI
 
 		$sth3ByAverage = $db->prepare("SELECT total_mark, total_grade_weight, rank, percentage,
 	(SELECT grade FROM app.grading WHERE round((current_term_marks::float/current_term_marks_out_of::float)*100) between min_mark and max_mark) AS grade,
-	principal_comment, (select count(*) from app.students where active is true and current_class = :classId ) AS position_out_of,current_term_marks,current_term_marks_out_of
+	principal_comment, (SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+						INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+						INNER JOIN app.class_subjects cs USING (class_subject_id)
+						WHERE cs.class_id = :classId AND em.term_id = :termId) AS position_out_of,
+	current_term_marks,current_term_marks_out_of
 FROM(
 	SELECT marks.total_mark, marks.total_grade_weight, positions.rank, percentages.percentage, percentages.grade, percentages.principal_comment, marks.position_out_of,
 		percentages.total_marks_percent as current_term_marks,
@@ -1008,7 +1049,10 @@ FROM(
 		FROM (
 			SELECT exam_marks.student_id,coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
 				coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-				(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+				(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+				INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+				INNER JOIN app.class_subjects cs USING (class_subject_id)
+				WHERE cs.class_id = :classId AND em.term_id = :termId) as position_out_of
 			FROM app.exam_marks
 			INNER JOIN app.class_subject_exams
 			INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
@@ -1116,7 +1160,10 @@ FROM(
 									FROM (
 										SELECT exam_marks.student_id, coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark
 											  	,coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight
-											  	,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+											  	,(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+													INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+													INNER JOIN app.class_subjects cs USING (class_subject_id)
+													WHERE cs.class_id = :classId AND em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )) as position_out_of
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams
 										INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
@@ -1316,7 +1363,10 @@ $app->get('/getLowerSchoolExamMarksforReportCard/:student_id/:class/:term(/:teac
 											  , coalesce(sum(case when subjects.parent_subject_id is null then
 														grade_weight
 													end),0) as total_grade_weight
-											  ,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+											  ,(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+												INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+												INNER JOIN app.class_subjects cs USING (class_subject_id)
+												WHERE cs.class_id = :classId AND em.term_id = :termId) as position_out_of
 
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams
@@ -1371,7 +1421,10 @@ $app->get('/getLowerSchoolExamMarksforReportCard/:student_id/:class/:term(/:teac
 									FROM (
 										SELECT exam_marks.student_id, coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark
 											  	,coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight
-											  	,(select count(*) from app.students where active is true and current_class = :classId) as position_out_of
+											  	,(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+													INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+													INNER JOIN app.class_subjects cs USING (class_subject_id)
+													WHERE cs.class_id = :classId AND em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )) as position_out_of
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams
 										INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
@@ -1471,44 +1524,47 @@ $app->get('/getStreamPosition/:student_id/:termId', function ($studentId,$termId
 
 		// stream positions
 		$sth7 = $db->prepare("SELECT student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name, class_id, class_name,
-	case when denominator > 1 then round(total_mark/denominator) else total_mark end as current_term_marks,
-	case when denominator > 1 then round(total_grade_weight/denominator) else '500' end as current_term_marks_out_of,
-	rank AS position, percentage,
-	(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
-	position_out_of
-FROM (
-	SELECT student_id,first_name,middle_name,last_name,class_id,class_name,total_mark,total_grade_weight,
-		round((total_grade_weight/500)) as denominator,round((total_mark/total_grade_weight)*100) as percentage,
-		rank() over w as rank,position_out_of
+		case when denominator > 1 then round(total_mark/denominator) else total_mark end as current_term_marks,
+		case when denominator > 1 then round(total_grade_weight/denominator) else '500' end as current_term_marks_out_of, percentage,
+		(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
+		rank AS position, position_out_of
 	FROM (
-		SELECT student_id, first_name, middle_name, last_name, class_id, class_name, round(sum(total_mark)/3) AS total_mark,
-			round(sum(total_grade_weight)/3) AS total_grade_weight, position_out_of
+		SELECT student_id,first_name,middle_name,last_name,class_id,class_name,total_mark,total_grade_weight,
+			round((total_grade_weight/500)) as denominator,round((total_mark/total_grade_weight)*100) as percentage,
+			rank() over w as rank,position_out_of
 		FROM (
-			SELECT exam_marks.student_id,first_name,middle_name,last_name,class_subjects.class_id,class_name,
-				coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-				coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-				(SELECT count(student_id) FROM app.students WHERE active IS TRUE AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (select class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId)))))) as position_out_of,
-				exam_types.exam_type_id
-			FROM app.exam_marks
-			INNER JOIN app.students ON exam_marks.student_id = students.student_id
-			INNER JOIN app.class_subject_exams
-			INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-			INNER JOIN app.class_subjects
-			INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND use_for_grading is true
-			INNER JOIN app.classes ON class_subjects.class_id = classes.class_id AND classes.active is true
-						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-			WHERE term_id = :termId
-			AND students.active is true
-			AND class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id IN (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId)))))
-			GROUP BY exam_marks.student_id, first_name, middle_name, last_name, class_subjects.class_id, class_name, exam_types.exam_type_id
-		)b
-		GROUP BY student_id, first_name, middle_name, last_name, class_id, class_name, position_out_of
-		ORDER BY total_mark DESC
-	) a
-	WINDOW w AS (PARTITION BY position_out_of ORDER BY total_mark desc)
-) q
-WHERE student_id = :studentId");
+				SELECT student_id, first_name, middle_name, last_name, class_id, class_name, sum(total_mark) AS total_mark, sum(total_grade_weight) AS total_grade_weight, position_out_of
+				FROM (
+					SELECT student_id, first_name, middle_name, last_name, subject_name, class_id, class_name, round(total_mark::float/3) AS total_mark,
+						round(total_grade_weight/3) AS total_grade_weight, position_out_of
+					FROM (
+						SELECT exam_marks.student_id,first_name,middle_name,last_name,subject_name,class_subjects.class_id,class_subjects.subject_id,class_name,
+							coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+							coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+							(SELECT count(student_id) FROM app.students WHERE active IS TRUE AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (select class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId)))))) as position_out_of
+						FROM app.exam_marks
+						INNER JOIN app.students ON exam_marks.student_id = students.student_id
+						INNER JOIN app.class_subject_exams
+						INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+						INNER JOIN app.class_subjects
+						INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND use_for_grading is true
+						INNER JOIN app.classes ON class_subjects.class_id = classes.class_id AND classes.active is true
+									ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+									ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						WHERE term_id = :termId
+						AND students.active is true AND parent_subject_id IS NULL
+						AND class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id IN (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId)))))
+						GROUP BY exam_marks.student_id, first_name, middle_name, last_name, subject_name, class_subjects.class_id, class_name, class_subjects.subject_id
+					)b
+					GROUP BY student_id, first_name, middle_name, last_name, subject_name, class_id, class_name, position_out_of, total_mark, total_grade_weight
+					ORDER BY student_id ASC
+				)c
+				GROUP BY student_id, first_name, middle_name, last_name, class_id, class_name, position_out_of
+				ORDER BY total_mark DESC
+		) a
+		WINDOW w AS (PARTITION BY position_out_of ORDER BY total_mark desc)
+	) q
+	WHERE student_id = :studentId");
 		$sth7->execute(  array(':studentId' => $studentId, ':termId' => $termId) );
 		$streamRank = $sth7->fetchAll(PDO::FETCH_OBJ);
 
@@ -1556,41 +1612,45 @@ WHERE student_id = :studentId");
 		$streamRankByLastExam = $sth7ByLastExam->fetchAll(PDO::FETCH_OBJ);
 
 		// stream positions last term
-		$sth7LstTm = $db->prepare("SELECT * FROM (
-														SELECT student_id, student_name, avg, class_name, rank() over(order by avg desc) AS position,
-															(SELECT count(*) FROM app.students INNER JOIN app.classes ON students.current_class = classes.class_id INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id WHERE class_cats.entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId))) AND students.active is true) AS position_out_of
-														FROM (
-															SELECT student_id, student_name, class_name, sum(total_mark) as avg, sum(total_grade_weight) as total_grade_weight FROM (
-																SELECT round(avg(total_mark)) AS total_mark, round(avg(total_grade_weight)) AS total_grade_weight, student_id, student_name, class_name, subject_name
-																FROM (
-																	SELECT  student_id, student_name, class_id, class_name, subject_id, subject_name, sum(total_mark) as total_mark, sum(total_grade_weight) as total_grade_weight, exam_type_id
-																	FROM (
-																		SELECT classes.class_id, class_subjects.subject_id, subject_name, exam_marks.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, classes.class_name,
-																			coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
-																			coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
-																			subjects.sort_order, class_subject_exams.exam_type_id
-																		FROM app.exam_marks
-																		INNER JOIN app.students ON exam_marks.student_id = students.student_id
-																		INNER JOIN app.class_subject_exams
-																		INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-																		INNER JOIN app.class_subjects
-																		INNER JOIN app.classes ON class_subjects.class_id = classes.class_id
-																		INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
-																		INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-																					ON class_subject_exams.class_subject_id = class_subjects.class_subject_id AND class_subjects.active is true
-																					ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
-																		WHERE class_cats.entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId)))
-																		AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
-																		AND class_subject_exams.exam_type_id = (SELECT cse.exam_type_id FROM app.class_subject_exams cse INNER JOIN app.exam_types et USING (exam_type_id) INNER JOIN app.class_cats USING (class_cat_id) WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId))) ORDER BY et.sort_order DESC LIMIT 1)
-																		AND subjects.parent_subject_id is null AND subjects.use_for_grading is true AND students.student_id = exam_marks.student_id AND mark IS NOT NULL AND students.active IS TRUE
-																		GROUP BY class_subjects.class_id, subjects.subject_name, exam_marks.student_id, class_subjects.subject_id, subjects.sort_order,
-																			use_for_grading, class_subject_exams.exam_type_id,classes.class_id, students.first_name, students.middle_name, students.last_name
-																		ORDER BY exam_marks.student_id ASC
-																	) q GROUP BY student_id, student_name, class_id, class_name, subject_id, subject_name, exam_type_id ORDER BY student_id ASC
-																) AS foo GROUP BY student_id,student_name, class_name, subject_name ORDER BY student_id ASC, total_mark DESC
-															) AS FOO2 GROUP BY student_id, student_name, class_name
-														) AS foo3
-													) AS foo3 WHERE student_id = :studentId");
+		$sth7LstTm = $db->prepare("SELECT student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name, class_id, class_name,
+		case when denominator > 1 then round(total_mark/denominator) else total_mark end as current_term_marks,
+		case when denominator > 1 then round(total_grade_weight/denominator) else '500' end as current_term_marks_out_of,
+		rank AS position, percentage,
+		(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
+		position_out_of
+	FROM (
+		SELECT student_id,first_name,middle_name,last_name,class_id,class_name,total_mark,total_grade_weight,
+			round((total_grade_weight/500)) as denominator,round((total_mark/total_grade_weight)*100) as percentage,
+			rank() over w as rank,position_out_of
+		FROM (
+			SELECT student_id, first_name, middle_name, last_name, class_id, class_name, round(sum(total_mark)/3) AS total_mark,
+				round(sum(total_grade_weight)/3) AS total_grade_weight, position_out_of
+			FROM (
+				SELECT exam_marks.student_id,first_name,middle_name,last_name,class_subjects.class_id,class_name,
+					coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+					coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+					(SELECT count(student_id) FROM app.students WHERE active IS TRUE AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (select class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId)))))) as position_out_of,
+					exam_types.exam_type_id
+				FROM app.exam_marks
+				INNER JOIN app.students ON exam_marks.student_id = students.student_id
+				INNER JOIN app.class_subject_exams
+				INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+				INNER JOIN app.class_subjects
+				INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND use_for_grading is true
+				INNER JOIN app.classes ON class_subjects.class_id = classes.class_id AND classes.active is true
+							ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+							ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+				WHERE term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+				AND students.active is true
+				AND class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id IN (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId)))))
+				GROUP BY exam_marks.student_id, first_name, middle_name, last_name, class_subjects.class_id, class_name, exam_types.exam_type_id
+			)b
+			GROUP BY student_id, first_name, middle_name, last_name, class_id, class_name, position_out_of
+			ORDER BY total_mark DESC
+		) a
+		WINDOW w AS (PARTITION BY position_out_of ORDER BY total_mark desc)
+	) q
+	WHERE student_id = :studentId");
 		$sth7LstTm->execute(  array(':studentId' => $studentId, ':termId' => $termId) );
 		$streamRankLastTerm = $sth7LstTm->fetchAll(PDO::FETCH_OBJ);
 

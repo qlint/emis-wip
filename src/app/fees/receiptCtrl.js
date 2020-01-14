@@ -11,11 +11,34 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 	if($scope.receiptMode == undefined || $scope.receiptMode == "true"){
 		$scope.receiptMode = true;
 		$scope.itemized = true;
+		$scope.removeHeader = false;
 	}else{
 		$scope.receiptMode = false;
 		$scope.itemized = false;
+		$scope.removeHeader = true;
 	}
-	$scope.removeHeader = false;
+
+	$scope.numInWords = function NumInWords (number) {
+	  const first = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+	  const tens = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
+	  const mad = ['', 'Thousand', 'Million', 'Billion', 'Trillion'];
+	  let word = '';
+
+	  for (let i = 0; i < mad.length; i++) {
+	    let tempNumber = number%(100*Math.pow(1000,i));
+	    if (Math.floor(tempNumber/Math.pow(1000,i)) !== 0) {
+	      if (Math.floor(tempNumber/Math.pow(1000,i)) < 20) {
+	        word = first[Math.floor(tempNumber/Math.pow(1000,i))] + mad[i] + ' ' + word;
+	      } else {
+	        word = tens[Math.floor(tempNumber/(10*Math.pow(1000,i)))] + '-' + first[Math.floor(tempNumber/Math.pow(1000,i))%10] + mad[i] + ' ' + word;
+	      }
+	    }
+
+	    tempNumber = number%(Math.pow(1000,i+1));
+	    if (Math.floor(tempNumber/(100*Math.pow(1000,i))) !== 0) word = first[Math.floor(tempNumber/(100*Math.pow(1000,i)))] + 'Hundred ' + word;
+	  }
+			return word + ' Only.';
+	}
 
 	var initializeController = function()
 	{
@@ -56,6 +79,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.payment.banking_date = results.payment.banking_date;
 			$scope.payment.custom_receipt_no = "Receipt #: " + results.payment.custom_receipt_no; // for schools that want to use custom receipt #'s
 			$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
+			$scope.cashierName = $rootScope.currentUser.first_name + ' ' + $rootScope.currentUser.last_name;
 
 			var invoiceItems = results.invoice;
 
@@ -64,7 +88,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 				var termName = invoiceItems[invoiceItems.length - 1].term_name;
 				$scope.term_name = termName; // EDIT -- see ORIGINAL BELOW
 				var yearFromTermName = termName.split(' '); // just a test
-				console.log(yearFromTermName.slice(-1)[0]); // just a test - receipt term conflicts
+				// console.log(yearFromTermName.slice(-1)[0]); // just a test - receipt term conflicts
 				// we only want the number
 				termName = termName.split(' ');
 				// console.log("The invoice has " + invoiceItems.length + " items");
@@ -112,6 +136,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 						var amt = ( String(totalAmt).indexOf('.') > -1 ? String(totalAmt).split('.') : [totalAmt,'00']);
 						$scope.totalAmtKsh = amt[0];
 						$scope.totalAmtCts = amt[1];
+
+						$scope.receiptAmountInWords = $scope.numInWords(Number($scope.payment.amount));
 						/* receipt data end */
 
 					}
@@ -153,6 +179,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			}
 
 			// is there a credit
+			console.log($scope.payment);
 			if( $scope.feeSummary )
 			{
 			    // this is a hck to remove negatives to avoid brackets on the receipt
@@ -162,11 +189,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
                 }
 
 				$scope.balanceDue = $scope.feeSummary.balance;
+				$scope.balanceBroughtFwd = Number($scope.payment.amount) + Number($scope.balanceDue);
 
 				if( parseFloat($scope.feeSummary.total_credit) > 0 )
 				{
 					$scope.hasCredit = true;
 					$scope.credit = parseFloat($scope.feeSummary.total_credit);
+					$scope.balanceBroughtFwd = Number($scope.payment.amount) + Number($scope.credit);
 					//$scope.balanceDue = -(Math.abs($scope.balanceDue) - $scope.credit);
 				}
 			}
@@ -195,7 +224,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			feeItems: $scope.feeItems,
 			credit: $scope.credit,
 			hasCredit: $scope.hasCredit,
-			custom_invoice_no: $scope.custom_invoice_no
+			custom_invoice_no: $scope.custom_invoice_no,
+			receiptAmountInWords: $scope.receiptAmountInWords,
+			cashierName: $scope.cashierName,
+			balanceBroughtFwd: $scope.balanceBroughtFwd
 		}
 
 		var domain = window.location.host;

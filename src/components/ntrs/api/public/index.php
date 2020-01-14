@@ -1,13 +1,9 @@
 <?php
-error_reporting(E_ALL);  // uncomment this only when testing
-ini_set('display_errors', 1); // uncomment this only when testing
-
 require '../vendor/autoload.php';
 require '../lib/CorsSlim.php';
 //require '../lib/password.php';
 require '../lib/db.php';
 require '../bootstrap.php';
-
 
 
 /*  DEFINITIONS
@@ -100,6 +96,15 @@ $app->post('/login', function () use($app) {
 				$settings = $sth2->fetchAll(PDO::FETCH_OBJ);
 				$result->settings = $settings;
 
+				// traffic analysis start
+				$misdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $misdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$subdom','staff login')");
+				$trafficMonitor->execute( array() );
+				$misdb = null;
+				// traffic analysis end
+
 				echo json_encode(array('response' => 'success', 'data' => $result ));
 				$db = null;
 			} else {
@@ -175,6 +180,9 @@ require('subject_functions.php');
 
 // ************** Exam Marks  ****************** //
 require('exam_functions.php');
+
+// ************** Timetables  ****************** //
+require('timetable_functions.php');
 
 // ************** Report Cards  ****************** //
 require('report_card_functions.php');

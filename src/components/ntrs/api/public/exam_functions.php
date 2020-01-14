@@ -711,17 +711,17 @@ $app->get('/getResultSlips/:class/:term/:type(/:teacherId)', function ($classId,
 
 });
 
-$app->get('/getAllStudentStreamMarks/:entity/:term', function ($entityId,$termId) {
+$app->get('/getAllStudentStreamMarks/:entity/:term/:examTypeId', function ($entityId,$termId,$examTypeId) {
 	//Get all student exam marks
 	$app = \Slim\Slim::getInstance();
 
 	try
 	{
 		// need to make sure class, term and type are integers
-		if( is_numeric($termId)  && is_numeric($entityId) )
+		if( is_numeric($termId)  && is_numeric($entityId) && is_numeric($examTypeId) )
 		{
 			$db = getDB();
-
+ 
 			$query = "SELECT app.colpivot('_exam_marks', 'SELECT gender, first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name,
                                                                       classes.class_id,subject_name,
                                                                       coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,
@@ -738,19 +738,8 @@ $app->get('/getAllStudentStreamMarks/:entity/:term', function ($entityId,$termId
                                                                     WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = $entityId))
                                                                     AND term_id = $termId
                                                                     AND class_subject_exams.exam_type_id IN (
-														SELECT exam FROM (
-															SELECT max(exam_type_id) as exam, class_id FROM (
-																SELECT DISTINCT ON(cse.exam_type_id, c.class_id) cse.exam_type_id, c.class_id FROM app.class_subject_exams cse
-																INNER JOIN app.exam_types et USING (exam_type_id)
-																INNER JOIN app.class_cats cc USING (class_cat_id)
-																INNER JOIN app.classes c USING (class_cat_id)
-																INNER JOIN app.exam_marks em USING (class_sub_exam_id)
-																WHERE cc.entity_id = $entityId
-																AND em.term_id = $termId
-															)q1
-															GROUP BY q1.class_id
-														)q2
-													)
+																		SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = $entityId) AND sort_order = (SELECT sort_order FROM app.exam_types WHERE exam_type_id = $examTypeId)
+																	)
                                                                     AND subjects.use_for_grading is true
                                                                     AND students.active is true
                                                                     WINDOW w AS (PARTITION BY class_subject_exams.exam_type_id, class_subjects.subject_id ORDER BY subjects.sort_order asc, mark desc)',
@@ -772,19 +761,8 @@ $app->get('/getAllStudentStreamMarks/:entity/:term', function ($entityId,$termId
                                                                     WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = $entityId))
                                                                     AND term_id = $termId
                                                                     AND class_subject_exams.exam_type_id IN (
-														SELECT exam FROM (
-															SELECT max(exam_type_id) as exam, class_id FROM (
-																SELECT DISTINCT ON(cse.exam_type_id, c.class_id) cse.exam_type_id, c.class_id FROM app.class_subject_exams cse
-																INNER JOIN app.exam_types et USING (exam_type_id)
-																INNER JOIN app.class_cats cc USING (class_cat_id)
-																INNER JOIN app.classes c USING (class_cat_id)
-																INNER JOIN app.exam_marks em USING (class_sub_exam_id)
-																WHERE cc.entity_id = $entityId
-																AND em.term_id = $termId
-															)q1
-															GROUP BY q1.class_id
-														)q2
-													)
+																		SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = $entityId) AND sort_order = (SELECT sort_order FROM app.exam_types WHERE exam_type_id = $examTypeId)
+																	)
                                                                     AND students.active IS TRUE
                                                                     GROUP BY exam_marks.student_id, students.first_name, students.middle_name, students.last_name
                                                                   ) a
@@ -808,19 +786,8 @@ $app->get('/getAllStudentStreamMarks/:entity/:term', function ($entityId,$termId
                                                                     WHERE class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = $entityId))
                                                                     AND term_id = $termId
                                                                     AND class_subject_exams.exam_type_id IN (
-														SELECT exam FROM (
-															SELECT max(exam_type_id) as exam, class_id FROM (
-																SELECT DISTINCT ON(cse.exam_type_id, c.class_id) cse.exam_type_id, c.class_id FROM app.class_subject_exams cse
-																INNER JOIN app.exam_types et USING (exam_type_id)
-																INNER JOIN app.class_cats cc USING (class_cat_id)
-																INNER JOIN app.classes c USING (class_cat_id)
-																INNER JOIN app.exam_marks em USING (class_sub_exam_id)
-																WHERE cc.entity_id = $entityId
-																AND em.term_id = $termId
-															)q1
-															GROUP BY q1.class_id
-														)q2
-													)
+																		SELECT exam_type_id FROM app.exam_types WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = $entityId) AND sort_order = (SELECT sort_order FROM app.exam_types WHERE exam_type_id = $examTypeId)
+																	)
                                                                     AND students.active IS TRUE
                                                                     GROUP BY exam_marks.student_id, students.first_name, students.middle_name, students.last_name
                                                                   ) a

@@ -5,7 +5,7 @@ function getDB()
 	$dbhost="localhost";
 	$dbport= "5432";
 	$dbuser = 'postgres';
-	$dbpass = 'postgres';
+	$dbpass = 'pg_edu@8947';
 	$dbname = 'np';
 	$dbConnection = new PDO("pgsql:host=$dbhost;port=$dbport;dbname=$dbname", $dbuser, $dbpass);
 	$dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -17,7 +17,7 @@ function getMISDB()
 	$dbhost="localhost";
 	$dbport= "5432";
 	$dbuser="postgres";
-	$dbpass="postgres";
+	$dbpass="pg_edu@8947";
 	$dbname="np_admin";
 	$dbConnection = new PDO("pgsql:host=$dbhost;port=$dbport;dbname=$dbname", $dbuser, $dbpass);
 	$dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -51,7 +51,7 @@ function getLoginDB()
 	$dbhost="localhost";
 	$dbport= "5432";
 	$dbuser = "postgres";
-	$dbpass = "postgres";
+	$dbpass = "pg_edu@8947";
 	$dbname = "np_admin";
 	$dbConnection = new PDO("pgsql:host=$dbhost;port=$dbport;dbname=$dbname", $dbuser, $dbpass);
 	$dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -69,7 +69,7 @@ function setDBConnection($subDomain)
 	$dbhost="localhost";
 	$dbport= "5432";
 	$dbuser = 'postgres';
-	$dbpass = 'postgres';
+	$dbpass = 'pg_edu@8947';
 	$dbname = 'np';
 	$dbConnection = new PDO("pgsql:host=$dbhost;port=$dbport;dbname=$dbname", $dbuser, $dbpass);
 	$dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
