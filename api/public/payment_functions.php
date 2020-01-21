@@ -343,7 +343,7 @@ $app->post('/addPayment', function () use($app) {
   {
     $db = getDB();
     $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by, custom_receipt_no, payment_bank, banking_date)
-                  VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId, :custom_receipt_no, :paymentBank, :paymentBankDate)");
+                  VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId, :custom_receipt_no, :paymentBank, :paymentBankDate) returning payment_id");
 
     $credit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount, created_by)
                   VALUES(:studentId, currval('app.payments_payment_id_seq'), :creditAmt, :userId)");
@@ -463,7 +463,7 @@ $app->post('/addPayment', function () use($app) {
 
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
-    echo json_encode(array("response" => "success", "code" => 1));
+    echo json_encode(array("response" => "success", "code" => 1, "data" => $payment->fetch(PDO::FETCH_OBJ)));
     $db = null;
   } catch(PDOException $e) {
     $app->response()->setStatus(404);

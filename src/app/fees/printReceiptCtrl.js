@@ -7,6 +7,7 @@ function($scope, $rootScope){
 	var initializeController = function()
 	{
 		var data = window.printCriteria;
+		$scope.school = window.location.host.split('.')[0];
 		$scope.student = angular.fromJson(data.student);
 		$scope.payment = angular.fromJson(data.payment);
 		$scope.feeItems = angular.fromJson(data.feeItems);
@@ -22,7 +23,7 @@ function($scope, $rootScope){
 		$scope.receiptAmountInWords = data.receiptAmountInWords;
 		$scope.cashierName = data.cashierName;
 		$scope.balanceBroughtFwd = data.balanceBroughtFwd;
-		$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
+		$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" || window.location.host.split('.')[0] == "thomasburke" ? true : false);
 		$scope.removeHeader = ( window.location.host.split('.')[0] == "thomasburke" ? true : false);
 		$scope.receiptMode = $rootScope.currentUser.settings["Use Receipt Items"];
 		if($scope.receiptMode == undefined || $scope.receiptMode == "true"){
@@ -51,7 +52,7 @@ function($scope, $rootScope){
 	    		document.getElementById('bnkName').style.margin = '0';
 	    		document.getElementById('bnkDate').style.margin = '0';
 				document.getElementById('paymentMethod').style.margin = '0';
-				
+
 				document.getElementById('bnkName').style.paddingBottom = '7px';
     		    document.getElementById('bnkDate').style.paddingBottom = '7px';
 				document.getElementById('paymentMethod').style.paddingBottom = '7px';
@@ -59,14 +60,16 @@ function($scope, $rootScope){
 		}else{
 		    adjustBank.removeAttribute("style");
     		adjustBank.style.marginLeft = '63%';
-    		adjustBank.style.marginTop = '-9.5%';
+    		// adjustBank.style.marginTop = '-12%';
+				adjustBank.style.marginTop = '-10%';
 
     		adjusttermLabels.style.marginLeft = '65%';
-    		adjusttermLabels.style.marginTop = '-10%';
+    		// adjusttermLabels.style.marginTop = '-10%';
+				adjusttermLabels.style.marginTop = '-7%';
     		document.getElementById('bnkName').style.margin = '0';
     		document.getElementById('bnkDate').style.margin = '0';
 			document.getElementById('paymentMethod').style.margin = '0';
-			
+
     		document.getElementById('bnkName').style.paddingBottom = '7px';
     		document.getElementById('bnkDate').style.paddingBottom = '7px';
 			document.getElementById('paymentMethod').style.paddingBottom = '7px';

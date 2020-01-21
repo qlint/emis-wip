@@ -1495,12 +1495,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				html2canvas:  { scale: 2 },
 				jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
 			  };
+			var cardEl = document.getElementById('showReportCard');
+			console.log(cardEl);
 			var reportCardPdf = html2pdf(document.getElementById('showReportCard'),opt);
 			console.log(Promise.resolve(reportCardPdf));
 			setTimeout(function(){
 				var prmse = Promise.resolve(reportCardPdf);
 				prmse.then(function(val) {
 						// POST the file
+						/*
 						var formData = new FormData();
 						formData.append('files[]', val);
 
@@ -1510,6 +1513,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						}).then(response => {
 								console.log("resp frm handler",response);
 						});
+						*/
 						// end POST
 				});
 			}, 5000);

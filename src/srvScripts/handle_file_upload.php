@@ -5,6 +5,7 @@
   ini_set('display_errors', 1); // uncomment this only when testing
 
   $input = file_get_contents('php://input');
+  var_dump($_FILES);
   file_put_contents('path.txt', print_r($input . PHP_EOL, true), FILE_APPEND);
   // var_dump($input);
   // print_r($_FILES);

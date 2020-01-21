@@ -149,7 +149,7 @@ input#tripCheck{transform: scale(1.3);}
 									</div>
 									<p ng-show="(studentForm.$submitted || studentForm.dob.$dirty ) && studentForm.dob.$invalid" class="help-block"><i class="fa fa-exclamation-triangle"></i> Date of Birth is required.</p>
 								</div>
-							</div> 
+							</div>
 							<div class="col-sm-3">
 								<label for="dob">Age</label>
 								<p style="margin-top:4px;">{{student.age}} Years Old</p>
@@ -1076,22 +1076,20 @@ input#tripCheck{transform: scale(1.3);}
     							        <tr>
         							        <th style="width:10%">Neighborhood</th>
         							        <th style="width:10%">Bus</th>
-        							        <th style="width:10%">Trip</th>
+        							        <th style="width:15%">Trip</th>
         							        <th style="width:15%">Bus Driver</th>
-        							        <th style="width:15%">Bus Assistant</th>
-        							        <th style="width:25%">Invoice Details</th>
-        							        <th style="width:15%">Parent</th>
+        							        <th style="width:30%">Invoice Details</th>
+        							        <th style="width:20%">Parent</th>
     							        </tr>
     							    </thead>
     							    <tbody>
     							        <tr ng-repeat="detail in bus track by $index">
     							            <td style="width:10%">{{detail.student_destination}}</td>
     							            <td style="width:10%">{{detail.bus}}</td>
-    							            <td style="width:10%">{{detail.trip_name}}</td>
+    							            <td style="width:15%">{{detail.trip_name}}</td>
     							            <td style="width:15%">{{detail.driver_name}}<br><b>{{detail.driver_telephone}}</b></td>
-    							            <td style="width:15%">{{detail.guide_name}}</td>
-    							            <td style="width:25%">{{detail.fee_item}}<br>{{detail.amount}}<br>{{detail.route}}</td>
-    							            <td style="width:15%">{{detail.parent_name}}<br><b>{{detail.parent_telephone}}</b></td>
+    							            <td style="width:30%">{{detail.fee_item}}<br>{{detail.amount}}<br>{{detail.route}}</td>
+    							            <td style="width:20%">{{detail.parent_name}}<br><b>{{detail.parent_telephone}}</b></td>
     							        </tr>
     							    </tbody>
     							</table>

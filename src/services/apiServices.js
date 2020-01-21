@@ -736,6 +736,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getInvoices/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getAllStudentInvoices = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllStudentInvoices/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getOpenInvoices = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getOpenInvoices/" + param, successFunction, errorFunction, params);
 	};

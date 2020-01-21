@@ -7,6 +7,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 	$scope.payment = data.payment;
 	$scope.student = data.student;
 	$scope.feeItems = data.feeItems;
+	$scope.autoprint = (data.autoprint != undefined || data.autoprint != null ? data.autoprint : false);
+	console.log("Autoprinting? " + $scope.autoprint);
 	$scope.receiptMode = $rootScope.currentUser.settings["Use Receipt Items"];
 	if($scope.receiptMode == undefined || $scope.receiptMode == "true"){
 		$scope.receiptMode = true;
@@ -17,6 +19,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 		$scope.itemized = false;
 		$scope.removeHeader = true;
 	}
+	$scope.school = window.location.host.split('.')[0];
 
 	$scope.numInWords = function NumInWords (number) {
 	  const first = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
@@ -55,7 +58,35 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			apiService.getPaymentDetails($scope.payment.payment_id, loadPaymentDetails, apiError);
 		}, apiError);
 
+		apiService.getAllStudentInvoices($scope.student.student_id, function(response,status,params){
+			var result = angular.fromJson(response);
 
+			if( result.response == 'success')
+			{
+				$scope.studentInvoices = (result.data == undefined || result.data == null ? [] : result.data);
+				$scope.allTerms = $rootScope.terms;
+				$scope.currentTermId = null;
+				for (let x=0; x < $scope.allTerms.length; x++) {
+					if($scope.allTerms[x].current_term == true) {
+						$scope.currentTermId = $scope.allTerms[x].term_id;
+					}
+					// console.log("Current term id = " + $scope.currentTermId);
+				}
+				for (let y=0; y < $scope.studentInvoices.length; y++) {
+					// console.log("Inside invoices array","Current term id",$scope.currentTermId);
+					if($scope.studentInvoices[y].term_id == $scope.currentTermId) {
+						var removeCurrentInv = $scope.studentInvoices.splice(y,1);
+						$scope.newStudent = ($scope.studentInvoices.length == 0 ? true : false);
+					}
+				}
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+
+		}, function(){console.log("Invoice Error");});
 	}
 	setTimeout(initializeController,1);
 
@@ -77,8 +108,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.payment.payment_method = results.payment.payment_method; // drop down for mode of payment
 			$scope.payment.payment_bank = results.payment.payment_bank;
 			$scope.payment.banking_date = results.payment.banking_date;
-			$scope.payment.custom_receipt_no = "Receipt #: " + results.payment.custom_receipt_no; // for schools that want to use custom receipt #'s
-			$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" ? true : false);
+			$scope.payment.custom_receipt_no = "Receipt #: " + ($scope.school == "thomasburke" ? results.payment.payment_id : results.payment.custom_receipt_no); // for schools that want to use custom receipt #'s
+			$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" || window.location.host.split('.')[0] == "thomasburke" ? true : false);
 			$scope.cashierName = $rootScope.currentUser.first_name + ' ' + $rootScope.currentUser.last_name;
 
 			var invoiceItems = results.invoice;
@@ -198,6 +229,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 					$scope.balanceBroughtFwd = Number($scope.payment.amount) + Number($scope.credit);
 					//$scope.balanceDue = -(Math.abs($scope.balanceDue) - $scope.credit);
 				}
+			}
+
+			if($scope.autoprint == true){
+			    // go straight to printing
+					$(document).ready(function() {
+						setTimeout(function(){
+							$scope.print();
+						}, 3000);
+					});
 			}
 
 		}

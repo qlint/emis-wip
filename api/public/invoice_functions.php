@@ -671,4 +671,37 @@ $app->get('/getBanking', function () {
 
 });
 
+$app->get('/getAllStudentInvoices/:studentId', function ($studentId) {
+	// Get all student invoices
+
+	$app = \Slim\Slim::getInstance();
+
+	try
+	{
+		$db = getDB();
+		 $sth = $db->prepare("SELECT * FROM app.invoices WHERE student_id = :studentId
+							AND canceled IS NOT TRUE");
+		$sth->execute( array(':studentId' => $studentId) );
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
+
 ?>

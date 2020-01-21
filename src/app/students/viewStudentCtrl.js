@@ -540,7 +540,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     				$scope.showTripUpdateMsg = false;
 
     				setTimeout(function(){
-							let tripsArr = $scope.student.trip_ids.split(',');
+							let tripsArr = ($scope.student.trip_ids != null || $scope.student.trip_ids != undefined ? $scope.student.trip_ids.split(',') : []);
     				    if( tripsArr.length > 0){
             			        for(let d = 0; d < tripsArr.length; d++){
             			            tripsArr[d] = parseInt(tripsArr[d]);
@@ -556,7 +556,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 															}
             			        }
             			}
-									console.log(tripsArr);
+									// console.log(tripsArr);
 									for(let y=0;y < tripsArr.length;y++){
 										tripsArr[y]=Number(tripsArr[y]);
 										let boxId = "tripCheck_" + tripsArr[y];
@@ -565,7 +565,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 										theBoxElement.checked = true;
 									}
 									$scope.preFilteredTrips = tripsArr;
-									console.log($scope.preFilteredTrips);
+									// console.log($scope.preFilteredTrips);
     				}, 2000);
     			}
     			else
