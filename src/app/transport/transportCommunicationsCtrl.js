@@ -48,7 +48,6 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
 			if( result.response == 'success')
 			{
 					$scope.buses = ( result.nodata ? [] : result.data );
-
 			}
 			else
 			{
@@ -70,7 +69,6 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
         else
         {
           $scope.trips = result.data;
-          console.log($scope.trips);
         }
       }
 
@@ -102,6 +100,23 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
 
     }, function(){console.log("There was an error fetching the transport routes.")});
 
+    apiService.getCommunicationOptions({}, function(response){
+      var result = angular.fromJson(response);
+
+      // store these as they do not change often
+      if( result.response == 'success')
+      {
+        for(let a=0; a < result.data.com_types.length; a++){
+          if(result.data.com_types[a].com_type_id == 2 || result.data.com_types[a].com_type_id == 6 || result.data.com_types[a].com_type_id == 5){
+            result.data.com_types.splice(a,1);
+            a--; // this is so that we don't skip the next item in the array
+          }
+        }
+        $scope.comTypes = result.data.com_types;
+      }
+
+    }, apiError);
+
 	}
 	setTimeout(initializeController,100);
 
@@ -113,7 +128,15 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
       document.getElementById("slctdAudience").style.border = "2px solid red";
     }else{
       document.getElementById("slctdAudience").style.border = "1px solid #ccc";
+    }
 
+    if($scope.communicationType == undefined || $scope.communicationType == null){
+      document.getElementById("communicationType").style.border = "2px solid red";
+    }else{
+      document.getElementById("communicationType").style.border = "1px solid #ccc";
+    }
+
+    if($scope.communicationType != undefined && $scope.selectedAudience != undefined){
       document.getElementById("smsCheck").removeAttribute("disabled");
       document.getElementById("appCheck").removeAttribute("disabled");
       document.getElementById("bothCheck").removeAttribute("disabled");

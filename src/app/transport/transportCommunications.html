@@ -43,6 +43,13 @@
                           <option ng-repeat="audnce in transportAudience track by $index" value="{{audnce}}">{{audnce}}</option>
                       </select><br>
                   </div>
+                  <div>
+    							    <div><h4>What type of communication is this?</h4></div>
+                      <select name="communication_type" id="communicationType" style="width: 95%;border-radius: 4px;" ng-model="communicationType">
+                          <option disabled>---COMMUNICATION TYPE---</option>
+                          <option ng-repeat="type in comTypes track by $index" value="{{type.com_type_id}}">{{type.com_type}}</option>
+                      </select><br>
+                  </div>
                   <div class="row" style="margin-left:auto;">
                       <div><h4>Please Make A Selection</h4><br><p>*All selection fields are required.</p></div>
                       <div class="col-sm-4 nopad-left" ng-show="needsHood">

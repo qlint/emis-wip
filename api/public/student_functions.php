@@ -224,10 +224,10 @@ $app->get('/studentGenderCount', function () {
     $db = getDB();
 
     $sth = $db->prepare("SELECT count(gender) AS total,
-                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'M') AS male,
-                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'F') AS female
+                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'M' AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id < 12))) AS male,
+                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'F' AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id < 12))) AS female
                         FROM app.students
-                        WHERE active IS TRUE");
+                        WHERE active IS TRUE AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id < 12)) ");
     $sth->execute();
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -2756,7 +2756,7 @@ $app->get('/getDocReport/:studentId', function ($studentId) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT term_name, lr.* FROM app.lowersch_reportcards lr 
+    $sth = $db->prepare("SELECT term_name, lr.* FROM app.lowersch_reportcards lr
                         INNER JOIN app.terms t USING (term_id)
                         WHERE student_id = :studentId");
     $sth->execute( array(':studentId' => $studentId));
