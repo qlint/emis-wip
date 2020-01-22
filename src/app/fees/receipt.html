@@ -1,16 +1,8 @@
 <style>
 	@media print {
-		.row{
-			margin-right: -15px;
-			margin-left: -15px;
-		}
-		.row:before {
-			display: table;
-			content: " ";
-		}
-		.row:after {
-			clear: both;
-		}
+		.row{margin-right: -15px;margin-left: -15px;}
+		.row:before {display: table;content: " ";}
+		.row:after {clear: both;}
 		.col-sm-6{
 			width: 50%;
 			float: left;
@@ -19,12 +11,7 @@
 	    padding-right: 15px;
 	    padding-left: 15px;
 		}
-		body{
-			font-family: Georgia !important;
-			font-size: 20px !important;
-			font-style: normal !important;
-			font-variant: normal !important;
-		}
+		body{font-family: Georgia !important;font-size: 20px !important;font-style: normal !important;font-variant: normal !important;}
 	}
 </style>
 <form name="paymentForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save()">

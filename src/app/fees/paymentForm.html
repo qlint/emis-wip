@@ -92,9 +92,8 @@
 						<label for="slip_cheque_no" class="col-sm-3 control-label nopad">Slip/Cheque No.</label>
 						<div class="col-sm-5">
 							<div>
-								<input type="text" name="slip_cheque_no" ng-model="payment.slip_cheque_no" ng-change="checkSlipNo()" class="form-control" id="slip_cheque_no" required  ><span ng-show="slip_check_ready" style="padding: 0 10px;border: 1px solid #000000;border-radius: 5px;color: #{{checkSlipNoStatus == 'New Entry' ? '000000':'ffffff'}};background-color:#{{checkSlipNoStatus == 'New Entry' ? '90EE90':'ff0000'}};"><b>{{checkSlipNoStatus}}</b></span>
+								<input type="text" name="slip_cheque_no" ng-model="payment.slip_cheque_no" ng-change="checkSlipNo()" class="form-control" id="slip_cheque_no" ><span ng-show="slip_check_ready" style="padding: 0 10px;border: 1px solid #000000;border-radius: 5px;color: #{{checkSlipNoStatus == 'New Entry' ? '000000':'ffffff'}};background-color:#{{checkSlipNoStatus == 'New Entry' ? '90EE90':'ff0000'}};"><b>{{checkSlipNoStatus}}</b></span>
 							</div>
-							<p ng-show="paymentForm.slip_cheque_no.$invalid && (paymentForm.slip_cheque_no.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Slip/Cheque No. is required.</p>
 						</div>
 					</div>
 
@@ -266,8 +265,8 @@
 				<span ng-hide="saving">Save</span>
 				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
 			</button>
-			
-			<button type="submit" class="btn btn-link" ng-click="save2(paymentForm)">Save &amp; Print</button>
+
+			<a class="btn btn-link" ng-click="save2(paymentForm)">Save &amp; Print</a>
 
 		</div>
 </form>

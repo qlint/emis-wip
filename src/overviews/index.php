@@ -122,7 +122,7 @@
         <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
           <div class="card h-100">
             <a href="#">
-              <img class="card-img-top" src="img/student-fee-items.png" alt="Student Fee Items Analysis">
+              <img class="card-img-top" src="img/parents-and-students.jpg" alt="Student Fee Items Analysis">
             </a>
             <div class="card-body">
               <h4 class="card-title">
@@ -135,7 +135,7 @@
         <!-- PROJECT SEVEN -->
         <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
           <div class="card h-100">
-            <a href="#"><img class="card-img-top" src="http://placehold.it/700x400" alt=""></a>
+            <a href="#"><img class="card-img-top" src="img/app.jpg" alt=""></a>
             <div class="card-body">
               <h4 class="card-title">
                 <a class="btn btn-primary" href="parent-data.php">Parent Credentials</a>

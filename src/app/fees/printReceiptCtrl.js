@@ -26,6 +26,7 @@ function($scope, $rootScope){
 		$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" || window.location.host.split('.')[0] == "thomasburke" ? true : false);
 		$scope.removeHeader = ( window.location.host.split('.')[0] == "thomasburke" ? true : false);
 		$scope.receiptMode = $rootScope.currentUser.settings["Use Receipt Items"];
+		$scope.newStudent = data.newStudent;
 		if($scope.receiptMode == undefined || $scope.receiptMode == "true"){
 			$scope.receiptMode = true;
 			$scope.itemized = true;

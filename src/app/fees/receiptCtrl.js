@@ -267,7 +267,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			custom_invoice_no: $scope.custom_invoice_no,
 			receiptAmountInWords: $scope.receiptAmountInWords,
 			cashierName: $scope.cashierName,
-			balanceBroughtFwd: $scope.balanceBroughtFwd
+			balanceBroughtFwd: $scope.balanceBroughtFwd,
+			newStudent: $scope.newStudent
 		}
 
 		var domain = window.location.host;

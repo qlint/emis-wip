@@ -437,9 +437,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 		}
 	}
 
-	$scope.save2 = function(theForm)
+	$scope.save2 = function(theForm2)
 	{
-		if( !theForm.$invalid )
+		if( !theForm2.$invalid )
 		{
 			$scope.saveCredit = false;
 
@@ -448,7 +448,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 				sum = sum + parseFloat(item.amount);
 				return sum;
 			},0);
-
 
 			if( $scope.payment.replacement_payment !== true )
 			{
@@ -468,21 +467,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 					},function(btn){
 						$scope.saveCredit = false;
 					});
-				}
-				else
-				{
-					savePayment2();
-				}
-			}
-			else
-			{
-				savePayment2();
-			}
+				} else { savePayment2(); }
+			} else { savePayment2(); }
 		}
 	}
 
 	var savePayment = function()
 	{
+		console.log("Save payment version 1");
 		$scope.error = false;
 		$scope.errMsg = '';
 
@@ -542,13 +534,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 
 		}
 
-
+		console.log("Data version 1",data);
 		apiService.addPayment(data,createCompleted,apiError);
 
 	}
 
 	var savePayment2 = function()
 	{
+		console.log("Save payment version 2");
 		$scope.error = false;
 		$scope.errMsg = '';
 
@@ -608,7 +601,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 
 		}
 
-
+		console.log("Data version 2",data2);
 		apiService.addPayment(data2,createCompleted2,apiError);
 
 	}
@@ -648,190 +641,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
                                                         			$scope.selectedInvoice = ( results.invoice.length > 0 ? formatInvoices(results.invoice) : undefined);
                                                         			$scope.paymentItems = results.paymentItems;
 
-                                                        			// get fee items
-                                                            		apiService.getFeeItems(true, function(response){
-                                                            			var result = angular.fromJson(response);
 
-                                                            			if( result.response == 'success')
-                                                            			{
-                                                                            var formatFeeItems = function(feeItems)
-                                                                        	{
-                                                                        		// convert the classCatsRestriction to array for future filtering
-                                                                        		return feeItems.map(function(item){
-                                                                        			// format the class restrictions into any array
-                                                                        			if( item.class_cats_restriction !== null && item.class_cats_restriction != '{}' )
-                                                                        			{
-                                                                        				var classCatsRestriction = (item.class_cats_restriction).slice(1, -1);
-                                                                        				item.class_cats_restriction = classCatsRestriction.split(',');
-                                                                        			}
-                                                                        			item.amount = undefined;
-                                                                        			item.payment_method = undefined;
-
-                                                                        			return item;
-                                                                        		});
-                                                                        	}
-                                                                        	var filterFeeItems = function(feesArray)
-                                                                        	{
-
-                                                                        		var feeItems = [];
-
-                                                                        		if( $scope.student.new_student )
-                                                                        		{
-                                                                        			// all fees apply to new students
-                                                                        			feeItems = feesArray;
-                                                                        		}
-                                                                        		else
-                                                                        		{
-                                                                        			// remove new student fees
-                                                                        			feeItems = feesArray.filter(function(item){
-                                                                        				if( !item.new_student_only ) return item;
-                                                                        			});
-                                                                        		}
-
-                                                                        		// now filter by selected class
-
-                                                                        		if( $scope.student.current_class !== undefined )
-                                                                        		{
-                                                                        			feeItems = feeItems.filter(function(item){
-                                                                        				if( item.class_cats_restriction === null || item.class_cats_restriction == '{}' ) return item;
-                                                                        				else if( item.class_cats_restriction.indexOf(($scope.student.current_class.class_cat_id).toString()) > -1 ) return item;
-                                                                        			});
-                                                                        		}
-
-                                                                        		return feeItems;
-                                                                        	}
-                                                            				// set the required fee items
-                                                            				// format returned fee items for our needs
-                                                            				$scope.feeItems = formatFeeItems(result.data.required_items);
-
-                                                            				// store unfiltered required fee items
-                                                            				$scope.allFeeItems = $scope.feeItems;
-
-                                                            				// remove any items that do not apply to this students class category
-                                                            				$scope.feeItems = filterFeeItems($scope.allFeeItems);
-
-                                                            				// repeat for optional fees
-                                                            				// convert the classCatsRestriction to array for future filtering
-                                                            				$scope.optFeeItems = formatFeeItems(result.data.optional_items);
-
-                                                            				// store unfiltered required fee items
-                                                            				$scope.allOptFeeItems = $scope.optFeeItems;
-
-                                                            				// remove any items that do not apply to this students class category
-                                                            				$scope.optFeeItems = filterFeeItems($scope.allOptFeeItems);
-
-                                                                            var selectFeeItems = function(feeItems)
-                                                                        	{
-                                                                        		return feeItems.filter(function(item){
-                                                                        			return $scope.student.fee_items.filter(function(a){
-
-                                                                        				if( a.fee_item_id == item.fee_item_id && a.active )
-                                                                        				{
-                                                                        					item.amount = a.amount;
-                                                                        					item.payment_method = a.payment_method;
-                                                                        					item.student_fee_item_id = a.student_fee_item_id;
-                                                                        					item.payment_made = a.payment_made;
-                                                                        					return item;
-                                                                        				}
-                                                                        			})[0];
-
-                                                                        		});
-                                                                        	}
-                                                                            var setSelectedFeeItems = function()
-                                                                        	{
-                                                                        		// set the selected fee items based on what fee items are set for student
-                                                                        		$scope.feeItemSelection = selectFeeItems($scope.feeItems);
-
-                                                                        		// set the selected fee items based on what fee items are set for student
-                                                                        		$scope.optFeeItemSelection = selectFeeItems($scope.optFeeItems);
-                                                                        	}
-                                                            				setSelectedFeeItems();
-
-                                                            				$scope.initLoad  = false;
-
-                                                            			}
-                                                            		}, function(){});
-
-                                                                    var loadInvoices = function(response,status)
-                                                                	{
-                                                                		$scope.loading = false;
-                                                                		var result = angular.fromJson(response);
-
-                                                                		if( result.response == 'success')
-                                                                		{
-                                                                		    var formatInvoices = function(invoiceData)
-                                                                        	{
-                                                                        		//console.log(invoiceData);
-                                                                        		var currentInvoice = {};
-                                                                        		var currentItem = {};
-                                                                        		var invoices = [];
-                                                                        		var feeItems = []
-                                                                        		var overallBalance = 0;
-                                                                        		angular.forEach( invoiceData, function(item,key){
-
-                                                                        			if( key > 0 && currentInvoice != item.inv_id )
-                                                                        			{
-                                                                        				// store row
-                                                                        				invoices.push({
-                                                                        					inv_id: currentItem.inv_id,
-                                                                        					inv_date: currentItem.inv_date,
-                                                                        					due_date: currentItem.due_date,
-                                                                        					balance: currentItem.balance,
-                                                                        					overall_balance: overallBalance,
-                                                                        					total_due: currentItem.total_due,
-                                                                        					fee_items: feeItems,
-                                                                        				});
-
-                                                                        				// reset
-                                                                        				feeItems = [];
-                                                                        				overallBalance = 0;
-                                                                        			}
-
-                                                                        			feeItems.push({
-                                                                        				fee_item_id: item.fee_item_id,
-                                                                        				fee_item: item.fee_item,
-                                                                        				balance: item.balance,
-                                                                        				inv_item_id: item.inv_item_id,
-                                                                        				inv_id: item.inv_id,
-                                                                        				payment_id: item.payment_id,
-                                                                        				amount: null,
-                                                                        				isPaid: parseInt(item.balance) === 0 ? true : false,
-                                                                        				modifiable: parseInt(item.balance) === 0 ? false : true,
-                                                                        			});
-                                                                        			overallBalance += parseFloat(item.balance);
-
-                                                                        			currentInvoice = item.inv_id;
-                                                                        			currentItem = item;
-                                                                        		});
-                                                                        		// push in last row
-                                                                        		invoices.push({
-                                                                        			inv_id: currentItem.inv_id,
-                                                                        			inv_date: currentItem.inv_date,
-                                                                        			due_date: currentItem.due_date,
-                                                                        			balance: currentItem.balance,
-                                                                        			overall_balance: overallBalance,
-                                                                        			total_due: currentItem.total_due,
-                                                                        			fee_items: feeItems,
-                                                                        		});
-                                                                        		//console.log(invoices);
-                                                                        		return invoices;
-                                                                        	}
-                                                                			var invoices = ( result.nodata ? [] : formatInvoices(angular.copy(result.data)));
-
-                                                                			// filter out invoices already showing in Applied To
-                                                                			$scope.invoices = invoices.filter(function(item){
-                                                                				if( $scope.selectedInvoice )
-                                                                				{
-                                                                					var isMatch = $scope.selectedInvoice.filter(function(item2){
-                                                                						if( item.inv_id == item2.inv_id ) return item2;
-                                                                					})[0];
-                                                                				}
-                                                                				if( isMatch === undefined ) return item;
-
-                                                                			});
-                                                                		}
-                                                                	}
-                                                        			apiService.getOpenInvoices($scope.student.selected.student_id, loadInvoices, apiError);
                                                         			// if there is an associated invoice, set the line items
                                                         			if( $scope.selectedInvoice !== undefined )
                                                         			{
@@ -857,7 +667,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 
                                                         			// if its a replacement payment, set the selected replacement items
                                                         			if( $scope.selectedPayment.replacement_payment ) { getReplaceableFeeItems(); }
-                                                        			$scope.sumPayment = function()
+                                                        			$scope.sumPayment2 = function()
                                                                 	{
                                                                 		$scope.totalApplied = $scope.feeItemsSelection.reduce(function(sum,item){
                                                                 			if( item.amount == '' ) item.amount = 0;
@@ -866,20 +676,20 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
                                                                 		},0);
                                                                 		$scope.totalCredit = ( $scope.selectedPayment.amount - $scope.totalApplied > 0 ? $scope.selectedPayment.amount - $scope.totalApplied : 0);
                                                                 	}
-                                                        			$scope.sumPayment();
+                                                        			$scope.sumPayment2();
                                                         			/* open receipt */
                                                         			if(window.location.host.split('.')[0] == 'thomasburke'){
                                                             			$scope.getReceipt = function(payment)
                                                                     	{
                                                                     	    console.log("Fee items",$scope.feeItems);
-                                                                    		var data = {
+                                                                    		var data3 = {
                                                                     		    autoprint: true,
                                                                     			student: $scope.student.selected,
                                                                     			payment: $scope.selectedPayment,
                                                                     			feeItems: null // $scope.feeItems.concat($scope.optFeeItems) // fix this (get fee items from api above)
                                                                     		}
                                                                     		var domain = window.location.host;
-                                                                    		var dlg = $dialogs.create('https://' + domain + '/app/fees/receipt.html','receiptCtrl',data,{size: 'md',backdrop:'static'});
+                                                                    		var dlg = $dialogs.create('https://' + domain + '/app/fees/receipt.html','receiptCtrl',data3,{size: 'md',backdrop:'static'});
                                                                     	}
                                                                     	$scope.getReceipt($scope.selectedPayment);
                                                         			}
