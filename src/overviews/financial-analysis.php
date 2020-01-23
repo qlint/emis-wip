@@ -265,79 +265,7 @@ echo "<h4>Amount paid by each student for their fee items for ". $term_name ." (
    echo "</table>";
    echo "</div>";
 
-   echo "<h4>Student invoice balances and credits report for ". $term_name ." (Ordered by Names Ascending)</h4><hr>";
-   $table3 = pg_query($db,"SELECT s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
-		class_name, three.*,
-		CASE WHEN balance >=0 THEN balance ELSE 0 END AS real_balance,
-		CASE WHEN balance < 0 THEN balance ELSE 0 END AS credit
-FROM (
-	SELECT two.*, inv_amount - total_paid AS balance
-	FROM (
-		SELECT one.inv_id, one.student_id, one.inv_date, one.total_amount AS inv_amount, one.term_id, one.term_name,
-				pp.payment_method, pp.total_paid, pp.amount AS sum_amount
-		FROM (
-			SELECT i.inv_id, i.student_id, i.inv_date, i.total_amount, i.term_id, t.term_name
-			FROM app.invoices i
-			INNER JOIN app.terms t USING (term_id)
-			WHERE canceled = FALSE AND term_id = ". $term ."
-		)one
-		INNER JOIN
-		(
-			SELECT payment_id, student_id, total_paid, payment_method, inv_id, sum(amount) AS amount FROM (
-				SELECT p.payment_id, p.student_id, p.amount AS total_paid, p.payment_method,
-						pi.inv_id, pi.inv_item_id, pi.amount
-				FROM app.payments p
-				INNER JOIN app.payment_inv_items pi USING (payment_id)
-				WHERE p.reversed IS FALSE
-			)p
-			GROUP BY payment_id, student_id, total_paid, payment_method, inv_id
-			ORDER BY student_id ASC
-		)pp
-		ON one.inv_id = pp.inv_id AND one.student_id = pp.student_id
-	)two
-)three
-INNER JOIN app.students s USING (student_id)
-INNER JOIN app.classes c ON s.current_class = c.class_id
-WHERE s.active IS TRUE");
 
-   // $col1 = NULL;
-   echo "<div class='table100 ver1 m-b-110'>";
-      echo "<table id='table3'>";
-        echo "<div id='t3' class='table100-head'>";
-           echo "<thead>";
-            echo "<tr class='row100 head'>";
-              echo "<th class='cell100 column1'>STUDENT NAME</th>";
-              echo "<th class='cell100 column1'>CLASS</th>";
-              echo "<th class='cell100 column7'>INVOICE #</th>";
-              echo "<th class='cell100 column8'>INV DATE</th>";
-              echo "<th class='cell100 column9'>INV AMOUNT</th>";
-              echo "<th class='cell100 column10'>DEFAULT AMT</th>";
-              echo "<th class='cell100 column11'>PAID</th>";
-              echo "<th class='cell100 column12'>BALANCE</th>";
-              echo "<th class='cell100 column12'>CREDIT</th>";
-            echo "</tr>";
-           echo "</thead>";
-       echo "</div>";
-       echo "<div class='table100-body js-pscroll'>";
-         echo "<tbody>";
-           while ($row3 = pg_fetch_assoc($table3)) {
-             // $text1 = '';
-             echo "<tr class='row100 body'>";
-                echo "<td class='cell100 column1'>" . $row3['student_name'] . "</td>";
-                echo "<td class='cell100 column1'>" . $row3['class_name'] . "</td>";
-                echo "<td class='cell100 column7'># " . $row3['inv_id'] . "</td>";
-                echo "<td class='cell100 column8'>" . $row3['inv_date'] . "</td>";
-                echo "<td class='cell100 column9'>" . number_format($row3['inv_amount']) . "</td>";
-                echo "<td class='cell100 column10'>" . $row3['payment_method'] . "</td>";
-                echo "<td class='cell100 column11'>" . number_format($row3['total_paid']) . "</td>";
-                echo "<td class='cell100 column12'>" . number_format($row3['real_balance']) . "</td>";
-                echo "<td class='cell100 column12'>" . number_format($row3['credit']) . "</td>";
-            echo "</tr>";
-           }
-         echo "</tbody>";
-       echo "</div>";
-     echo "</table>";
-     echo "</div>";
 ?>
       </div>
     </div>
@@ -411,31 +339,7 @@ WHERE s.active IS TRUE");
           ],
           "order": [[ 0, "asc" ]]
       } );
-      $('#table3').DataTable( {
-          fixedHeader: true,
-          dom: 'Bfrtip',
-          "columnDefs": [
-            {"className": "dt-center", "targets": "_all"}
-          ],
-          buttons: [
-              // 'excelHtml5',
-              // 'csvHtml5',
-              // 'pdfHtml5',
-              {
-                extend: 'excelHtml5',
-                title: 'All-Students-Balances-and-Credits'
-            },
-            {
-              extend: 'csvHtml5',
-              title: 'All-Students-Balances-and-Credits'
-          },
-            {
-                extend: 'pdfHtml5',
-                title: 'All-Students-Balances-and-Credits'
-            }
-          ],
-          "order": [[ 0, "asc" ]]
-      } );
+      
     } );
   </script>
   <script src="../components/overviewFiles/js/jquery.dataTables.min.js"></script>

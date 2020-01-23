@@ -294,6 +294,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 
   }
 
+  $scope.filterNow = function(){
+    $scope.filterDataTable();
+  }
+
   $scope.filterDataTable = function()
   {
     $scope.gridApi.grid.refresh();

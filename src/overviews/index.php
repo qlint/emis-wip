@@ -121,6 +121,20 @@
         <!-- PROJECT SIX -->
         <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
           <div class="card h-100">
+            <a href="credit-balances-analysis.php">
+              <img class="card-img-top" src="img/credits-balances.jpg" alt="Opening Balances Financial Analysis">
+            </a>
+            <div class="card-body">
+              <h4 class="card-title">
+                <a  class="btn btn-primary" href="credit-balances-analysis.php">Credits & Balances</a>
+              </h4>
+              <p class="card-text">An overview of all students with fee credits or balances.</p>
+            </div>
+          </div>
+        </div>
+        <!-- PROJECT SEVEN -->
+        <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
+          <div class="card h-100">
             <a href="#">
               <img class="card-img-top" src="img/parents-and-students.jpg" alt="Student Fee Items Analysis">
             </a>
@@ -132,7 +146,7 @@
             </div>
           </div>
         </div>
-        <!-- PROJECT SEVEN -->
+        <!-- PROJECT EIGHT -->
         <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
           <div class="card h-100">
             <a href="#"><img class="card-img-top" src="img/app.jpg" alt=""></a>

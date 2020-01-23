@@ -493,11 +493,11 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
     if( $fees )
     {
       $sth2 = $db->prepare("SELECT
-                  (SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
-                  (SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
-                  COALESCE((SELECT sum(amount) from app.credits WHERE student_id = :studentID  ),0) AS total_credit,
-                  (SELECT sum(balance) from app.invoice_balances2 WHERE student_id = :studentID AND due_date <= now()::date AND canceled = false) AS arrears
-                  ");
+                            (SELECT due_date FROM app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_due_date,
+                            (SELECT balance from app.invoice_balances2 WHERE student_id = :studentID AND due_date > now()::date AND canceled = false order by due_date asc limit 1) AS next_amount,
+                            COALESCE((SELECT sum(amount) from app.credits WHERE student_id = :studentID  ),0) AS total_credit,
+                            (SELECT sum(balance) from app.invoice_balances2 WHERE student_id = :studentID AND due_date <= now()::date AND canceled = false) AS arrears
+                            ");
       $sth2->execute( array(':studentID' => $studentId));
       $details = $sth2->fetch(PDO::FETCH_OBJ);
 
