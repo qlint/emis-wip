@@ -1106,8 +1106,10 @@ $app->post('/addCommunication', function () use($app) {
                                           UNION
                                           SELECT email FROM app.employees WHERE active is true AND email is not null");
           $studentsToNotify = $db->prepare("SELECT student_id
-                                        FROM app.students
-                                        WHERE active is true");
+                                        FROM app.students s
+                                        INNER JOIN app.classes c ON s.current_class = c.class_id
+                                        INNER JOIN app.class_cats cc USING (class_cat_id)
+                                        WHERE s.active is true AND cc.entity_id != 100 OR entity_id IS null");
         }
         else if( $audienceId === 2 )
         {
@@ -1121,11 +1123,11 @@ $app->post('/addCommunication', function () use($app) {
 
           $notifyMsg = "News posted from " . $className. ": " . $subject;
           $pullRecipients = $db->prepare("SELECT email FROM app.guardians
-                                          INNER JOIN app.student_guardians
-                                            INNER JOIN app.students
-                                            ON student_guardians.student_id = students.student_id AND students.active is true
-                                          ON guardians.guardian_id = student_guardians.guardian_id
-                                          WHERE guardians.active is true
+                                          INNER JOIN app.student_guardians USING (guardian_id)
+                                          INNER JOIN app.students USING (student_id)
+                                          INNER JOIN app.classes c ON students.current_class = c.class_id
+                                          INNER JOIN app.class_cats cc USING (class_cat_id)
+                                          WHERE guardians.active IS TRUE AND students.active IS TRUE AND cc.entity_id != 100 OR cc.entity_id IS null
                                           AND current_class = :classId");
           $params = array(':classId' => $classId);
 
@@ -1168,14 +1170,18 @@ $app->post('/addCommunication', function () use($app) {
                                           INNER JOIN app.students ON student_guardians.student_id = students.student_id
                                           INNER JOIN app.transport_routes ON students.transport_route_id = transport_routes.transport_id
                                           INNER JOIN app.communications ON transport_routes.transport_id = communications.route
-                                          WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+                                          INNER JOIN app.classes c ON students.current_class = c.class_id
+                                          INNER JOIN app.class_cats cc USING (class_cat_id)
+                                          WHERE students.active = TRUE AND guardians.active IS TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications) AND cc.entity_id != 100 OR cc.entity_id IS null");
 
           $notifyMsg = "Transport Route news posted from " . $schoolName. ": " . $subject;
 
           $studentsToNotify = $db->prepare("SELECT students.student_id FROM app.students
                                             INNER JOIN app.transport_routes ON students.transport_route_id = transport_routes.transport_id
                                             INNER JOIN app.communications ON transport_routes.transport_id = communications.route
-                                            WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+                                            INNER JOIN app.classes c ON students.current_class = c.class_id
+                                            INNER JOIN app.class_cats cc USING (class_cat_id)
+                                            WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications) AND cc.entity_id != 100 OR cc.entity_id IS null");
         }
         else if( $audienceId === 7 )
         {
@@ -1187,7 +1193,7 @@ $app->post('/addCommunication', function () use($app) {
                                           INNER JOIN app.student_fee_items ON students.student_id = student_fee_items.student_id
                                           INNER JOIN app.fee_items ON student_fee_items.fee_item_id = fee_items.fee_item_id
                                           INNER JOIN app.communications ON fee_items.fee_item = communications.activity
-                                          WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+                                          WHERE students.active = TRUE AND guardians.active IS TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
 
           $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
 
@@ -1205,7 +1211,7 @@ $app->post('/addCommunication', function () use($app) {
                                           INNER JOIN app.student_guardians sg ON g.guardian_id = sg.guardian_id
                                           INNER JOIN app.students s ON sg.student_id = s.student_id
                                           INNER JOIN app.communications c ON s.house = c.house
-                                          WHERE s.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
+                                          WHERE s.active IS TRUE AND g.active IS TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
 
           $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
 
@@ -1263,7 +1269,7 @@ $app->post('/addCommunication', function () use($app) {
                                           INNER JOIN app.student_guardians sg ON g.guardian_id = sg.guardian_id
                                           INNER JOIN app.students s ON sg.student_id = s.student_id
                                           INNER JOIN app.communications c ON s.student_type = c.student_type
-                                          WHERE s.active = TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
+                                          WHERE s.active IS TRUE AND g.active IS TRUE AND c.com_id =(SELECT MAX(com_id) FROM app.communications) ");
 
           $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
 
@@ -1297,10 +1303,18 @@ $app->post('/addCommunication', function () use($app) {
         {
           // school wide
           $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
-          $pullRecipients = $db->prepare("SELECT DISTINCT ON (guardians.first_name, guardians.last_name, telephone) guardians.first_name, guardians.last_name, telephone FROM app.guardians
+          $pullRecipients = $db->prepare("SELECT * FROM (
+                                            SELECT DISTINCT ON (guardians.first_name, guardians.last_name, telephone) guardians.first_name, guardians.last_name, telephone FROM app.guardians
                                             INNER JOIN app.student_guardians USING (guardian_id)
                                             INNER JOIN app.students USING (student_id)
-                                            WHERE guardians.active IS TRUE AND students.active IS TRUE AND telephone IS NOT null
+                                            INNER JOIN app.classes c ON students.current_class = c.class_id
+                                            INNER JOIN app.class_cats cc USING (class_cat_id)
+                                            WHERE guardians.active IS TRUE 
+                                            AND students.active IS TRUE 
+                                            AND student_guardians.active IS TRUE
+                                            AND cc.entity_id != 100 OR cc.entity_id IS null
+                                          )qry
+                                          WHERE telephone IS NOT NULL
                                           /*UNION
                                           SELECT first_name, last_name, telephone FROM app.employees WHERE active is true AND telephone is not null*/");
           $studentsToNotify = $db->prepare("SELECT student_id
@@ -1323,7 +1337,7 @@ $app->post('/addCommunication', function () use($app) {
                                             INNER JOIN app.students
                                             ON student_guardians.student_id = students.student_id AND students.active is true
                                           ON guardians.guardian_id = student_guardians.guardian_id
-                                          WHERE guardians.active is true
+                                          WHERE guardians.active IS TRUE AND students.active IS TRUE
                                           AND current_class = :classId");
           $params = array(':classId' => $classId);
 
@@ -1360,7 +1374,7 @@ $app->post('/addCommunication', function () use($app) {
                                           INNER JOIN app.students ON student_guardians.student_id = students.student_id
                                           INNER JOIN app.transport_routes ON students.transport_route_id = transport_routes.transport_id
                                           INNER JOIN app.communications ON transport_routes.transport_id = communications.route
-                                          WHERE students.active = TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
+                                          WHERE students.active IS TRUE AND guardians.active IS TRUE AND communications.com_id =(SELECT MAX(com_id) FROM app.communications)");
         }
         else if( $audienceId === 7 )
         {
@@ -1575,6 +1589,7 @@ $app->post('/customAddCommunication', function () use($app) {
   $feeItem =  ( isset($allPostVars['post']['fee_item']) ? $allPostVars['post']['fee_item']: null);
   $sent =  ( isset($allPostVars['post']['sent']) ? $allPostVars['post']['sent']: null);
   $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+  $theSubdomain =   ( isset($allPostVars['post']['subdomain']) ? $allPostVars['post']['subdomain']: null);
 
   // these are for use only when posting from the transport module
   $transportFilters = ( isset($allPostVars['post']['filters']) ? $allPostVars['post']['filters']: null);
@@ -1589,7 +1604,7 @@ $app->post('/customAddCommunication', function () use($app) {
   {
     $db = getDB();
     $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, sent, post_status_id, route, activity)
-               VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :sent, :postStatus, :route, :activity) RETURNING com_id AS postId");
+               VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :sent, :postStatus, :route, :activity) RETURNING com_id");
 
     if( $postStatus === 1 )
     {
@@ -2034,6 +2049,8 @@ $app->post('/customAddCommunication', function () use($app) {
             ':attachment' => $attachment , ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
             ':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo, ':sent' => $sent,
             ':messageFrom' => $messageFrom, ':postStatus' => $postStatus, ':route' => $routeId, ':activity' => $feeItem) );
+    $postIdObj = $sth->fetch(PDO::FETCH_OBJ);
+    $postId = $postIdObj->com_id; // use this to send an sms
 
     // if published, make entries into tables for email/sms service
 
@@ -2055,7 +2072,7 @@ $app->post('/customAddCommunication', function () use($app) {
       }
 
       // get the device ids to send a notification
-      if( $sendAsEmail === 't' && $audienceId == 1 || $sendAsEmail === 't' && $audienceId == 2 || $sendAsEmail === 't' && $audienceId == 5 || $sendAsEmail === 't' && $audienceId == 6 || $sendAsEmail === 't' && $audienceId == 7 )
+      if($sendAsEmail === 't')
       {
           $studentsToNotify->execute($params);
           $results = $studentsToNotify->fetchAll(PDO::FETCH_OBJ);
@@ -2111,7 +2128,7 @@ $app->post('/customAddCommunication', function () use($app) {
 
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
-    echo json_encode(array("response" => "success", "code" => 1));
+    echo json_encode(array("response" => "success", "code" => 1, "com_id" => $postId));
     $db = null;
 
   } catch(PDOException $e) {
@@ -2742,7 +2759,11 @@ $app = \Slim\Slim::getInstance();
   try
   {
       $db = getDB();
-      $sth = $db->prepare("SELECT student_id, student_name, array_agg(parents) AS parents, fee_item, avg(total_due) AS total_due, avg(total_paid) AS total_paid, avg(balance) AS balance FROM (
+      $sth = $db->prepare("SELECT student_id, student_name, array_agg(parents) AS parents, fee_item, 
+                          (SELECT SUM(ib.total_due) AS total_due FROM app.invoice_balances2 ib WHERE ib.student_id = r.student_id GROUP BY ib.student_id) AS total_due, 
+                          (SELECT SUM(ib.total_paid) AS total_paid FROM app.invoice_balances2 ib WHERE ib.student_id = r.student_id GROUP BY ib.student_id) AS total_paid, 
+                          (SELECT SUM(ib.balance) AS balance FROM app.invoice_balances2 ib WHERE ib.student_id = r.student_id GROUP BY ib.student_id) AS balance 
+                          FROM (
                           	SELECT student_id, student_name, '{\"name\":\"' || parent_full_name || '\",\"phone\":\"' || telephone || '\",\"id\":' || guardian_id || '}' AS parents, fee_item, total_due, total_paid, balance
                           	FROM
                           	(

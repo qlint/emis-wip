@@ -35,12 +35,12 @@
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="<?php echo htmlspecialchars("http://".array_shift((explode('.', $_SERVER['HTTP_HOST']))).".eduweb.co.ke"); ?>">Home
+            <a class="nav-link" href="<?php echo htmlspecialchars("https://".array_shift((explode('.', $_SERVER['HTTP_HOST']))).".eduweb.co.ke"); ?>">Home
               <span class="sr-only">(current)</span>
             </a>
           </li>
           <li class="nav-item active">
-            <a class="nav-link" href="<?php echo htmlspecialchars("http://".array_shift((explode('.', $_SERVER['HTTP_HOST']))).".eduweb.co.ke/overviews"); ?>" style="color:#0cff05;">Go Back
+            <a class="nav-link" href="<?php echo htmlspecialchars("https://".array_shift((explode('.', $_SERVER['HTTP_HOST']))).".eduweb.co.ke/overviews"); ?>" style="color:#0cff05;">Go Back
               <span class="sr-only">(current)</span>
             </a>
           </li>
@@ -64,7 +64,7 @@
             <?php
             $tableQuery = pg_query($db,"SELECT students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name, admission_number, gender, class_name,
                                         	guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name AS parent_name, relationship,
-                                        	telephone
+                                        	telephone, email
                                         FROM app.students
                                         LEFT JOIN app.student_guardians USING (student_id)
                                         LEFT JOIN app.guardians USING (guardian_id)
@@ -86,6 +86,7 @@
                                 <th class='cell100 column3'>PARENT</th>
                                 <th class='cell100 column4'>RELATIONSHIP</th>
                                 <th class='cell100 column5'>TELEPHONE</th>
+                                <th class='cell100 column5'>EMAIL</th>
                             </tr>
                         </thead>
                     </div>
@@ -101,6 +102,7 @@
                                      echo "<td class='cell100 column3'>" . $row3['parent_name'] . "</td>";
                                      echo "<td class='cell100 column4'>" . $row3['relationship'] . "</td>";
                                      echo "<td class='cell100 column5'>" . $row3['telephone'] . "</td>";
+                                     echo "<td class='cell100 column5'>" . $row3['email'] . "</td>";
                                  echo "</tr>";
                                 }
                             ?>

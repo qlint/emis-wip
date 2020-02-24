@@ -13,6 +13,25 @@ function($scope, $rootScope, $state, $window, Auth, apiService, token ) {
 	}
 	//setTimeout(initializeController,10);
 	
+	// check if school has dual links
+	apiService.checkMultiLinks($scope.schoolName, function(response){
+				var result = angular.fromJson(response);
+				if( result.response == 'success')
+				{
+					$scope.multiLink = result.data;
+					if($scope.multiLink != undefined){
+    					if($scope.multiLink[0].link_status == "multi-link"){
+    					    $rootScope.showMultiLink = true;
+    					    document.getElementById('multi-school').style.display = "block";
+    					    document.getElementsByClassName('navbar-brand')[0].style.width = '100%';
+    					    $rootScope.multiLink = $scope.multiLink[0].multi_link;
+    					    $rootScope.multiLinkSchoolName = $scope.multiLink[0].school_name;
+    					}
+				    }
+				}
+
+			}, console.log("%cEduweb School Management Information System", "color: #00ff00; font-size:30px;"));
+	
 	$scope.hitEnter = function(evt)
 	{		
 		$scope.submit();

@@ -224,7 +224,7 @@
 						<div class="form-group">
 							<label for="club" class="col-sm-4 control-label">Clubs</label>
 							<div class="col-sm-8">
-								<select name="club" id="clubs" ng-model="student.club" multiple size="3" class="form-control">
+								<select name="club" id="clubs" ng-model="student.club" ng-change="captureClubs()" multiple size="3" class="form-control">
 									<option value="">No Club</option>
 									<option value="{{item}}" ng-repeat="item in clubs">{{item}}</option>
 								</select>

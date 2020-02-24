@@ -14,20 +14,20 @@
         $dbCreate = 'eduweb_' . $dbResults['subdomain']; // full name of the db's
         array_push($dbArray,$dbCreate); // push into dbArray the value of dbCreate
     }
-
-    // $queryInTextFile = file_get_contents('create-db.txt'); // for larger or more complex queries and create statements, we put in a text file
+	echo "DB's selected and ready to run" ."<br>";
+    $queryInTextFile = file_get_contents('create-db.txt'); // for larger or more complex queries and create statements, we put in a text file
     // echo $queryInTextFile ."<br>";
 
     foreach ($dbArray as $key => $value) {
 
-    	    $dbOutput = $key . ' = ' . $value . '<br>';
+    	    $dbOutput = 'DB ' . $key . ' = ' . $value . '<br>';
 
     	    // now we can create a second db connection for each of the db's above and execute a query on each
 
     	    $schoolDb = pg_connect("host=localhost port=5433 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
-            $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.payments ADD COLUMN payment_bank character varying;"); // executing the query
-            $executeOnSchoolDb2 = pg_query($schoolDb,"ALTER TABLE app.payments ADD COLUMN banking_date date;"); // executing the query
-            // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
+            // $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.buses ADD COLUMN bus_description character varying;"); // executing the query
+            // $executeOnSchoolDb2 = pg_query($schoolDb,"ALTER TABLE app.buses ADD COLUMN bus_capacity integer;"); // executing the query
+            $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
     	    echo $dbOutput; // just an output of all our db's
     }
 ?>

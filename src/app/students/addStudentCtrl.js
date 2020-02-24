@@ -22,6 +22,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.student.hospitalized = 'false';
 	$scope.student.current_medical_treatment = 'false';
 	$scope.showSeparationAge = false;
+	$scope.selectedClubs = null;
 
 	$scope.feeItemSelection = [];
 	$scope.optFeeItemSelection = [];
@@ -49,12 +50,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.getDob = function(){
 		// $scope.student.dob = document.getElementById('dob').value
 		function dobScript(){
-			console.log(document.getElementById('dob').value);
+			// console.log(document.getElementById('dob').value);
 			$scope.student.dob1 = document.getElementById('dob').value;
 			return $scope.student.dob1;
 		}
 		document.getElementById('dob').addEventListener("focusout", dobScript);
-		// console.log($scope.student.dob);
 	}
 
 	var initializeController = function()
@@ -387,6 +387,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     		},apiError);
 
 	// }
+	
+	$scope.captureClubs = function(){
+	    $scope.student.clubs = $scope.student.club.join(',');
+	}
 
 	$scope.save = function(theForm)
 	{
@@ -409,21 +413,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 			$scope.student.has_medical_conditions = ( $scope.conditionSelection.length > 0 || $scope.student.other_medical_conditions ? true : false );
 
-			// format clubs string before posting
-			var clubsArr = $('#clubs').val();
-			// check if there are any clubs selected
-			if(clubsArr == null || clubsArr == undefined || clubsArr == [] || clubsArr == ''){
-				$scope.student.club = null;
-			}else{
-				$scope.student.club = clubsArr.join(',');
-			}
-			console.log($scope.student.club);
-
 			// this doesn't exist in the add student yet so we set it to null
 			$scope.student.movement = null;
 
 			// also, lets get the DOB manually
-			console.log($scope.student.dob1);
+			// console.log($scope.student.dob1);
 			$scope.student.dob = $scope.student.dob1;
 
 			var postData = angular.copy($scope.student);
@@ -435,7 +429,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			postData.optFeeItems = $scope.optFeeItemSelection;
 			postData.user_id = $rootScope.currentUser.user_id;
 			postData.route_id = $scope.student.transport_route !== undefined ? $scope.student.transport_route.transport_id : null;
-			console.log(postData);
+			postData.club = $scope.student.clubs;
+			// console.log(postData);
 
 
 			apiService.postStudent(postData, createCompleted, createError);
@@ -541,7 +536,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	var createError = function (response)
 	{
-		console.log(response);
+		// console.log(response);
 		var result = angular.fromJson( response );
 		$scope.formError = true;
 		if( result.data.indexOf('"U_admission_number"') > -1 )

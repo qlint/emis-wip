@@ -1,23 +1,20 @@
-CREATE TABLE app.teacher_timetables
+CREATE TABLE app.school_resources
 (
-  teacher_timetable_id serial NOT NULL,
-  teacher_id integer NOT NULL,
-  class_id integer NOT NULL,
-  term_id integer NOT NULL,
-  subject_name character varying NOT NULL,
-  year character varying,
-  month character varying,
-  day character varying,
-  start_hour character varying NOT NULL,
-  start_minutes character varying NOT NULL,
-  end_hour character varying NOT NULL,
-  end_minutes character varying NOT NULL,
-  color character varying,
-  creation_date timestamp without time zone NOT NULL DEFAULT now(),
-  CONSTRAINT "PK_teacher_timetable_id" PRIMARY KEY (teacher_timetable_id )
+    resource_id serial NOT NULL,
+    class_id integer,
+    term_id integer,
+    emp_id integer,
+    resource_name character varying COLLATE pg_catalog."default",
+    resource_type character varying COLLATE pg_catalog."default",
+    file_name character varying COLLATE pg_catalog."default",
+    additional_text character varying COLLATE pg_catalog."default",
+    active boolean NOT NULL DEFAULT true,
+    creation_date timestamp without time zone NOT NULL DEFAULT now(),
+    modified_date timestamp without time zone,
+    CONSTRAINT "PK_resource_id" PRIMARY KEY (resource_id)
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE app.teacher_timetables
-  OWNER TO postgres;
+
+TABLESPACE pg_default;
+
+ALTER TABLE app.school_resources
+    OWNER to postgres;

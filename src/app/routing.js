@@ -408,6 +408,13 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
+	.state('resources/create_resource', {
+      url: "/resources/create_resource",
+	  	templateUrl: 'app/resources/createResource.html',
+      data: {
+         authorizedRoles: [USER_ROLES.sys_admin]
+      }
+    })
 
 	;
 }]);

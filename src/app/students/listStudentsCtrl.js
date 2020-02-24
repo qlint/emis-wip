@@ -315,6 +315,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
     renderableRows.forEach( function( row ) {
       var match = false;
       [ 'student_name', 'class_name', 'admission_number' ].forEach(function( field ){
+          // console.log("Matching...",row.entity[field]);
       if ( row.entity[field].match(matcher) ){
         match = true;
       }

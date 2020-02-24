@@ -65,6 +65,7 @@
 				<div class="navbar-brand">
 					<img src="{{ (currentUser.settings.logo !== undefined ?'assets/schools/' + currentUser.settings.logo : '/assets/eduweb-logo-lg.png' )}}" title="{{currentUser.settings['School Name'] || 'Eduweb'}}" class="brand" />
 					<span>{{currentUser.settings['School Name'] || 'Eduweb MIS Login'}}</span>
+					<span id="multi-school" ng-show="showMultiLink" style="float:right;"><a style="color:#ffffff;font-style:italic;" href="{{multiLink}}">Go to: {{multiLinkSchoolName}}</a></span>
 				</div>
 				<div ng-show="loggedIn">
 					<div class="navbar-right collapse navbar-collapse" id="navtopright">
@@ -221,6 +222,7 @@
 	<script type="text/javascript" src="app/transport/attendanceCtrl.js?v=30"></script>
 	<script type="text/javascript" src="app/transport/mappedHistoryCtrl.js?v=30"></script>
   <script type="text/javascript" src="app/transport/transportReportsCtrl.js?v=30"></script>
+  <script type="text/javascript" src="app/resources/createResourceCtrl.js?v=9"></script>
 	<script type="text/javascript" src="app/login.js?v=30"></script>
 
 	<!--SERVICES -->

@@ -18,7 +18,6 @@ function($http, $rootScope, $window, Session, AUTH_EVENTS, ajaxService) {
 		***************************/
 
 		var domain = window.location.host;
-		console.log("To" + domain);
 		// var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'http://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1  ? 'http://api.eduweb.co.ke': 'http://api.eduweb.localhost'));
 		// if(domain == '67.219.189.47'){
 		if(domain == 'eduweb.co.ke'){
@@ -46,6 +45,11 @@ function($http, $rootScope, $window, Session, AUTH_EVENTS, ajaxService) {
 
 				if( loginData.response == 'success' )
 				{
+				    // disable top multi link for school where it is active
+				    $rootScope.showMultiLink = false;
+				    document.getElementById('multi-school').style.display = "none";
+				    document.getElementsByClassName('navbar-brand')[0].style.width = 'auto';
+				    
 					// success
 					if( apiAction == 'login' )
 					{

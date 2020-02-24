@@ -186,4 +186,284 @@ $app->put('/postUserRequest', function () use($app) {
 
 });
 
+$app->get('/getSysAdmns', function () {
+    //Show all sys admns
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT user_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS user_name, user_type
+							 FROM app.users
+							 WHERE active IS true AND user_type = 'SYS_ADMIN'
+							 ORDER BY user_name ASC");
+        $sth->execute( array());
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getAdmns', function () {
+    //Show all admns
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT user_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS user_name, user_type
+							 FROM app.users
+							 WHERE active IS true AND user_type = 'ADMIN'
+							 ORDER BY user_name ASC");
+        $sth->execute( array());
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getTchrs', function () {
+    //Show all teachers
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT user_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS user_name, user_type
+							 FROM app.users
+							 WHERE active IS true AND user_type = 'TEACHER'
+							 ORDER BY user_name ASC");
+        $sth->execute( array());
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getPrincipals', function () {
+    //Show principals
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT user_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS user_name, user_type
+							 FROM app.users
+							 WHERE active IS true AND user_type = 'PRINCIPAL'
+							 ORDER BY user_name ASC");
+        $sth->execute( array());
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getAdmnFinance', function () {
+    //Show all admin-finance
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT user_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS user_name, user_type
+							 FROM app.users
+							 WHERE active IS true AND user_type = 'ADMIN-FINANCE'
+							 ORDER BY user_name ASC");
+        $sth->execute( array());
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getAdmnTransp', function () {
+    //Show all admin-transport
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT user_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS user_name, user_type
+							 FROM app.users
+							 WHERE active IS true AND user_type = 'ADMIN-TRANSPORT'
+							 ORDER BY user_name ASC");
+        $sth->execute( array());
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getFnance', function () {
+    //Show all finance
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT user_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS user_name, user_type
+							 FROM app.users
+							 WHERE active IS true AND user_type = 'FINANCE'
+							 ORDER BY user_name ASC");
+        $sth->execute( array());
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getFnanceCtrld', function () {
+    //Show all finance-controlled
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT user_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS user_name, user_type
+							 FROM app.users
+							 WHERE active IS true AND user_type = 'FINANCE-CONTROLLED'
+							 ORDER BY user_name ASC");
+        $sth->execute( array());
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 ?>

@@ -190,6 +190,9 @@ require('report_card_functions.php');
 // ************** Payments  ****************** //
 require('payment_functions.php');
 
+// ************** Resources Payments  ****************** //
+require('resources_functions.php');
+
 // ************** Invoices  ****************** //
 require('invoice_functions.php');
 

@@ -42,7 +42,7 @@ $app->get('/getAllAssignedBuses/:status', function ($status) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT buses.bus_id, bus_type, bus_registration, destinations, trip_name
+    $sth = $db->prepare("SELECT buses.bus_id, bus_type, bus_registration, bus_description, bus_capacity, destinations, trip_name
                         FROM app.buses
                         LEFT JOIN app.schoolbus_bus_trips USING (bus_id)
                         LEFT JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
@@ -342,11 +342,11 @@ $app->get('/getAllBusesRoutesAndDrivers/:status', function ($status) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT bus_id, bus_type, bus_registration, destinations, trip_name, bus_driver,
+    $sth = $db->prepare("SELECT bus_id, bus_type, bus_registration, bus_description, bus_capacity, destinations, trip_name, bus_driver,
                         	(case when driver_name is null then 'Unassigned' else driver_name end) as driver_name,
                         	bus_guide, (case when guide_name is null then 'Unassigned' else guide_name end) as guide_name
                         FROM(
-                        	SELECT buses.bus_id, bus_type, bus_registration, destinations, trip_name, bus_driver, bus_guide,
+                        	SELECT buses.bus_id, bus_type, bus_registration, bus_description, bus_capacity, destinations, trip_name, bus_driver, bus_guide,
                         		e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name,
                         		e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name
                         	FROM app.buses
@@ -640,18 +640,22 @@ $app->post('/createSchoolBus', function () use($app) {
 
   $busType = ( isset($allPostVars['bus_type']) ? $allPostVars['bus_type']: null);
   $busRegistration = ( isset($allPostVars['bus_registration']) ? $allPostVars['bus_registration']: null);
+  $busDescription = ( isset($allPostVars['bus_description']) ? $allPostVars['bus_description']: null);
+  $busCapacity = ( isset($allPostVars['bus_capacity']) ? $allPostVars['bus_capacity']: null);
 
   try
   {
     $db = getDB();
 
-    $busInsert = $db->prepare("INSERT INTO app.buses(bus_type, bus_registration)
-            VALUES(:busType,:busRegistration);");
+    $busInsert = $db->prepare("INSERT INTO app.buses(bus_type, bus_registration, bus_description, bus_capacity)
+            VALUES(:busType,:busRegistration,:busDescription,:busCapacity);");
 
     $db->beginTransaction();
 
     $busInsert->execute( array(':busType' => $busType,
-              ':busRegistration' => $busRegistration
+              ':busRegistration' => $busRegistration,
+              ':busDescription' => $busDescription,
+              ':busCapacity' => $busCapacity
     ) );
 
     $db->commit();
@@ -1142,11 +1146,11 @@ $app->get('/getTransportCards/:studentId', function ($studentId) {
         $db = getDB();
         if($studentId === "0"){
           $sth = $db->prepare("SELECT student_id, admission_number, student_name, class_name, neighborhood, billed,
-                              			array_agg('{\"trip_id\":' || student_trip_id || ',\"trip_name\":\"' || trip_name || '\",\"bus\":\"' || bus || '\",\"driver_name\":\"' || driver_name || '\",\"driver_telephone\":\"' || driver_telephone || '\"}') AS trip_details
+                              			array_agg('{\"trip_id\":' || student_trip_id || ',\"trip_name\":\"' || trip_name || '\",\"bus\":\"' || bus || '\",\"dscription\":\"' || bus_description || '\",\"driver_name\":\"' || driver_name || '\",\"driver_telephone\":\"' || driver_telephone || '\"}') AS trip_details
                               		FROM (
                               			SELECT two.*, st.trip_name
                               			FROM (
-                              				SELECT one.*, b.bus_id, b.bus_registration AS bus, b.bus_driver AS driver_id, b.bus_guide AS guide_id,
+                              				SELECT one.*, b.bus_id, b.bus_registration AS bus, bus_description, b.bus_driver AS driver_id, b.bus_guide AS guide_id,
                               					e.first_name as driver_name, e.telephone AS driver_telephone,
                                 					e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name
                               				FROM (
@@ -1172,12 +1176,12 @@ $app->get('/getTransportCards/:studentId', function ($studentId) {
           $results = $sth->fetchAll(PDO::FETCH_OBJ);
         }else{
           $sth = $db->prepare("		SELECT student_id, admission_number, student_name, class_name, neighborhood, billed,
-                              			array_agg('{\"trip_id\":' || student_trip_id || ',\"trip_name\":\"' || trip_name || '\",\"bus\":\"' || bus || '\",\"driver_name\":\"' || driver_name || '\",\"driver_telephone\":\"' || driver_telephone || '\"}') AS trip_details
+                              			array_agg('{\"trip_id\":' || student_trip_id || ',\"trip_name\":\"' || trip_name || '\",\"bus\":\"' || bus || '\",\"dscription\":\"' || bus_description || '\",\"driver_name\":\"' || driver_name || '\",\"driver_telephone\":\"' || driver_telephone || '\"}') AS trip_details
                               		FROM (
                               			SELECT two.*, st.trip_name
                               			FROM (
-                              				SELECT one.*, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.bus_driver AS driver_id, b.bus_guide AS guide_id,
-                              					e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name, e.telephone AS driver_telephone,
+                              				SELECT one.*, b.bus_id, b.bus_registration AS bus, bus_description, b.bus_driver AS driver_id, b.bus_guide AS guide_id,
+                              					e.first_name as driver_name, e.telephone AS driver_telephone,
                                 					e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name
                               				FROM (
                               					SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,

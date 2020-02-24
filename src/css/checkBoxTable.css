@@ -1,0 +1,70 @@
+.select-grid {
+  border-collapse: collapse;
+}
+.select-grid th {
+  font-weight: normal;
+  vertical-align: bottom;
+}
+.select-grid .select-grid-global-label {
+  width: 220px;
+  padding-left: 32px;
+  text-align: left;
+}
+.select-grid td {
+  position: relative;
+  border-top: 1px solid #ececec;
+}
+.select-grid td:first-child {
+  padding-left: 32px;
+}
+.select-grid .select-grid-toggle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 30px;
+  min-height: 30px;
+  width: 30px;
+  margin: 0;
+  padding: 0;
+}
+.select-grid .select-grid-toggle .material-icons {
+  width: 18px;
+  height: 20px;
+  font-size: 18px;
+}
+.select-grid md-checkbox {
+  min-width: 60px;
+  margin: 4px 1px;
+}
+.select-grid md-checkbox .md-container {
+  width: 60px;
+}
+.select-grid md-checkbox .md-container:before {
+  background-color: transparent !important;
+}
+.select-grid md-checkbox .md-ripple-container {
+  display: none !important;
+}
+.select-grid md-checkbox .md-icon {
+  width: 60px;
+  background-color: #ececec;
+  border-width: 0;
+}
+.select-grid md-checkbox.md-checked .md-icon {
+  background-color: #c9e7a6;
+}
+.select-grid md-checkbox.md-checked .md-icon:after {
+  left: 27px;
+}
+.select-grid .subRow {
+  display: none;
+}
+.select-grid .subRow.collapse {
+  display: none;
+}
+.select-grid .subRow.open {
+  display: table-row;
+}
+.select-grid .subRow td:first-child {
+  padding-left: 56px;
+}

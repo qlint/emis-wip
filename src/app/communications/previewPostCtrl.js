@@ -20,9 +20,9 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	//BEGIN
 
 	//enable or disable publishing
-	$scope.enPub = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
+	$scope.enPub = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'PRINCIPAL' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
 
-	if( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ){
+	if( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' || $rootScope.currentUser.user_type == 'PRINCIPAL' ){
 	    //enable an unpublish button
 	    $scope.enUnPub = ( $scope.post.sent == true ? true : false );
 
@@ -34,6 +34,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	    //the actual publishing
 	    $scope.pubPost = function()
     	{
+    	    console.log("Inside publish post");
     	    // POST SMS - START
                 $scope.unpublishedSms = false;
         		// check if this message is an unpublished sms
@@ -236,7 +237,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	var attachments = data.post.attachment;
 
     $scope.attachments = ($scope.post.rawAttachment != null ? $scope.post.details.attachment.split(',') : null);
-    console.log($scope.attachments);
+    // console.log($scope.attachments);
 
 	$scope.cancel = function()
 	{

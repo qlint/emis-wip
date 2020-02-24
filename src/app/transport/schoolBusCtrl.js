@@ -273,6 +273,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 									}
 									$scope.studentTranpCards.forEach(function(student) {
 									  for(let i=0;i < student.tripDetails.length;i++){
+									        if(window.location.host.split('.')[0] == 'thomasburke'){
+									            student.tripDetails[i].bus = student.tripDetails[i].dscription + (student.tripDetails[i].dscription == null ? '' : ' ') + student.tripDetails[i].bus;
+									        }
 											let theTrip = student.tripDetails[i].trip_name.toLowerCase();
 											if(theTrip.includes('morning')){
 												student.tripDetails[i].trip_time = 'MORNING';
@@ -405,10 +408,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	    // acquire the input values
 	    var busType = $( "#busType" ).val().toUpperCase();
 	    var busRegistration = $( "#busReg" ).val().toUpperCase();
+	    var busDescription = $( "#busDesc" ).val().toUpperCase();
+	    var busCapacity = $( "#busCap" ).val().toUpperCase();
 
 	    var busData = {
 	        "bus_type": busType,
-	        "bus_registration": busRegistration
+	        "bus_registration": busRegistration,
+	        "bus_description": busDescription,
+	        "bus_capacity": (busCapacity == "" || busCapacity == null || busCapacity == undefined ? null : parseInt(busCapacity))
 	    };
 
 		apiService.createSchoolBus(busData,addBusSuccess,apiError);
@@ -602,7 +609,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
     		}
 		}
 		setTimeout(function(){ 
-			console.log($rootScope.currentTermTitle);
+			// console.log($rootScope.currentTermTitle);
 		$scope.currentTerm = "Term " + $rootScope.currentTermTitle;
 		}, 3000);
 

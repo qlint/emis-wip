@@ -37,12 +37,12 @@
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="<?php echo htmlspecialchars("http://".array_shift((explode('.', $_SERVER['HTTP_HOST']))).".eduweb.co.ke"); ?>">Home
+            <a class="nav-link" href="<?php echo htmlspecialchars("https://".array_shift((explode('.', $_SERVER['HTTP_HOST']))).".eduweb.co.ke"); ?>">Home
               <span class="sr-only">(current)</span>
             </a>
           </li>
           <li class="nav-item active">
-            <a class="nav-link" href="<?php echo htmlspecialchars("http://".array_shift((explode('.', $_SERVER['HTTP_HOST']))).".eduweb.co.ke/overviews"); ?>" style="color:#0cff05;">Go Back
+            <a class="nav-link" href="<?php echo htmlspecialchars("https://".array_shift((explode('.', $_SERVER['HTTP_HOST']))).".eduweb.co.ke/overviews"); ?>" style="color:#0cff05;">Go Back
               <span class="sr-only">(current)</span>
             </a>
           </li>
@@ -181,15 +181,15 @@ echo "<h4>Amount paid by each student for their fee items for ". $term_name ." (
                 		INNER JOIN app.classes ON students.current_class = classes.class_id
                 		WHERE payments.payment_date between (SELECT start_date FROM app.terms WHERE CURRENT_DATE between start_date and end_date) and (SELECT end_date FROM app.terms WHERE CURRENT_DATE between start_date and end_date)
                   ORDER BY payments.student_id ASC, payments.payment_date ASC"*/
-                  "SELECT student_name, class_name,  '#' || ' ' || inv_id as inv_id, inv_date, fee_item_id, all_fee_items, paid_fee_item, default_amt, paid2, (default_amt - paid2) as balance FROM (
-	SELECT DISTINCT ON (student_name, class_name, inv_id, inv_date, fee_item_id, all_fee_items, default_amt, paid2) student_name, class_name, inv_id, inv_date, fee_item_id, all_fee_items, paid_fee_item, default_amt, paid2 FROM (
-		SELECT student_name, class_name, inv_id, inv_date, fee_item_id, all_fee_items, paid_fee_item, p_id, default_amt, sum(paid) over (partition by student_name, fee_item_id, inv_id order by student_name, fee_item_id, inv_id DESC) as paid2 FROM (
-			SELECT class_name, all_stdnt_names as student_name, all_invs as inv_id, inv_date, fee_item_id, all_fee_items, paid_fee_item, all_dflt_amt as default_amt, coalesce(paid,0) as paid, (all_dflt_amt - coalesce(paid,0)) as balance, p_id FROM (
-				SELECT class_name, term, all_stdnt_id, all_stdnt_names, all_invs, inv_date, tot_inv_amt, fee_item_id, all_fee_items, all_dflt_amt, paid_inv, paid_fee_item, p_id, paid FROM (
+                  "SELECT admission_number, student_name, class_name,  '#' || ' ' || inv_id as inv_id, inv_date, fee_item_id, all_fee_items, paid_fee_item, default_amt, paid2, (default_amt - paid2) as balance FROM (
+	SELECT DISTINCT ON (admission_number, student_name, class_name, inv_id, inv_date, fee_item_id, all_fee_items, default_amt, paid2) admission_number, student_name, class_name, inv_id, inv_date, fee_item_id, all_fee_items, paid_fee_item, default_amt, paid2 FROM (
+		SELECT admission_number, student_name, class_name, inv_id, inv_date, fee_item_id, all_fee_items, paid_fee_item, p_id, default_amt, sum(paid) over (partition by student_name, fee_item_id, inv_id order by student_name, fee_item_id, inv_id DESC) as paid2 FROM (
+			SELECT class_name, admission_number, all_stdnt_names as student_name, all_invs as inv_id, inv_date, fee_item_id, all_fee_items, paid_fee_item, all_dflt_amt as default_amt, coalesce(paid,0) as paid, (all_dflt_amt - coalesce(paid,0)) as balance, p_id FROM (
+				SELECT class_name, term, all_stdnt_id, admission_number, all_stdnt_names, all_invs, inv_date, tot_inv_amt, fee_item_id, all_fee_items, all_dflt_amt, paid_inv, paid_fee_item, p_id, paid FROM (
 					SELECT * FROM
 					(
 					SELECT invoices.inv_id as all_invs, fee_item as all_fee_items, student_fee_items.fee_item_id, /*student_fee_items.amount*/invoice_line_items.amount as all_dflt_amt, /*payment_inv_items.amount as paid,*/ invoices.student_id as all_stdnt_id,
-						class_name, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS all_stdnt_names,
+						class_name, students.admission_number, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS all_stdnt_names,
 						invoices.inv_date, invoices.total_amount as tot_inv_amt, invoices.canceled, terms.term_name as term, invoices.term_id
 					FROM app.invoices
 					INNER JOIN app.terms ON invoices.term_id = terms.term_id
@@ -234,6 +234,7 @@ echo "<h4>Amount paid by each student for their fee items for ". $term_name ." (
       echo "<div id='t2' class='table100-head'>";
          echo "<thead>";
           echo "<tr class='row100 head'>";
+            echo "<th class='cell100 column7'>ADM #</th>";
             echo "<th class='cell100 column1'>STUDENT NAME</th>";
             echo "<th class='cell100 column1'>CLASS</th>";
             echo "<th class='cell100 column7'>INVOICE #</th>";
@@ -250,6 +251,7 @@ echo "<h4>Amount paid by each student for their fee items for ". $term_name ." (
          while ($row2 = pg_fetch_assoc($table2)) {
            // $text1 = '';
            echo "<tr class='row100 body'>";
+              echo "<td class='cell100 column7'>" . $row2['admission_number'] . "</td>";
               echo "<td class='cell100 column1'>" . $row2['student_name'] . "</td>";
               echo "<td class='cell100 column1'>" . $row2['class_name'] . "</td>";
               echo "<td class='cell100 column7'>" . $row2['inv_id'] . "</td>";

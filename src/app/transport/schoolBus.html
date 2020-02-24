@@ -161,9 +161,19 @@
                           <option value="Bus">Bus</option>
                       </select>
                   </div>
+                                <div class="row">
+        							<div class="col-sm-6">
+        							    <div><h4>Registration Number</h4></div>
+        							    <input type="text" name="bus_registration" id="busReg" style="text-transform:uppercase;width:100%;" placeholder="KXX 000Z" pattern="[a-zA-Z0-9 ]+">
+        							</div>
+        							<div class="col-sm-6">
+        							    <div><h4>Capacity</h4></div>
+        							    <input type="number" name="bus_capacity" id="busCap" style="text-transform:uppercase;width:100%;" placeholder="example: 14" pattern="[0-9]+">
+    							    </div>
+    							</div>
     							<div>
-    							    <div><h4>Registration Number</h4></div>
-    							    <input type="text" name="bus_registration" id="busReg" style="text-transform:uppercase;width:100%;" placeholder="KXX 000Z" pattern="[a-zA-Z0-9 ]+">
+    							    <div><h4>Other Description</h4></div>
+    							    <input type="text" name="bus_description" id="busDesc" style="text-transform:uppercase;width:100%;" placeholder="Any other description?" pattern="[a-zA-Z0-9 ]+">
     							</div>
     							<div class="btnSpacer"><button type="button" class="btn btn-primary" ng-click="createBus()">Create Bus</button></div>
     							<div ng-show="busCreation" class="btnSpacer" style="background-color: #00e673;height: 25px;width: 97%;border-radius: 4px;border: 1px solid #001a0d;">
@@ -235,6 +245,8 @@
                             <tr>
                                 <th>Bus Type</th>
                                 <th>Registration</th>
+                                <th>Description</th>
+                                <th>Capacity</th>
                                 <th>Trip</th>
                                 <th>Destinations</th>
                                 <th>Driver</th>
@@ -243,12 +255,14 @@
                         </thead>
                         <tbody>
                             <tr ng-repeat="item in transportDataTable track by $index"  ng-click="viewStudentsInBus(this)">
-                                <td width="10%">{{item.bus_type}}</td>
+                                <td width="5%">{{item.bus_type}}</td>
                                 <td width="10%">{{item.bus_registration}}</td>
+                                <td width="10%">{{item.bus_description}}</td>
+                                <td width="5%">{{item.bus_capacity}}</td>
                                 <td width="10%">{{item.trip_name}}</td>
                                 <td width="40%">{{item.destinations}}</td>
-                                <td width="15%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.driver_name}}</td>
-                                <td width="15%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.guide_name}}</td>
+                                <td width="10%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.driver_name}}</td>
+                                <td width="10%" style="color:{{item.driver_name == 'Unassigned' ? '#008080' : '#006400'}}">{{item.guide_name}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -305,7 +319,7 @@
                               <div class="col-sm-4"><p><b>TRIP:</b></p></div><div class="col-sm-8"><p>{{trip.trip_name}}</p></div>
                             </div>
                             <div clss="row">
-                              <div class="col-sm-4" style="line-height:5px;"><p><b>BUS:</b></p></div><div class="col-sm-8" style="line-height:5px;"><p>{{trip.bus}}</p></div>
+                              <!--<div class="col-sm-4" style="line-height:5px;"><p><b>BUS:</b></p></div>--><div class="col-sm-12" style="line-height:5px;"><p><b style="font-size:10px !important;">{{trip.bus}}</b></p></div>
                             </div>
                             <div clss="row">
                               <div class="col-sm-12" style="line-height:5px;"><p  style="text-align:left;">Driver {{trip.driver_name}}</p></div>
@@ -320,7 +334,7 @@
                               <div class="col-sm-4"><p><b>TRIP:</b></p></div><div class="col-sm-8"><p>{{trip.trip_name}}</p></div>
                             </div>
                             <div clss="row">
-                              <div class="col-sm-4" style="line-height:5px;"><p><b>BUS:</b></p></div><div class="col-sm-8" style="line-height:5px;"><p>{{trip.bus}}</p></div>
+                              <!--<div class="col-sm-4" style="line-height:5px;"><p><b>BUS:</b></p></div>--><div class="col-sm-12" style="line-height:5px;"><p><b style="font-size:10px !important;">{{trip.bus}}</b></p></div>
                             </div>
                             <div clss="row">
                               <div class="col-sm-12" style="line-height:5px;"><p  style="text-align:left;">Driver {{trip.driver_name}}</p></div>

@@ -11,6 +11,11 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	}else{
 		var path = ( domain.indexOf('dev.eduweb.co.ke') > -1 ? 'https://devapi.eduweb.co.ke' : (domain.indexOf('eduweb.co.ke') > -1	? 'https://api.eduweb.co.ke': 'https://api.eduweb.localhost'));
 	}
+	
+	/*********** Multi Links ***********/
+	this.checkMultiLinks = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/checkMultiLinks/" + param, successFunction, errorFunction, params);
+	};
 
 	/*********** class categories ***********/
 	this.getClassCats = function (param, successFunction, errorFunction, params) {
@@ -537,6 +542,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getStudentBalance/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getStudentTotalBalance = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStudentTotalBalance/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getStudentsWithFeeBal = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getStudentsWithFeeBal", successFunction, errorFunction, params);
 	};
@@ -788,6 +797,38 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.updateUser = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateUser", successFunction, errorFunction, params);
+	};
+	
+	this.getSysAdmns = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getSysAdmns", successFunction, errorFunction, params);
+	};
+	
+	this.getAdmns = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getAdmns", successFunction, errorFunction, params);
+	};
+	
+	this.getTchrs = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getTchrs", successFunction, errorFunction, params);
+	};
+	
+	this.getPrincipals = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getPrincipals", successFunction, errorFunction, params);
+	};
+	
+	this.getAdmnFinance = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getAdmnFinance", successFunction, errorFunction, params);
+	};
+	
+	this.getAdmnTransp = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getAdmnTransp", successFunction, errorFunction, params);
+	};
+	
+	this.getFnance = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getFnance", successFunction, errorFunction, params);
+	};
+	
+	this.getFnanceCtrld = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getFnanceCtrld", successFunction, errorFunction, params);
 	};
 
 	/*********** manage blog ***********/
@@ -1093,6 +1134,32 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getGradesAttainment = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getGradesAttainment/" + param, successFunction, errorFunction, params);
+	};
+	
+	/*********** digital payments ***********/
+	this.getDpClient = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getDpClient/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getMpesaPayments = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getMpesaPayments", successFunction, errorFunction, params);
+	};
+
+	/*********** resources ***********/
+	this.createResource = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/createResource", successFunction, errorFunction, params);
+	};
+
+	this.getTeacherResources = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getTeacherResources/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getResource = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getResource/" + param, successFunction, errorFunction, params);
+	};
+
+	this.updateResource = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/updateResource", successFunction, errorFunction, params);
 	};
 
 	return this;

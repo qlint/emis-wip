@@ -138,4 +138,43 @@ $app->put('/updateSettings', function () use($app) {
     }
 });
 
+$app->get('/checkMultiLinks/:subdomain', function ($subdomain) {
+
+	// Get multi links if they exist
+
+	$app = \Slim\Slim::getInstance();
+
+	try
+	{
+		$db = getLoginDB();
+
+		$sth = $db->prepare("SELECT CASE WHEN multi_link IS NULL THEN 'no-link' ELSE 'multi-link' END AS link_status, 
+                            	multi_link, (SELECT first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS school_name FROM clients WHERE client_id = qry.other_client_id) AS school_name
+                            FROM (	
+                            	SELECT other_client_id, multi_link FROM clients
+                            	WHERE active IS TRUE AND subdomain = :subdomain
+                            )qry");
+		$sth->execute(array(':subdomain' => $subdomain));
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($results) {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'data' => $results ));
+				$db = null;
+		} else {
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+				$db = null;
+		}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
+
 ?>

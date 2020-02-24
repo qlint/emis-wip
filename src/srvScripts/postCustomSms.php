@@ -1,14 +1,9 @@
 <?php
-    header('Access-Control-Allow-Origin: *');
-
     error_reporting(E_ALL);  // uncomment this only when testing
     ini_set('display_errors', 1); // uncomment this only when testing
     ini_set('max_execution_time', 800); // increasing max execution time to 10 mins
     
-    if(isset($_POST['src']) && isset($_POST['school'])) {
-
-            $postId = $_POST['src']; // this is the com_id for the message we want
-            $school = $_POST['school']; // the subdomain of the school
+    if(isset($school) && isset($postId)) {
 
             // db connect
             $getDbname = 'eduweb_' . $school;

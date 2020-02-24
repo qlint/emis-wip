@@ -303,7 +303,8 @@ $app->get('/getExamMarksforReportCard/:student_id/:class/:term(/:teacherId)', fu
 											  ,(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
 													INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
 													INNER JOIN app.class_subjects cs USING (class_subject_id)
-													WHERE cs.class_id = :classId AND em.term_id = :termId) as position_out_of
+													INNER JOIN app.students s USING (student_id)
+													WHERE cs.class_id = :classId AND em.term_id = :termId AND s.active IS TRUE) as position_out_of
 
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams
@@ -950,7 +951,8 @@ $app->get('/getSpecialExamMarksforReportCard/:student_id/:class/:term(/:teacherI
 											  ,(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
 												INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
 												INNER JOIN app.class_subjects cs USING (class_subject_id)
-												WHERE cs.class_id = :classId AND em.term_id = :termId) as position_out_of
+												INNER JOIN app.students s USING (student_id)
+												WHERE cs.class_id = :classId AND em.term_id = :termId AND s.active IS TRUE) as position_out_of
 
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams
@@ -995,7 +997,8 @@ $app->get('/getSpecialExamMarksforReportCard/:student_id/:class/:term(/:teacherI
 	principal_comment, (SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
 						INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
 						INNER JOIN app.class_subjects cs USING (class_subject_id)
-						WHERE cs.class_id = :classId AND em.term_id = :termId) AS position_out_of,
+						INNER JOIN app.students s USING (student_id)
+						WHERE cs.class_id = :classId AND em.term_id = :termId AND s.active IS TRUE) AS position_out_of,
 	current_term_marks,current_term_marks_out_of
 FROM(
 	SELECT marks.total_mark, marks.total_grade_weight, positions.rank, percentages.percentage, percentages.grade, percentages.principal_comment, marks.position_out_of,
@@ -1052,7 +1055,8 @@ FROM(
 				(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
 				INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
 				INNER JOIN app.class_subjects cs USING (class_subject_id)
-				WHERE cs.class_id = :classId AND em.term_id = :termId) as position_out_of
+				INNER JOIN app.students s USING (student_id)
+				WHERE cs.class_id = :classId AND em.term_id = :termId AND s.active IS TRUE) as position_out_of
 			FROM app.exam_marks
 			INNER JOIN app.class_subject_exams
 			INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
@@ -1366,7 +1370,8 @@ $app->get('/getLowerSchoolExamMarksforReportCard/:student_id/:class/:term(/:teac
 											  ,(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
 												INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
 												INNER JOIN app.class_subjects cs USING (class_subject_id)
-												WHERE cs.class_id = :classId AND em.term_id = :termId) as position_out_of
+												INNER JOIN app.students s USING (student_id)
+												WHERE cs.class_id = :classId AND em.term_id = :termId AND s.active IS TRUE) as position_out_of
 
 										FROM app.exam_marks
 										INNER JOIN app.class_subject_exams

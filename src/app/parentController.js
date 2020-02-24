@@ -1037,6 +1037,13 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true,
 						}
+					},
+					'resources':{
+						'create_resource': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						}
 					}
 				};
 				break;

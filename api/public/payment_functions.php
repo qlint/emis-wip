@@ -9,7 +9,7 @@ $app->get('/getPaymentsReceived/:startDate/:endDate/:paymentStatus(/:studentStat
       $db = getDB();
     $query = "SELECT payments.student_id,
              payment_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-             amount, payment_date, payments.payment_method,
+             amount, payment_date, payments.payment_method, payments.slip_cheque_no, payments.banking_date,
              CASE WHEN replacement_payment = true THEN
              (SELECT array_agg(fee_item || ' Replacement')
                  FROM app.payment_replacement_items

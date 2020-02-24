@@ -11,7 +11,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.parentsAndStudents = [];
     $scope.showTable = false;
-    function sleep(milliseconds) {
+    $scope.wait = function sleep(milliseconds) {
                                     var start = new Date().getTime();
                                     for (var i = 0; i < 1e7; i++) {
                                         if ((new Date().getTime() - start) > milliseconds){
@@ -86,6 +86,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
                   });
                   perStudent.parents = parentsArr;
               });
+              // $scope.exportTableToCSV(feeBalances);
 
             }
             else
@@ -120,12 +121,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.filters.class_id = newVal.class_id;
 
 	});
+	
+	$scope.smsCounter = 0;
 
 	$scope.sendBySms = function()
 	{
     var selectedEmployee = $("#message_from option:selected").val();
 		var selectedEmployeeName = $("#message_from option:selected").text();
+	// $scope.parentsAndStudents.shift();$scope.parentsAndStudents.shift();$scope.parentsAndStudents.shift();$scope.parentsAndStudents.shift();$scope.parentsAndStudents.shift(); $scope.parentsAndStudents.length = 4; console.log($scope.parentsAndStudents); // use this to test to only one recipient
     $scope.parentsAndStudents.forEach(function(parent) {
+                $scope.smsCounter++; // count the messages being processed
 				var parentMessage = {
 					"message_by": selectedEmployeeName,
 					"message_date": new Date().toLocaleString(),
@@ -149,28 +154,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
           created_by: Number(selectedEmployee),
           reply_to: $rootScope.currentUser.settings["Email Address"],
           user_id: Number(selectedEmployee),
-          sent: true
+          sent: true,
+          subdomain: window.location.host.split('.')[0],
+          message_from_name: $( "#message_from" ).val(),
+          theParentMessage: parentMessage
         };
         postObj.user_id = Number(selectedEmployee);
+        console.log(postObj);
+        $scope.postObj = postObj;
+        
+        // let's space out the sms's to give time to postSms.php to do it's work, so maybe 1.6 seconds
+        $scope.wait(1600);
+        
         apiService.customAddCommunication(postObj,createCompleted,apiError);
-
-				// send the sms
-				
-				var xhr = new XMLHttpRequest();
-				xhr.open("POST", 'https://sms_api.eduweb.co.ke/api/sendBulkSms', true);
-				xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-				xhr.onreadystatechange = function() {
-						if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-										console.log("Request sent. Wait for response object ........");
-										console.log(xhr);
-						}
-				}
-				xhr.send(JSON.stringify(parentMessage));
-
-				// before continuing the loop we need to wait a bit - trying 1.5s
-				
-				console.log(parentMessage,"Waiting 1.0s ...");
-				sleep(1100);
 
     });
 		// close the modal
@@ -198,11 +194,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
         created_by: Number(selectedEmployee),
         reply_to: $rootScope.currentUser.settings["Email Address"],
         user_id: Number(selectedEmployee),
-        sent: true
+        sent: true,
+        subdomain: window.location.host.split('.')[0]
       };
       postObj.user_id = $rootScope.currentUser.user_id;
       apiService.customAddCommunication(postObj,createCompleted,apiError);
       // console.log(postObj);
+      $scope.postObj = postObj;
     });
 		//send notifications now
 		apiService.sendNotifications({}, function(response){
@@ -377,12 +375,32 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	var createCompleted = function ( response, status, params )
 	{
-
+        console.log(response);
+        
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
-			$uibModalInstance.close();
-			var msg = ($scope.edit ? 'Batch Exam SMS has been sent.' : 'Batch Exam SMS has been sent.');
+		    if($scope.postObj.send_as_sms = 't'){
+                // post the message
+                
+                $.ajax({
+                        type: "POST",
+                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/postSms.php",
+                        data: { src: result.com_id, school: window.location.host.split('.')[0] },
+                        success: function (data, status, jqXHR) {
+                            console.log("Data posted for processing.",data,status,jqXHR);
+                        },
+                        error: function (xhr) {
+                            console.log("Error. Data not posted.");
+                        }
+                });
+                
+            }
+            
+            if($scope.parentsAndStudents.length == $scope.smsCounter){
+    			$uibModalInstance.close();
+    			var msg = ($scope.edit ? 'Batch Exam SMS has been sent.' : 'Batch Exam SMS has been sent.');
+            }
 			if( data.viewing !== undefined && data.viewing == 'report')  $rootScope.$emit('examMarksAdded2', {'msg' : msg, 'clear' : true});
 			else $rootScope.$emit('examMarksAdded', {'msg' : msg, 'clear' : true});
 		}

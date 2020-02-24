@@ -153,9 +153,10 @@ FROM (
                         		route, student_type, nemis, house, club, movement, destination AS neighborhood
                         	FROM app.students s
                         	LEFT JOIN app.classes c ON s.current_class = c.class_id
+                        	LEFT JOIN app.class_cats cc ON c.class_cat_id = cc.class_cat_id
                         	LEFT JOIN app.installment_options io ON s.installment_option_id = io.installment_id
                         	LEFT JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
-                        	WHERE s.active = true
+                        	WHERE s.active = true AND cc.entity_id != 100 OR entity_id IS null
                         	ORDER BY student_name ASC, class_name ASC
                         )one
                         LEFT JOIN
@@ -224,10 +225,10 @@ $app->get('/studentGenderCount', function () {
     $db = getDB();
 
     $sth = $db->prepare("SELECT count(gender) AS total,
-                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'M' AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id < 12))) AS male,
-                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'F' AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id < 12))) AS female
+                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'M' AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id != 100 OR entity_id IS null))) AS male,
+                        (SELECT count(gender) FROM app.students WHERE active IS TRUE and gender = 'F' AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id != 100 OR entity_id IS null))) AS female
                         FROM app.students
-                        WHERE active IS TRUE AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id < 12)) ");
+                        WHERE active IS TRUE AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id != 100 OR entity_id IS null)) ");
     $sth->execute();
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -539,6 +540,40 @@ $app->get('/getStudentBalance/:studentId', function ($studentId) {
       $results->fee_summary = $feeSummary;
       $results->fees = $fees;
     }
+
+    if( $fees ) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getStudentTotalBalance/:studentId', function ($studentId) {
+  // Return students total payments, balances
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+      $db = getDB();
+
+    $sth = $db->prepare("SELECT SUM(total_due) AS total_due, SUM(total_paid) AS total_paid, SUM(balance) AS balance
+                          FROM app.invoice_balances2
+                          WHERE student_id = :studentID");
+
+    $sth->execute( array(':studentID' => $studentId));
+    $fees = $sth->fetchAll(PDO::FETCH_OBJ);
 
     if( $fees ) {
       $app->response->setStatus(200);
