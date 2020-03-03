@@ -88,20 +88,29 @@
 <?php
 
    echo "<h4>Student invoice balances and credits report for ". $term_name ." (Ordered by Names Ascending)</h4><hr>";
-   $table3 = pg_query($db,"SELECT two.*, true_total_paid - total_paid AS total_credit
+   $table3 = pg_query($db,"SELECT two.*, (true_tot_paid + untouched_payment) AS true_total_paid, (true_tot_paid + untouched_payment) - total_paid AS total_credit
                             FROM (
                             	SELECT one.*,
                             		(SELECT sum(amount) FROM
                             			(
                             				SELECT distinct on(p.payment_id, p.amount) payment_id, p.amount
-                            				FROM app.payments p 
+                            				FROM app.payments p
                             				INNER JOIN app.payment_inv_items pii USING (payment_id)
                             				INNER JOIN app.invoices i ON pii.inv_id = i.inv_id
                             				WHERE p.student_id = one.student_id AND i.term_id = ". $term ."
                             			)a
-                            		) AS true_total_paid
+                            		) AS true_tot_paid,
+									(
+										SELECT coalesce(sum(amount),0) AS untouched_payment FROM (
+											SELECT distinct on(p.student_id, p.amount) student_id, p.amount
+											FROM app.payments p
+											WHERE payment_id NOT IN (
+												SELECT payment_id FROM app.payment_inv_items pii
+											) AND student_id = one.student_id
+										)a
+									) AS untouched_payment
                             	FROM (
-                            		SELECT 
+                            		SELECT
                             			ib.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
                             			class_name, admission_number,
                             			sum(total_due) AS total_due, sum(total_paid) AS total_paid, sum(balance) AS balance

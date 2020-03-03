@@ -5,7 +5,7 @@
     /* db conn */
     $schoolName = array_shift((explode('.', $_SERVER['HTTP_HOST'])));
     $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
-    $db = pg_connect("host=localhost port=5432 dbname=eduweb_mis user=postgres password=pg_edu@8947");
+    $db = pg_connect("host=localhost port=5433 dbname=eduweb_mis user=postgres password=pg_edu@8947");
 ?>
 
 <!DOCTYPE html>

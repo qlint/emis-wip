@@ -1477,7 +1477,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		*/
 
 		// load html2canvas script and execute code on success
-		$.getScript('/components/html2pdf.bundle2.js', function()
+		$.getScript('/components/html2canvas.min.js', function()
 		{
 			// first hide all elements we don't want on print
 			var myList = document.getElementsByClassName("hideForPrint");
@@ -1486,37 +1486,54 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				myList[i].style.display="none";
 			}
 
-			// get screenshot
-			var reportCardElement = $("#showReportCard"); // the element we want to convert to pdf
-			var opt = {
-				margin:       0.5,
-				filename:     $scope.schoolName + '_' + $scope.student.student_id + '_termid_' + $scope.report.term_id + '_reportcard.pdf',
-				image:        { type: 'jpeg', quality: 0.98 },
-				html2canvas:  { scale: 2 },
-				jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
-			  };
-			var cardEl = document.getElementById('showReportCard');
-			console.log(cardEl);
-			var reportCardPdf = html2pdf(document.getElementById('showReportCard'),opt);
-			console.log(Promise.resolve(reportCardPdf));
-			setTimeout(function(){
-				var prmse = Promise.resolve(reportCardPdf);
-				prmse.then(function(val) {
-						// POST the file
-						/*
-						var formData = new FormData();
-						formData.append('files[]', val);
-
-						fetch('srvScripts/handle_file_upload.php', {
-								method: 'POST',
-								body: formData,
-						}).then(response => {
-								console.log("resp frm handler",response);
+			var reportCardElement = document.getElementById("showReportCard"); // global variable
+			var getCanvas; // global variable
+			/*
+			html2canvas(reportCardElement, {
+			onrendered: function (canvas) {
+						 // $("#previewImage").append(canvas);
+						 getCanvas = canvas;
+						 var dataURL = canvas.toDataURL();
+						 console.log("Base 64 img ::: ",dataURL);
+						 console.log($scope);
+						 // POST the data
+						 $.ajax({
+						  type: "POST",
+						  url: "srvScripts/handle_file_upload.php",
+						  data: {
+						     imgBase64: dataURL,
+								 fileName: "sample.jpg"
+						  }
+						}).done(function(o) {
+						  console.log('saved',o);
 						});
-						*/
-						// end POST
-				});
-			}, 5000);
+
+					}
+			});
+			*/
+			html2canvas(reportCardElement).then(function(canvas) {
+				getCanvas = canvas;
+				var dataURL = canvas.toDataURL();
+				var reportCardName = $scope.student.student_id + '_' + $scope.schoolName + '_' + $scope.student.student_name.split(' ').join('_') + '_' + $scope.report.term_id
+				// console.log("Base 64 img ::: ",dataURL);
+				// POST the data
+				$.ajax({
+				 type: "POST",
+				 url: "srvScripts/handle_file_upload.php",
+				 data: {
+						imgBase64: dataURL,
+						fileName: reportCardName + ".png",
+						student_id: $scope.student.student_id,
+						term_id: $scope.report.term_id
+				 }
+			 }).done(function(o) {
+				 console.log('Report card data has been saved',o);
+			 });
+			});
+
+			for(let i=0;i < myList.length; i++){
+				myList[i].style.display="";
+			}
 
 		});
 
