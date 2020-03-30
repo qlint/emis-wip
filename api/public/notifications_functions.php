@@ -1,6 +1,6 @@
 <?php
 
-$app->get('/sendNotifications/', function () {
+$app->get('/sendNotifications', function () {
 
   $app = \Slim\Slim::getInstance();
   try{
@@ -41,6 +41,62 @@ $app->get('/sendNotifications/', function () {
                                     response = :response
                                 WHERE notification_id = :notificationId');
         $update->execute( array(':response' => $response, ':notificationId' => $notification->notification_id, ':result' => $result) );
+      }
+    }
+
+    $db = null;
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array('response' => 'notifications success' ));
+
+  }
+  catch(PDOException $e){
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array('response' => 'notifications error', 'data' => $e->getMessage()  ));
+  }
+});
+
+$app->get('/sendSchoolNotifications/:subdomain', function ($subdomain) {
+
+  $app = \Slim\Slim::getInstance();
+  try{
+    $db = getMISDB();
+
+    $sth = $db->prepare("SELECT * FROM notifications WHERE sent is false AND subdomain = :subdomain");
+    $sth->execute( array(':subdomain' => $subdomain) );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+
+      $notifications = array();
+      foreach( $results as $result )
+      {
+        // for each notification, break out the device ids
+        // each notification can only have a max of 2000 device ids
+        $deviceIds = pg_array_parse($result->device_user_ids);
+        //var_dump($deviceIds);
+        $deviceChunks = array_chunk($deviceIds, 2000);
+        foreach ($deviceChunks as $chunk) {
+          $result->device_user_ids = $chunk;
+          $notifications[] = $result;
+        }
+      }
+      //var_dump($notifications);
+
+      // loop through these notifications and send
+      foreach($notifications as $notification) {
+        $response = sendMessage($notification->message, $notification->device_user_ids);
+        $responseJson = json_decode($response);
+        $result = isset($responseJson->error) ? false : true;
+
+        // update database as sent
+        $update = $db->prepare('UPDATE notifications
+                                SET sent = true,
+                                    result = :result,
+                                    response = :response
+                                WHERE notification_id = :notificationId AND subdomain = :subdomain');
+        $update->execute( array(':response' => $response, ':notificationId' => $notification->notification_id, ':result' => $result, ':subdomain' => $subdomain) );
       }
     }
 

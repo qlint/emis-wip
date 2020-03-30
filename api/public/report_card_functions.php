@@ -1799,6 +1799,156 @@ $app->post('/addReportCard', function () use($app) {
 
 });
 
+$app->post('/updateReportCardData', function () use($app) {
+  // update report card(s)
+	// FLOW:
+	// 1. Update each students subject marks (or insert if it doesn't exist)
+	// 2. Calculate the overall subject marks received above eg AVERAGE OF CAT 1 + CAT 2 + CAT 3
+	// 3. When the above process is done for all students, update the class positions and overall marks
+
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$examMarks =	( isset($allPostVars['exam_marks']) ? $allPostVars['exam_marks']: null);
+
+  try
+  {
+		// print_r(json_encode($examMarks));
+		// loop through the above arr to access each student's data
+		foreach($examMarks as $mark)
+		{
+			$studentId = ( isset($mark['student_id']) ? $mark['student_id']: null);
+			$classId = ( isset($mark['class_id']) ? $mark['class_id']: null);
+			$className = ( isset($mark['class_name']) ? $mark['class_name']: null);
+			$termId = ( isset($mark['term_id']) ? $mark['term_id']: null);
+			$termName = ( isset($mark['term_name']) ? $mark['term_name']: null);
+			$examTypeId = ( isset($mark['subject_exam_type_id']) ? $mark['subject_exam_type_id']: null);
+			$examTypeName = ( isset($mark['subject_exam_type']) ? $mark['subject_exam_type']: null);
+			$subjectId = ( isset($mark['subject_id']) ? $mark['subject_id']: null);
+			$subjectName = ( isset($mark['subject_name']) ? $mark['subject_name']: null);
+			$parentSubjectName = ( isset($mark['parent_subject_name']) ? $mark['parent_subject_name']: null);
+			$parentSubjectId = ( isset($mark['parent_subject_id']) ? $mark['parent_subject_id']: null);
+			$isParent = ( isset($mark['is_parent']) ? $mark['is_parent']: null);
+			$mark = ( isset($mark['mark']) && !empty($mark['mark']) ? $mark['mark']: null);
+			$gradeWeight = ( isset($mark['grade_weight']) && !empty($mark['grade_weight']) ? $mark['grade_weight']: null);
+			$grade = ( isset($mark['grade']) ? $mark['grade']: null);
+			$useForGrading = ( isset($mark['use_for_grading']) ? $mark['grade']: null);
+			$teacherId = ( isset($mark['subject_teacher_id']) ? $mark['subject_teacher_id']: null);
+			$teacherInitials = ( isset($mark['teacher_initials']) ? $mark['teacher_initials']: null);
+			$classTeacherId = ( isset($mark['class_teacher_id']) ? $mark['class_teacher_id']: null);
+			$classTeacherName = ( isset($mark['class_teacher_name']) ? $mark['class_teacher_name']: null);
+			$sortOrder = ( isset($mark['sort_order']) ? $mark['sort_order']: null);
+
+			$db = getDB();
+
+			$insertOrUpdate = $db->prepare("SELECT CASE
+																				WHEN EXISTS (SELECT reportcard_data_id FROM app.reportcard_data WHERE student_id = :studentId AND subject_id = :subjectId AND exam_type_id = :examTypeId AND term_id = :termId)
+																				THEN 'update'
+																				ELSE 'insert'
+																			END AS status");
+
+			$insert = $db->prepare("INSERT INTO app.reportcard_data(
+																student_id,
+																class_id,
+																class_name,
+																term_id,
+																term_name,
+																exam_type_id,
+																exam_type,
+																subject_id,
+																subject_name,
+																parent_subject_name,
+																mark,
+																grade_weight,
+																grade,
+																use_for_grading,
+																teacher_id,
+																teacher_initials,
+																creation_date)
+																VALUES (:studentId, :classId, :className,
+																				:termId, :termName, :examTypeId,
+																				:examTypeName, :subjectId, :subjectName,
+																				:parentSubjectName, :mark, :gradeWeight,
+																				:grade, 
+																				:useForGrading, :teacherId,
+																				:teacherInitials, now())");
+
+			$update = $db->prepare("UPDATE app.reportcard_data
+										SET subject_name = :subjectName,
+											parent_subject_name = :parentSubjectName,
+											mark = :mark,
+											grade_weight = :gradeWeight,
+											grade = :grade /* (SELECT CASE WHEN :mark IS NULL 
+																				    THEN NULL 
+																				    ELSE
+																				    (SELECT grade FROM app.grading WHERE (:mark::float/:gradeWeight::float)*100 between min_mark and max_mark)
+																				    END
+																				) */,
+											use_for_grading = :useForGrading,
+											teacher_id = :teacherId,
+											teacher_initials = :teacherInitials,
+											modified_date = now()
+										WHERE student_id = :studentId
+										AND term_id = :termId
+										AND subject_id = :subjectId
+										AND exam_type_id = :examTypeId");
+
+			$db->beginTransaction();
+
+			$insertOrUpdate->execute( array(':studentId' => $studentId, ':subjectId' => $subjectId, ':examTypeId' => $examTypeId, ':termId' => $termId ) );
+			$proceedStatus = $insertOrUpdate->fetch(PDO::FETCH_OBJ);
+
+			if( $proceedStatus->status === 'update' )
+			{
+				$update->execute( array(':subjectName' => $subjectName, 
+				                        ':parentSubjectName' => $parentSubjectName, 
+				                        ':mark' => $mark, 
+				                        ':gradeWeight' => $gradeWeight,
+				                        ':grade' => $grade,
+				                        ':useForGrading' => $useForGrading,
+				                        ':teacherId' => $teacherId,
+				                        ':teacherInitials' => $teacherInitials,
+				                        ':studentId' => $studentId,
+				                        ':termId' => $termId,
+				                        ':subjectId' => $subjectId,
+				                        ':examTypeId' => $examTypeId
+				                    ) );
+			}
+			elseif ( $proceedStatus->status === 'insert' )
+			{
+				$insert->execute( array(':studentId' => $studentId,
+										':classId' => $classId,
+										':className' => $className,
+										':termId' => $termId,
+										':termName' => $termName,
+										':examTypeId' => $examTypeId,
+										':examTypeName' => $examTypeName,
+										':subjectId' => $subjectId,
+										':subjectName' => $subjectName,
+										':parentSubjectName' => $parentSubjectName,
+										':mark' => $mark,
+										':gradeWeight' => $gradeWeight,
+										':grade' => $grade,
+										':useForGrading' => $useForGrading,
+										':teacherId' => $teacherId,
+										':teacherInitials' => $teacherInitials
+									) );
+			}
+	    $db->commit();
+		}
+
+		$app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1, "data" => json_encode($examMarks), "message" => "Exam data has been successfully saved for the report cards."));
+        $db = null;
+
+  }
+  catch(PDOException $e) {
+      $app->response()->setStatus(404);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->delete('/deleteReportCard/:report_card_id', function ($reportCardId) {
     // delete report card
 

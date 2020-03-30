@@ -147,4 +147,44 @@ $app->put('/updateResource', function () use($app) {
 
 });
 
+$app->get('/getAllResources', function () {
+    //Show all resources
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+
+        $sth = $db->prepare("SELECT resource_id, sr.emp_id, e.first_name, e.middle_name, e.last_name,
+                              		e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as teacher_name,
+                              		sr.class_id, c.class_name, sr.term_id, t.term_name, resource_name, resource_type,
+                              		file_name, additional_text, sr.active, sr.creation_date
+                              FROM app.school_resources sr
+                              INNER JOIN app.employees e USING (emp_id)
+                              INNER JOIN app.classes c USING (class_id)
+                              INNER JOIN app.terms t USING (term_id)");
+		    $sth->execute();
+		    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 ?>

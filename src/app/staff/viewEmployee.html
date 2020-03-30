@@ -338,11 +338,23 @@
 
 						<div class="row">
 							<!-- experience -->
-							<div class="col-sm-12">
+							<div class="col-sm-8">
 								<label for="experience">Experience</label>
 								<p class="form-control-static" ng-show="!edit">{{employee.experience}}</p>
 								<div ng-show="edit">
 									<input type="text" name="experience" ng-model="employee.experience" class="form-control"  >
+								</div>
+							</div>
+							<!-- extra-responsibility -->
+							<div class="col-sm-4">
+								<label for="status">Super Teacher</label>
+								<div class="">
+									<label class="radio-inline">
+									  <input type="radio" name="s_tchr_active" ng-model="employee.super_teacher" ng-value="true" > Active
+									</label>
+									<label class="radio-inline">
+									  <input type="radio" name="s_tchr_active" ng-model="employee.super_teacher" ng-value="false" > In-active
+									</label>
 								</div>
 							</div>
 						</div>

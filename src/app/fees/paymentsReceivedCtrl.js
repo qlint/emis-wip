@@ -45,6 +45,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		columnDefs: [
 			{ name: 'Receipt', field: 'payment_id', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false , width:60, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.getReceipt(row.entity)"><i class="glyphicon glyphicon-file"></i><br>{{row.entity.receipt_number}}</div>'},
 			{ name: 'Name', field: 'student_name', enableColumnMenu: false , width:150, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewStudent(row.entity)">{{row.entity.student_name}}</div>'},
+			{ name: 'Adm.#', field: 'admission_number', enableColumnMenu: false , cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewStudent(row.entity)">{{row.entity.admission_number}}</div>'},
 			{ name: 'Class', field: 'class_name', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.class_name}}</div>'},
 			{ name: 'Bank Date', field: 'banking_date', enableColumnMenu: false , type: 'date', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.banking_date}}</div>'},
 			{ name: 'Entry Date', field: 'payment_date', enableColumnMenu: false , type: 'date', sort: {direction: 'desc' }, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPayment(row.entity)">{{row.entity.payment_date|date}}</div>'},

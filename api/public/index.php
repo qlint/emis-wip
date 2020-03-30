@@ -76,7 +76,7 @@ $app->post('/login', function () use($app) {
 		{
 			$db = getDB();
 			$sth = $db->prepare("SELECT user_id, username, users.active, users.first_name, users.middle_name, users.last_name, users.email,
-										user_type, emp_id, emp_cat_id, dept_id
+										user_type, emp_id, emp_cat_id, dept_id, super_teacher
 									FROM app.users
 									LEFT JOIN app.employees ON users.user_id = employees.login_id
 									WHERE username= :username

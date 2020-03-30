@@ -139,7 +139,7 @@
 									</p>
 
 									<p style="font-size:14px;float:left;margin-top:6%;"><b>Additional Notes</b></p>
-									<textarea id="additional_notes" class="enswitch" name="additional_notes" rows="8" cols="47"></textarea>
+									<textarea id="additional_notes" class="enswitch" name="additional_notes" rows="8" cols="40"></textarea>
 
 									<button style="margin-top:6%;" type="button" class="btn btn-primary enswitch" ng-click="createResource()">Save Resource</button>
 								</div>
@@ -186,7 +186,7 @@
 					<div class="col-sm-8" style="height:250px;border-right: 1px solid #000000;background-color:#eefdec;padding:10px;">
 						<input type="text" name="rsrcName" id="rsrcName" class="enEdit" ng-change="saveUpdate()" ng-model="resourceTitle" value="{{resourceTitle}}" disabled style="padding:5px;width:100%;"><br><br>
 						<p>for class {{resourceClassName}}</p><br>
-						<textarea name="name" class="enEdit" rows="5" cols="65" disabled style="padding:5px;font-style:oblique;" ng-change="saveUpdate()" ng-model="resourceAdditionalText">{{resourceAdditionalText}}</textarea><br><br>
+						<textarea name="name" class="enEdit" rows="5" cols="57" disabled style="padding:5px;font-style:oblique;" ng-change="saveUpdate()" ng-model="resourceAdditionalText">{{resourceAdditionalText}}</textarea><br><br>
 						<p>Created on {{resourceDate}}</p>
 					</div>
 					<div class="col-sm-4" style="height:250px;">
@@ -194,15 +194,22 @@
 							{{resourceType}}
 						</p>
 						<div>
-							<a href="assets/resources/{{schoolDir}}/{{resourceFile}}" target="_blank">
+							<a href="assets/resources/{{schoolDir}}/{{assetSubDir}}/{{resourceFile}}" target="_blank">
 								<img class="img-responsive" src="assets/img/icons/{{resourceIcon}}" alt="{{resourceFile}}">
 							</a>
 						</div>
 					</div>
 				</div>
 		  </div>
+		  <!-- url text field -->
+		  <input type="text" value="https://classroom.eduweb.co.ke/{{schoolDir}}/{{assetSubDir}}/{{resourceFile}}" id="linkUrl" style="margin-left:1%;width:85%;background-color:aqua;font-style:italic;font-weight:bold;" readonly="readonly">
+          <!-- The button used to copy the text -->
+          <button ng-click="copyLink()">Copy Link</button>
+          
 		  <div class="modal-footer">
-		    <button type="button" class="btn btn-{{editButtonStyle}}" style="margin-right:2%;" ng-click="updateResource()">{{editButtonTxt}}</button><span><button type="button" class="btn btn-danger">Delete</button></span>
+		    <button type="button" class="btn btn-primary" style="margin-right:2%;" ng-click="sendToApp()">Send To App</button>
+		    <span><button type="button" class="btn btn-{{editButtonStyle}}" style="margin-right:2%;" ng-click="updateResource()">{{editButtonTxt}}</button>
+		    <span><button type="button" class="btn btn-danger">Delete</button></span><span>
 		  </div>
 		</div>
 

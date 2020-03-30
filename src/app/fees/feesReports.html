@@ -21,13 +21,13 @@
 					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
 				</ul>
 			</div>
-			<!-- <h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
 					<div class="btn" title="print" ng-click="printReport()"><a class="export-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div>
 					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
 				</div>
-			</div> -->
+			</div>
 
 			<div class="clearfix">
 				<h1 id="pageTitle">Financial Reports</h1>
@@ -38,22 +38,23 @@
 				<h4 ng-show="!isSmallScreen">Filters</h4>
 				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
 				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
-					<!-- term select -->
+          <!-- report select -->
 					<div class="form-group">
-						<label for="term">Term</label>
-						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" >
-							<option value="">--select term--</option>
+						<label for="analysis">Analysis</label>
+						<select id="analysis" class="form-control" ng-model="filters.analysis" ng-change="isTermNeeded()" >
+							<option disabled>-- School Balances --</option>
+              <option value="overall_balances">Overall Balances</option>
+              <option value="credits_balances">Credits and Balances</option>
+              <option disabled>-- Student Fees --</option>
+              <option value="student_fee_items">Student Fee Items</option>
 						</select>
 					</div>
 
-                    <!-- report select -->
-					<div class="form-group">
-						<label for="analysis">Analysis</label>
-						<select id="analysis" class="form-control" ng-model="filters.analysis" >
-							<option disabled>-- School Balances --</option>
-                              <option value="overall_balances">Overall Balances</option>
-                            <option disabled>-- Student Fees --</option>
-                              <option value="student_fee_items">Student Fee Items</option>
+          <!-- term select -->
+					<div class="form-group" id="termSelection">
+						<label for="term">Term</label>
+						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" >
+							<option value="">--select term--</option>
 						</select>
 					</div>
 
@@ -93,9 +94,9 @@
 
                             <!-- overall balances analysis table -->
                             <div ng-show="overallBalancesAnalysisTable" id="overallBalancesAnalysisTableDiv">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="overallBalancesAnalysisTable">
                                         <thead>
-                                            <tr id="tblHeader">
+                                            <tr id="tblHeader" style="background-color:#7fff00;">
                                                 <th>FEE ITEM</th>
                                                 <th>TOT. DUE</th>
                                                 <th>TOT. PAID</th>
@@ -115,9 +116,9 @@
 
                             <!-- student fee items analysis table -->
                             <div ng-show="studentFeeItemsAnalysisTable" id="studentFeeItemsAnalysisTableDiv">
-                                <table id='resultsTable'>
+                                <table id='resultsTable' class="studentFeeItemsAnalysisTable">
                                         <thead>
-                                            <tr id="tblHeader">
+                                            <tr id="tblHeader" style="background-color:#7fff00;">
                                                 <th>STUDENT</th>
                                                 <th>INV #</th>
                                                 <th>INVOICE DATE</th>
@@ -140,7 +141,35 @@
                                         </tbody>
                                 </table>
                             </div>
-                            
+
+                            <!-- credits and balances analysis table -->
+                            <div ng-show="creditsAndBalancesTable" id="creditsAndBalancesTableDiv">
+                                <table id='resultsTable' class="creditsAndBalancesTable">
+                                        <thead>
+                                            <tr id="tblHeader" style="background-color:#7fff00;">
+                                                <th>ADM #</th>
+                                                <th>STUDENT</th>
+                                                <th>CLASS</th>
+                                                <th>AMT. DUE</th>
+                                                <th>AMT. PAID</th>
+                                                <th>BALANCE</th>
+                                                <th>CREDIT</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in creditsAndBals track by $index">
+                                                <td>{{item.admission_number}}</td>
+                                                <td>{{item.student_name}}</td>
+                                                <td>{{item.class_name}}</td>
+                                                <td>{{(item.total_due) ? (item.total_due) : '0'}}</td>
+                                                <td>{{(item.true_total_paid) ? (item.true_total_paid) : '0'}}</td>
+                                                <td>{{item.balance}}</td>
+                                                <td>{{item.total_credit}}</td>
+                                            </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+
                 		</div>
                 		<div class="tab-pane" id="2a">
                             <h3 style="color:#000000;">{{reportTitle}}</h3>

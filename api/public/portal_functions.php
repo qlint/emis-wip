@@ -4,6 +4,7 @@ $app->post('/parentLogin', function () use($app) {
   $allPostVars = $app->request->post();
   $username = $allPostVars['user_name'];
   $pwd = $allPostVars['user_pwd'];
+  $devId = ( isset($allPostVars['device_user_id']) ? $allPostVars['device_user_id']: false);
 
   //$hash = password_hash($pwd, PASSWORD_BCRYPT);
 
@@ -46,6 +47,10 @@ $app->post('/parentLogin', function () use($app) {
     }
 
     if($gStatus === "proceed"){
+      if(isset($allPostVars['device_user_id'])){
+        $updateDeviceId = $db->prepare("UPDATE parents SET device_user_id = :devId WHERE parent_id = :parentId");
+        $updateDeviceId->execute( array(':devId' => $devId, ':parentId' => $theParentId) );
+      }
 
             $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
                           first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id, guardian_id AS school_guardian_id
@@ -91,7 +96,7 @@ $app->post('/parentLogin', function () use($app) {
                 }
                 $sth3 = $db->prepare("SELECT student_id, first_name, middle_name, last_name, student_image, admission_number,
                                first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-                               students.active, class_name, class_id, class_cat_id, report_card_type, admission_date, student_category, gender, dob, payment_method, payment_plan_name,
+                               students.active, class_name, class_id, class_cat_id, report_card_type, TO_CHAR(admission_date :: DATE, 'dd/mm/yyyy') AS admission_date, student_category, gender, date_text_to_date(dob) AS dob, payment_method, payment_plan_name,
                                (SELECT value FROM app.settings WHERE name = 'School Name') as school_name,
                                (SELECT value FROM app.settings WHERE name = 'subdomain') as school_subdomain,
                                (SELECT value FROM app.settings WHERE name = 'Use Feedback') as use_feedback
@@ -192,7 +197,7 @@ $app->post('/parentLogin', function () use($app) {
               $app->response()->headers->set('Content-Type', 'application/json');
               $db = null;
 
-              echo json_encode(array('response' => 'success', 'data' => $result ));
+              echo json_encode(array('response' => 'success', 'data' => $result, 'post' => $allPostVars ));
 
             } else {
                 $app->response->setStatus(200);
@@ -861,7 +866,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
       }
       $sth3 = $db->prepare("SELECT student_id, first_name, middle_name, last_name, student_image, admission_number,
                      first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-                     students.active, class_name, class_id, class_cat_id, report_card_type, admission_date, student_category, gender, dob, payment_method, payment_plan_name,
+                     students.active, class_name, class_id, class_cat_id, report_card_type, TO_CHAR(admission_date :: DATE, 'dd/mm/yyyy') AS admission_date, student_category, gender, date_text_to_date(dob) AS dob, payment_method, payment_plan_name,
                      (SELECT value FROM app.settings WHERE name = 'School Name') as school_name,
                      (SELECT value FROM app.settings WHERE name = 'Use Feedback') as use_feedback
                   FROM app.students
@@ -1296,6 +1301,7 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
                         AND homework.creation_date >  CURRENT_DATE - INTERVAL '3 months'
                         --AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date OR due_date > now() )
                         AND students.active IS TRUE
+                        AND (homework.students ILIKE '%' || :studentId || '%' OR homework.students IS NULL)
                         ORDER BY homework.assigned_date DESC, subjects.sort_order
                 ");
     $sth->execute( array(':studentId' => $studentId) );
@@ -1349,8 +1355,8 @@ $app->get('/getStudent/:school/:studentId', function ($school, $studentId) {
     try
     {
         $db = setDBConnection($school);
-        $sth = $db->prepare("SELECT students.student_id, first_name, middle_name, last_name, admission_number, admission_date,
-                  student_category, gender, dob, student_image, classes.class_name,
+        $sth = $db->prepare("SELECT students.student_id, first_name, middle_name, last_name, admission_number, TO_CHAR(admission_date :: DATE, 'dd/mm/yyyy') AS admission_date,
+                  student_category, gender, date_text_to_date(dob) AS dob, student_image, classes.class_name,
                 payment_method, payment_plan_name,
                 emergency_name, emergency_relationship, emergency_telephone, pick_up_drop_off_individual,
                 other_medical_conditions, other_medical_conditions_description,
@@ -2477,6 +2483,137 @@ $app->post('/addFeedback/:school', function ($school) {
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
+});
+
+$app->post('/pushQuickbooksData', function () use($app) {
+  // receive data from quickbooks
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $dataType = ( isset($allPostVars['data_type']) ? $allPostVars['data_type']: null); // either invoice or payment
+  $dataArr = ( isset($allPostVars['qb_data']) ? $allPostVars['qb_data']: null); // data from quickbooks
+
+  try
+  {
+    $db = getQuickbooksDB();
+
+    if($dataType === 'invoices'){
+      // initialize invoice data
+      foreach($dataArr as $invoice)
+			{
+				$qbInvoiceId = ( isset($invoice['qb_invoice_id']) ? $invoice['qb_invoice_id']: null);
+				$clientId = ( isset($invoice['client_id']) ? $invoice['client_id']: null);
+				$admissionNumber = ( isset($invoice['admission_number']) ? $invoice['admission_number']: null);
+        $feeItem = ( isset($invoice['fee_item']) ? $invoice['fee_item']: null);
+				$amount = ( isset($invoice['amount']) ? $invoice['amount']: null);
+        $dueDate = ( isset($invoice['due_date']) ? $invoice['due_date']: null);
+
+        $sth = $db->prepare("INSERT INTO public.to_eduweb_invoices(qb_invoice_id, client_id, admission_number, fee_item, amount, due_date)
+                            VALUES (:qbInvoiceId, :clientId, :admissionNumber, :feeItem, :amount, :dueDate);");
+        $sth->execute( array(':qbInvoiceId' => $qbInvoiceId,
+                            ':clientId' => $clientId,
+                            ':admissionNumber' => $admissionNumber,
+                            ':feeItem' => $feeItem,
+                            ':amount' => $amount,
+                            ':dueDate' => $dueDate) );
+      }
+
+      $message = "Quickbooks INVOICES received and posted successfully.";
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "success", "code" => 1, "message" => $message));
+      $db = null;
+
+    }elseif($dataType === "payments"){
+      // initialize invoice data
+      foreach($dataArr as $payment)
+			{
+				$qbPaymentId = ( isset($payment['qb_payment_id']) ? $payment['qb_payment_id']: null);
+				$clientId = ( isset($payment['client_id']) ? $payment['client_id']: null);
+				$admissionNumber = ( isset($payment['admission_number']) ? $payment['admission_number']: null);
+        $amount = ( isset($payment['amount']) ? $payment['amount']: null);
+        $paymentDate = ( isset($payment['payment_date']) ? $payment['payment_date']: null);
+        $qbInvoiceId = ( isset($payment['qb_invoice_id']) ? $payment['qb_invoice_id']: null);
+
+        $sth = $db->prepare("INSERT INTO public.to_eduweb_payments(qb_payment_id, client_id, admission_number, amount, payment_date, qb_invoice_id)
+                              VALUES (:qbPaymentId, :clientId, :admissionNumber, :amount, :paymentDate, :qbInvoiceId);");
+        $sth->execute( array(':qbPaymentId' => $qbPaymentId,
+                            ':clientId' => $clientId,
+                            ':admissionNumber' => $admissionNumber,
+                            ':amount' => $amount,
+                            ':paymentDate' => $paymentDate,
+                            ':qbInvoiceId' => $qbInvoiceId) );
+      }
+
+      $message = "Quickbooks PAYMENTS received and posted successfully.";
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "success", "code" => 1, "message" => $message));
+      $db = null;
+
+    }else{
+      $message = "The operation encountered an issue with the 'data_type'. Ensure it is either 'invoices' or 'payments'";
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "error", "code" => 1, "message" => $message, "data_sent" => $allPostVars));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->get('/getToQuickbooksData/:username/:password', function ($username,$password) {
+    //Get all data required for quickbooks sync
+
+  $app = \Slim\Slim::getInstance();
+  $results = new stdClass;
+
+    try
+    {
+      $db = getQuickbooksDB();
+
+      // get this client's details
+      $clientQry = $db->prepare("SELECT * FROM quickbooks_clients WHERE username = :username AND password = :password");
+      $clientQry->execute(array(':username' => $username, ':password' => $password));
+      $clientDetails = $clientQry->fetch(PDO::FETCH_OBJ);
+      $results->client = $clientDetails;
+
+      $feeItemsQry = $db->prepare("SELECT * FROM quickbooks_clients WHERE username = :username AND password = :password");
+      $feeItemsQry->execute(array(':username' => $username, ':password' => $password));
+      $itemsDetails = $feeItemsQry->fetchAll(PDO::FETCH_OBJ);
+      $results->fee_items = $itemsDetails;
+
+      $studentsQry = $db->prepare("SELECT * FROM client_students
+                                  WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)");
+      $studentsQry->execute(array(':username' => $username, ':password' => $password));
+      $studentsList = $studentsQry->fetchAll(PDO::FETCH_OBJ);
+      $results->students = $studentsList;
+
+      $paymentsQry = $db->prepare("SELECT * FROM to_quickbooks_payments
+                                    WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)");
+      $paymentsQry->execute(array(':username' => $username, ':password' => $password));
+      $payments = $paymentsQry->fetchAll(PDO::FETCH_OBJ);
+      $results->payments = $payments;
+
+      $invoicesQry = $db->prepare("SELECT * FROM to_quickbooks_invoices
+                                    WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)");
+      $invoicesQry->execute(array(':username' => $username, ':password' => $password));
+      $invoices = $invoicesQry->fetchAll(PDO::FETCH_OBJ);
+      $results->invoices = $invoices;
+
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success',  'data' => $results ));
+      $db = null;
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
 });
 
 

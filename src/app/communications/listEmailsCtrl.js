@@ -278,10 +278,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
                                     // Post the message
                                     $.ajax({
                                         type: "POST",
-                                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/postSms.php",
+                                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postSms.php",
                                         data: { src: eachMsgId, school: window.location.host.split('.')[0] },
                                         success: function (data, status, jqXHR) {
-                                            console.log("Data posted for processing.",data,status,jqXHR);
+                                            console.log(data,status,jqXHR);
+																						location.reload();
                                         },
                                         error: function (xhr) {
                                             console.log("Error. Data not posted.");
@@ -332,6 +333,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
             	}
             	// POST SMS - END
 
+            	$.ajax({
+                    type: "POST",
+                    url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postNotifications.php",
+                    data: { school: window.location.host.split('.')[0] },
+                    success: function (data, status, jqXHR) {
+                        console.log("Notifications initiated.",data,status,jqXHR);
+                    },
+                    error: function (xhr) {
+                        console.log("Error. Notifications could not be sent.");
+                    }
+                });
+
             });
         },5000);
 
@@ -357,6 +370,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 
 
             });
+
+						/* MANUALLY SEND ALL NOTIFICATIONS BELOW */
+						/*
+						apiService.sendNotifications({}, function(response){
+							var result = angular.fromJson(response);
+							console.log(result);
+							if( result.response == 'success')
+							{
+								console.log("Success. Mobile App Notifications Have Been Sent To Respective Parents!",result);
+							}
+
+						}, function(response){
+							console.log("Notifications error:",response);
+						});
+						*/
 
 	}
 	$timeout(initializeController,1);

@@ -1,0 +1,211 @@
+<div ng-controller="createResourceCtrl">
+	<style type="text/css">
+		.type-resource {background-color:#6495ed;border-radius:5px;padding:3px;border:1px solid #000000;color:#ffffff;font-weight:600;}
+		.class-resource {background-color:#ff8c00;border-radius:5px;padding:3px;border:1px solid #000000;font-weight:600;}
+		.name-resource {font-weight:600;text-decoration:underline;}
+		.open-rsrc {cursor: pointer;}
+		/* The Modal (background) */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 5000; /* Sit on top */
+      padding-top: 10%; /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+      position: relative;
+      background-color: #fefefe;
+      margin: auto;
+      padding: 0;
+      border: 1px solid #888;
+      width: 50%;
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+      -webkit-animation-name: animatetop;
+      -webkit-animation-duration: 0.4s;
+      animation-name: animatetop;
+      animation-duration: 0.4s
+    }
+
+    /* Add Animation */
+    @-webkit-keyframes animatetop {
+      from {top:-300px; opacity:0}
+      to {top:0; opacity:1}
+    }
+
+    @keyframes animatetop {
+      from {top:-300px; opacity:0}
+      to {top:0; opacity:1}
+    }
+
+    /* The Close Button */
+    .clze {color: white;float: right;font-size: 28px;font-weight: bold;}
+    .clze:hover,.clze:focus {color: #000;text-decoration: none;cursor: pointer;}
+	</style>
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+
+			<div class="clearfix">
+				<h1 id="pageTitle">Create A Resource</h1>
+			</div>
+
+			<!-- search form -->
+			<div class="dataFilterForm" style="width:30%;">
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+					<!-- class select -->
+					<div class="form-group">
+						<label for="class">Class</label>
+						<select name="class" id="class" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" ng-change="loadSubjects()">
+							<option value="">--select class--</option>
+						</select>
+					</div>
+
+					<!-- term select -->
+					<div class="form-group">
+						<label for="term">Term</label>
+						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" >
+							<option value="">--select term--</option>
+						</select>
+					</div>
+
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="setUpResource()" value="Create Resource" />
+						<img src="assets/spinner.gif" ng-show="loading" />
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+
+				</form>
+			</div>
+			<!-- // end search form -->
+		</div>
+
+		<div class="resourceView" id="body-content" style="margin-top:135px;background-color:#E0E0E0 !important;height:auto;">
+
+    	<div class="row" style="background-color:#ffffff;">
+			    <div class="col-sm-3">
+    				<div class="dashboard-panel" style="background-color:#E0E0E0;border-radius:0;">
+    					<div class="dashboard-panel-header" style="background-color:#E0E0E0">
+    						<h2 style="text-align:center;">New Entry</h2>
+    					</div>
+    				</div>
+
+						<div class="dashboard-panel" style="background-color:#9C9C9C;border-radius:0;">
+    					<div class="dashboard-panel-header" style="background-color:#9C9C9C">
+    						<div style="margin-left:5%;">
+									<p style="font-size:15px;">Resource Name:
+										<span style="float:right;">
+											<input id="resource_name" class="enswitch" type="text" name="resource_name" value="">
+										</span>
+									</p>
+									<p style="font-size:15px;margin-top:6%;">Resource Type:
+										<span style="float:right;">
+											<select id="resource_type" style="width:179px;" class="enswitch">
+												<option value="document">Document</option>
+												<option value="audio">Audio</option>
+												<option value="video">Video</option>
+												<option value="youtube">Youtube</option>
+												<option value="website">Website</option>
+											</select>
+										</span>
+									</p>
+									<p style="font-size:15px;margin-top:6%;">File Upload:
+										<span style="float:right;">
+											<input id="file_name" class="enswitch" style="width:179px;" type="file" name="file" value="">
+										</span>
+									</p>
+
+									<p style="font-size:14px;float:left;margin-top:6%;"><b>Additional Notes</b></p>
+									<textarea id="additional_notes" class="enswitch" name="additional_notes" rows="8" cols="47"></textarea>
+
+									<button style="margin-top:6%;" type="button" class="btn btn-primary enswitch" ng-click="createResource()">Save Resource</button>
+								</div>
+    					</div>
+    				</div>
+			    </div>
+					<div class="col-sm-9">
+						<div class="dashboard-panel" style="background-color:#9C9C9C;border-radius:0;">
+							<div class="dashboard-panel-header" style="background-color:#9C9C9C">
+								<h2 style="text-align:center;color:#ffffff;">My Created Resources</h2>
+							</div>
+						</div>
+
+						<div class="dashboard-panel" style="background-color:#E0E0E0;border-radius:0;height:333px;">
+							<div class="dashboard-panel-header" style="background-color:#E0E0E0">
+								<div>
+	    						<ol>
+										<li ng-repeat="resource in teacherResources track by $index">
+											<p class="open-rsrc" style="font-size:14px;" ng-click="openSrc(this)">
+												<span class="type-resource">{{resource.resource_type}}</span> on <span class="name-resource">{{resource.resource_name}}</span> for class <span class="class-resource">{{resource.class_name}}</span> uploaded on <span> {{resource.resource_date}}</span>
+											</p>
+											<hr style="border-top:1px solid #c0c0c0;">
+										</li>
+									</ol>
+								</div>
+							</div>
+						</div>
+    			</div>
+			 </div>
+		</div>
+
+	</div>
+
+	<!-- The Modal -->
+	<div id="resourceModal" class="modal" style="">
+
+		<!-- Modal content -->
+		<div class="modal-content">
+		  <div class="modal-header">
+		    <h2>{{resourceTitle}}<span class="clze">&times;</span></h2>
+		  </div>
+		  <div class="modal-body">
+				<div class="row">
+					<div class="col-sm-8" style="height:250px;border-right: 1px solid #000000;background-color:#eefdec;padding:10px;">
+						<input type="text" name="rsrcName" id="rsrcName" class="enEdit" ng-change="saveUpdate()" ng-model="resourceTitle" value="{{resourceTitle}}" disabled style="padding:5px;width:100%;"><br><br>
+						<p>for class {{resourceClassName}}</p><br>
+						<textarea name="name" class="enEdit" rows="5" cols="65" disabled style="padding:5px;font-style:oblique;" ng-change="saveUpdate()" ng-model="resourceAdditionalText">{{resourceAdditionalText}}</textarea><br><br>
+						<p>Created on {{resourceDate}}</p>
+					</div>
+					<div class="col-sm-4" style="height:250px;">
+						<p style="background-color: #6495ed;border-radius: 5px;padding: 3px;border: 1px solid #000000;color: #ffffff;font-weight: 600;">
+							{{resourceType}}
+						</p>
+						<div>
+							<a href="assets/resources/{{schoolDir}}/{{resourceFile}}" target="_blank">
+								<img class="img-responsive" src="assets/img/icons/{{resourceIcon}}" alt="{{resourceFile}}">
+							</a>
+						</div>
+					</div>
+				</div>
+		  </div>
+		  <div class="modal-footer">
+		    <button type="button" class="btn btn-{{editButtonStyle}}" style="margin-right:2%;" ng-click="updateResource()">{{editButtonTxt}}</button><span><button type="button" class="btn btn-danger">Delete</button></span>
+		  </div>
+		</div>
+
+	</div>
+
+</div>

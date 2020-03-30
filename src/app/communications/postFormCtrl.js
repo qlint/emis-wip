@@ -34,6 +34,8 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	$scope.noEmpId = ( $rootScope.currentUser.emp_id === null ? true : false );
 	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
 	$scope.isAdmin2 = ( $rootScope.currentUser.user_type == 'ADMIN' || $rootScope.currentUser.user_type == 'PRINCIPAL' ? true : false );
+	$scope.toStudentsStatus = false;
+	$scope.selectedStudents = [];
 
     if( $scope.isHomework )
 	{
@@ -231,7 +233,82 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 
 	}
 	$timeout(initializeController,100);
+	
+	$scope.getStudents = function(){
+	    console.log("The selection has changed.");
+	    apiService.getClassStudents($scope.filters.subject.class_id,function(response,status){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				$scope.students = result.data;
+				console.log($scope.students);
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		},apiError);
+	}
 
+    $scope.captureStudents = function(){
+	    function getValues(id) {
+                    let result = [];
+                    let collection = document.querySelectorAll("#" + id + " option");
+                    collection.forEach(function (x) {
+                        if (x.selected) { result.push(parseInt(x.value)); }
+                    });
+                    return result;
+        }
+        $scope.selectedStudents = getValues("studentsList");
+        console.log($scope.selectedStudents);
+	}
+	
+	$scope.sendToStudents = function(){
+	    $scope.toStudentsStatus = document.getElementById("to_students").checked;
+	    console.log("Checkbox clicked",$scope.toStudentsStatus);
+	    
+	    if($scope.toStudentsStatus == true){
+	        $.getScript('/components/selectBox/vanillaSelectBox.js', function()
+            {
+                let select2 = document.getElementById("studentsList");
+            	let selectBox2 = null;
+                function setEnable(id, isEnabled) {
+                    if (id == "studentsList" && selectBox2 != null) {
+                        if (isEnabled) { selectBox2.enable(); } else { selectBox2.disable(); }
+                    }
+                }
+                function empty(id) {
+                    if (id == "studentsList" && selectBox2 != null) { selectBox2.empty(); }
+                }
+                function doDestroy(id) {
+                    if (id == "studentsList" && selectBox2 != null) { selectBox2.destroy(); }
+                }
+                function init(id) {
+                    if (id == "studentsList") {
+                        selectBox2 = new vanillaSelectBox("#studentsList", { "maxHeight": 200, "search": true });
+                    }
+                }
+                function setValues(id, value) {
+                    if (id == "studentsList" && selectBox2 != null) { selectBox2.setValue([value]); }
+                }
+                function getValues(id) {
+                    let result = [];
+                    let collection = document.querySelectorAll("#" + id + " option");
+                    collection.forEach(function (x) {
+                        if (x.selected) { result.push(x.value); }
+                    });
+                    return result;
+                }
+            	init("studentsList");
+            	document.getElementsByClassName('vsb-menu')[0].style.left = '1.6%';
+            	document.getElementsByClassName('vsb-main')[0].style.width = '98%';
+            	document.getElementsByClassName('vsb-main')[0].style.marginLeft = '1%';
+            });
+	    }else{
+	        $scope.selectedStudents = [];
+	    }
+	}
 
 	var getPostOptions = function()
 	{
@@ -984,6 +1061,21 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		}
 
 	}
+	
+	setTimeout(function(){
+    	apiService.getClassStudents($scope.filters.subject.class_id,function(response,status){
+    			var result = angular.fromJson( response );
+    			if( result.response == 'success' )
+    			{
+    				$scope.students = result.data;
+    			}
+    			else
+    			{
+    				$scope.error = true;
+    				$scope.errMsg = result.data;
+    			}
+    	},apiError);
+	}, 3000);
 
 	$scope.deletePost = function()
 	{
@@ -1064,7 +1156,8 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 					var data = {
 						user_id: $rootScope.currentUser.user_id,
 						class_subject_id: $scope.selectedClassSubject.class_subject_id,
-						post: $scope.post
+						post: $scope.post,
+						students: ($scope.selectedStudents.length == 0 ? null : $scope.selectedStudents.join(","))
 					}
 
 					apiService.addHomework(data,createCompleted,apiError);
@@ -1172,6 +1265,19 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 
 			if( $scope.isEmail && $scope.post.send_method ==  'email'){
 					// Calling notifications api to send notifications at this point
+					$.ajax({
+                        type: "POST",
+                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postNotifications.php",
+                        data: { school: window.location.host.split('.')[0] },
+                        success: function (data, status, jqXHR) {
+                            console.log("Notifications initiated.",data,status,jqXHR);
+                            alert("Notifications have been sent to parents app");
+                        },
+                        error: function (xhr) {
+                            console.log("Error. Notifications could not be sent.");
+                        }
+                    });
+					/*
 					apiService.sendNotifications({}, function(response){
 						var result = angular.fromJson(response);
 						// console.log("Notifications result >>");
@@ -1184,6 +1290,32 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 						}
 
 					}, apiError);
+					*/
+			}
+			if( $scope.isHomework )
+			{
+			    $.ajax({
+                    type: "POST",
+                    url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postNotifications.php",
+                    data: { school: window.location.host.split('.')[0] },
+                    success: function (data, status, jqXHR) {
+                        console.log("Notifications initiated.",data,status,jqXHR);
+                        alert("Homework notifications have been sent to parents app");
+                    },
+                    error: function (xhr) {
+                        console.log("Error. Notifications could not be sent.");
+                    }
+                });
+			    /*
+				apiService.sendNotifications({}, function(response){
+					var result = angular.fromJson(response);
+					if( result.response == 'success')
+					{
+						console.log("Homework notifications sent to parents!");
+					}
+
+				}, apiError);
+				*/
 			}
 
 		}

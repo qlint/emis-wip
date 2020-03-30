@@ -96,8 +96,8 @@
 						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
 					</div>
 
-					<div class="form-group grid-filter">
-						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' placeholder="Filter"/>
+					<div class="form-group grid-filter" style="width:240px;">
+						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' placeholder="Filter" style="width:130px;"/>
 						<button class="btn btn-xs btn-primary" ng-click='filterDataTable()'>Filter</button>
 						<button class="btn btn-xs " ng-click='clearFilterDataTable()'>Clear</button>
 					</div>

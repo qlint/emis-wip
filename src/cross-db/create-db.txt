@@ -1,1 +1,7 @@
-ALTER TABLE app.report_card_files ADD CONSTRAINT constraint_name UNIQUE (file_name);
+create or replace function date_text_to_date(str varchar)
+returns text language plpgsql as $$
+begin
+    return TO_CHAR(str :: DATE, 'dd/mm/yyyy');
+exception
+    when others then return str;
+end $$;

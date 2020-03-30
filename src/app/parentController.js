@@ -93,6 +93,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						'fees_reports': {
 							'view': true,
 						},
+						'quickbooks': {
+							'view': true,
+							'add': true,
+							'edit':true
+						},
 					},
 					'school':{
 						'school_settings': {
@@ -273,6 +278,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							},
 							'fees_reports': {
 								'view': true,
+							},
+							'quickbooks': {
+								'view': true,
+								'add': true,
+								'edit':true
 							},
 						},
 						'school':{
@@ -753,6 +763,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'fees_reports': {
     							'view': true,
     						},
+								'quickbooks': {
+									'view': true,
+									'add': true,
+									'edit':true
+								},
 						},
 						'school':{
 							'school_settings': {
@@ -910,6 +925,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'fees_reports': {
     							'view': true,
     						},
+								'quickbooks': {
+									'view': true,
+									'add': true,
+									'edit':true
+								},
 						},
 						'school':{
 							'school_settings': {
@@ -1054,6 +1074,18 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						view: true,
 					}
 				};
+		}
+
+		if($rootScope.currentUser.super_teacher == true){
+
+			if($rootScope.permissions.resources == undefined){
+				$rootScope.permissions.resources = {};
+			}
+			$rootScope.permissions.resources.list_resources = {};
+			$rootScope.permissions.resources.list_resources.view = true;
+			$rootScope.permissions.resources.list_resources.edit = false;
+			$rootScope.permissions.resources.list_resources.add = false;
+			
 		}
 
 		$scope.navItems = [];
@@ -1204,6 +1236,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 	$scope.openModal = function (section, view, size, item)
 	{
+		var testEl = $('#filterLinks');console.log(testEl);
 		if( $('#filterLinks').hasClass('in') )
 		{
 			$('#subnav').trigger('click');

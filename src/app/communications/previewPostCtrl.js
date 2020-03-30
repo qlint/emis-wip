@@ -49,10 +49,11 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 
                     $.ajax({
                         type: "POST",
-                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/postSms.php",
+                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postSms.php",
                         data: { src: $scope.post.post_id, school: window.location.host.split('.')[0] },
                         success: function (data, status, jqXHR) {
-                            console.log("Data posted for processing.",data,status,jqXHR);
+                            console.log(data,status,jqXHR);
+														location.reload();
                         },
                         error: function (xhr) {
                             console.log("Error. Data not posted.");
@@ -192,6 +193,18 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                 	}
     			}
     		},apiError);
+    		
+    		$.ajax({
+                type: "POST",
+                url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postNotifications.php",
+                data: { school: window.location.host.split('.')[0] },
+                success: function (data, status, jqXHR) {
+                    console.log("Notifications initiated.",data,status,jqXHR);
+                },
+                error: function (xhr) {
+                    console.log("Error. Notifications could not be sent.");
+                }
+            });
     	}
 
 	    //unpublish emails (and sms) from app

@@ -34,6 +34,19 @@ function getMISDB()
 
 }
 
+function getQuickbooksDB()
+{
+	$dbhost="localhost";
+	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5433" : "5434");
+	$dbuser="postgres";
+	$dbpass="pg_edu@8947";
+	$dbname="quickbooks_api";
+	$dbConnection = new PDO("pgsql:host=$dbhost;port=$dbport;dbname=$dbname", $dbuser, $dbpass);
+	$dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	return $dbConnection;
+
+}
+
 function getClientDBData()
 {
 	$dbConnection = getMISDB();
@@ -91,14 +104,14 @@ function getSubDomain()
 	// return $referrer;
 
     if(isset($_SERVER['HTTP_REFERER'])) {
-            
+
     	$url = $_SERVER['HTTP_REFERER'];
     	$parsedUrl = parse_url($url);
     	$host = explode('.', $parsedUrl['host']);
     	$schoolSubdomain = $host[0];
     	// var_dump($schoolSubdomain); // echo's school subdomain eg "dev"
     	return $schoolSubdomain;
-    
+
     }
     else
     {

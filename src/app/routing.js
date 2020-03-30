@@ -134,6 +134,13 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
+		.state('fees/quickbooks', {
+      url: "/fees/quickbooks",
+	  templateUrl: 'app/fees/quickbooks.html',
+      data: {
+         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
+      }
+    })
 	.state('school/departments', {
       url: "/school/departments",
 	  templateUrl: 'app/school/departments.html',
@@ -415,6 +422,13 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.sys_admin]
       }
     })
+		.state('resources/list_resources', {
+	      url: "/resources/list_resources",
+		  	templateUrl: 'app/resources/listResources.html',
+	      data: {
+	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
+	      }
+	    })
 
 	;
 }]);

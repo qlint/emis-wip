@@ -9,6 +9,7 @@ $app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($sta
 		$db = getDB();
 		 $sth = $db->prepare("SELECT
 								students.student_id,
+								admission_number,
 								invoice_balances2.inv_id,
 								first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 								class_name, class_id, class_cat_id,
@@ -21,7 +22,8 @@ $app->get('/getInvoices/:startDate/:endDate(/:canceled/:status)', function ($sta
 								term_name,
 								students.student_category,
 								invoice_balances2.term_id,
-								date_part('year', terms.start_date) as year
+								date_part('year', terms.start_date) as year,
+								(SELECT custom_invoice_no FROM app.invoices WHERE inv_id = invoice_balances2.inv_id) AS custom_invoice_no
 							FROM app.invoice_balances2
 							INNER JOIN app.students
 								INNER JOIN app.classes

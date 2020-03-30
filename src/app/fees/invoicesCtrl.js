@@ -19,6 +19,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.totals = {};
 	$scope.balanceStatuses = ['Balance Owing','Paid in Full','Due This Month','Past Due'];
 	$scope.loading = true;
+	$scope.school = window.location.host.split('.')[0];
+	$scope.showCustomInvNo = ( $scope.school == 'appleton' || $scope.school == 'appleton-ngong' ? true : false );
 
 	$scope.gridFilter = {};
 	$scope.gridFilter.filterValue  = '';
@@ -47,7 +49,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		rowHeight:34,
 		columnDefs: [
 			{ name: 'Invoice', field: 'inv_id', headerCellClass: 'center', cellClass:'center', enableColumnMenu: false , width:60, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.getInvoice(row.entity)"><i class="glyphicon glyphicon-file"></i><br>{{row.entity.inv_id}}</div>'},
+			{ name: 'Cust.Inv', field: 'custom_invoice_no', enableColumnMenu: false, cellTemplate: '<div ng-show="showCustomInvNo" class="ui-grid-cell-contents" ng-click="grid.appScope.viewStudent(row.entity)">{{row.entity.custom_invoice_no}}</div>'},
 			{ name: 'Name', field: 'student_name', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewStudent(row.entity)">{{row.entity.student_name}}</div>'},
+			{ name: 'Adm.#', field: 'admission_number', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewStudent(row.entity)">{{row.entity.admission_number}}</div>'},
 			{ name: 'Class', field: 'class_name', enableColumnMenu: false, cellTemplate: '<div class="ui-grid-cell-contents"  ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.class_name}}</div>'},
 			{ name: 'Invoice Date', field: 'inv_date', type: 'date', cellFilter: 'date', enableColumnMenu: false,  cellTemplate: '<div class="ui-grid-cell-contents"  ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.inv_date|date}}</div>'},
 			{ name: names[0], field: 'total_due', enableColumnMenu: false, type:'number', cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewInvoice(row.entity)">{{row.entity.total_due|currency:""}}</div>'},

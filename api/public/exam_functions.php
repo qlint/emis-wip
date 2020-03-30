@@ -338,20 +338,21 @@ $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id(/:teacher_id)', f
 	{
 		$db = getDB();
 		$params = array(':classId' => $classId, ':termId' => $termId, ':examTypeId' => $examTypeId);
-		$query = "SELECT q.student_id, student_name, subject_name, q.class_sub_exam_id, mark, exam_marks.term_id, grade_weight, sort_order, parent_subject_id, subject_id, is_parent
+		$query = "SELECT q.student_id, student_name, subject_name, q.class_sub_exam_id, mark, exam_marks.term_id, grade_weight, sort_order, parent_subject_id, subject_id, is_parent, use_for_gradiing
 							FROM (
 								SELECT  students.student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 									subject_name, class_subject_exams.class_sub_exam_id, grade_weight, subjects.sort_order, parent_subject_id, subjects.subject_id,
-									case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null then false else true end as is_parent
+									case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null then false else true end as is_parent,
+									use_for_grading
 								FROM app.students
 								INNER JOIN app.classes
-									INNER JOIN app.class_subjects
-										INNER JOIN app.subjects
-										ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-										INNER JOIN app.class_subject_exams
-										ON class_subjects.class_subject_id = class_subject_exams.class_subject_id
+								INNER JOIN app.class_subjects
+								INNER JOIN app.subjects
+									ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+								INNER JOIN app.class_subject_exams
+									ON class_subjects.class_subject_id = class_subject_exams.class_subject_id
 									ON classes.class_id = class_subjects.class_id
-								ON students.current_class = classes.class_id
+								    ON students.current_class = classes.class_id
 								WHERE current_class = :classId
 								AND exam_type_id = :examTypeId
 								AND students.active IS TRUE

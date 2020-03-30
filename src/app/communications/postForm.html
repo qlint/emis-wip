@@ -1,3 +1,6 @@
+<style type="text/css">
+	@import url("components/selectBox/vanillaSelectBox.css");
+</style>
 <div ng-controller="postFormCtrl">
 
 	<div id="body-content" class="row blog" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
@@ -43,10 +46,28 @@
 
 				<!-- class subject select -->
 				<div ng-if="isHomework" class="col-sm-12" ng-class="{ 'has-error' : dataFilterForm.class_subject_id.$invalid && (!dataFilterForm.class_subject_id.$pristine || dataFilterForm.$submitted) }">
+				
 					<label for="class">Which subject would you like to post homework to?</label>
-					<select name="class_subject_id" class="form-control input-sm" ng-options="subject.class_name + ' - ' + subject.subject_name for subject in classSubjects track by subject.class_subject_id" ng-model="filters.subject" required>
+					<select name="class_subject_id" class="form-control input-sm" ng-options="subject.class_name + ' - ' + subject.subject_name for subject in classSubjects track by subject.class_subject_id" ng-model="filters.subject" ng-change="getStudents()" required>
 						<option value="">--select class subject--</option>
 					</select>
+					
+					<div style="background-color:#a9a9a9;margin-bottom:2%;margin-top:1%;">
+				        <input type="checkbox" id="to_students" name="to_students" value="true" ng-change="sendToStudents()" ng-model="toStudentsStatus" style="margin-left:1%;">
+				        <label for="to_students">Would you like to send homework to particular students? Leave unchecked if <b>No</b></label>
+				        
+				        <div class="row" ng-show="toStudentsStatus">
+                            <div class="col-md-12" style="padding-bottom:1%;">
+                        
+                                <select name="students" id="studentsList" ng-model="studentsHomework" ng-change="captureStudents()" multiple size="10" class="form-control">
+									<option ng-repeat="student in students track by $index" value="{{student.student_id}}" id="stdnt_{{student.student_id}}">{{student.student_name}}</option>
+								</select>
+                        
+                            </div>
+                        </div>
+                        
+				    </div>
+				    
 					<input type="button" class="btn btn-sm btn-info" ng-click="setClass()" value="Load" />
 					<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
 					<p ng-show="dataFilterForm.class_subject_id.$invalid && (!dataFilterForm.class_subject_id.$pristine || dataFilterForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a class.</p>

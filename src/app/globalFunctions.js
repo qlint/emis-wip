@@ -39,6 +39,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			$rootScope.loggedIn = true;
 			$rootScope.currentUser = JSON.parse($window.sessionStorage["userInfo"]);
 			Session.create($rootScope.currentUser);
+			console.log($rootScope.currentUser);
 
 			$rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
 
@@ -160,7 +161,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		Auth.logout();
 	};
 
-	$rootScope.userTypes = ['SYS_ADMIN','ADMIN','PRINCIPAL','ADMIN-FINANCE','ADMIN-TRANSPORT','FINANCE','FINANCE_CONTROLLED','TEACHER'];
+	$rootScope.userTypes = ['SYS_ADMIN','ADMIN','PRINCIPAL','ADMIN-FINANCE','ADMIN-TRANSPORT','FINANCE','FINANCE_CONTROLLED','TEACHER','SUPER_TEACHER'];
 
 	$rootScope.formatStudentData = function(data)
 	{

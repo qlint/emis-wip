@@ -102,6 +102,39 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $s
 
 });
 
+$app->get('/getClassStudents/:class_id', function ($classId) {
+    // get students in class
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT student_id, first_name, middle_name, last_name, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name FROM app.students WHERE active IS TRUE AND current_class = :classId");
+        $sth->execute( array(':classId' => $classId ) );
+
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+           $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $status = true) {
     //Show classes for specific teacher
 
@@ -126,17 +159,17 @@ $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $sta
 								blog_id, blog_name, report_card_type
 					FROM app.classes
 					INNER JOIN app.class_subjects
-						INNER JOIN app.subjects
+					INNER JOIN app.subjects
 						ON class_subjects.subject_id = subjects.subject_id
 					ON classes.class_id = class_subjects.class_id
+					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
 					LEFT JOIN app.employees
 					ON classes.teacher_id = employees.emp_id
-					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id
 					LEFT JOIN app.blogs
 					ON (classes.class_id = blogs.class_id AND classes.teacher_id = blogs.teacher_id) OR
 					   (class_subjects.class_id = blogs.class_id AND subjects.teacher_id = blogs.teacher_id)
 					WHERE (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
-					AND classes.active = :status
+					AND classes.active = :status AND subjects.active IS TRUE
 					GROUP BY classes.class_id, class_name, classes.class_cat_id, entity_id, classes.teacher_id, classes.active, class_cat_name,
 					teacher_name, subjects, num_students, blog_id, blog_name
 					ORDER BY classes.sort_order");
@@ -180,7 +213,8 @@ $app->get('/getAllClassExams/:class_id(/:exam_type_id/:teacher_id)', function ($
 		$query = "SELECT class_sub_exam_id, class_subjects.class_subject_id, class_subjects.subject_id, subjects.teacher_id,
 								subject_name, class_subject_exams.exam_type_id, exam_type, grade_weight, parent_subject_id,
 								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id limit 1) as parent_subject_name,
-								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id limit 1) is null then false else true end as is_parent
+								case when (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id limit 1) is null then false else true end as is_parent,
+								use_for_grading
 							FROM app.class_subjects
 							LEFT JOIN app.class_subject_exams
 								INNER JOIN app.exam_types

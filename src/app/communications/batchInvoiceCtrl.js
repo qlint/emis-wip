@@ -121,7 +121,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.filters.class_id = newVal.class_id;
 
 	});
-	
+
 	$scope.smsCounter = 0;
 
 	$scope.sendBySms = function()
@@ -162,10 +162,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
         postObj.user_id = Number(selectedEmployee);
         console.log(postObj);
         $scope.postObj = postObj;
-        
+
         // let's space out the sms's to give time to postSms.php to do it's work, so maybe 1.6 seconds
         $scope.wait(1600);
-        
+
         apiService.customAddCommunication(postObj,createCompleted,apiError);
 
     });
@@ -376,16 +376,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	var createCompleted = function ( response, status, params )
 	{
         console.log(response);
-        
+
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
 		    if($scope.postObj.send_as_sms = 't'){
                 // post the message
-                
+
                 $.ajax({
                         type: "POST",
-                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/postSms.php",
+                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postSms.php",
                         data: { src: result.com_id, school: window.location.host.split('.')[0] },
                         success: function (data, status, jqXHR) {
                             console.log("Data posted for processing.",data,status,jqXHR);
@@ -394,9 +394,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
                             console.log("Error. Data not posted.");
                         }
                 });
-                
+
             }
-            
+
             if($scope.parentsAndStudents.length == $scope.smsCounter){
     			$uibModalInstance.close();
     			var msg = ($scope.edit ? 'Batch Exam SMS has been sent.' : 'Batch Exam SMS has been sent.');

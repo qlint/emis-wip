@@ -1633,7 +1633,7 @@ img.transpBg {max-height:190px;margin-left: 25%;margin-right: 25%;margin-top: -9
     .col-xs-3 {width: 25%;}
     .col-xs-5 {width: 41.66666667%;}
     .col-xs-1,.col-xs-2,.col-xs-3,.col-xs-5 {float: left;}
-  
+
     div.breakBefore,.breakBefore,div.noBreak,.noBreak{/* page-break-before: always !important; margin-bottom: 210px; */ page-break-inside: avoid !important;}
     /* div.allSlips,.allSlips{page-break-after: always !important;} */
     div.allSlips{page-break-inside: avoid !important;margin-bottom:30px;}
@@ -1999,7 +1999,7 @@ div#reportsSection {
 }
 #exTab1 .tab-content {
   /* color : white; */
-  background-image: linear-gradient(180deg, rgba(27,120,0,1) 0%, rgba(255,255,255,1) 2%);
+  background-image: linear-gradient(180deg, rgba(27,120,0,1) 0%, rgba(255,255,255,1) 0.5%);
   padding : 5px 15px;
 }
 #exTab1 .nav-pills > li > a {

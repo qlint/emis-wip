@@ -11,7 +11,7 @@ $app->get('/getAllEmployees(/:status)', function ($status) {
 									middle_name, last_name, initials, dob, country, employees.active, telephone, email, joined_date,
 									job_title, qualifications, experience, additional_info, emp_image,
 									first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as employee_name,
-									emp_cat_name, dept_name
+									emp_cat_name, dept_name, super_teacher
 							 FROM app.employees
 							 INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id AND employee_cats.active is true
 							 INNER JOIN app.departments ON employees.dept_id = departments.dept_id AND departments.active is TRUE
@@ -51,7 +51,7 @@ $app->get('/exportAllStaffDetails', function () {
 
     $sth = $db->prepare("SELECT e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as employee_name, initials, CASE WHEN gender = 'F' THEN 'Female' ELSE 'Male' END AS gender,
                         	id_number, telephone, email, dob, country, emp_number, emp_cat_name AS category, dept_name AS department, job_title, qualifications, experience,
-                        	additional_info, next_of_kin_name, next_of_kin_telephone, house, committee
+                        	additional_info, next_of_kin_name, next_of_kin_telephone, house, committee, super_teacher
                         FROM app.employees e
                         INNER JOIN app.employee_cats USING (emp_cat_id)
                         INNER JOIN app.departments USING (dept_id)
@@ -89,7 +89,7 @@ $app->get('/getEmployee/:id', function () {
         $db = getDB();
         $sth = $db->prepare("SELECT  emp_id, emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
 									middle_name, last_name, initials, dob, country, active, telephone, email, joined_date,
-									job_title, qualifications, experience, additional_info, emp_image, committee
+									job_title, qualifications, experience, additional_info, emp_image, committee, super_teacher
 							 FROM app.employee
 							 WHERE emp_id = :id");
         $sth->execute( array(':id' => $id));
@@ -277,6 +277,7 @@ $app->put('/updateEmployee', function () use($app) {
 		$username =			( isset($allPostVars['employee']['username']) ? $allPostVars['employee']['username']: null);
 		$password =			( isset($allPostVars['employee']['password']) ? $allPostVars['employee']['password']: null);
 		$userType =			( isset($allPostVars['employee']['user_type']) ? $allPostVars['employee']['user_type']: null);
+		$superTeacher =		( isset($allPostVars['employee']['super_teacher']) ? $allPostVars['employee']['super_teacher']: 'f');
 		$loginActive =		( isset($allPostVars['employee']['login_active']) ? $allPostVars['employee']['login_active']: 'f');
 		$loginId =			( isset($allPostVars['employee']['login_id']) ? $allPostVars['employee']['login_id']: null);
 		$telephone =		( isset($allPostVars['employee']['telephone']) ? $allPostVars['employee']['telephone']: null);
@@ -351,7 +352,8 @@ $app->put('/updateEmployee', function () use($app) {
 					additional_info = :additionalInfo,
 					modified_date = now(),
 					modified_by = :userId,
-					committee = :committee
+					committee = :committee,
+					super_teacher = :superTeacher
 				WHERE emp_id = :empId");
 
 				if( $loginId !== null && $username !== null )
@@ -404,7 +406,8 @@ $app->put('/updateEmployee', function () use($app) {
 								':experience' => $experience,
 								':additionalInfo' => $additionalInfo,
 								':userId' => $userId,
-								':committee' => $committee
+								':committee' => $committee,
+								':superTeacher' => $superTeacher
 						) );
 
 				if( $updateLogin )
@@ -454,7 +457,7 @@ $app->get('/getAllTeachers(/:status)', function ($status=true) {
         $sth = $db->prepare("SELECT emp_id as teacher_id, employees.emp_cat_id, dept_id, emp_number, id_number, gender, first_name,
          middle_name, last_name, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
          initials, dob, country, employees.active, telephone, email, joined_date,
-         job_title, qualifications, experience, additional_info, emp_image
+         job_title, qualifications, experience, additional_info, emp_image, super_teacher
         FROM app.employees
         INNER JOIN app.employee_cats ON employees.emp_cat_id = employee_cats.emp_cat_id
         WHERE LOWER(employee_cats.emp_cat_name) = LOWER('TEACHING')
@@ -493,7 +496,7 @@ $app->get('/getEmployeeDetails/:empId', function ($empId) {
         $db = getDB();
         $sth = $db->prepare("SELECT employees.*,
 									employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as employee_name,
-									emp_cat_name, dept_name,
+									emp_cat_name, dept_name, super_teacher,
 									(select array_agg(class_name) from app.classes where teacher_id = employees.emp_id and classes.active is true) as classes,
 									(select array_agg(subject_name || ' (' || class_cat_name || ')') from app.subjects inner join app.class_cats using (class_cat_id) where teacher_id = employees.emp_id and subjects.active is true) as subjects,
 									username, user_type, users.active as login_active

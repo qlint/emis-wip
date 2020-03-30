@@ -31,6 +31,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			{
 				$scope.employee = angular.copy(result.data);
 				$scope.employee.joined_date = {startDate: $scope.employee.joined_date};
+				$scope.employee.super_teacher = (result.data.super_teacher == null || result.data.super_teacher == false || result.data.super_teacher == undefined ? false : true);
+				console.log($scope.employee);
 
 				// select emp category
 				$scope.employee.emp_cat = $rootScope.empCats.filter(function(item){
@@ -39,6 +41,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 				$scope.editUsername = ( result.data.username === null ? true : false);
 				$scope.employee.login_active = ( $scope.employee.login_active === null ? true : $scope.employee.login_active);
+				// $scope.employee.super_teacher = ( $scope.employee.super_teacher === null ? true : $scope.employee.super_teacher);
 
 				$scope.staffLoading = false;
 
@@ -202,6 +205,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						password: $scope.employee.password,
 						user_type: $scope.employee.user_type,
 						login_active: ( $scope.employee.login_active ? 't' : 'f'),
+						super_teacher: ( $scope.employee.super_teacher ? 't' : 'f'),
 						id_number : $scope.employee.id_number,
 						telephone : $scope.employee.telephone,
 						committee : ($scope.employee.committee != null || $scope.employee.committee != undefined ? $scope.employee.committee.join(',') : null),

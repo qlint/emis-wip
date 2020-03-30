@@ -25,7 +25,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	$scope.overallBalancesAnalysisTable = false; // show the table for overall balances
 	$scope.studentFeeItemsAnalysisTable = false; // show the table for student fee items
 	$scope.activeChartTab = false; // hide charts
-	
+
+	$scope.isTermNeeded = function(){
+		if($scope.filters.analysis == 'credits_balances'){
+			// hide term selection
+			document.getElementById('termSelection').style.display = 'none';
+		}else{
+			// show term selection
+			document.getElementById('termSelection').style.display = '';
+		}
+	}
+
 	$scope.fetchOvrlBalances = function()
     	{
     	    $scope.chartData = $scope.overallBalances;
@@ -39,7 +49,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                 thePaid.push(label.total_paid);
                 theBalance.push(label.balance);
             });
-        	        
+
         	var barChartData = {
             	labels: theLabels,
             	datasets: [{
@@ -58,9 +68,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
             				stack: 'Stack 1',
             				data: theDue
             	}]
-            
+
             };
-            		
+
             var ctx = document.getElementById('canvasReport').getContext('2d');
         			new Chart(ctx, {
         				type: 'bar',
@@ -86,9 +96,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         				}
         			});
     	}
-    	
+
 	$scope.fetchBalances = function()
-    	{   
+    	{
     	    var fetchOverallBalances = function(response,status){
     		    var result = angular.fromJson( response );
         		if( result.response == 'success' )
@@ -100,40 +110,40 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         			else
         			{
         				$scope.overallBalances = result.data;
-        				
+
         				        $scope.chartData = $scope.overallBalances;
-                	            
+
                 	            var theLabels = [];
         	                    var thePaid = [];
-        	        
+
                     	        $scope.chartData.forEach(function(label) {
                                     theLabels.push(label.fee_item);
                                     thePaid.push(Number(label.total_paid));
                                 });
-            
+
                                 // we want to iterate thru each item in the arr and create a nested arr where only the ith item is not 0
                                 // eg arr [ [5,0,0,0],[0,7,0,0] ]
-                                
+
                                 var paidSummation = function(arr){
                                     return arr.reduce(function(a,b){
                                     return a + b
                                   }, 0);
                                 }
-                                
+
                                 $scope.overallPaid = paidSummation(thePaid); // this is the total of all payments
-                                
+
                                 var paidLength = thePaid.length;
                                 var newPaidVals = [];
-                                
+
                                 /*
                                 for (var v = 0; v < paidLength; v++) {
-                                    
+
                                     var newArr = [];
                                     newArr.length = paidLength;
                                     var newArrLength = newArr.length;
-                                    
+
                                     for(var w = 0; w < newArrLength; w++){
-                                        
+
                                         if(newArr[w] == null || newArr[w] == undefined){
                                             newArr[w] = 0;
                                         }
@@ -146,12 +156,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                 }
                                 */
                                 for (var v = 0; v < paidLength; v++) {
-                                    
+
                                     var fullPercentage = ((thePaid[v] / $scope.overallPaid) * 100) * 1.8;
                                     var roundedPercentage = fullPercentage.toFixed(1);
                                     newPaidVals.push(Number(roundedPercentage));
                                 }
-                                
+
                                 function getRandomColor() {
                                     var letters = '0123456789ABCDEF';
                                     var color = '#';
@@ -161,20 +171,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                     myColors.push(color);
                                     return color;
                                 }
-                                
+
                                 var myColors = [];
                                 for(var y=0; y<newPaidVals.length; y++){
                                     getRandomColor();
                                 }
-                                
+
                                 /* begin charting */
-                                
+
                                 var myDataSets = [];
-                                
+
                                 newPaidVals.forEach(function(eachArrItem) {
                                     myDataSets.push(eachArrItem);
                                 });
-                                
+
                                 var options = {
                                     chart: {
                                         height: 800,
@@ -194,7 +204,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                             dataLabels: {
                                                 name: {
                                                     show: true,
-                                                    
+
                                                 },
                                                 value: {
                                                     show: true,
@@ -234,25 +244,25 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                         }
                                     }]
                                 }
-                        
+
                                var chart = new ApexCharts(
                                     document.querySelector("#chart"),
                                     options
                                 );
-                                
+
                                 chart.render();
-                                
+
                                 /* end charting */
-                                
+
                                 /*
                     	        Chart.controllers.doughnut.prototype.calculateTotal = function() {
                                   return 100;
                                 };
-                                
+
                                 var ctx = document.getElementById('canvasReport').getContext('2d');
-                                
+
                                 var myDataSets = [];
-                                
+
                                 newPaidVals.forEach(function(eachArrItem) {
                                     var oneDataSet = {
                                         data: eachArrItem,
@@ -260,7 +270,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                     }
                                     myDataSets.push(oneDataSet);
                                 });
-                                
+
                                 new Chart(ctx, {
                                     type: 'doughnut',
                                     data: {
@@ -279,7 +289,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                                 document.getElementById("canvasReport").style.width = "65%"; // make the chart samller to fit on screen
                                 document.getElementById("canvasReport").style.height = "auto"; // set the height to auto to maintain aspect ratio
                                 */
-                                
+
         			}
         		}
         		else
@@ -287,11 +297,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         			$scope.errMsg = result.data;
         		}
     		}
-    	    
+
     	    var request = $scope.filters.term_id;
     		apiService.getOverallFinancials(request, fetchOverallBalances, apiError);
-    		
-    		
+
+
     	}
 
 	var initializeController = function ()
@@ -351,6 +361,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.getOverallBalances();
 		}else if($scope.filters.analysis == "student_fee_items"){
 			$scope.getStudentPayments();
+		}else if($scope.filters.analysis == "credits_balances"){
+			$scope.getCreditsAndBalances();
 		}else{
 			// make a valid selection message
 			$scope.preLoadMessageH1 = "";
@@ -359,31 +371,47 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 	}
 
     $scope.getOverallBalances = function()
-	{   
+	{
 	    $scope.showReport = true; // show the div
 	    $scope.reportTitle = 'School Balances Analysis';
-	    
+
 	    $scope.initialReportLoad = false; // initial items to show before any report is loaded
-	    
+
 	    $scope.studentFeeItemsAnalysisTable = false; // hide the student fee items table if its already showing
 	    $scope.overallBalancesAnalysisTable = true; // show the table for overall balances analysis
-	    
+			$scope.creditsAndBalancesTable = false;
+
 	    var request = $scope.filters.term_id;
     	apiService.getOverallFinancials(request, loadOverallBalances, apiError);
 	}
-	
+
 	$scope.getStudentPayments = function()
 	{
 	    $scope.showReport = true; // show the div
 	    $scope.reportTitle = 'Student Fee Items Analysis - % on Total Payments';
-	    
+
 	    $scope.initialReportLoad = false; // initial items to show before any report is loaded
-	    
+
 	    $scope.overallBalancesAnalysisTable = false; // hide the table for overall balances analysis if its already showing
 	    $scope.studentFeeItemsAnalysisTable = true; // show the student fee items table
-	    
+			$scope.creditsAndBalancesTable = false;
+
 	    var request = $scope.filters.term_id;
 		apiService.getOverallStudentFeePayments(request, loadStudentPayments, apiError);
+	}
+
+	$scope.getCreditsAndBalances = function()
+	{
+	    $scope.showReport = true; // show the div
+	    $scope.reportTitle = 'Student Credits and Balances Analysis';
+
+	    $scope.initialReportLoad = false; // initial items to show before any report is loaded
+
+	    $scope.overallBalancesAnalysisTable = false; // hide the table for overall balances analysis if its already showing
+	    $scope.studentFeeItemsAnalysisTable = false; // show the student fee items table
+			$scope.creditsAndBalancesTable = true;
+
+	    apiService.getCreditsAndBalances(true, loadCreditsAndBalances, apiError);
 	}
 
 	var loadOverallBalances = function(response,status)
@@ -409,41 +437,68 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 
 	}
 
+	var loadCreditsAndBalances = function(response,status)
+	{
+		$scope.loading = false;
+		var result = angular.fromJson( response );
+		if( result.response == 'success' )
+		{
+			if( result.nodata )
+			{
+				$scope.errMsg = "No data found for this search criteria.";
+			}
+			else
+			{
+				$scope.creditsAndBals = result.data;
+				$scope.creditsAndBals.forEach((eachStudent) => {
+				  eachStudent.balance = Math.abs(eachStudent.balance);
+					eachStudent.total_credit = Math.abs(eachStudent.total_credit);
+				});
+				$scope.chartDataGlbl = $scope.creditsAndBals;
+			}
+		}
+		else
+		{
+			$scope.errMsg = result.data;
+		}
+
+	}
+
 	$scope.gotoDiv1 = function(el) {
-	    
+
         var newHash = '1a';
         if ($location.hash() !== newHash) {
             $location.hash('1a');
-            
+
             document.getElementById("2a").classList.remove("active");
 	        document.getElementById("1a").classList.add("active");
-	        
+
         } else {
             // $anchorScroll();
         }
-        
+
         $scope.overallBalancesAnalysisTable = ( $scope.returnToOverallBalancesAnalysis == true ? true : false);
         $scope.studentFeeItemsAnalysisTable = ( $scope.returnToStudentFeeItemsAnalysis == true ? true : false);
-        
+
         $scope.activeChartTab = false; // hide charts
         document.getElementById("canvasReport").style.display = "none";
-        
+
         if($scope.overallBalancesAnalysisTable == true){
-            
+
             document.getElementById("overallBalancesAnalysisTableDiv").style.display = "block";
             $scope.getOverallBalances(); // refetch the data
             document.getElementById("studentFeeItemsAnalysisTableDiv").style.display = "none";
             $scope.studentFeeItemsAnalysisTable = false;
-            
+
         }else if($scope.studentFeeItemsAnalysisTable == true){
-            
+
             document.getElementById("studentFeeItemsAnalysisTableDiv").style.display = "block";
             $scope.getStudentPayments(); // refetch the data
             document.getElementById("overallBalancesAnalysisTableDiv").style.display = "none";
             $scope.overallBalancesAnalysisTable = false;
-            
+
         }else{
-            
+
             $scope.preLoadMessageH1 = "MAKE A SELECTION ABOVE TO LOAD A REPORT";
 	        $scope.preLoadMessageH3 = "Supported reports are in tables, charts and graphs";
 
@@ -451,20 +506,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         	$scope.showReport = false; // hide the reports div until needed
         	$scope.overallBalancesAnalysisTable = false; // show the table for overall balances
         	$scope.studentFeeItemsAnalysisTable = false; // show the table for student fee items
-        	
+
         	$("#overallBalancesAnalysisTable").DataTable().destroy();
         	$("#studentFeeItemsAnalysisTable").DataTable().destroy();
         	initializeController();
         }
-        
+
      };
 
      $scope.gotoDiv2 = function(el) {
-	    
+
         var newHash = '2a';
         if ($location.hash() !== newHash) {
             $location.hash('2a');
-            
+
             // lets first load chart.js
             // $.getScript('/components/Chart2.8.min.js', function()
             $.getScript('/components/overviewFiles/js/apexcharts.js', function()
@@ -472,11 +527,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
                 // script is now loaded and executed.
                 document.getElementById("1a").classList.remove("active");
 	            document.getElementById("2a").classList.add("active");
-	            
+
 	            $scope.activeChartTab = true; // show charts
 
                 if($scope.overallBalancesAnalysisTable == true){
-                    
+
                     // hide the active table to pave way for charts visibility
                     $scope.showReport = true; // show the div
         	        $scope.overallBalancesAnalysisTable = false; // hide the active table to pave way for charts visibility
@@ -484,11 +539,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         	        document.getElementById("overallBalancesAnalysisTableDiv").style.display = "none";
         	        document.getElementById("studentFeeItemsAnalysisTableDiv").style.display = "none";
         	        $scope.returnToOverallBalancesAnalysis = true;
-        	        
+
         	        $scope.fetchOvrlBalances();
-        	        
+
         	    }else if($scope.studentFeeItemsAnalysisTable == true){
-        	        
+
         	        // hide the active table to pave way for charts visibility
         	        $scope.showReport = true; // show the div
         	        $scope.overallBalancesAnalysisTable = false; // hide the active table to pave way for charts visibility
@@ -496,19 +551,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         	        document.getElementById("overallBalancesAnalysisTableDiv").style.display = "none";
         	        document.getElementById("studentFeeItemsAnalysisTableDiv").style.display = "none";
         	        $scope.returnToStudentFeeItemsAnalysis = true;
-        	        
+
         	        $scope.fetchBalances();
-        	        
+
         	    }else{
         	        // no selection made yet
         	    }
-    	    
+
             });
-        
+
         } else {
             // $anchorScroll();
         }
-	    
+
      };
 
 	var loadStudentPayments = function(response,status)
@@ -531,6 +586,82 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 			$scope.errMsg = result.data;
 		}
 
+	}
+
+	$scope.exportData = function()
+	{
+		// get the currently viewable report
+		console.log($scope.filters.analysis);
+		if($scope.filters.analysis == "overall_balances"){
+			// var divToExport=document.getElementById("resultsTable");
+			var divToExport=document.getElementsByClassName("overallBalancesAnalysisTable")[0];
+			var rows = document.querySelectorAll('table.overallBalancesAnalysisTable tr');
+		}else if($scope.filters.analysis == "student_fee_items"){
+			// var divToExport=document.getElementById("resultsTable");
+			var divToExport=document.getElementsByClassName("studentFeeItemsAnalysisTable")[0];
+			var rows = document.querySelectorAll('table.studentFeeItemsAnalysisTable tr');
+		}else if($scope.filters.analysis == "credits_balances"){
+			// var divToExport=document.getElementById("resultsTable");
+			var divToExport=document.getElementsByClassName("creditsAndBalancesTable")[0];
+			var rows = document.querySelectorAll('table.creditsAndBalancesTable tr');
+		}
+
+		// exportTableToExcel(reportTableId, reportName); // ORIGINAL
+
+		function downloadCSV(csv, filename) {
+		    var csvFile;
+		    var downloadLink;
+
+		    // CSV file
+		    csvFile = new Blob([csv], {type: "text/csv"});
+
+		    // Download link
+		    downloadLink = document.createElement("a");
+
+		    // File name
+		    downloadLink.download = filename;
+
+		    // Create a link to the file
+		    downloadLink.href = window.URL.createObjectURL(csvFile);
+
+		    // Hide download link
+		    downloadLink.style.display = "none";
+
+		    // Add the link to DOM
+		    document.body.appendChild(downloadLink);
+
+		    // Click download link
+		    downloadLink.click();
+		}
+
+		function exportTableToCSV(filename) {
+		    var csv = [];
+		    // var rows = document.querySelectorAll('table tr[style*="display: table-row;"]');
+				// console.log("rows data",divToExport,rows);
+				var headerRow = divToExport.querySelectorAll('table thead tr')[0];
+				var titles = headerRow.querySelectorAll("th");
+				var titlesText = [];
+				for(let x=0; x<titles.length;x++){
+					titlesText.push(titles[x].innerText);
+				}
+				var titlesToCsv = titlesText.join(',');
+				// console.log(titlesToCsv);
+				csv.push(titlesToCsv);
+
+		    for (var i = 0; i < rows.length; i++) {
+		        var row = [], cols = rows[i].querySelectorAll("td, th");
+                // console.log("Cols :::",cols);
+		        for (var j = 0; j < cols.length; j++)
+		            row.push(cols[j].innerText);
+
+		        csv.push(row.join(","));
+		    }
+
+		    // Download CSV file
+		    downloadCSV(csv.join("\n"), filename);
+		}
+
+		exportTableToCSV($scope.filters.analysis + '.csv');
 	}
 
 	$scope.printReport = function()
@@ -556,10 +687,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 		var newWindowRef = window.open('http://' + domain + '/#/exams/analysis/print');
 		newWindowRef.printCriteria = data;
 	}
-	
+
 	$("#search").keyup(function () {
         var value = this.value.toLowerCase().trim();
-    
+
         $("table tr").each(function (index) {
             if (!index) return;
             $(this).find("td").each(function () {

@@ -20,6 +20,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.editButtonTxt = ($scope.isEdit == true ? "Save" : "Edit");
 	$scope.editButtonStyle = ($scope.isEdit == true ? "success" : "primary");
 	$scope.schoolDir = window.location.host.split('.')[0];
+	
+	$scope.copyLink = function() {
+          var copyText = document.getElementById("linkUrl");
+          /* Select the text field */
+          copyText.select();
+          copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+          /* Copy the text inside the text field */
+          document.execCommand("copy");
+          console.log("Copied the text: " + copyText.value);
+    }
 
 	var initializeController = function ()
 	{
@@ -266,7 +276,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		    		var result = angular.fromJson( response );
 		    		if( result.response == 'success' )
 		    		{
-		        	$timeout(initializeController,1);
+		    		    resource_name = $( "#resource_name" ).val(null);
+                        resource_type = $( "#resource_type" ).val(null);
+                        document.getElementById('file_name').value = null;
+                        additional_notes = $( "#additional_notes" ).val(null);
+		        	    $timeout(initializeController,1);
 		    		}
 		    		else
 		    		{
@@ -320,8 +334,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	}
 
 	$scope.openSrc = function(el){
-		console.log(el.resource);
-
+		console.log(el.resource,$scope);
+		$scope.filters.class_id = el.resource.class_id;
+		
 		$scope.resourceTitle = el.resource.resource_name;
 		$scope.resourceAdditionalText = el.resource.additional_text;
 		$scope.resourceClassName = el.resource.class_name;
@@ -333,21 +348,26 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		let fileExtension = fileSplit[fileSplit.length - 1];
 		console.log(fileExtension);
 
-		if(fileExtension == 'mp4' || fileExtension == 'm4v' || fileExtension == 'avi' || fileExtension == 'wmv' || fileExtension == 'flv' || fileExtension == 'webm'){
+		if(fileExtension == 'mp4' || fileExtension == 'm4v' || fileExtension == 'avi' || fileExtension == 'wmv' || fileExtension == 'flv' || fileExtension == 'webm' || fileExtension == 'f4v' || fileExtension == 'mov'){
 			$scope.actualFileType = 'video';
 			$scope.resourceIcon="video-icon.png";
-		}else if(fileExtension == 'mp3' || fileExtension == 'm4a' || fileExtension == 'wav' || fileExtension == 'wma' || fileExtension == 'aac' || fileExtension == 'ogg'){
+			$scope.assetSubDir = "videos";
+		}else if(fileExtension == 'mp3' || fileExtension == 'm4a' || fileExtension == 'wav' || fileExtension == 'wma' || fileExtension == 'aac' || fileExtension == 'ogg' || fileExtension == '3gp' || fileExtension == 'f4a' || fileExtension == 'flacc' || fileExtension == 'midi'){
 			$scope.actualFileType = 'audio';
 			$scope.resourceIcon="audio-icon.png";
+			$scope.assetSubDir = "audios";
 		}else if(fileExtension == 'jpg' || fileExtension == 'jpeg' || fileExtension == 'gif' || fileExtension == 'png' || fileExtension == 'tiff'){
 			$scope.actualFileType = 'audio';
 			$scope.resourceIcon="img-icon.png";
+			$scope.assetSubDir = "images";
 		}else if(fileExtension == 'pdf'){
 			$scope.actualFileType = 'pdf';
 			$scope.resourceIcon="pdf-icon.png";
-		}else if(fileExtension == 'doc' || fileExtension == 'docx' || fileExtension == 'odf'){
+			$scope.assetSubDir = "documents";
+		}else if(fileExtension == 'doc' || fileExtension == 'docx' || fileExtension == 'odf' || fileExtension == 'xls' || fileExtension == 'xlsx' || fileExtension == 'csv'){
 			$scope.actualFileType = 'document';
 			$scope.resourceIcon="doc-icon.png";
+			$scope.assetSubDir = "documents";
 		}
 		// View resource modal
 		var modal = document.getElementById("resourceModal");
@@ -370,6 +390,62 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		  }
 		}
 
+	}
+	
+	$scope.sendToApp = function(){
+	    // post object
+	    var link = 'https://classroom.eduweb.co.ke/' + $scope.schoolDir + '/' + $scope.assetSubDir + '/' + $scope.resourceFile;
+	    console.log("The link is = "+link);
+	    $scope.postObj = {
+	        post : {
+        	            title: $scope.resourceTitle,
+        	            body: $scope.resourceAdditionalText + "\n\n GET IT HERE: " + "<a href='"+link+"'>" + $scope.resourceTitle + "</a>",
+        	            audience_id: 2, // class specific
+        	            com_type_id: 1, // 1=general
+        	            emp_id: $rootScope.currentUser.emp_id,
+        	            class_id: $scope.filters.class_id,
+        	            send_as_email: 't',
+        	            send_as_sms: 'f',
+        	            reply_to: $rootScope.currentUser.settings["Email From"],
+        	            post_status_id: 1, // 1=published, 0=draft
+        	            message_from: $rootScope.currentUser.emp_id,
+        	            sent: true,
+        	            user_id: $rootScope.currentUser.user_id,
+        	            subdomain: $scope.schoolDir
+        	        },
+        	 user_id : $rootScope.currentUser.user_id
+	    }
+	    console.log($scope.postObj);
+	    apiService.customAddCommunication($scope.postObj,function ( response, status, params )
+                                                    	{
+                                                            console.log(response);
+                                                    		var result = angular.fromJson( response );
+                                                    		if( result.response == 'success' )
+                                                    		{
+                                                                alert("The resource has been published to the parents mobile app successfully.");
+                                                                $.ajax({
+                                                                    type: "POST",
+                                                                    url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postNotifications.php",
+                                                                    data: { school: window.location.host.split('.')[0] },
+                                                                    success: function (data, status, jqXHR) {
+                                                                        console.log("Notifications initiated.",data,status,jqXHR);
+                                                                    },
+                                                                    error: function (xhr) {
+                                                                        console.log("Error. Notifications could not be sent.");
+                                                                    }
+                                                                });
+                                                                /*
+                                                                apiService.sendSchoolNotifications($scope.schoolDir, function(response){
+																																	var result = angular.fromJson(response);
+																																	if( result.response == 'success'){ console.log("Notifications sent to parties!"); }
+																																}, apiError);
+																*/
+                                                    		}
+                                                    		else
+                                                    		{
+                                                    			console.log(result);
+                                                    		}
+                                                    	},apiError);
 	}
 
 	var setSearchBoxPosition = function()

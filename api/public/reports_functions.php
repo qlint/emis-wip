@@ -701,6 +701,71 @@ $app->get('/getOverallStudentFeePayments/:termId', function ($termId) {
 
 });
 
+$app->get('/getCreditsAndBalances/:status', function ($status) {
+  // Overall school credits and balances
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT two.*, (true_tot_paid + untouched_payment) AS true_total_paid, (true_tot_paid + untouched_payment) - total_paid AS total_credit
+                             FROM (
+                             	SELECT one.*,
+                             		(SELECT sum(amount) FROM
+                             			(
+                             				SELECT distinct on(p.payment_id, p.amount) payment_id, p.amount
+                             				FROM app.payments p
+                             				INNER JOIN app.payment_inv_items pii USING (payment_id)
+                             				INNER JOIN app.invoices i ON pii.inv_id = i.inv_id
+                             				WHERE p.student_id = one.student_id
+                             			)a
+                             		) AS true_tot_paid,
+ 									(
+ 										SELECT coalesce(sum(amount),0) AS untouched_payment FROM (
+ 											SELECT distinct on(p.student_id, p.amount) student_id, p.amount
+ 											FROM app.payments p
+ 											WHERE payment_id NOT IN (
+ 												SELECT payment_id FROM app.payment_inv_items pii
+ 											) AND student_id = one.student_id
+ 										)a
+ 									) AS untouched_payment
+                             	FROM (
+                             		SELECT
+                             			ib.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                             			class_name, admission_number,
+                             			sum(total_due) AS total_due, sum(total_paid) AS total_paid, sum(balance) AS balance
+                             		FROM app.invoice_balances2 ib
+                             		INNER JOIN app.students s USING (student_id)
+                             		INNER JOIN app.classes c ON s.current_class = c.class_id
+ 									WHERE ib.canceled IS FALSE AND s.active IS TRUE
+ 									GROUP BY ib.student_id, s.first_name, s.middle_name, s.last_name, class_name, admission_number
+                             	)one
+                             )two");
+    $sth->execute(array());
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/getAllStudentsWithTransport', function () {
   // Get all students taking transport
 
@@ -1243,15 +1308,15 @@ $app->get('/getExamDeviations/:class_id/:term_id/:exam_type_id', function ($clas
 
 $app->get('/getGradesAttainment/:classId/:termId/:examTypeId', function ($classId,$termId,$examTypeId) {
 	// Get class students in the transport zone
-  
+
 	$app = \Slim\Slim::getInstance();
-  
+
 	try
 	{
 	  $db = getDB();
-  
+
 	   $sth = $db->prepare("SELECT class_name, grade, COUNT(grade) AS grade_count FROM (
-								SELECT class_name, student_id, coalesce(total,0) AS total, out_of, 
+								SELECT class_name, student_id, coalesce(total,0) AS total, out_of,
 									(SELECT grade FROM app.grading WHERE round((coalesce(total,0)::float/out_of)*100) between min_mark and max_mark) AS grade
 								FROM (
 									SELECT class_id, class_name, student_id, sum(mark) AS total, sum(out_of) AS out_of FROM (
@@ -1282,7 +1347,7 @@ $app->get('/getGradesAttainment/:classId/:termId/:examTypeId', function ($classI
 	  $results =  new stdClass();
 	  $results->gradesAttainment = $gradesAttainment;
 	  $results->schoolGrades = $schoolGrades;
-  
+
 	  if($results) {
 		$app->response->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -1294,13 +1359,13 @@ $app->get('/getGradesAttainment/:classId/:termId/:examTypeId', function ($classI
 		echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
 		$db = null;
 	  }
-  
+
   } catch(PDOException $e) {
 	  $app->response()->setStatus(200);
 	  $app->response()->headers->set('Content-Type', 'application/json');
 	  echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
-  
+
   });
 
 $app->get('/getSomeReport', function () {

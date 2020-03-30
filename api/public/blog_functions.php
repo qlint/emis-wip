@@ -641,16 +641,17 @@ $app->post('/addHomework', function () use($app) {
   $dueDate   =  ( isset($allPostVars['post']['due_date']) ? $allPostVars['post']['due_date']: null);
   $assignedDate = ( isset($allPostVars['post']['assigned_date']) ? $allPostVars['post']['assigned_date']: null);
   $postedBy =   ( isset($allPostVars['post']['posted_by']) ? $allPostVars['post']['posted_by']: null);
+  $students =    ( isset($allPostVars['students']) ? $allPostVars['students']: null);
   $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
   try
   {
     $db = getDB();
-    $sth = $db->prepare("INSERT INTO app.homework(class_subject_id, created_by, body, title, post_status_id, attachment, due_date, assigned_date)
-                          VALUES(:classSubjectId, :postedBy, :body, :title, :postStatusId, :attachment, :dueDate, :assignedDate)");
+    $sth = $db->prepare("INSERT INTO app.homework(class_subject_id, created_by, body, title, post_status_id, attachment, due_date, assigned_date, students)
+                          VALUES(:classSubjectId, :postedBy, :body, :title, :postStatusId, :attachment, :dueDate, :assignedDate, :students)");
 
     $sth->execute( array(':classSubjectId' => $classSubjectId, ':title' => $title, ':body' => $body, ':postStatusId' => $postStatusId ,
-            ':attachment' => $attachment , ':postedBy' => $postedBy, ':dueDate' => $dueDate, ':assignedDate' => $assignedDate,
+            ':attachment' => $attachment , ':postedBy' => $postedBy, ':dueDate' => $dueDate, ':assignedDate' => $assignedDate, ':students' => $students
      ));
 
     // if homework was published
@@ -665,13 +666,24 @@ $app->post('/addHomework', function () use($app) {
       $className->execute(array(':classSubjectId' => $classSubjectId));
       $classNameResult = $className->fetch(PDO::FETCH_OBJ);
 
-      $studentsInClass = $db->prepare("SELECT student_id
-                                        FROM app.students
-                                        WHERE current_class = (select class_id
-                                                                from app.class_subjects
-                                                                where class_subject_id = :classSubjectId)");
-      $studentsInClass->execute( array(':classSubjectId' => $classSubjectId));
-      $results = $studentsInClass->fetchAll(PDO::FETCH_OBJ);
+      if(isset($allPostVars['students'])){
+          $studentsInClass = $db->prepare("SELECT student_id
+                                            FROM app.students
+                                            WHERE current_class = (select class_id
+                                                                    from app.class_subjects
+                                                                    where class_subject_id = :classSubjectId)
+                                            AND student_id::text = ANY (string_to_array(:students,','))");
+          $studentsInClass->execute( array(':classSubjectId' => $classSubjectId, ':students' => $students));
+          $results = $studentsInClass->fetchAll(PDO::FETCH_OBJ);
+      }else{
+          $studentsInClass = $db->prepare("SELECT student_id
+                                            FROM app.students
+                                            WHERE current_class = (select class_id
+                                                                    from app.class_subjects
+                                                                    where class_subject_id = :classSubjectId)");
+          $studentsInClass->execute( array(':classSubjectId' => $classSubjectId));
+          $results = $studentsInClass->fetchAll(PDO::FETCH_OBJ);
+      }
 
       $studentIds = array();
       foreach($results as $result) {
@@ -1309,8 +1321,8 @@ $app->post('/addCommunication', function () use($app) {
                                             INNER JOIN app.students USING (student_id)
                                             INNER JOIN app.classes c ON students.current_class = c.class_id
                                             INNER JOIN app.class_cats cc USING (class_cat_id)
-                                            WHERE guardians.active IS TRUE 
-                                            AND students.active IS TRUE 
+                                            WHERE guardians.active IS TRUE
+                                            AND students.active IS TRUE
                                             AND student_guardians.active IS TRUE
                                             AND cc.entity_id != 100 OR cc.entity_id IS null
                                           )qry
@@ -1568,7 +1580,7 @@ $app->post('/customAddCommunication', function () use($app) {
   // Add communication
 
   $allPostVars = json_decode($app->request()->getBody(),true);
-
+  // var_dump($allPostVars);
   $subject =    ( isset($allPostVars['post']['title']) ? $allPostVars['post']['title']: null);
   $message =    ( isset($allPostVars['post']['body']) ? $allPostVars['post']['body']: null);
   $attachment = ( isset($allPostVars['post']['attachment']) ? $allPostVars['post']['attachment']: null);
@@ -1580,16 +1592,15 @@ $app->post('/customAddCommunication', function () use($app) {
   $guardianId = ( isset($allPostVars['post']['guardian_id']) ? $allPostVars['post']['guardian_id']: null);
   $employeeId = ( isset($allPostVars['post']['emp_id']) ? $allPostVars['post']['emp_id']: null);
   $classId =    ( isset($allPostVars['post']['class_id']) ? $allPostVars['post']['class_id']: null);
-  $sendAsEmail =  ( isset($allPostVars['post']['send_as_email']) ? $allPostVars['post']['send_as_email']: 'f');
-  $sendAsSms =  ( isset($allPostVars['post']['send_as_sms']) ? $allPostVars['post']['send_as_sms']: 'f');
+  $sendAsEmail =  ( isset($allPostVars['post']['send_as_email']) ? $allPostVars['post']['send_as_email']: false);
+  $sendAsSms =  ( isset($allPostVars['post']['send_as_sms']) ? $allPostVars['post']['send_as_sms']: false);
   $replyTo =    ( isset($allPostVars['post']['reply_to']) ? $allPostVars['post']['reply_to']: null);
   $postStatus = ( isset($allPostVars['post']['post_status_id']) ? $allPostVars['post']['post_status_id']: null);
   $messageFrom =  ( isset($allPostVars['post']['message_from']) ? $allPostVars['post']['message_from']: null);
   $routeId =  ( isset($allPostVars['post']['transport_id']) ? $allPostVars['post']['transport_id']: null);
   $feeItem =  ( isset($allPostVars['post']['fee_item']) ? $allPostVars['post']['fee_item']: null);
-  $sent =  ( isset($allPostVars['post']['sent']) ? $allPostVars['post']['sent']: null);
+  $sent =  ( isset($allPostVars['post']['sent']) ? $allPostVars['post']['sent']: false);
   $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
-  $theSubdomain =   ( isset($allPostVars['post']['subdomain']) ? $allPostVars['post']['subdomain']: null);
 
   // these are for use only when posting from the transport module
   $transportFilters = ( isset($allPostVars['post']['filters']) ? $allPostVars['post']['filters']: null);
@@ -1604,8 +1615,8 @@ $app->post('/customAddCommunication', function () use($app) {
   {
     $db = getDB();
     $sth = $db->prepare("INSERT INTO app.communications(com_date, audience_id, com_type_id, subject, message, attachment, message_from, student_id, guardian_id, class_id, send_as_email, send_as_sms, created_by, reply_to, sent, post_status_id, route, activity)
-               VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :sent, :postStatus, :route, :activity) RETURNING com_id");
-
+               VALUES(now(), :audienceId, :comTypeId, :subject, :message, :attachment, :messageFrom, :studentId, :guardianId, :classId, :sendAsEmail, :sendAsSms, :userId, :replyTo, :sent, :postStatus, :route, :activity)");
+    // var_dump($sth);
     if( $postStatus === 1 )
     {
 
@@ -1632,10 +1643,15 @@ $app->post('/customAddCommunication', function () use($app) {
         else if( $audienceId === 2 )
         {
           // class specific
+          /*
           $className = $db->prepare("SELECT class_name
                                 FROM app.classes
                               WHERE class_id = :classId");
           $className->execute(array(':classId' => $classId));
+          $classNameResult = $className->fetch(PDO::FETCH_OBJ);
+          $className = $classNameResult->class_name;
+          */
+          $className = $db->query("SELECT class_name FROM app.classes WHERE class_id = ".$classId);
           $classNameResult = $className->fetch(PDO::FETCH_OBJ);
           $className = $classNameResult->class_name;
 
@@ -1646,7 +1662,7 @@ $app->post('/customAddCommunication', function () use($app) {
                                             ON student_guardians.student_id = students.student_id AND students.active is true
                                           ON guardians.guardian_id = student_guardians.guardian_id
                                           WHERE guardians.active is true
-                                          AND current_class = :classId");
+                                          AND current_class = :classId AND students.active IS TRUE");
           $params = array(':classId' => $classId);
 
           $studentsToNotify = $db->prepare("SELECT student_id
@@ -1724,12 +1740,12 @@ $app->post('/customAddCommunication', function () use($app) {
                                           FROM app.guardians
                                           INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
                                           INNER JOIN app.students ON student_guardians.student_id = students.student_id
-                                          WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'");
+                                          WHERE students.active = TRUE AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'");
 
           $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
 
           $studentsToNotify = $db->prepare("SELECT students.student_id FROM app.students
-                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'");
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'");
         }
         else if( $audienceId === 15 )
         {
@@ -1762,7 +1778,7 @@ $app->post('/customAddCommunication', function () use($app) {
                                             FROM app.guardians
                                             INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
                                             INNER JOIN app.students ON student_guardians.student_id = students.student_id
-                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'
                                           )one
                                           INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
                                           WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
@@ -1772,7 +1788,7 @@ $app->post('/customAddCommunication', function () use($app) {
           $studentsToNotify = $db->prepare("SELECT student_id FROM (
                                             SELECT students.student_id, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
                                             FROM app.students
-                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'
                                           )one
                                           INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
                                           WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
@@ -1785,7 +1801,7 @@ $app->post('/customAddCommunication', function () use($app) {
                                           INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
                                           INNER JOIN app.students ON student_guardians.student_id = students.student_id
                                           WHERE students.active = TRUE
-                                          AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                          AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'
                                           AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)");
 
           $notifyMsg = "News posted from " . $schoolName. ": " . $subject;
@@ -1793,7 +1809,7 @@ $app->post('/customAddCommunication', function () use($app) {
           $studentsToNotify = $db->prepare("SELECT students.student_id
                                           FROM app.students
                                           WHERE students.active = TRUE
-                                          AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                          AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'
                                           AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)");
         }
         else if( $audienceId === 18 )
@@ -1829,7 +1845,7 @@ $app->post('/customAddCommunication', function () use($app) {
                                             FROM app.guardians
                                             INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
                                             INNER JOIN app.students ON student_guardians.student_id = students.student_id
-                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'
                                             AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)
                                           )one
                                           INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
@@ -1840,7 +1856,7 @@ $app->post('/customAddCommunication', function () use($app) {
           $studentsToNotify = $db->prepare("SELECT student_id FROM (
                                             SELECT students.student_id, UNNEST(string_to_array(trip_ids,','))::int AS stdnt_trip
                                             FROM app.students
-                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'
                                             AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)
                                           )one
                                           INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
@@ -1963,7 +1979,7 @@ $app->post('/customAddCommunication', function () use($app) {
                                           FROM app.guardians
                                           INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
                                           INNER JOIN app.students ON student_guardians.student_id = students.student_id
-                                          WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'");
+                                          WHERE students.active IS TRUE AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'");
 
         }
         else if( $audienceId === 15 )
@@ -1988,7 +2004,7 @@ $app->post('/customAddCommunication', function () use($app) {
                                             FROM app.guardians
                                             INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
                                             INNER JOIN app.students ON student_guardians.student_id = students.student_id
-                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'
                                           )one
                                           INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
                                           WHERE sbt.bus_id = $busIdSelect AND sbt.bus_trip_id = $tripIdSelect");
@@ -2002,7 +2018,7 @@ $app->post('/customAddCommunication', function () use($app) {
                                           INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
                                           INNER JOIN app.students ON student_guardians.student_id = students.student_id
                                           WHERE students.active = TRUE
-                                          AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                          AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'
                                           AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)");
 
         }
@@ -2029,7 +2045,7 @@ $app->post('/customAddCommunication', function () use($app) {
                                             FROM app.guardians
                                             INNER JOIN app.student_guardians ON guardians.guardian_id = student_guardians.guardian_id
                                             INNER JOIN app.students ON student_guardians.student_id = students.student_id
-                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || $neighborhoodSelect || '%'
+                                            WHERE students.active = TRUE AND students.destination ILIKE '%' || '$neighborhoodSelect' || '%'
                                             AND students.current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id = $classCatSelect)
                                           )one
                                           INNER JOIN app.schoolbus_bus_trips sbt ON one.stdnt_trip = sbt.bus_trip_id
@@ -2045,12 +2061,10 @@ $app->post('/customAddCommunication', function () use($app) {
 
 
     $db->beginTransaction();
-    $sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message ,
-            ':attachment' => $attachment , ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
-            ':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo, ':sent' => $sent,
-            ':messageFrom' => $messageFrom, ':postStatus' => $postStatus, ':route' => $routeId, ':activity' => $feeItem) );
-    $postIdObj = $sth->fetch(PDO::FETCH_OBJ);
-    $postId = $postIdObj->com_id; // use this to send an sms
+    $sth->execute( array(':audienceId' => $audienceId, ':comTypeId' => $comTypeId, ':subject' => $subject, ':message' => $message,
+            ':attachment' => $attachment, ':userId' => $userId, ':studentId' => $studentId, ':guardianId' => $guardianId,
+            ':classId' => $classId, ':sendAsEmail' => $sendAsEmail, ':sendAsSms' => $sendAsSms, ':replyTo' => $replyTo,
+            ':messageFrom' => $messageFrom, ':postStatus' => $postStatus, ':route' => $routeId, ':activity' => $feeItem, ':sent' => $sent) );
 
     // if published, make entries into tables for email/sms service
 
@@ -2059,6 +2073,7 @@ $app->post('/customAddCommunication', function () use($app) {
 
       $pullRecipients->execute($params);
       $results = $pullRecipients->fetchAll(PDO::FETCH_OBJ);
+      $recipientsResults = $results;
 
       foreach($results as $result){
          if( $sendAsEmail === 't' )
@@ -2072,7 +2087,7 @@ $app->post('/customAddCommunication', function () use($app) {
       }
 
       // get the device ids to send a notification
-      if($sendAsEmail === 't')
+      if( $sendAsEmail === 't' && $audienceId == 1 || $sendAsEmail === 't' && $audienceId == 2 || $sendAsEmail === 't' && $audienceId == 5 || $sendAsEmail === 't' && $audienceId == 6 || $sendAsEmail === 't' && $audienceId == 7 )
       {
           $studentsToNotify->execute($params);
           $results = $studentsToNotify->fetchAll(PDO::FETCH_OBJ);
@@ -2090,7 +2105,7 @@ $app->post('/customAddCommunication', function () use($app) {
       $db = getMISDB();
 
       // get all device ids
-      if( $sendAsEmail === 't' && $audienceId == 1 || $sendAsEmail === 't' && $audienceId == 2 || $sendAsEmail === 't' && $audienceId == 5 || $sendAsEmail === 't' && $audienceId == 6 || $sendAsEmail === 't' && $audienceId == 7 )
+      if( $sendAsEmail === 't' )
       {
           $getDeviceIds = $db->prepare("SELECT device_user_id
                                         FROM parents
@@ -2100,6 +2115,7 @@ $app->post('/customAddCommunication', function () use($app) {
                                         AND student_id = any(:studentIds)");
           $getDeviceIds->execute( array(':studentIds' => $studentIdStr, ':subdomain' => $subdomain) );
           $results = $getDeviceIds->fetchAll(PDO::FETCH_OBJ);
+          $returnDevIds = $results;
 
           $deviceIds = array();
           foreach($results as $result) {
@@ -2121,6 +2137,7 @@ $app->post('/customAddCommunication', function () use($app) {
             );
           }
         }
+
     }
     else {
       $db-commit();
@@ -2128,7 +2145,7 @@ $app->post('/customAddCommunication', function () use($app) {
 
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
-    echo json_encode(array("response" => "success", "code" => 1, "com_id" => $postId));
+    echo json_encode(array("response" => "success", "code" => 1, "email_recipients" => $recipientsResults, "device_ids" => $returnDevIds, "execute_params" => $params));
     $db = null;
 
   } catch(PDOException $e) {
@@ -2759,10 +2776,10 @@ $app = \Slim\Slim::getInstance();
   try
   {
       $db = getDB();
-      $sth = $db->prepare("SELECT student_id, student_name, array_agg(parents) AS parents, fee_item, 
-                          (SELECT SUM(ib.total_due) AS total_due FROM app.invoice_balances2 ib WHERE ib.student_id = r.student_id GROUP BY ib.student_id) AS total_due, 
-                          (SELECT SUM(ib.total_paid) AS total_paid FROM app.invoice_balances2 ib WHERE ib.student_id = r.student_id GROUP BY ib.student_id) AS total_paid, 
-                          (SELECT SUM(ib.balance) AS balance FROM app.invoice_balances2 ib WHERE ib.student_id = r.student_id GROUP BY ib.student_id) AS balance 
+      $sth = $db->prepare("SELECT student_id, student_name, array_agg(parents) AS parents, fee_item,
+                          (SELECT SUM(ib.total_due) AS total_due FROM app.invoice_balances2 ib WHERE ib.student_id = r.student_id GROUP BY ib.student_id) AS total_due,
+                          (SELECT SUM(ib.total_paid) AS total_paid FROM app.invoice_balances2 ib WHERE ib.student_id = r.student_id GROUP BY ib.student_id) AS total_paid,
+                          (SELECT SUM(ib.balance) AS balance FROM app.invoice_balances2 ib WHERE ib.student_id = r.student_id GROUP BY ib.student_id) AS balance
                           FROM (
                           	SELECT student_id, student_name, '{\"name\":\"' || parent_full_name || '\",\"phone\":\"' || telephone || '\",\"id\":' || guardian_id || '}' AS parents, fee_item, total_due, total_paid, balance
                           	FROM
