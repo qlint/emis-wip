@@ -5,7 +5,6 @@ controller('listResourcesCtrl', ['$scope', '$rootScope', 'apiService','$timeout'
 function($scope, $rootScope, apiService, $timeout, $window, $state){
 
 	var initialLoad = true;
-	$scope.employees = [];
 	$scope.resources = [];
 	$scope.loading = true;
 	$scope.selectionsReady = false;
@@ -36,9 +35,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 
 	var rowTemplate = function()
 	{
-		return '<div class="clickable" ng-click="grid.appScope.viewEmployee(row.entity)">' +
+		return '<div class="clickable">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
-		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
+		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }" ng-click="grid.appScope.viewEmployee(row)" data-target="#privilegesModal"  ui-grid-cell></div>' +
 		'</div>';
 	}
 
@@ -196,9 +195,84 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		initDataGrid($scope.resources);
 	}
 
-	$scope.viewEmployee = function(item)
+	$scope.viewEmployee = function(row)
 	{
-		$scope.openModal('staff', 'viewEmployee', 'lg', item);
+		console.log(row.entity);
+		$scope.openedResourceName = row.entity.resource_name;
+		$scope.openedResourceTeacher = row.entity.teacher_name;
+		$scope.openedResourceClass = row.entity.class_name;
+		$scope.openedResourceTerm = row.entity.term_name;
+		$scope.openedResourceType = row.entity.resource_type;
+		$scope.openedResourceFile = row.entity.file_name;
+
+		function getFileDir(){
+			var subDir;
+			var fileExtension = $scope.openedResourceFile.split('.').slice(-1).pop();
+			if(fileExtension == 'mp4' || fileExtension == 'm4v' || fileExtension == 'avi' || fileExtension == 'wmv' || fileExtension == 'flv' || fileExtension == 'webm' || fileExtension == 'f4v' || fileExtension == 'mov'){
+				$scope.actualFileType = 'video';
+				$scope.resourceIcon="video-icon.png";
+				subDir = "videos";
+			}else if(fileExtension == 'mp3' || fileExtension == 'm4a' || fileExtension == 'wav' || fileExtension == 'wma' || fileExtension == 'aac' || fileExtension == 'ogg' || fileExtension == '3gp' || fileExtension == 'f4a' || fileExtension == 'flacc' || fileExtension == 'midi'){
+				$scope.actualFileType = 'audio';
+				$scope.resourceIcon="audio-icon.png";
+				subDir = "audios";
+			}else if(fileExtension == 'jpg' || fileExtension == 'jpeg' || fileExtension == 'gif' || fileExtension == 'png' || fileExtension == 'tiff'){
+				$scope.actualFileType = 'audio';
+				$scope.resourceIcon="img-icon.png";
+				subDir = "images";
+			}else if(fileExtension == 'pdf'){
+				$scope.actualFileType = 'pdf';
+				$scope.resourceIcon="pdf-icon.png";
+				subDir = "documents";
+			}else if(fileExtension == 'doc' || fileExtension == 'docx' || fileExtension == 'odf' || fileExtension == 'xls' || fileExtension == 'xlsx' || fileExtension == 'csv'){
+				$scope.actualFileType = 'document';
+				$scope.resourceIcon="doc-icon.png";
+				subDir = "documents";
+			}
+			return subDir;
+		}
+		var school = window.location.host.split('.')[0];
+		var fileDir = getFileDir();
+		$scope.openedResourceLink = 'https://classroom.eduweb.co.ke/' + school + '/' + fileDir + '/' + $scope.openedResourceFile;
+		$scope.openedResourceCreationDate = row.entity.creation_date;
+
+		// Get the modal
+		var modal = document.getElementById("resourceModal");
+
+		// Get the button that opens the modal
+		var btn = document.getElementById("myBtn");
+
+		// Get the <span> element that closes the modal
+		var span = document.getElementsByClassName("closemdl")[0];
+		modal.style.display = "block";
+
+		// When the user clicks on <span> (x), close the modal
+		span.onclick = function() {
+		  modal.style.display = "none";
+			$scope.openedResourceName = null;
+			$scope.openedResourceTeacher = null;
+			$scope.openedResourceClass = null;
+			$scope.openedResourceTerm = null;
+			$scope.openedResourceType = null;
+			$scope.openedResourceFile = null;
+			$scope.openedResourceLink = null;
+			$scope.openedResourceCreationDate = null;
+		}
+
+		// When the user clicks anywhere outside of the modal, close it
+		window.onclick = function(event) {
+		  if (event.target == modal) {
+		    modal.style.display = "none";
+				$scope.openedResourceName = null;
+				$scope.openedResourceTeacher = null;
+				$scope.openedResourceClass = null;
+				$scope.openedResourceTerm = null;
+				$scope.openedResourceType = null;
+				$scope.openedResourceFile = null;
+				$scope.openedResourceLink = null;
+				$scope.openedResourceCreationDate = null;
+		  }
+		}
 	}
 
 	$scope.exportData = function()

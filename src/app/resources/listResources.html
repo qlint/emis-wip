@@ -1,9 +1,20 @@
 <style type="text/css">
-    .spacing-mod {margin-bottom:2%;}
-    spacing-mod:first-child {margin-top:2%;}
-    #permsTable tbody.collapse.in {display: table-row-group;}
-    .permsDiv {padding-left:5px;padding-right:5px;}
-    th.narrowCol {width: 10%;}
+  .spacing-mod {margin-bottom:2%;}
+  spacing-mod:first-child {margin-top:2%;}
+  #permsTable tbody.collapse.in {display: table-row-group;}
+  .permsDiv {padding-left:5px;padding-right:5px;}
+  th.narrowCol {width: 10%;}
+
+  /* Modal Header */
+  .modal-header { padding: 2px 16px; background-color: #5cb85c; color: white; }
+  /* Modal Body */
+  .modal-body {padding: 2px 16px;}
+  /* Modal Footer */
+  .modal-footer { padding: 2px 16px; background-color: #5cb85c; color: white; }
+  /* Modal Content */
+  .modal-content { position: relative; background-color: #fefefe; margin: auto; padding: 0; border: 1px solid #888; width: 45%; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19); animation-name: animatetop; animation-duration: 0.4s}
+  /* Add Animation */
+  @keyframes animatetop { from {top: -300px; opacity: 0} to {top: 0; opacity: 1} }
 </style>
 <div ng-controller="listResourcesCtrl" class="full-height">
 
@@ -37,21 +48,25 @@
 				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
 				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
 					<!-- category select -->
+          <!--
 					<div class="form-group">
 						<label for="category">Category</label>
 						<select class="form-control" id="category" name="emp_cat_id" ng-options="item.emp_cat_name for item in empCats" ng-model="filters.emp_cat">
 							<option value="">All Employee Categories</option>
 						</select>
 					</div>
+          -->
 					<!-- class select -->
+          <!--
 					<div class="form-group">
 						<label for="dept">Department</label>
 						<select name="dept" id="dept" class="form-control" ng-options="dept.dept_id as dept.dept_name for dept in departments" ng-model="filters.dept_id">
 							<option value="">All Departments</option>
 						</select>
 					</div>
-
+          -->
 					<!-- status select -->
+          <!--
 					<div class="form-group">
 						<label for="status">Status</label>
 						<select name="status" id="status" class="form-control" ng-model="filters.status">
@@ -59,16 +74,17 @@
 							<option value="false">Former</option>
 						</select>
 					</div>
-
+          -->
 					<!-- search btn -->
+          <!--
 					<div class="form-group submit-btn">
 						<input type="submit" class="btn btn-sm btn-info" ng-click="filter()" value="Load" />
 						<img src="assets/spinner.gif" ng-show="loading" />
 						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
 					</div>
-
+          -->
 					<div class="form-group grid-filter">
-						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' placeholder="Filter"/>
+						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' ng-change='filterDataTable()' placeholder="Filter"/>
 						<button class="btn btn-xs btn-primary" ng-click='filterDataTable()'>Filter</button>
 						<button class="btn btn-xs " ng-click='clearFilterDataTable()'>Clear</button>
 					</div>
@@ -89,188 +105,25 @@
 		</div>
 
 		<!-- View Resource -->
-        <div class="modal fade" id="privilegesModal" role="dialog">
-            <div class="modal-dialog">
-
-              <!-- Modal content-->
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal">&times;</button>
-                  <h2 class="modal-title">User Privilege Settings</h2>
-                </div>
-                <div class="modal-body">
-                    <p><b>Here you can set which user(s) can access which features.</b></p>
-
-                    <div class="row">
-
-                        <div class="col-sm-12 spacing-mod">
-                            <!-- <label for="user_type">User Type:</label> -->
-            				<div>
-            				    <select name="user_type" ng-model="privileges.user_type" ng-change="captureType()" class="form-control">
-            						<option value="">Select A User Type</option>
-            						<option ng-repeat="item in userTypes" value="{{item.type_val}}">{{item.type_name}}</option>
-            					</select>
-            				</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showSysAdmin">
-                            <!-- <label for="ind_sysadmin">Individual Sys Admin?</label> -->
-        				    <div>
-        					    <select name="ind_sysadmin" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select A Sys Admin or Leave Blank For All Sys Admins</option>
-        							<option ng-repeat="item in sysAdmins" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showAdmin">
-                            <!-- <label for="ind_admin">Individual Admin?</label> -->
-        				    <div>
-        					    <select name="ind_admin" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select An Admin or Leave Blank For All Admins</option>
-        							<option ng-repeat="item in admins" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showTeachers">
-                            <!-- <label for="teachers">Individual Teacher?</label> -->
-        				    <div>
-        					    <select name="teachers" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select A Teacher or Leave Blank For All Teachers</option>
-        							<option ng-repeat="item in tchrs" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showEmployees">
-                            <!-- <label for="employees">Individual Employee?</label> -->
-        				    <div>
-        					    <select name="employees" ng-model="privileges.emp_id" class="form-control">
-        							<option value="">Select An Employee or Leave Blank For All Employees</option>
-        							<option ng-repeat="item in employees" value="{{item.emp_id}}">{{item.employee_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showCategories">
-                            <!-- <label for="categories">Single category?</label> -->
-        				    <div>
-        					    <select name="categories" ng-model="privileges.emp_cat_id" class="form-control">
-        							<option value="">Select A Category</option>
-        							<option ng-repeat="item in empCats" value="{{item.emp_cat_id}}">{{item.emp_cat_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showDepartments">
-                            <!-- <label for="departments">Single department?</label> -->
-        				    <div>
-        					    <select name="departments" ng-model="privileges.dept_id" class="form-control">
-        							<option value="">Select A Department</option>
-        							<option ng-repeat="item in empDepts" value="{{item.dept_id}}">{{item.dept_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showPrincipal">
-                            <!-- <label for="departments">Select Principal:</label> -->
-        				    <div>
-        					    <select name="principal" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select Principal</option>
-        							<option ng-repeat="item in principals" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showAdmnFin">
-                            <!-- <label for="admnFnance">Select Finance Admin:</label> -->
-        				    <div>
-        					    <select name="adminFinance" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select Finance Administrator</option>
-        							<option ng-repeat="item in admnFinance" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showAdmnTransp">
-                            <!-- <label for="admnTransport">Select Transport Admin:</label> -->
-        				    <div>
-        					    <select name="adminTransport" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select Transport Administrator</option>
-        							<option ng-repeat="item in admnTransport" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showFin">
-                            <!-- <label for="finance">Select Finance User:</label> -->
-        				    <div>
-        					    <select name="finance" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select A Finance User</option>
-        							<option ng-repeat="item in fnance" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        				<div class="col-sm-12 spacing-mod" ng-show="showFinCtrld">
-                            <!-- <label for="finance">Select Controlled Finance User:</label> -->
-        				    <div>
-        					    <select name="financeCtrld" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select A Controlled Finance User</option>
-        							<option ng-repeat="item in fnanceCtrld" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
-
-        			</div>
-
-        			<div class="row">
-        			    <b><p id="notifySelection" style="margin-left:15px;font-style:italic;">{{selectionMsg}}</p></b>
-        			    <button type="button" class="btn btn-primary" ng-click="checkPrivilegeSelection()" style="margin-left:15px">Set Up Privileges</button>
-        			</div>
-
-        			<div ng-show="selectionsReady" class="row">
-        			    <h4 style="margin-left:15px;">Make the relevant selections</h4>
-        			    <div class="permsDiv">
-            			    <table id="permsTable" class="table table-bordered table-sm ">
-                                <thead class="thead-dark">
-                                    <tr style="background-color:#76ff66;">
-                                        <th>All Modules</th>
-                                        <th ng-repeat="header in permsTable.header.values track by $index" class="narrowCol">
-                                            <input type="checkbox" class="form-check-input" name="{{header.name}}" value="{{header.isSelected}}" ng-model="header.isSelected" ng-change="headerChange(this)">
-                                            <p>{{header.name}}<p>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody ng-repeat-start="perms in permsTable.rows track by $index">
-                                    <tr class="clickable" data-toggle="collapse" data-target="#group-of-rows-{{$index}}" aria-expanded="false" aria-controls="group-of-rows-{{$index}}">
-                                        <td><i class="fa fa-folder">{{perms.name}}</i></td>
-                                        <td ng-repeat="mainPerm in perms.values track by $index">
-                                            <input type="checkbox" class="form-check-input" name="{{mainPerm.name}}" value="{{mainPerm.isSelected}}" ng-model="mainPerm.isSelected" ng-change="bodyHeaderChange(this)">
-                                        </td>
-                                    </tr>
-                                </tbody>
-                                <tbody id="group-of-rows-{{$index}}" class="collapse" ng-repeat-end="" style="background-color:#d4ffcc;">
-                                    <tr class="table-warning" ng-repeat="subModule in perms.children track by $index">
-                                        <td><i class="fa fa-folder-open"></i> {{subModule.name}}</td>
-                                        <td ng-repeat="subModuleVals in subModule.values track by $index">
-                                            <input type="checkbox" class="form-check-input" name="{{subModuleVals.name}}" value="{{subModuleVals.isSelected}}" ng-model="subModuleVals.isSelected">
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-        			</div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="savePermissions()">Save</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-              </div>
-
-            </div>
+    <div id="resourceModal" class="modal" style="padding-top:10%;background-color: rgba(0,0,0,.8);">
+      <div class="modal-content">
+        <div class="modal-header" style="height="55px">
+          <h2>{{openedResourceName}}</h2>
+          <span class="closemdl" style="float: right;margin-top: -6%;font-size: 30px;">&times;</span>
         </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-sm-2"><p><b>Teacher:</b></p></div><div class="col-sm-10"><p>{{openedResourceTeacher}}</p></div>
+            <div class="col-sm-2"><p><b>Audience:</b></p></div><div class="col-sm-10"><p>{{openedResourceClass}}, {{openedResourceTerm}}</p></div>
+            <div class="col-sm-2"><p><b>Type:</b></p></div><div class="col-sm-10"><p>{{openedResourceType}}</p></div>
+            <div class="col-sm-2"><p><b>Link:</b></p></div><div class="col-sm-10"><p><a href="{{openedResourceLink}}" target="_blank">{{openedResourceName}}</a></p></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <h4 style="color: #000000;font-weight: 600;">Created on {{openedResourceCreationDate}}</h4>
+        </div>
+      </div>
+    </div>
+
 	</div>
 </div>
