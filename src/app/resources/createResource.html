@@ -194,9 +194,13 @@
 							{{resourceType}}
 						</p>
 						<div>
-							<a href="assets/resources/{{schoolDir}}/{{assetSubDir}}/{{resourceFile}}" target="_blank">
+							<a ng-hide="showVimeoFrame" href="assets/resources/{{schoolDir}}/{{assetSubDir}}/{{resourceFile}}" target="_blank">
 								<img class="img-responsive" src="assets/img/icons/{{resourceIcon}}" alt="{{resourceFile}}">
 							</a>
+							<div ng-show="showVimeoFrame" style="padding:181.82% 0 0 0;position:relative;">
+								<iframe src="{{vimeoId}}" style="position:absolute;top:0;left:-23px;width:auto;height:64%;" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+							</div>
+							<script ng-show="showVimeoFrame" src="https://player.vimeo.com/api/player.js"></script>
 						</div>
 					</div>
 				</div>
@@ -205,7 +209,7 @@
 		  <input type="text" value="https://classroom.eduweb.co.ke/{{schoolDir}}/{{assetSubDir}}/{{resourceFile}}" id="linkUrl" style="margin-left:1%;width:85%;background-color:aqua;font-style:italic;font-weight:bold;" readonly="readonly">
           <!-- The button used to copy the text -->
           <button ng-click="copyLink()">Copy Link</button>
-          
+
 		  <div class="modal-footer">
 		    <button type="button" class="btn btn-primary" style="margin-right:2%;" ng-click="sendToApp()">Send To App</button>
 		    <span><button type="button" class="btn btn-{{editButtonStyle}}" style="margin-right:2%;" ng-click="updateResource()">{{editButtonTxt}}</button>

@@ -3,6 +3,8 @@ api/public/web.config
 src/assets/schools/*
 src/assets/students/*
 src/assets/posts/*
+src/assets/resources/*
+src/srvScripts/vimeo/vendor/*
 .sass-cache
 node_modules
 package.json

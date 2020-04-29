@@ -1,0 +1,266 @@
+<style type="text/css">
+  .spacing-mod {margin-bottom:2%;}
+  spacing-mod:first-child {margin-top:2%;}
+  #permsTable tbody.collapse.in {display: table-row-group;}
+  .permsDiv {padding-left:5px;padding-right:5px;}
+  th.narrowCol {width: 10%;}
+
+  /* Modal Header */
+  .modal-header { padding: 2px 16px; background-color: #5cb85c; color: white; }
+  /* Modal Body */
+  .modal-body {padding: 2px 16px;}
+  /* Modal Footer */
+  .modal-footer { padding: 2px 16px; background-color: #5cb85c; color: white; }
+  /* Modal Content */
+  .modal-content { position: relative; background-color: #fefefe; margin: auto; padding: 0; border: 1px solid #888; width: 45%; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19); animation-name: animatetop; animation-duration: 0.4s}
+  /* Add Animation */
+  @keyframes animatetop { from {top: -300px; opacity: 0} to {top: 0; opacity: 1} }
+  @import "components/tympanus/css/just-me-modal.css";
+</style>
+<div ng-controller="allHomeworkFeedbackCtrl" class="full-height">
+
+	<div id="body-content" class="row fixed-filter" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+
+		<div class="fixed content-fixed-header">
+            <div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
+			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
+				<div class="btn-group toolbar">
+				  <!-- <div class="btn" title="Print" ng-hide="isSmallScreen" ng-click="printablePage()"><a class="print-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div-->
+					<!-- <div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div> -->
+				</div>
+			</div>
+
+			<div class="clearfix">
+				<h1 id="pageTitle">List of all homework feedback</h1>
+			</div>
+
+			<!-- search form -->
+			<div class="dataFilterForm">
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+					<!-- category select -->
+          <!--
+					<div class="form-group">
+						<label for="category">Category</label>
+						<select class="form-control" id="category" name="emp_cat_id" ng-options="item.emp_cat_name for item in empCats" ng-model="filters.emp_cat">
+							<option value="">All Employee Categories</option>
+						</select>
+					</div>
+          -->
+					<!-- class select -->
+          <!--
+					<div class="form-group">
+						<label for="dept">Department</label>
+						<select name="dept" id="dept" class="form-control" ng-options="dept.dept_id as dept.dept_name for dept in departments" ng-model="filters.dept_id">
+							<option value="">All Departments</option>
+						</select>
+					</div>
+          -->
+					<!-- status select -->
+          <!--
+					<div class="form-group">
+						<label for="status">Status</label>
+						<select name="status" id="status" class="form-control" ng-model="filters.status">
+							<option value="true">Current</option>
+							<option value="false">Former</option>
+						</select>
+					</div>
+          -->
+					<!-- search btn -->
+          <!--
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="filter()" value="Load" />
+						<img src="assets/spinner.gif" ng-show="loading" />
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+          -->
+					<div class="form-group grid-filter">
+						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' ng-change='filterDataTable()' placeholder="Filter"/>
+						<button class="btn btn-xs btn-primary" ng-click='filterDataTable()'>Filter</button>
+						<button class="btn btn-xs " ng-click='clearFilterDataTable()'>Clear</button>
+					</div>
+
+				</form>
+			</div>
+			<!-- // end search form -->
+
+
+		</div>
+
+		<div class="full-height datagrid main-datagrid" style="padding-top:130px;">
+			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+			<div id="grid1" ui-grid="gridOptions" ui-grid-exporter class="myGrid">
+				<div ng-if="!gridOptions.data.length" class="no-results">No results found.</div>
+			</div>
+
+		</div>
+
+    <!-- View Homework -->
+    <div id="resourceModal" class="modal" style="padding-top:10%;background-color: rgba(0,0,0,.8);">
+      <div class="modal-content" style="margin-top:-7%;max-height:450px;">
+        <div class="modal-header" style="height:55px">
+          <h2>HOMEWORK TITLE: {{openedHomeworkTitle | limitTo:35}}{{ openedHomeworkTitle.length > 35 ? '...' : ''}}</h2>
+          <span class="closemdl" style="float: right;margin-top: -6%;font-size: 30px;">&times;</span>
+        </div>
+        <div class="modal-body" style="background-color:#ffffff;">
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-4"><p><b>Homework By:</b></p></div><div class="col-sm-8"><p>{{openedHomeworkTeacher}}</p></div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-4"><p><b>Class:</b></p></div><div class="col-sm-8"><p>{{openedHomeworkClass}}</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-4"><p><b>Subject:</b></p></div><div class="col-sm-8"><p>{{openedHomeworkSubjectName}}</p></div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-4"><p><b>Msg. From:</b></p></div><div class="col-sm-8"><p>{{openedHomeworkParentName}}</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-4"><p><b>Student:</b></p></div><div class="col-sm-8"><p>{{openedHomeworkStudentName}}</p></div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="row">
+                <div class="col-sm-4"><p><b>Assigned On:</b></p></div><div class="col-sm-8"><p>{{openedHomeworkAssignedDate}}</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-12">
+              <div class="row">
+                <div class="col-sm-2"><p><b>Homework:</b></p></div>
+                <div class="col-sm-10" id="hmwkBody" style="max-width:80%;max-height:200px;overflow-y:auto;background-color:#e6e6fa;padding-left:15px;padding-right:15px;padding-bottom:10px;padding-top:10px;"></div>
+              </div>
+              <div class="row">
+                <div class="col-sm-2"><p><b>Message:</b></p></div>
+                <div class="col-sm-10" id="hmwkMsg" style="max-width:80%;max-height:150px;overflow-y:auto;background-color:#7fffd4;padding-left:15px;padding-right:15px;padding-bottom:10px;padding-top:10px;"></div>
+              </div>
+            </div>
+            <div class="col-sm-12">
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="col-sm-4"><p><b>Homework Attachment:</b></p></div><div class="col-sm-8"><p><a ng-show="showHmwkAttachmentLink" href="{{openedHomeworkLink}}" target="_blank">{{openedHomeworkTitle}}</a></p></div>
+              </div>
+              <div class="col-sm-6">
+                <div class="col-sm-4"><p><b>Student Attachment:</b></p></div><div class="col-sm-8"><p><a ng-show="showStdntAttachmentLink" href="{{openedHomeworkStdntLink}}" target="_blank">{{openedHomeworkStudentAttachment}}</a></p></div>
+              </div>
+            </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="md-modal md-effect-12" id="modal-12">
+          			<div class="md-content">
+          				<h3>Reply To Homework Feedback</h3>
+          				<div class="row">
+                    <div class="col-sm-12">
+                      <div class="row">
+                        <div class="col-sm-2">From:</div>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="reply_from" name="reply_from" value="{{forReply.added_by}}" readonly style="width:100%;">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-sm-12" style="margin-top:10px;">
+                      <div class="row">
+                        <div class="col-sm-2">To:</div>
+                        <div class="col-sm-10">
+                          <select class="" name="reply_to" id="reply_to" style="width:100%;color:#000000;">
+                            <option value="to_student">{{forReply.student_name}}'s parent ({{forReply.parent_name}})</option>
+                            <option value="to_student">{{forReply.student_name}}'s class ({{forReply.class_name}})</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-sm-12" style="margin-top:10px;">
+                      <div class="row">
+                        <div class="col-sm-2">Subject:</div>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" id="reply_subject" name="reply_subject" style="width:100%;">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-sm-12" style="margin-top:10px;">
+                      <div class="row">
+                        <div class="col-sm-2">Message:</div>
+                        <div class="col-sm-10">
+                          <textarea id="reply_msg" name="reply_msg" rows="8" cols="43" style="width:100%;color:#000000;"></textarea>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-sm-12" style="margin-top:10px;">
+                      <div class="row">
+                        <div class="col-sm-12">
+                          <style>
+            								.file-input {display: inline-block;text-align: left;background: #fff;width: 100%;position: relative;border-radius: 3px;}
+            								.file-input > [type='file'] {position: absolute;top: 0;left: 0;width: 100%;height: 100%;opacity: 0;z-index: 10;cursor: pointer;}
+            								.file-input > .label {color: #333;white-space: nowrap;opacity: .3;}
+            								.file-input.-chosen > .label {opacity: 1;}
+            							</style>
+                          <div class='file-input'>
+          								  <input type='file' name="file_attachment" id="file_attachment">
+          								  <span class='btn btn-info btn-sm' style="color:#000000;">Attach A File</span>
+          								  <label class='label' data-js-label>No file selected</label>
+          								</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-sm-12">
+                      <hr>
+                      <div class="row">
+                        <div class="col-sm-6">
+                          <button class="btn btn-primary btn-sm md-close" style="float:left;" ng-click='replyToHmwkFeedback()'>Send Response</button>
+                        </div>
+                        <div class="col-sm-6">
+                          <button class="btn btn-default btn-sm md-close" style="float:right;" ng-click="closeModals()">Cancel</button>
+                        </div>
+                      </div>
+                    </div>
+
+          				</div>
+          			</div>
+          		</div>
+              <button class="btn btn-success btn-xs md-trigger"  data-modal="modal-12" style="border:#000000 1px solid;float:left;padding:7px 10px;">Reply To This Feedback</button>
+              <div class="md-overlay"></div>
+            </div>
+            <div class="col-sm-6">
+              <h4 style="color: #000000;font-weight: 600;">Sent on {{openedHomeworkCreationDate}}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+	</div>
+</div>

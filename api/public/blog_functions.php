@@ -513,7 +513,25 @@ $app = \Slim\Slim::getInstance();
     $query = "SELECT homework_id as post_id, assigned_date, title, body, homework.post_status_id, post_status,
                 employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
                 attachment, homework.modified_date,
-                class_name, class_subjects.class_id, due_date, subject_name, homework.class_subject_id, homework.creation_date
+                class_name, class_subjects.class_id, due_date, subject_name, homework.class_subject_id, homework.creation_date,
+                seen_count AS overall_seen_count, seen_by AS overall_seen_by,/*,
+                array_to_json(
+                  ARRAY(
+          					SELECT
+          						student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name
+          					FROM app.students
+          					WHERE student_id = ANY(string_to_array(seen_by,',')::int[])
+          				)
+                ) AS seen_by*/
+                (
+                  SELECT array_to_json(array_agg(row_to_json(a)))
+                  FROM (
+                        SELECT
+                  		student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name
+                  	  FROM app.students
+                      WHERE student_id = ANY(string_to_array(seen_by,',')::int[])
+                  ) a
+                ) AS seen_by
               FROM app.homework
               INNER JOIN app.employees
               ON homework.created_by = employees.emp_id
@@ -548,7 +566,7 @@ $app = \Slim\Slim::getInstance();
 
   if( $teacherId !== '0' )
   {
-    $query .= "AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId) ";
+    $query .= "AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId OR homework.created_by = :teacherId) ";
     $params[':teacherId'] = $teacherId;
   }
 
@@ -582,6 +600,107 @@ $app = \Slim\Slim::getInstance();
 
 });
 
+$app->get('/getHomeworkFeedback(/:empId)', function ($empId = null) {
+  // Get all homework feedback
+
+$app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+    $params = array();
+    $query = "SELECT hf.*,
+                g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_name,
+                s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                sg.relationship, c.teacher_id AS class_teacher, j.teacher_id AS subject_teacher,
+                TO_CHAR(hf.creation_date :: DATE, 'dd/mm/yyyy') AS formated_date
+              FROM app.homework_feedback hf
+              INNER JOIN app.students s USING (student_id)
+              INNER JOIN app.student_guardians sg ON hf.student_id = sg.student_id AND hf.guardian_id = sg.guardian_id
+              INNER JOIN app.guardians g ON hf.guardian_id = g.guardian_id AND sg.guardian_id = g.guardian_id
+              INNER JOIN app.classes c USING (class_id)
+              INNER JOIN app.subjects j USING (subject_id)
+            ";
+
+  if( $empId !== '0' )
+  {
+    $query .= " WHERE (c.teacher_id = :empId OR j.teacher_id = :empId OR hf.emp_id = :empId) ";
+    $params[':empId'] = $empId;
+  }
+
+  $query .= " ORDER BY homework_feedback_id DESC";
+
+  $sth = $db->prepare( $query );
+  $sth->execute( $params );
+  $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+  if($results) {
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array('response' => 'success', 'data' => $results ));
+    $db = null;
+  } else {
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+    $db = null;
+  }
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+  $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getAllHomeworkFeedback(/:empId)', function ($empId = null) {
+  // Get all homework feedback
+
+$app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+    $params = array();
+    $query = "SELECT hf.*,
+                g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_name,
+                s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                sg.relationship, c.teacher_id AS class_teacher, j.teacher_id AS subject_teacher,
+                TO_CHAR(hf.creation_date :: DATE, 'dd/mm/yyyy') AS formated_date
+              FROM app.homework_feedback hf
+              INNER JOIN app.students s USING (student_id)
+              INNER JOIN app.student_guardians sg ON hf.student_id = sg.student_id AND hf.guardian_id = sg.guardian_id
+              INNER JOIN app.guardians g ON hf.guardian_id = g.guardian_id AND sg.guardian_id = g.guardian_id
+              INNER JOIN app.classes c USING (class_id)
+              INNER JOIN app.subjects j USING (subject_id)
+              ORDER BY homework_feedback_id DESC
+            ";
+
+  $sth = $db->prepare( $query );
+  $sth->execute( $params );
+  $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+  if($results) {
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array('response' => 'success', 'data' => $results ));
+    $db = null;
+  } else {
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+    $db = null;
+  }
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+  $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/getHomeworkPost/:post_id', function ($postId) {
   // Get post
 
@@ -592,7 +711,14 @@ $app = \Slim\Slim::getInstance();
       $db = getDB();
       $sth = $db->prepare("SELECT homework_id as post_id, homework.creation_date, title, body, homework.post_status_id, post_status,
                 first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as posted_by, attachment, homework.modified_date,
-                class_name, classes.class_id, homework.class_subject_id, subjects.subject_id, subject_name, assigned_date, due_date
+                class_name, classes.class_id, homework.class_subject_id, subjects.subject_id, subject_name, assigned_date, due_date,
+                array_to_string(ARRAY(
+        					SELECT
+        						first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name
+        					FROM app.students
+        					WHERE student_id = ANY(string_to_array(seen_by,',')::int[])
+        				),',') AS seen_by,
+        				seen_count
             FROM app.homework
             INNER JOIN app.employees
             ON homework.created_by = employees.emp_id
@@ -626,6 +752,53 @@ $app = \Slim\Slim::getInstance();
   $app->response()->headers->set('Content-Type', 'application/json');
       echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
+
+});
+
+$app->get('/getAllHomework', function () {
+    //Show all resources
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+
+        $sth = $db->prepare("SELECT h.homework_id, cs.class_id, c.class_name, cs.subject_id, s.subject_name,
+                            		e.first_name, e.middle_name, e.last_name,
+                                    e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as teacher_name,
+                                    h.title, h.body, h.attachment, h.students,
+                            		TO_CHAR(h.assigned_date :: DATE, 'dd/mm/yyyy') AS assigned_date,
+                            		TO_CHAR(h.due_date :: DATE, 'dd/mm/yyyy') AS due_date,
+                            		TO_CHAR(h.creation_date :: DATE, 'dd/mm/yyyy') AS creation_date,
+                                h.post_status_id, post_status AS status
+                            FROM app.homework h
+                            INNER JOIN app.class_subjects cs USING (class_subject_id)
+                            INNER JOIN app.subjects s USING (subject_id)
+                            INNER JOIN app.classes c USING (class_id)
+                            INNER JOIN app.employees e ON h.created_by = e.emp_id
+                            INNER JOIN app.blog_post_statuses USING (post_status_id)
+                            ORDER BY homework_id DESC");
+		    $sth->execute();
+		    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
 
 });
 
@@ -1139,7 +1312,7 @@ $app->post('/addCommunication', function () use($app) {
                                           INNER JOIN app.students USING (student_id)
                                           INNER JOIN app.classes c ON students.current_class = c.class_id
                                           INNER JOIN app.class_cats cc USING (class_cat_id)
-                                          WHERE guardians.active IS TRUE AND students.active IS TRUE AND cc.entity_id != 100 OR cc.entity_id IS null
+                                          WHERE guardians.active IS TRUE AND email IS NOT NULL AND students.active IS TRUE AND cc.entity_id != 100 OR cc.entity_id IS null
                                           AND current_class = :classId");
           $params = array(':classId' => $classId);
 

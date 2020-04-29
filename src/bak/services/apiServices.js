@@ -698,6 +698,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getHomeworkPost/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getHomeworkFeedback = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getHomeworkFeedback/" + param, successFunction, errorFunction, params);
+	};
+
 	this.addHomework = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addHomework", successFunction, errorFunction, params);
 	};

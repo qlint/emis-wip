@@ -1,7 +1,25 @@
-create or replace function date_text_to_date(str varchar)
-returns text language plpgsql as $$
-begin
-    return TO_CHAR(str :: DATE, 'dd/mm/yyyy');
-exception
-    when others then return str;
-end $$;
+CREATE TABLE app.homework_feedback
+(
+    homework_feedback_id serial,
+    homework_id integer,
+	title character varying,
+	body character varying,
+	message character varying,
+	homework_attachment character varying,
+	student_attachment character varying,
+	assigned_date character varying,
+	due_date character varying,
+	added_by character varying,
+	emp_id integer,
+	subject_name character varying,
+	subject_id integer,
+	class_id integer,
+	class_name character varying,
+    creation_date timestamp without time zone NOT NULL DEFAULT now(),
+    CONSTRAINT "PK_homework_feedback_id" PRIMARY KEY (homework_feedback_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE app.homework_feedback
+    OWNER to postgres;

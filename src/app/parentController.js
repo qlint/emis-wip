@@ -1056,6 +1056,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'view': true,
 							'add': true,
 							'edit': true,
+						},
+						'homework_feedback': {
+							'view': true,
+							'add': true,
+							'edit': true
 						}
 					},
 					'resources':{
@@ -1085,7 +1090,20 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 			$rootScope.permissions.resources.list_resources.view = true;
 			$rootScope.permissions.resources.list_resources.edit = false;
 			$rootScope.permissions.resources.list_resources.add = false;
-			
+
+			if($rootScope.permissions.communications == undefined){
+				$rootScope.permissions.communications = {};
+			}
+			$rootScope.permissions.communications.all_homework = {};
+			$rootScope.permissions.communications.all_homework.view = true;
+			$rootScope.permissions.communications.all_homework.edit = false;
+			$rootScope.permissions.communications.all_homework.add = false;
+
+			$rootScope.permissions.communications.all_homework_feedback = {};
+			$rootScope.permissions.communications.all_homework_feedback.view = true;
+			$rootScope.permissions.communications.all_homework_feedback.edit = false;
+			$rootScope.permissions.communications.all_homework_feedback.add = false;
+
 		}
 
 		$scope.navItems = [];

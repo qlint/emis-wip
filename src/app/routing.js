@@ -303,6 +303,31 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
+	.state('communications/all_homework', {
+	      url: "/communications/all_homework",
+		  	templateUrl: 'app/communications/allHomework.html',
+	      data: {
+	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
+	      }
+	   })
+	.state('communications/all_homework_feedback', {
+	 	      url: "/communications/all_homework_feedback",
+	 		  	templateUrl: 'app/communications/allHomeworkFeedback.html',
+	 	      data: {
+	 	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
+	 	      }
+	 	 })
+	.state('communications/homework_feedback', {
+	      url: "/communications/blog/homework_feedback",
+		  params: {
+			class_id: null,
+			subject_id: null,
+		  },
+		  templateUrl: 'app/communications/homeworkFeedback.html',
+	      data: {
+	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+	      }
+	   })
 	.state('communications/send_email', {
       url: "/communications/send_email",
 	  params: {

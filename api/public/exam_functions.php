@@ -338,7 +338,7 @@ $app->get('/getClassExamMarks/:class_id/:term_id/:exam_type_id(/:teacher_id)', f
 	{
 		$db = getDB();
 		$params = array(':classId' => $classId, ':termId' => $termId, ':examTypeId' => $examTypeId);
-		$query = "SELECT q.student_id, student_name, subject_name, q.class_sub_exam_id, mark, exam_marks.term_id, grade_weight, sort_order, parent_subject_id, subject_id, is_parent, use_for_gradiing
+		$query = "SELECT q.student_id, student_name, subject_name, q.class_sub_exam_id, mark, exam_marks.term_id, grade_weight, sort_order, parent_subject_id, subject_id, is_parent, use_for_grading
 							FROM (
 								SELECT  students.student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
 									subject_name, class_subject_exams.class_sub_exam_id, grade_weight, subjects.sort_order, parent_subject_id, subjects.subject_id,

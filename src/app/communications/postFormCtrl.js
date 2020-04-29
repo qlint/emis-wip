@@ -20,7 +20,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	$scope.thestudenttype = {};
 	$scope.thehouse = {};
 	$scope.thecommittee = {};
-
+	$scope.schoolName = window.location.host.split('.')[0];
 	$scope.edit = ( $state.params.action !== undefined && $state.params.action == 'edit' ? true : false );
 	$scope.post = ( $state.params.post !== undefined ? $state.params.post : {} );
 	$scope.post_type = ( $state.params.post_type !== undefined ? $state.params.post_type : 'post' );
@@ -36,6 +36,8 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	$scope.isAdmin2 = ( $rootScope.currentUser.user_type == 'ADMIN' || $rootScope.currentUser.user_type == 'PRINCIPAL' ? true : false );
 	$scope.toStudentsStatus = false;
 	$scope.selectedStudents = [];
+	$scope.homeworkCounts = ($scope.pageTitle == 'Homework Post' ? true:false);
+	console.log("Is homework? " + $scope.isHomework,"Post_Type = " + $scope.post_type);
 
     if( $scope.isHomework )
 	{
@@ -67,6 +69,9 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 						else
 						{
 							$scope.post = result.data;
+							$scope.post.seen_by = ($scope.post.seen_by == null ? null : $scope.post.seen_by.split(','));
+							$scope.post.seen_count = ($scope.post.seen_count == null ? '0' : $scope.post.seen_count);
+							console.log("Homework post",$scope.post);
 							$scope.dates.assigned_date = {startDate:moment($scope.post.assigned_date).format('YYYY-MM-DD')};
 							$scope.dates.due_date = {startDate:moment($scope.post.due_date).format('YYYY-MM-DD')};
 							$scope.optionsSelected = true;
@@ -233,7 +238,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 
 	}
 	$timeout(initializeController,100);
-	
+
 	$scope.getStudents = function(){
 	    console.log("The selection has changed.");
 	    apiService.getClassStudents($scope.filters.subject.class_id,function(response,status){
@@ -263,11 +268,11 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
         $scope.selectedStudents = getValues("studentsList");
         console.log($scope.selectedStudents);
 	}
-	
+
 	$scope.sendToStudents = function(){
 	    $scope.toStudentsStatus = document.getElementById("to_students").checked;
 	    console.log("Checkbox clicked",$scope.toStudentsStatus);
-	    
+
 	    if($scope.toStudentsStatus == true){
 	        $.getScript('/components/selectBox/vanillaSelectBox.js', function()
             {
@@ -1061,7 +1066,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 		}
 
 	}
-	
+
 	setTimeout(function(){
     	apiService.getClassStudents($scope.filters.subject.class_id,function(response,status){
     			var result = angular.fromJson( response );

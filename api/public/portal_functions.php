@@ -48,6 +48,8 @@ $app->post('/parentLogin', function () use($app) {
 
     if($gStatus === "proceed"){
       if(isset($allPostVars['device_user_id'])){
+          $devId = str_replace('"', "", $devId); // remove all double quotes if they exist
+          $devId = str_replace("'", "", $devId); // remove all single quotes if they exist
         $updateDeviceId = $db->prepare("UPDATE parents SET device_user_id = :devId WHERE parent_id = :parentId");
         $updateDeviceId->execute( array(':devId' => $devId, ':parentId' => $theParentId) );
       }
@@ -136,7 +138,14 @@ $app->post('/parentLogin', function () use($app) {
                             guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
                             communications.guardian_id, communications.student_id, classes.class_name, post_status,
                             sent, sent_date, message_from,
-                            case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method
+                            case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method,
+                            seen_count, seen_by,
+                            (
+              								CASE
+              									WHEN string_to_array(seen_by, ',') && '{". implode(',',$students) ."}'::text[] THEN true
+		                            ELSE false
+              								END
+              							) AS seen
                           FROM app.communications
                           LEFT JOIN app.students ON communications.student_id = students.student_id
                           LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
@@ -160,6 +169,20 @@ $app->post('/parentLogin', function () use($app) {
                 $sth5->execute(array(':studentIds' => $studentsArray));
                 $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
 
+                $sthResources = $db->prepare("SELECT student_id, resource_id, r.class_id, r.term_id, r.emp_id, resource_name,
+                              resource_type, file_name, additional_text, r.active AS active_resource, vimeo_path,
+                              e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name AS teacher_name,
+                               s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                               term_name, class_name, TO_CHAR(r.creation_date :: DATE, 'dd/mm/yyyy') AS creation_date
+                            FROM app.school_resources r
+                            INNER JOIN app.classes c USING (class_id)
+                            INNER JOIN app.students s ON s.current_class = c.class_id
+                            INNER JOIN app.employees e USING (emp_id)
+                            INNER JOIN app.terms t USING (term_id)
+                            WHERE s.student_id = :studentId");
+                $sthResources->execute(array(':studentId' => $student->student_id));
+                $resources[$school] = $sthResources->fetchAll(PDO::FETCH_OBJ);
+
               }
 
               /* get sent messages by student's parent */
@@ -169,19 +192,35 @@ $app->post('/parentLogin', function () use($app) {
                 if( $db !== null ) $db = null;
                 $db = setDBConnection($school);
 
-                $sth6 = $db->prepare("SELECT cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
-                        cf.message_from as posted_by,
-                        s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
-                        g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
-                        c.class_name
-                    FROM app.communication_feedback cf
-                    LEFT JOIN app.students s USING (student_id)
-                    LEFT JOIN app.guardians g USING (guardian_id)
-                    LEFT JOIN app.classes c USING (class_id)
-                    WHERE cf.student_id = any(:studentIds)
-                    AND s.active IS TRUE
-                    GROUP BY cf.com_feedback_id, subject, message, student_name, parent_full_name, class_name, opened
-                    ORDER BY post_id DESC");
+                $sth6 = $db->prepare("SELECT *, TO_CHAR(sent_date :: DATE, 'dd/mm/yyyy') AS formatted_date FROM (
+                                      	SELECT 'News' AS feedback_type, cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
+                                      		cf.message_from as posted_by,
+                                      		s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                                      		g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
+                                      		c.class_name, student_id, null AS emp_id, null AS teacher_name,
+                                          null AS student_attachment
+                                      	FROM app.communication_feedback cf
+                                      	LEFT JOIN app.students s USING (student_id)
+                                      	LEFT JOIN app.guardians g USING (guardian_id)
+                                      	LEFT JOIN app.classes c USING (class_id)
+                                      	WHERE cf.student_id = any(:studentIds)
+                                      	AND s.active IS TRUE
+                                      	UNION
+                                      	SELECT 'Homework' AS feedback_type, hf.homework_feedback_id as post_id, hf.creation_date as sent_date, hf.title AS subject, hf.message,
+                                      		hf.added_by as posted_by,
+                                      		s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                                      		g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
+                                      		c.class_name, student_id, hf.emp_id, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as teacher_name,
+                                          student_attachment
+                                      	FROM app.homework_feedback hf
+                                      	INNER JOIN app.students s USING (student_id)
+                                      	INNER JOIN app.guardians g USING (guardian_id)
+                                      	INNER JOIN app.classes c USING (class_id)
+                                        LEFT JOIN app.employees e USING (emp_id)
+                                      	WHERE hf.student_id = any(:studentIds)
+                                      	AND s.active IS TRUE
+                                      )a
+                                      ORDER BY sent_date DESC");
 
                 $studentsArray = "{" . implode(',',$students) . "}";
                 $sth6->execute(array(':studentIds' => $studentsArray));
@@ -192,6 +231,7 @@ $app->post('/parentLogin', function () use($app) {
               $result->students = $studentDetails;
               $result->news = $news;
               $result->feedback = $feedback;
+              $result->resources = $resources;
 
               $app->response->setStatus(200);
               $app->response()->headers->set('Content-Type', 'application/json');
@@ -904,7 +944,14 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                     guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
                     communications.guardian_id, communications.student_id, classes.class_name, post_status,
                     sent, sent_date, message_from,
-                    case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method
+                    case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method,
+                    seen_count, seen_by,
+                    (
+              				CASE
+              					WHEN string_to_array(seen_by, ',') && '{". implode(',',$students) ."}'::text[] THEN true
+		                    ELSE false
+              				END
+              			) AS seen
                   FROM app.communications
                   LEFT JOIN app.students ON communications.student_id = students.student_id
                   LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
@@ -937,19 +984,34 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
         if( $db !== null ) $db = null;
         $db = setDBConnection($school);
 
-        $sth6 = $db->prepare("SELECT cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
-                cf.message_from as posted_by,
-                s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
-                g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
-                c.class_name
-            FROM app.communication_feedback cf
-            LEFT JOIN app.students s USING (student_id)
-            LEFT JOIN app.guardians g USING (guardian_id)
-            LEFT JOIN app.classes c USING (class_id)
-            WHERE cf.student_id = any(:studentIds)
-            AND s.active IS TRUE
-            GROUP BY cf.com_feedback_id, subject, message, student_name, parent_full_name, class_name, opened
-            ORDER BY post_id DESC");
+        $sth6 = $db->prepare("SELECT *, TO_CHAR(sent_date :: DATE, 'dd/mm/yyyy') AS formatted_date FROM (
+                                SELECT 'News' AS feedback_type, cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
+                                  cf.message_from as posted_by,
+                                  s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                                  g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
+                                  c.class_name, student_id, null AS emp_id, null AS teacher_name, null AS student_attachment
+                                FROM app.communication_feedback cf
+                                LEFT JOIN app.students s USING (student_id)
+                                LEFT JOIN app.guardians g USING (guardian_id)
+                                LEFT JOIN app.classes c USING (class_id)
+                                WHERE cf.student_id = any(:studentIds)
+                                AND s.active IS TRUE
+                                UNION
+                                SELECT 'Homework' AS feedback_type, hf.homework_feedback_id as post_id, hf.creation_date as sent_date, hf.title AS subject, hf.message,
+                                  hf.added_by as posted_by,
+                                  s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                                  g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
+                                  c.class_name, student_id, hf.emp_id, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as teacher_name,
+                                  student_attachment
+                                FROM app.homework_feedback hf
+                                INNER JOIN app.students s USING (student_id)
+                                INNER JOIN app.guardians g USING (guardian_id)
+                                INNER JOIN app.classes c USING (class_id)
+                                LEFT JOIN app.employees e USING (emp_id)
+                                WHERE hf.student_id = any(:studentIds)
+                                AND s.active IS TRUE
+                              )a
+                              ORDER BY sent_date DESC");
 
         $studentsArray = "{" . implode(',',$students) . "}";
         $sth6->execute(array(':studentIds' => $studentsArray));
@@ -1282,10 +1344,17 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
     try
     {
     $db = setDBConnection($school);
-    $sth = $db->prepare("SELECT homework_id, assigned_date,
-                        	employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
-                        	title, body, homework.post_status_id, post_status, class_name, class_subjects.class_id, due_date, subject_name,
-                        	attachment, homework.modified_date
+    $sth = $db->prepare("SELECT homework_id, assigned_date, TO_CHAR(assigned_date :: DATE, 'dd/mm/yyyy') assigned_date_formated,
+                        	emp_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                        	title, body, homework.post_status_id, post_status, class_name, class_subjects.class_id, due_date, TO_CHAR(due_date :: DATE, 'dd/mm/yyyy') AS due_date_formated,
+                          subject_name, class_subjects.subject_id,
+                        	attachment, homework.modified_date,
+                          (
+                            CASE
+                              WHEN string_to_array(seen_by,',')::int[] @> ARRAY[:studentId::int] THEN true
+                              ELSE false
+                            END
+                          ) AS seen
                         FROM app.homework
                         INNER JOIN app.blog_post_statuses USING (post_status_id)
                         INNER JOIN app.class_subjects USING (class_subject_id)
@@ -1331,6 +1400,152 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getParticularHomework/:school/:student_id/:homeworkId', function ($school, $studentId, $homeworkId) {
+    // Get paticular homewok for student
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+    $db = setDBConnection($school);
+    $sth = $db->prepare("SELECT homework_id, assigned_date,
+                        	employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                        	title, body, homework.post_status_id, post_status, class_name, class_subjects.class_id, due_date, subject_name,
+                        	attachment, homework.modified_date, seen_count, seen_by
+                        FROM app.homework
+                        INNER JOIN app.blog_post_statuses USING (post_status_id)
+                        INNER JOIN app.class_subjects USING (class_subject_id)
+                        INNER JOIN app.classes USING (class_id)
+                        INNER JOIN app.students ON classes.class_id = students.current_class
+                        			AND class_subjects.class_id = classes.class_id
+                        INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+                        			AND homework.class_subject_id = class_subjects.class_subject_id
+                        LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
+                        WHERE student_id = :studentId
+                        AND homework.post_status_id = 1
+                        AND homework.homework_id = :homeworkId
+                ");
+    $sth->execute( array(':studentId' => $studentId, ':homeworkId' => $homeworkId) );
+    $results = $sth->fetch(PDO::FETCH_OBJ);
+
+    $currentHomeworkCount = $results->seen_count;
+    $seenByList = $results->seen_by;
+    if($currentHomeworkCount === null){
+      $currentHomeworkCount = 0;
+    }
+    $newHomeworkCount = $currentHomeworkCount + 1;
+
+    if($seenByList === null){
+      $seenByList = $studentId;
+    }else{
+      $seenByList .= "," . $studentId;
+    }
+
+    $sth2 = $db->prepare("UPDATE app.homework SET seen_count = :newHomeworkCount, seen_by = :seenByList WHERE homework_id = :homeworkId");
+    $sth2->execute( array(':newHomeworkCount' => $newHomeworkCount, ':homeworkId' => $homeworkId, ':seenByList' => $seenByList) );
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results, 'seen_count' => $newHomeworkCount, 'seen_by' => $seenByList ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getParticularCommunication/:school/:student_id/:commId', function ($school, $studentId, $commId) {
+    // Get paticular homewok for student
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+    $db = setDBConnection($school);
+    $sth = $db->prepare("SELECT
+                com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
+                employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                audience, attachment, reply_to,
+                students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
+                guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
+                communications.guardian_id, communications.student_id, classes.class_name, post_status,
+                sent, sent_date, message_from,
+                case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method,
+                seen_count, seen_by,
+                (
+                  CASE
+                    WHEN string_to_array(seen_by,',')::int[] @> ARRAY[:studentId::int] THEN true
+                    ELSE false
+                  END
+                ) AS seen
+              FROM app.communications
+              LEFT JOIN app.students ON communications.student_id = students.student_id
+              LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
+              LEFT JOIN app.classes ON communications.class_id = classes.class_id
+              INNER JOIN app.employees ON communications.message_from = employees.emp_id
+              INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
+              INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
+              INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
+              WHERE communications.student_id = :studentId OR communications.student_id is null
+              AND communications.com_id = :commId
+              AND communications.sent IS TRUE
+              AND communications.post_status_id = 1
+              AND (communications.class_id = any(select current_class from app.students where student_id = :studentId)
+              OR communications.class_id is null)
+              AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
+              --AND students.active IS TRUE
+              AND communications.com_type_id NOT IN (6)
+              AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
+              ORDER BY creation_date desc");
+    $sth->execute( array(':studentId' => $studentId, ':commId' => $commId) );
+    $results = $sth->fetch(PDO::FETCH_OBJ);
+
+    $currentCommSeenCount = $results->seen_count;
+    $seenByList = $results->seen_by;
+    if($currentCommSeenCount === null){
+      $currentCommSeenCount = 0;
+    }
+    $newCommSeenCount = $currentCommSeenCount + 1;
+
+    if($seenByList === null){
+      $seenByList = $studentId;
+    }else{
+      $seenByList .= "," . $studentId;
+    }
+
+    $sth2 = $db->prepare("UPDATE app.communications SET seen_count = :newCommSeenCount, seen_by = :seenByList WHERE com_id = :commId");
+    $sth2->execute( array(':newCommSeenCount' => $newCommSeenCount, ':commId' => $commId, ':seenByList' => $seenByList) );
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results, 'seen_count' => $newCommSeenCount, 'seen_by' => $seenByList ));
             $db = null;
         } else {
             $app->response->setStatus(200);
@@ -2477,6 +2692,70 @@ $app->post('/addFeedback/:school', function ($school) {
 				$trafficMonitor->execute( array() );
 				$mistrafficdb = null;
 				// traffic analysis end
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->post('/addHomeworkFeedback', function () {
+
+  $app = \Slim\Slim::getInstance();
+
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  $homeworkId = ( isset($allPostVars['homework_id']) ? $allPostVars['homework_id']: null);
+  $title = ( isset($allPostVars['title']) ? $allPostVars['title']: null);
+  $body = ( isset($allPostVars['body']) ? $allPostVars['body']: null);
+  $message = ( isset($allPostVars['message']) ? $allPostVars['message']: null);
+  $homeworkAttachment = ( isset($allPostVars['homework_attachment']) ? $allPostVars['homework_attachment']: null);
+  $studentAttachment = ( isset($allPostVars['student_attachment']) ? $allPostVars['student_attachment']: null);
+  $assignedDate = ( isset($allPostVars['assigned_date']) ? $allPostVars['assigned_date']: null);
+  $dueDate = ( isset($allPostVars['due_date']) ? $allPostVars['due_date']: null);
+  $addedBy = ( isset($allPostVars['added_by']) ? $allPostVars['added_by']: null);
+  $empId = ( isset($allPostVars['emp_id']) ? $allPostVars['emp_id']: null);
+  $studentId = ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+  $guardianId = ( isset($allPostVars['guardian_id']) ? $allPostVars['guardian_id']: null);
+  $subjectId = ( isset($allPostVars['subject_id']) ? $allPostVars['subject_id']: null);
+  $subjectName = ( isset($allPostVars['subject_name']) ? $allPostVars['subject_name']: null);
+  $classId = ( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+  $className = ( isset($allPostVars['class_name']) ? $allPostVars['class_name']: null);
+  $school = ( isset($allPostVars['school']) ? $allPostVars['school']: null);
+
+  try
+  {
+
+    $db = setDBConnection($school);
+    $sth = $db->prepare("INSERT INTO app.homework_feedback(
+                    	homework_id, title, body, message, homework_attachment, student_attachment, assigned_date, due_date, added_by, emp_id, subject_name, subject_id, class_id, class_name, student_id, guardian_id)
+                    	VALUES (:homeworkId,
+                    	        :title,
+                    	        :body,
+                    	        :message,
+                    	        :homeworkAttachment,
+                    	        :studentAttachment,
+                    	        :assignedDate,
+                    	        :dueDate,
+                    	        :addedBy,
+                    	        :empId,
+                    	        :subjectName,
+                    	        :subjectId,
+                    	        :classId,
+                    	        :className,
+                    	        :studentId,
+                    	        :guardianId
+                    	);");
+    $sth->execute( array(':homeworkId' => $homeworkId, ':title' => $title, ':body' => $body, ':message' => $message, ':homeworkAttachment' => $homeworkAttachment,
+                        ':studentAttachment' => $studentAttachment, ':assignedDate' => $assignedDate, ':dueDate' => $dueDate, ':addedBy' => $addedBy, ':empId' => $empId,
+                        ':subjectName' => $subjectName, ':subjectId' => $subjectId, ':classId' => $classId, ':className' => $className, ':studentId' => $studentId, ':guardianId' => $guardianId) );
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", 'data' => 'Homework message has been successfully sent!'));
+
+    $db = null;
 
   } catch(PDOException $e) {
     $app->response()->setStatus(401);

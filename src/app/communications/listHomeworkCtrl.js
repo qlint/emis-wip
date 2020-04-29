@@ -12,6 +12,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.filterClass = ( $state.params.class_id !== '' ? true : false );
 	$scope.alert = {};
 	$scope.loading = true;
+	// console.log($rootScope.currentUser);
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 	if($scope.isTeacher == true){
@@ -40,6 +41,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			{ name: 'Assigned Date', field: 'assigned_date2', type: 'date', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.assigned_date2}}</div>'},
 			{ name: 'Due Date', field: 'due_date2', type: 'date', cellFilter: 'date', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.due_date2}}</div>'},
 			{ name: 'Status', field: 'post_status', width:75, enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.post_status}}</div>'},
+			{ name: 'Seen', field: 'seen', width:75, enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.viewPost(row.entity)">{{row.entity.seen}}</div>'},
 			{ name: 'View', field: '', cellClass:'center', width:40, headerCellClass:'center', enableColumnMenu: false, cellTemplate:'<div class="ui-grid-cell-contents" ng-click="grid.appScope.preview(row.entity)"><i class="fa fa-eye"></i></div>'},
 
 		],
@@ -177,7 +179,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 			if( result.response == 'success')
 			{
 				$scope.homework = ( result.nodata ? [] : result.data );
-
+				for(let i=0;i < $scope.homework.length;i++){
+					$scope.homework[i].seen = ($scope.homework[i].overall_seen_by == null ? 0 : $scope.homework[i].overall_seen_by.split(',').filter(function(val, i, arr) { return arr.indexOf(val) === i; }).length);
+				}
+				console.log($scope.homework);
 				$scope.homework = $scope.homework.map(function(item){
 					item.assigned_date2 = moment(item.assigned_date).format('MMM Do YYYY, h:mm a');
 					item.due_date2 = moment(item.due_date).format('MMM Do YYYY, h:mm a');

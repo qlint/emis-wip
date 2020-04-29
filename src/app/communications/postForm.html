@@ -1,5 +1,11 @@
 <style type="text/css">
 	@import url("components/selectBox/vanillaSelectBox.css");
+	/* Tooltip container */
+	.tooltip {position: relative;display: inline-block;border-bottom: 1px dotted black;}
+	/* Tooltip text */
+	.tooltip .tooltiptext {visibility: hidden;width: 120px;background-color: black;color: #fff;text-align: center;padding: 5px 0;border-radius: 6px;position: absolute;z-index: 1;}
+	/* Show the tooltip text when you mouse over the tooltip container */
+	.tooltip:hover .tooltiptext {visibility: visible;}
 </style>
 <div ng-controller="postFormCtrl">
 
@@ -25,7 +31,17 @@
 			</div>
 
 			<div class="clearfix">
-				<h1 id="pageTitle">{{pageTitle}}</h1>
+				<h1 id="pageTitle">{{pageTitle}}
+					<span>
+						<div class="tooltip">Seen by <b>{{post.seen_by}}</b> students : <b style="font-size:20px;">⌄</b>
+							<span class="tooltiptext">
+								<ul>
+									<li ng-repeat="saw in post.seen_by track by $index">{{saw}}</li>
+								</ul>
+							</span>
+						</div>
+					</span>
+				</h1>
 			</div>
 		</div>
 
@@ -46,28 +62,28 @@
 
 				<!-- class subject select -->
 				<div ng-if="isHomework" class="col-sm-12" ng-class="{ 'has-error' : dataFilterForm.class_subject_id.$invalid && (!dataFilterForm.class_subject_id.$pristine || dataFilterForm.$submitted) }">
-				
+
 					<label for="class">Which subject would you like to post homework to?</label>
 					<select name="class_subject_id" class="form-control input-sm" ng-options="subject.class_name + ' - ' + subject.subject_name for subject in classSubjects track by subject.class_subject_id" ng-model="filters.subject" ng-change="getStudents()" required>
 						<option value="">--select class subject--</option>
 					</select>
-					
+
 					<div style="background-color:#a9a9a9;margin-bottom:2%;margin-top:1%;">
 				        <input type="checkbox" id="to_students" name="to_students" value="true" ng-change="sendToStudents()" ng-model="toStudentsStatus" style="margin-left:1%;">
 				        <label for="to_students">Would you like to send homework to particular students? Leave unchecked if <b>No</b></label>
-				        
+
 				        <div class="row" ng-show="toStudentsStatus">
                             <div class="col-md-12" style="padding-bottom:1%;">
-                        
+
                                 <select name="students" id="studentsList" ng-model="studentsHomework" ng-change="captureStudents()" multiple size="10" class="form-control">
 									<option ng-repeat="student in students track by $index" value="{{student.student_id}}" id="stdnt_{{student.student_id}}">{{student.student_name}}</option>
 								</select>
-                        
+
                             </div>
                         </div>
-                        
+
 				    </div>
-				    
+
 					<input type="button" class="btn btn-sm btn-info" ng-click="setClass()" value="Load" />
 					<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
 					<p ng-show="dataFilterForm.class_subject_id.$invalid && (!dataFilterForm.class_subject_id.$pristine || dataFilterForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> You must choose a class.</p>
@@ -420,6 +436,7 @@
 
 				<div ng-if="!isEmail || (isEmail && post.send_method == 'email' )" class="clearfix">
 					<h4 ng-show="isHomework||isEmail">Attachment</h4>
+					<h4 ng-show="{{post.attachment == null || post.attachment == ''? false : true}}">Existing attachment: <a href="https://{{schoolName}}.eduweb.co.ke/assets/posts/{{post.attachment}}" target="_blank">{{post.attachment}}</a></h4>
 					<h4 ng-show="isPost">Feature Image</h4>
 					<img ng-if="post.feature_image" src="assets/posts/{{post.feature_image}}" class="feature-img thumb" />
 					<input name="attachment[]" size="60" style="color:#ffffff;background-color:#337ab7;border-color:#2e6da4;border-radius:3px;" type="file" nv-file-select uploader="uploader" multiple />

@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('eduwebApp').
-controller('createResourceCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse',
-function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
+controller('createResourceCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse','$sce',
+function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
 
 	var initialLoad = true;
 	$scope.filters = {};
@@ -20,7 +20,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.editButtonTxt = ($scope.isEdit == true ? "Save" : "Edit");
 	$scope.editButtonStyle = ($scope.isEdit == true ? "success" : "primary");
 	$scope.schoolDir = window.location.host.split('.')[0];
-	
+	$scope.showVimeoFrame = false;
+
 	$scope.copyLink = function() {
           var copyText = document.getElementById("linkUrl");
           /* Select the text field */
@@ -336,7 +337,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.openSrc = function(el){
 		console.log(el.resource,$scope);
 		$scope.filters.class_id = el.resource.class_id;
-		
+
 		$scope.resourceTitle = el.resource.resource_name;
 		$scope.resourceAdditionalText = el.resource.additional_text;
 		$scope.resourceClassName = el.resource.class_name;
@@ -344,9 +345,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.resourceType = el.resource.resource_type;
 		$scope.resourceFile = el.resource.file_name;
 		$scope.resourceId = el.resource.resource_id;
+		$scope.vimeoPath = el.resource.vimeo_path;
+		console.log($scope.vimeoPath);
+		$scope.showVimeoFrame = ($scope.vimeoPath == null ? false : true);
+		$scope.vimeoId = $sce.trustAsResourceUrl("https://player.vimeo.com/video/" + $scope.vimeoPath + "?color=33cc33&portrait=0"); // 403128423
+		console.log("Uploaded to vimeo? " + $scope.showVimeoFrame + ($scope.showVimeoFrame? ", So show vimeo player.":", so show html video player."));
 		let fileSplit = $scope.resourceFile.split('.');
 		let fileExtension = fileSplit[fileSplit.length - 1];
-		console.log(fileExtension);
+		console.log($scope.vimeoId,fileExtension);
 
 		if(fileExtension == 'mp4' || fileExtension == 'm4v' || fileExtension == 'avi' || fileExtension == 'wmv' || fileExtension == 'flv' || fileExtension == 'webm' || fileExtension == 'f4v' || fileExtension == 'mov'){
 			$scope.actualFileType = 'video';
@@ -391,7 +397,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 
 	}
-	
+
 	$scope.sendToApp = function(){
 	    // post object
 	    var link = 'https://classroom.eduweb.co.ke/' + $scope.schoolDir + '/' + $scope.assetSubDir + '/' + $scope.resourceFile;
