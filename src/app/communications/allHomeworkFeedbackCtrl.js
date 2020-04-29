@@ -391,6 +391,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 																											}
 																											else
 																											{
+																												alert("There seems to be a problem replying to this homework feedback. Please try again or let us know about this problem.");
 																												console.log(result);
 																											}
 																										},function(e){console.log(e);});
