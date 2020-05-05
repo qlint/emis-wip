@@ -84,8 +84,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 							}
 							$scope.setupBlog = false;
 							$scope.loadingPost = false;
-
-
 						}
 						getHomeworkOptions();
 					}
@@ -1209,7 +1207,6 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 						blog_id: $scope.selectedClass.blog_id,
 						post: $scope.post
 					}
-
 					apiService.addPost(data,createCompleted,apiError);
 				}
 
@@ -1235,11 +1232,11 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 	// }
 
 	var uploader = $scope.uploader = new FileUploader({
-            url: 'upload.php',
-			formData : [{
-				'dir': 'posts'
-			}]
-    });
+		url: 'upload.php',
+		formData : [{
+								'dir': 'posts'
+							}]
+ });
 
 	var createCompleted = function ( response, status, params )
 	{

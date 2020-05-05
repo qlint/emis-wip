@@ -187,4 +187,31 @@ $app->get('/getAllResources', function () {
 
 });
 
+$app->put('/updateVimeoUri', function () use($app) {
+    // Update uri
+
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$uri =	( isset($allPostVars['uri']) ? $allPostVars['uri']: null);
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("UPDATE app.school_resources SET vimeo_path = :uri
+                            WHERE resource_id = (SELECT resource_id FROM app.school_resources ORDER BY resource_id DESC LIMIT 1)");
+        $sth->execute( array(':uri' => $uri ) );
+
+		    $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "code" => 1));
+        $db = null;
+
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 ?>

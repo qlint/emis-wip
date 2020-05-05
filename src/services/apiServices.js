@@ -916,6 +916,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getTeacherCommunications/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getAllTeacherComms = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllTeacherComms/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getSchoolCommunications = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getSchoolCommunications", successFunction, errorFunction, params);
 	};
@@ -1192,6 +1196,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.updateResource = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateResource", successFunction, errorFunction, params);
+	};
+
+	this.updateVimeoUri = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/updateVimeoUri", successFunction, errorFunction, params);
 	};
 
 	return this;

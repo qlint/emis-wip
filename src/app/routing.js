@@ -346,6 +346,13 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.finance_controlled, USER_ROLES.sys_admin]
       }
     })
+	.state('communications/teacher_communications', {
+		 	      url: "/communications/teacher_communications",
+		 		  	templateUrl: 'app/communications/teacherCommunications.html',
+		 	      data: {
+		 	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
+		 	      }
+		 	})
 	.state('communications/add_post', {
       url: "/communications/blog/post/:post_type",
 	  params: {

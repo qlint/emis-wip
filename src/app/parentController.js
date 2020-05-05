@@ -1081,6 +1081,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				};
 		}
 
+		// dynamic access rights
 		if($rootScope.currentUser.super_teacher == true){
 
 			if($rootScope.permissions.resources == undefined){
@@ -1103,6 +1104,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 			$rootScope.permissions.communications.all_homework_feedback.view = true;
 			$rootScope.permissions.communications.all_homework_feedback.edit = false;
 			$rootScope.permissions.communications.all_homework_feedback.add = false;
+
+			$rootScope.permissions.communications.teacher_communications = {};
+			$rootScope.permissions.communications.teacher_communications.view = true;
+			$rootScope.permissions.communications.teacher_communications.edit = false;
+			$rootScope.permissions.communications.teacher_communications.add = false;
 
 		}
 

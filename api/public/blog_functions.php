@@ -654,6 +654,70 @@ $app = \Slim\Slim::getInstance();
 
 });
 
+$app->get('/getAllTeacherComms(/:empId)', function ($empId = null) {
+  // Get all communications by teachers
+
+$app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+    $params = array();
+    $query = "SELECT c.com_id, TO_CHAR(c.creation_date :: DATE, 'dd/mm/yyyy') AS creation_date, c.audience_id,
+            		ca.audience, c.com_type_id, ct.com_type, c.subject, c.message, c.attachment, c.message_from,
+            		e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as teacher_name, e.emp_image,
+            		c.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+            		c.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_name,
+            		c.class_id, cl.class_name, send_as_email, send_as_sms, seen_count,
+            		(
+            			SELECT array_to_json(array_agg(row_to_json(a)))
+            			FROM (
+            				SELECT
+            					student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name
+            				FROM app.students
+            				WHERE student_id = ANY(string_to_array(seen_by,',')::int[])
+            			) a
+            		) AS seen_by,
+            		(
+            			CASE WHEN send_as_sms IS TRUE THEN 'SMS'
+            			ELSE 'APP'
+            			END
+            		) AS comm_mode
+            FROM app.communications c
+            INNER JOIN app.communication_audience ca USING (audience_id)
+            INNER JOIN app.communication_types ct USING (com_type_id)
+            INNER JOIN app.employees e ON c.message_from = e.emp_id
+            INNER JOIN app.employee_cats ec ON e.emp_cat_id = ec.emp_cat_id
+            LEFT JOIN app.students s USING (student_id)
+            LEFT JOIN app.guardians g USING (guardian_id)
+            LEFT JOIN app.classes cl USING (class_id)
+            WHERE e.active IS TRUE AND LOWER(ec.emp_cat_name) = LOWER('TEACHING')
+            ORDER BY c.com_id DESC";
+
+  $sth = $db->prepare( $query );
+  $sth->execute( $params );
+  $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+  if($results) {
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array('response' => 'success', 'data' => $results ));
+    $db = null;
+  } else {
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+    $db = null;
+  }
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+  $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/getAllHomeworkFeedback(/:empId)', function ($empId = null) {
   // Get all homework feedback
 

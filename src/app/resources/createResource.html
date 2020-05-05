@@ -46,8 +46,8 @@
     }
 
     /* The Close Button */
-    .clze {color: white;float: right;font-size: 28px;font-weight: bold;}
-    .clze:hover,.clze:focus {color: #000;text-decoration: none;cursor: pointer;}
+    .clze, .clze2 {color: white;float: right;font-size: 28px;font-weight: bold;}
+    .clze:hover,.clze:focus, .clze2:hover,.clze2:focus {color: #000;text-decoration: none;cursor: pointer;}
 	</style>
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
 
@@ -116,6 +116,31 @@
 						<div class="dashboard-panel" style="background-color:#9C9C9C;border-radius:0;">
     					<div class="dashboard-panel-header" style="background-color:#9C9C9C">
     						<div style="margin-left:5%;">
+									<!-- <form action="https://api.vimeo.com/users/110453051/videos"> -->
+									<form id="frm">
+									  <label for="resource_name">Resource Name:</label>
+									  <span><input id="resource_name" class="enswitch" type="text" name="resource_name" style="width:90%;"></span><br><br>
+
+									  <label for="lname">Resource Type:</label>
+									  <span>
+											<select id="resource_type" style="width:90%;" class="enswitch" name="resource_type" >
+												<option value="document">Document</option>
+												<option value="audio">Audio</option>
+												<option value="video">Video</option>
+												<option value="website">Website</option>
+											</select>
+										</span><br><br>
+
+										<label for="file_data">File Upload :</label>
+									  <span><input id="file_data" class="enswitch" style="width:90%;" type="file" name="file_data""></span><br><br>
+
+										<label for="additional_notes">Resource Text:</label>
+									  <span><textarea id="additional_notes" class="enswitch" name="additional_notes" rows="8" cols="46"></textarea></span><br><br>
+
+										<input type="submit" value="Submit" class="btn btn-primary enswitch" ng-click="createResource()" style="text-align:center;margin-left:35%;margin-right:35%;width:80px;font-size:18px;height:fit-content;">
+										<!-- <button style="margin-top:6%;" type="button" class="btn btn-primary enswitch" ng-click="createResource()">Save Resource</button> -->
+									</form>
+									<!--
 									<p style="font-size:15px;">Resource Name:
 										<span style="float:right;">
 											<input id="resource_name" class="enswitch" type="text" name="resource_name" value="">
@@ -127,7 +152,6 @@
 												<option value="document">Document</option>
 												<option value="audio">Audio</option>
 												<option value="video">Video</option>
-												<option value="youtube">Youtube</option>
 												<option value="website">Website</option>
 											</select>
 										</span>
@@ -142,6 +166,7 @@
 									<textarea id="additional_notes" class="enswitch" name="additional_notes" rows="8" cols="40"></textarea>
 
 									<button style="margin-top:6%;" type="button" class="btn btn-primary enswitch" ng-click="createResource()">Save Resource</button>
+									-->
 								</div>
     					</div>
     				</div>
@@ -177,19 +202,19 @@
 	<div id="resourceModal" class="modal" style="">
 
 		<!-- Modal content -->
-		<div class="modal-content">
+		<div class="modal-content" style="width:65%;">
 		  <div class="modal-header">
 		    <h2>{{resourceTitle}}<span class="clze">&times;</span></h2>
 		  </div>
 		  <div class="modal-body">
 				<div class="row">
-					<div class="col-sm-8" style="height:250px;border-right: 1px solid #000000;background-color:#eefdec;padding:10px;">
+					<div class="col-sm-7" style="height:250px;border-right: 1px solid #000000;background-color:#eefdec;padding:10px;">
 						<input type="text" name="rsrcName" id="rsrcName" class="enEdit" ng-change="saveUpdate()" ng-model="resourceTitle" value="{{resourceTitle}}" disabled style="padding:5px;width:100%;"><br><br>
 						<p>for class {{resourceClassName}}</p><br>
 						<textarea name="name" class="enEdit" rows="5" cols="57" disabled style="padding:5px;font-style:oblique;" ng-change="saveUpdate()" ng-model="resourceAdditionalText">{{resourceAdditionalText}}</textarea><br><br>
 						<p>Created on {{resourceDate}}</p>
 					</div>
-					<div class="col-sm-4" style="height:250px;">
+					<div class="col-sm-5" style="height:250px;">
 						<p style="background-color: #6495ed;border-radius: 5px;padding: 3px;border: 1px solid #000000;color: #ffffff;font-weight: 600;">
 							{{resourceType}}
 						</p>
@@ -197,7 +222,7 @@
 							<a ng-hide="showVimeoFrame" href="assets/resources/{{schoolDir}}/{{assetSubDir}}/{{resourceFile}}" target="_blank">
 								<img class="img-responsive" src="assets/img/icons/{{resourceIcon}}" alt="{{resourceFile}}">
 							</a>
-							<div ng-show="showVimeoFrame" style="padding:181.82% 0 0 0;position:relative;">
+							<div ng-show="showVimeoFrame" style="padding:90% 0 0 0;position:relative;margin-left:7%;">
 								<iframe src="{{vimeoId}}" style="position:absolute;top:0;left:-23px;width:auto;height:64%;" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
 							</div>
 							<script ng-show="showVimeoFrame" src="https://player.vimeo.com/api/player.js"></script>
@@ -206,7 +231,7 @@
 				</div>
 		  </div>
 		  <!-- url text field -->
-		  <input type="text" value="https://classroom.eduweb.co.ke/{{schoolDir}}/{{assetSubDir}}/{{resourceFile}}" id="linkUrl" style="margin-left:1%;width:85%;background-color:aqua;font-style:italic;font-weight:bold;" readonly="readonly">
+		  <input type="text" value="https://dev-classroom.eduweb.co.ke/{{schoolDir}}/{{assetSubDir}}/{{resourceFile}}" id="linkUrl" style="margin-left:1%;width:85%;background-color:aqua;font-style:italic;font-weight:bold;" readonly="readonly">
           <!-- The button used to copy the text -->
           <button ng-click="copyLink()">Copy Link</button>
 
@@ -214,6 +239,35 @@
 		    <button type="button" class="btn btn-primary" style="margin-right:2%;" ng-click="sendToApp()">Send To App</button>
 		    <span><button type="button" class="btn btn-{{editButtonStyle}}" style="margin-right:2%;" ng-click="updateResource()">{{editButtonTxt}}</button>
 		    <span><button type="button" class="btn btn-danger">Delete</button></span><span>
+		  </div>
+		</div>
+
+	</div>
+
+	<!-- The Upload Progress Modal -->
+	<div id="resourceModal2" class="modal" style="">
+
+		<!-- Modal content -->
+		<div class="modal-content">
+		  <div class="modal-header">
+		    <h2>Uploading Video<span class="clze2">&times;</span></h2>
+		  </div>
+		  <div class="modal-body">
+				<div class="row">
+					<div class="col-sm-12">
+						<h3 style="text-align:center;">Just a moment, the video upload is in progress...</h3>
+						<div style="margin-left:auto;margin-right:auto;text-align:center;">
+							<img src="assets/load-indicator.gif" style="margin-left:auto;margin-right:auto;">
+						</div>
+					</div>
+					<div class="col-sm-12">
+						<div id="results"></div>
+					</div>
+				</div>
+		  </div>
+
+		  <div class="modal-footer">
+		    <button type="button" class="btn btn-danger">Cancel Upload</button>
 		  </div>
 		</div>
 

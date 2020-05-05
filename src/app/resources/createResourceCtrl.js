@@ -2,7 +2,7 @@
 
 angular.module('eduwebApp').
 controller('createResourceCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$q','$parse','$sce',
-function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
+function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 
 	var initialLoad = true;
 	$scope.filters = {};
@@ -20,6 +20,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
 	$scope.editButtonTxt = ($scope.isEdit == true ? "Save" : "Edit");
 	$scope.editButtonStyle = ($scope.isEdit == true ? "success" : "primary");
 	$scope.schoolDir = window.location.host.split('.')[0];
+	$scope.uploadStatus = false;
+	$scope.trackedSelectEvt = null;
 	$scope.showVimeoFrame = false;
 
 	$scope.copyLink = function() {
@@ -199,20 +201,24 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
 
 		}, apiError);
 
+		function logSelectChange(evt){
+			$scope.trackedSelectEvt = evt;
+			console.log("Tracked selection event",$scope.trackedSelectEvt);
+		}
+		var browse = document.getElementById('file_data');
+		browse.addEventListener('change', logSelectChange, false);
+
 	}
 	$timeout(initializeController,1);
 
 	$scope.$watch('filters.class',function(newVal,oldVal){
 		if( newVal == oldVal ) return;
-
 		$scope.filters.class_id = newVal.class_id;
-
 	});
 
 	// hide the resource setup until the class and term are selected
 	setTimeout(function(){
 		var resourceView = document.getElementsByClassName("resourceView")[0];
-
 		var resourceInputs = document.getElementsByClassName("enswitch");
 		for (var i = 0; i < resourceInputs.length; i++) {
 		    resourceInputs[i].disabled = true;
@@ -233,13 +239,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
 
 	$scope.createResource = function()
 	{
+			$scope.uploadStatus = true;
 			$scope.fieldErrMessage = null;
 			// acquire the input values
 			var resource_name = $( "#resource_name" ).val();
 			var resource_type = $( "#resource_type" ).val().toUpperCase();
-			$scope.resourceFile = document.getElementById('file_name').files[0];
+			$scope.resourceFile = document.getElementById('file_data').files[0];
 			var file_name = $scope.resourceFile.name;
 			var additional_notes = $( "#additional_notes" ).val();
+
+			$scope.resourceNm = resource_name;
+			$scope.resourceDsc = additional_notes;
 
 			var resourceData = {
 					"class_id": $scope.filters.class_id,
@@ -262,8 +272,31 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
 
 			var addResourceSuccess = function ( response, status, params )
 		  {
+						// View upload video modal
+						let modal2 = document.getElementById("resourceModal2");
+						// Get the <span> element that closes the modal
+						var span2 = document.getElementsByClassName("clze2")[0];
+
+						// When the user clicks on the resource row (<li>), open the modal
+						modal2.style.display = "block";
+
+						// When the user clicks on <span> (x), close the modal
+						span2.onclick = function() {
+							modal2.style.display = "none";
+						}
+
+						// When the user clicks anywhere outside of the modal, close it
+						window.onclick = function(event) {
+							if (event.target == modal2) {
+								modal2.style.display = "none";
+							}
+						}
+
 						// first upload the file before proceeding
+
 						var formData = new FormData();
+						formData.append('name', $( "#resource_name" ).val());
+						formData.append('description', $( "#additional_notes" ).val());
 						formData.append('files[]', $scope.resourceFile);
 
 						fetch('srvScripts/uploadResource.php', {
@@ -271,23 +304,131 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
 					    body: formData,
 					  }).then(response => {
 					    console.log(response);
+							let resp = response;
+							if(resp.ok == true){
+								$scope.uploadStatus = false;
+								var result = angular.fromJson( response );
+								console.log(result);
+				    		if( result.ok == true )
+				    		{
+										// func. to post to vimeo
+										function uploadToVimeo(){
+											let token = 'c17c9d50d0303ae9d1dd0d3a8ce083d0';
+											let clientId = '047f83cd854363004872dbdf06398728a2ec889f';
+											let clientSec = 'EZl2LTH3nmuQA4iGXE1VZDmkyucj4aJUe3/hh0/RoQZsRPCUPx6s9BhKHNhwp/6Hg3g3SR/g/oD6kRbJovqPlun84SjyCGlL7ko+rZw08IzNcNlQdCZmXEScLyFZL6zP';
+											let uId = '110453051';
+
+											console.log("Checking file data",$scope.trackedSelectEvt,$scope.resourceFile,document.getElementById('file_data').files[0]);
+											let vimeoData = {
+												file_data: "https://"+$scope.schoolDir+".eduweb.co.ke/assets/resources/"+$scope.schoolDir+"/videos/"+$scope.resourceFile.name,
+												name: $scope.resourceNm,
+												description: $scope.resourceDsc,
+												upload: {
+													link: "https://"+$scope.schoolDir+".eduweb.co.ke/assets/resources/"+$scope.schoolDir+"/videos/"+$scope.resourceFile.name,
+													approach: 'pull',
+													size: document.getElementById('file_data').files[0].size
+												},
+												embed: {
+													buttons: {
+														like: false,
+														share: false,
+														embed: true,
+														fullscreen: true,
+														hd: true,
+														scaling: true,
+														share: false,
+														watchlater: false
+													},
+													logos: {
+														vimeo: false,
+														custom: {
+															sticky: true,
+															active: true,
+															link: 'https://cdn.eduweb.co.ke/eduweb-vimeo.png'
+														}
+													},
+													title: { portrait: 'hide' },
+													volume: true,
+													playbar: true,
+													color: '#33cc33'
+												},
+												privacy: {
+													view: "unlisted"
+												}
+											}
+
+											fetch('https://api.vimeo.com/me/videos', {
+												method: 'POST',
+												headers: {
+													'Authorization' : 'Bearer ' + token,
+													'Content-Type' :	'application/json',
+													'Accept' :	'application/vnd.vimeo.*+json;version=3.4'
+												},
+												body: JSON.stringify(vimeoData),
+											}).then(response => {
+												console.log("First response",response);
+												if(response.ok == true){
+													$scope.uploadStatus = false;
+												}
+											}).then((result) => {
+												alert("Your video has been uploaded successfully. It may take a few minutes for it to complete processing.");
+											  console.log('Success:', result);
+												document.getElementById("resourceModal2").style.display = 'none';
+
+												var xhr = new XMLHttpRequest();
+												var url = "https://api.vimeo.com/me/videos";
+												xhr.open("GET", url, true);
+												xhr.setRequestHeader("Authorization", "Bearer " + token);
+												xhr.setRequestHeader("Content-Type", "application/json");
+												xhr.setRequestHeader("Accept", "application/vnd.vimeo.*+json;version=3.4");
+												xhr.onreadystatechange = function () {
+												    if (xhr.readyState === 4 && xhr.status === 200) {
+													    // var json = JSON.parse(xhr.responseText);
+															// remove the new line character from the string
+															let respText = xhr.responseText.replace(/↵/g, '');
+															var respJson = JSON.parse(respText);
+															let uploadedVidUri = respJson.data[0].uri.split('/')[2];
+													    console.log(respJson);
+															var uriParam = {
+																uri: uploadedVidUri
+															}
+															apiService.updateVimeoUri(uriParam,function ( response, status, params )
+														    	{
+														    		var result = angular.fromJson( response );
+														    		if( result.response == 'success' ){ console.log("uri saved."); }else{ console.log("error saving uri"); }
+														    	},function(e){console.log(e)});
+												    }
+												};
+												xhr.send();
+											})
+											.catch((error) => {
+												alert("There seems to be an issue with the upload. Please try again, or let us know about this error message :: ("+error+")")
+											  console.error('Error:', error);
+												document.getElementById("resourceModal2").style.display = 'none';
+											});
+
+										}
+										// uploadToVimeo();
+										if($( "#resource_type" ).val().toUpperCase() == 'VIDEO'){
+											uploadToVimeo();
+										}
+				    		}
+				    		else
+				    		{
+				    			$scope.error = true;
+				    			$scope.errMsg = result.response;
+									console.log(result);
+									alert("There was a slight error encountered while uploading your video. Please try again or let us know about this problem.");
+									document.getElementById("resourceModal2").style.display = 'none';
+				    		}
+							}else{
+								alert("An error has been encountered while uploading your file. Please try again or let us know about this problem.");
+								document.getElementById("resourceModal2").style.display = 'none';
+							}
 					  });
+
 						// end file upload
 
-		    		var result = angular.fromJson( response );
-		    		if( result.response == 'success' )
-		    		{
-		    		    resource_name = $( "#resource_name" ).val(null);
-                        resource_type = $( "#resource_type" ).val(null);
-                        document.getElementById('file_name').value = null;
-                        additional_notes = $( "#additional_notes" ).val(null);
-		        	    $timeout(initializeController,1);
-		    		}
-		    		else
-		    		{
-		    			$scope.error = true;
-		    			$scope.errMsg = result.data;
-		    		}
 		  }
 			apiService.createResource(resourceData,addResourceSuccess,apiError);
 	}
@@ -352,7 +493,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
 		console.log("Uploaded to vimeo? " + $scope.showVimeoFrame + ($scope.showVimeoFrame? ", So show vimeo player.":", so show html video player."));
 		let fileSplit = $scope.resourceFile.split('.');
 		let fileExtension = fileSplit[fileSplit.length - 1];
-		console.log($scope.vimeoId,fileExtension);
+		console.log(fileExtension);
 
 		if(fileExtension == 'mp4' || fileExtension == 'm4v' || fileExtension == 'avi' || fileExtension == 'wmv' || fileExtension == 'flv' || fileExtension == 'webm' || fileExtension == 'f4v' || fileExtension == 'mov'){
 			$scope.actualFileType = 'video';
@@ -422,6 +563,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
         	 user_id : $rootScope.currentUser.user_id
 	    }
 	    console.log($scope.postObj);
+
 	    apiService.customAddCommunication($scope.postObj,function ( response, status, params )
                                                     	{
                                                             console.log(response);
@@ -440,12 +582,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse,$sce){
                                                                         console.log("Error. Notifications could not be sent.");
                                                                     }
                                                                 });
-                                                                /*
-                                                                apiService.sendSchoolNotifications($scope.schoolDir, function(response){
-																																	var result = angular.fromJson(response);
-																																	if( result.response == 'success'){ console.log("Notifications sent to parties!"); }
-																																}, apiError);
-																*/
+                                                                // apiService.sendSchoolNotifications($scope.schoolDir, function(response){
+																//																	var result = angular.fromJson(response);
+																//																	if( result.response == 'success'){ console.log("Notifications sent to parties!"); }
+																//																}, apiError);
                                                     		}
                                                     		else
                                                     		{
