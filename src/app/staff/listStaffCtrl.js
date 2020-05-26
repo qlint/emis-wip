@@ -470,7 +470,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
     $scope.permsTable.gridName = $scope.permsTable.allPermissions.globalPermissions.name;
     $scope.permsTable.rows = $scope.permsTable.allPermissions.permissions;
     $scope.permsTable.header = $scope.permsTable.allPermissions.globalPermissions;
-    
+
     // Set column header
     $scope.permsTable.setColumnHeader = function(index, header, rows, stateCheck) {
         for (var i = 0; i < rows.length; i++) {
@@ -486,7 +486,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
             setState(header, rows, true);
         }
     };
-                        
+
     // Set cell
     $scope.permsTable.setCell = function(index, row, rows, header, stateCheck) {
         if (index === 0) {
@@ -501,7 +501,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
             setState(header, rows, true);
         }
     };
-                        
+
     // Get row state
     function getRowState(row) {
         var state = true;
@@ -513,7 +513,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         }
         row.values[0].isSelected = state;
     }
-                        
+
     // Get column state
     function getColumnState(header, rows, index) {
         var state = true;
@@ -525,12 +525,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         }
         header.values[index].isSelected = state;
     }
-                        
+
     // Set state
     function setState(header, rows, recursion) {
         for (var i = 0; i < rows.length; i++) {
             getRowState(rows[i]);
-                        
+
             if (recursion && angular.isDefined(rows[i].children) && rows[i].children.length > 0) {
                 setState(rows[i], rows[i].children, false);
             }
@@ -539,12 +539,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
             getColumnState(header, rows, j);
         }
         getRowState(header);
-                        
+
         if (rows !== $scope.permsTable.rows) {
             setState($scope.permsTable.header, $scope.permsTable.rows, false);
         }
     }
-                        
+
     // Toggle sub row
     $scope.permsTable.toggleSubRow = function(row) {
         row.subRowsToggled = !row.subRowsToggled;
@@ -553,17 +553,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
     // console.log($scope.permsTable.gridName);
     // console.log("$scope.permsTable.allPermissions.globalPermissions.name",$scope.permsTable.allPermissions.globalPermissions.name);
     console.log("$scope.permsTable",$scope.permsTable);
-	
+
 	$scope.filters = {};
 	$scope.filters.status = 'true';
 	$scope.filters.emp_cat_id = ( $state.params.category !== '' ? $state.params.category : null );
 	$scope.filterEmpCat = ( $state.params.category !== '' ? true : false );
 	$scope.filters.dept_id = ( $state.params.dept !== '' ? $state.params.dept : null );
 	$scope.filterDept = ( $state.params.dept !== '' ? true : false );
-	
+
 	$scope.gridFilter = {};
 	$scope.gridFilter.filterValue  = '';
-	
+
 	/* get full employee cat record from state param */
 	if( $state.params.category !== null )
 	{
@@ -571,21 +571,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			if( item.emp_cat_id == $state.params.category ) return item;
 		})[0];
 	}
-	
+
 	$scope.alert = {};
-	
+
 	$scope.enableCheckboxTable = function(){
 		    $scope.selectionsReady = true;
 	}
-	
-	var rowTemplate = function() 
+
+	var rowTemplate = function()
 	{
 		return '<div class="clickable" ng-click="grid.appScope.viewEmployee(row.entity)">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
 	}
-	
+
 	$scope.gridOptions = {
 		enableSorting: true,
 		rowTemplate: rowTemplate(),
@@ -604,18 +604,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		  });
 		}
 	};
-	
+
 	var getStaff = function()
-	{		
+	{
 		apiService.getAllEmployees(true, function(response){
 			var result = angular.fromJson(response);
-			
+
 			// store these as they do not change often
 			if( result.response == 'success')
-			{		
-				$scope.allEmployees = (result.nondata !== undefined ? [] : result.data);	
+			{
+				$scope.allEmployees = (result.nondata !== undefined ? [] : result.data);
 				$scope.employees = $scope.allEmployees ;
-				
+
 				// if filters set, filter results
 				if( $scope.currentFilters !== undefined || $scope.filterEmpCat || $scope.filterDept  )
 				{
@@ -625,29 +625,29 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				{
 					initDataGrid($scope.employees);
 				}
-				
-				
+
+
 			}
 			else
 			{
 				initDataGrid($scope.employees);
 			}
-			
+
 		}, function(){});
 	}
-	
-	var initializeController = function () 
+
+	var initializeController = function ()
 	{
 		// get staff
 		$scope.departments = $rootScope.allDepts;
-		getStaff();		
+		getStaff();
 
 		setTimeout(function(){
 			var height = $('.full-height.datagrid').height();
 			$('#grid1').css('height', height);
 			$scope.gridApi.core.handleWindowResize();
-		},100);	
-		
+		},100);
+
 		$scope.userTypes = [];
 		for(let i=0; i < $rootScope.userTypes.length; i++){
 		    var type_name_arr = $rootScope.userTypes[i].split('_');
@@ -659,13 +659,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		$scope.userTypes.push({type_name: "DEPARTMENTS", type_val: "departments"});
 	}
 	$timeout(initializeController,1000);
-	
+
 	$scope.$watch('filters.emp_cat', function(newVal,oldVal){
 		if (oldVal == newVal) return;
 
 		if( newVal === undefined || newVal === null || newVal == '' ) 	$scope.departments = $rootScope.allDepts;
 		else
-		{	
+		{
 			// filter dept to only show those belonging to the selected category
 			$scope.departments = $rootScope.allDepts.reduce(function(sum,item){
 				if( item.category == newVal.emp_cat_name ) sum.push(item);
@@ -675,71 +675,65 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			$timeout(setSearchBoxPosition,10);
 		}
 	});
-	
-	var initDataGrid = function(data) 
-	{		
+
+	var initDataGrid = function(data)
+	{
 		$scope.gridOptions.data = data;
 		$scope.loading = false;
 		$rootScope.loading = false;
-		
+
 	}
-	
+
 	$scope.userPrivileges = function(){
-	    // 
+	    //
 	}
-	
+
 	$scope.checkPrivilegeSelection = function(){
 	    if($scope.privileges.user_type == 'SYS_ADMIN' || $scope.privileges.user_type == 'ADMIN' || $scope.privileges.user_type == 'PRINCIPAL' || $scope.privileges.user_type == 'ADMIN-FINANCE' || $scope.privileges.user_type == 'ADMIN-TRANSPORT' || $scope.privileges.user_type == 'FINANCE' || $scope.privileges.user_type == 'FINANCE-CONTROLLED' || $scope.privileges.user_type == 'TEACHER'){
 	        delete $scope.privileges.emp_id;
 	        delete $scope.privileges.emp_cat_id;
 	        delete $scope.privileges.dept_id;
 	    }else if($scope.privileges.user_type == 'employees'){
-	        delete $scope.privileges.user_id;
 	        delete $scope.privileges.emp_cat_id;
 	        delete $scope.privileges.dept_id;
 	    }else if($scope.privileges.user_type == 'categories'){
-	        delete $scope.privileges.user_id;
 	        delete $scope.privileges.emp_id;
 	        delete $scope.privileges.dept_id
 	    }else if($scope.privileges.user_type == 'departments'){
-	        delete $scope.privileges.user_id;
 	        delete $scope.privileges.emp_id;
 	        delete $scope.privileges.emp_cat_id;
 	    }
-	    if($scope.privileges.user_type == null){ 
+	    if($scope.privileges.user_type == null || $scope.privileges.user_type == ""){
 	        document.getElementById('notifySelection').style.color = '#FF0000'; // red
 	        $scope.selectionMsg = "A user type has to be selected to proceed!";
 	    }
 	    console.log($scope.privileges);
-	    
+			$scope.enableCheckboxTable();
+			/*
 	    if($scope.privileges.user_id != null || $scope.privileges.emp_id != null || $scope.privileges.emp_cat_id != null || $scope.privileges.dept_id != null){
+					console.log("Can continue");
 	        $scope.enableCheckboxTable();
 	    }
+			*/
 	}
-	
+
 	$scope.captureType = function(){
 	    // console.log($scope.privileges.user_type);
+			$scope.privileges.user_id = null
 	    if($scope.privileges.user_type != null && $scope.selectionMsg == 'A user type has to be selected to proceed!'){
 	        $scope.selectionMsg = null;
 	    }
 	    if($scope.privileges.user_type == 'SYS_ADMIN'){
 	        apiService.getSysAdmns(true, function(response){
-			
-    			var result = angular.fromJson(response);			
-    			
-    			if( result.response == 'success')
-    			{
-    				$scope.sysAdmins = result.data;
-    				// console.log($scope.sysAdmins);
-    			}
-    			else
-    			{
-    				$scope.error = true;
-    				$scope.errMsg = result.data;
-    				$scope.studentsLoading = false;
-    			}
-    			
-    		}, function(){});
+	    			var result = angular.fromJson(response);
+	    			if( result.response == 'success')
+						{ $scope.sysAdmins = result.data; }
+						else{
+	    				$scope.error = true;
+	    				$scope.errMsg = result.data;
+	    				$scope.studentsLoading = false;
+	    			}
+    		}, function(e){console.log(e)});
 	        $scope.showSysAdmin = true;
 	        $scope.showAdmin = false;
         	$scope.showEmployees = false;
@@ -751,24 +745,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showAdmnTransp = false;
         	$scope.showFin = false;
         	$scope.showFinCtrld = false;
-	    }else if($scope.privileges.user_type == 'ADMIN'){
+	    }
+			else if($scope.privileges.user_type == 'ADMIN'){
 	        apiService.getAdmns(true, function(response){
-			
-    			var result = angular.fromJson(response);			
-    			
-    			if( result.response == 'success')
-    			{
-    				$scope.admins = result.data;
-    				// console.log($scope.admins);
-    			}
-    			else
-    			{
-    				$scope.error = true;
-    				$scope.errMsg = result.data;
-    				$scope.studentsLoading = false;
-    			}
-    			
-    		}, function(){});
+	    			var result = angular.fromJson(response);
+	    			if( result.response == 'success')
+	    			{ $scope.admins = result.data; }
+	    			else
+	    			{
+	    				$scope.error = true;
+	    				$scope.errMsg = result.data;
+	    				$scope.studentsLoading = false;
+	    			}
+    		}, function(e){console.log(e)});
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = true;
         	$scope.showEmployees = false;
@@ -780,7 +769,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showAdmnTransp = false;
         	$scope.showFin = false;
         	$scope.showFinCtrld = false;
-	    }else if($scope.privileges.user_type == 'employees'){
+	    }
+			else if($scope.privileges.user_type == 'employees'){
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = false;
         	$scope.showEmployees = true;
@@ -792,7 +782,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showAdmnTransp = false;
         	$scope.showFin = false;
         	$scope.showFinCtrld = false;
-	    }else if($scope.privileges.user_type == 'categories'){
+	    }
+			else if($scope.privileges.user_type == 'categories'){
 	        $scope.empCats = $rootScope.empCats;
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = false;
@@ -805,7 +796,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showAdmnTransp = false;
         	$scope.showFin = false;
         	$scope.showFinCtrld = false;
-	    }else if($scope.privileges.user_type == 'departments'){
+	    }
+			else if($scope.privileges.user_type == 'departments'){
 	        $scope.empDepts = $rootScope.allDepts;
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = false;
@@ -818,24 +810,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showAdmnTransp = false;
         	$scope.showFin = false;
         	$scope.showFinCtrld = false;
-	    }else if($scope.privileges.user_type == 'TEACHER'){
+	    }
+			else if($scope.privileges.user_type == 'TEACHER'){
 	        apiService.getTchrs(true, function(response){
-			
-    			var result = angular.fromJson(response);			
-    			
-    			if( result.response == 'success')
-    			{
-    				$scope.tchrs = result.data;
-    				// console.log($scope.tchrs);
-    			}
-    			else
-    			{
-    				$scope.error = true;
-    				$scope.errMsg = result.data;
-    				$scope.studentsLoading = false;
-    			}
-    			
-    		}, function(){});
+	    			var result = angular.fromJson(response);
+	    			if( result.response == 'success')
+	    			{ $scope.tchrs = result.data; }
+	    			else
+	    			{
+	    				$scope.error = true;
+	    				$scope.errMsg = result.data;
+	    				$scope.studentsLoading = false;
+	    			}
+    		}, function(e){console.log(e)});
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = false;
         	$scope.showEmployees = false;
@@ -847,23 +834,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showAdmnTransp = false;
         	$scope.showFin = false;
         	$scope.showFinCtrld = false;
-	    }else if($scope.privileges.user_type == 'PRINCIPAL'){
+	    }
+			else if($scope.privileges.user_type == 'PRINCIPAL'){
 	        apiService.getPrincipals(true, function(response){
-			
-    			var result = angular.fromJson(response);			
-    			
-    			if( result.response == 'success')
-    			{
-    				$scope.principals = result.data;
-    			}
-    			else
-    			{
-    				$scope.error = true;
-    				$scope.errMsg = result.data;
-    				$scope.studentsLoading = false;
-    			}
-    			
-    		}, function(){});
+	    			var result = angular.fromJson(response);
+	    			if( result.response == 'success')
+	    			{ $scope.principals = result.data; }
+	    			else
+	    			{
+	    				$scope.error = true;
+	    				$scope.errMsg = result.data;
+	    				$scope.studentsLoading = false;
+	    			}
+    		}, function(e){console.log(e)});
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = false;
         	$scope.showEmployees = false;
@@ -875,23 +858,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showAdmnTransp = false;
         	$scope.showFin = false;
         	$scope.showFinCtrld = false;
-	    }else if($scope.privileges.user_type == 'ADMIN-FINANCE'){
+	    }
+			else if($scope.privileges.user_type == 'ADMIN-FINANCE'){
 	        apiService.getAdmnFinance(true, function(response){
-			
-    			var result = angular.fromJson(response);			
-    			
-    			if( result.response == 'success')
-    			{
-    				$scope.admnFinance = result.data;
-    			}
-    			else
-    			{
-    				$scope.error = true;
-    				$scope.errMsg = result.data;
-    				$scope.studentsLoading = false;
-    			}
-    			
-    		}, function(){});
+	    			var result = angular.fromJson(response);
+	    			if( result.response == 'success')
+	    			{ $scope.admnFinance = result.data; }
+	    			else
+	    			{
+	    				$scope.error = true;
+	    				$scope.errMsg = result.data;
+	    				$scope.studentsLoading = false;
+	    			}
+    		}, function(e){console.log(e)});
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = false;
         	$scope.showEmployees = false;
@@ -903,23 +882,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showAdmnTransp = false;
         	$scope.showFin = false;
         	$scope.showFinCtrld = false;
-	    }else if($scope.privileges.user_type == 'ADMIN-TRANSPORT'){
+	    }
+			else if($scope.privileges.user_type == 'ADMIN-TRANSPORT'){
 	        apiService.getAdmnTransp(true, function(response){
-			
-    			var result = angular.fromJson(response);			
-    			
-    			if( result.response == 'success')
-    			{
-    				$scope.admnTransport = result.data;
-    			}
-    			else
-    			{
-    				$scope.error = true;
-    				$scope.errMsg = result.data;
-    				$scope.studentsLoading = false;
-    			}
-    			
-    		}, function(){});
+	    			var result = angular.fromJson(response);
+	    			if( result.response == 'success')
+	    			{ $scope.admnTransport = result.data; }
+	    			else
+	    			{
+	    				$scope.error = true;
+	    				$scope.errMsg = result.data;
+	    				$scope.studentsLoading = false;
+	    			}
+    		}, function(e){console.log(e)});
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = false;
         	$scope.showEmployees = false;
@@ -931,23 +906,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showAdmnTransp = true;
         	$scope.showFin = false;
         	$scope.showFinCtrld = false;
-	    }else if($scope.privileges.user_type == 'FINANCE'){
+	    }
+			else if($scope.privileges.user_type == 'FINANCE'){
 	        apiService.getFnance(true, function(response){
-			
-    			var result = angular.fromJson(response);			
-    			
-    			if( result.response == 'success')
-    			{
-    				$scope.fnance = result.data;
-    			}
-    			else
-    			{
-    				$scope.error = true;
-    				$scope.errMsg = result.data;
-    				$scope.studentsLoading = false;
-    			}
-    			
-    		}, function(){});
+	    			var result = angular.fromJson(response);
+	    			if( result.response == 'success')
+	    			{ $scope.fnance = result.data; }
+	    			else
+	    			{
+	    				$scope.error = true;
+	    				$scope.errMsg = result.data;
+	    				$scope.studentsLoading = false;
+	    			}
+    		}, function(e){console.log(e)});
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = false;
         	$scope.showEmployees = false;
@@ -961,21 +932,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showFinCtrld = false;
 	    }else if($scope.privileges.user_type == 'FINANCE-CONTROLLED'){
 	        apiService.getFnanceCtrld(true, function(response){
-			
-    			var result = angular.fromJson(response);			
-    			
-    			if( result.response == 'success')
-    			{
-    				$scope.fnanceCtrld = result.data;
-    			}
-    			else
-    			{
-    				$scope.error = true;
-    				$scope.errMsg = result.data;
-    				$scope.studentsLoading = false;
-    			}
-    			
-    		}, function(){});
+	    			var result = angular.fromJson(response);
+	    			if( result.response == 'success')
+	    			{ $scope.fnanceCtrld = result.data; }
+	    			else
+	    			{
+	    				$scope.error = true;
+	    				$scope.errMsg = result.data;
+	    				$scope.studentsLoading = false;
+	    			}
+    		}, function(e){console.log(e)});
 	        $scope.showSysAdmin = false;
 	        $scope.showAdmin = false;
         	$scope.showEmployees = false;
@@ -989,18 +955,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
         	$scope.showFinCtrld = true;
 	    }
 	}
-	
-	$scope.filterDataTable = function() 
+
+	$scope.filterDataTable = function()
 	{
 		$scope.gridApi.grid.refresh();
 	};
-	
-	$scope.clearFilterDataTable = function() 
+
+	$scope.clearFilterDataTable = function()
 	{
 		$scope.gridFilter.filterValue = '';
 		$scope.gridApi.grid.refresh();
 	};
-	
+
 	$scope.singleFilter = function( renderableRows )
 	{
 		var matcher = new RegExp($scope.gridFilter.filterValue, 'i');
@@ -1017,21 +983,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		});
 		return renderableRows;
 	};
-		
+
 	$scope.filter = function()
 	{
 		$scope.currentFilters = angular.copy($scope.filters);
 		console.log($scope.filters.status);
-		
+
 		apiService.getAllEmployees($scope.filters.status, function(response){
 			var result = angular.fromJson(response);
-			
+
 			// store these as they do not change often
 			if( result.response == 'success')
-			{		
-				$scope.allEmployees = (result.nondata !== undefined ? [] : result.data);	
+			{
+				$scope.allEmployees = (result.nondata !== undefined ? [] : result.data);
 				$scope.employees = $scope.allEmployees ;
-				
+
 				// if filters set, filter results
 				if( $scope.currentFilters !== undefined || $scope.filterEmpCat || $scope.filterDept  )
 				{
@@ -1041,22 +1007,22 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				{
 					initDataGrid($scope.employees);
 				}
-				
-				
+
+
 			}
 			else
 			{
 				initDataGrid($scope.employees);
 			}
-			
+
 		}, function(){});
-		
+
 		filterResults(true);
 	}
-	
+
 	$scope.headerChange = function(el){
 	    console.log("Global change detected",el);
-	    
+
 	    // function to update tbody with thead values
 	    function updateTableBody(col,val){
 	        // each tbody row
@@ -1077,15 +1043,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
                     });
     	        }
             });
-	        
+
 	        // if val is true, we also need to disable editing the tbody checkboxes to avoid conflicting permissions
 	    }
 	    updateTableBody(el.header.name,el.header.isSelected);
 	}
-	
+
 	$scope.bodyHeaderChange = function(el){
 	    console.log("Module level change detected",el);
-	    
+
 	    function updateChildren(col,val){
 	        $scope.permsTable.rows.forEach(function(eachRow){
                 for(let x=0;x < eachRow.children.length;x++){
@@ -1100,20 +1066,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	    }
 	    updateChildren(el.mainPerm.name,el.mainPerm.isSelected);
 	}
-	
+
 	$scope.savePermissions = function(){
 	    console.log("Selected permissions",$scope.permsTable.allPermissions);
 	    console.log("Selected user(s)",$scope.privileges);
 	}
-	
+
 	var filterResults = function(clearTable)
 	{
 		$scope.loading = true;
-		
+
 		// filter by emp category
 		var filteredResults = $scope.allEmployees;
-		
-		
+
+
 		if( $scope.filters.emp_cat_id !== undefined && $scope.filters.emp_cat_id !== null && $scope.filters.emp_cat_id != ''  )
 		{
 			filteredResults = filteredResults.reduce(function(sum, item) {
@@ -1122,7 +1088,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			}, []);
 		}
 
-		
+
 		if( $scope.filters.dept_id !== undefined && $scope.filters.dept_id !== null && $scope.filters.dept_id != '' )
 		{
 			filteredResults = filteredResults.reduce(function(sum, item) {
@@ -1130,25 +1096,25 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			  return sum;
 			}, []);
 		}
-		
+
 		$scope.employees = filteredResults;
 		initDataGrid($scope.employees);
 	}
-	
+
 	$scope.addEmployee = function()
 	{
 		$scope.openModal('staff', 'addEmployee', 'lg');
 	}
-	
+
 	$scope.viewEmployee = function(item)
 	{
 		$scope.openModal('staff', 'viewEmployee', 'lg', item);
 	}
-	
+
 	$scope.exportData = function()
 	{
 		// $scope.gridApi.exporter.csvExport( 'visible', 'visible' );
-		
+
 		class XlsExport {
   // data: array of objects with the data for each row of the table
   // name: title for the worksheet
@@ -1260,38 +1226,38 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
     }
   }, {});
 	}
-	
+
 	$scope.$on('refreshStaff', function(event, args) {
 
 		$scope.loading = true;
 		$rootScope.loading = true;
-		
+
 		if( args !== undefined )
 		{
 			$scope.updated = true;
 			$scope.notificationMsg = args.msg;
 		}
 		$scope.refresh();
-		
+
 		// wait a bit, then turn off the alert
 		$timeout(function() { $scope.alert.expired = true;  }, 2000);
-		$timeout(function() { 
+		$timeout(function() {
 			$scope.updated = false;
-			$scope.notificationMsg = ''; 
+			$scope.notificationMsg = '';
 			$scope.alert.expired = false;
 		}, 3000);
 	});
-	
-	$scope.refresh = function () 
+
+	$scope.refresh = function ()
 	{
 		$scope.loading = true;
 		$rootScope.loading = true;
 		getStaff();
 	}
-	
+
 	$scope.$on('$destroy', function() {
 		$rootScope.isModal = false;
     });
-	
+
 
 } ]);

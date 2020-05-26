@@ -33,18 +33,9 @@
       animation-name: animatetop;
       animation-duration: 0.4s
     }
-
     /* Add Animation */
-    @-webkit-keyframes animatetop {
-      from {top:-300px; opacity:0}
-      to {top:0; opacity:1}
-    }
-
-    @keyframes animatetop {
-      from {top:-300px; opacity:0}
-      to {top:0; opacity:1}
-    }
-
+    @-webkit-keyframes animatetop { from {top:-300px; opacity:0} to {top:0; opacity:1} }
+    @keyframes animatetop { from {top:-300px; opacity:0} to {top:0; opacity:1} }
     /* The Close Button */
     .clze, .clze2 {color: white;float: right;font-size: 28px;font-weight: bold;}
     .clze:hover,.clze:focus, .clze2:hover,.clze2:focus {color: #000;text-decoration: none;cursor: pointer;}
@@ -65,7 +56,6 @@
 					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
 				</ul>
 			</div>
-
 			<div class="clearfix">
 				<h1 id="pageTitle">Create A Resource</h1>
 			</div>
@@ -172,13 +162,13 @@
     				</div>
 			    </div>
 					<div class="col-sm-9">
-						<div class="dashboard-panel" style="background-color:#9C9C9C;border-radius:0;">
+						<div class="dashboard-panel" style="background-color:#9C9C9C;border-radius:0;width:100%;">
 							<div class="dashboard-panel-header" style="background-color:#9C9C9C">
 								<h2 style="text-align:center;color:#ffffff;">My Created Resources</h2>
 							</div>
 						</div>
 
-						<div class="dashboard-panel" style="background-color:#E0E0E0;border-radius:0;height:333px;">
+						<div class="dashboard-panel" style="background-color:#E0E0E0;border-radius:0;height:390px;width:100%;overflow-y:auto;">
 							<div class="dashboard-panel-header" style="background-color:#E0E0E0">
 								<div>
 	    						<ol>
@@ -220,7 +210,7 @@
 						</p>
 						<div>
 							<a ng-hide="showVimeoFrame" href="assets/resources/{{schoolDir}}/{{assetSubDir}}/{{resourceFile}}" target="_blank">
-								<img class="img-responsive" src="assets/img/icons/{{resourceIcon}}" alt="{{resourceFile}}">
+								<img class="img-responsive" src="assets/img/icons/{{resourceIcon}}" alt="{{resourceFile}}" style="max-height:216px !important;width:auto;">
 							</a>
 							<div ng-show="showVimeoFrame" style="padding:90% 0 0 0;position:relative;margin-left:7%;">
 								<iframe src="{{vimeoId}}" style="position:absolute;top:0;left:-23px;width:auto;height:64%;" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
@@ -236,7 +226,7 @@
           <button ng-click="copyLink()">Copy Link</button>
 
 		  <div class="modal-footer">
-		    <button type="button" class="btn btn-primary" style="margin-right:2%;" ng-click="sendToApp()">Send To App</button>
+		    <!-- <button type="button" class="btn btn-primary" style="margin-right:2%;" ng-click="sendToApp()">Send To App</button> -->
 		    <span><button type="button" class="btn btn-{{editButtonStyle}}" style="margin-right:2%;" ng-click="updateResource()">{{editButtonTxt}}</button>
 		    <span><button type="button" class="btn btn-danger">Delete</button></span><span>
 		  </div>

@@ -1261,6 +1261,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 	$scope.openModal = function (section, view, size, item)
 	{
 		var testEl = $('#filterLinks');console.log(testEl);
+		
 		if( $('#filterLinks').hasClass('in') )
 		{
 			$('#subnav').trigger('click');

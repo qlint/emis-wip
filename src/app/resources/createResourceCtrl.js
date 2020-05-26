@@ -23,6 +23,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 	$scope.uploadStatus = false;
 	$scope.trackedSelectEvt = null;
 	$scope.showVimeoFrame = false;
+	$scope.school = window.location.host.split('.')[0];
 
 	$scope.copyLink = function() {
           var copyText = document.getElementById("linkUrl");
@@ -94,7 +95,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 			$scope.filters.class_cat_id = $scope.classes[0].class_cat_id;
 			deferred.resolve();
 		}
-
 
 		// get terms
 		var deferred2 = $q.defer();
@@ -183,15 +183,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 
 						}
 					}
-					setTimeout(function(){
-						for(let r=0; r < $scope.teacherResources.length;r++){
-							for(let c=0; c < $scope.classes.length;c++){
-								if($scope.classes[c].class_id == $scope.teacherResources[r].class_id){
-									$scope.teacherResources[r].class_name = $scope.classes[c].class_name;
-								}
-							}
-						}
-					}, 2000);
 			}
 			else
 			{
@@ -311,106 +302,142 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 								console.log(result);
 				    		if( result.ok == true )
 				    		{
-										// func. to post to vimeo
-										function uploadToVimeo(){
-											let token = 'c17c9d50d0303ae9d1dd0d3a8ce083d0';
-											let clientId = '047f83cd854363004872dbdf06398728a2ec889f';
-											let clientSec = 'EZl2LTH3nmuQA4iGXE1VZDmkyucj4aJUe3/hh0/RoQZsRPCUPx6s9BhKHNhwp/6Hg3g3SR/g/oD6kRbJovqPlun84SjyCGlL7ko+rZw08IzNcNlQdCZmXEScLyFZL6zP';
-											let uId = '110453051';
+									if($( "#resource_type" ).val().toUpperCase() == 'VIDEO'){
+												// func. to post to vimeo
+												function uploadToVimeo(){
+													let token = 'c17c9d50d0303ae9d1dd0d3a8ce083d0';
+													let clientId = '047f83cd854363004872dbdf06398728a2ec889f';
+													let clientSec = 'EZl2LTH3nmuQA4iGXE1VZDmkyucj4aJUe3/hh0/RoQZsRPCUPx6s9BhKHNhwp/6Hg3g3SR/g/oD6kRbJovqPlun84SjyCGlL7ko+rZw08IzNcNlQdCZmXEScLyFZL6zP';
+													let uId = '110453051';
 
-											console.log("Checking file data",$scope.trackedSelectEvt,$scope.resourceFile,document.getElementById('file_data').files[0]);
-											let vimeoData = {
-												file_data: "https://"+$scope.schoolDir+".eduweb.co.ke/assets/resources/"+$scope.schoolDir+"/videos/"+$scope.resourceFile.name,
-												name: $scope.resourceNm,
-												description: $scope.resourceDsc,
-												upload: {
-													link: "https://"+$scope.schoolDir+".eduweb.co.ke/assets/resources/"+$scope.schoolDir+"/videos/"+$scope.resourceFile.name,
-													approach: 'pull',
-													size: document.getElementById('file_data').files[0].size
-												},
-												embed: {
-													buttons: {
-														like: false,
-														share: false,
-														embed: true,
-														fullscreen: true,
-														hd: true,
-														scaling: true,
-														share: false,
-														watchlater: false
-													},
-													logos: {
-														vimeo: false,
-														custom: {
-															sticky: true,
-															active: true,
-															link: 'https://cdn.eduweb.co.ke/eduweb-vimeo.png'
+													console.log("Checking file data",$scope.trackedSelectEvt,$scope.resourceFile,document.getElementById('file_data').files[0]);
+													let vimeoData = {
+														file_data: "https://"+ $scope.school +".eduweb.co.ke/assets/resources/"+ $scope.school +"/videos/"+$scope.resourceFile.name,
+														name: $scope.resourceNm,
+														description: $scope.resourceDsc,
+														upload: {
+															link: "https://"+ $scope.school +".eduweb.co.ke/assets/resources/"+ $scope.school +"/videos/"+$scope.resourceFile.name,
+															approach: 'pull',
+															size: document.getElementById('file_data').files[0].size
+														},
+														embed: {
+															buttons: {
+																like: false,
+																share: false,
+																embed: true,
+																fullscreen: true,
+																hd: true,
+																scaling: true,
+																share: false,
+																watchlater: false
+															},
+															logos: {
+																vimeo: false,
+																custom: {
+																	sticky: true,
+																	active: true,
+																	link: 'https://cdn.eduweb.co.ke/eduweb-vimeo.png'
+																}
+															},
+															title: { portrait: 'hide' },
+															volume: true,
+															playbar: true,
+															color: '#33cc33'
+														},
+														privacy: {
+															view: "unlisted"
 														}
-													},
-													title: { portrait: 'hide' },
-													volume: true,
-													playbar: true,
-													color: '#33cc33'
-												},
-												privacy: {
-													view: "unlisted"
+													}
+
+													fetch('https://api.vimeo.com/me/videos', {
+														method: 'POST',
+														headers: {
+															'Authorization' : 'Bearer ' + token,
+															'Content-Type' :	'application/json',
+															'Accept' :	'application/vnd.vimeo.*+json;version=3.4'
+														},
+														body: JSON.stringify(vimeoData),
+													}).then(response => {
+														console.log("First response",response);
+														if(response.ok == true){
+															$scope.uploadStatus = false;
+														}
+													}).then((result) => {
+														alert("Your video has been uploaded successfully. It may take a few minutes for it to complete processing.");
+													  console.log('Success:', result);
+														document.getElementById("resourceModal2").style.display = 'none';
+
+														var xhr = new XMLHttpRequest();
+														var url = "https://api.vimeo.com/me/videos";
+														xhr.open("GET", url, true);
+														xhr.setRequestHeader("Authorization", "Bearer " + token);
+														xhr.setRequestHeader("Content-Type", "application/json");
+														xhr.setRequestHeader("Accept", "application/vnd.vimeo.*+json;version=3.4");
+														xhr.onreadystatechange = function () {
+														    if (xhr.readyState === 4 && xhr.status === 200) {
+															    // var json = JSON.parse(xhr.responseText);
+																	// remove the new line character from the string
+																	let respText = xhr.responseText.replace(/↵/g, '');
+																	var respJson = JSON.parse(respText);
+																	let uploadedVidUri = respJson.data[0].uri.split('/')[2];
+															    console.log(respJson);
+																	var uriParam = {
+																		uri: uploadedVidUri
+																	}
+																	apiService.updateVimeoUri(uriParam,function ( response, status, params )
+																    	{
+																    		var result = angular.fromJson( response );
+																    		if( result.response == 'success' ){
+																					console.log("uri saved.");
+																					// null all inputs and post parameters
+																					resourceData = {};
+																					var resource_name = null;
+																					var resource_type = null;
+																					$scope.resourceFile = null;
+																					var file_name = null;
+																					var additional_notes = null;
+
+																					$scope.resourceNm = null;
+																					$scope.resourceDsc = null;
+																					$( "#resource_name" ).val('');
+																					$( "#resource_type" ).val('');
+																					$( "#file_data" ).val('')
+																					$( "#additional_notes" ).val('');
+																					initializeController();
+																				}else{
+																					console.log("error saving uri");
+																				}
+																    	},function(e){console.log(e)});
+														    }
+														};
+														xhr.send();
+													})
+													.catch((error) => {
+														alert("There seems to be an issue with the upload. Please try again, or let us know about this error message :: ("+error+")")
+													  console.error('Error:', error);
+														document.getElementById("resourceModal2").style.display = 'none';
+													});
+
 												}
-											}
+												// end func uploadToVimeo();
+												uploadToVimeo();
+										}else{
+											document.getElementById("resourceModal2").style.display = 'none';
+											alert("Your resource has been created successfully.");
+											resourceData = {};
+											var resource_name = null;
+											var resource_type = null;
+											$scope.resourceFile = null;
+											var file_name = null;
+											var additional_notes = null;
 
-											fetch('https://api.vimeo.com/me/videos', {
-												method: 'POST',
-												headers: {
-													'Authorization' : 'Bearer ' + token,
-													'Content-Type' :	'application/json',
-													'Accept' :	'application/vnd.vimeo.*+json;version=3.4'
-												},
-												body: JSON.stringify(vimeoData),
-											}).then(response => {
-												console.log("First response",response);
-												if(response.ok == true){
-													$scope.uploadStatus = false;
-												}
-											}).then((result) => {
-												alert("Your video has been uploaded successfully. It may take a few minutes for it to complete processing.");
-											  console.log('Success:', result);
-												document.getElementById("resourceModal2").style.display = 'none';
-
-												var xhr = new XMLHttpRequest();
-												var url = "https://api.vimeo.com/me/videos";
-												xhr.open("GET", url, true);
-												xhr.setRequestHeader("Authorization", "Bearer " + token);
-												xhr.setRequestHeader("Content-Type", "application/json");
-												xhr.setRequestHeader("Accept", "application/vnd.vimeo.*+json;version=3.4");
-												xhr.onreadystatechange = function () {
-												    if (xhr.readyState === 4 && xhr.status === 200) {
-													    // var json = JSON.parse(xhr.responseText);
-															// remove the new line character from the string
-															let respText = xhr.responseText.replace(/↵/g, '');
-															var respJson = JSON.parse(respText);
-															let uploadedVidUri = respJson.data[0].uri.split('/')[2];
-													    console.log(respJson);
-															var uriParam = {
-																uri: uploadedVidUri
-															}
-															apiService.updateVimeoUri(uriParam,function ( response, status, params )
-														    	{
-														    		var result = angular.fromJson( response );
-														    		if( result.response == 'success' ){ console.log("uri saved."); }else{ console.log("error saving uri"); }
-														    	},function(e){console.log(e)});
-												    }
-												};
-												xhr.send();
-											})
-											.catch((error) => {
-												alert("There seems to be an issue with the upload. Please try again, or let us know about this error message :: ("+error+")")
-											  console.error('Error:', error);
-												document.getElementById("resourceModal2").style.display = 'none';
-											});
-
-										}
-										// uploadToVimeo();
-										if($( "#resource_type" ).val().toUpperCase() == 'VIDEO'){
-											uploadToVimeo();
+											$scope.resourceNm = null;
+											$scope.resourceDsc = null;
+											$( "#resource_name" ).val('');
+											$( "#resource_type" ).val('');
+											$( "#file_data" ).val('')
+											$( "#additional_notes" ).val('');
+											initializeController();
 										}
 				    		}
 				    		else
@@ -428,7 +455,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 					  });
 
 						// end file upload
-
 		  }
 			apiService.createResource(resourceData,addResourceSuccess,apiError);
 	}
@@ -477,6 +503,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 
 	$scope.openSrc = function(el){
 		console.log(el.resource,$scope);
+		$scope.openedResource = el.resource;
 		$scope.filters.class_id = el.resource.class_id;
 
 		$scope.resourceTitle = el.resource.resource_name;
@@ -541,7 +568,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 
 	$scope.sendToApp = function(){
 	    // post object
-	    var link = 'https://classroom.eduweb.co.ke/' + $scope.schoolDir + '/' + $scope.assetSubDir + '/' + $scope.resourceFile;
+			if($scope.openedResource.vimeo_path == null || $scope.openedResource == undefined){
+	    	var link = 'https://classroom.eduweb.co.ke/' + $scope.schoolDir + '/' + $scope.assetSubDir + '/' + $scope.resourceFile;
+			}else{
+				var link = 'https://vimeo.com/'+$scope.openedResource.vimeo_path;
+			}
 	    console.log("The link is = "+link);
 	    $scope.postObj = {
 	        post : {
@@ -582,10 +613,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
                                                                         console.log("Error. Notifications could not be sent.");
                                                                     }
                                                                 });
-                                                                // apiService.sendSchoolNotifications($scope.schoolDir, function(response){
-																//																	var result = angular.fromJson(response);
-																//																	if( result.response == 'success'){ console.log("Notifications sent to parties!"); }
-																//																}, apiError);
                                                     		}
                                                     		else
                                                     		{
