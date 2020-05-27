@@ -2875,28 +2875,29 @@ $app->get('/getToQuickbooksData/:username/:password', function ($username,$passw
 
       $feeItemsQry = $db->prepare("SELECT fi.*, 'FEES' AS account_name FROM fee_items fi
                                   INNER JOIN quickbooks_clients qc USING (subdomain)
-                                  WHERE username = :username AND password = :password  AND fi.exists_in_quickbooks IS FALSE");
+                                  WHERE fi.client_identifier = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                  AND fi.exists_in_quickbooks IS FALSE");
       $feeItemsQry->execute(array(':username' => $username, ':password' => $password));
       $itemsDetails = $feeItemsQry->fetchAll(PDO::FETCH_OBJ);
       $results->fee_items = $itemsDetails;
 
       $studentsQry = $db->prepare("SELECT * FROM client_students
                                   WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password) AND exists_in_quickbooks IS FALSE
-                                  LIMIT 15");
+                                  ");
       $studentsQry->execute(array(':username' => $username, ':password' => $password));
       $studentsList = $studentsQry->fetchAll(PDO::FETCH_OBJ);
       $results->students = $studentsList;
 
       $paymentsQry = $db->prepare("SELECT *, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_payments
                                     WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
-                                    LIMIT 15");
+                                    ");
       $paymentsQry->execute(array(':username' => $username, ':password' => $password));
       $payments = $paymentsQry->fetchAll(PDO::FETCH_OBJ);
       $results->payments = $payments;
 
       $invoicesQry = $db->prepare("SELECT * FROM to_quickbooks_invoices
                                     WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
-                                    LIMIT 15");
+                                    ");
       $invoicesQry->execute(array(':username' => $username, ':password' => $password));
       $invoices = $invoicesQry->fetchAll(PDO::FETCH_OBJ);
       $results->invoices = $invoices;
