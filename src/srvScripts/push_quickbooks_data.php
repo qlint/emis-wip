@@ -10,7 +10,7 @@
     $pwd = "pg_edu@8947";
 
     $output = new stdClass();
-    
+
     try{
         /* db conn */
         $rootDb = pg_connect("host=" . $host . " port=" . $port . " dbname=eduweb_mis user=" . $user . " password=" . $pwd);
@@ -18,8 +18,8 @@
         // Get all school subdomains to build db names
         $fetchDbs = pg_query($rootDb,"SELECT subdomain FROM clients WHERE using_quickbooks IS TRUE");
         $dbArray = array(); // we'll put our db's here
-        
-        while ($dbResults = pg_fetch_assoc($fetchDbs)) 
+
+        while ($dbResults = pg_fetch_assoc($fetchDbs))
         {
             $dbCreate = $dbResults['subdomain'];
             array_push($dbArray,$dbCreate); // push into dbArray the value of dbCreate
@@ -54,7 +54,7 @@
 
                 $invoicesObj = new stdClass();
                 $invoicesQry = pg_query($schoolDb,"SELECT '$value' AS client_id, i.inv_id AS eduweb_invoice_id, ili.amount, fi.fee_item,
-                                                        s.admission_number, i.due_date
+                                                        s.admission_number, i.due_date, i.creation_date AS invoice_date
                                                     FROM app.invoices i
                                                     INNER JOIN app.invoice_line_items ili USING (inv_id)
                                                     INNER JOIN app.student_fee_items sfi USING (student_fee_item_id)
@@ -96,11 +96,11 @@
                         $insertStudentsQry = pg_query($quickbooksDb,"INSERT INTO public.client_students(
 	                                                                    client_id, admission_number, first_name, middle_name, last_name, full_name)
                                                                     VALUES (
-                                                                        '$client_id', 
-                                                                        '$admission_number', 
-                                                                        '$first_name', 
-                                                                        '$middle_name', 
-                                                                        '$last_name', 
+                                                                        '$client_id',
+                                                                        '$admission_number',
+                                                                        '$first_name',
+                                                                        '$middle_name',
+                                                                        '$last_name',
                                                                         '$full_name'
                                                                     );"); // executing the query
                     }
@@ -116,10 +116,10 @@
                         $insertItemsQry = pg_query($quickbooksDb,"INSERT INTO public.fee_items(
                                                                     subdomain, client_identifier, fee_item, amount, eduweb_fee_item_id)
                                                                 VALUES (
-                                                                        '$subdomain', 
-                                                                        '$client_identifier', 
-                                                                        '$fee_item', 
-                                                                        $amount, 
+                                                                        '$subdomain',
+                                                                        '$client_identifier',
+                                                                        '$fee_item',
+                                                                        $amount,
                                                                         $eduweb_fee_item_id
                                                                     );"); // executing the query
                     }
@@ -132,16 +132,18 @@
                         $fee_item = pg_escape_string($value["fee_item"]);
                         $amount = $value["amount"];
                         $due_date = pg_escape_string($value["due_date"]);
+                        $invoice_date = pg_escape_string($value["invoice_date"]);
 
                         $insertInvoicesQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_invoices(
-                                                                        eduweb_invoice_id, client_id, admission_number, fee_item, amount, due_date)
+                                                                        eduweb_invoice_id, client_id, admission_number, fee_item, amount, due_date, invoice_date)
                                                                     VALUES (
-                                                                            $eduweb_invoice_id, 
-                                                                            '$client_id', 
-                                                                            '$admission_number', 
-                                                                            '$fee_item', 
-                                                                            $amount, 
-                                                                            '$due_date'
+                                                                            $eduweb_invoice_id,
+                                                                            '$client_id',
+                                                                            '$admission_number',
+                                                                            '$fee_item',
+                                                                            $amount,
+                                                                            '$due_date',
+                                                                            '$invoice_date'
                                                                         );"); // executing the query
                     }
 
@@ -157,11 +159,11 @@
                         $insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(
                                                                         eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id)
                                                                     VALUES (
-                                                                            $eduweb_payment_id, 
-                                                                            '$client_id', 
-                                                                            '$admission_number', 
-                                                                            $amount, 
-                                                                            '$payment_date', 
+                                                                            $eduweb_payment_id,
+                                                                            '$client_id',
+                                                                            '$admission_number',
+                                                                            $amount,
+                                                                            '$payment_date',
                                                                             $eduweb_invoice_id
                                                                         );"); // executing the query
                     }

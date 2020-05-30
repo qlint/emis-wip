@@ -133,6 +133,36 @@ $app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($
 
 });
 
+$app->get('/getSubjects/:classId', function($classId){
+	//show all subjects of a certain class distinctively
+	
+	$app=\Slim\Slim::getInstance();
+	
+	try{
+	$db = getDB();
+	$sth = $db->prepare("SELECT DISTINCT subject_name FROM app.subjects WHERE class_cat_id=:classId");
+	$sth->execute(array(':classId'=>$classId));
+	
+	$results = $sth->fetchAll(PDO::FETCH_ASSOC);
+	
+	if($results){
+		$app->response->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array('response' => 'success', 'data' => $results ));
+		$db = null;
+	} else {
+		$app->response->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+		$db = null;
+	}
+	}catch(PDOException $e){
+	$app->response()->setStatus(200);
+	$app->response()->headers->set('Content-Type', 'application/json');
+			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+});
+
 /*
 $app->get('/getSubjects/:classCatId', function ($classCatId) {
 	//Show only subjects that receive exam marks (children subjects)

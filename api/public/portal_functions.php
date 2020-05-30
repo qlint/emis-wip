@@ -1374,7 +1374,26 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
                         ORDER BY homework.assigned_date DESC, subjects.sort_order
                 ");
     $sth->execute( array(':studentId' => $studentId) );
-    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+    $homework = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    /*
+    $sth2 = $db->prepare("SELECT s.sort_order, c.class_id, s.subject_id, s.subject_name
+                          FROM app.subjects s
+                          INNER JOIN app.classes c USING (class_cat_id)
+                          INNER JOIN app.students ON c.class_id = students.current_class
+                          WHERE student_id = :studentId
+                          ORDER BY s.sort_order ASC");
+    $sth2->execute( array(':studentId' => $studentId) );
+    $subjects = $sth2->fetchAll(PDO::FETCH_OBJ);
+    */
+    $sth2 = $db->prepare("SELECT s.subject_name
+                          FROM app.subjects s
+                          INNER JOIN app.classes c USING (class_cat_id)
+                          INNER JOIN app.students ON c.class_id = students.current_class
+                          WHERE student_id = :studentId AND s.active IS TRUE
+                          ORDER BY s.sort_order");
+    $sth2->execute( array(':studentId' => $studentId) );
+    $subjects = $sth2->fetchAll(PDO::FETCH_OBJ);
     /*
         $sth = $db->prepare("SELECT homework_date, description
                 FROM app.homework
@@ -1396,7 +1415,11 @@ $app->get('/getHomework/:school/:student_id', function ($school, $studentId) {
 				$mistrafficdb = null;
 				// traffic analysis end
 
-        if($results) {
+        if($homework) {
+            $results = new stdClass();
+            $results->homework = $homework;
+            $results->subjects = $subjects;
+
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));
@@ -2925,10 +2948,10 @@ $app->post('/addedToQuickbooks', function () use($app) {
   $paymentsArr = ( isset($allPostVars['paymentIds']) ? $allPostVars['paymentIds']: null);
   $invoicesArr = ( isset($allPostVars['invoiceIds']) ? $allPostVars['invoiceIds']: null);
 
-  $paymentId = implode(',', $paymentsArr);
-  $invoiceId = implode(',', $invoicesArr);
-  $feeItemId = implode(',', $feeItemsArr);
-  $studentId = implode(',', $studentsArr);
+  $paymentId = ( isset($allPostVars['paymentIds']) ? implode(',', $paymentsArr) : null );
+  $invoiceId = ( isset($allPostVars['invoiceIds']) ? implode(',', $invoicesArr) : null );
+  $feeItemId = ( isset($allPostVars['fee_ItemIds']) ? implode(',', $feeItemsArr) : null );
+  $studentId = ( isset($allPostVars['studentIds']) ? implode(',', $studentsArr) : null );
 
   try
   {
@@ -2944,54 +2967,65 @@ $app->post('/addedToQuickbooks', function () use($app) {
 
         $getDb = setDBConnection($theSubDomain);
         /* QUERIES FOR QUICKBOOKS DB */
-        $paySth = $db->prepare("DELETE FROM public.to_quickbooks_payments
-                                WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
-                                AND to_quickbooks_payment_id = any(ARRAY[:paymentId]);");
-        $paySth->execute( array(':paymentId' => $paymentId, ':accountId' => $incomeAccount) );
-
-        $invSth = $db->prepare("DELETE FROM public.to_quickbooks_invoices
-                                WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
-                                AND to_quickbooks_id = any(ARRAY[:invoiceId]);");
-        $invSth->execute( array(':invoiceId' => $invoiceId, ':accountId' => $incomeAccount) );
-
-        $feeSth = $db->prepare("UPDATE public.fee_items SET exists_in_quickbooks = true
-                                WHERE client_identifier = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
-                                AND fi_id = any(ARRAY[:feeItemId]);");
-        $feeSth->execute( array(':feeItemId' => $feeItemId, ':accountId' => $incomeAccount) );
-
-        $stdntSth = $db->prepare("UPDATE public.client_students SET exists_in_quickbooks = true
+        if(isset($allPostVars['paymentIds'])){
+          // QUICKBOOKS
+          $paySth = $db->prepare("DELETE FROM public.to_quickbooks_payments
                                   WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
-                                  AND client_student_id = any(ARRAY[:studentId]);");
-        $stdntSth->execute( array(':studentId' => $studentId, ':accountId' => $incomeAccount) );
+                                  AND eduweb_payment_id IN ($paymentId);");
+          $paySth->execute( array(':accountId' => $incomeAccount) );
 
-        /* QUERIES FOR SCHOOL DB */
+          // SCHOOL
+          $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
+    	                                 WHERE payment_id IN ($paymentId);");
+          $paySth2->execute( array() );
+        }
+
+        if(isset($allPostVars['invoiceIds'])){
+          // QUICKBOOKS
+          $invSth = $db->prepare("DELETE FROM public.to_quickbooks_invoices
+                                  WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
+                                  AND eduweb_invoice_id IN ($invoiceId);");
+          $invSth->execute( array(':accountId' => $incomeAccount) );
+
+          // SCHOOL
+          $invSth2 = $getDb->prepare("UPDATE app.invoices SET in_quickbooks = true
+                                      WHERE inv_id IN ($invoiceId);");
+          $invSth2->execute( array() );
+        }
         /*
-        $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks=true
-	                                 WHERE <condition>
-                                AND to_quickbooks_payment_id = any(ARRAY[:paymentId]);");
-        $paySth2->execute( array(':paymentId' => $paymentId, ':accountId' => $incomeAccount) );
+        if(isset($allPostVars['fee_ItemIds'])){
+          // QUICKBOOKS
+          $feeSth = $db->prepare("UPDATE public.fee_items SET exists_in_quickbooks = true
+                                  WHERE client_identifier = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
+                                  AND eduweb_fee_item_id IN ($feeItemId);");
+          $feeSth->execute( array(':accountId' => $incomeAccount) );
 
-        $invSth2 = $getDb->prepare("DELETE FROM public.to_quickbooks_invoices
-                                WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
-                                AND to_quickbooks_id = any(ARRAY[:invoiceId]);");
-        $invSth2->execute( array(':invoiceId' => $invoiceId, ':accountId' => $incomeAccount) );
+          // SCHOOL
+          $feeSth2 = $getDb->prepare("UPDATE app.fee_items SET in_quickbooks = true
+                                      WHERE fee_item_id IN ($feeItemId);");
+          $feeSth2->execute( array() );
+        }
 
-        $feeSth2 = $getDb->prepare("UPDATE public.fee_items SET exists_in_quickbooks = true
-                                WHERE client_identifier = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
-                                AND fi_id = any(ARRAY[:feeItemId]);");
-        $feeSth2->execute( array(':feeItemId' => $feeItemId, ':accountId' => $incomeAccount) );
+        if(isset($allPostVars['studentIds'])){
+          // QUICKBOOKS
+          $stdntSth = $db->prepare("UPDATE public.client_students SET exists_in_quickbooks = true
+                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
+                                    AND client_student_id IN ($studentId);");
+          $stdntSth->execute( array(':accountId' => $incomeAccount) );
 
-        $stdntSth2 = $getDb->prepare("UPDATE public.client_students SET exists_in_quickbooks = true
-                                  WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
-                                  AND client_student_id = any(ARRAY[:studentId]);");
-        $stdntSth2->execute( array(':studentId' => $studentId, ':accountId' => $incomeAccount) );
+          // SCHOOL
+          $stdntSth2 = $getDb->prepare("UPDATE app.students SET in_quickbooks = true
+                                        WHERE student_id IN ($studentId);");
+          $stdntSth2->execute( array() );
+        }
         */
+
       }
 
       $message = "Process completed successfully. Parsed data has been removed.";
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array("response" => "success", "code" => 1, "message" => $message, "account_id" => $incomeAccount));
+      echo json_encode(array("response" => "success", "code" => 1, "message" => $message, "account_id" => $incomeAccount, "payments" => $paymentId, "invoices" => $invoiceId, "students" => $studentId, "fee_items" => $feeItemId));
       $db = null;
 
     }else{
