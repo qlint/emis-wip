@@ -168,6 +168,45 @@ $app = \Slim\Slim::getInstance();
 
 });
 
+$app->post('/africasTalkingSendMsg', function () use($app) {
+  // Send message via Africa's talking
+
+    $allPostVars = json_decode($app->request()->getBody(),true);
+    $accountId =   ( isset($allPostVars['account_id']) ? $allPostVars['account_id']: null);
+    $recipients =  ( isset($allPostVars['recipients']) ? $allPostVars['recipients']: null);
+    $msgText =    ( isset($allPostVars['messagetext']) ? $allPostVars['messagetext']: null);
+
+    try
+    {
+        $db = getAfricasTalkingDB();
+        $sth = $db->prepare("INSERT INTO sms.in_out(account_id, phone_number, messagetext, message_time)
+                            VALUES(:accountId, :phoneNumber, :msgText, now())");
+
+        $db->beginTransaction();
+        
+        foreach( $recipients as $recipient )
+		{
+			$phoneNumber = ( isset($recipient['phone_number']) ? $recipient['phone_number']: null);
+
+			$sth->execute( array('accountId' => $accountId, ':phoneNumber' => $phoneNumber, ':msgText' => $msgText ) );
+		}
+
+        $db->commit();
+
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "data" => "Message sent succcessfully!"));
+        $db = null;
+
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(404);
+        $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->post('/addBlog', function () use($app) {
   // Add blog
 

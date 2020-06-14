@@ -935,6 +935,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.customAddCommunication = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/customAddCommunication", successFunction, errorFunction, params);
 	};
+	
+	this.addCommViaAfricasTalking = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addCommViaAfricasTalking", successFunction, errorFunction, params);
+	};
 
 	this.getCommunication = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getCommunication/" + param, successFunction, errorFunction, params);

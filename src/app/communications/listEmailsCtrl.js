@@ -10,6 +10,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 	$scope.filters.post_status_id = null;
 	$scope.alert = {};
 	$scope.loading = true;
+	$scope.subdomain = window.location.host.split('.')[0];
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 
@@ -274,20 +275,50 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
                                       "subscriber_name": buildSmsToPost.subscriber_name
                                     };
                                     console.log(newMessage);
-
+                                    
                                     // Post the message
-                                    $.ajax({
-                                        type: "POST",
-                                        url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postSms.php",
-                                        data: { src: eachMsgId, school: window.location.host.split('.')[0] },
-                                        success: function (data, status, jqXHR) {
-                                            console.log(data,status,jqXHR);
-																						location.reload();
-                                        },
-                                        error: function (xhr) {
-                                            console.log("Error. Data not posted.");
+                                    if($scope.subdomain == 'appleton' || 'appletonngong'){
+                                        let data = {
+                                            account_id: 1,
+                                            messagetext: "Test message",
+                                            recipients: []
                                         }
-                                    });
+                                        for(let x=0;x < buildSmsToPost.message_recipients.length;x++){
+                                            data.recipients.push(buildSmsToPost.message_recipients[x].phone_number);
+                                        }
+                                        data.messagetext = buildSmsToPost.message_recipients.message_text;
+                                        console.log(data);
+                                        apiService.addCommViaAfricasTalking(data,function(response, status){
+                        					var result = angular.fromJson( response );
+                        					if( result.response == 'success' )
+                        					{
+                        						$scope.setupBlog = false;
+                        						$scope.post.blog_id = result.data;
+                        						$scope.selectedClass.blog_id = result.data;
+                        						$scope.selectedClass.blog_name = $scope.blog.blog_name;
+                        					}
+                        					else
+                        					{
+                        						$scope.error = true;
+                        						$scope.errMsg = result.data;
+                        					}
+                        					$scope.saving = false;
+                        				}, apiError);
+                                    }else{
+                                        $.ajax({
+                                            type: "POST",
+                                            url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postSms.php",
+                                            data: { src: eachMsgId, school: window.location.host.split('.')[0] },
+                                            success: function (data, status, jqXHR) {
+                                                console.log(data,status,jqXHR);
+    																						location.reload();
+                                            },
+                                            error: function (xhr) {
+                                                console.log("Error. Data not posted.");
+                                            }
+                                        });
+                                    }
+                                    
 
                                   /*
                                   // var url = "http://41.72.203.166/sms_api_staging/api/sendBulkSms";

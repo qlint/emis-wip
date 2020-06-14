@@ -138,6 +138,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 			if( result.response == 'success')
 			{
 					$scope.teacherResources = ( result.nodata ? [] : result.data );
+					console.log($scope.teacherResources);
 					if($scope.teacherResources.length > 0){
 						for(let r=0;r < $scope.teacherResources.length;r++){
 							let theDate = $scope.teacherResources[r].creation_date.split(' ')[0];
@@ -541,6 +542,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 		}else if(fileExtension == 'doc' || fileExtension == 'docx' || fileExtension == 'odf' || fileExtension == 'xls' || fileExtension == 'xlsx' || fileExtension == 'csv'){
 			$scope.actualFileType = 'document';
 			$scope.resourceIcon="doc-icon.png";
+			$scope.assetSubDir = "documents";
+		}else if(fileExtension == 'ppt' || fileExtension == 'pptx' || fileExtension == 'ppsx' || fileExtension == 'pptm'){
+			$scope.actualFileType = 'document';
+			$scope.resourceIcon="powerpoint.png";
 			$scope.assetSubDir = "documents";
 		}
 		// View resource modal

@@ -12,7 +12,7 @@
 					<div class="form-group" ng-class="{ 'has-error' : feeItemForm.fee_item.$invalid && (feeItemForm.fee_item.$touched || feeItemForm.$submitted) }">
 						<label for="fee_item" class="col-sm-3 control-label">Item Name</label>
 						<div class="col-sm-9">
-							<input type="text" name="fee_item" ng-model="item.fee_item" class="form-control" required >
+							<input type="text" name="fee_item" ng-model="item.fee_item" class="form-control" maxlength="28" required >
 							<p ng-show="feeItemForm.fee_item.$invalid && (feeItemForm.fee_item.$touched || feeItemForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Fee Item Name is required.</p>
 						</div>
 					</div>

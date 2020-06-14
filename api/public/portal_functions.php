@@ -2918,12 +2918,36 @@ $app->get('/getToQuickbooksData/:username/:password', function ($username,$passw
       $payments = $paymentsQry->fetchAll(PDO::FETCH_OBJ);
       $results->payments = $payments;
 
-      $invoicesQry = $db->prepare("SELECT * FROM to_quickbooks_invoices
-                                    WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
-                                    ");
+      $invoicesQry = $db->prepare("SELECT invoice_id, client_id, admission_number, due_date, invoice_date, line_items FROM (
+                                      	SELECT q2.eduweb_invoice_id AS invoice_id, q1.client_id, q1.admission_number, q1.due_date, q1.invoice_date,
+                                      			q2.line_items
+                                      	FROM
+                                      	(
+                                      		SELECT DISTINCT eduweb_invoice_id, client_id, admission_number, due_date, invoice_date  FROM to_quickbooks_invoices
+                                      		WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                      	)q1
+                                      	INNER JOIN
+                                      	(
+                                      		SELECT eduweb_invoice_id, array_to_json(array_agg(row_to_json(d))) AS line_items
+                                      		  FROM (
+                                      			SELECT eduweb_invoice_id, fee_item, amount
+                                      			FROM to_quickbooks_invoices
+                                      			WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                      			ORDER BY eduweb_invoice_id ASC
+                                      			) d
+                                      			GROUP BY eduweb_invoice_id
+                                      	)q2
+                                      	ON q1.eduweb_invoice_id = q2.eduweb_invoice_id
+                                      )q
+                                      ORDER BY invoice_id ASC");
       $invoicesQry->execute(array(':username' => $username, ':password' => $password));
       $invoices = $invoicesQry->fetchAll(PDO::FETCH_OBJ);
       $results->invoices = $invoices;
+
+      foreach( $results->invoices as $inv )
+      {
+        $inv->line_items = json_decode($inv->line_items);
+      }
 
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
@@ -2941,6 +2965,14 @@ $app->get('/getToQuickbooksData/:username/:password', function ($username,$passw
 $app->post('/addedToQuickbooks', function () use($app) {
   // receive data from quickbooks
   $allPostVars = json_decode($app->request()->getBody(),true);
+
+  // logging
+  $dte = date("Y-m-d");
+  $tme = date("h:i:sa");
+  $datetime = $dte . " " . $tme;
+  file_put_contents('log-ids.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+  file_put_contents('log-ids.txt', print_r($app->request()->getBody() . PHP_EOL, true), FILE_APPEND);
+
   $accountArr = ( isset($allPostVars['Account']) ? $allPostVars['Account']: null);
   $incomeAccountsArr = ( isset($allPostVars['incomeAccountIds']) ? $allPostVars['incomeAccountIds']: null);
   $feeItemsArr = ( isset($allPostVars['fee_ItemIds']) ? $allPostVars['fee_ItemIds']: null);
@@ -2992,10 +3024,10 @@ $app->post('/addedToQuickbooks', function () use($app) {
                                       WHERE inv_id IN ($invoiceId);");
           $invSth2->execute( array() );
         }
-        /*
+
         if(isset($allPostVars['fee_ItemIds'])){
           // QUICKBOOKS
-          $feeSth = $db->prepare("UPDATE public.fee_items SET exists_in_quickbooks = true
+          $feeSth = $db->prepare("DELETE FROM public.fee_items
                                   WHERE client_identifier = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
                                   AND eduweb_fee_item_id IN ($feeItemId);");
           $feeSth->execute( array(':accountId' => $incomeAccount) );
@@ -3008,7 +3040,7 @@ $app->post('/addedToQuickbooks', function () use($app) {
 
         if(isset($allPostVars['studentIds'])){
           // QUICKBOOKS
-          $stdntSth = $db->prepare("UPDATE public.client_students SET exists_in_quickbooks = true
+          $stdntSth = $db->prepare("DELETE FROM public.client_students
                                     WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE quickbooks_client_id = :accountId)
                                     AND client_student_id IN ($studentId);");
           $stdntSth->execute( array(':accountId' => $incomeAccount) );
@@ -3018,7 +3050,7 @@ $app->post('/addedToQuickbooks', function () use($app) {
                                         WHERE student_id IN ($studentId);");
           $stdntSth2->execute( array() );
         }
-        */
+
 
       }
 

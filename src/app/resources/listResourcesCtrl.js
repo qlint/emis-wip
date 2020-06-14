@@ -228,6 +228,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 				$scope.actualFileType = 'document';
 				$scope.resourceIcon="doc-icon.png";
 				subDir = "documents";
+			}else if(fileExtension == 'ppt' || fileExtension == 'pptx' || fileExtension == 'ppsx' || fileExtension == 'pptm'){
+				$scope.actualFileType = 'document';
+				$scope.resourceIcon="powerpoint.png";
+				subDir = "documents";
 			}
 			return subDir;
 		}

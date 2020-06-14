@@ -23,8 +23,8 @@
     if (isset($_FILES['files'])) {
         $errors = [];
         $extensions = [
-                        'tiff', 'jpg', 'jpeg', 'png', 'gif', 
-                        'doc', 'docx', 'odf', 'pdf', 'xls', 'csv', 
+                        'tiff', 'jpg', 'jpeg', 'png', 'gif',
+                        'doc', 'docx', 'odf', 'pdf', 'xls', 'csv', 'ppsx', 'ppt', 'pptx', 'pptm',
                         'mp4', 'm4v', 'flv', 'avi', 'mov', 'wmv', 'webm',
                         'mp3', 'm4a', 'f4v', 'f4a', '3gp', 'wma', 'wav', 'flac', 'ogg', 'acc', 'midi'
                     ];
@@ -36,15 +36,15 @@
             $file_tmp = $_FILES['files']['tmp_name'][$i];
             $file_type = $_FILES['files']['type'][$i];
             $file_size = $_FILES['files']['size'][$i];
-            
+
             $file_name_arr = explode (".", $file_name);
             $actual_file_type = end($file_name_arr);
-            
+
             file_put_contents('log-file-data.txt', print_r($actual_file_type . PHP_EOL, true), FILE_APPEND);
             $subDir = "";
             if($actual_file_type === 'tiff' || $actual_file_type === 'jpg' || $actual_file_type === 'jpeg' || $actual_file_type === 'png' || $actual_file_type === 'gif'){
                 $subDir = "images";
-            }elseif($actual_file_type === 'doc' || $actual_file_type === 'docx' || $actual_file_type === 'pdf' || $actual_file_type === 'odf' || $actual_file_type === 'xls' || $actual_file_type === 'csv' || $actual_file_type === 'xlsx'){
+            }elseif($actual_file_type === 'doc' || $actual_file_type === 'docx' || $actual_file_type === 'pdf' || $actual_file_type === 'odf' || $actual_file_type === 'xls' || $actual_file_type === 'csv' || $actual_file_type === 'xlsx' || $actual_file_type === 'ppt' || $actual_file_type === 'pptx' || $actual_file_type === 'ppsx' || $actual_file_type === 'pptm'){
                 $subDir = "documents";
             }elseif($actual_file_type === 'mp4' || $actual_file_type === 'm4v' || $actual_file_type === 'flv' || $actual_file_type === 'avi' || $actual_file_type === 'mov' || $actual_file_type === 'wmv' || $actual_file_type === 'webm' || $actual_file_type === 'f4v'){
                 $subDir = "videos";

@@ -55,7 +55,9 @@ $app->get('/getTeacherResources/:empId', function ($empId) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT * FROM app.school_resources WHERE emp_id = :empId");
+    $sth = $db->prepare("SELECT sr.*, c.class_name FROM app.school_resources sr
+                        INNER JOIN app.classes c USING (class_id)
+                        WHERE emp_id = :empId ORDER BY resource_id DESC");
     $sth->execute( array(':empId' => $empId) );
 
     $results = $sth->fetchAll(PDO::FETCH_OBJ);

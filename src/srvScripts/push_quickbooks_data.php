@@ -45,7 +45,9 @@
                 array_push($data->{$value},$studentsObj); // push into $data->{$value} the value $studentsObj
 
                 $feeItemsObj = new stdClass();
-                $feeItemsQry = pg_query($schoolDb,"SELECT '$value' AS subdomain, '$value' AS client_identifier, fee_item, default_amount AS amount,
+                $feeItemsQry = pg_query($schoolDb,"SELECT '$value' AS subdomain, '$value' AS client_identifier,
+                                                        (CASE WHEN char_length(fee_item) > 27 THEN substring(fee_item,1,27) || '...' ELSE substring(fee_item,1,27) END) AS fee_item, 
+                                                        default_amount AS amount,
                                                         null AS quickbooks_fee_item_id, fee_item_id AS eduweb_fee_item_id
                                                         FROM app.fee_items WHERE active IS TRUE AND in_quickbooks IS FALSE ORDER BY eduweb_fee_item_id ASC;"); // executing the query
                 $feeItemsArray = pg_fetch_all($feeItemsQry );
@@ -53,14 +55,15 @@
                 array_push($data->{$value},$feeItemsObj); // push into $data->{$value} the value $feeItemsObj
 
                 $invoicesObj = new stdClass();
-                $invoicesQry = pg_query($schoolDb,"SELECT '$value' AS client_id, i.inv_id AS eduweb_invoice_id, ili.amount, fi.fee_item,
-                                                        s.admission_number, i.due_date, i.creation_date AS invoice_date
+                $invoicesQry = pg_query($schoolDb,"SELECT '$value' AS client_id, i.inv_id AS eduweb_invoice_id, ili.amount, 
+                                                        (CASE WHEN char_length(fi.fee_item) > 27 THEN substring(fi.fee_item,1,27) || '...' ELSE substring(fi.fee_item,1,27) END) AS fee_item,
+                                                        s.admission_number, i.due_date, i.inv_date AS invoice_date
                                                     FROM app.invoices i
                                                     INNER JOIN app.invoice_line_items ili USING (inv_id)
                                                     INNER JOIN app.student_fee_items sfi USING (student_fee_item_id)
                                                     INNER JOIN app.fee_items fi USING (fee_item_id)
                                                     INNER JOIN app.students s ON i.student_id = s.student_id
-                                                    WHERE i.canceled IS FALSE AND i.in_quickbooks IS FALSE ORDER BY eduweb_invoice_id ASC;"); // executing the query
+                                                    WHERE i.canceled IS FALSE AND i.in_quickbooks IS FALSE AND s.active IS TRUE ORDER BY eduweb_invoice_id ASC;"); // executing the query
                 $invoicesArray = pg_fetch_all($invoicesQry );
                 $invoicesObj->invoices = $invoicesArray; // all invoices in this iteration
                 array_push($data->{$value},$invoicesObj); // push into $data->{$value} the value $invoicesObj
@@ -71,7 +74,7 @@
                                                     FROM app.payments p
                                                     INNER JOIN app.students s USING (student_id)
                                                     INNER JOIN app.payment_inv_items pii USING (payment_id)
-                                                    WHERE p.reversed IS FALSE AND p.in_quickbooks IS FALSE ORDER BY eduweb_payment_id ASC;"); // executing the query
+                                                    WHERE p.reversed IS FALSE AND p.in_quickbooks IS FALSE AND s.active IS TRUE ORDER BY eduweb_payment_id ASC;"); // executing the query
                 $paymentsArray = pg_fetch_all($paymentsQry );
                 $paymentsObj->payments = $paymentsArray; // all payments in this iteration
                 array_push($data->{$value},$paymentsObj); // push into $data->{$value} the value $paymentsObj
