@@ -290,7 +290,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 						                            console.log(data,status,jqXHR);
 						                        },
 						                        error: function (xhr) {
-						                            console.log("Error. Data not posted.",newMsg,xhr);
+																			console.log("Error. Data not posted.",newMsg,xhr);
+																			// log failed msg
+																			apiService.logFailedSms(newMsg,function(response, status){
+																				var result = angular.fromJson( response );
+																				if( result.response == 'success' ){ console.log("The failed message has been logged."); }else{ console.log("There was a problem logging the failed message."); }
+																			}, apiError);
 						                        }
 						                });
 													});

@@ -944,6 +944,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPost2(request, path + "/addCommViaAfricasTalking", successFunction, errorFunction, params);
 	};
 
+	this.logFailedSms = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/logFailedSms", successFunction, errorFunction, params);
+	};
+
 	this.getCommunication = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getCommunication/" + param, successFunction, errorFunction, params);
 	};

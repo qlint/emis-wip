@@ -1,25 +1,16 @@
-CREATE TABLE app.homework_feedback
+CREATE TABLE app.communications_failed_sms
 (
-    homework_feedback_id serial,
-    homework_id integer,
-	title character varying,
-	body character varying,
-	message character varying,
-	homework_attachment character varying,
-	student_attachment character varying,
-	assigned_date character varying,
-	due_date character varying,
-	added_by character varying,
-	emp_id integer,
-	subject_name character varying,
-	subject_id integer,
-	class_id integer,
-	class_name character varying,
-    creation_date timestamp without time zone NOT NULL DEFAULT now(),
-    CONSTRAINT "PK_homework_feedback_id" PRIMARY KEY (homework_feedback_id)
+    failed_sms_id serial NOT NULL,
+    subscriber_name character varying COLLATE pg_catalog."default",
+    message_by character varying COLLATE pg_catalog."default",
+    message_text character varying COLLATE pg_catalog."default",
+    recipient_name character varying COLLATE pg_catalog."default",
+    phone_number character varying COLLATE pg_catalog."default",
+    message_date character varying COLLATE pg_catalog."default",
+    CONSTRAINT communications_failed_sms_pkey PRIMARY KEY (failed_sms_id)
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE app.homework_feedback
+ALTER TABLE app.communications_failed_sms
     OWNER to postgres;

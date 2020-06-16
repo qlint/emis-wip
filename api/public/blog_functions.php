@@ -209,7 +209,7 @@ $app = \Slim\Slim::getInstance();
 
 });
 
-$app->post('/africasTalkingSendMsg', function () use($app) {
+$app->post('/addCommViaAfricasTalking', function () use($app) {
   // Send message via Africa's talking
 
     $allPostVars = json_decode($app->request()->getBody(),true);
@@ -239,6 +239,54 @@ $app->post('/africasTalkingSendMsg', function () use($app) {
         echo json_encode(array("response" => "success", "data" => "Message sent succcessfully!"));
         $db = null;
 
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(404);
+        $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->post('/logFailedSms', function () use($app) {
+  // log failed sms for reference purposes
+
+    $allPostVars = json_decode($app->request()->getBody(),true);
+    $messageBy = ( isset($allPostVars['message_by']) ? $allPostVars['message_by']: null);
+    $messageDate = ( isset($allPostVars['message_date']) ? $allPostVars['message_date']: null);
+    $msgText = ( isset($allPostVars['message_text']) ? $allPostVars['message_text']: null);
+    $subscriberName = ( isset($allPostVars['subscriber_name']) ? $allPostVars['subscriber_name']: null);
+    $messageRecipients = ( isset($allPostVars['message_recipients']) ? $allPostVars['message_recipients']: null);
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("INSERT INTO app.communications_failed_sms(subscriber_name, message_by, message_text, recipient_name, phone_number, message_date)
+                            VALUES (:subscriberName, :messageBy, :msgText, :recipientName, :phoneNumber, :messageDate);");
+
+        $db->beginTransaction();
+
+        foreach( $messageRecipients as $recipient )
+        {
+          $phoneNumber = ( isset($recipient['phone_number']) ? $recipient['phone_number']: null);
+          $recipientName = ( isset($recipient['recipient_name']) ? $recipient['recipient_name']: null);
+
+          $sth->execute( array(
+                                ':messageBy' => $messageBy,
+                                ':messageDate' => $messageDate,
+                                ':msgText' => $msgText,
+                                ':subscriberName' => $subscriberName,
+                                ':phoneNumber' => $phoneNumber,
+                                ':recipientName' => $recipientName
+                              ) );
+        }
+
+        $db->commit();
+
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "data" => "Message sent succcessfully!"));
+        $db = null;
 
   } catch(PDOException $e) {
       $app->response()->setStatus(404);
