@@ -3,19 +3,15 @@
     
     error_reporting(E_ALL);  // uncomment this only when testing
     ini_set('display_errors', 1); // uncomment this only when testing
-    ini_set('max_execution_time', 3000); // increasing max execution time to 10 mins
-
-    $postId = 1185; 
-    $school = 'lasalle';
+    ini_set('max_execution_time', 3000); // increasing max execution. 3000s = 50m
     
     if(isset($postId) && isset($school)) {
         
-            // $postId = $_POST['src']; // this is the com_id for the message we want
-            // $school = $_POST['school']; // the subdomain of the school
+            $postId = $_POST['src']; // this is the com_id for the message we want
+            $school = $_POST['school']; // the subdomain of the school
             
             // db connect
-            // $getDbname = 'eduweb_' . $school;
-            $getDbname = 'eduweb_dev';
+            $getDbname = 'eduweb_' . $school;
             $db = pg_connect("host=localhost port=5433 dbname=".$getDbname." user=postgres password=pg_edu@8947");
             
             // we get the data of this message
@@ -62,7 +58,7 @@
             // var_dump(json_encode($rawMessageObj)); // now all our message particulars are in this object
             
             // we want to split messages with over 100 recipients to groups of 80 in a new variable
-            $batch_of = 5;
+            $batch_of = 1;
             $batch = array_chunk($rawMessageObj->message_recipients, $batch_of);
             foreach($batch as $b) {
             

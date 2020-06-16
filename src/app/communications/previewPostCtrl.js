@@ -9,7 +9,6 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
 	$scope.enUnPub = undefined;
 	console.log($scope.post);
 
-
 	$scope.post.rawAttachment = data.post.attachment;
 	$scope.post.attachment = ($scope.post.rawAttachment != null ? $scope.post.attachment.split(',') : null);
 
@@ -193,7 +192,7 @@ function($scope, $rootScope, $uibModalInstance, data, apiService){
                 	}
     			}
     		},apiError);
-    		
+
     		$.ajax({
                 type: "POST",
                 url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postNotifications.php",

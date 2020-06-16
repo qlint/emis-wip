@@ -181,6 +181,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				$scope.homework = ( result.nodata ? [] : result.data );
 				for(let i=0;i < $scope.homework.length;i++){
 					$scope.homework[i].seen = ($scope.homework[i].overall_seen_by == null ? 0 : $scope.homework[i].overall_seen_by.split(',').filter(function(val, i, arr) { return arr.indexOf(val) === i; }).length);
+					$scope.homework[i].sent_to = ($scope.homework[i].sent_to == null ? null : JSON.parse($scope.homework[i].sent_to));
+					// $scope.howework[i].student_specific = ($scope.homework[i].sent_to == null ? false : true);
 				}
 				console.log($scope.homework);
 				$scope.homework = $scope.homework.map(function(item){
@@ -303,6 +305,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 
 	$scope.viewPost = function(item)
 	{
+		console.log(item);
 		$state.go('communications/edit_post', {post: item, post_id: item.homework_id, post_type: 'homework'});
 	}
 

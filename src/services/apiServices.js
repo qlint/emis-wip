@@ -844,6 +844,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getClassPosts/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getSmsDetails = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getSmsDetails/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getBlogPostTypes = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getBlogPostTypes", successFunction, errorFunction, params);
 	};
@@ -935,7 +939,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.customAddCommunication = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/customAddCommunication", successFunction, errorFunction, params);
 	};
-	
+
 	this.addCommViaAfricasTalking = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addCommViaAfricasTalking", successFunction, errorFunction, params);
 	};

@@ -70,6 +70,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 						{
 							$scope.post = result.data;
 							$scope.post.seen_by = ($scope.post.seen_by == null ? null : $scope.post.seen_by.split(','));
+							$scope.post.sent_to = ($scope.post.sent_to == null ? null : $scope.post.sent_to.split(','));
 							$scope.post.seen_count = ($scope.post.seen_count == null ? '0' : $scope.post.seen_count);
 							console.log("Homework post",$scope.post);
 							$scope.dates.assigned_date = {startDate:moment($scope.post.assigned_date).format('YYYY-MM-DD')};

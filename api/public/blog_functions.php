@@ -57,6 +57,47 @@ $app->get('/getClassPosts/:class_id/:status', function ($classId, $status) {
 
 });
 
+$app->get('/getSmsDetails/:postId', function ($postId) {
+  // Get all posts for class for current school year
+
+    $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $params = array(':postId' => $postId);
+        $query = "SELECT communication_sms.com_id, communication_sms.creation_date as message_date, communications.message as message_text,
+                                            employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as message_by, communication_sms.first_name ||' ' || communication_sms.last_name AS recipient_name,
+                                            communication_sms.sim_number AS phone_number
+                                        FROM app.communication_sms
+                                        INNER JOIN app.communications ON communication_sms.com_id = communications.com_id
+                                        INNER JOIN app.employees ON communications.message_from = employees.emp_id
+                                        WHERE communication_sms.com_id = :postId";
+
+        $sth = $db->prepare( $query );
+        $sth->execute( $params );
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+      if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+      } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+      }
+
+    } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getPost/:post_id', function ($postId) {
   // Get post
 
@@ -183,7 +224,7 @@ $app->post('/africasTalkingSendMsg', function () use($app) {
                             VALUES(:accountId, :phoneNumber, :msgText, now())");
 
         $db->beginTransaction();
-        
+
         foreach( $recipients as $recipient )
 		{
 			$phoneNumber = ( isset($recipient['phone_number']) ? $recipient['phone_number']: null);
@@ -570,7 +611,17 @@ $app = \Slim\Slim::getInstance();
                   	  FROM app.students
                       WHERE student_id = ANY(string_to_array(seen_by,',')::int[])
                   ) a
-                ) AS seen_by
+                ) AS seen_by,
+                (
+                  SELECT array_to_json(array_agg(row_to_json(a)))
+                  FROM (
+                        SELECT
+                  		student_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name
+                  	  FROM app.students
+                      WHERE student_id = ANY(string_to_array(students,',')::int[])
+                  ) a
+                ) AS sent_to,
+                CASE WHEN students IS NULL THEN FALSE ELSE TRUE END AS student_specific
               FROM app.homework
               INNER JOIN app.employees
               ON homework.created_by = employees.emp_id
@@ -813,27 +864,33 @@ $app = \Slim\Slim::getInstance();
   {
       $db = getDB();
       $sth = $db->prepare("SELECT homework_id as post_id, homework.creation_date, title, body, homework.post_status_id, post_status,
-                first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as posted_by, attachment, homework.modified_date,
-                class_name, classes.class_id, homework.class_subject_id, subjects.subject_id, subject_name, assigned_date, due_date,
-                array_to_string(ARRAY(
-        					SELECT
-        						first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name
-        					FROM app.students
-        					WHERE student_id = ANY(string_to_array(seen_by,',')::int[])
-        				),',') AS seen_by,
-        				seen_count
-            FROM app.homework
-            INNER JOIN app.employees
-            ON homework.created_by = employees.emp_id
-            INNER JOIN app.blog_post_statuses
-            ON homework.post_status_id = blog_post_statuses.post_status_id
-            INNER JOIN app.class_subjects
-              INNER JOIN app.classes
-              ON class_subjects.class_id = classes.class_id
-              INNER JOIN app.subjects
-              ON class_subjects.subject_id = subjects.subject_id
-            ON homework.class_subject_id = class_subjects.class_subject_id
-            WHERE homework_id = :postId
+                              first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as posted_by, attachment, homework.modified_date,
+                              class_name, classes.class_id, homework.class_subject_id, subjects.subject_id, subject_name, assigned_date, due_date,
+                              array_to_string(ARRAY(
+                      					SELECT
+                      						first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name
+                      					FROM app.students
+                      					WHERE student_id = ANY(string_to_array(seen_by,',')::int[])
+                      				),',') AS seen_by,
+                              array_to_string(ARRAY(
+                      					SELECT
+                      						first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as student_name
+                      					FROM app.students
+                      					WHERE student_id = ANY(string_to_array(students,',')::int[])
+                      				),',') AS sent_to,
+                      				seen_count
+                          FROM app.homework
+                          INNER JOIN app.employees
+                          ON homework.created_by = employees.emp_id
+                          INNER JOIN app.blog_post_statuses
+                          ON homework.post_status_id = blog_post_statuses.post_status_id
+                          INNER JOIN app.class_subjects
+                            INNER JOIN app.classes
+                            ON class_subjects.class_id = classes.class_id
+                            INNER JOIN app.subjects
+                            ON class_subjects.subject_id = subjects.subject_id
+                          ON homework.class_subject_id = class_subjects.class_subject_id
+                          WHERE homework_id = :postId
             ");
   $sth->execute( array(':postId' => $postId) );
       $results = $sth->fetch(PDO::FETCH_OBJ);
