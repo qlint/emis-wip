@@ -75,6 +75,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.studentLoading = true;
 
 	$scope.edit = ($rootScope.permissions.students.edit ? true : false );
+
+	let permInputs = document.querySelectorAll('input.perm');
+	if($scope.edit == false){
+		permInputs.forEach(input => input.disabled = true);
+	}
+
 	// $scope.editTransport = ($rootScope.permissions.transport.edit ? true : false );
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 

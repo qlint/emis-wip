@@ -44,7 +44,7 @@ input#tripCheck{transform: scale(1.3);}
 								<p class="form-control-static" ng-show="!edit">{{student.admission_date.startDate}}</p>
 								<div ng-show="edit">
 									<div class="input-group">
-										<input type="text" name="admission_date" date-range-picker id="admission_date" class="form-control date-picker input-sm" ng-model="student.admission_date" options="{singleDatePicker: true,autoApply: true}"  required>
+										<input type="text" name="admission_date" date-range-picker id="admission_date" class="form-control date-picker input-sm perm" ng-model="student.admission_date" options="{singleDatePicker: true,autoApply: true}"  required>
 										<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 									</div>
 									<p ng-show="(studentForm.$submitted || studentForm.admission_date.$dirty ) && studentForm.admission_date.$invalid && studentForm.admission_date.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Admission Date is required.</p>
@@ -56,7 +56,7 @@ input#tripCheck{transform: scale(1.3);}
 								<label>Admission Number</label>
 								<p class="form-control-static" ng-show="!edit">{{student.admission_number}}</p>
 								<div ng-show="edit">
-									<input type="text" name="admission_number" ng-model="student.admission_number" class="form-control" required />
+									<input type="text" name="admission_number" ng-model="student.admission_number" class="form-control perm" required />
 									<p ng-show="(studentForm.$submitted || studentForm.admission_number.$dirty ) && studentForm.admission_number.$invalid && studentForm.admission_number.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Admission Number is required.</p>
 								</div>
 							</div>
@@ -79,7 +79,7 @@ input#tripCheck{transform: scale(1.3);}
 								<p class="form-control-static" ng-show="!edit">{{student.transfer_date}}</p>
 								<div ng-show="edit">
 									<div class="input-group">
-										<input id="transfer_date" type="text" name="transfer_date" date-range-picker id="transfer_date" class="form-control date-picker input-sm" ng-model="student.transfer_date" options="{singleDatePicker: true,autoApply: true}" >
+										<input id="transfer_date" type="text" name="transfer_date" date-range-picker id="transfer_date" class="form-control date-picker input-sm perm" ng-model="student.transfer_date" options="{singleDatePicker: true,autoApply: true}" >
 										<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 									</div>
 									<p ng-show="(studentForm.$submitted || studentForm.transfer_date.$dirty ) && studentForm.transfer_date.$invalid" class="help-block"><i class="fa fa-exclamation-triangle"></i> Transfer Date Error.</p>
@@ -95,7 +95,7 @@ input#tripCheck{transform: scale(1.3);}
 								<label for="first_name">First Name</label>
 								<p class="form-control-static" ng-show="!edit">{{student.first_name}}</p>
 								<div ng-show="edit">
-									<input type="text" name="first_name" ng-model="student.first_name" class="form-control" required />
+									<input type="text" name="first_name" ng-model="student.first_name" class="form-control perm" required />
 									<p ng-show="(studentForm.$submitted || studentForm.first_name.$dirty ) && studentForm.first_name.$invalid && studentForm.first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>
 								</div>
 							</div>
@@ -105,7 +105,7 @@ input#tripCheck{transform: scale(1.3);}
 								<label for="middle_name">Middle Name</label>
 								<p class="form-control-static" ng-show="!edit">{{student.middle_name}}</p>
 								<div ng-show="edit">
-									<input type="text" name="middle_name" ng-model="student.middle_name" class="form-control"  >
+									<input type="text" name="middle_name" ng-model="student.middle_name" class="form-control perm"  >
 								</div>
 							</div>
 
@@ -114,7 +114,7 @@ input#tripCheck{transform: scale(1.3);}
 								<label for="last_name">Last Name</label>
 								<p class="form-control-static" ng-show="!edit">{{student.last_name}}</p>
 								<div ng-show="edit">
-									<input type="text" name="last_name" ng-model="student.last_name" class="form-control" required />
+									<input type="text" name="last_name" ng-model="student.last_name" class="form-control perm" required />
 									<p ng-show="(studentForm.$submitted || studentForm.first_name.$dirty ) && studentForm.first_name.$invalid && studentForm.first_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> First Name is required.</p>
 								</div>
 							</div>
@@ -144,7 +144,7 @@ input#tripCheck{transform: scale(1.3);}
 								<p class="form-control-static" ng-show="!edit">{{student.dob}}</p>
 								<div ng-show="edit">
 									<div class="input-group">
-										<input type="text" name="dob" id="dob" date-range-picker class="form-control date-picker input-sm" ng-model="student.dob" options="{singleDatePicker: true,autoApply: true}" >
+										<input type="text" name="dob" id="dob" date-range-picker class="form-control date-picker input-sm perm" ng-model="student.dob" options="{singleDatePicker: true,autoApply: true}" >
 										<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 									</div>
 									<p ng-show="(studentForm.$submitted || studentForm.dob.$dirty ) && studentForm.dob.$invalid" class="help-block"><i class="fa fa-exclamation-triangle"></i> Date of Birth is required.</p>
@@ -189,7 +189,7 @@ input#tripCheck{transform: scale(1.3);}
 								<label for="student-image">Student Image</label>
 								<p class="form-control-static" ng-show="!edit">{{student.student_image}}</p>
 								<div ng-show="edit">
-									<input type="file" nv-file-select="" uploader="uploader" />
+									<input type="file" nv-file-select="" uploader="uploader" class="perm" />
 								</div>
 							</div>
 
@@ -199,10 +199,10 @@ input#tripCheck{transform: scale(1.3);}
 								<p class="form-control-static" ng-show="!edit">{{student.status}}</p>
 								<div ng-show="edit">
 									<label class="radio-inline">
-									  <input type="radio" name="status" ng-model="student.active" ng-value="true" required> Active
+									  <input type="radio" name="status" ng-model="student.active" ng-value="true" class="perm" required> Active
 									</label>
 									<label class="radio-inline">
-									  <input type="radio" name="status" ng-model="student.active" ng-value="false" required> In-active
+									  <input type="radio" name="status" ng-model="student.active" ng-value="false" class="perm" required> In-active
 									</label>
 									<p ng-show="(studentForm.$submitted || studentForm.status.$dirty ) && studentForm.status.$invalid && studentForm.status.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Status is required.</p>
 								</div>
@@ -217,10 +217,10 @@ input#tripCheck{transform: scale(1.3);}
 								<p class="form-control-static" ng-show="!edit">{{student.new_student}}</p>
 								<div ng-show="edit">
 									<label class="radio-inline">
-									  <input type="radio" name="new_student" ng-model="student.new_student" ng-value="true" required> Yes
+									  <input type="radio" name="new_student" ng-model="student.new_student" class="perm" ng-value="true" required> Yes
 									</label>
 									<label class="radio-inline">
-									  <input type="radio" name="new_student" ng-model="student.new_student" ng-value="false" required> No
+									  <input type="radio" name="new_student" ng-model="student.new_student" class="perm" ng-value="false" required> No
 									</label>
 									<p ng-show="(studentForm.$submitted || studentForm.new_student.$dirty ) && studentForm.new_student.$invalid && studentForm.new_student.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> New Student selection is required.</p>
 								</div>
@@ -243,7 +243,7 @@ input#tripCheck{transform: scale(1.3);}
 								<label for="nemis">NEMIS</label>
 								<p class="form-control-static" ng-show="!edit">{{student.nemis}}</p>
 								<div ng-show="edit">
-									<input type="text" name="nemis" ng-model="student.nemis" class="form-control"  >
+									<input type="text" name="nemis" ng-model="student.nemis" class="form-control perm"  >
 								</div>
 							</div>
 
@@ -289,7 +289,7 @@ input#tripCheck{transform: scale(1.3);}
 								<label for="movement">Movement</label>
 								<p class="form-control-static" ng-show="!edit">{{student.movement}}</p>
 								<div ng-show="edit">
-									<input type="text" name="movement" ng-model="student.movement" class="form-control"  >
+									<input type="text" name="movement" ng-model="student.movement" class="form-control perm"  >
 								</div>
 							</div>
 
@@ -298,10 +298,10 @@ input#tripCheck{transform: scale(1.3);}
 								<p class="form-control-static" ng-show="!edit">{{student.movement}}</p>
 								<div ng-show="edit">
 									<label class="radio-inline">
-									  <input type="radio" name="movement" ng-model="student.movement" ng-value="true"> Active
+									  <input type="radio" name="movement" ng-model="student.movement" class="perm" ng-value="true"> Active
 									</label>
 									<label class="radio-inline">
-									  <input type="radio" name="movement" ng-model="student.movement" ng-value="false"> In-active
+									  <input type="radio" name="movement" ng-model="student.movement" class="perm" ng-value="false"> In-active
 									</label>
 								</div>
 							</div>
@@ -363,7 +363,7 @@ input#tripCheck{transform: scale(1.3);}
 							<label for="emergency_name" class="col-sm-4 control-label">Contact Name</label>
 							<p class="form-control-static" ng-show="!edit">{{student.emergency_name}}</p>
 							<div ng-show="edit" class="col-sm-8">
-								<input type="text" name="emergency_name" ng-model="student.emergency_name" class="form-control" required />
+								<input type="text" name="emergency_name" ng-model="student.emergency_name" class="form-control perm" required />
 								<p ng-show="(studentForm.$submitted || studentForm.emergency_name.$dirty ) && studentForm.emergency_name.$invalid && studentForm.emergency_name.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Name is required.</p>
 							</div>
 						</div>
@@ -373,7 +373,7 @@ input#tripCheck{transform: scale(1.3);}
 							<label for="emergency_relationship" class="col-sm-4 control-label">Contact Relationship</label>
 							<p class="form-control-static" ng-show="!edit">{{student.emergency_relationship}}</p>
 							<div ng-show="edit" class="col-sm-8">
-								<input type="text" name="emergency_relationship" ng-model="student.emergency_relationship" class="form-control" required />
+								<input type="text" name="emergency_relationship" ng-model="student.emergency_relationship" class="form-control perm" required />
 								<p ng-show="(studentForm.$submitted || studentForm.emergency_relationship.$dirty ) && studentForm.emergency_relationship.$invalid && studentForm.emergency_relationship.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> Emergency Contact Relationship is required.</p>
 							</div>
 						</div>
@@ -383,7 +383,7 @@ input#tripCheck{transform: scale(1.3);}
 							<label for="emergency_telephone" class="col-sm-4 control-label">Contact Telephone</label>
 							<p class="form-control-static" ng-show="!edit">{{student.emergency_telephone}}</p>
 							<div ng-show="edit" class="col-sm-8">
-								<input type="text" name="emergency_telephone" ng-model="student.emergency_telephone" class="form-control" required numeric-only pattern="[0-9]{9,}" />
+								<input type="text" name="emergency_telephone" ng-model="student.emergency_telephone" class="form-control perm" required numeric-only pattern="[0-9]{9,}" />
 								<p ng-show="(studentForm.$submitted || studentForm.emergency_telephone.$dirty ) && studentForm.emergency_telephone.$invalid && studentForm.emergency_telephone.$error.required" class="help-block"><i class="fa fa-exclamation-triangle"></i> A Valid Emergency Contact Telephone is required.</p>
 							</div>
 						</div>
@@ -393,7 +393,7 @@ input#tripCheck{transform: scale(1.3);}
 							<label for="emergency_telephone_2" class="col-sm-4 control-label">Contact Telephone 2</label>
 							<p class="form-control-static" ng-show="!edit">{{student.emergency_telephone_2}}</p>
 							<div ng-show="edit" class="col-sm-8">
-								<input type="text" name="emergency_telephone_2" ng-model="student.emergency_telephone_2" class="form-control" numeric-only pattern="(?=.*[0-9]).{6,}" placeholder="optional" />
+								<input type="text" name="emergency_telephone_2" ng-model="student.emergency_telephone_2" class="form-control perm" numeric-only pattern="(?=.*[0-9]).{6,}" placeholder="optional" />
 							</div>
 						</div>
 
@@ -404,7 +404,7 @@ input#tripCheck{transform: scale(1.3);}
 							<label for="pick_up_drop_off_individual" class="col-sm-4 control-label">Name</label>
 							<p class="form-control-static" ng-show="!edit">{{student.pick_up_drop_off_individual}}</p>
 							<div ng-show="edit"  class="col-sm-8">
-								<input type="text" name="pick_up_drop_off_individual" ng-model="student.pick_up_drop_off_individual" class="form-control"  >
+								<input type="text" name="pick_up_drop_off_individual" ng-model="student.pick_up_drop_off_individual" class="form-control perm"  >
 							</div>
 						</div>
 
@@ -413,7 +413,7 @@ input#tripCheck{transform: scale(1.3);}
 							<label for="pick_up_drop_off_individual_phone" class="col-sm-4 control-label">Phone</label>
 							<p class="form-control-static" ng-show="!edit">{{student.pick_up_drop_off_individual_phone}}</p>
 							<div ng-show="edit"  class="col-sm-8">
-								<input name="pick_up_drop_off_individual_phone" ng-model="student.pick_up_drop_off_individual_phone" class="form-control" pattern="(?=.*[0-9]).{6,}"  >
+								<input name="pick_up_drop_off_individual_phone" ng-model="student.pick_up_drop_off_individual_phone" class="form-control perm" pattern="(?=.*[0-9]).{6,}"  >
 							</div>
 						</div>
 
@@ -438,7 +438,7 @@ input#tripCheck{transform: scale(1.3);}
 							<label for="marital_separation_age" class="col-sm-5 control-label">Age When Separated</label>
 							<p class="form-control-static" ng-show="!edit">{{student.marital_separation_age}}</p>
 							<div ng-show="edit" class="col-sm-7">
-								<input type="text" name="marital_separation_age" ng-model="student.marital_separation_age" class="form-control"  >
+								<input type="text" name="marital_separation_age" ng-model="student.marital_separation_age" class="form-control perm"  >
 							</div>
 						</div>
 
@@ -448,10 +448,10 @@ input#tripCheck{transform: scale(1.3);}
 							<p class="form-control-static" ng-show="!edit">{{student.adoptedStr}}</p>
 							<div ng-show="edit" class="col-sm-7">
 								<label class="radio-inline">
-								  <input type="radio" name="adopted" ng-model="student.adopted" ng-value="true"> Yes
+								  <input type="radio" name="adopted" ng-model="student.adopted" class="perm" ng-value="true"> Yes
 								</label>
 								<label class="radio-inline">
-								  <input type="radio" name="adopted" ng-model="student.adopted" ng-value="false"> No
+								  <input type="radio" name="adopted" ng-model="student.adopted" class="perm" ng-value="false"> No
 								</label>
 								<p ng-show="studentForm.adopted.$invalid && (studentForm.adopted.$touched || studentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Adoption selection is required.</p>
 							</div>
@@ -462,7 +462,7 @@ input#tripCheck{transform: scale(1.3);}
 							<label for="adopted_age" class="col-sm-5 control-label">Age When Adopted</label>
 							<p class="form-control-static" ng-show="!edit">{{student.adopted_age}}</p>
 							<div ng-show="edit" class="col-sm-7">
-								<input type="text" name="adopted_age" ng-model="student.adopted_age" class="form-control"  >
+								<input type="text" name="adopted_age" ng-model="student.adopted_age" class="form-control perm"  >
 							</div>
 						</div>
 
@@ -472,10 +472,10 @@ input#tripCheck{transform: scale(1.3);}
 							<p class="form-control-static" ng-show="!edit">{{student.adoptionAwareStr}}</p>
 							<div ng-show="edit" class="col-sm-7">
 								<label class="radio-inline">
-								  <input type="radio" name="adoption_aware" ng-model="student.adoption_aware" ng-value="true"> Yes
+								  <input type="radio" name="adoption_aware" ng-model="student.adoption_aware" class="perm" ng-value="true"> Yes
 								</label>
 								<label class="radio-inline">
-								  <input type="radio" name="adoption_aware" ng-model="student.adoption_aware" ng-value="false"> No
+								  <input type="radio" name="adoption_aware" ng-model="student.adoption_aware" class="perm" ng-value="false"> No
 								</label>
 							</div>
 						</div>
@@ -498,7 +498,7 @@ input#tripCheck{transform: scale(1.3);}
     							<label for="pick_-up-drop-off-individual-img">Image</label>
     							<p class="form-control-static" ng-show="!edit">{{student.pick_up_drop_off_individual_img}}</p>
     							<div ng-show="edit">
-    								<input type="file" nv-file-select="" uploader="uploader2" />
+    								<input type="file" nv-file-select="" uploader="uploader2" class="perm" />
     							</div>
     						</div>
 						</div>
@@ -543,10 +543,10 @@ input#tripCheck{transform: scale(1.3);}
 					<p class="form-control-static" ng-show="!edit">{{student.other_medical_conditions_str}}</p>
 					<div ng-show="edit">
 						<label class="radio-inline">
-						  <input type="radio" name="other_medical_conditions" ng-model="student.other_medical_conditions" ng-value="true"> Yes
+						  <input type="radio" name="other_medical_conditions" ng-model="student.other_medical_conditions" ng-value="true" class="perm"> Yes
 						</label>
 						<label class="radio-inline">
-						  <input type="radio" name="other_medical_conditions" ng-model="student.other_medical_conditions" ng-value="false"> No
+						  <input type="radio" name="other_medical_conditions" ng-model="student.other_medical_conditions" ng-value="false" class="perm"> No
 						</label>
 					</div>
 
@@ -555,7 +555,7 @@ input#tripCheck{transform: scale(1.3);}
 						<label for="other_medical_conditions_description">What illness?</label>
 						<p class="form-control-static" ng-show="!edit">{{student.other_medical_conditions_description}}</p>
 						<div ng-show="edit">
-							<input type="text" name="other_medical_conditions_description" ng-model="student.other_medical_conditions_description" class="form-control"  >
+							<input type="text" name="other_medical_conditions_description" ng-model="student.other_medical_conditions_description" class="form-control perm"  >
 						</div>
 					</div>
 				</div>
@@ -566,7 +566,7 @@ input#tripCheck{transform: scale(1.3);}
 					<p class="form-control-static" ng-show="!edit">{{student.hospitalized_str}}</p>
 					<div ng-show="edit">
 						<label class="radio-inline">
-						  <input type="radio" name="hospitalized" ng-model="student.hospitalized" ng-value="true"> Yes
+						  <input type="radio" name="hospitalized" ng-model="student.hospitalized" ng-value="true" class="perm"> Yes
 						</label>
 						<label class="radio-inline">
 						  <input type="radio" name="hospitalized" ng-model="student.hospitalized" ng-value="false"> No
@@ -578,7 +578,7 @@ input#tripCheck{transform: scale(1.3);}
 						<label for="hospitalized_description">Please describe</label>
 						<p class="form-control-static" ng-show="!edit">{{student.hospitalized_description}}</p>
 						<div ng-show="edit">
-							<input type="text" name="hospitalized_description" ng-model="student.hospitalized_description" class="form-control"  >
+							<input type="text" name="hospitalized_description" ng-model="student.hospitalized_description" class="form-control perm"  >
 						</div>
 					</div>
 				</div>
@@ -589,10 +589,10 @@ input#tripCheck{transform: scale(1.3);}
 					<p class="form-control-static" ng-show="!edit">{{student.current_medical_treatment_str}}</p>
 					<div ng-show="edit">
 						<label class="radio-inline">
-						  <input type="radio" name="current_medical_treatment" ng-model="student.current_medical_treatment" ng-value="true"> Yes
+						  <input type="radio" name="current_medical_treatment" ng-model="student.current_medical_treatment" ng-value="true" class="perm"> Yes
 						</label>
 						<label class="radio-inline">
-						  <input type="radio" name="current_medical_treatment" ng-model="student.current_medical_treatment" ng-value="false"> No
+						  <input type="radio" name="current_medical_treatment" ng-model="student.current_medical_treatment" ng-value="false" class="perm"> No
 						</label>
 					</div>
 
@@ -601,7 +601,7 @@ input#tripCheck{transform: scale(1.3);}
 						<label for="current_medical_treatment_description">For what condition is the child being treated?</label>
 						<p class="form-control-static" ng-show="!edit">{{student.current_medical_treatment}}</p>
 						<div ng-show="edit">
-							<input type="text" name="current_medical_treatment_description" ng-model="student.current_medical_treatment_description" class="form-control"  >
+							<input type="text" name="current_medical_treatment_description" ng-model="student.current_medical_treatment_description" class="form-control perm"  >
 						</div>
 					</div>
 				</div>
@@ -918,7 +918,7 @@ input#tripCheck{transform: scale(1.3);}
 
 					<!-- search btn -->
 					<div class="form-group submit-btn">
-						<input type="button" class="btn btn-sm btn-info" ng-click="getExams()" value="Load" />
+						<input type="button" class="btn btn-sm btn-info perm" ng-click="getExams()" value="Load" />
 						<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
 					</div>
 				</div>
@@ -997,7 +997,7 @@ input#tripCheck{transform: scale(1.3);}
 								<a ng-show="{{term.reportExists}}" href="/assets/students/{{term.lowerSchReportCard}}" title="{{term.lowerSchReportCard}}" download><span class="glyphicon glyphicon-file icon-lg"></span></a>
 								<div>
 								    <label for="upload3_{{term.term_id}}" class="customDocUpload1">
-									<input id="upload3_{{term.term_id}}" name="upload3_{{term.term_id}}" type="file" nv-file-select="" uploader="uploader3" style="width:33%;font-size:12px;filter:alpha(opacity: 0);" ng-click="documentReportCard(this)" />
+									<input id="upload3_{{term.term_id}}" name="upload3_{{term.term_id}}" type="file" nv-file-select="" uploader="uploader3" style="width:33%;font-size:12px;filter:alpha(opacity: 0);" ng-click="documentReportCard(this)" class="perm" />
 									Upload File
 									</label>
 
@@ -1048,7 +1048,7 @@ input#tripCheck{transform: scale(1.3);}
         								</tr>
         								<tr ng-repeat="trip in trips track by $index" ng-model="selectTrip">
         								    <td width="5%">
-        								        <input id="tripCheck_{{trip.trip_id}}" type="checkbox" name="selectTrip[]" value="{{trip.trip_id}}" ng-checked="tripSelection.indexOf(item) > -1" ng-click="selectedTrip(this)" >
+        								        <input id="tripCheck_{{trip.trip_id}}" type="checkbox" name="selectTrip[]" value="{{trip.trip_id}}" ng-checked="tripSelection.indexOf(item) > -1" ng-click="selectedTrip(this)" class="perm" >
         								    </td>
         								    <td width="30%">{{trip.trip_name}}</td>
         								    <td width="15%">{{trip.trip_bus}}</td>

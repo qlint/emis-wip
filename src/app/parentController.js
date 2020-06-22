@@ -68,6 +68,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true,
 						},
+						'fee_structure': {
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
 						'opening_balances': {
 							'view': true,
 							'add': true,
@@ -84,11 +89,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true,
 							'delete': true
-						},
-						'fee_structure': {
-							'view': true,
-							'add': true,
-							'edit': true,
 						},
 						'fees_reports': {
 							'view': true,
@@ -238,9 +238,9 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						},
 						'students':{
 							'view': true,
-							'add': true,
-							'edit': true,
-							'import': true
+							'add': false,
+							'edit': false,
+							'import': false
 						},
 						'staff':{
 							'view': true,
@@ -250,6 +250,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						},
 						'fees':{
 							'dashboard': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'fee_structure': {
 								'view': true,
 								'add': true,
 								'edit': true,
@@ -270,11 +275,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'add': true,
 								'edit': false,
 								'delete': false
-							},
-							'fee_structure': {
-								'view': true,
-								'add': true,
-								'edit': true,
 							},
 							'fees_reports': {
 								'view': true,
@@ -738,6 +738,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'add': true,
 								'edit': true,
 							},
+							'fee_structure': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
 							'opening_balances': {
 								'view': true,
 								'add': true,
@@ -754,11 +759,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'add': true,
 								'edit': true,
 								'delete': true
-							},
-							'fee_structure': {
-								'view': true,
-								'add': true,
-								'edit': true,
 							},
 							'fees_reports': {
     							'view': true,
@@ -884,9 +884,9 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						},
 						'students':{
 							'view': true,
-							'add': true,
-							'edit': true,
-							'import': true
+							'add': false,
+							'edit': false,
+							'import': false
 						},
 						'staff':{
 							'view': false,
@@ -896,6 +896,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						},
 						'fees':{
 							'dashboard': {
+								'view': true,
+								'add': true,
+								'edit': true,
+							},
+							'fee_structure': {
 								'view': true,
 								'add': true,
 								'edit': true,
@@ -916,11 +921,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'add': true,
 								'edit': true,
 								'delete': true
-							},
-							'fee_structure': {
-								'view': true,
-								'add': true,
-								'edit': true,
 							},
 							'fees_reports': {
     							'view': true,
@@ -1261,7 +1261,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 	$scope.openModal = function (section, view, size, item)
 	{
 		var testEl = $('#filterLinks');console.log(testEl);
-		
+
 		if( $('#filterLinks').hasClass('in') )
 		{
 			$('#subnav').trigger('click');
