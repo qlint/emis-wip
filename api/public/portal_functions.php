@@ -2152,6 +2152,161 @@ $app->get('/getStudentExamMarksPortal/:school/:student_id/:class/:term', functio
 
 });
 
+$app->get('/getStudentReportCardData/:school/:studentId/:termId', function ($school, $studentId, $termId) {
+    // Get the student's report card
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+    $db = setDBConnection($school);
+    $sth = $db->prepare("SELECT d.*,
+                              	(
+                              		SELECT array_to_json(ARRAY_AGG(c)) FROM
+                              		(
+                              			SELECT exam_type_id, exam_type, array_to_json(ARRAY_AGG(row_to_json(b))) AS exam_marks
+                              			FROM (
+                              				SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
+                              						s2.subject_name, s2.subject_id, e2.mark,
+													(SELECT grade FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS grade,
+													(SELECT comment FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS comment,
+                              						cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
+                              				FROM app.exam_marks e2
+                              				INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+                              				INNER JOIN app.exam_types et2 USING (exam_type_id)
+                              				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+                              				INNER JOIN app.subjects s2 USING (subject_id)
+                              				WHERE e2.student_id = :studentId
+                              				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE
+                              				ORDER BY et2.sort_order ASC, s2.sort_order ASC
+                              			) b
+                              			GROUP BY exam_type_id, exam_type
+                              		) AS c
+                              	) AS exam_marks,
+								(
+									SELECT array_to_json(ARRAY_AGG(j)) FROM
+									(
+										SELECT ARRAY_AGG(row_to_json(h)) AS subject_overalls
+										FROM (
+											SELECT *, (SELECT grade FROM app.grading WHERE average >= min_mark AND average <= max_mark) AS grade
+											FROM (
+												SELECT subject_id, subject_name AS parent_subject_name, round(sum(mark)::float/class_exam_count) AS average
+												FROM(
+													SELECT e2.student_id, cse2.exam_type_id, et2.exam_type,
+															s2.subject_name, s2.subject_id, e2.mark,
+															cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id,
+															(
+																SELECT COUNT(DISTINCT exam_type_id)
+																FROM app.class_subject_exams
+																INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																INNER JOIN app.class_subjects USING (class_subject_id)
+																WHERE term_id = :termId
+																AND class_id = (SELECT class_id FROM app.class_subjects
+																				INNER JOIN app.class_subject_exams USING (class_subject_id)
+																				INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																				WHERE student_id = :studentId AND term_id = :termId LIMIT 1)
+															) AS class_exam_count
+													FROM app.exam_marks e2
+													INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+													INNER JOIN app.exam_types et2 USING (exam_type_id)
+													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+													INNER JOIN app.subjects s2 USING (subject_id)
+													WHERE e2.student_id = :studentId
+													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+													ORDER BY et2.sort_order ASC, s2.sort_order ASC
+												)f
+												GROUP BY subject_id, subject_name, class_exam_count
+											)g
+										) h
+									) AS j
+								) AS subject_overalls_column,
+								(
+									SELECT array_to_json(ARRAY_AGG(j)) AS total_marks FROM
+									(
+										SELECT ARRAY_AGG(row_to_json(h)) AS total_marks
+										FROM (
+												SELECT student_id, exam_type_id, exam_type, sum(mark) AS total, sum(out_of) AS out_of,
+														(SELECT grade FROM app.grading WHERE round(sum(mark)::float/sum(out_of))*100 >= min_mark AND round(sum(mark)::float/sum(out_of))*100 <= max_mark ) AS grade
+												FROM(
+													SELECT e2.student_id, cse2.exam_type_id, et2.exam_type,
+															s2.subject_name, s2.subject_id, e2.mark,
+															cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id,
+															(
+																SELECT COUNT(DISTINCT exam_type_id)
+																FROM app.class_subject_exams
+																INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																INNER JOIN app.class_subjects USING (class_subject_id)
+																WHERE term_id = :termId
+																AND class_id = (SELECT class_id FROM app.class_subjects
+																				INNER JOIN app.class_subject_exams USING (class_subject_id)
+																				INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																				WHERE student_id = :studentId AND term_id = :termId LIMIT 1)
+															) AS class_exam_count
+													FROM app.exam_marks e2
+													INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+													INNER JOIN app.exam_types et2 USING (exam_type_id)
+													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+													INNER JOIN app.subjects s2 USING (subject_id)
+													WHERE e2.student_id = :studentId
+													AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE
+													ORDER BY et2.sort_order ASC, s2.sort_order ASC
+												)f
+												GROUP BY student_id, exam_type_id, exam_type
+										) h
+									) AS j
+								) AS totals
+                              FROM (
+                              	SELECT DISTINCT student_id, student_name, term_id, term_name, closing_date, year, next_term_begins, class_name,
+                              		admission_number
+                              	FROM(
+                              		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                              				em.term_id, t.term_name, t.end_date AS closing_date, date_part('year', t.start_date) AS year,
+                              				(SELECT start_date FROM app.terms WHERE start_date > (SELECT end_date FROM app.terms WHERE term_id = :termId) LIMIT 1) AS next_term_begins,
+                              				c.class_name, s.admission_number
+                              		FROM app.students s
+                              		LEFT JOIN app.exam_marks em USING (student_id)
+                              		INNER JOIN app.terms t USING (term_id)
+                              		INNER JOIN app.classes c ON s.current_class = c.class_id
+                              		WHERE em.term_id = :termId
+                              		AND s.student_id = :studentId
+                              	)a
+                              )d");
+
+    $sth->execute( array(':studentId' => $studentId, ':termId' => $termId) );
+    $results = $sth->fetch(PDO::FETCH_OBJ);
+	$results->exam_marks = json_decode($results->exam_marks);
+	$results->subject_overalls_column = json_decode($results->subject_overalls_column);
+	$results->totals = json_decode($results->totals);
+
+        // traffic analysis start
+				$mistrafficdb = getMISDB();
+				$subdom = getSubDomain();
+				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+												VALUES('$school','parent-app viewing report card')");
+				$trafficMonitor->execute( array() );
+				$mistrafficdb = null;
+				// traffic analysis end
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getStudentClasses/:school/:studentId', function ($school, $studentId) {
     // Get all students classes, present and past
 
