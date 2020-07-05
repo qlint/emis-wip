@@ -56,17 +56,26 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
-									date_part('year', start_date) as year, report_data, report_cards.report_card_type, class_cat_id,
-									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
-									report_cards.creation_date::date as date, published
-					FROM app.report_cards
-					INNER JOIN app.students ON report_cards.student_id = students.student_id
-					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
-					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
-					LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
-					WHERE report_cards.student_id = :studentId
-					ORDER BY report_card_id");
+		$sth = $db->prepare("SELECT a.*, 'TERM ' || (
+														SELECT term_num FROM (
+															SELECT term_id, term_name, creation_date, row_number() OVER (partition by year order by term_id) AS term_num FROM(
+																SELECT term_id, term_name, date_part('year',start_date) AS year, creation_date FROM app.terms
+															)y
+														)z WHERE term_id = a.term_id
+													) AS alt_term_name
+                            FROM (
+                            					SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
+                            									date_part('year', start_date) as year, report_data, report_cards.report_card_type, class_cat_id,
+                            									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
+                            									report_cards.creation_date::date as date, published
+                            					FROM app.report_cards
+                            					INNER JOIN app.students ON report_cards.student_id = students.student_id
+                            					INNER JOIN app.classes ON report_cards.class_id = classes.class_id
+                            					INNER JOIN app.terms ON report_cards.term_id = terms.term_id
+                            					LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
+                            					WHERE report_cards.student_id = :studentId
+                            					ORDER BY report_card_id
+                            	)a");
 		$sth->execute( array(':studentId' => $studentId) );
 
 
@@ -115,6 +124,357 @@ $app->get('/getStudentReportCard/:student_id/:class_id/:term_id', function ($stu
 					AND report_cards.term_id = :termId");
 		$sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) );
         $results = $sth->fetch(PDO::FETCH_OBJ);
+
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studentId, $classId, $termId) {
+    //Get student report card
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+
+		$sth = $db->prepare("SELECT d.*,
+                              	(
+                              		SELECT array_to_json(ARRAY_AGG(c)) FROM
+                              		(
+                              			SELECT exam_type_id, exam_type, array_to_json(ARRAY_AGG(row_to_json(b))) AS exam_marks
+                              			FROM (
+                              				SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
+                              						s2.subject_name, s2.subject_id, e2.mark,
+													(SELECT grade FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS grade,
+													(SELECT comment FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS comment,
+                              						cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
+                              				FROM app.exam_marks e2
+                              				INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+                              				INNER JOIN app.exam_types et2 USING (exam_type_id)
+                              				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+                              				INNER JOIN app.subjects s2 USING (subject_id)
+                              				WHERE e2.student_id = :studentId
+                              				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE
+                              				ORDER BY et2.sort_order ASC, s2.sort_order ASC
+                              			) b
+                              			GROUP BY exam_type_id, exam_type
+                              		) AS c
+                              	) AS exam_marks,
+								(
+									SELECT array_to_json(ARRAY_AGG(j)) FROM
+									(
+										SELECT ARRAY_AGG(row_to_json(h)) AS subject_overalls
+										FROM (
+											SELECT *, (SELECT grade FROM app.grading WHERE average >= min_mark AND average <= max_mark) AS grade,
+														(SELECT comment FROM app.grading WHERE average >= min_mark AND average <= max_mark) AS comment
+											FROM (
+												SELECT subject_id, subject_name AS parent_subject_name, round(sum(mark)::float/NULLIF(class_exam_count,0)) AS average
+												FROM(
+													SELECT e2.student_id, cse2.exam_type_id, et2.exam_type,
+															s2.subject_name, s2.subject_id, e2.mark,
+															cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id,
+															(
+																SELECT COUNT(DISTINCT exam_type_id)
+																FROM app.class_subject_exams
+																INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																INNER JOIN app.class_subjects USING (class_subject_id)
+																WHERE term_id = :termId
+																AND class_id = :classId
+															) AS class_exam_count
+													FROM app.exam_marks e2
+													INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+													INNER JOIN app.exam_types et2 USING (exam_type_id)
+													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+													INNER JOIN app.subjects s2 USING (subject_id)
+													WHERE e2.student_id = :studentId
+													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+													ORDER BY et2.sort_order ASC, s2.sort_order ASC
+												)f
+												GROUP BY subject_id, subject_name, class_exam_count
+											)g
+										) h
+									) AS j
+								) AS subject_overalls_column,
+								(
+									SELECT array_to_json(ARRAY_AGG(j)) AS total_marks FROM
+									(
+										SELECT ARRAY_AGG(row_to_json(h)) AS total_marks
+										FROM (
+												SELECT student_id, exam_type_id, exam_type, sum(mark) AS total, sum(out_of) AS out_of,
+														(SELECT grade FROM app.grading WHERE round(sum(mark)::float/sum(out_of))*100 >= min_mark AND round(sum(mark)::float/sum(out_of))*100 <= max_mark ) AS grade
+												FROM(
+													SELECT e2.student_id, cse2.exam_type_id, et2.exam_type,
+															s2.subject_name, s2.subject_id, e2.mark,
+															cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id,
+															(
+																SELECT COUNT(DISTINCT exam_type_id)
+																FROM app.class_subject_exams
+																INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																INNER JOIN app.class_subjects USING (class_subject_id)
+																WHERE term_id = :termId
+																AND class_id = :classId
+															) AS class_exam_count
+													FROM app.exam_marks e2
+													INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+													INNER JOIN app.exam_types et2 USING (exam_type_id)
+													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+													INNER JOIN app.subjects s2 USING (subject_id)
+													WHERE e2.student_id = :studentId
+													AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE
+													ORDER BY et2.sort_order ASC, s2.sort_order ASC
+												)f
+												GROUP BY student_id, exam_type_id, exam_type
+										) h
+									) AS j
+								) AS totals,
+								(
+									SELECT array_to_json(ARRAY_AGG(j)) FROM
+									(
+										SELECT ARRAY_AGG(row_to_json(h)) AS this_term_marks_and_grade,
+											(
+												SELECT ARRAY_AGG(row_to_json(h)) AS this_term_marks_and_grade
+												FROM (
+													SELECT sum(average) || '/500' AS overall_mark, round((sum(average)::float/500)*100) AS percentage,
+														(SELECT grade FROM app.grading WHERE round((sum(average)::float/500)*100) >= min_mark AND round((sum(average)::float/500)*100) <= max_mark) AS overall_grade,
+														(SELECT principal_comment FROM app.grading WHERE round((sum(average)::float/500)*100) >= min_mark AND round((sum(average)::float/500)*100) <= max_mark) AS principal_comment
+													FROM (
+														SELECT subject_id, subject_name AS parent_subject_name, round(sum(mark)::float/NULLIF(class_exam_count,0)) AS average
+														FROM(
+															SELECT e2.student_id, cse2.exam_type_id, et2.exam_type,
+																	s2.subject_name, s2.subject_id, e2.mark,
+																	cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id,
+																	(
+																		SELECT COUNT(DISTINCT exam_type_id)
+																		FROM app.class_subject_exams
+																		INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																		INNER JOIN app.class_subjects USING (class_subject_id)
+																		WHERE term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																		AND class_id = :classId
+																	) AS class_exam_count
+															FROM app.exam_marks e2
+															INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+															INNER JOIN app.exam_types et2 USING (exam_type_id)
+															INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+															INNER JOIN app.subjects s2 USING (subject_id)
+															WHERE e2.student_id = :studentId
+															AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+															ORDER BY et2.sort_order ASC, s2.sort_order ASC
+														)f
+														GROUP BY subject_id, subject_name, class_exam_count
+													)g
+												) h
+											) AS last_term_marks_and_grade
+										FROM (
+											SELECT sum(average) || '/500' AS overall_mark, round((sum(average)::float/500)*100) AS percentage,
+												(SELECT grade FROM app.grading WHERE round((sum(average)::float/500)*100) >= min_mark AND round((sum(average)::float/500)*100) <= max_mark) AS overall_grade,
+												(SELECT principal_comment FROM app.grading WHERE round((sum(average)::float/500)*100) >= min_mark AND round((sum(average)::float/500)*100) <= max_mark) AS principal_comment
+											FROM (
+												SELECT subject_id, subject_name AS parent_subject_name, round(sum(mark)::float/NULLIF(class_exam_count,0)) AS average
+												FROM(
+													SELECT e2.student_id, cse2.exam_type_id, et2.exam_type,
+															s2.subject_name, s2.subject_id, e2.mark,
+															cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id,
+															(
+																SELECT COUNT(DISTINCT exam_type_id)
+																FROM app.class_subject_exams
+																INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																INNER JOIN app.class_subjects USING (class_subject_id)
+																WHERE term_id = :termId
+																AND class_id = :classId
+															) AS class_exam_count
+													FROM app.exam_marks e2
+													INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+													INNER JOIN app.exam_types et2 USING (exam_type_id)
+													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+													INNER JOIN app.subjects s2 USING (subject_id)
+													WHERE e2.student_id = :studentId
+													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+													ORDER BY et2.sort_order ASC, s2.sort_order ASC
+												)f
+												GROUP BY subject_id, subject_name, class_exam_count
+											)g
+										) h
+									) AS j
+								) AS overall_marks_and_grade,
+								(
+									SELECT array_to_json(ARRAY_AGG(l)) AS positions FROM
+									(
+											SELECT row_to_json(i) AS this_term_position,
+												(
+													SELECT row_to_json(j) AS last_term_position FROM
+													(
+														SELECT * FROM (
+															SELECT
+																student_id, total_mark, total_grade_weight,
+																round((total_mark::float/total_grade_weight::float)*100) as percentage,
+																rank() over w as position, position_out_of
+															FROM (
+																SELECT student_id, round(total_mark::float/class_exam_count) AS total_mark,
+																	round(total_grade_weight::float/class_exam_count) AS total_grade_weight,
+																	position_out_of
+																FROM(
+																	SELECT exam_marks.student_id,
+																		coalesce(sum(case when subjects.parent_subject_id is null then
+																					mark
+																				end),0) as total_mark,
+																		coalesce(sum(case when subjects.parent_subject_id is null then
+																					grade_weight
+																				end),0) as total_grade_weight,
+																		(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+																				INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+																				INNER JOIN app.class_subjects cs USING (class_subject_id)
+																				INNER JOIN app.students s USING (student_id)
+																				WHERE cs.class_id = :classId
+																				AND em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																				AND s.active IS TRUE
+																		) as position_out_of,
+																		(
+																									SELECT COUNT(DISTINCT exam_type_id)
+																									FROM app.class_subject_exams
+																									INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																									INNER JOIN app.class_subjects USING (class_subject_id)
+																									WHERE term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																									AND class_id = :classId
+																								) AS class_exam_count
+
+																	FROM app.exam_marks
+																	INNER JOIN app.class_subject_exams
+																	INNER JOIN app.exam_types USING (exam_type_id)
+																	INNER JOIN app.class_subjects
+																	INNER JOIN app.subjects
+																	ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+																	ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+																	ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+																	INNER JOIN app.students USING (student_id)
+																	WHERE class_subjects.class_id = :classId
+																	AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																	AND subjects.parent_subject_id is null
+																	AND subjects.use_for_grading is true
+																	AND students.active is true
+																	AND mark IS NOT NULL
+
+																	GROUP BY exam_marks.student_id
+																)c
+															) a
+															WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)
+														)q WHERE student_id = :studentId
+													)j
+												) AS last_term_position
+											FROM
+											(
+												SELECT * FROM (
+													SELECT
+														student_id, total_mark, total_grade_weight,
+														round((total_mark::float/total_grade_weight::float)*100) as percentage,
+														rank() over w as position, position_out_of
+													FROM (
+														SELECT student_id, round(total_mark::float/class_exam_count) AS total_mark,
+															round(total_grade_weight::float/class_exam_count) AS total_grade_weight,
+															position_out_of
+														FROM(
+															SELECT exam_marks.student_id,
+																coalesce(sum(case when subjects.parent_subject_id is null then
+																			mark
+																		end),0) as total_mark,
+																coalesce(sum(case when subjects.parent_subject_id is null then
+																			grade_weight
+																		end),0) as total_grade_weight,
+																(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+																		INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+																		INNER JOIN app.class_subjects cs USING (class_subject_id)
+																		INNER JOIN app.students s USING (student_id)
+																		WHERE cs.class_id = :classId AND em.term_id = :termId AND s.active IS TRUE
+																) as position_out_of,
+																(
+																							SELECT COUNT(DISTINCT exam_type_id)
+																							FROM app.class_subject_exams
+																							INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																							INNER JOIN app.class_subjects USING (class_subject_id)
+																							WHERE term_id = :termId
+																							AND class_id = :classId
+																						) AS class_exam_count
+
+															FROM app.exam_marks
+															INNER JOIN app.class_subject_exams
+															INNER JOIN app.exam_types USING (exam_type_id)
+															INNER JOIN app.class_subjects
+															INNER JOIN app.subjects
+															ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+															ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+															ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+															INNER JOIN app.students USING (student_id)
+															WHERE class_subjects.class_id = :classId
+															AND term_id = :termId
+															AND subjects.parent_subject_id is null
+															AND subjects.use_for_grading is true
+															AND students.active is true
+															AND mark IS NOT NULL
+
+															GROUP BY exam_marks.student_id
+														)c
+													) a
+													WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)
+												)p WHERE student_id = :studentId
+											)i
+
+									)l
+								) AS positions,
+								(
+								  SELECT array_to_json(ARRAY_AGG(row_to_json(p))) AS subjects FROM
+								  (
+									SELECT DISTINCT ON (subject_id) subject_id, subject_name, teacher_id, sort_order, parent_subject_id,
+										e.initials
+									FROM app.subjects s
+									INNER JOIN app.class_subjects cs USING (subject_id)
+									INNER JOIN app.class_subject_exams cse USING (class_subject_id)
+									INNER JOIN app.exam_marks em USING (class_sub_exam_id)
+									LEFT JOIN app.employees e ON s.teacher_id = e.emp_id
+									WHERE s.active IS TRUE
+									AND cs.class_id = :classId
+									AND s.use_for_grading IS TRUE
+								  )p
+								) AS subjects_column
+                              FROM (
+                              	SELECT DISTINCT student_id, student_name, term_id, term_name, closing_date, year, next_term_begins, class_name,
+                              		admission_number
+                              	FROM(
+                              		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                              				em.term_id, t.term_name, t.end_date AS closing_date, date_part('year', t.start_date) AS year,
+                              				(SELECT start_date FROM app.terms WHERE start_date > (SELECT end_date FROM app.terms WHERE term_id = :termId) LIMIT 1) AS next_term_begins,
+                              				(SELECT class_name FROM app.classes WHERE class_id = :classId) AS class_name, s.admission_number
+                              		FROM app.students s
+                              		LEFT JOIN app.exam_marks em USING (student_id)
+                              		INNER JOIN app.terms t USING (term_id)
+                              		WHERE em.term_id = :termId
+                              		AND s.student_id = :studentId
+                              	)a
+                              )d");
+		$sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) );
+        $results = $sth->fetch(PDO::FETCH_OBJ);
+		$results->exam_marks = json_decode($results->exam_marks);
+		$results->subject_overalls_column = json_decode($results->subject_overalls_column);
+		$results->totals = json_decode($results->totals);
+		$results->overall_marks_and_grade = json_decode($results->overall_marks_and_grade);
+		$results->positions = json_decode($results->positions);
+		$results->subjects_column = json_decode($results->subjects_column);
 
 
         if($results) {
@@ -1867,7 +2227,7 @@ $app->post('/updateReportCardData', function () use($app) {
 																				:termId, :termName, :examTypeId,
 																				:examTypeName, :subjectId, :subjectName,
 																				:parentSubjectName, :mark, :gradeWeight,
-																				:grade, 
+																				:grade,
 																				:useForGrading, :teacherId,
 																				:teacherInitials, now())");
 
@@ -1876,8 +2236,8 @@ $app->post('/updateReportCardData', function () use($app) {
 											parent_subject_name = :parentSubjectName,
 											mark = :mark,
 											grade_weight = :gradeWeight,
-											grade = :grade /* (SELECT CASE WHEN :mark IS NULL 
-																				    THEN NULL 
+											grade = :grade /* (SELECT CASE WHEN :mark IS NULL
+																				    THEN NULL
 																				    ELSE
 																				    (SELECT grade FROM app.grading WHERE (:mark::float/:gradeWeight::float)*100 between min_mark and max_mark)
 																				    END
@@ -1898,9 +2258,9 @@ $app->post('/updateReportCardData', function () use($app) {
 
 			if( $proceedStatus->status === 'update' )
 			{
-				$update->execute( array(':subjectName' => $subjectName, 
-				                        ':parentSubjectName' => $parentSubjectName, 
-				                        ':mark' => $mark, 
+				$update->execute( array(':subjectName' => $subjectName,
+				                        ':parentSubjectName' => $parentSubjectName,
+				                        ':mark' => $mark,
 				                        ':gradeWeight' => $gradeWeight,
 				                        ':grade' => $grade,
 				                        ':useForGrading' => $useForGrading,

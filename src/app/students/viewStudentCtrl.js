@@ -1747,8 +1747,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.reportCards = {};
 
 				// get unique terms
+				/*
 				$scope.reportCards.terms = $scope.rawReportCards.reduce(function(sum,item){
 					if( sum.indexOf(item.term_name) === -1 ) sum.push(item.term_name);
+					return sum;
+				}, []);
+				*/
+				$scope.reportCards.terms = $scope.rawReportCards.reduce(function(sum,item){
+					if( sum.indexOf(item.alt_term_name) === -1 ) sum.push(item.alt_term_name);
 					return sum;
 				}, []);
 
@@ -1778,7 +1784,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 								term_id: item.term_id,
 								date: item.date,
 								year: item.year,
-								published: item.published
+								published: item.published,
+								alt_term_name: item.alt_term_name
 							}
 						);
 
@@ -1786,7 +1793,22 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						i++;
 
 					}
+					/*
 					reports[item.term_name] = {
+						term_id : item.term_id,
+						year: item.year,
+						published : item.published,
+						report_card_id: item.report_card_id,
+						report_card_type: item.report_card_type,
+						class_name: item.class_name,
+						class_id: item.class_id,
+						teacher_id: item.teacher_id,
+						teacher_name: item.teacher_name,
+						date: item.date,
+						data: item.report_data
+					};
+					*/
+					reports[item.alt_term_name] = {
 						term_id : item.term_id,
 						year: item.year,
 						published : item.published,
@@ -1805,7 +1827,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 				});
 				$scope.reportCards.classes[(i-1)].reports = reports;
-
 			}
 		}
 		else

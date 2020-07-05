@@ -16,6 +16,7 @@ function($scope, $rootScope){
 		$rootScope.isPrinting = true;
 		$scope.showReportCard = true;
 		$scope.student = angular.fromJson(data.student);
+		$scope.reportCd = angular.fromJson(data.reportCd);
 		$scope.report = angular.fromJson(data.report);
 		$scope.overall = angular.fromJson(data.overall);
 		$scope.overallLastTerm = angular.fromJson(data.overallLastTerm);

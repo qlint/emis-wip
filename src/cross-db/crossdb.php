@@ -18,7 +18,7 @@
       }
   	  $output_object->ready_status = "DB's selected and ready to run";
       $output_object->school_dbs = $dbArray;
-      $queryInTextFile = file_get_contents('create-db.txt'); // for larger or more complex queries and create statements, we put in a text file
+      // $queryInTextFile = file_get_contents('create-db.txt'); // for larger or more complex queries and create statements, we put in a text file
       // echo $queryInTextFile ."<br>";
 
       foreach ($dbArray as $key => $value) {
@@ -28,17 +28,16 @@
       	    // now we can create a second db connection for each of the db's above and execute a query on each
 
       	    $schoolDb = pg_connect("host=localhost port=5433 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
+            
+            $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.report_cards ADD COLUMN class_teacher_comment text;"); // executing the query
+            $executeOnSchoolDb2 = pg_query($schoolDb,"ALTER TABLE app.report_cards ADD COLUMN head_teacher_comment text;"); // executing the query
             /*
-            $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.students
-                                          ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
-            $executeOnSchoolDb2 = pg_query($schoolDb,"ALTER TABLE app.invoices
-                                          ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
             $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.payments
                                           ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
             $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.fee_items
                                           ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
             */
-            $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
+            // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
       	    // echo $dbOutput; // just an output of all our db's
       }
       $output = json_encode($output_object);

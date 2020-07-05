@@ -3,7 +3,7 @@
 angular.module('eduwebApp').
 controller('reportCardCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$timeout','$window','$parse',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window, $parse){
-	// console.log(data);
+	// console.log("PASSED DATA > ",data);
 	// console.log($scope);
 	$rootScope.isPrinting = false;
 	$scope.student = data.student || undefined;
@@ -53,8 +53,121 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.chart_path = "";
 
+	$scope.removeExamsNotDone = function (objArr){
+		for(let b = 0;b < objArr.length;b++){
+			let exType = objArr[b];
+			// console.log("Looping each exam type > ",exType);
+			let subsLength = exType.exam_marks.length;
+			// console.log("Exam type subject length = " + subsLength);
+			let subsCheck = 0;
+			for(let a=0;a < subsLength;a++){
+				// console.log("Checking mark in > ",exType.exam_marks[a].mark);
+				if(exType.exam_marks[a].mark == null){
+					subsCheck = subsCheck + 1;
+					// console.log("Null detected, subsCheck is now " + subsCheck + " ON > ",exType.exam_marks[a]);
+				}
+			}
+			// console.log("Past loop, final subsCheck = " + subsCheck + " and subsLength = " + subsLength);
+			if(subsCheck == (subsLength)){
+				objArr.splice(b, 1);
+				b--;
+			}
+		}
+		console.log("Final Object Array > ",objArr);
+		return objArr;
+	}
+
+	$scope.removeNullTotals = function(objArr){
+		for(let b = 0;b < objArr.length;b++){
+			let totExamType = objArr[b];
+			console.log(totExamType.total);
+			if(totExamType.total == null){
+				objArr.splice(b, 1);
+				b--
+			}
+		}
+		console.log("Final Totals > ",objArr);
+		return objArr;
+	}
+
 	var initializeController = function()
 	{
+
+		var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + data.term_id;
+		var loadRptCd = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				if( result.nodata )
+				{
+					$scope.reportsNotFound = true;
+					$scope.errMsg = "There was no report card data found for this student.";
+				}
+				else
+				{
+					$scope.reportCd = result.data;
+					// remove exam types not done
+					$scope.reportCd.exam_marks = $scope.removeExamsNotDone($scope.reportCd.exam_marks);
+					// remove totals of exam types not done
+					$scope.reportCd.totals[0].total_marks = $scope.removeNullTotals($scope.reportCd.totals[0].total_marks);
+					function dateConverter(str){
+						let strArr = str.split('-');
+						let year = strArr[0];
+						let month = parseInt(strArr[1]);
+						let day = parseInt(strArr[2]);
+						let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+						let postFix = '';
+						if(day == 1 || day == 21 || day == 31){
+							postFix = 'st';
+						}else if(day == 2 || day == 22){
+							postFix = 'nd';
+						}else if(day == 3 || day == 23){
+							postFix = 'rd';
+						}else{
+							postFix = 'th';
+						}
+						let theDate = day + postFix + ' ' + months[month] + ', ' + year;
+						console.log(theDate);
+						return theDate;
+					}
+					$scope.reportCd.closing_date = dateConverter($scope.reportCd.closing_date);
+					$scope.reportCd.next_term_begins = dateConverter($scope.reportCd.next_term_begins);
+					console.log("New Report Card Api",$scope.reportCd);
+					for(let a=0;a < $scope.reportCd.subjects_column.length;a++){
+						let subj = $scope.reportCd.subjects_column[a];
+						for(let b=0;b < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;b++){
+							let subjOvrl = $scope.reportCd.subject_overalls_column[0].subject_overalls[b];
+
+							if(subj.subject_id == subjOvrl.subject_id){
+								subj.overall = subjOvrl;
+							}
+						}
+						subj.exam_marks = [];
+						$scope.reportCd.exam_marks.forEach((item, i) => {
+							let exam =  item.exam_marks;
+							exam.forEach((cat, i) => {
+								if(subj.subject_id == cat.subject_id){
+									subj.exam_marks.push(cat);
+								}
+							});
+						});
+
+					}
+					// console.log("After Edit",$scope.reportCd);
+					
+					console.log("After Edit",$scope.reportCd);
+				}
+			}
+			else
+			{
+				$scope.reportsNotFound = true;
+				$scope.errMsg = result.data;
+			}
+		}
+		apiService.getReportCardData(rptCardParams, loadRptCd, apiError);
+
+
 	    // get lower school grading
 	    if($scope.schoolName == "lasalle" && $scope.entity_id <= 6){
 	        getGrading2();
@@ -331,6 +444,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}, apiError);
 	});
 
+	$scope.conf = function(el){
+		console.log("TERM CHANGE DETECTED > ",el);
+		$scope.filters.term_id = el.filters.term.term_id;
+	}
+
 	$scope.clearSelect = function($event)
 	{
 		$event.stopPropagation();
@@ -347,6 +465,80 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.getProgressReport = function(recreate)
 	{
+		console.log($scope);
+		// "real time"
+		var loadRptCd = function(response,status)
+		{
+			console.log("Generating report card with live data");
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				if( result.nodata )
+				{
+					console.log("No live data for the selected term");
+					$scope.reportsNotFound = true;
+					$scope.errMsg = "There was no report card data found for this student.";
+				}
+				else
+				{
+					$scope.reportCd = result.data;
+					console.log("Live data found. Raw data > ",$scope.reportCd);
+					function dateConverter(str){
+						let strArr = str.split('-');
+						let year = strArr[0];
+						let month = parseInt(strArr[1]);
+						let day = parseInt(strArr[2]);
+						let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+						let postFix = '';
+						if(day == 1 || day == 21 || day == 31){
+							postFix = 'st';
+						}else if(day == 2 || day == 22){
+							postFix = 'nd';
+						}else if(day == 3 || day == 23){
+							postFix = 'rd';
+						}else{
+							postFix = 'th';
+						}
+						let theDate = day + postFix + ', ' + months[month] + ' ' + year;
+						console.log(theDate);
+						return theDate;
+					}
+					$scope.reportCd.closing_date = dateConverter($scope.reportCd.closing_date);
+					$scope.reportCd.next_term_begins = dateConverter($scope.reportCd.next_term_begins);
+					console.log("New Report Card Api",$scope.reportCd);
+					for(let a=0;a < $scope.reportCd.subjects_column.length;a++){
+						let subj = $scope.reportCd.subjects_column[a];
+						for(let b=0;b < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;b++){
+							let subjOvrl = $scope.reportCd.subject_overalls_column[0].subject_overalls[b];
+
+							if(subj.subject_id == subjOvrl.subject_id){
+								subj.overall = subjOvrl;
+							}
+						}
+						subj.exam_marks = [];
+						$scope.reportCd.exam_marks.forEach((item, i) => {
+							let exam =  item.exam_marks;
+							exam.forEach((cat, i) => {
+								if(subj.subject_id == cat.subject_id){
+									subj.exam_marks.push(cat);
+								}
+							});
+						});
+
+					}
+					console.log("After Edit",$scope.reportCd);
+				}
+			}
+			else
+			{
+				$scope.reportsNotFound = true;
+				$scope.errMsg = result.data;
+			}
+		}
+		var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + $scope.filters.term.term_id;
+		console.log("Params for live data : " + rptCardParams);
+		apiService.getReportCardData(rptCardParams, loadRptCd, apiError);
+
 		$scope.showReportCard = false;
 		$scope.report = {};
 		$scope.overall = {};
@@ -1328,6 +1520,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 		var criteria = {
 			student : $scope.student,
+			reportCd: $scope.reportCd,
 			report: $scope.report,
 			overall: $scope.overall,
 			graphPoints: $scope.graphPoints,

@@ -484,6 +484,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.getStudentReportCard = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getStudentReportCard/" + param, successFunction, errorFunction, params);
 	};
+	
+	this.getReportCardData = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getReportCardData/" + param, successFunction, errorFunction, params);
+	};
 
 	this.getExamMarksforReportCard = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getExamMarksforReportCard/" + param, successFunction, errorFunction, params);
