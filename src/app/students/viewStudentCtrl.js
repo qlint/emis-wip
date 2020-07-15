@@ -449,10 +449,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				}
 			}
 			// console.log("Student dob = " + $scope.student.dob)
-			if($scope.student.dob != null || $scope.student.dob != ''){
-				setTimeout(function(){
-					document.getElementById('dob').value = $scope.student.dob;
-				}, 1000);
+			if($rootScope.currentUser.user_type != 'ADMIN-TRANSPORT'){
+				if($scope.student.dob != null || $scope.student.dob != ''){
+					setTimeout(function(){
+						document.getElementById('dob').value = $scope.student.dob;
+					}, 1000);
+				}
 			}
 			var today = new Date();
 			var dd = today.getDate();
@@ -486,6 +488,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	$scope.getStudentBusDetails = function(student_id)
 	{
+		console.log("Getting student bus details");
+		setTimeout(function(){
 	    apiService.getStudentTransportDetails($scope.student.student_id, function(response,status){
     			var result = angular.fromJson(response);
 
@@ -495,6 +499,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     					if($scope.bus.length == 0){
     					    $scope.bus[0] = {student_destination: 'N/A', bus: 'N/A', driver_name: 'N/A', driver_telephone: 'N/A', guide_name: 'N/A', trip_name: 'N/A', fee_item: 'NOT INVOICED', amount: 'N/A', route: 'N/A'};
     					}
+							console.log("The bus scope > ",$scope.bus);
     			}
     			else
     			{
@@ -503,6 +508,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     			}
 
     		}, apiError);
+			}, 3500);
 	}
 
 	$scope.savingTransport = false;
@@ -531,12 +537,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				btnEl.innerText = "Save Neighborhood";
 				$scope.getStudentBusDetails($scope.student.student_id);
 				$scope.getStudentTripOptions();
-			}, 2500);
+			}, 3500);
 		}, apiError);
 	}
 
 	$scope.getStudentTripOptions = function(){
-	    // get options
+	  // get options
+		setTimeout(function(){
 	    apiService.getStudentTripOptions($scope.student.student_id, function(response,status){
     			var result = angular.fromJson(response);
     			if( result.response == 'success')
@@ -581,6 +588,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     			}
 
     		}, apiError);
+			}, 3500);
 	}
 
 	var getFeeItems = function()
@@ -1753,10 +1761,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					return sum;
 				}, []);
 				*/
+				console.log($scope.rawReportCards);
 				$scope.reportCards.terms = $scope.rawReportCards.reduce(function(sum,item){
 					if( sum.indexOf(item.alt_term_name) === -1 ) sum.push(item.alt_term_name);
 					return sum;
-				}, []);
+				}, []).sort();
+				console.log($scope.reportCards.terms);
 
 
 				// group the reports by class
@@ -2191,6 +2201,70 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		});
 	}
 
+	if( $rootScope.currentUser.user_type == 'ADMIN-TRANSPORT' )
+	{
+			// console.log("Transport");
+			// document.getElementById("saveBtn").style.display = "none";
+			$scope.saving = false;
+
+			$scope.getStudentBusDetails($scope.student.student_id);
+			$scope.getStudentTripOptions();
+
+			$scope.selectedTrip = function(el)
+				{
+						// console.log("Student trips from db",$scope.student.trip_ids);
+						console.log("Pre filtered trips",$scope.preFilteredTrips);
+						/*
+						if($scope.student.trip_ids.length > 0){
+							for(let x=0;x < $scope.student.trip_ids.length; x++){
+								let existingTrip = $scope.student.trip_ids[x];
+								if( $scope.selectTrip.includes(existingTrip) == false ){
+									console.log("This was not previously selected, so we add it to our selected trips.",$scope.selectTrip);
+									if(existingTrip != null || existingTrip != undefined){
+										$scope.selectTrip.push(existingTrip);
+									}
+								}else if( $scope.selectTrip.includes(existingTrip) == true ){
+									console.log("This already was selected, no need to re-add it to our selected trips.",$scope.selectTrip);
+								}
+							}
+						}
+						console.log("Our selected trips now is ::: ",$scope.selectTrip);
+						*/
+						$scope.selectTrip = $scope.preFilteredTrips;
+						if( $scope.selectTrip.includes(el.trip.trip_id) == true ){
+							 // remove from arr
+							 console.log("Trip Id " + el.trip.trip_id + " already is selected, so we remove it");
+							 var index = $scope.selectTrip.indexOf(el.trip.trip_id);
+									if (index > -1) {
+										 $scope.selectTrip.splice(index, 1);
+									}
+						}else if( $scope.selectTrip.includes(el.trip.trip_id) == false ){
+								// add to arr
+								console.log("Trip Id " + el.trip.trip_id + " is not in our current selection, so we add it");
+							 $scope.selectTrip.push(el.trip.trip_id);
+						}
+						console.log("Trip to post",$scope.selectTrip);
+				}
+
+				$scope.saveTrip = function()
+				{
+					var trips = ($scope.selectTrip.length > 0 ? $scope.selectTrip.join(',') : null);
+					// post obj
+						var tripParam = {
+								student_id: $scope.student.student_id,
+								trip_ids: trips
+						}
+
+						apiService.addStudentTrips(tripParam, function(response,status){
+						var result = angular.fromJson(response);
+						$scope.showTripUpdateMsg = true;
+						$scope.tripUpdateMessage = "The trip has been updated successfully!";
+						$scope.getStudentBusDetails($scope.student.student_id);
+						$scope.getStudentTripOptions();
+					}, apiError);
+				}
+
+	}
 
 } ])
 .controller('addParentCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',

@@ -13,6 +13,7 @@ function($scope, $rootScope, apiService){
 	$scope.newsLoading = true;
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false);
+	$scope.isTransport = ( $rootScope.currentUser.user_type == 'ADMIN-TRANSPORT' ? true : false);
 
 	var getStudentCount = function()
 	{
@@ -350,6 +351,51 @@ function($scope, $rootScope, apiService){
 			$scope.examsLoading = false;
 		}
 	}
+	
+	var loadStudentsWithBalance = function(response, status)
+	{
+		var result = angular.fromJson(response);
+
+		if( result.response == 'success')
+		{
+			console.log("Students with balance > ",result);
+			$scope.studentsWithBalance = ( result.nodata !== undefined ? [] : result.data.filter(function(bal) {return bal.balance > 0;}).sort((a, b) => (b.balance) - (a.balance)) );
+		}
+		else
+		{
+			console.log("STUDENTS WITH BALANCE ERROR > ",result);
+		}
+	}
+	
+	var loadStudentsBusUsage = function(response, status)
+	{
+		var result = angular.fromJson(response);
+
+		if( result.response == 'success')
+		{
+			console.log("Students bus usage > ",result);
+			$scope.studentsBusUsage = ( result.nodata !== undefined ? [] : result.data);
+		}
+		else
+		{
+			console.log("BUS USAGE ERROR > ",result);
+		}
+	}
+	
+	var loadPopularDestinations = function(response, status)
+	{
+		var result = angular.fromJson(response);
+
+		if( result.response == 'success')
+		{
+			console.log("Popular destinations > ",result);
+			$scope.popularDestinations = ( result.nodata !== undefined ? [] : result.data);
+		}
+		else
+		{
+			console.log("POPULAR DESTINATIONS ERROR > ",result);
+		}
+	}
 
 	var apiError = function (response, status)
 	{
@@ -374,6 +420,12 @@ function($scope, $rootScope, apiService){
 			getFeeSummary();
 			getTopStudents();
 			getStudentGenderCount();
+		}
+		
+		if($scope.isTransport){
+			apiService.getAllStudentsWithTranspBalance({}, loadStudentsWithBalance, apiError);
+			apiService.getStudentsBusUsage({}, loadStudentsBusUsage, apiError);
+			apiService.getPopularDestinations({}, loadPopularDestinations, apiError);
 		}
 	}
 

@@ -818,7 +818,7 @@ $app->get('/getAllStudentsInTrip/:tripId', function ($tripId) {
   {
     $db = getDB();
 
-    $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
+    $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS guide_name FROM (
                         	SELECT student_id, admission_number, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination, route FROM (
                         		SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
                         			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination, tr.route
@@ -1099,7 +1099,7 @@ $app->get('/getAllStudentsInBusInTrip/:busId/:tripId', function ($busId,$tripId)
   {
     $db = getDB();
 
-     $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e2.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e.last_name AS guide_name FROM (
+     $sth = $db->prepare("SELECT two.*, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name AS driver_name, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS guide_name FROM (
                           	SELECT student_id, admission_number, student_name, class_name, trip_id, trip_name, bus_type || ' - ' || bus_registration AS bus, bus_driver, bus_guide, student_destination, route FROM (
                           		SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, class_name,
                           			UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id, s.destination AS student_destination, tr.route

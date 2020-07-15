@@ -2210,8 +2210,8 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                               			FROM (
                               				SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
                               						s2.subject_name, s2.subject_id, e2.mark,
-													(SELECT grade FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS grade,
-													(SELECT comment FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS comment,
+                                          (SELECT grade FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS grade,
+                                          (SELECT comment FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS comment,
                               						cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
                               				FROM app.exam_marks e2
                               				INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
@@ -2501,7 +2501,28 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 								) AS subjects_column,
                 (
 									SELECT report_data::json FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId
-								) AS report_card_comments
+								) AS report_card_comments,
+                (
+									SELECT report_card_type FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId
+								) AS report_card_type,
+                (
+                  SELECT CASE 
+                        WHEN report_card_type = 'Playgroup'
+                        THEN (SELECT report_data FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId)
+                      END AS report_card_data
+                  FROM (
+                    SELECT report_card_type FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId
+                  )a
+								) AS playgroup_report_card,
+                (
+                  SELECT CASE 
+                        WHEN report_card_type = 'Kindergarten'
+                        THEN (SELECT report_data FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId)
+                      END AS report_card_data
+                  FROM (
+                    SELECT report_card_type FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId
+                  )a
+								) AS kindergarten_report_card
                               FROM (
                               	SELECT DISTINCT student_id, student_name, term_id, term_name, closing_date, year, next_term_begins, class_name,
                               		admission_number
@@ -2511,7 +2532,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                               				(SELECT start_date FROM app.terms WHERE start_date > (SELECT end_date FROM app.terms WHERE term_id = :termId) LIMIT 1) AS next_term_begins,
                               				(SELECT class_name FROM app.classes WHERE class_id = :classId) AS class_name, s.admission_number
                               		FROM app.students s
-                              		LEFT JOIN app.exam_marks em USING (student_id)
+                              		LEFT JOIN app.report_cards em USING (student_id) /* this is not a mistake */
                               		INNER JOIN app.terms t USING (term_id)
                               		WHERE em.term_id = :termId
                               		AND s.student_id = :studentId
@@ -2520,14 +2541,19 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 
     $sth->execute( array(':studentId' => $studentId, ':termId' => $termId, ':classId' => $classId) );
     $results = $sth->fetch(PDO::FETCH_OBJ);
-	$results->exam_marks = json_decode($results->exam_marks);
-	$results->subject_overalls_column = json_decode($results->subject_overalls_column);
-	$results->totals = json_decode($results->totals);
-	$results->overall_marks_and_grade = json_decode($results->overall_marks_and_grade);
-	$results->positions = json_decode($results->positions);
-  $results->subjects_column = json_decode($results->subjects_column);
-  $results->report_card_comments = json_decode($results->report_card_comments);
-  $results->report_card_comments = ($results->report_card_comments->comments == null ? null : $results->report_card_comments->comments);
+  
+    $results->exam_marks = json_decode($results->exam_marks);
+    $results->subject_overalls_column = json_decode($results->subject_overalls_column);
+    $results->totals = json_decode($results->totals);
+    $results->overall_marks_and_grade = json_decode($results->overall_marks_and_grade);
+    $results->positions = json_decode($results->positions);
+    $results->subjects_column = json_decode($results->subjects_column);
+    $results->report_card_comments = json_decode($results->report_card_comments);
+    $results->report_card_comments = ($results->report_card_comments->comments == null ? null : $results->report_card_comments->comments);
+    $results->playgroup_report_card = json_decode($results->playgroup_report_card);
+    $results->playgroup_report_card = ($results->playgroup_report_card == null ? null : $results->playgroup_report_card->subjects);
+    $results->kindergarten_report_card = json_decode($results->kindergarten_report_card);
+    $results->kindergarten_report_card = ($results->kindergarten_report_card == null ? null : $results->kindergarten_report_card->subjects);
 
         // traffic analysis start
 				$mistrafficdb = getMISDB();

@@ -484,9 +484,13 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.getStudentReportCard = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getStudentReportCard/" + param, successFunction, errorFunction, params);
 	};
-	
+
 	this.getReportCardData = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getReportCardData/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getLiveReportCardData = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getLiveReportCardData/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getExamMarksforReportCard = function (param, successFunction, errorFunction, params) {
@@ -1150,6 +1154,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getAllStudentsWithTranspBalance = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getAllStudentsWithTranspBalance", successFunction, errorFunction, params);
+	};
+
+	this.getStudentsBusUsage = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getStudentsBusUsage", successFunction, errorFunction, params);
+	};
+
+	this.getPopularDestinations = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getPopularDestinations", successFunction, errorFunction, params);
 	};
 
 	this.getClassStudentsWithTransp = function (param, successFunction, errorFunction, params) {

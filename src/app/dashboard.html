@@ -110,7 +110,7 @@
 
 			</div>
 
-			<div class="col-sm-4">
+			<div class="col-sm-{{permissions.transport.dashboard.view ? '3':'4'}}">
 				<div class="dashboard-panel" ng-show="permissions.exams.exams.view">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-pencil text-md section-label"></span>
@@ -128,10 +128,28 @@
 						</div>
 					</div>
 				</div>
+				<!-- For Transport User -->
+				<div class="dashboard-panel" ng-show="permissions.transport.dashboard.view">
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-pencil text-md section-label"></span>
+						<h2>School Bus</h2>
+					</div>
+					<div class="row dashboard-panel-body">
+						<h2>Students Using A Bus</h2>
+						<div class="loading-indicator" ng-show="examsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						<p class="text-muted padded" ng-show="studentsBusUsage.length==0">There is currently no data to show.</p>
+						<div class="col-sm-12 nopad">
+							<h3>BUS &amp; STUDENTS COUNT</h3>
+							<ul class="stripped" style="max-height:250px;overflow-y:auto;">
+								<li ng-repeat="item in studentsBusUsage">{{item.bus}} - <b>({{item.students}})</b></li>
+							</ul>
+						</div>
+					</div>
+				</div>
 			</div>
 
-			<div class="col-sm-5" ng-show="permissions.fees.dashboard.view">
-				<div class="dashboard-panel">
+			<div class="col-sm-{{permissions.transport.dashboard.view ? '3':'5'}}" ng-show="isTransport ? true : permissions.fees.dashboard.view">
+				<div class="dashboard-panel" ng-show="permissions.fees.dashboard.view">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-calculator text-md section-label"></span>
 						<h2>Fees Module</h2>
@@ -162,6 +180,24 @@
 						</div>
 					</div>
 				</div>
+				<!-- For Transport User -->
+				<div class="dashboard-panel" ng-show="isTransport ? true : permissions.transport.dashboard.view">
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-pencil text-md section-label"></span>
+						<h2>Neighborhoods</h2>
+					</div>
+					<div class="row dashboard-panel-body">
+						<h2>Students In Neighborhoods</h2>
+						<div class="loading-indicator" ng-show="examsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						<p class="text-muted padded" ng-show="popularDestinations.length==0">There is currently no data to show.</p>
+						<div class="col-sm-12 nopad">
+							<h3>NEIGHBORHOODS</h3>
+							<ul class="stripped" style="max-height:250px;overflow-y:auto;">
+								<li ng-repeat="item in popularDestinations">{{item.destination}} - <b>({{item.student_count}})</b></li>
+							</ul>
+						</div>
+					</div>
+				</div>
 				<div class="dashboard-panel" ng-show="permissions.news.view">
 					<div class="dashboard-panel-header">
 						<span class="pull-right fa fa-newspaper-o text-md section-label"></span>
@@ -169,6 +205,27 @@
 					</div>
 					<div class="row dashboard-panel-body">
 						<p class="padded">Coming soon...</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-sm-3" ng-show="isTransport">
+				<!-- For Transport User -->
+				<div class="dashboard-panel" ng-show="isTransport ? true : permissions.transport.dashboard.view">
+					<div class="dashboard-panel-header">
+						<span class="pull-right fa fa-pencil text-md section-label"></span>
+						<h2>Balance</h2>
+					</div>
+					<div class="row dashboard-panel-body">
+						<h2>Transport Fee Balance</h2>
+						<div class="loading-indicator" ng-show="examsLoading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+						<p class="text-muted padded" ng-show="studentsWithBalance.length==0">There is currently no data to show.</p>
+						<div class="col-sm-12 nopad">
+							<h3>BALANCES</h3>
+							<ul class="stripped" style="max-height:250px;overflow-y:auto;">
+								<li ng-repeat="item in studentsWithBalance">{{item.student_name}} - <b>({{item.balance}})</b></li>
+							</ul>
+						</div>
 					</div>
 				</div>
 			</div>

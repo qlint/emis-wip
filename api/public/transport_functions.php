@@ -1227,4 +1227,99 @@ $app->get('/getTransportCards/:studentId', function ($studentId) {
 
 });
 
+/* Dashboard */
+
+$app->get('/getStudentsBusUsage', function () {
+  // Get bus usage by student count
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+     $sth = $db->prepare("SELECT bus_id, bus, COUNT(bus_id) AS students FROM (
+          									SELECT one.*, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.destinations, b.bus_driver,
+                          						b.bus_guide, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name,
+                          						e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name, st.trip_name,
+                          						st.class_cats
+                          					FROM (
+                          						SELECT s.student_id, s.admission_number, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, class_name, current_class,
+                                                    				s.destination AS student_destination, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS student_trips, tr.route
+                                                                            FROM app.students s
+                                                                            INNER JOIN app.classes c ON s.current_class = c.class_id
+                                                                            INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                                                                            WHERE s.active IS TRUE AND s.transport_route_id IS NOT NULL
+                          					)one
+                          					INNER JOIN app.schoolbus_bus_trips sbt ON one.student_trips = sbt.bus_trip_id
+                                                                  INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
+                                                                  INNER JOIN app.buses b USING (bus_id)
+                                                                  LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
+                          					LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                          					ORDER BY class_name ASC, student_name ASC
+          								)two
+          								GROUP BY bus_id, bus
+          								ORDER BY students DESC");
+    $sth->execute( array() );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+} catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
+$app->get('/getPopularDestinations', function () {
+  // Get popular destinations by where students live
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+     $sth = $db->prepare("SELECT destination, COUNT(destination) AS student_count FROM (
+                          	SELECT student_id, destination
+                          	FROM app.students
+                          	WHERE active IS TRUE AND destination IS NOT NULL
+                          )a
+                          GROUP BY destination
+                          ORDER BY student_count DESC");
+    $sth->execute( array() );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+} catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
 ?>

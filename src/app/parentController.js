@@ -828,18 +828,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'edit': true,
 								'import': false
 							},
-							'communications':{
-								'send_email' : {
-									'view': true,
-									'add': false,
-									'edit': false,
-								},
-								'feedback' : {
-								'view': true,
-								'add': false,
-								'edit': false,
-									}
-							},
 								'transport':{
 										'school_bus': {
 											'view': true,
@@ -847,6 +835,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 											'edit': true
 										},
 										'trips': {
+											'view': true,
+											'add': true,
+											'edit': true
+										},
+										'dashboard': {
 											'view': true,
 											'add': true,
 											'edit': true

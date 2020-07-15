@@ -80,7 +80,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.removeNullTotals = function(objArr){
 		for(let b = 0;b < objArr.length;b++){
 			let totExamType = objArr[b];
-			console.log(totExamType.total);
+			// console.log(totExamType.total);
 			if(totExamType.total == null){
 				objArr.splice(b, 1);
 				b--
@@ -90,9 +90,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		return objArr;
 	}
 
-	var initializeController = function()
-	{
-
+	function getReportCardData(){
 		var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + data.term_id;
 		var loadRptCd = function(response,status)
 		{
@@ -108,9 +106,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					$scope.reportCd = result.data;
 					// remove exam types not done
-					$scope.reportCd.exam_marks = $scope.removeExamsNotDone($scope.reportCd.exam_marks);
+					if($scope.reportCd.exam_marks != null){
+						$scope.reportCd.exam_marks = $scope.removeExamsNotDone($scope.reportCd.exam_marks);
+					}
 					// remove totals of exam types not done
-					$scope.reportCd.totals[0].total_marks = $scope.removeNullTotals($scope.reportCd.totals[0].total_marks);
+					if($scope.reportCd.totals[0].total_marks != null){
+						$scope.reportCd.totals[0].total_marks = $scope.removeNullTotals($scope.reportCd.totals[0].total_marks);
+					}
 					function dateConverter(str){
 						let strArr = str.split('-');
 						let year = strArr[0];
@@ -131,9 +133,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						console.log(theDate);
 						return theDate;
 					}
-					$scope.reportCd.closing_date = dateConverter($scope.reportCd.closing_date);
-					$scope.reportCd.next_term_begins = dateConverter($scope.reportCd.next_term_begins);
+					$scope.reportCd.closing_date = ($scope.reportCd.closing_date == null ? null : dateConverter($scope.reportCd.closing_date));
+					$scope.reportCd.next_term_begins = ($scope.reportCd.next_term_begins == null ? null : dateConverter($scope.reportCd.next_term_begins));
 					console.log("New Report Card Api",$scope.reportCd);
+					if($scope.reportCd.subjects_column != null){
 					for(let a=0;a < $scope.reportCd.subjects_column.length;a++){
 						let subj = $scope.reportCd.subjects_column[a];
 						for(let b=0;b < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;b++){
@@ -141,6 +144,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 							if(subj.subject_id == subjOvrl.subject_id){
 								subj.overall = subjOvrl;
+								subjOvrl.sort_order = subj.sort_order;
 							}
 						}
 						subj.exam_marks = [];
@@ -154,8 +158,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						});
 
 					}
+					$scope.reportCd.subjects_column.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
+					$scope.reportCd.subject_overalls_column[0].subject_overalls.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
+					if($scope.schoolName == "lasalle" && $scope.entity_id <= 6){
+						for(let x=0;x < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;x++){
+							$scope.reportCd.subject_overalls_column[0].subject_overalls[x].grade = $scope.reportCd.subject_overalls_column[0].subject_overalls[x].grade2;
+							$scope.reportCd.subject_overalls_column[0].subject_overalls[x].comment = $scope.reportCd.subject_overalls_column[0].subject_overalls[x].comment2;
+						}
+					}
+					console.log($scope);
+				}
 					// console.log("After Edit",$scope.reportCd);
-					
+
 					console.log("After Edit",$scope.reportCd);
 				}
 			}
@@ -165,9 +179,98 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.errMsg = result.data;
 			}
 		}
+		console.log("Params > " + rptCardParams);
 		apiService.getReportCardData(rptCardParams, loadRptCd, apiError);
+	}
 
+	function getLiveReportCardData(){
+		var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + data.term_id;
+		var loadRptCd = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				if( result.nodata )
+				{
+					$scope.reportsNotFound = true;
+					$scope.errMsg = "There was no report card data found for this student.";
+				}
+				else
+				{
+					$scope.reportCd = result.data;
+					// remove exam types not done
+					if($scope.reportCd.exam_marks != null){
+						$scope.reportCd.exam_marks = $scope.removeExamsNotDone($scope.reportCd.exam_marks);
+					}
+					// remove totals of exam types not done
+					if($scope.reportCd.totals[0].total_marks != null){
+						$scope.reportCd.totals[0].total_marks = $scope.removeNullTotals($scope.reportCd.totals[0].total_marks);
+					}
+					function dateConverter(str){
+						let strArr = str.split('-');
+						let year = strArr[0];
+						let month = parseInt(strArr[1]);
+						let day = parseInt(strArr[2]);
+						let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+						let postFix = '';
+						if(day == 1 || day == 21 || day == 31){
+							postFix = 'st';
+						}else if(day == 2 || day == 22){
+							postFix = 'nd';
+						}else if(day == 3 || day == 23){
+							postFix = 'rd';
+						}else{
+							postFix = 'th';
+						}
+						let theDate = day + postFix + ' ' + months[month] + ', ' + year;
+						console.log(theDate);
+						return theDate;
+					}
+					$scope.reportCd.closing_date = ($scope.reportCd.closing_date == null ? null : dateConverter($scope.reportCd.closing_date));
+					$scope.reportCd.next_term_begins = ($scope.reportCd.next_term_begins == null ? null : dateConverter($scope.reportCd.next_term_begins));
+					console.log("New Report Card Api",$scope.reportCd);
+					if($scope.reportCd.subjects_column != null){
+					for(let a=0;a < $scope.reportCd.subjects_column.length;a++){
+						let subj = $scope.reportCd.subjects_column[a];
+						for(let b=0;b < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;b++){
+							let subjOvrl = $scope.reportCd.subject_overalls_column[0].subject_overalls[b];
 
+							if(subj.subject_id == subjOvrl.subject_id){
+								subj.overall = subjOvrl;
+								subjOvrl.sort_order = subj.sort_order;
+							}
+						}
+						subj.exam_marks = [];
+						$scope.reportCd.exam_marks.forEach((item, i) => {
+							let exam =  item.exam_marks;
+							exam.forEach((cat, i) => {
+								if(subj.subject_id == cat.subject_id){
+									subj.exam_marks.push(cat);
+								}
+							});
+						});
+
+					}
+				}
+					// console.log("After Edit",$scope.reportCd);
+
+					console.log("After Edit",$scope.reportCd);
+				}
+			}
+			else
+			{
+				$scope.reportsNotFound = true;
+				$scope.errMsg = result.data;
+			}
+		}
+		console.log("Params > " + rptCardParams);
+		apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
+	}
+
+	var initializeController = function()
+	{
+
+		getReportCardData();
 	    // get lower school grading
 	    if($scope.schoolName == "lasalle" && $scope.entity_id <= 6){
 	        getGrading2();
@@ -503,8 +606,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						console.log(theDate);
 						return theDate;
 					}
-					$scope.reportCd.closing_date = dateConverter($scope.reportCd.closing_date);
-					$scope.reportCd.next_term_begins = dateConverter($scope.reportCd.next_term_begins);
+					$scope.reportCd.closing_date = ($scope.reportCd.closing_date == null ? null : dateConverter($scope.reportCd.closing_date));
+					$scope.reportCd.next_term_begins = ($scope.reportCd.next_term_begins == null ? null : dateConverter($scope.reportCd.next_term_begins));
 					console.log("New Report Card Api",$scope.reportCd);
 					for(let a=0;a < $scope.reportCd.subjects_column.length;a++){
 						let subj = $scope.reportCd.subjects_column[a];
@@ -729,6 +832,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
 					apiService.getStudentReportCard(params,loadReportCard, apiError);
+					getLiveReportCardData();
 				}
 				else
 				{
@@ -811,6 +915,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id
 					apiService.getStudentReportCard(params,loadReportCard, apiError);
+					getLiveReportCardData();
 				}
 				else
 				{
@@ -845,6 +950,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id
 					apiService.getStudentReportCard(params,loadReportCard, apiError);
+					getLiveReportCardData();
 				}
 				else
 				{
@@ -1758,6 +1864,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	var apiError = function (response, status)
 	{
 		var result = angular.fromJson( response );
+		console.log(result);
 		$scope.error = true;
 		$scope.errMsg = result.data;
 	}
