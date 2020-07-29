@@ -49,9 +49,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	    }
 	}else{
 	    $scope.noRanking = false;
+			$scope.rmks = "Remarks";
+			$scope.subj_name = "Subject"
 	}
 
 	$scope.chart_path = "";
+	$scope.showDownloadButton = false;
 
 	$scope.removeExamsNotDone = function (objArr){
 		for(let b = 0;b < objArr.length;b++){
@@ -91,7 +94,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	}
 
 	function getReportCardData(){
-		var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + data.term_id;
+		var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + (data.term_id == null || data.term_id == undefined ? $scope.filters.term_id : data.term_id);
 		var loadRptCd = function(response,status)
 		{
 			var result = angular.fromJson( response );
@@ -105,6 +108,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				else
 				{
 					$scope.reportCd = result.data;
+					console.log("Filtered Exam Types > ",$scope.examTypes);
+					if($scope.reportCd.report_card_type != null){$scope.reportCardType = $scope.reportCd.report_card_type;}
 					// remove exam types not done
 					if($scope.reportCd.exam_marks != null){
 						$scope.reportCd.exam_marks = $scope.removeExamsNotDone($scope.reportCd.exam_marks);
@@ -169,7 +174,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					console.log($scope);
 				}
 					// console.log("After Edit",$scope.reportCd);
-
+					if($scope.reportCd.calculation_mode == "Last Exam"){
+						console.log("By Last Exam");
+						$scope.reportCd.positions = $scope.reportCd.positions_by_last_exams;
+					}
 					console.log("After Edit",$scope.reportCd);
 				}
 			}
@@ -183,8 +191,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		apiService.getReportCardData(rptCardParams, loadRptCd, apiError);
 	}
 
-	function getLiveReportCardData(){
-		var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + data.term_id;
+	function getLiveReportCardData(studentId,classId,termId){
+		console.log("Fetching live report card ...");
+		var rptCardParams = studentId + '/' + classId + '/' + termId;
+		console.log("Passed params for live report card > " + rptCardParams);
+		// var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + data.term_id;
 		var loadRptCd = function(response,status)
 		{
 			var result = angular.fromJson( response );
@@ -253,7 +264,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					}
 				}
 					// console.log("After Edit",$scope.reportCd);
-
+					if($scope.reportCd.calculation_mode == "Last Exam"){
+						console.log("By Last Exam");
+						$scope.reportCd.positions = $scope.reportCd.positions_by_last_exams;
+					}
 					console.log("After Edit",$scope.reportCd);
 				}
 			}
@@ -265,6 +279,98 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 		console.log("Params > " + rptCardParams);
 		apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
+	}
+
+	$scope.screenshotReportCard = function(){
+		console.log("Screenshot");
+		// GENERATE PDF AND SAVE TO SERVER
+
+		let element = $("#showReportCard"); // the element we want to convert to pdf
+		/*
+		var blob = new Blob([element], {
+			"type": "text/html"
+		});
+		var reader = new FileReader();
+		reader.onload = function (evt) {
+			if (evt.target.readyState === 2) {
+				console.log(
+							// full data-uri
+							evt.target.result
+							// base64 portion of data-uri
+						, evt.target.result.slice(22, evt.target.result.length));
+				// window.open(evt.target.result)
+			};
+		};
+		reader.readAsDataURL(blob);
+		*/
+
+		// load html2canvas script and execute code on success
+		$.getScript('/components/html2canvas.min.js', function()
+		{
+			// first hide all elements we don't want on print
+			var myList = document.getElementsByClassName("hideForPrint");
+
+			for(let i=0;i < myList.length; i++){
+				myList[i].style.display="none";
+			}
+
+			var reportCardElement = document.getElementById("showReportCard"); // global variable
+			var getCanvas; // global variable
+			/*
+			html2canvas(reportCardElement, {
+			onrendered: function (canvas) {
+						 // $("#previewImage").append(canvas);
+						 getCanvas = canvas;
+						 var dataURL = canvas.toDataURL();
+						 console.log("Base 64 img ::: ",dataURL);
+						 console.log($scope);
+						 // POST the data
+						 $.ajax({
+						  type: "POST",
+						  url: "srvScripts/handle_file_upload.php",
+						  data: {
+						     imgBase64: dataURL,
+								 fileName: "sample.jpg"
+						  }
+						}).done(function(o) {
+						  console.log('saved',o);
+						});
+
+					}
+			});
+			*/
+			html2canvas(reportCardElement).then(function(canvas) {
+				getCanvas = canvas;
+				var dataURL = canvas.toDataURL();
+				var reportCardName = $scope.student.student_id + '_' + $scope.schoolName + '_' + $scope.student.student_name.split(' ').join('_') + '_' + $scope.report.term_id
+				// console.log("Base 64 img ::: ",dataURL);
+				// POST the data
+				$.ajax({
+				 type: "POST",
+				 url: "srvScripts/handle_file_upload.php",
+				 data: {
+						imgBase64: dataURL,
+						fileName: reportCardName + ".png",
+						student_id: $scope.student.student_id,
+						term_id: $scope.report.term_id
+				 }
+			 }).done(function(o) {
+				 console.log('Report card data has been saved',o);
+				 if(o){
+					 $scope.savedReportCard = JSON.parse(o);
+					 $scope.showDownloadButton = true;
+					 document.getElementById('dnld').classList.remove("ng-hide");
+					 console.log("Show download button? " + $scope.showDownloadButton);
+					 $scope.generatePdf();
+				 }
+			 });
+			});
+
+			for(let i=0;i < myList.length; i++){
+				myList[i].style.display="";
+			}
+
+		});
 	}
 
 	var initializeController = function()
@@ -368,6 +474,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			}
 		}
 
+		// give the report card time to load then execute
+		setTimeout(function(){ $scope.screenshotReportCard(); }, 7000);
 
 	}
 	$timeout(initializeController,1);
@@ -629,6 +737,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						});
 
 					}
+					if($scope.reportCd.calculation_mode == "Last Exam"){
+						console.log("By Last Exam");
+						$scope.reportCd.positions = $scope.reportCd.positions_by_last_exams;
+					}
 					console.log("After Edit",$scope.reportCd);
 				}
 			}
@@ -832,7 +944,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
 					apiService.getStudentReportCard(params,loadReportCard, apiError);
-					getLiveReportCardData();
+					getLiveReportCardData($scope.student.student_id,$scope.filters.class.class_id,$scope.filters.term_id);
 				}
 				else
 				{
@@ -915,7 +1027,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id
 					apiService.getStudentReportCard(params,loadReportCard, apiError);
-					getLiveReportCardData();
+					getLiveReportCardData($scope.student.student_id,$scope.filters.class.class_id,$scope.filters.term_id);
 				}
 				else
 				{
@@ -950,7 +1062,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id
 					apiService.getStudentReportCard(params,loadReportCard, apiError);
-					getLiveReportCardData();
+					getLiveReportCardData($scope.student.student_id,$scope.filters.class.class_id,$scope.filters.term_id);
 				}
 				else
 				{
@@ -991,15 +1103,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		    performanceData.push(item.average_grade);
 		});
 
-
-
 		var lineChartData = {
 		    labels: performanceLabels,
 		    datasets: [{
 		        label: "performance",
 		        data: performanceData,
-
-
 		        borderWidth: 2,
 		        pointBorderColor: '#ffffff',
 		        pointBackgroundColor: '#2D4E5E',
@@ -1007,8 +1115,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		        radius: 4
 		    }]
 		};
-
-
 
 		if($scope.chart_path == "")
 		{
@@ -1019,27 +1125,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$timeout(callAtTimeout, 2000);
 			$scope.efficiencyLoading = false;
 		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 		/* remove any exam types that have not been used for this report card */
 
@@ -1059,6 +1144,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
         			})[0];
         			if( found !== undefined ) return item;
         		});
+						console.log("Exam Types > ",$scope.examTypes);
 
 			}, apiError);
 
@@ -1546,6 +1632,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var found = (examTypesUsed.indexOf(item.exam_type) > -1 ? true : false);
 			if( found ) return item;
 		});
+		console.log("Filtered Exam Types > ",$scope.examTypes);
 	}
 
 	$scope.recreateReport = function()
@@ -1754,88 +1841,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		// console.log("Updata :::",data);
 		apiService.addReportCard(data,createCompleted,apiError);
 
-		// GENERATE PDF AND SAVE TO SERVER
-
-		let element = $("#showReportCard"); // the element we want to convert to pdf
-		/*
-		var blob = new Blob([element], {
-			"type": "text/html"
-		});
-		var reader = new FileReader();
-		reader.onload = function (evt) {
-			if (evt.target.readyState === 2) {
-				console.log(
-							// full data-uri
-							evt.target.result
-							// base64 portion of data-uri
-						, evt.target.result.slice(22, evt.target.result.length));
-				// window.open(evt.target.result)
-			};
-		};
-		reader.readAsDataURL(blob);
-		*/
-
-		// load html2canvas script and execute code on success
-		$.getScript('/components/html2canvas.min.js', function()
-		{
-			// first hide all elements we don't want on print
-			var myList = document.getElementsByClassName("hideForPrint");
-
-			for(let i=0;i < myList.length; i++){
-				myList[i].style.display="none";
-			}
-
-			var reportCardElement = document.getElementById("showReportCard"); // global variable
-			var getCanvas; // global variable
-			/*
-			html2canvas(reportCardElement, {
-			onrendered: function (canvas) {
-						 // $("#previewImage").append(canvas);
-						 getCanvas = canvas;
-						 var dataURL = canvas.toDataURL();
-						 console.log("Base 64 img ::: ",dataURL);
-						 console.log($scope);
-						 // POST the data
-						 $.ajax({
-						  type: "POST",
-						  url: "srvScripts/handle_file_upload.php",
-						  data: {
-						     imgBase64: dataURL,
-								 fileName: "sample.jpg"
-						  }
-						}).done(function(o) {
-						  console.log('saved',o);
-						});
-
-					}
-			});
-			*/
-			html2canvas(reportCardElement).then(function(canvas) {
-				getCanvas = canvas;
-				var dataURL = canvas.toDataURL();
-				var reportCardName = $scope.student.student_id + '_' + $scope.schoolName + '_' + $scope.student.student_name.split(' ').join('_') + '_' + $scope.report.term_id
-				// console.log("Base 64 img ::: ",dataURL);
-				// POST the data
-				$.ajax({
-				 type: "POST",
-				 url: "srvScripts/handle_file_upload.php",
-				 data: {
-						imgBase64: dataURL,
-						fileName: reportCardName + ".png",
-						student_id: $scope.student.student_id,
-						term_id: $scope.report.term_id
-				 }
-			 }).done(function(o) {
-				 console.log('Report card data has been saved',o);
-			 });
-			});
-
-			for(let i=0;i < myList.length; i++){
-				myList[i].style.display="";
-			}
-
-		});
-
+		// give the report card time to load then execute
+		setTimeout(function(){ $scope.screenshotReportCard(); }, 2000);
 
 	}
 
@@ -1867,6 +1874,52 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		console.log(result);
 		$scope.error = true;
 		$scope.errMsg = result.data;
+	}
+
+	$scope.downloadReportCard = function(){
+		console.log("Params > ",$scope.savedReportCard);
+		console.log("Name Param > ",$scope.savedReportCard.file_name.split('.png')[0]);
+		// post parameters that will convert image to pdf
+		$.ajax({
+		 type: "POST",
+		 url: "srvScripts/download_report_card.php",
+		 data: {
+				file_name: $scope.savedReportCard.file_name,
+				name: $scope.savedReportCard.file_name.split('.png')[0],
+				file_path: $scope.savedReportCard.file_path,
+				school_name: $scope.schoolName
+		 }
+	 }).done(function(r) {
+		 console.log('PDF success',r);
+		 let results = JSON.parse(r);
+		 console.log(results);
+		 let pdfFile = '/assets/reportcards/' + results.school_name + '/' + results.name + '.pdf';
+		 let link = document.createElement("a"); //create 'a' element
+		 link.setAttribute("href", pdfFile);
+		 link.setAttribute("download", pdfFile);// replace "file" here too
+		 link.click();
+	 });
+		// download pdf
+	}
+
+	$scope.generatePdf = function(){
+		console.log("Params > ",$scope.savedReportCard);
+		console.log("Name Param > ",$scope.savedReportCard.file_name.split('.png')[0]);
+		// post parameters that will convert image to pdf
+		$.ajax({
+		 type: "POST",
+		 url: "srvScripts/download_report_card.php",
+		 data: {
+				file_name: $scope.savedReportCard.file_name,
+				name: $scope.savedReportCard.file_name.split('.png')[0],
+				file_path: $scope.savedReportCard.file_path,
+				school_name: $scope.schoolName
+		 }
+	 }).done(function(r) {
+		 console.log('PDF success',r);
+		 let results = JSON.parse(r);
+		 console.log("PDF generated",results);
+	 });
 	}
 
 } ]);

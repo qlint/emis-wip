@@ -481,10 +481,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
         			if( result.nodata )
         			{
         				$scope.classStudentsWithTransp = [];
+								$scope.allStudentsInBusInTrp = [{student_id:null,admission_number:"N/A",student_name:"N/A",class_name:"N/A",bus:"N/A",bus_driver:null,bus_guide:null,driver_name:"N/A",guide_name:"N/A",route:"N/A",student_destination:"N/A",trip_id:null,trip_name:"N/A"}];
         			}
         			else
         			{
         				$scope.allStudentsInBusInTrp = result.data;
+								console.log($scope.allStudentsInBusInTrp);
 								$scope.allStudentsInBusInTrp.forEach(function(student) {
 								  student.route = student.route.split(' - ')[0];
 								});
@@ -502,7 +504,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $locatio
 						$scope.classStudentsInTripInBus = false;
 						$scope.initialReportLoad = false;
         			}
-							$scope.allStudentsInBusInTrpCount = $scope.allStudentsInBusInTrp.length;
+							$scope.allStudentsInBusInTrpCount = ($scope.allStudentsInBusInTrp ? $scope.allStudentsInBusInTrp.length : 0);
         		}
         		else
         		{

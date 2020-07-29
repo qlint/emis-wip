@@ -1671,6 +1671,7 @@ function getChartPath()
 				<button type="button" class="btn btn-danger" ng-click="deleteReportCard()">Delete</button>
 			</div>
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>
+			<button id="dnld" type="button" class="btn btn-primary" ng-click="downloadReportCard()" ng-show="showDownloadButton"><i class="glyphicon glyphicon-print"></i> Download</button>
 			<button type="button" class="btn btn-success" ng-click="print()" ng-show="canPrint && (isAdmin || isClassTeacher)"><i class="glyphicon glyphicon-print"></i> Print</button>
 			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && adding">Save</button>
 			<button type="button" class="btn btn-success" ng-click="save()" ng-show="!canPrint && !adding && modified">Update</button>

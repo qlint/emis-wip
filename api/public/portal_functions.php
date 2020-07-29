@@ -834,6 +834,96 @@ $app->get('/confirmTemporaryPassword/:phone/:tempPwd', function ($phoneNumber,$t
   }
 });
 
+$app->get('/resendOtp/:phone', function ($phoneNumber){
+  error_reporting(E_ALL);  // uncomment this only when testing
+  ini_set('display_errors', 1); // uncomment this only when testing
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    //first check if this number has a code sent to it
+    $db0 = getLoginDB();
+
+    $checkOne = $db0->query("SELECT (CASE
+                                    		WHEN EXISTS (SELECT * FROM (
+                                                      SELECT telephone AS phone FROM registration_codes WHERE telephone = '$phoneNumber'
+                                                      )a
+                                                      LIMIT 1) THEN 'proceed'
+                                    		ELSE 'stop'
+                                    	END) AS check_one");
+    $status = $checkOne->fetch(PDO::FETCH_OBJ);
+    $status = $status->check_one;
+    $db0 = null;
+    if($status === "proceed"){
+
+      $db = getLoginDB();
+
+      $userQry = $db->query("SELECT telephone, code, first_name, last_name, first_name || ' ' || last_name AS full_name
+                              FROM registration_codes WHERE telephone = '$phoneNumber'");
+      $userData = $userQry->fetch(PDO::FETCH_OBJ);
+
+      // first we need to change the phone format to +[code]phone
+      $firstChar = substr($phoneNumber, 0, 1);
+      if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
+      // we now create & send the actual sms
+      $messageObj = new stdClass();
+      $messageObj->message_recipients = Array();
+      $messageObj->message_by = "Eduweb Forgot Password";
+      $messageObj->message_date = date('Y-m-d H:i:s');
+      $messageObj->message_text = "Hello $userData->first_name, Your code for the Eduweb Mobile App is $userData->code ";
+      $messageObj->subscriber_name = "api";// $school;
+
+      $msgRecipientsObj = new stdClass();
+      $msgRecipientsObj->recipient_name = "$userData->full_name";
+      $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
+      array_push($messageObj->message_recipients, clone $msgRecipientsObj);
+
+      // send the message
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_HEADER, FALSE);
+      curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+      curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($messageObj)); // the data to post
+      curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+
+      $resp = curl_exec($ch);
+
+      if($resp === false)
+      {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'Success', 'message' => "Success, code your code was found.", "status" => "SMS not sent", "error" => curl_error($ch) ));
+      }
+      else
+      {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password.", "status" => "SMS sent successfully" ));
+      }
+
+      curl_close($ch);
+
+      // $app->response()->setStatus(200);
+      // $app->response()->headers->set('Content-Type', 'application/json');
+      // echo  json_encode(array('response' => 'error', 'message' => "Still in development.", "data" => $messageObj ));
+
+    }else{
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'message' => "To reset your password, click on forgot password.", "status" => "No code" ));
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
 $app->post('/updateDeviceUserId', function () use($app) {
   // update users device id
   $allPostVars = $app->request->post();
@@ -2202,25 +2292,30 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
     try
     {
     $db = setDBConnection($school);
-    $sth = $db->prepare("SELECT d.*,
+    $sth = $db->prepare("SELECT d.*, (SELECT value FROM app.settings WHERE name = 'Exam Calculation') AS calculation_mode,
                               	(
                               		SELECT array_to_json(ARRAY_AGG(c)) FROM
                               		(
                               			SELECT exam_type_id, exam_type, array_to_json(ARRAY_AGG(row_to_json(b))) AS exam_marks
                               			FROM (
-                              				SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
-                              						s2.subject_name, s2.subject_id, e2.mark,
-                                          (SELECT grade FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS grade,
-                                          (SELECT comment FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS comment,
-                              						cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
-                              				FROM app.exam_marks e2
-                              				INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
-                              				INNER JOIN app.exam_types et2 USING (exam_type_id)
-                              				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
-                              				INNER JOIN app.subjects s2 USING (subject_id)
-                              				WHERE e2.student_id = :studentId
-                              				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE
-                              				ORDER BY et2.sort_order ASC, s2.sort_order ASC
+                                      SELECT student_id, exam_type_id, exam_type, exam_sort, subject_name, subject_id, mark, out_of,
+                                          (SELECT grade FROM app.grading WHERE percentage >= min_mark AND percentage <= max_mark) AS grade,
+                                          (SELECT comment FROM app.grading WHERE percentage >= min_mark AND percentage <= max_mark) AS comment,
+                                          subject_sort, parent_subject_id, percentage
+                                      FROM (
+                                  				SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
+                                  						s2.subject_name, s2.subject_id, e2.mark,
+                                              round((mark/cse2.grade_weight::float)*100) AS percentage,
+                                  						cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
+                                  				FROM app.exam_marks e2
+                                  				INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+                                  				INNER JOIN app.exam_types et2 USING (exam_type_id)
+                                  				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+                                  				INNER JOIN app.subjects s2 USING (subject_id)
+                                  				WHERE e2.student_id = :studentId
+                                  				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE
+                                  				ORDER BY et2.sort_order ASC, s2.sort_order ASC
+                                      )a
                               			) b
                               			GROUP BY exam_type_id, exam_type
                               		) AS c
@@ -2361,6 +2456,139 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 										) h
 									) AS j
 								) AS overall_marks_and_grade,
+                (
+									SELECT array_to_json(ARRAY_AGG(j)) FROM
+									(
+										SELECT ARRAY_AGG(row_to_json(h)) AS this_term_marks_and_grade,
+											(
+												SELECT ARRAY_AGG(row_to_json(h)) AS this_term_marks_and_grade
+												FROM (
+													SELECT sum(average) || '/500' AS overall_mark, round((sum(average)::float/500)*100) AS percentage,
+														(SELECT grade FROM app.grading WHERE round((sum(average)::float/500)*100) >= min_mark AND round((sum(average)::float/500)*100) <= max_mark) AS overall_grade,
+                            (SELECT principal_comment FROM app.grading WHERE round((sum(average)::float/500)*100) >= min_mark AND round((sum(average)::float/500)*100) <= max_mark) AS principal_comment
+													FROM (
+														SELECT subject_id, subject_name AS parent_subject_name, round(sum(mark)::float/NULLIF(class_exam_count,0)) AS average
+														FROM(
+															SELECT e2.student_id, cse2.exam_type_id, et2.exam_type,
+																	s2.subject_name, s2.subject_id, e2.mark,
+																	cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id,
+																	(
+																		SELECT COUNT(DISTINCT exam_type_id)
+																		FROM app.class_subject_exams
+																		INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																		INNER JOIN app.class_subjects USING (class_subject_id)
+																		WHERE term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																		AND class_id = :classId
+																		AND class_subject_exams.exam_type_id = (
+																												  SELECT cc.exam_type_id FROM (
+																													SELECT * FROM (
+																														SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+																															SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+																															FROM app.exam_marks em
+																															INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+																															INNER JOIN app.class_subjects cs USING (class_subject_id)
+																															INNER JOIN app.exam_types et USING (exam_type_id)
+																															WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																															AND cs.class_id = :classId
+																															ORDER BY em.creation_date DESC
+																														)aa
+																													)bb ORDER BY creation_date DESC LIMIT 1
+																												  )cc
+																												)
+																	) AS class_exam_count
+															FROM app.exam_marks e2
+															INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+															INNER JOIN app.exam_types et2 USING (exam_type_id)
+															INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+															INNER JOIN app.subjects s2 USING (subject_id)
+															WHERE e2.student_id = :studentId
+															AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+															AND cse2.exam_type_id = (
+																					  SELECT cc.exam_type_id FROM (
+																						SELECT * FROM (
+																							SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+																								SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+																								FROM app.exam_marks em
+																								INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+																								INNER JOIN app.class_subjects cs USING (class_subject_id)
+																								INNER JOIN app.exam_types et USING (exam_type_id)
+																								WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																								AND cs.class_id = :classId
+																								ORDER BY em.creation_date DESC
+																							)aa
+																						)bb ORDER BY creation_date DESC LIMIT 1
+																					  )cc
+																					)
+															ORDER BY et2.sort_order ASC, s2.sort_order ASC
+														)f
+														GROUP BY subject_id, subject_name, class_exam_count
+													)g
+												) h
+											) AS last_term_marks_and_grade
+										FROM (
+											SELECT sum(average) || '/500' AS overall_mark, round((sum(average)::float/500)*100) AS percentage,
+												(SELECT grade FROM app.grading WHERE round((sum(average)::float/500)*100) >= min_mark AND round((sum(average)::float/500)*100) <= max_mark) AS overall_grade,
+                        (SELECT principal_comment FROM app.grading WHERE round((sum(average)::float/500)*100) >= min_mark AND round((sum(average)::float/500)*100) <= max_mark) AS principal_comment
+											FROM (
+												SELECT subject_id, subject_name AS parent_subject_name, round(sum(mark)::float/NULLIF(class_exam_count,0)) AS average
+												FROM(
+													SELECT e2.student_id, cse2.exam_type_id, et2.exam_type,
+															s2.subject_name, s2.subject_id, e2.mark,
+															cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id,
+															(
+																SELECT COUNT(DISTINCT exam_type_id)
+																FROM app.class_subject_exams
+																INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																INNER JOIN app.class_subjects USING (class_subject_id)
+																WHERE term_id = :termId
+																AND class_id = :classId
+																AND class_subject_exams.exam_type_id = (
+																										  SELECT cc.exam_type_id FROM (
+																											SELECT * FROM (
+																												SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+																													SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+																													FROM app.exam_marks em
+																													INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+																													INNER JOIN app.class_subjects cs USING (class_subject_id)
+																													INNER JOIN app.exam_types et USING (exam_type_id)
+																													WHERE em.term_id = :termId
+																													AND cs.class_id = :classId
+																													ORDER BY em.creation_date DESC
+																												)aa
+																											)bb ORDER BY creation_date DESC LIMIT 1
+																										  )cc
+																										)
+															) AS class_exam_count
+													FROM app.exam_marks e2
+													INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+													INNER JOIN app.exam_types et2 USING (exam_type_id)
+													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+													INNER JOIN app.subjects s2 USING (subject_id)
+													WHERE e2.student_id = :studentId
+													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+													AND cse2.exam_type_id = (
+																			  SELECT cc.exam_type_id FROM (
+																				SELECT * FROM (
+																					SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+																						SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+																						FROM app.exam_marks em
+																						INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+																						INNER JOIN app.class_subjects cs USING (class_subject_id)
+																						INNER JOIN app.exam_types et USING (exam_type_id)
+																						WHERE em.term_id = :termId
+																						AND cs.class_id = :classId
+																						ORDER BY em.creation_date DESC
+																					)aa
+																				)bb ORDER BY creation_date DESC LIMIT 1
+																			  )cc
+																			)
+													ORDER BY et2.sort_order ASC, s2.sort_order ASC
+												)f
+												GROUP BY subject_id, subject_name, class_exam_count
+											)g
+										) h
+									) AS j
+								) AS overall_marks_and_grade_by_last_exam,
 								(
 									SELECT array_to_json(ARRAY_AGG(l)) AS positions FROM
 									(
@@ -2484,6 +2712,227 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 
 									)l
 								) AS positions,
+                (
+									SELECT array_to_json(ARRAY_AGG(l)) AS positions FROM
+									(
+											SELECT row_to_json(i) AS this_term_position,
+												(
+													SELECT row_to_json(j) AS last_term_position FROM
+													(
+														SELECT * FROM (
+															SELECT
+																student_id, total_mark, total_grade_weight,
+																round((total_mark::float/total_grade_weight::float)*100) as percentage,
+																rank() over w as position, position_out_of
+															FROM (
+																SELECT student_id, round(total_mark::float/NULLIF(class_exam_count,0)) AS total_mark,
+																	round(total_grade_weight::float/NULLIF(class_exam_count,0)) AS total_grade_weight,
+																	position_out_of
+																FROM(
+																	SELECT exam_marks.student_id,
+																		coalesce(sum(case when subjects.parent_subject_id is null then
+																					mark
+																				end),0) as total_mark,
+																		coalesce(sum(case when subjects.parent_subject_id is null then
+																					grade_weight
+																				end),0) as total_grade_weight,
+																		(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+																				INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+																				INNER JOIN app.class_subjects cs USING (class_subject_id)
+																				INNER JOIN app.students s USING (student_id)
+																				WHERE cs.class_id = :classId
+																				AND em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+                                        AND cse.exam_type_id = (
+                                          SELECT exam_type_id FROM (
+                                          	SELECT * FROM (
+                                          		SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+                                          			SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+                                          			FROM app.exam_marks em
+                                          			INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+                                          			INNER JOIN app.class_subjects cs USING (class_subject_id)
+                                          			INNER JOIN app.exam_types et USING (exam_type_id)
+                                          			WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+                                          			AND cs.class_id = :classId
+                                          			ORDER BY em.creation_date DESC
+                                          		)a
+                                          	)b ORDER BY creation_date DESC LIMIT 1
+                                          )c
+                                        )
+																				AND s.active IS TRUE
+																		) as position_out_of,
+																		(
+																									SELECT COUNT(DISTINCT exam_type_id)
+																									FROM app.class_subject_exams
+																									INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																									INNER JOIN app.class_subjects USING (class_subject_id)
+																									WHERE term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																									AND class_id = :classId
+                                                  AND class_subject_exams.exam_type_id = (
+                                                    SELECT exam_type_id FROM (
+                                                    	SELECT * FROM (
+                                                    		SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+                                                    			SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+                                                    			FROM app.exam_marks em
+                                                    			INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+                                                    			INNER JOIN app.class_subjects cs USING (class_subject_id)
+                                                    			INNER JOIN app.exam_types et USING (exam_type_id)
+                                                    			WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+                                                    			AND cs.class_id = :classId
+                                                    			ORDER BY em.creation_date DESC
+                                                    		)a
+                                                    	)b ORDER BY creation_date DESC LIMIT 1
+                                                    )c
+                                                  )
+																								) AS class_exam_count
+
+																	FROM app.exam_marks
+																	INNER JOIN app.class_subject_exams
+																	INNER JOIN app.exam_types USING (exam_type_id)
+																	INNER JOIN app.class_subjects
+																	INNER JOIN app.subjects
+																	ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+																	ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+																	ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+																	INNER JOIN app.students USING (student_id)
+																	WHERE class_subjects.class_id = :classId
+																	AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+																	AND subjects.parent_subject_id is null
+																	AND subjects.use_for_grading is true
+																	AND students.active is true
+                                  AND class_subject_exams.exam_type_id = (
+                                    SELECT exam_type_id FROM (
+                                    	SELECT * FROM (
+                                    		SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+                                    			SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+                                    			FROM app.exam_marks em
+                                    			INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+                                    			INNER JOIN app.class_subjects cs USING (class_subject_id)
+                                    			INNER JOIN app.exam_types et USING (exam_type_id)
+                                    			WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
+                                    			AND cs.class_id = :classId
+                                    			ORDER BY em.creation_date DESC
+                                    		)a
+                                    	)b ORDER BY creation_date DESC LIMIT 1
+                                    )c
+                                  )
+																	AND mark IS NOT NULL
+
+																	GROUP BY exam_marks.student_id
+																)c
+															) a
+															WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)
+														)q WHERE student_id = :studentId
+													)j
+												) AS last_term_position
+											FROM
+											(
+												SELECT * FROM (
+													SELECT
+														student_id, total_mark, total_grade_weight,
+														round((total_mark::float/total_grade_weight::float)*100) as percentage,
+														rank() over w as position, position_out_of
+													FROM (
+														SELECT student_id, round(total_mark::float/NULLIF(class_exam_count,0)) AS total_mark,
+															round(total_grade_weight::float/NULLIF(class_exam_count,0)) AS total_grade_weight,
+															position_out_of
+														FROM(
+															SELECT exam_marks.student_id,
+																coalesce(sum(case when subjects.parent_subject_id is null then
+																			mark
+																		end),0) as total_mark,
+																coalesce(sum(case when subjects.parent_subject_id is null then
+																			grade_weight
+																		end),0) as total_grade_weight,
+																(SELECT COUNT(DISTINCT(em.student_id)) AS student_id from app.exam_marks em
+																		INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+																		INNER JOIN app.class_subjects cs USING (class_subject_id)
+																		INNER JOIN app.students s USING (student_id)
+																		WHERE cs.class_id = :classId
+                                    AND em.term_id = :termId
+                                    AND s.active IS TRUE
+                                    AND cse.exam_type_id = (
+                                      SELECT exam_type_id FROM (
+                                      	SELECT * FROM (
+                                      		SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+                                      			SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+                                      			FROM app.exam_marks em
+                                      			INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+                                      			INNER JOIN app.class_subjects cs USING (class_subject_id)
+                                      			INNER JOIN app.exam_types et USING (exam_type_id)
+                                      			WHERE em.term_id = :termId
+                                      			AND cs.class_id = :classId
+                                      			ORDER BY em.creation_date DESC
+                                      		)a
+                                      	)b ORDER BY creation_date DESC LIMIT 1
+                                      )c
+                                    )
+																) as position_out_of,
+																(
+																							SELECT COUNT(DISTINCT exam_type_id)
+																							FROM app.class_subject_exams
+																							INNER JOIN app.exam_marks USING (class_sub_exam_id)
+																							INNER JOIN app.class_subjects USING (class_subject_id)
+																							WHERE term_id = :termId
+																							AND class_id = :classId
+                                              AND class_subject_exams.exam_type_id = (
+                                                SELECT exam_type_id FROM (
+                                                	SELECT * FROM (
+                                                		SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+                                                			SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+                                                			FROM app.exam_marks em
+                                                			INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+                                                			INNER JOIN app.class_subjects cs USING (class_subject_id)
+                                                			INNER JOIN app.exam_types et USING (exam_type_id)
+                                                			WHERE em.term_id = :termId
+                                                			AND cs.class_id = :classId
+                                                			ORDER BY em.creation_date DESC
+                                                		)a
+                                                	)b ORDER BY creation_date DESC LIMIT 1
+                                                )c
+                                              )
+																						) AS class_exam_count
+
+															FROM app.exam_marks
+															INNER JOIN app.class_subject_exams
+															INNER JOIN app.exam_types USING (exam_type_id)
+															INNER JOIN app.class_subjects
+															INNER JOIN app.subjects
+															ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+															ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+															ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+															INNER JOIN app.students USING (student_id)
+															WHERE class_subjects.class_id = :classId
+															AND term_id = :termId
+															AND subjects.parent_subject_id is null
+															AND subjects.use_for_grading is true
+															AND students.active is true
+                              AND class_subject_exams.exam_type_id = (
+                                SELECT exam_type_id FROM (
+                                	SELECT * FROM (
+                                		SELECT DISTINCT ON (exam_type_id, exam_type) exam_type_id, exam_type, creation_date, term_id, class_id FROM (
+                                			SELECT em.creation_date, exam_type, cse.exam_type_id, em.term_id, cs.class_id
+                                			FROM app.exam_marks em
+                                			INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+                                			INNER JOIN app.class_subjects cs USING (class_subject_id)
+                                			INNER JOIN app.exam_types et USING (exam_type_id)
+                                			WHERE em.term_id = :termId
+                                			AND cs.class_id = :classId
+                                			ORDER BY em.creation_date DESC
+                                		)a
+                                	)b ORDER BY creation_date DESC LIMIT 1
+                                )c
+                              )
+															AND mark IS NOT NULL
+
+															GROUP BY exam_marks.student_id
+														)c
+													) a
+													WINDOW w AS (ORDER BY coalesce(total_mark,0) desc)
+												)p WHERE student_id = :studentId
+											)i
+
+									)l
+								) AS positions_by_last_exam,
 								(
 								  SELECT array_to_json(ARRAY_AGG(row_to_json(p))) AS subjects FROM
 								  (
@@ -2506,7 +2955,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 									SELECT report_card_type FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId
 								) AS report_card_type,
                 (
-                  SELECT CASE 
+                  SELECT CASE
                         WHEN report_card_type = 'Playgroup'
                         THEN (SELECT report_data FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId)
                       END AS report_card_data
@@ -2515,7 +2964,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                   )a
 								) AS playgroup_report_card,
                 (
-                  SELECT CASE 
+                  SELECT CASE
                         WHEN report_card_type = 'Kindergarten'
                         THEN (SELECT report_data FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId)
                       END AS report_card_data
@@ -2541,12 +2990,14 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 
     $sth->execute( array(':studentId' => $studentId, ':termId' => $termId, ':classId' => $classId) );
     $results = $sth->fetch(PDO::FETCH_OBJ);
-  
+
     $results->exam_marks = json_decode($results->exam_marks);
     $results->subject_overalls_column = json_decode($results->subject_overalls_column);
     $results->totals = json_decode($results->totals);
     $results->overall_marks_and_grade = json_decode($results->overall_marks_and_grade);
+	$results->overall_marks_and_grade_by_last_exam = json_decode($results->overall_marks_and_grade_by_last_exam);
     $results->positions = json_decode($results->positions);
+    $results->positions_by_last_exam = json_decode($results->positions_by_last_exam);
     $results->subjects_column = json_decode($results->subjects_column);
     $results->report_card_comments = json_decode($results->report_card_comments);
     $results->report_card_comments = ($results->report_card_comments->comments == null ? null : $results->report_card_comments->comments);
@@ -2592,25 +3043,30 @@ $app = \Slim\Slim::getInstance();
   try
   {
   $db = setDBConnection($school);
-  $sth = $db->prepare("SELECT d.*,
+  $sth = $db->prepare("SELECT d.*, (SELECT value FROM app.settings WHERE name = 'Exam Calculation') AS calculation_mode,
 	(
 		SELECT array_to_json(ARRAY_AGG(c)) FROM
 		(
 			SELECT exam_type_id, exam_type, array_to_json(ARRAY_AGG(row_to_json(b))) AS exam_marks
 			FROM (
-				SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
-					s2.subject_name, s2.subject_id, e2.mark,
-					(SELECT grade FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS grade,
-					(SELECT comment FROM app.grading WHERE mark >= min_mark AND mark <= max_mark) AS comment,
-					cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
-				FROM app.exam_marks e2
-				INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
-				INNER JOIN app.exam_types et2 USING (exam_type_id)
-				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
-				INNER JOIN app.subjects s2 USING (subject_id)
-				WHERE e2.student_id = d.student_id
-				AND e2.term_id = d.term_id AND s2.use_for_grading IS TRUE
-				ORDER BY et2.sort_order ASC, s2.sort_order ASC
+        SELECT student_id, exam_type_id, exam_type, exam_sort, subject_name, subject_id, mark,
+          (SELECT grade FROM app.grading WHERE percentage >= min_mark AND percentage <= max_mark) AS grade,
+          (SELECT comment FROM app.grading WHERE percentage >= min_mark AND percentage <= max_mark) AS comment,
+          out_of, subject_sort, parent_subject_id, percentage
+        FROM (
+    				SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
+    					s2.subject_name, s2.subject_id, e2.mark,
+    					round((mark/cse2.grade_weight::float)*100) AS percentage,
+    					cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
+    				FROM app.exam_marks e2
+    				INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+    				INNER JOIN app.exam_types et2 USING (exam_type_id)
+    				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+    				INNER JOIN app.subjects s2 USING (subject_id)
+    				WHERE e2.student_id = d.student_id
+    				AND e2.term_id = d.term_id AND s2.use_for_grading IS TRUE
+    				ORDER BY et2.sort_order ASC, s2.sort_order ASC
+        )a
 			) b
 			GROUP BY exam_type_id, exam_type
 		) AS c
