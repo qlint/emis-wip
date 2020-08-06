@@ -126,13 +126,14 @@
                   <div class="row">
                     <div class="col-sm-6 spacing-mod">
                       <div>
-                        <select name="user_type" ng-model="privileges.user_type" ng-change="captureType()" class="form-control">
+                        <select name="user_type" ng-model="privileges.user_type" ng-change="captureType(this)" class="form-control">
                           <option value="">Select A User Type</option>
-                          <option ng-repeat="item in userTypes" value="{{item.type_val}}">{{item.type_name}}</option>
+                          <option ng-repeat="item in userTypes" value="{{item.user_type}}">{{item.user_type}}</option>
                         </select>
                       </div>
                     </div>
 
+                    <!--
                     <div class="col-sm-6 spacing-mod" ng-show="showSysAdmin">
                       <div>
                         <select name="ind_sysadmin" ng-model="privileges.user_id" class="form-control">
@@ -142,38 +143,34 @@
                       </div>
                     </div>
 
-        				<div class="col-sm-6 spacing-mod" ng-show="showAdmin">
-                            <!-- <label for="ind_admin">Individual Admin?</label> -->
-        				    <div>
-        					    <select name="ind_admin" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select An Admin or Leave Blank For All Admins</option>
-        							<option ng-repeat="item in admins" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
+            				<div class="col-sm-6 spacing-mod" ng-show="showAdmin">
+            				    <div>
+            					    <select name="ind_admin" ng-model="privileges.user_id" class="form-control">
+            							<option value="">Select An Admin or Leave Blank For All Admins</option>
+            							<option ng-repeat="item in admins" value="{{item.user_id}}">{{item.user_name}}</option>
+            						</select>
+            					</div>
+            				</div>
 
-        				<div class="col-sm-6 spacing-mod" ng-show="showTeachers">
-                            <!-- <label for="teachers">Individual Teacher?</label> -->
+        				   <div class="col-sm-6 spacing-mod" ng-show="showTeachers">
         				    <div>
         					    <select name="teachers" ng-model="privileges.user_id" class="form-control">
-        							<option value="">Select A Teacher or Leave Blank For All Teachers</option>
-        							<option ng-repeat="item in tchrs" value="{{item.user_id}}">{{item.user_name}}</option>
-        						</select>
-        					</div>
-        				</div>
+          							<option value="">Select A Teacher or Leave Blank For All Teachers</option>
+          							<option ng-repeat="item in tchrs" value="{{item.user_id}}">{{item.user_name}}</option>
+          						</select>
+          					</div>
+          				</div>
 
-        				<div class="col-sm-6 spacing-mod" ng-show="showEmployees">
-                            <!-- <label for="employees">Individual Employee?</label> -->
+        				  <div class="col-sm-6 spacing-mod" ng-show="showEmployees">
         				    <div>
         					    <select name="employees" ng-model="privileges.emp_id" class="form-control">
-        							<option value="">Select An Employee or Leave Blank For All Employees</option>
-        							<option ng-repeat="item in employees" value="{{item.emp_id}}">{{item.employee_name}}</option>
-        						</select>
-        					</div>
-        				</div>
+          							<option value="">Select An Employee or Leave Blank For All Employees</option>
+          							<option ng-repeat="item in employees" value="{{item.emp_id}}">{{item.employee_name}}</option>
+          						</select>
+          					</div>
+          				</div>
 
         				<div class="col-sm-6 spacing-mod" ng-show="showCategories">
-                            <!-- <label for="categories">Single category?</label> -->
         				    <div>
         					    <select name="categories" ng-model="privileges.emp_cat_id" class="form-control">
         							<option value="">Select A Category</option>
@@ -183,7 +180,6 @@
         				</div>
 
         				<div class="col-sm-6 spacing-mod" ng-show="showDepartments">
-                            <!-- <label for="departments">Single department?</label> -->
         				    <div>
         					    <select name="departments" ng-model="privileges.dept_id" class="form-control">
         							<option value="">Select A Department</option>
@@ -193,7 +189,6 @@
         				</div>
 
         				<div class="col-sm-6 spacing-mod" ng-show="showPrincipal">
-                            <!-- <label for="departments">Select Principal:</label> -->
         				    <div>
         					    <select name="principal" ng-model="privileges.user_id" class="form-control">
         							<option value="">Select Principal</option>
@@ -203,7 +198,6 @@
         				</div>
 
         				<div class="col-sm-6 spacing-mod" ng-show="showAdmnFin">
-                            <!-- <label for="admnFnance">Select Finance Admin:</label> -->
         				    <div>
         					    <select name="adminFinance" ng-model="privileges.user_id" class="form-control">
         							<option value="">Select Finance Administrator</option>
@@ -213,7 +207,6 @@
         				</div>
 
         				<div class="col-sm-6 spacing-mod" ng-show="showAdmnTransp">
-                            <!-- <label for="admnTransport">Select Transport Admin:</label> -->
         				    <div>
         					    <select name="adminTransport" ng-model="privileges.user_id" class="form-control">
         							<option value="">Select Transport Administrator</option>
@@ -223,7 +216,6 @@
         				</div>
 
         				<div class="col-sm-6 spacing-mod" ng-show="showFin">
-                            <!-- <label for="finance">Select Finance User:</label> -->
         				    <div>
         					    <select name="finance" ng-model="privileges.user_id" class="form-control">
         							<option value="">Select A Finance User</option>
@@ -233,7 +225,6 @@
         				</div>
 
         				<div class="col-sm-6 spacing-mod" ng-show="showFinCtrld">
-                            <!-- <label for="finance">Select Controlled Finance User:</label> -->
         				    <div>
         					    <select name="financeCtrld" ng-model="privileges.user_id" class="form-control">
         							<option value="">Select A Controlled Finance User</option>
@@ -241,16 +232,17 @@
         						</select>
         					</div>
         				</div>
+                -->
 
         			</div>
 
         			<div class="row">
-        			    <b><p id="notifySelection" style="margin-left:15px;font-style:italic;">{{selectionMsg}}</p></b>
+        			    <b><p id="notifySelection" style="margin-left:15px;font-style:italic;font-size:17px;border:1px solid #000000;padding-left:2%;padding-right:2%;border-radius:6px;background-color:#FAEBD7;width:44%;" ng-show="showWarning">{{selectionMsg}}</p></b>
         			    <button type="button" class="btn btn-primary" ng-click="checkPrivilegeSelection()" style="margin-left:15px">Set Up Privileges</button>
         			</div>
 
         			<div ng-show="selectionsReady" class="row">
-        			    <h4 style="margin-left:15px;">Make the relevant selections</h4>
+        			    <h4 style="margin-left:15px;">Make the necessary changes by ticking / unticking then save.</h4>
         			    <div class="permsDiv">
             			    <table id="permsTable" class="table table-bordered table-sm ">
                                 <thead class="thead-dark">
@@ -263,10 +255,10 @@
                                     </tr>
                                 </thead>
                                 <tbody ng-repeat-start="perms in permsTable.rows track by $index">
-                                    <tr class="clickable" data-toggle="collapse" data-target="#group-of-rows-{{$index}}" aria-expanded="false" aria-controls="group-of-rows-{{$index}}">
-                                        <td><i class="fa fa-folder">{{perms.name}}</i></td>
+                                    <tr class="clickable" data-toggle="collapse" data-target="#group-of-rows-{{$index}}" aria-expanded="false" aria-controls="group-of-rows-{{$index}}" style="{{perms.name == 'Students' || perms.name == 'Staff' || perms.name == 'Dashboard' ? 'background-color:#DBFEF8':''}}">
+                                        <td><i class="fa {{perms.name == 'Students' || perms.name == 'Staff' || perms.name == 'Dashboard' ? 'fa-dot-circle-o' : 'fa-plus-square'}}"> {{perms.name}}</i></td>
                                         <td ng-repeat="mainPerm in perms.values track by $index">
-                                            <input type="checkbox" class="form-check-input" name="{{mainPerm.name}}" value="{{mainPerm.isSelected}}" ng-model="mainPerm.isSelected" ng-change="bodyHeaderChange(this)">
+                                            <input type="checkbox" class="form-check-input" name="{{mainPerm.name}}" value="{{mainPerm.isSelected}}" ng-model="mainPerm.isSelected" ng-change="bodyHeaderChange(this,null)">
                                         </td>
                                     </tr>
                                 </tbody>
@@ -274,13 +266,16 @@
                                     <tr class="table-warning" ng-repeat="subModule in perms.children track by $index">
                                         <td><i class="fa fa-folder-open"></i> {{subModule.name}}</td>
                                         <td ng-repeat="subModuleVals in subModule.values track by $index">
-                                            <input type="checkbox" class="form-check-input" name="{{subModuleVals.name}}" value="{{subModuleVals.isSelected}}" ng-model="subModuleVals.isSelected">
+                                            <input type="checkbox" class="form-check-input" name="{{subModuleVals.name}}" value="{{subModuleVals.isSelected}}" ng-model="subModuleVals.isSelected" ng-change="bodyHeaderChange(this,subModule.id)">
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
         			</div>
+              <div ng-show="updated">
+                <h4 style="font-weight: 600;color: blue;background-color:#E6E6FA;line-height: 26px;border-radius: 5px;width: fit-content;">{{updatedRes}}</h4>
+              </div>
 
                 </div>
                 <div class="modal-footer">

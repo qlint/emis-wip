@@ -161,7 +161,22 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		Auth.logout();
 	};
 
-	$rootScope.userTypes = ['SYS_ADMIN','ADMIN','PRINCIPAL','ADMIN-FINANCE','ADMIN-TRANSPORT','FINANCE','FINANCE_CONTROLLED','TEACHER'];
+	$rootScope.userTypes = [];
+	apiService.getUserGroups(true, function(response){
+		var result = angular.fromJson(response);
+		if( result.response == 'success')
+		{
+			let allUserGroups = result.data;
+			for(let x=0;x < allUserGroups.length;x++){
+				$rootScope.userTypes.push(allUserGroups[x].user_type);
+			}
+			// console.log($rootScope.userTypes);
+		}
+		else{
+			// console.log("User groups blank >",result);
+		}
+	}, function(e){console.log(e)});
+	// $rootScope.userTypes = ['SYS_ADMIN','ADMIN','PRINCIPAL','ADMIN-FINANCE','ADMIN-TRANSPORT','FINANCE','FINANCE_CONTROLLED','TEACHER'];
 
 	$rootScope.formatStudentData = function(data)
 	{

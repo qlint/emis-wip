@@ -21,6 +21,28 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.showFinCtrld = false;
 	$scope.selectionsReady = false;
 	$scope.permsTable = {};
+	$scope.updateParams = [];
+	$scope.updated = false;
+
+	$scope.checkObjArr = function pushToArray(arr, obj) {
+	    let index = arr.findIndex((e) => e.id === obj.id);
+	    if (index === -1) {arr.push(obj);} else {arr[index] = obj;}
+	}
+
+	var getUserGroups = function(){
+		apiService.getUserGroups(true, function(response){
+			var result = angular.fromJson(response);
+			if( result.response == 'success')
+			{
+				$scope.allUserGroups = result.data;
+				$scope.userTypes = $scope.allUserGroups;
+			}
+			else{
+				console.log("User groups blank >",result);
+			}
+		}, function(e){console.log(e)});
+	}
+
 	$scope.permsTable.allPermissions =
                                 {
                                     globalPermissions: {
@@ -34,6 +56,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
                                             {name: 'export', icon: 'open_in_new', isSelected: false}
                                         ]
                                     },
+																		/*
                                     permissions: [
                                         {
                                             name: 'Dashboard',
@@ -466,9 +489,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
                                             ]
                                         }
                                     ]
+																		*/
     };
     $scope.permsTable.gridName = $scope.permsTable.allPermissions.globalPermissions.name;
-    $scope.permsTable.rows = $scope.permsTable.allPermissions.permissions;
+    // $scope.permsTable.rows = $scope.permsTable.allPermissions.permissions;
     $scope.permsTable.header = $scope.permsTable.allPermissions.globalPermissions;
 
     // Set column header
@@ -552,7 +576,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
     };
     // console.log($scope.permsTable.gridName);
     // console.log("$scope.permsTable.allPermissions.globalPermissions.name",$scope.permsTable.allPermissions.globalPermissions.name);
-    console.log("$scope.permsTable",$scope.permsTable);
+    // console.log("$scope.permsTable",$scope.permsTable);
 
 	$scope.filters = {};
 	$scope.filters.status = 'true';
@@ -648,15 +672,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 			$scope.gridApi.core.handleWindowResize();
 		},100);
 
-		$scope.userTypes = [];
-		for(let i=0; i < $rootScope.userTypes.length; i++){
-		    var type_name_arr = $rootScope.userTypes[i].split('_');
-		    var type_name = type_name_arr.join(' ');
-		    $scope.userTypes.push({type_name: type_name, type_val: $rootScope.userTypes[i]})
-		}
-		$scope.userTypes.push({type_name: "ALL EMPLOYEES", type_val: "employees"});
-		$scope.userTypes.push({type_name: "CATEGORIES", type_val: "categories"});
-		$scope.userTypes.push({type_name: "DEPARTMENTS", type_val: "departments"});
 	}
 	$timeout(initializeController,1000);
 
@@ -685,40 +700,127 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	}
 
 	$scope.userPrivileges = function(){
-	    //
+		getUserGroups();
 	}
 
 	$scope.checkPrivilegeSelection = function(){
-	    if($scope.privileges.user_type == 'SYS_ADMIN' || $scope.privileges.user_type == 'ADMIN' || $scope.privileges.user_type == 'PRINCIPAL' || $scope.privileges.user_type == 'ADMIN-FINANCE' || $scope.privileges.user_type == 'ADMIN-TRANSPORT' || $scope.privileges.user_type == 'FINANCE' || $scope.privileges.user_type == 'FINANCE-CONTROLLED' || $scope.privileges.user_type == 'TEACHER'){
-	        delete $scope.privileges.emp_id;
-	        delete $scope.privileges.emp_cat_id;
-	        delete $scope.privileges.dept_id;
-	    }else if($scope.privileges.user_type == 'employees'){
-	        delete $scope.privileges.emp_cat_id;
-	        delete $scope.privileges.dept_id;
-	    }else if($scope.privileges.user_type == 'categories'){
-	        delete $scope.privileges.emp_id;
-	        delete $scope.privileges.dept_id
-	    }else if($scope.privileges.user_type == 'departments'){
-	        delete $scope.privileges.emp_id;
-	        delete $scope.privileges.emp_cat_id;
-	    }
-	    if($scope.privileges.user_type == null || $scope.privileges.user_type == ""){
-	        document.getElementById('notifySelection').style.color = '#FF0000'; // red
-	        $scope.selectionMsg = "A user type has to be selected to proceed!";
-	    }
-	    console.log($scope.privileges);
-			$scope.enableCheckboxTable();
-			/*
-	    if($scope.privileges.user_id != null || $scope.privileges.emp_id != null || $scope.privileges.emp_cat_id != null || $scope.privileges.dept_id != null){
-					console.log("Can continue");
-	        $scope.enableCheckboxTable();
-	    }
-			*/
+
+		if($scope.privileges.user_type == null || $scope.privileges.user_type == ""){
+				$scope.showWarning = true;
+				document.getElementById('notifySelection').style.color = '#FF0000'; // red
+				$scope.selectionMsg = "A user type has to be selected to proceed!";
+		}else{
+			$scope.showWarning = false;
+			let param = window.location.host.split('.')[0] + '/' + $scope.privileges.user_type;
+			apiService.usrRights(param, function(response){
+				var result = angular.fromJson(response);
+				if( result.response == 'success'){
+					$scope.userRights = result.data;
+					// console.log($scope.userRights);
+				}
+				// console.log($scope.userRights);
+				$scope.permsTable.allPermissions.permissions = [];
+				// we use the results to create an object we will use to display on a table
+				for(let x=0;x < $scope.userRights.rights.rights.length; x++){
+					let parentRight = Object.getOwnPropertyNames($scope.userRights.rights.rights[x])[0];
+					let parentRightObj = $scope.userRights.rights.rights[x][parentRight];
+					// console.log("Obj Props >",parentRight);
+					// console.log("Parent right main obj",parentRightObj);
+					// this is how each object will look like including sub modules (children)
+					let rightsObj = {
+															name: parentRight,
+															values: [
+																	{name: 'full', isSelected: false},
+																	{name: 'create', isSelected: false},
+																	{name: 'edit', isSelected: false},
+																	{name: 'delete', isSelected: false},
+																	{name: 'view', isSelected: false},
+																	{name: 'export', isSelected: false}
+															],
+															children: []
+													};
+					for(let y=0;y < parentRightObj.length;y++){
+						if( Object.getOwnPropertyNames(parentRightObj[y]).length > 0 && Object.getOwnPropertyNames(parentRightObj[y])[1] != '-' ){
+							let childName = Object.getOwnPropertyNames(parentRightObj[y])[1];
+							let childId = parentRightObj[y].id;
+							let childObj = parentRightObj[y][childName];
+							// console.log("Has Children >",childName);
+							// console.log("Child Obj >",childObj);
+							// console.log("Child Id >",childId);
+							// console.log("Full Prop >",parentRightObj[y]);
+							let child = {
+														id: childId,
+														name: childName,
+														values: [
+															{name: 'full', isSelected: false},
+															{name: 'create', isSelected: childObj.add},
+															{name: 'edit', isSelected: childObj.edit},
+															{name: 'delete', isSelected: childObj.delete},
+															{name: 'view', isSelected: childObj.view},
+															{name: 'export', isSelected: childObj.export}
+														]
+													};
+							rightsObj.children.push(child);
+						}
+					}
+					// console.log("Per rights obj",rightsObj);
+					$scope.permsTable.allPermissions.permissions.push(rightsObj);
+				}
+				// here we need to set the "full" states of the parent modules checkboxes
+				$scope.permsTable.allPermissions.permissions.forEach((module) => {
+					module.children.forEach((child) => {
+						let moduleChildVals = [];
+
+						for(let i=0;i<child.values.length;i++){
+							let childObj = child.values[i];
+							let childValCheck = childObj[Object.keys(childObj)[1]]; // the parameter to check is 2nd ie [1]
+							if(childObj.name != 'full'){moduleChildVals.push(childValCheck);}
+						}
+
+						function isTrue(element, index, array) {
+						  return element == true;
+						}
+						if(moduleChildVals.every(isTrue)){
+							// tick the parent
+							module.values.forEach((item) => {
+								item.isSelected = true;
+							});
+
+						}
+					});
+
+				});
+				$scope.permsTable.rows = $scope.permsTable.allPermissions.permissions;
+				// console.log("New perms table >",$scope.permsTable.allPermissions.permissions);
+
+			}, function(err){console.log("An error occurred: ",err)});
+				/*
+		    if($scope.privileges.user_type == 'SYS_ADMIN' || $scope.privileges.user_type == 'ADMIN' || $scope.privileges.user_type == 'PRINCIPAL' || $scope.privileges.user_type == 'ADMIN-FINANCE' || $scope.privileges.user_type == 'ADMIN-TRANSPORT' || $scope.privileges.user_type == 'FINANCE' || $scope.privileges.user_type == 'FINANCE-CONTROLLED' || $scope.privileges.user_type == 'TEACHER'){
+		        delete $scope.privileges.emp_id;
+		        delete $scope.privileges.emp_cat_id;
+		        delete $scope.privileges.dept_id;
+		    }else if($scope.privileges.user_type == 'employees'){
+		        delete $scope.privileges.emp_cat_id;
+		        delete $scope.privileges.dept_id;
+		    }else if($scope.privileges.user_type == 'categories'){
+		        delete $scope.privileges.emp_id;
+		        delete $scope.privileges.dept_id
+		    }else if($scope.privileges.user_type == 'departments'){
+		        delete $scope.privileges.emp_id;
+		        delete $scope.privileges.emp_cat_id;
+		    }
+				*/
+
+		    // console.log($scope.privileges);
+				$scope.enableCheckboxTable();
+		}
+
 	}
 
-	$scope.captureType = function(){
-	    // console.log($scope.privileges.user_type);
+	$scope.captureType = function(el){
+	    // console.log("Capture user type >",el);
+			let selectedType = el.privileges;
+			$scope.privileges.user_type = selectedType.user_type;
 			$scope.privileges.user_id = null
 	    if($scope.privileges.user_type != null && $scope.selectionMsg == 'A user type has to be selected to proceed!'){
 	        $scope.selectionMsg = null;
@@ -1049,27 +1151,84 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	    updateTableBody(el.header.name,el.header.isSelected);
 	}
 
-	$scope.bodyHeaderChange = function(el){
-	    console.log("Module level change detected",el);
+	$scope.bodyHeaderChange = function(el,id){
+		$scope.updated = false;
+		console.log(id,el);
 
-	    function updateChildren(col,val){
+		if(el.mainPerm){
+			console.log("Full change detected",el.mainPerm);
+			console.log("Parent property",el.$parent.perms);
+
+			for(let a=0;a < el.$parent.perms.children.length;a++){
+				let updateParam = {
+					id:el.$parent.perms.children[a].id,
+					col:el.mainPerm.name,
+					val:(el.mainPerm.isSelected == true ? 'true' : 'false')
+				}
+				$scope.checkObjArr($scope.updateParams,updateParam);
+				// $scope.updateParams.push(updateParam);
+			}
+			console.log($scope.updateParams);
+			function updateChildren(col,val){
 	        $scope.permsTable.rows.forEach(function(eachRow){
                 for(let x=0;x < eachRow.children.length;x++){
     	            eachRow.children[x].values.forEach(function(eachChild){
+										// console.log("Children Data >",eachRow.children[x]);
                         if(eachChild.name == col){
-                            // set it to the global chaged value
-                            eachChild.isSelected = val;
+													// console.log(col,eachChild);
+													// set it to the global chaged value
+													eachChild.isSelected = val;
                         }
                     });
     	        }
             });
 	    }
 	    updateChildren(el.mainPerm.name,el.mainPerm.isSelected);
+
+		}else if(el.subModuleVals){
+			console.log("Single change detected",el.subModuleVals);
+			console.log("Parent property",el.$parent.perms);
+			let updateParam = {id:id, col:el.subModuleVals.name, val:(el.subModuleVals.isSelected == true ? 'true' : 'false')}
+			$scope.checkObjArr($scope.updateParams,updateParam);
+			// $scope.updateParams.push(updateParam);
+			console.log(updateParam,$scope.updateParams);
+		}
 	}
 
 	$scope.savePermissions = function(){
-	    console.log("Selected permissions",$scope.permsTable.allPermissions);
-	    console.log("Selected user(s)",$scope.privileges);
+		let params = {
+			sch: window.location.host.split('.')[0],
+			user_type: $scope.privileges.user_type,
+			perms: $scope.permsTable.allPermissions.permissions
+		}
+		console.log("Post Params >",params);
+		// apiService.updateUsrRights(params,
+		// 														function ( response, status, params )
+		// 														{
+		// 															var result = angular.fromJson( response );
+		// 															if( result.response == 'success' )
+		// 															{console.log('Success >',JSON.parse(result.output));}
+		// 															else
+		// 															{console.log('Error >',result);}
+		// 														},
+		// 														function(err){console.log('An Error Occurred > ',err)});
+		apiService.updateAccessRights($scope.updateParams,
+																function ( response, status, params )
+																{
+																	var result = angular.fromJson( response );
+																	if( result.response == 'success' )
+																	{
+																		console.log('Success >',JSON.parse(result.output));
+																		$scope.updateParams = [];
+																		$scope.updatedRes = result.message;
+																		$scope.updated = true;
+																		$scope.privileges.user_type = null;
+																		$timeout(function() { console.log("Changed"); $scope.updated = false;  }, 4000);
+																	}
+																	else
+																	{console.log('Error >',result);}
+																},
+																function(err){console.log('An Error Occurred > ',err)});
 	}
 
 	var filterResults = function(clearTable)

@@ -395,10 +395,11 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
                 }
                 $firstTimeFound = FALSE;
             }else{
-              // we return an error for users in multiple schools
-              $app->response()->setStatus(200);
-              $app->response()->headers->set('Content-Type', 'application/json');
-              echo  json_encode(array('response' => 'Error', 'message' => "There seems to be an issue either with this phone number or your details. Please consult with your school.", "status" => "Cannot proceed with registration." ));
+              // THESE USERS ARE IN MULTIPLE SCHOOLS, GIVE THEM AN EEROR MSG OR SOMETHING
+              
+              // $app->response()->setStatus(200);
+              // $app->response()->headers->set('Content-Type', 'application/json');
+              // echo  json_encode(array('response' => 'Error', 'message' => "There seems to be an issue either with this phone number or your details. Please consult with your school.", "status" => "Cannot proceed with registration." ));
             }
           }else{ array_push($statusResults,"FALSE"); }
         }
@@ -469,13 +470,13 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
             {
               $app->response()->setStatus(200);
               $app->response()->headers->set('Content-Type', 'application/json');
-              echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found but there seems to be a slight problem sending the SMS. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch) ));
+              echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found but there seems to be a slight problem sending the SMS. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch), "phone" => $phoneNumber ));
             }
             else
             {
               $app->response()->setStatus(200);
               $app->response()->headers->set('Content-Type', 'application/json');
-              echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password.", "status" => "SMS sent successfully" ));
+              echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password.", "status" => "SMS sent successfully", "phone" => $phoneNumber ));
             }
 
             curl_close($ch);
@@ -763,7 +764,7 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
           {
             $app->response()->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
-            echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully", "temporary-code" => $temporaryPwd ));
+            echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully", "temporary-code" => $temporaryPwd, "phone" => $phoneNumber ));
           }
 
           curl_close($ch);

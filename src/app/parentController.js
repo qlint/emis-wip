@@ -44,6 +44,22 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 		$rootScope.useLetterhead = ( $rootScope.currentUser.settings['Letterhead'] !== undefined ? true : false);
 
+		let rightsParam = window.location.host.split('.')[0] + '/' +$rootScope.currentUser.user_type;
+		apiService.usrRights(rightsParam, function(response){
+			var result = angular.fromJson(response);
+			console.log("user right > ",result);
+			// store these as they do not change often
+			if( result.response == 'success')
+			{
+				var rawPermissions = (result.nondata !== undefined ? [] : result.data);
+				// console.log(rawPermissions);
+			}
+			else
+			{
+			}
+
+		}, function(err){console.log(err)});
+
 		switch( $rootScope.currentUser.user_type ){
 			case "SYS_ADMIN":
 				$rootScope.permissions = {
@@ -1104,6 +1120,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 			$rootScope.permissions.communications.teacher_communications.add = false;
 
 		}
+		// console.log("perms >",$rootScope.permissions);
 
 		$scope.navItems = [];
 		$scope.subOptions = [];

@@ -1,7 +1,7 @@
 <?php
     /* access control header */
     header('Access-Control-Allow-Origin: *');
-    
+
     /* db conn */
     $schoolName = array_shift((explode('.', $_SERVER['HTTP_HOST'])));
     $getDbname = 'eduweb_'.array_shift((explode('.', $_SERVER['HTTP_HOST'])));
@@ -28,7 +28,7 @@
     <link rel="stylesheet" type="text/css" href="../components/overviewFiles/vendor/animate/animate.css">
     <!-- Custom styles for this template -->
     <link href="css/1-col-portfolio.css" rel="stylesheet">
-    <title>Streams Analysis</title>
+    <title>Parent Data</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 </head>
 <body>
@@ -59,25 +59,25 @@
   <!-- End of Header Nav -->
   <div class="limiter">
     <h4 style="text-align:center;margin-top:25px;">Parent Data.</h4>
-    
-    
+
+
     <div class="container-table100">
-      
+
   	   <div class="wrap-table100">
          <h4 id="expTitle" style="border-left:7px solid;border-color:#3DE100;background-color:#D8FFC9;">Parent Data</h4><hr>
 <?php
 
 /* -------------------------QUERY ------------------------- */
 
-$table3 = pg_query($db,"SELECT parent_name, relationship, user_name, password, student_name, class_name, 
+$table3 = pg_query($db,"SELECT parent_name, relationship, user_name, password, student_name, class_name,
                               (CASE WHEN device_user_id = '' THEN 'Not-Captured' ELSE device_user_id END) as device
                         FROM (
-                        	SELECT p.first_name || ' ' || coalesce(p.middle_name,'') || ' ' || p.last_name AS parent_name, p.device_user_id, 
+                        	SELECT p.first_name || ' ' || coalesce(p.middle_name,'') || ' ' || p.last_name AS parent_name, p.device_user_id,
                         		p.username as user_name, p.password, ps.subdomain, ps.student_id,
                         		tb2.relationship, tb2.student_name, tb2.class_name, p.creation_date
                         	FROM parents p
-                        	INNER JOIN parent_students ps ON p.parent_id = ps.parent_id 
-                        	INNER JOIN ( SELECT * FROM   dblink('host=localhost user=postgres password=pg_edu@8947 dbname=$getDbname','SELECT s.student_id, s.first_name || '' '' || coalesce(s.middle_name,'''') || '' '' || s.last_name AS student_name, s.current_class, c.class_name, sg.guardian_id, sg.relationship FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id INNER JOIN app.student_guardians sg USING (student_id) WHERE s.active IS TRUE')
+                        	INNER JOIN parent_students ps ON p.parent_id = ps.parent_id
+                        	INNER JOIN ( SELECT * FROM   dblink('host=localhost user=postgres password=pg_edu@8947 port=5433 dbname=$getDbname','SELECT s.student_id, s.first_name || '' '' || coalesce(s.middle_name,'''') || '' '' || s.last_name AS student_name, s.current_class, c.class_name, sg.guardian_id, sg.relationship FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id INNER JOIN app.student_guardians sg USING (student_id) WHERE s.active IS TRUE')
                         			AS  tb2(student_id integer, student_name character varying, current_class integer, class_name character varying, guardian_id integer, relationship character varying)
                         		    ) AS tb2 ON tb2.student_id = ps.student_id AND tb2.guardian_id = ps.guardian_id
                         	WHERE ps.subdomain='$schoolName'
@@ -88,7 +88,7 @@ $table3 = pg_query($db,"SELECT parent_name, relationship, user_name, password, s
 echo "<div class='table100 ver1 m-b-110'>";
     echo "<table id='table3'  class='display'>";
         echo "<div id='t1' class='table100-head'>";
-        
+
             echo "<thead>";
                 echo "<tr class='row100 head'>";
                     echo "<th class='cell100 column1'>PARENT NAME</th>";

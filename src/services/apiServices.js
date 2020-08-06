@@ -803,6 +803,18 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		else	ajaxService.AjaxGet(path + "/getUsers/" + param, successFunction, errorFunction, params);
 	};
 
+	this.usrRights = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/usrRights/" + param, successFunction, errorFunction, params);
+	};
+
+	this.updateUsrRights = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/updateUsrRights", successFunction, errorFunction, params);
+	};
+
+	this.updateAccessRights = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/updateAccessRights", successFunction, errorFunction, params);
+	};
+
 	this.setUserStatus = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/setUserStatus", successFunction, errorFunction, params);
 	};
@@ -845,6 +857,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getFnanceCtrld = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getFnanceCtrld", successFunction, errorFunction, params);
+	};
+
+	this.getUserGroups = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getUserGroups", successFunction, errorFunction, params);
 	};
 
 	/*********** manage blog ***********/
