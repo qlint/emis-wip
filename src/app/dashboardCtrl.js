@@ -351,14 +351,14 @@ function($scope, $rootScope, apiService){
 			$scope.examsLoading = false;
 		}
 	}
-	
+
 	var loadStudentsWithBalance = function(response, status)
 	{
 		var result = angular.fromJson(response);
 
 		if( result.response == 'success')
 		{
-			console.log("Students with balance > ",result);
+			// console.log("Students with balance > ",result);
 			$scope.studentsWithBalance = ( result.nodata !== undefined ? [] : result.data.filter(function(bal) {return bal.balance > 0;}).sort((a, b) => (b.balance) - (a.balance)) );
 		}
 		else
@@ -366,14 +366,14 @@ function($scope, $rootScope, apiService){
 			console.log("STUDENTS WITH BALANCE ERROR > ",result);
 		}
 	}
-	
+
 	var loadStudentsBusUsage = function(response, status)
 	{
 		var result = angular.fromJson(response);
 
 		if( result.response == 'success')
 		{
-			console.log("Students bus usage > ",result);
+			// console.log("Students bus usage > ",result);
 			$scope.studentsBusUsage = ( result.nodata !== undefined ? [] : result.data);
 		}
 		else
@@ -381,14 +381,14 @@ function($scope, $rootScope, apiService){
 			console.log("BUS USAGE ERROR > ",result);
 		}
 	}
-	
+
 	var loadPopularDestinations = function(response, status)
 	{
 		var result = angular.fromJson(response);
 
 		if( result.response == 'success')
 		{
-			console.log("Popular destinations > ",result);
+			// console.log("Popular destinations > ",result);
 			$scope.popularDestinations = ( result.nodata !== undefined ? [] : result.data);
 		}
 		else
@@ -421,7 +421,7 @@ function($scope, $rootScope, apiService){
 			getTopStudents();
 			getStudentGenderCount();
 		}
-		
+
 		if($scope.isTransport){
 			apiService.getAllStudentsWithTranspBalance({}, loadStudentsWithBalance, apiError);
 			apiService.getStudentsBusUsage({}, loadStudentsBusUsage, apiError);

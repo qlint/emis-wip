@@ -106,7 +106,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	}
 	$timeout(initializeController,1);
 
-
 	$scope.getStudentReportCards = function()
 	{
 		$scope.reportCards = {};
@@ -357,6 +356,30 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 	}
 
+	$scope.batchClassReportCards = function(){
+		// console.log("Filters >",$scope.filters);
+		let  param = $scope.filters.class.class_id + '/' + $scope.filters.term.term_id;
+		apiService.getClassReportCardData(param, function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				if( result.nodata )
+				{
+					$scope.reportsNotFound = true;
+					$scope.errMsg = "There are no report cards found for the chosen class and term.";
+				}
+				else
+				{
+					$scope.classRptCds = result.data;
+					// console.log("Class report cards",$scope.classRptCds);
+
+					$scope.openModal('exams', 'reportCardBatch', 'lg', {filters: $scope.filters, report: $scope.classRptCds});
+				}
+			}else{console.log(result)}
+		}, apiError);
+	}
+
 	$scope.addReportCard = function()
 	{
 		var data = {
@@ -490,13 +513,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		// }
 		// rptCardsForBp();
 
-	  console.log("Bulk print initiated");
+	  // console.log("Bulk print initiated");
 		// console.log($scope.filters);
 		BulkData = [];
 		var term_name  = $scope.filters.term.term_name;
 
 		$scope.studentReports = $scope.studentReports2;
-		
+
 		setTimeout(function(){
 			// console.log("Student reports ::: ",$scope.studentReports);
 			// console.log("Reports two ::: ",$scope.studentReports2);
@@ -533,7 +556,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
               		}
               		else
               		{
-              			console.log("There might be an API issue");
+              			// console.log("There might be an API issue");
               			$scope.errMsg = result.data;
               		}
               	}
@@ -599,30 +622,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	}
 
 	$scope.preBulkPrint = function(){
-		// Get the modal
+		// Show the modal
 		var modal = document.getElementById("batchPrntParams");
-
-		// Get the button that opens the modal
 		var btn = document.getElementById("batchPreModal");
-
-		// Get the <span> element that closes the modal
 		var span = document.getElementsByClassName("cloze1")[0];
-
-		// When the user clicks the button, open the modal
-		btn.onclick = function() {
-		  modal.style.display = "block";
-		}
+		modal.style.display = "block";
 
 		// When the user clicks on <span> (x), close the modal
 		span.onclick = function() {
 		  modal.style.display = "none";
-		}
-
-		// When the user clicks anywhere outside of the modal, close it
-		window.onclick = function(event) {
-		  if (event.target == modal) {
-		    modal.style.display = "none";
-		  }
 		}
 
 	}
@@ -661,7 +669,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			if( result.response == 'success')
 			{
 					$scope.examTypes = result.data;
-					console.log("This class exam types",$scope.examTypes);
+					// console.log("This class exam types",$scope.examTypes);
 			}
 
 		}, apiError);
@@ -670,7 +678,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 	$scope.bulkSlips = function()
 	{
-		console.log($scope.filters);
+		// console.log($scope.filters);
 		let request = $scope.filters.class.class_id + '/' + $scope.filters.term.term_id + '/' + $scope.filters.exam.exam_type_id;
 
 		var loadSlipResults = function(response,status)
@@ -730,7 +738,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						});
 
 						$scope.studentResultSlips[k].exam_marks = subjects;
-						console.log($scope.studentResultSlips);
+						// console.log($scope.studentResultSlips);
 						setTimeout(function(){
 						 	$scope.openModal('exams', 'reportCardSlips', 'lg', $scope.studentResultSlips);
 							setTimeout(function(){ document.getElementById('slipsForm').parentNode.style.width = '100%'; },3000);
@@ -750,7 +758,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			if( result.response == 'success')
 			{
 					$scope.examTypes = result.data;
-					console.log("This class exam types",$scope.examTypes);
+					// console.log("This class exam types",$scope.examTypes);
 			}
 
 		}, apiError);

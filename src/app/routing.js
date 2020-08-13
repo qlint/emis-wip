@@ -215,6 +215,13 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
          authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
       }
     })
+		.state('exams/batch_report_cards', {
+	      url: "/exams/batch_report_cards",
+		  templateUrl: 'app/exams/reportCardBatch.html',
+	      data: {
+	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
+	      }
+	    })
 	.state('exams/report_card/print', {
       url: "/exams/report_card/print",
 	  templateUrl: 'app/exams/reportCard.html',

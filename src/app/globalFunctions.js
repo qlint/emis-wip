@@ -13,7 +13,6 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 	var refreshingPromise;
 	var isRefreshing = false;
 
-
 	$rootScope.$on('$stateChangeStart', function (event, next, toParams)
 	{
 		var domain = window.location.host;

@@ -7,7 +7,6 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 	// Manages auth login functions and each controller
 	// inherits from this controller
 
-
 	$scope.modalShown = false;
 	$rootScope.updatePwd = false;
 
@@ -47,7 +46,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 		let rightsParam = window.location.host.split('.')[0] + '/' +$rootScope.currentUser.user_type;
 		apiService.usrRights(rightsParam, function(response){
 			var result = angular.fromJson(response);
-			console.log("user right > ",result);
+			// console.log("user right > ",result);
 			// store these as they do not change often
 			if( result.response == 'success')
 			{
@@ -1270,7 +1269,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 	$scope.openModal = function (section, view, size, item)
 	{
-		var testEl = $('#filterLinks');console.log(testEl);
+		var testEl = $('#filterLinks'); // console.log(testEl);
 
 		if( $('#filterLinks').hasClass('in') )
 		{
@@ -1310,6 +1309,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 
 	$rootScope.chartColors = ['rgba(151,187,205,1)','rgba(220,220,220,1)','rgba(247,70,74,1)','rgba(70,191,189,1)','rgba(253,180,92,1)','rgba(148,159,177,1)','rgba(77,83,96,1)','rgba(181,221,56,1)','rgba(218,150,240,1)'];
+	// console.log($rootScope);
 
 
 } ])

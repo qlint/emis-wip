@@ -92,7 +92,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		if($scope.settings['Use Receipt Items'] == undefined){
 			$scope.settings['Use Receipt Items'] = "true";
 		}
-		console.log($scope.settings);
+		// console.log($scope.settings);
 
 		if($scope.settings['Bank Name 2'] == 'Null'){ $scope.settings['Bank Name 2'] = ''; }
 		if($scope.settings['Bank Branch 2'] == 'Null'){ $scope.settings['Bank Branch 2'] = ''; }
@@ -114,7 +114,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 
 		if($scope.settings['Use Feedback'] == 'true'){
 
-		    console.log("Checking status, feedback = " + $scope.settings['Use Autoadmission']);
+		    // console.log("Checking status, feedback = " + $scope.settings['Use Autoadmission']);
 		    // Params ($selector, boolean)
             function setSwitchState(el, flag) {
                 el.attr('checked', flag);
@@ -132,7 +132,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		if($scope.settings['Use Autoadmission'] == 'true'){
 		    $scope.autoAdmissionEn = true; // show automatic admissions options
 
-		    console.log("Checking status, auto admission = " + $scope.settings['Use Autoadmission']);
+		    // console.log("Checking status, auto admission = " + $scope.settings['Use Autoadmission']);
 		    // Params ($selector, boolean)
             function setSwitchState(el, flag) {
                 el.attr('checked', flag);
@@ -156,20 +156,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
             var $switchLabel = $('#feedbackSwitch.switch-label');
 
             if($scope.settings[ 'Use Feedback' ] == "true"){
-                console.log("Feedback was true, now switcing to false");
+                // console.log("Feedback was true, now switcing to false");
                 selectedData = $switchLabel.attr('data-off');
             } else {
-                console.log("Feedback was false, now switching on");
+                // console.log("Feedback was false, now switching on");
                 selectedData = $switchLabel.attr('data-on');
             }
 
-            console.log('Selected feedback = ' + selectedData);
+            // console.log('Selected feedback = ' + selectedData);
 
         });
 
         // Params ($selector, boolean)
         function setSwitchState(el, flag) {
-            console.log("Changing feedback switch status .....");
+            // console.log("Changing feedback switch status .....");
             el.attr('checked', flag);
         }
 
@@ -197,20 +197,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	            var $switchLabel = $('#receiptSwitch.switch-label');
 
 	            if($scope.settings[ 'Use Receipt Items' ] == "true"){
-	                console.log("Receipt items was true, now switcing to false");
+	                // console.log("Receipt items was true, now switcing to false");
 	                selectedData = $switchLabel.attr('data-off');
 	            } else {
-	                console.log("Receipt items was false, now switching on");
+	                // console.log("Receipt items was false, now switching on");
 	                selectedData = $switchLabel.attr('data-on');
 	            }
 
-	            console.log('Selected receipt mode = ' + selectedData);
+	            // console.log('Selected receipt mode = ' + selectedData);
 
 	        });
 
 	        // Params ($selector, boolean)
 	        function setSwitchState(el, flag) {
-	            console.log("Changing receipt switch status .....");
+	            // console.log("Changing receipt switch status .....");
 	            el.attr('checked', flag);
 	        }
 
@@ -240,20 +240,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
             var $switchLabel = $('#admissionSwitch.switch-label');
 
             if($scope.settings[ 'Use Autoadmission' ] == "true"){
-                console.log("Auto admission was true, now switcing to false");
+                // console.log("Auto admission was true, now switcing to false");
                 selectedData = $switchLabel.attr('data-off');
             } else {
-                console.log("Auto admission was false, now switching on");
+                // console.log("Auto admission was false, now switching on");
                 selectedData = $switchLabel.attr('data-on');
             }
 
-            console.log('Selected auto admission = ' + selectedData);
+            // console.log('Selected auto admission = ' + selectedData);
 
         });
 
         // Params ($selector, boolean)
         function setSwitchState(el, flag) {
-            console.log("Changing switch status .....");
+            // console.log("Changing switch status .....");
             el.attr('checked', flag);
         }
 
