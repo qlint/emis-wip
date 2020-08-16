@@ -1,4 +1,68 @@
 <?php
+$app->post('/createStudentLogin', function () use($app) {
+  // Log parent in
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $email = $allPostVars['email'];
+  $pwd = $allPostVars['password'];
+  $subdomain = $allPostVars['subdomain'];
+  $studentId = $allPostVars['student_id'];
+  $gender = $allPostVars['gender'];
+  $firstName = $allPostVars['first_name'];
+  $middleName = $allPostVars['middle_name'];
+  $lastName = $allPostVars['last_name'];
+  $country = $allPostVars['country'];
+  $dob = $allPostVars['dob'];
+
+  //$hash = password_hash($pwd, PASSWORD_BCRYPT);
+
+  try
+  {
+    $db = getLoginDB();
+
+    $stdntCheckQry = $db->prepare("SELECT * FROM students_portal WHERE student_id = :studentId AND school = :subdomain");
+    $stdntCheckQry->execute(array(':studentId' => $studentId, ':subdomain' => $subdomain));
+    $stdntStatus = $stdntCheckQry->fetch(PDO::FETCH_OBJ);
+    $theStudent = (isset($stdntStatus->student_portal_id) ? $stdntStatus->student_portal_id : null);
+
+    if($theStudent){
+      // update
+      $updateCreds = $db->prepare("UPDATE public.students_portal
+                                  SET email=:email, pwd=:pwd, modified_date = now()
+                                  WHERE student_portal_id = :theStudent");
+      $updateCreds->execute(array(':email' => $email, ':pwd' => $pwd, ':theStudent' => $theStudent));
+
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'message' => 'The credentials have been updated successfully.', 'data' => $results ));
+      $db = null;
+    }else{
+      // insert
+      $insertCreds = $db->prepare("INSERT INTO public.students_portal(school, email, pwd, first_name, middle_name, last_name, gender, student_id, dob, active, country, creation_date)
+                                    VALUES (:subdomain, :email, :pwd, :firstName, :middleName, :lastName, :gender, :studentId, :dob, true, :country, now());");
+      $insertCreds->execute(array(':subdomain' => $subdomain,
+                                  ':email' => $email,
+                                  ':pwd' => $pwd,
+                                  ':firstName' => $firstName,
+                                  ':middleName' => $middleName,
+                                  ':lastName' => $lastName,
+                                  ':gender' => $gender,
+                                  ':studentId' => $studentId,
+                                  ':dob' => $dob,
+                                  ':country' => $country));
+
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'message' => 'The credentials have been created successfully.'));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
 $app->get('/getAllStudents/:status(/:startDate/:endDate)', function ($status,$startDate=null,$endDate=null) {
   //Show all students
 

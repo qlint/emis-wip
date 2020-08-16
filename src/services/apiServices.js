@@ -606,6 +606,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPost2(request, path + "/addStudent", successFunction, errorFunction, params);
 	};
 
+	this.createStudentLogin = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/createStudentLogin", successFunction, errorFunction, params);
+	};
+
 	this.updateStudent = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateStudent", successFunction, errorFunction, params);
 	};

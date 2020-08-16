@@ -359,7 +359,7 @@ function getChartPath()
 							<tr ng-repeat="subject in reportCd.subjects_column track by $index">
 								<td ng-class="{'text-muted indent' : subject.parent_subject_id!==null, 'strong': subject.parent_subject_id===null}">{{subject.subject_name}}</td>
 								<td class="center double-border" ng-class="{'strong': subject.parent_subject_id===null}" ng-repeat-start="examMarks in subject.exam_marks track by $index">{{examMarks.mark}}</td>
-								<td  ng-hide="noRanking || isSchool" class="center" ng-class="{'strong': subject.parent_subject_id===null}">{{examMarks.grade_weight}}</td>
+								<td  ng-hide="noRanking || isSchool" class="center" ng-class="{'strong': subject.parent_subject_id===null}">{{examMarks.out_of}}</td>
 								<td class="center" ng-class="{'text-muted' : subject.parent_subject_id!==null, 'strong': subject.parent_subject_id===null}" ng-repeat-end="">{{examMarks.grade}}</td>
 								<td ng-show="isSchool" class="center strong double-border"><span ng-hide="subject.parent_subject_id!==null">{{subject.overall.average}}%</span></td>
 								<td ng-show="isSchool" class="center strong"><span ng-hide="subject.parent_subject_id!==null">{{subject.overall.grade}}</span></td>

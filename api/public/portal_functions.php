@@ -306,6 +306,115 @@ $app->post('/parentLogin', function () use($app) {
   }
 });
 
+$app->post('/studentLogin', function () use($app) {
+  // Log student in
+  $allPostVars = $app->request->post();
+  $email = $allPostVars['email'];
+  $pwd = $allPostVars['password'];
+
+  //$hash = password_hash($pwd, PASSWORD_BCRYPT);
+
+  try
+  {
+    $db = getLoginDB();
+
+    $stdntCheckQry = $db->prepare("SELECT * FROM students_portal WHERE email = :email AND pwd = :pwd");
+    $stdntCheckQry->execute(array(':email' => $email, ':pwd' => $pwd));
+    $stdntStatus = $stdntCheckQry->fetch(PDO::FETCH_OBJ);
+    $theStudent = (isset($stdntStatus->student_portal_id) ? $stdntStatus->student_portal_id : null);
+    $theSchool = (isset($stdntStatus->school) ? $stdntStatus->school : null);
+    $theStudentId = (isset($stdntStatus->student_id) ? $stdntStatus->student_id : null);
+
+    if($theStudent){
+      $getDb = setDBConnection($theSchool);
+      $studentQry = $getDb->prepare("SELECT s.first_name, s.middle_name, s.last_name,
+                                    		s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                                    		admission_number, gender, date_text_to_date(dob) AS dob, c.class_name, student_category,
+                                    		nationality, house, club, TO_CHAR(admission_date :: DATE, 'dd/mm/yyyy') AS admission_date,
+                                    		student_image
+                                    FROM app.students s
+                                    INNER JOIN app.classes c ON s.current_class = c.class_id
+                                    WHERE s.student_id = :theStudentId");
+      $studentQry->execute(array(':theStudentId' => $theStudentId));
+      $student = $studentQry->fetch(PDO::FETCH_OBJ);
+
+      $schoolQry = $getDb->prepare("SELECT (SELECT value FROM app.settings WHERE name = 'subdomain') AS subdomain,
+                                      		(SELECT value FROM app.settings WHERE name = 'Address 1') AS address_1,
+                                      		(SELECT value FROM app.settings WHERE name = 'Address 2') AS address_2,
+                                      		(SELECT value FROM app.settings WHERE name = 'Email Address') AS email_address,
+                                      		(SELECT value FROM app.settings WHERE name = 'Phone Number') AS phone_number,
+                                      		(SELECT value FROM app.settings WHERE name = 'School Name') AS school_name,
+                                      		(SELECT value FROM app.settings WHERE name = 'School Level') AS school_level,
+                                      		(SELECT value FROM app.settings WHERE name = 'logo') AS logo,
+                                      		(SELECT value FROM app.settings WHERE name = 'Letterhead') AS letter_head");
+      $schoolQry->execute(array());
+      $school = $schoolQry->fetch(PDO::FETCH_OBJ);
+
+      $termsQry = $getDb->prepare("SELECT term_id, term_name, start_date, end_date
+                                    FROM app.terms ORDER BY start_date DESC");
+      $termsQry->execute(array());
+      $terms = $termsQry->fetchAll(PDO::FETCH_OBJ);
+
+      $homeworkQry = $getDb->prepare("SELECT homework_id, assigned_date, TO_CHAR(assigned_date :: DATE, 'dd/mm/yyyy') assigned_date_formated,
+                          	emp_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                          	title, body, homework.post_status_id, post_status, class_name, class_subjects.class_id, due_date, TO_CHAR(due_date :: DATE, 'dd/mm/yyyy') AS due_date_formated,
+                            subject_name, class_subjects.subject_id,
+                          	attachment, homework.modified_date,
+                            (
+                              CASE
+                                WHEN string_to_array(seen_by,',')::int[] @> ARRAY[:theStudentId::int] THEN true
+                                ELSE false
+                              END
+                            ) AS seen
+                          FROM app.homework
+                          INNER JOIN app.blog_post_statuses USING (post_status_id)
+                          INNER JOIN app.class_subjects USING (class_subject_id)
+                          INNER JOIN app.classes USING (class_id)
+                          INNER JOIN app.students ON classes.class_id = students.current_class
+                          			AND class_subjects.class_id = classes.class_id
+                          INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id
+                          			AND homework.class_subject_id = class_subjects.class_subject_id
+                          LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
+                          WHERE student_id = :theStudentId
+                          AND homework.post_status_id = 1
+                          --AND date_trunc('year', homework.creation_date) =  date_trunc('year', now())
+                          AND homework.creation_date >  CURRENT_DATE - INTERVAL '3 months'
+                          --AND (assigned_date between date_trunc('week', now())::date and (date_trunc('week', now())+ '6 days'::interval)::date OR due_date > now() )
+                          AND students.active IS TRUE
+                          AND (homework.students ILIKE '%' || :theStudentId || '%' OR homework.students IS NULL)
+                          ORDER BY homework.assigned_date DESC, subjects.sort_order");
+      $homeworkQry->execute(array(':theStudentId' => $theStudentId));
+      $homework = $homeworkQry->fetchAll(PDO::FETCH_OBJ);
+
+      $results =  new stdClass();
+  		$results->details = $student;
+  		$results->school = $school;
+  		$results->terms = $terms;
+  		$results->homework = $homework;
+  		// $results->overallByAverage = $overallByAverage;
+  		// $results->overallLastTerm = $overallLastTerm;
+  		// $results->overallLastTermByAverage = $overallLastTermByAverage;
+  		// $results->graphPoints = $graphPoints;
+
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+      $getDb = null;
+    }else{
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'message' => 'The credentials you have entered to not match. Confirm and/or check your spellings and try again.' ));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
 $app->get('/registrationStatus/:phone', function ($phoneNumber){
   error_reporting(E_ALL);  // uncomment this only when testing
   ini_set('display_errors', 1); // uncomment this only when testing
@@ -396,7 +505,7 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
                 $firstTimeFound = FALSE;
             }else{
               // THESE USERS ARE IN MULTIPLE SCHOOLS, GIVE THEM AN EEROR MSG OR SOMETHING
-              
+
               // $app->response()->setStatus(200);
               // $app->response()->headers->set('Content-Type', 'application/json');
               // echo  json_encode(array('response' => 'Error', 'message' => "There seems to be an issue either with this phone number or your details. Please consult with your school.", "status" => "Cannot proceed with registration." ));
@@ -491,9 +600,59 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
           echo  json_encode(array('response' => 'error', 'message' => "The submitted phone number has not been found in our system. Please use a phone number that you use with the school.", "status" => "Phone number not found." ));
         }
     }else{
-      $app->response()->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo  json_encode(array('response' => 'error', 'message' => "The submitted phone number is already in use, either by you or another user.", "status" => "Phone number already in use" ));
+      // resend the code then delete it
+      $db1 = getLoginDB();
+      $qry = $db1->query("SELECT * FROM registration_codes WHERE telephone = '$phoneNumber' LIMIT 1;");
+      $usr = $qry->fetch(PDO::FETCH_OBJ);
+
+      // first we need to change the phone format to +[code]phone
+      $firstChar = substr($phoneNumber, 0, 1);
+      if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
+      // we now create & send the actual sms
+      $registrationMessageObj = new stdClass();
+      $registrationMessageObj->message_recipients = Array();
+      $registrationMessageObj->message_by = "Eduweb Mobile App Registration";
+      $registrationMessageObj->message_date = date('Y-m-d H:i:s');
+      $registrationMessageObj->message_text = "Hello $usr->first_name, Your code for the Eduweb Mobile App registration is $usr->code ";
+      $registrationMessageObj->subscriber_name = "api";// $school;
+
+      $msgRecipientsObj = new stdClass();
+      $msgRecipientsObj->recipient_name = "$usr->first_name $usr->last_name";
+      $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
+      array_push($registrationMessageObj->message_recipients, clone $msgRecipientsObj);
+
+      // send the message
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_HEADER, FALSE);
+      curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+      curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($registrationMessageObj)); // the data to post
+      curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+
+      $resp = curl_exec($ch);
+
+      if($resp === false)
+      {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found but there seems to be a slight problem sending the SMS. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch), "phone" => $phoneNumber ));
+      }
+      else
+      {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password.", "status" => "SMS sent successfully", "phone" => $phoneNumber ));
+      }
+
+      curl_close($ch);
+
+      // $app->response()->setStatus(200);
+      // $app->response()->headers->set('Content-Type', 'application/json');
+      // echo  json_encode(array('response' => 'error', 'message' => "The submitted phone number is already in use, either by you or another user.", "status" => "Phone number already in use" ));
+      $db1 = null;
     }
 
   } catch(PDOException $e) {

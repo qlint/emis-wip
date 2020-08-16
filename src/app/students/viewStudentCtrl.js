@@ -383,7 +383,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
                      apiService.rmvPickUpIndividualImg(imgParam,createCompleted,apiError);
         		}
 
-				$scope.student.admission_date = {startDate: $scope.student.admission_date};
+				$scope.student.admission_date = {startDate: ($scope.student.admission_date != undefined || tudent.admission_date != null ? $scope.student.admission_date : null)};
 
 				//get lower school report cards start
         		var setExistingDocReportCards  = function(response,status)
@@ -833,6 +833,37 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			$scope.getExams();
 		}
 
+	}
+
+	$scope.credentialsModal = function(){
+		console.log($scope);
+		let creds = {
+			subdomain: window.location.host.split('.')[0],
+			email: document.getElementById('studentEmail').value,
+			password: document.getElementById('psw').value,
+			student_id: $scope.student.student_id,
+			gender: $scope.student.gender,
+			first_name: $scope.student.first_name,
+			middle_name: $scope.student.middle_name,
+			last_name: $scope.student.last_name,
+			country: $scope.student.nationality,
+			dob: $scope.student.dob
+		}
+		console.log(creds);
+		apiService.createStudentLogin(creds, function ( response, status )
+																				{
+
+																					var result = angular.fromJson( response );
+																					if( result.response == 'success' )
+																					{
+																						console.log(result);
+																					}
+																					else
+																					{
+																						console.log(result);
+																					}
+																				},
+																				function(res){console.log(res)});
 	}
 
 	/*
