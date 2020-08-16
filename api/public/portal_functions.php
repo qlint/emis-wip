@@ -386,7 +386,7 @@ $app->post('/studentLogin', function () use($app) {
       $homeworkQry->execute(array(':theStudentId' => $theStudentId));
       $homework = $homeworkQry->fetchAll(PDO::FETCH_OBJ);
 
-      $results =  new stdClass();
+      $results = new stdClass();
   		$results->details = $student;
   		$results->school = $school;
   		$results->terms = $terms;
@@ -395,6 +395,27 @@ $app->post('/studentLogin', function () use($app) {
   		// $results->overallLastTerm = $overallLastTerm;
   		// $results->overallLastTermByAverage = $overallLastTermByAverage;
   		// $results->graphPoints = $graphPoints;
+
+      if(strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE)
+       $browser = 'Internet explorer';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Trident') !== FALSE) //For Supporting IE 11
+        $browser = 'Internet explorer';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Firefox') !== FALSE)
+       $browser = 'Mozilla Firefox';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE)
+       $browser = 'Google Chrome';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera Mini') !== FALSE)
+       $browser = "Opera Mini";
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera') !== FALSE)
+       $browser = "Opera";
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== FALSE)
+       $browser = "Safari";
+     else
+       $browser = 'Something else';
+
+      $stdntUpdate = $db->prepare("UPDATE students_portal SET device = :browser, last_active = now()
+                                    WHERE email = :email AND pwd = :pwd");
+      $stdntUpdate->execute(array(':browser' => $browser, ':email' => $email, ':pwd' => $pwd));
 
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');

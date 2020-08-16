@@ -1137,9 +1137,10 @@ input#tripCheck{transform: scale(1.3);}
             </div>
             <div class="form-group">
               <label for="psw"><span class="glyphicon glyphicon-eye-open"></span> Password</label>
-              <input type="text" class="form-control" id="psw" placeholder="Enter password">
+              <input type="password" class="form-control" id="psw" placeholder="Enter password">
+							<input type="checkbox" ng-click="checkPass()">Show Password
             </div>
-            <button class="btn btn-default btn-success btn-block" ng-click="credentialsModal()"><span class="glyphicon glyphicon-off"></span> Update Credentials</button>
+            <button class="btn btn-default btn-{{studentCredsStatus}} btn-block" ng-click="credentialsModal()"><span class="glyphicon glyphicon-off"></span> Update Credentials</button>
           </form>
         </div>
         <div class="modal-footer">

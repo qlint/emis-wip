@@ -33,7 +33,7 @@ $app->post('/createStudentLogin', function () use($app) {
 
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array('response' => 'success', 'message' => 'The credentials have been updated successfully.', 'data' => $results ));
+      echo json_encode(array('response' => 'success', 'message' => 'The credentials have been updated successfully.'));
       $db = null;
     }else{
       // insert

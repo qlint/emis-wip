@@ -6,6 +6,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	$rootScope.modalLoading = false;
 	$scope.hasDestination = false;
+	$scope.studentCredsStatus = "success";
 
 	// this is a delay function - we'll use it to pause & wait for an ajax response
     function sleep(milliseconds) {
@@ -836,34 +837,65 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	}
 
 	$scope.credentialsModal = function(){
-		console.log($scope);
-		let creds = {
-			subdomain: window.location.host.split('.')[0],
-			email: document.getElementById('studentEmail').value,
-			password: document.getElementById('psw').value,
-			student_id: $scope.student.student_id,
-			gender: $scope.student.gender,
-			first_name: $scope.student.first_name,
-			middle_name: $scope.student.middle_name,
-			last_name: $scope.student.last_name,
-			country: $scope.student.nationality,
-			dob: $scope.student.dob
+		// validate email first
+		function ValidateEmail(inputText)
+		{
+			var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+			if(inputText.match(mailformat)){ return true; }else{ return false; }
 		}
-		console.log(creds);
-		apiService.createStudentLogin(creds, function ( response, status )
-																				{
+		if(!ValidateEmail(document.getElementById('studentEmail').value)){
+			document.getElementById('studentEmail').style.border = '3px solid #b22222';
+			$scope.studentCredsStatus = "danger";
+		}else{
+			let creds = {
+				subdomain: window.location.host.split('.')[0],
+				email: document.getElementById('studentEmail').value,
+				password: document.getElementById('psw').value,
+				student_id: $scope.student.student_id,
+				gender: $scope.student.gender,
+				first_name: $scope.student.first_name,
+				middle_name: $scope.student.middle_name,
+				last_name: $scope.student.last_name,
+				country: $scope.student.nationality,
+				dob: $scope.student.dob
+			}
+			console.log(creds);
+			apiService.createStudentLogin(creds, function ( response, status )
+																					{
 
-																					var result = angular.fromJson( response );
-																					if( result.response == 'success' )
-																					{
-																						console.log(result);
-																					}
-																					else
-																					{
-																						console.log(result);
-																					}
-																				},
-																				function(res){console.log(res)});
+																						var result = angular.fromJson( response );
+																						if( result.response == 'success' )
+																						{
+																							console.log(result);
+																							document.getElementById('studentEmail').style.border = '3px solid #1e90ff';
+																							document.getElementById('psw').style.border = '3px solid #1e90ff';
+																							$scope.studentCredsStatus = "info";
+																						}
+																						else
+																						{
+																							console.log(result);
+																							document.getElementById('studentEmail').style.border = '3px solid #b22222';
+																							document.getElementById('psw').style.border = '3px solid #b22222';
+																							$scope.studentCredsStatus = "danger";
+																						}
+																					},
+																					function(res){
+																						console.log(res);
+																						document.getElementById('studentEmail').style.border = '3px solid #b22222';
+																						document.getElementById('psw').style.border = '3px solid #b22222';
+																						$scope.studentCredsStatus = "danger";
+																					});
+		}
+
+	}
+
+	$scope.checkPass = function(){
+		var x = document.getElementById("psw");
+		if (x.type === "password") {
+			x.type = "text";
+		} else {
+			x.type = "password";
+		}
 	}
 
 	/*
