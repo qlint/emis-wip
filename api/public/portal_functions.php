@@ -386,12 +386,47 @@ $app->post('/studentLogin', function () use($app) {
       $homeworkQry->execute(array(':theStudentId' => $theStudentId));
       $homework = $homeworkQry->fetchAll(PDO::FETCH_OBJ);
 
+      $timetableQry = $getDb->prepare("SELECT student_name, class_id, class_name, term_id, term_name, year,
+                                        	array_to_json(array_agg(day_lessons)) AS timetable
+                                        FROM (
+                                        	SELECT student_name, class_id, class_name, term_id, term_name, year,
+                                        		'{\"' || day || '\":' || day_details ||'}' AS day_lessons
+                                        	FROM (
+                                        		SELECT student_name, class_id, class_name, term_id, term_name, year, day,
+                                        			array_to_json(array_agg(subject_details)) AS day_details
+                                        		FROM (
+                                        			SELECT s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                                        				ct.class_id, c.class_name, ct.term_id, t.term_name, ct.year, ct.day, row_to_json(a) AS subject_details
+                                        			FROM (
+                                        				SELECT class_timetable_id, day, subject_name, start_hour, start_minutes, end_hour, end_minutes
+                                        				FROM app.class_timetables
+                                        				WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :theStudentId)
+                                        			)a
+                                        			INNER JOIN app.class_timetables ct USING (class_timetable_id)
+                                        			INNER JOIN app.classes c USING (class_id)
+                                        			INNER JOIN app.terms t USING (term_id)
+                                        			INNER JOIN app.students s ON c.class_id = s.current_class
+                                        			WHERE s.student_id = :theStudentId
+                                        		)b
+                                        		GROUP BY student_name, class_id, class_name, term_id, term_name, year, day
+                                        	)c
+                                        )d
+                                        GROUP BY student_name, class_id, class_name, term_id, term_name, year");
+      $timetableQry->execute(array(':theStudentId' => $theStudentId));
+      $timetable = $timetableQry->fetch(PDO::FETCH_OBJ);
+      if($timetable){
+        $timetable->timetable = json_decode($timetable->timetable);
+        for ($i=0; $i < count($timetable->timetable); $i++) {
+          $timetable->timetable[$i] = json_decode($timetable->timetable[$i]);
+        }
+      }
+
       $results = new stdClass();
   		$results->details = $student;
   		$results->school = $school;
   		$results->terms = $terms;
   		$results->homework = $homework;
-  		// $results->overallByAverage = $overallByAverage;
+  		$results->timetable = $timetable;
   		// $results->overallLastTerm = $overallLastTerm;
   		// $results->overallLastTermByAverage = $overallLastTermByAverage;
   		// $results->graphPoints = $graphPoints;
@@ -410,6 +445,8 @@ $app->post('/studentLogin', function () use($app) {
        $browser = "Opera";
      elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== FALSE)
        $browser = "Safari";
+    elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'insomnia') !== FALSE)
+       $browser = "Insomnia";
      else
        $browser = 'Something else';
 
@@ -2474,6 +2511,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
     {
     $db = setDBConnection($school);
     $sth = $db->prepare("SELECT d.*, (SELECT value FROM app.settings WHERE name = 'Exam Calculation') AS calculation_mode,
+                                (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = :classId)) AS entity_id,
                               	(
                               		SELECT array_to_json(ARRAY_AGG(c)) FROM
                               		(
@@ -2494,7 +2532,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                                   				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
                                   				INNER JOIN app.subjects s2 USING (subject_id)
                                   				WHERE e2.student_id = :studentId
-                                  				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE
+                                  				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE AND s2.active IS TRUE
                                   				ORDER BY et2.sort_order ASC, s2.sort_order ASC
                                       )a
                               			) b
@@ -2528,7 +2566,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 													INNER JOIN app.subjects s2 USING (subject_id)
 													WHERE e2.student_id = :studentId
-													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE AND s2.active IS TRUE
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
 												GROUP BY subject_id, subject_name, class_exam_count
@@ -2561,7 +2599,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 													INNER JOIN app.subjects s2 USING (subject_id)
 													WHERE e2.student_id = :studentId
-													AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE
+													AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE AND s2.active IS TRUE
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
 												GROUP BY student_id, exam_type_id, exam_type
@@ -2597,7 +2635,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 															INNER JOIN app.exam_types et2 USING (exam_type_id)
 															INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 															INNER JOIN app.subjects s2 USING (subject_id)
-															WHERE e2.student_id = :studentId
+															WHERE e2.student_id = :studentId AND s2.active IS TRUE
 															AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 															ORDER BY et2.sort_order ASC, s2.sort_order ASC
 														)f
@@ -2628,7 +2666,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 													INNER JOIN app.exam_types et2 USING (exam_type_id)
 													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 													INNER JOIN app.subjects s2 USING (subject_id)
-													WHERE e2.student_id = :studentId
+													WHERE e2.student_id = :studentId AND s2.active IS TRUE
 													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
@@ -2682,7 +2720,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 															INNER JOIN app.exam_types et2 USING (exam_type_id)
 															INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 															INNER JOIN app.subjects s2 USING (subject_id)
-															WHERE e2.student_id = :studentId
+															WHERE e2.student_id = :studentId AND s2.active IS TRUE
 															AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 															AND cse2.exam_type_id = (
 																					  SELECT cc.exam_type_id FROM (
@@ -2745,7 +2783,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 													INNER JOIN app.exam_types et2 USING (exam_type_id)
 													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 													INNER JOIN app.subjects s2 USING (subject_id)
-													WHERE e2.student_id = :studentId
+													WHERE e2.student_id = :studentId AND s2.active IS TRUE
 													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 													AND cse2.exam_type_id = (
 																			  SELECT cc.exam_type_id FROM (
@@ -2971,11 +3009,11 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																	INNER JOIN app.exam_types USING (exam_type_id)
 																	INNER JOIN app.class_subjects
 																	INNER JOIN app.subjects
-																	ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
+																	ON class_subjects.subject_id = subjects.subject_id
 																	ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
 																	ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 																	INNER JOIN app.students USING (student_id)
-																	WHERE class_subjects.class_id = :classId
+																	WHERE class_subjects.class_id = :classId AND subjects.active IS TRUE
 																	AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 																	AND subjects.parent_subject_id is null
 																	AND subjects.use_for_grading is true
@@ -3126,6 +3164,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 									LEFT JOIN app.employees e ON s.teacher_id = e.emp_id
 									WHERE s.active IS TRUE
 									AND cs.class_id = :classId
+                  AND em.term_id = :termId
 									AND s.use_for_grading IS TRUE
 								  )p
 								) AS subjects_column,
@@ -3633,6 +3672,39 @@ $app->get('/getStudentClasses/:school/:studentId', function ($school, $studentId
 
 });
 
+$app->get('/getGrading2/:school', function ($school) {
+    //Show lower school grading
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = setDBConnection($school);
+        $sth = $db->prepare("SELECT * FROM app.grading2 ORDER BY max_mark desc");
+        $sth->execute();
+
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+         $app->response()->setStatus(200);
+		 $app->response()->headers->set('Content-Type', 'application/json');
+         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getCurrentTerm/:school', function ($school) {
     //Get current term
 
@@ -3724,13 +3796,7 @@ $app->get('/getStudentReportCards/:school/:student_id', function ($school, $stud
   {
     $db = setDBConnection($school);
 
-    $sth = $db->prepare("SELECT a.*, 'TERM ' || (
-                                                  SELECT term_num FROM (
-                                                    SELECT term_id, term_name, creation_date, row_number() OVER (partition by year order by term_id) AS term_num FROM(
-                                                      SELECT term_id, term_name, date_part('year',start_date) AS year, creation_date FROM app.terms
-                                                    )y
-                                                  )z WHERE term_id = a.term_id
-                                                ) AS alt_term_name
+    $sth = $db->prepare("SELECT a.*, 'TERM ' || (SELECT term_number FROM app.terms WHERE term_id = a.term_id) AS alt_term_name
                         FROM (
                           SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
                                       date_part('year', start_date) as year, report_data, report_cards.report_card_type, class_cat_id,

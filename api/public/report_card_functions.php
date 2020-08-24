@@ -56,13 +56,7 @@ $app->get('/getStudentReportCards/:student_id', function ($studentId) {
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT a.*, 'TERM ' || (
-														SELECT term_num FROM (
-															SELECT term_id, term_name, creation_date, row_number() OVER (partition by year order by term_id) AS term_num FROM(
-																SELECT term_id, term_name, date_part('year',start_date) AS year, creation_date FROM app.terms
-															)y
-														)z WHERE term_id = a.term_id
-													) AS alt_term_name
+		$sth = $db->prepare("SELECT a.*, 'TERM ' || (SELECT term_number FROM app.terms WHERE term_id = a.term_id) AS alt_term_name
                             FROM (
                             					SELECT report_card_id, report_cards.student_id, report_cards.class_id, class_name, term_name, report_cards.term_id,
                             									date_part('year', start_date) as year, report_data, report_cards.report_card_type, class_cat_id,
@@ -156,6 +150,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
         $db = getDB();
 
 		$sth = $db->prepare("SELECT d.*, (SELECT value FROM app.settings WHERE name = 'Exam Calculation') AS calculation_mode,
+																(SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = :classId)) AS entity_id,
                               	(
                               		SELECT array_to_json(ARRAY_AGG(c)) FROM
                               		(
@@ -806,6 +801,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 									LEFT JOIN app.employees e ON s.teacher_id = e.emp_id
 									WHERE s.active IS TRUE
 									AND cs.class_id = :classId
+									AND em.term_id = :termId
 									AND s.use_for_grading IS TRUE
 								  )p
 								) AS subjects_column,
@@ -1567,6 +1563,7 @@ $app->get('/getClassReportCardData/:class_id/:term_id', function ($classId, $ter
 												LEFT JOIN app.employees e ON s.teacher_id = e.emp_id
 												WHERE s.active IS TRUE
 												AND cs.class_id = :classId
+												AND em.term_id = :termId
 												AND s.use_for_grading IS TRUE
 											  )p
 											) AS subjects_column,
@@ -1974,6 +1971,7 @@ $app->get('/getLiveReportCardData/:student_id/:class_id/:term_id', function ($st
 									LEFT JOIN app.employees e ON s.teacher_id = e.emp_id
 									WHERE s.active IS TRUE
 									AND cs.class_id = :classId
+									AND em.term_id = :termId
 									AND s.use_for_grading IS TRUE
 								  )p
 								) AS subjects_column,

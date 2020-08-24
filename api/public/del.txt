@@ -10,3 +10,41 @@ UPDATE user_auth SET delete = true WHERE user_auth_id = 15294
 UPDATE user_auth SET delete = true WHERE user_auth_id = 15295
 2020-08-14 04:37:52pm
 UPDATE user_auth SET delete = true WHERE user_auth_id = 15290
+2020-08-19 04:38:06pm
+UPDATE user_auth SET add = true WHERE user_auth_id = 1736
+2020-08-19 04:38:06pm
+UPDATE user_auth SET add = true WHERE user_auth_id = 1735
+2020-08-19 04:38:06pm
+UPDATE user_auth SET add = true WHERE user_auth_id = 1734
+2020-08-19 04:38:06pm
+UPDATE user_auth SET add = true WHERE user_auth_id = 1733
+2020-08-19 04:38:06pm
+UPDATE user_auth SET add = true WHERE user_auth_id = 1732
+2020-08-19 04:38:06pm
+UPDATE user_auth SET add = true WHERE user_auth_id = 1730
+2020-08-19 04:38:06pm
+UPDATE user_auth SET add = true WHERE user_auth_id = 1731
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1740
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1737
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1738
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1739
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1746
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1741
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1742
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1743
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1744
+2020-08-19 04:38:06pm
+UPDATE user_auth SET edit = false WHERE user_auth_id = 1745
+2020-08-19 04:38:06pm
+UPDATE user_auth SET add = true WHERE user_auth_id = 1748
+2020-08-19 04:38:07pm
+UPDATE user_auth SET add = true WHERE user_auth_id = 1747

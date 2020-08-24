@@ -108,8 +108,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				else
 				{
 					$scope.reportCd = result.data;
-					console.log("Filtered Exam Types > ",$scope.examTypes);
-					if($scope.reportCd.report_card_type != null){$scope.reportCardType = $scope.reportCd.report_card_type;}
+					if($scope.schoolName == "lasalle" && $scope.reportCd.entity_id <= 6){
+						// console.log("Entity >",$scope.reportCd.entity_id);
+			        getGrading2();
+			    }
+					// console.log("Filtered Exam Types > ",$scope.examTypes);
+					if($scope.reportCd.report_card_type != null){$scope.reportCardType = ($scope.reportCd.report_card_type == null || $scope.reportCd.report_card_type == undefined ? 'Standard' : $scope.reportCd.report_card_type);}
 					// remove exam types not done
 					if($scope.reportCd.exam_marks != null){
 						$scope.reportCd.exam_marks = $scope.removeExamsNotDone($scope.reportCd.exam_marks);
@@ -135,7 +139,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 							postFix = 'th';
 						}
 						let theDate = day + postFix + ' ' + months[month] + ', ' + year;
-						console.log(theDate);
+						// console.log(theDate);
 						return theDate;
 					}
 					$scope.reportCd.closing_date = ($scope.reportCd.closing_date == null ? null : dateConverter($scope.reportCd.closing_date));
@@ -157,6 +161,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 							let exam =  item.exam_marks;
 							exam.forEach((cat, i) => {
 								if(subj.subject_id == cat.subject_id){
+									console.log("Pushing to subjects_column >",cat);
 									subj.exam_marks.push(cat);
 								}
 							});
@@ -376,7 +381,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	var initializeController = function()
 	{
 
-		getReportCardData();
+		if(data.generateOrFetch == 'generate'){
+			getLiveReportCardData($scope.student.student_id,$scope.filters.class.class_id,(data.term_id == null || data.term_id == undefined ? $scope.filters.term_id : data.term_id));
+		}else{ getReportCardData(); }
 	    // get lower school grading
 	    if($scope.schoolName == "lasalle" && $scope.entity_id <= 6){
 	        getGrading2();
@@ -693,6 +700,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				else
 				{
 					$scope.reportCd = result.data;
+					if($scope.schoolName == "lasalle" && $scope.reportCd.entity_id <= 6){
+						console.log("Entity >",$scope.reportCd.entity_id);
+			        getGrading2();
+			    }
 					console.log("Live data found. Raw data > ",$scope.reportCd);
 					function dateConverter(str){
 						let strArr = str.split('-');

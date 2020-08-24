@@ -11,9 +11,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	var ignoreCols = ['student_id','student_name','sum','total'];
 
 	$scope.isTeacher = ($rootScope.currentUser.user_type == 'TEACHER' ? true : false);
+	$scope.advancedBtns = false;
 
 	var initializeController = function()
 	{
+		document.getElementsByClassName('modal-lg')[0].style.width = '85%';
 		//getClassDetails($scope.filters.class_id);
 		//$scope.getStudentExams();
 	}
@@ -84,6 +86,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
 						if( $scope.isTeacher ) request += '/' + $rootScope.currentUser.emp_id;
 						apiService.getClassExamMarks(request, loadMarks, apiError);
+
+						$scope.advancedBtns = true;
 					}
 				}
 			}, apiError)
@@ -500,6 +504,141 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			$scope.error = true;
 			$scope.errMsg = result.data;
 		}
+	}
+
+	$scope.advancedMarksEdit = function(){
+		console.log($scope);
+		$scope.btnState = 'warning';
+		$scope.toOperate = 'move';
+		$scope.isMove = true;
+		$scope.isDelete = false;
+		$scope.btnText = 'MOVE MARKS';
+		$scope.btnIcon = 'random';
+		//set from class
+		let fromClassOptions = $scope.currentFilters.class;
+		$scope.fromClassOptions = [fromClassOptions];
+		$scope.fromClass = $scope.fromClassOptions[0];
+		$("#move_from_class").mousedown(function(event){ event.preventDefault(); });
+		//set from exam
+		let fromExamOptions = {};
+		fromExamOptions.exam_type_id = $scope.currentFilters.exam_type_id;
+		fromExamOptions.exam_type = null;
+		$scope.examTypes.forEach((et, i) => {
+			if(et.exam_type_id == fromExamOptions.exam_type_id){
+				fromExamOptions.exam_type = et.exam_type;
+			}
+		});
+		$scope.fromExamOptions = [fromExamOptions]
+		console.log($scope.fromExamOptions);
+		$scope.fromExam = $scope.fromExamOptions[0];
+		$("#move_from_exam").mousedown(function(event){ event.preventDefault(); });
+		//to classe
+		$scope.toClass = null;
+		$scope.toClassOptions = $scope.classes.sort((a, b) => (a.class_name > b.class_name) ? 1 : -1);
+	}
+
+	$scope.fetchClassExams = function(el){
+		console.log(el);
+		apiService.getExamTypes(el.toClass, function(response){
+			var result = angular.fromJson(response);
+			if( result.response == 'success'){
+				$scope.toExamTypesOptions = result.data;
+				document.getElementById('move_to_exam').style.border = '3px solid #00bfff';
+				setTimeout(function(){ document.getElementById('move_to_exam').style.border = ''; }, 1500);
+			}
+		}, apiError);
+	}
+
+	$scope.finalSelection = function(el){
+		// console.log(el);
+		$scope.btnState = 'info';
+		let data = {
+			from_class_id: $scope.fromClass.class_id,
+			from_class_cat_id: $scope.fromClass.class_cat_id,
+			from_exam_type_id: $scope.fromExam.exam_type_id,
+			to_class_id: null,
+			to_class_cat_id: null,
+			to_exam_type_id: el.toExam
+		}
+		$scope.classes.forEach((clss, i) => {
+			if(clss.class_cat_id == el.toClass){
+				data.to_class_id = clss.class_id;
+				data.to_class_cat_id = clss.class_cat_id;
+			}
+		});
+		console.log(data);
+	}
+
+	$scope.switchOperation = function(){
+		console.log($scope.toOperate);
+		if($scope.toOperate == 'move'){
+			$scope.isMove = true;
+			$scope.isDelete = false;
+			$scope.btnState = 'warning';
+			$scope.btnText = 'MOVE MARKS';
+			$scope.btnIcon = 'random';
+		}else if($scope.toOperate == 'delete'){
+			$scope.isDelete = true;
+			$scope.isMove = false;
+			$scope.btnState = 'danger';
+			$scope.btnText = 'DELETE MARKS';
+			$scope.btnIcon = 'warning-sign';
+		}
+		$("#move_from_class").mousedown(function(event){ event.preventDefault(); });
+		$("#move_from_exam").mousedown(function(event){ event.preventDefault(); });
+	}
+
+	$scope.advancedEdit = function(){
+		console.log($scope);
+
+		let data = {
+			operation: $scope.toOperate,
+			term_id: $scope.filters.term_id,
+			marks: []
+		}
+		if(data.operation == 'move'){
+			data.from_class_id = $scope.fromClass.class_id;
+			data.from_et_id = $scope.fromExam.exam_type_id;
+			data.to_class_id = $scope.toClass;
+			data.to_et_id = $scope.toExam;
+		}else if(data.operation == 'delete'){
+			data.from_class_id = $scope.fromClass.class_id;
+			data.from_et_id = $scope.fromExam.exam_type_id;
+		}
+
+		for(let s=0;s < $scope.examMarks.length;s++){
+
+			for (let subjName in $scope.examMarks[s].marks) {
+				let stdnt = {};
+				stdnt.student_id = $scope.examMarks[s].student_id;
+			  stdnt.subject = subjName;
+				stdnt.class_sub_exam_id = $scope.examMarks[s].marks[subjName].class_sub_exam_id;
+				stdnt.subject_id = $scope.examMarks[s].marks[subjName].subject_id;
+				// console.log(stdnt);
+				data.marks.push(stdnt);
+			}
+		}
+		console.log(data);
+
+		apiService.advncedExamEdit(data, function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				document.getElementById('advancedMarksEdit').style.background = '';
+				$uibModalInstance.close(result.data);
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		}, function(response,status)
+		{
+			var result = angular.fromJson( response );
+			console.log(result);
+		});
+
 	}
 
 	var apiError = function (response, status)

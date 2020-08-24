@@ -27,28 +27,27 @@
 
       	    // now we can create a second db connection for each of the db's above and execute a query on each
 
-      	    // $schoolDb = pg_connect("host=localhost port=5433 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
+      	    $schoolDb = pg_connect("host=localhost port=5433 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
 
+
+            $executeOnSchoolDb = pg_query($schoolDb,"WITH sample (term_id, term_num) AS (
+    SELECT term_id, CASE
+				WHEN mnth <= 4 THEN 1
+				WHEN mnth > 4 AND mnth <= 8 THEN 2
+				ELSE 3
+			END AS term_num FROM (
+		SELECT term_id, date_part('month',end_date)::int AS mnth FROM app.terms
+	)a
+)
+--And then proceed to your update
+UPDATE app.terms
+    SET term_number = s.term_num
+    FROM sample s
+    WHERE terms.term_id = s.term_id;"); // executing the query
             /*
-            $executeOnSchoolDb = pg_query($schoolDb,"ALTER TABLE app.report_cards ADD COLUMN class_teacher_comment text;"); // executing the query
-
             $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.payments
                                           ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
             */
-            $sch = substr($value, strpos($value, "_") + 1);
-            $schoolDb = pg_connect("host=localhost port=5433 dbname=eduweb_mis user=postgres password=pg_edu@8947"); // the db connect
-            $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO public.user_auth(subdomain, user_type_id, module_id, add, view, edit, delete, export)
-                                                    SELECT '$sch', 7 AS user_type_id, 1 AS module_id, true AS add, true AS view, true AS edit, true AS delete, true AS export"); // executing the query
-            $executeOnSchoolDb2 = pg_query($schoolDb,"INSERT INTO public.user_auth(subdomain, user_type_id, module_id, add, view, edit, delete, export)
-                                                    SELECT '$sch', 7 AS user_type_id, 2 AS module_id, true AS add, true AS view, true AS edit, true AS delete, true AS export"); // executing the query
-            $executeOnSchoolDb3 = pg_query($schoolDb,"INSERT INTO public.user_auth(subdomain, user_type_id, module_id, add, view, edit, delete, export)
-                                                    SELECT '$sch', 7 AS user_type_id, 3 AS module_id, true AS add, true AS view, true AS edit, true AS delete, true AS export"); // executing the query
-                                                    $executeOnSchoolDb = pg_query($schoolDb,"INSERT INTO public.user_auth(subdomain, user_type_id, module_id, add, view, edit, delete, export)
-                                                                                            SELECT '$sch', 8 AS user_type_id, 1 AS module_id, true AS add, true AS view, true AS edit, true AS delete, true AS export"); // executing the query
-                                                    $executeOnSchoolDb2 = pg_query($schoolDb,"INSERT INTO public.user_auth(subdomain, user_type_id, module_id, add, view, edit, delete, export)
-                                                                                            SELECT '$sch', 8 AS user_type_id, 2 AS module_id, true AS add, true AS view, true AS edit, true AS delete, true AS export"); // executing the query
-                                                    $executeOnSchoolDb3 = pg_query($schoolDb,"INSERT INTO public.user_auth(subdomain, user_type_id, module_id, add, view, edit, delete, export)
-                                                                                            SELECT '$sch', 8 AS user_type_id, 3 AS module_id, true AS add, true AS view, true AS edit, true AS delete, true AS export"); // executing the query
 
             // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
       	    // echo $dbOutput; // just an output of all our db's

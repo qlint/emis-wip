@@ -722,7 +722,7 @@ $app->get('/getAllStudentStreamMarks/:entity/:term/:examTypeId', function ($enti
 		if( is_numeric($termId)  && is_numeric($entityId) && is_numeric($examTypeId) )
 		{
 			$db = getDB();
- 
+
 			$query = "SELECT app.colpivot('_exam_marks', 'SELECT gender, first_name || '' '' || coalesce(middle_name,'''') || '' '' || last_name as student_name,
                                                                       classes.class_id,subject_name,
                                                                       coalesce((select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1),'''') as parent_subject_name,
@@ -1297,5 +1297,117 @@ $app->put('/updateExamClass', function () use($app) {
 		$app->response()->headers->set('Content-Type', 'application/json');
 		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
 	}
+});
+
+$app->post('/advncedExamEdit', function () use($app) {
+	// Add exam type
+
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$results = new stdClass();
+
+	$operation =	( isset($allPostVars['operation']) ? $allPostVars['operation']: null);
+	$termId =		( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
+	$marks = ( isset($allPostVars['marks']) ? $allPostVars['marks']: null);
+	$results->operation = $operation;
+	$results->term_id = $termId;
+	$results->marks = $marks;
+	if($operation == 'move'){
+		$fromClassId =	( isset($allPostVars['from_class_id']) ? $allPostVars['from_class_id']: null);
+		$fromExamTypeId =		( isset($allPostVars['from_et_id']) ? $allPostVars['from_et_id']: null);
+		$toClassId =		( isset($allPostVars['to_class_id']) ? $allPostVars['to_class_id']: false);
+		$toExamTypeId =		( isset($allPostVars['to_et_id']) ? $allPostVars['to_et_id']: false);
+		$results->from_class_id = $fromClassId;
+		$results->from_exam_type_id = $fromExamTypeId;
+		$results->to_class_id = $toClassId;
+		$results->to_exam_type_id = $toExamTypeId;
+	}elseif($operation == 'delete'){
+		$deleteClassId =	( isset($allPostVars['from_class_id']) ? $allPostVars['from_class_id']: null);
+		$deleteExamTypeId =		( isset($allPostVars['from_et_id']) ? $allPostVars['from_et_id']: null);
+		$results->delete_class_id = $deleteClassId;
+		$results->delete_exam_type_id = $deleteExamTypeId;
+	}
+
+	try
+	{
+		$db = getDB();
+
+		if($operation == 'move'){
+			$db->beginTransaction();
+			foreach( $marks as $subjMark )
+			{
+				$classSubExamId =	( isset($subjMark['class_sub_exam_id']) ? $subjMark['class_sub_exam_id']: null);
+				$studentId =	( isset($subjMark['student_id']) ? $subjMark['student_id']: null);
+				$subjectId =	( isset($subjMark['subject_id']) ? $subjMark['subject_id']: null);
+
+				$sth0 = $db->prepare("UPDATE app.class_subject_exams
+															SET exam_type_id = :toExamTypeId
+															FROM (
+																	SELECT class_sub_exam_id FROM app.exam_marks
+																	WHERE class_sub_exam_id = :classSubExamId
+																	AND student_id = :studentId
+																	AND term_id = :termId
+																 ) AS subquery
+															WHERE class_subject_exams.class_sub_exam_id = subquery.class_sub_exam_id
+															AND class_subject_exams.exam_type_id = :fromExamTypeId;");
+
+				$sth0->execute( array(':fromExamTypeId' => $fromExamTypeId,
+															':toExamTypeId' => $toExamTypeId,
+															':classSubExamId' => $classSubExamId,
+															':studentId' => $studentId,
+															':termId' => $termId
+														) );
+			}
+			$db->commit();
+		}elseif($operation == 'delete'){
+
+			$db->beginTransaction();
+			foreach( $marks as $subjMark )
+			{
+				$classSubExamId =	( isset($subjMark['class_sub_exam_id']) ? $subjMark['class_sub_exam_id']: null);
+				$studentId =	( isset($subjMark['student_id']) ? $subjMark['student_id']: null);
+				$subjectId =	( isset($subjMark['subject_id']) ? $subjMark['subject_id']: null);
+
+				$sth0 = $db->prepare("DELETE
+															FROM app.exam_marks em
+															USING app.class_subject_exams cse
+															WHERE em.class_sub_exam_id = cse.class_sub_exam_id
+															AND em.class_sub_exam_id = :classSubExamId
+															AND student_id = :studentId
+															AND term_id = :termId;");
+				$sth0->execute( array(':studentId' => $studentId,
+															':termId' => $termId,
+															':classSubExamId' => $classSubExamId
+														) );
+
+			}
+			/*
+			foreach( $marks as $subjMark )
+			{
+				$classSubExamId =	( isset($subjMark['class_sub_exam_id']) ? $subjMark['class_sub_exam_id']: null);
+				$studentId =	( isset($subjMark['student_id']) ? $subjMark['student_id']: null);
+				$subjectId =	( isset($subjMark['subject_id']) ? $subjMark['subject_id']: null);
+
+				$sth1 = $db->prepare("DELETE
+															FROM app.class_subject_exams cse
+															USING app.exam_marks em
+															WHERE cse.class_sub_exam_id = em.class_sub_exam_id
+															AND cse.class_sub_exam_id = :classSubExamId;");
+				$sth1->execute( array(':classSubExamId' => $classSubExamId) );
+
+			}
+			*/
+			$db->commit();
+		}
+
+		$app->response->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array("response" => "success", "data" => $results));
+		$db = null;
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
 });
 ?>

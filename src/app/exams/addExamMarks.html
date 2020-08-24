@@ -8,67 +8,73 @@
                     		excel = new ExcelGen({
                     			"src_id": "resultsTable2",
                     			"show_header": true,
-                    			"type": "table" 
+                    			"type": "table"
                     		});
                             excel.generate();
                     	});
                     });
 </script>
-<form name="examForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(examForm)">		
+<form name="examForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(examForm)">
 	<div class="modal-header dialog-header-form">
 				<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Exam Marks</h4>
 			</div>
-			<div class="modal-body clearfix">
+			<div class="modal-body clearfix" style="overflow-x:auto;">
 
 				<!-- search form -->
-				<div class="modalDataFilter clearfix">	
+				<div class="modalDataFilter clearfix">
 					<!-- class select -->
 					<div class="form-group">
-						<label for="class">Class</label>	
+						<label for="class">Class</label>
 						<select name="class_id" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class" required>
 							<option value="">--select class--</option>
-						</select>	
+						</select>
 						<p ng-show="examForm.class_id.$invalid && (examForm.class_id.$touched || examForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class is required.</p>
-					</div>		
+					</div>
 
 					<!-- term select -->
 					<div class="form-group">
-						<label for="term">Term</label>	
+						<label for="term">Term</label>
 						<select name="term_id" class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" required>
 							<option value="">--select term--</option>
-						</select>	
+						</select>
 						<p ng-show="examForm.term_id.$invalid && (examForm.term_id.$touched || examForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Term is required.</p>
-					</div>	
-					
+					</div>
+
 					<!-- exam select -->
 					<div class="form-group">
-						<label for="exam_type">Exam</label>	
+						<label for="exam_type">Exam</label>
 						<select name="exam_type" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" required>
-							<option value="">All Exams</option>				
+							<option value="">All Exams</option>
 						</select>
 						<p ng-show="examForm.exam_type.$invalid && (examForm.exam_type.$touched || examForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Exam Type is required.</p>
-					</div>	
-					
+					</div>
+
 					<!-- search btn -->
 					<div class="form-group submit-btn">
 						<input type="button" class="btn btn-sm btn-info" ng-click="getStudentExams(examForm)" value="Load" />
 						<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
-					</div>					
+					</div>
+
+					<!-- advanced marks edit -->
+					<div class="form-group" style="float:right" ng-show="advancedBtns">
+						<label for="advanced">Advanced</label>
+						<button type="button" data-toggle="modal" data-target="#advancedMarksEdit" class="btn btn-xs btn-danger" ng-click="advancedMarksEdit()" style="color:#ffffff;font-weight:600;">Move / Delete Marks</button>
+					</div>
 				</div>
 				<!-- // end search form -->
-				
+
 				<p ng-show="marksNotFound" class="error alert alert-danger">
 					{{errMsg}}
 				</p>
-				
+
 				<table ng-show="!marksNotFound" id="resultsTable2" class="display dataTable" cellspacing="0" width="100%" style="border-collapse: collapse;">
 					<thead>
 						<tr>
 							<th>Student</th>
 							<th class="center ellipsis" ng-repeat="col in subjects">{{col.subject_name}}</th>
 						</tr>
-					</thead>	
+					</thead>
 					<tbody>
 						<tr ng-repeat="item in examMarks track by $index">
 							<td id="{{item.student_id}}">{{item.student_name}}</td>
@@ -89,3 +95,72 @@
 				<button id="generate-excel-formatted" ng-click="exportTableToXLSS()" type="button" class="btn btn-success">Download Excel</button>
 			</div>
 </form>
+
+<!-- Advanced Edit Modal -->
+<div class="modal fade" id="advancedMarksEdit" role="dialog" style="background-color:rgba(56,56,56,0.95);">
+	<div class="modal-dialog">
+
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 style="color:#ffffff;"><span class="glyphicon glyphicon-lock"></span> Move or Delete Class Exam Marks</h4>
+			</div>
+			<div class="modal-body">
+				<form role="form">
+					<div class="form-group">
+						<label for="operation"><span class="glyphicon glyphicon-cog"></span> Select Operation</label>
+						<select class="form-control" name="operation" ng-model="toOperate" ng-change="switchOperation()">
+							<option value="move">Move these marks to another class</option>
+							<option value="delete">Delete these marks for entire class</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<div class="row" ng-show="isDelete">
+							<div class="col-sm-12">
+								<h4>PERMANENTLY DELETE MARKS IN:</h4>
+								<label for="move_from_class"><span class="glyphicon glyphicon-circle-arrow-down"></span> Class:</label>
+								<select class="form-control" name="move_from_class" id="move_from_class" ng-options="fromClassOptions as item.class_name for item in fromClassOptions track by item.class_id" ng-model="fromClass">
+								</select>
+								<label for="move_from_exam"><span class="glyphicon glyphicon-circle-arrow-down"></span> Exam:</label>
+								<select class="form-control" name="move_from_exam" id="move_from_exam" ng-options="fromExamOptions as item.exam_type for item in fromExamOptions track by item.exam_type_id" ng-model="fromExam">
+								</select>
+							</div>
+						</div>
+
+						<div class="row" ng-show="isMove">
+							<div class="col-sm-5">
+								<h4>FROM</h4>
+								<label for="move_from_class"><span class="glyphicon glyphicon-circle-arrow-down"></span> Class:</label>
+								<select class="form-control" name="move_from_class" id="move_from_class" ng-options="fromClassOptions as item.class_name for item in fromClassOptions track by item.class_id" ng-model="fromClass">
+								</select>
+								<label for="move_from_exam"><span class="glyphicon glyphicon-circle-arrow-down"></span> Exam:</label>
+								<select class="form-control" name="move_from_exam" id="move_from_exam" ng-options="fromExamOptions as item.exam_type for item in fromExamOptions track by item.exam_type_id" ng-model="fromExam">
+								</select>
+							</div>
+
+							<div class="col-sm-2"></div>
+
+							<div class="col-sm-5">
+								<h4>TO</h4>
+								<label for="move_to_class"><span class="glyphicon glyphicon-circle-arrow-down"></span> Class:</label>
+								<select class="form-control" name="move_to_class" id="move_to_class" ng-model="toClass" ng-change="fetchClassExams(this,item,toClass)">
+									<option ng-repeat="item in toClassOptions track by $index" value="{{item.class_cat_id}}">{{item.class_name}}</option>
+								</select>
+								<label for="move_to_exam"><span class="glyphicon glyphicon-circle-arrow-down"></span> Exam:</label>
+								<select class="form-control" name="move_to_exam" id="move_to_exam" ng-model="toExam" ng-change="finalSelection(this)">
+									<option ng-repeat="item in toExamTypesOptions track by $index" value="{{item.exam_type_id}}">{{item.exam_type}}</option>
+								</select>
+							</div>
+						</div>
+					</div>
+					<button class="btn btn-default btn-{{btnState}} btn-block" ng-click="advancedEdit()"><span class="glyphicon glyphicon-{{btnIcon}}"></span>&nbsp;&nbsp;{{btnText}}</button>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-default btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+				<p style="font-weight:600;font-size:13px;margin-top:1%;">The changes made here are irreversible. Proceed with caution.</p>
+			</div>
+		</div>
+	</div>
+</div>

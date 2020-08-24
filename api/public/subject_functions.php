@@ -42,7 +42,7 @@ $app->get('/getAllSubjects/:classCatId(/:status/:teacher_id)', function ($classC
 			$params['teacherId'] = $teacherId;
 		}
 		$query .= " ORDER BY class_cat_name, sort_order, subject_name";
-		
+
 	}
 	$sth = $db->prepare($query);
 	$sth->execute($params);
@@ -74,7 +74,7 @@ $app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($
 
 	$app = \Slim\Slim::getInstance();
 
-	try 
+	try
 	{
 	$db = getDB();
 	if( $status === 'all' )
@@ -109,7 +109,7 @@ $app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($
 		$params = array(':teacherId' => $teacherId, ':classCatId' => $classCatId, ':status' => $status);
 	}
 	$sth = $db->prepare($query);
-	$sth->execute($params);			
+	$sth->execute($params);
 
 			$results = $sth->fetchAll(PDO::FETCH_ASSOC);
 
@@ -135,16 +135,16 @@ $app->get('/getAllTeacherSubjects/:teacherId/:classCatId(/:status)', function ($
 
 $app->get('/getSubjects/:classId', function($classId){
 	//show all subjects of a certain class distinctively
-	
+
 	$app=\Slim\Slim::getInstance();
-	
+
 	try{
 	$db = getDB();
 	$sth = $db->prepare("SELECT DISTINCT subject_name FROM app.subjects WHERE class_cat_id=:classId");
 	$sth->execute(array(':classId'=>$classId));
-	
+
 	$results = $sth->fetchAll(PDO::FETCH_ASSOC);
-	
+
 	if($results){
 		$app->response->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -169,23 +169,23 @@ $app->get('/getSubjects/:classCatId', function ($classCatId) {
 
 	$app = \Slim\Slim::getInstance();
 
-	try 
+	try
 	{
 	$db = getDB();
 	$sth = $db->prepare("SELECT subject_id, subject_name, subjects.class_cat_id, class_cat_name,
 								teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, subjects.active,
 								parent_subject_id, sort_order,
-								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name			
+								(select subject_name from app.subjects s where s.subject_id = subjects.parent_subject_id and s.active is true limit 1) as parent_subject_name
 							FROM app.subjects
 							LEFT JOIN app.employees ON subjects.teacher_id = employees.emp_id
-							INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true 
+							INNER JOIN app.class_cats ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 							WHERE subjects.class_cat_id = :classCatId
 							AND subjects.active is true
-							AND (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null 
+							AND (select subject_id from app.subjects s where s.parent_subject_id = subjects.subject_id and s.active is true limit 1) is null
 							ORDER BY class_cat_name, sort_order, subject_name;
 						");
-						
-	$sth->execute(array(':classCatId' => $classCatId));			
+
+	$sth->execute(array(':classCatId' => $classCatId));
 
 			$results = $sth->fetchAll(PDO::FETCH_ASSOC);
 
@@ -221,29 +221,29 @@ $app->post('/addSubject', function () use($app) {
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	$forGrading =			( isset($allPostVars['use_for_grading']) ? $allPostVars['use_for_grading']: false);
 
-	try 
+	try
 	{
 			$db = getDB();
-	
+
 	/* need to determine sort order, grab the last sort order number */
 
 	$sortOrder = $db->prepare("SELECT max(sort_order) as sort_order FROM app.subjects WHERE class_cat_id = :classCatId AND active is true");
 
-	$sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by, parent_subject_id, sort_order, use_for_grading) 
+	$sth = $db->prepare("INSERT INTO app.subjects(subject_name, class_cat_id, teacher_id, created_by, parent_subject_id, sort_order, use_for_grading)
 	VALUES(:subjectName, :classCatId, :teacherId, :userId, :parentSubjectId, :sortOrder, :forGrading)");
 
 
 	$db->beginTransaction();
-			
+
 	$sortOrder->execute( array(':classCatId' => $classCatId) );
 	$sort = $sortOrder->fetch(PDO::FETCH_OBJ);
 	$sortOrder = ($sort && $sort->sort_order !== NULL ? $sort->sort_order + 1 : 1);
 
-			$sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, 
+			$sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId,
 						 ':teacherId' => $teacherId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId,
 						 ':sortOrder' => $sortOrder,
 						 ':forGrading' => $forGrading) );
-						 
+
 	$db->commit();
 
 	$app->response->setStatus(200);
@@ -272,7 +272,7 @@ $app->put('/updateSubject', function () use($app) {
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	$forGrading =			( isset($allPostVars['use_for_grading']) ? $allPostVars['use_for_grading']: 'f');
 
-	try 
+	try
 	{
 		$db = getDB();
 		$sth = $db->prepare("UPDATE app.subjects
@@ -285,7 +285,7 @@ $app->put('/updateSubject', function () use($app) {
 													modified_by = :userId
 												WHERE subject_id = :subjectId");
 
-		$sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId, 
+		$sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId,
 					 ':subjectId' => $subjectId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId, ':forGrading' => $forGrading
 					 ) );
 
@@ -311,17 +311,17 @@ $app->put('/setSubjectStatus', function () use($app) {
 	$status =	( isset($allPostVars['status']) ? $allPostVars['status']: null);
 	$userId =	( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
-	try 
+	try
 	{
 			$db = getDB();
 			$sth = $db->prepare("UPDATE app.subjects
 						SET active = :status,
 							modified_date = now(),
-							modified_by = :userId 
+							modified_by = :userId
 						WHERE subject_id = :subjectId
-						"); 
-			$sth->execute( array(':subjectId' => $subjectId, 
-						 ':status' => $status, 
+						");
+			$sth->execute( array(':subjectId' => $subjectId,
+						 ':status' => $status,
 						 ':userId' => $userId
 				) );
 
@@ -346,23 +346,23 @@ $app->put('/setSubjectSortOrder', function () use($app) {
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 	$sortData =		( isset($allPostVars['data']) ? $allPostVars['data']: null);
 
-	try 
+	try
 	{
 			$db = getDB();
 			$sth = $db->prepare("UPDATE app.subjects
 						SET sort_order = :sortOrder,
 							modified_date = now(),
-							modified_by = :userId 
+							modified_by = :userId
 						WHERE subject_id = :subjectId
-						"); 
-						
+						");
+
 	$db->beginTransaction();
 	foreach( $sortData as $item )
 	{
 		$subjectId =	( isset($item['subject_id']) ? $item['subject_id']: null);
 		$sortOrder =	( isset($item['sort_order']) ? $item['sort_order']: null);
-		$sth->execute( array(':subjectId' => $subjectId, 
-						 ':sortOrder' => $sortOrder, 
+		$sth->execute( array(':subjectId' => $subjectId,
+						 ':sortOrder' => $sortOrder,
 						 ':userId' => $userId
 				) );
 	}
@@ -387,7 +387,7 @@ $app->get('/checkSubject/:subject_id', function ($subjectId) {
 
 	$app = \Slim\Slim::getInstance();
 
-	try 
+	try
 	{
 			$db = getDB();
 			$sth = $db->prepare("SELECT count(class_subject_id) as num_classes
@@ -422,21 +422,21 @@ $app->delete('/deleteSubject/:subject_id', function ($subjectId) {
 
 	$app = \Slim\Slim::getInstance();
 
-	try 
+	try
 	{
 			$db = getDB();
 
-	$d1 = $db->prepare("DELETE FROM app.class_subject_exams 
-							WHERE class_sub_exam_id in (select class_sub_exam_id 
+	$d1 = $db->prepare("DELETE FROM app.class_subject_exams
+							WHERE class_sub_exam_id in (select class_sub_exam_id
 														from app.class_subjects
 														inner join app.class_subject_exams
 														on class_subjects.class_subject_id = class_subject_exams.class_subject_id
 														where subject_id = :subjectId)
 						");
-	$d2 = $db->prepare("DELETE FROM app.class_subjects WHERE subject_id = :subjectId");		
-	
-	$d3 = $db->prepare("DELETE FROM app.subjects WHERE subject_id = :subjectId");	
-									
+	$d2 = $db->prepare("DELETE FROM app.class_subjects WHERE subject_id = :subjectId");
+
+	$d3 = $db->prepare("DELETE FROM app.subjects WHERE subject_id = :subjectId");
+
 	$db->beginTransaction();
 	$d1->execute( array(':subjectId' => $subjectId) );
 	$d2->execute( array(':subjectId' => $subjectId) );
@@ -451,7 +451,7 @@ $app->delete('/deleteSubject/:subject_id', function ($subjectId) {
 
 
 	} catch(PDOException $e) {
-	
+
 			$app->response()->setStatus(404);
 	$app->response()->headers->set('Content-Type', 'application/json');
 			echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
@@ -464,29 +464,29 @@ $app->get('/getTeacherSubjects/:teacher_id(/:status)', function ($teacherId, $st
 
 	$app = \Slim\Slim::getInstance();
 
-	try 
+	try
 	{
 			$db = getDB();
 	$sth = $db->prepare("SELECT subjects.subject_id, subject_name, subjects.teacher_id, subjects.active, subjects.class_cat_id, class_cat_name, use_for_grading,
 				first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, class_subjects.class_id, class_name,
-				(select count(*) 
-							from app.class_subjects 
-							INNER JOIN app.classes 
+				(select count(*)
+							from app.class_subjects
+							INNER JOIN app.classes
 								INNER JOIN app.students ON students.current_class = classes.class_id
 							ON class_subjects.class_id = classes.class_id
 							WHERE subject_id = subjects.subject_id) as num_students
-				FROM app.subjects 
-				INNER JOIN app.class_cats 
+				FROM app.subjects
+				INNER JOIN app.class_cats
 				ON subjects.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 				INNER JOIN app.employees ON subjects.teacher_id = employees.emp_id
-				INNER JOIN app.class_subjects 
+				INNER JOIN app.class_subjects
 					INNER JOIN app.classes
 					ON class_subjects.class_id = classes.class_id
 				ON subjects.subject_id = class_subjects.subject_id
 				WHERE subjects.teacher_id = :teacherId
-				AND subjects.active = :status 
-				ORDER BY subjects.sort_order"); 
-	
+				AND subjects.active = :status
+				ORDER BY subjects.sort_order");
+
 			$sth->execute( array(':teacherId' => $teacherId, ':status' => $status));
 
 			$results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -506,7 +506,7 @@ $app->get('/getTeacherSubjects/:teacher_id(/:status)', function ($teacherId, $st
 	} catch(PDOException $e) {
 		$app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));        
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
 	}
 
 });
@@ -517,7 +517,7 @@ $app->get('/getTeacherClassSubjects/:teacher_id', function ($teacherId) {
 
 	$app = \Slim\Slim::getInstance();
 
-	try 
+	try
 	{
 			$db = getDB();
 	$sth = $db->prepare("SELECT class_subject_id, class_name, subject_name, classes.class_id, subjects.subject_id, use_for_grading,
@@ -528,7 +528,7 @@ $app->get('/getTeacherClassSubjects/:teacher_id', function ($teacherId) {
 									INNER JOIN app.subjects
 									ON class_subjects.subject_id = subjects.subject_id
 									WHERE classes.teacher_id = :teacherId
-									AND classes.active = true 
+									AND classes.active = true
 									AND subjects.active = true
 						UNION
 						SELECT class_subject_id, class_name, subject_name, classes.class_id, subjects.subject_id, use_for_grading,
@@ -540,8 +540,8 @@ $app->get('/getTeacherClassSubjects/:teacher_id', function ($teacherId) {
 									ON subjects.subject_id = class_subjects.subject_id
 									WHERE subjects.teacher_id = :teacherId
 									AND subjects.active = true
-									ORDER BY class_order, subject_order"); 
-	
+									ORDER BY class_order, subject_order");
+
 			$sth->execute( array(':teacherId' => $teacherId));
 
 			$results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -561,7 +561,7 @@ $app->get('/getTeacherClassSubjects/:teacher_id', function ($teacherId) {
 	} catch(PDOException $e) {
 		$app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
-		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));        
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
 	}
 
 });
@@ -577,7 +577,7 @@ $app->get('/getClassSubjects/:class_id', function ($classId) {
 	$sth = $db->prepare("SELECT c.class_name, s.subject_id, LEFT(s.subject_name,3) AS subject_name, s.subject_name AS subj_name, s.sort_order, cs.class_id, s.class_cat_id, s.parent_subject_id
 												FROM app.subjects s
 												INNER JOIN app.class_subjects cs USING (subject_id)
-												INNER JOIN app.classes c USING (class_id)
+												INNER JOIN app.classes c ON cs.class_id = c.class_id
 												WHERE cs.class_id = :classId AND s.use_for_grading IS TRUE AND cs.active IS TRUE
 												ORDER BY s.sort_order");
 

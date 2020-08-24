@@ -35,10 +35,24 @@ $app->post('/createStudentLogin', function () use($app) {
       $app->response()->headers->set('Content-Type', 'application/json');
       echo json_encode(array('response' => 'success', 'message' => 'The credentials have been updated successfully.'));
       $db = null;
+
+      $to = $email;
+      $subject = "Your Eduweb Account";
+
+      $message = "<h3><b>Your login credentials have been updated.</b></h3><br>";
+      $message .= "<p>You are receiving this message because you are registered to a school using Eduweb. Use <b>$pwd</b> to log in and change your password. If you are receiving this email as a fault, please ignore it.</p><br><br>";
+      $message .= "<p>Regards,</p><br>";
+      $message .= "<p>Eduweb</p><br>";
+
+      $header = "From:schools@eduweb.co.ke \r\n";
+      $header .= "MIME-Version: 1.0\r\n";
+      $header .= "Content-type: text/html\r\n";
+
+      mail ($to,$subject,$message,$header);
     }else{
       // insert
-      $insertCreds = $db->prepare("INSERT INTO public.students_portal(school, email, pwd, first_name, middle_name, last_name, gender, student_id, dob, active, country, creation_date)
-                                    VALUES (:subdomain, :email, :pwd, :firstName, :middleName, :lastName, :gender, :studentId, :dob, true, :country, now());");
+      $insertCreds = $db->prepare("INSERT INTO public.students_portal(school, email, pwd, first_name, middle_name, last_name, gender, student_id, dob, active, country, creation_date, school_id)
+                                    VALUES (:subdomain, :email, :pwd, :firstName, :middleName, :lastName, :gender, :studentId, :dob, true, :country, now(), (SELECT client_id FROM clients WHERE subdomain = :subdomain));");
       $insertCreds->execute(array(':subdomain' => $subdomain,
                                   ':email' => $email,
                                   ':pwd' => $pwd,
@@ -54,6 +68,20 @@ $app->post('/createStudentLogin', function () use($app) {
       $app->response()->headers->set('Content-Type', 'application/json');
       echo json_encode(array('response' => 'success', 'message' => 'The credentials have been created successfully.'));
       $db = null;
+
+      $to = $email;
+      $subject = "Your Eduweb Account";
+
+      $message = "<h3><b>Your login credentials have been created.</b></h3><br>";
+      $message .= "<p>You are receiving this message because you are registered to a school using Eduweb. Use <b>$pwd</b> to log in and change your password. If you are receiving this email as a fault, please ignore it.</p><br><br>";
+      $message .= "<p>Regards,</p><br>";
+      $message .= "<p>Eduweb</p><br>";
+
+      $header = "From:schools@eduweb.co.ke \r\n";
+      $header .= "MIME-Version: 1.0\r\n";
+      $header .= "Content-type: text/html\r\n";
+
+      mail ($to,$subject,$message,$header);
     }
 
   } catch(PDOException $e) {
@@ -61,6 +89,37 @@ $app->post('/createStudentLogin', function () use($app) {
     $app->response()->headers->set('Content-Type', 'application/json');
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
+});
+
+$app->get('/getStudentEmail/:studentId/:sch', function ($studentId,$sch) {
+  // Get the student's email
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getLoginDB();
+    $sth = $db->prepare("SELECT email FROM students_portal WHERE student_id = :studentId AND school = :sch");
+    $sth->execute( array(':studentId' => $studentId,':sch' => $sch) );
+    $results = $sth->fetch(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+} catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
 });
 
 $app->get('/getAllStudents/:status(/:startDate/:endDate)', function ($status,$startDate=null,$endDate=null) {

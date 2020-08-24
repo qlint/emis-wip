@@ -317,8 +317,8 @@ input#tripCheck{transform: scale(1.3);}
 							<span ng-show="student.student_image === null" class="glyphicon glyphicon-user"></span>
 						</div>
 						<div id="rmvImg" style="text-align:center;margin-top:5px;" ng-hide="existsImg"><button type="button" class="btn btn-xs btn-danger" ng-click="rmvImg()">Remove Image</button></div>
-						<div style="text-align:center;margin-top:5px;">
-							<button type="button" data-toggle="modal" data-target="#studentCreds" class="btn btn-xs btn-info" style="color:#000000;font-weight:600;">Portal Credentials</button>
+						<div style="text-align:center;margin-top:25px;">
+							<button type="button" data-toggle="modal" data-target="#studentCreds" class="btn btn-xs btn-info" ng-click="creds()" style="color:#000000;font-weight:600;">Portal Credentials</button>
 						</div>
 					</div>
 				</div>
@@ -1133,7 +1133,7 @@ input#tripCheck{transform: scale(1.3);}
           <form role="form">
             <div class="form-group">
               <label for="studentEmail"><span class="glyphicon glyphicon-user"></span> Student Email</label>
-              <input type="text" class="form-control" id="studentEmail" placeholder="Enter email">
+              <input type="text" class="form-control" id="studentEmail" value="{{student_email}}" placeholder="Enter email">
             </div>
             <div class="form-group">
               <label for="psw"><span class="glyphicon glyphicon-eye-open"></span> Password</label>

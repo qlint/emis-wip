@@ -836,6 +836,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	}
 
+	$scope.creds = function(){
+		// fetch current email
+		let param = $scope.student.student_id + '/' + window.location.host.split('.')[0];
+		apiService.getStudentEmail(param, function(response,status){ var result = angular.fromJson(response);if( result.response == 'success'){ $scope.student_email = ( result.nodata ? null : result.data.email ); } }, apiError);
+	}
+
 	$scope.credentialsModal = function(){
 		// validate email first
 		function ValidateEmail(inputText)
@@ -1916,7 +1922,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			classes: $scope.classes,
 			terms: $scope.terms,
 			filters: $scope.filters,
-			adding: true
+			adding: true,
+			generateOrFetch: 'generate'
 		}
 
 		var domain = window.location.host;
