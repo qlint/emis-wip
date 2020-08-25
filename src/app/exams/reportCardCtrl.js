@@ -160,7 +160,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						$scope.reportCd.exam_marks.forEach((item, i) => {
 							let exam =  item.exam_marks;
 							exam.forEach((cat, i) => {
-								if(subj.subject_id == cat.subject_id){
+								if(subj.subject_name.toLowerCase() == cat.subject_name.toLowerCase()){
 									console.log("Pushing to subjects_column >",cat);
 									subj.exam_marks.push(cat);
 								}
@@ -1086,7 +1086,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	var buildReportBody = function(data)
 	{
-		// console.log(data);
+		// console.log(data.details);
 		$scope.examMarks = data.details;
 		// if($scope.schoolName == "kingsinternational" || $scope.schoolName == "thomasburke"){
 		if($scope.calculationMode == "Average" || $scope.calculationMode == ""){
@@ -1147,11 +1147,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				if( result.response == 'success')
 				{
 				    $rootScope.rawExamTypes = result.data;
+						console.log($rootScope.rawExamTypes);
 				}
 
         		$scope.examTypes = $scope.rawExamTypes.filter(function(item){
-        			var found = $scope.examMarks.filter(function(item2){
-        				if( item.exam_type == item2.exam_type ) return item2;
+        			var found = $scope.reportCd.exam_marks.filter(function(item2){
+        				if( item.exam_type_id == item2.exam_type_id ) return item2;
         			})[0];
         			if( found !== undefined ) return item;
         		});
