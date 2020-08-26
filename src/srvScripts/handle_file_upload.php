@@ -24,7 +24,7 @@
     $img = str_replace(' ', '+', $img);
     $fileData = base64_decode($img);
     //saving
-    $fileName = $name;
+    $fileName = pg_escape_string($name);
 
     $output_object->student_id = $student;
     $output_object->term_id = $term;
@@ -36,7 +36,7 @@
     /* db conn */
     $db = pg_connect("host=localhost port=5433 dbname=eduweb_$subDomain user=postgres password=pg_edu@8947");
     $enterRecord = pg_query($db,"INSERT INTO app.report_card_files (student_id, term_id, file_name)
-                                VALUES ($student, $term, '$fileName')
+                                VALUES ($student, $term, '".$fileName."')
                                 ON CONFLICT (file_name) DO UPDATE
                                   SET modified_date = now();");
 

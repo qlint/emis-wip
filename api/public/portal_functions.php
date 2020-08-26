@@ -398,9 +398,12 @@ $app->post('/studentLogin', function () use($app) {
                                         			SELECT s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
                                         				ct.class_id, c.class_name, ct.term_id, t.term_name, ct.year, ct.day, row_to_json(a) AS subject_details
                                         			FROM (
-                                        				SELECT class_timetable_id, day, subject_name, start_hour, start_minutes, end_hour, end_minutes
-                                        				FROM app.class_timetables
-                                        				WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :theStudentId)
+                                        				SELECT class_timetable_id, ctt.day, ctt.subject_name, ctt.start_hour, ctt.start_minutes, ctt.end_hour, ctt.end_minutes,
+                                                  e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name AS teacher_name
+                                        				FROM app.class_timetables ctt
+                                                INNER JOIN app.subjects s USING (subject_id)
+                                                LEFT JOIN app.employees e ON s.teacher_id = e.emp_id
+                                        				WHERE ctt.class_id = (SELECT current_class FROM app.students WHERE student_id = :theStudentId)
                                         			)a
                                         			INNER JOIN app.class_timetables ct USING (class_timetable_id)
                                         			INNER JOIN app.classes c USING (class_id)

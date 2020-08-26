@@ -29,26 +29,29 @@
 
       	    $schoolDb = pg_connect("host=localhost port=5433 dbname=" . $value . " user=postgres password=pg_edu@8947"); // the db connect
 
-
-            $executeOnSchoolDb = pg_query($schoolDb,"WITH sample (term_id, term_num) AS (
-    SELECT term_id, CASE
-				WHEN mnth <= 4 THEN 1
-				WHEN mnth > 4 AND mnth <= 8 THEN 2
-				ELSE 3
-			END AS term_num FROM (
-		SELECT term_id, date_part('month',end_date)::int AS mnth FROM app.terms
-	)a
-)
---And then proceed to your update
-UPDATE app.terms
-    SET term_number = s.term_num
-    FROM sample s
-    WHERE terms.term_id = s.term_id;"); // executing the query
             /*
-            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.payments
-                                          ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
+            $executeOnSchoolDb = pg_query($schoolDb,"WITH sample (term_id, term_num) AS (
+                                                          SELECT term_id, CASE
+                                                      				WHEN mnth <= 4 THEN 1
+                                                      				WHEN mnth > 4 AND mnth <= 8 THEN 2
+                                                      				ELSE 3
+                                                      			END AS term_num FROM (
+                                                      		SELECT term_id, date_part('month',end_date)::int AS mnth FROM app.terms
+                                                      	)a
+                                                      )
+                                                      --And then proceed to your update
+                                                      UPDATE app.terms
+                                                          SET term_number = s.term_num
+                                                          FROM sample s
+                                                          WHERE terms.term_id = s.term_id;"); // executing the query
             */
 
+            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.class_timetables
+                                                      ADD COLUMN subject_id integer;"); // executing the query
+            $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.class_timetables
+                                                      ADD CONSTRAINT fk_class_timetable_subject
+                                                      FOREIGN KEY (subject_id)
+                                                      REFERENCES app.subjects(subject_id);");
             // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
       	    // echo $dbOutput; // just an output of all our db's
       }

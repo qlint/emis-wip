@@ -348,6 +348,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				getCanvas = canvas;
 				var dataURL = canvas.toDataURL();
 				var reportCardName = $scope.student.student_id + '_' + $scope.schoolName + '_' + $scope.student.student_name.split(' ').join('_') + '_' + $scope.report.term_id
+				// console.log("File Name >",reportCardName + ".png");
 				// console.log("Base 64 img ::: ",dataURL);
 				// POST the data
 				$.ajax({
