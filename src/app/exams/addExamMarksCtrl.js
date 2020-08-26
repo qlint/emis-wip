@@ -156,7 +156,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				});
 				$scope.examMarks[(i-1)].marks = marks;
 
-				console.log($scope,$rootScope);
+				// console.log($scope,$rootScope);
 			}
 		}
 		else
@@ -184,12 +184,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			// add them up
 			var total = children.reduce(function(sum,item){
 				sum += parseFloat(item.mark) || 0;
-				console.log("mark summation :: " + sum);
+				// console.log("mark summation :: " + sum);
 				return sum;
 			},0);
 			var totalWeight = children.reduce(function(sum,item){
 				sum += parseFloat(item.grade_weight) || 0;
-				console.log("gw summation :: " + sum);
+				// console.log("gw summation :: " + sum);
 				return sum;
 			},0);
 
@@ -209,25 +209,25 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
     	    var activeInpVal = document.activeElement.value;
     	    var activeInpMax = document.activeElement.max;
     	    var pickElement = document.getElementById(activeInpId);
-    	    console.log("The current value in focus is (" + activeInpVal + ") and it's max is (" + activeInpMax + ")");
+    	    // console.log("The current value in focus is (" + activeInpVal + ") and it's max is (" + activeInpMax + ")");
 
-    	    console.log(parseInt(activeInpVal) > parseInt(activeInpMax));
+    	    // console.log(parseInt(activeInpVal) > parseInt(activeInpMax));
     	    if( parseInt(activeInpVal) > parseInt(activeInpMax) ){
-    	        console.log("Error. Value (" + activeInpVal + ") exceeds max (" + activeInpMax + ")");
+    	        // console.log("Error. Value (" + activeInpVal + ") exceeds max (" + activeInpMax + ")");
 
     	        pickElement.style.border = '2px solid';
     	        pickElement.style.outline = 'none';
     	        pickElement.style.borderColor = '#E60000';
     	        pickElement.style.boxShadow = '0 0 10px #E60000';
     	    }else{
-    	        console.log("Current value in range");
+    	        // console.log("Current value in range");
 
     	        pickElement.style.border = '';
     	        pickElement.style.outline = '';
     	        pickElement.style.borderColor = '';
     	        pickElement.style.boxShadow = '';
     	    }
-    	    console.log(document.activeElement.id);
+    	   // console.log(document.activeElement.id);
 
 
 		$scope.highlightError = function(){
@@ -415,55 +415,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				});
 			});
 
-			var reportCardUpdateData = [];
-			// need to create objects with all student params we need for reportcard update
-			for(let a=0; a < $scope.examMarks.length; a++){
-				// loop through students to match id's and access data
-				$scope.students.forEach((student) => {
-				  if(student.student_id == $scope.examMarks[a].student_id){
-						// we have a match, get needed data
-						let studentSubjectData = {
-							student_id: $scope.examMarks[a].student_id,
-							student_name: student.student_name,
-							subject_id: student.subject_id,
-							subject_name: student.subject_name,
-							parent_subject_id: student.parent_subject_id,
-							sort_order: student.sort_order,
-							term_id: student.term_id,
-							is_parent: student.is_parent,
-							mark: student.mark,
-							grade_weight: student.grade_weight
-						};
-						// loop through subjects and access subject data
-						for(let b=0; b < $scope.subjects.length; b++){
-							if($scope.subjects[b].subject_id == student.subject_id){
-								studentSubjectData.subject_teacher_id = $scope.subjects[b].teacher_id;
-								studentSubjectData.subject_exam_type_id = $scope.subjects[b].exam_type_id;
-								studentSubjectData.subject_exam_type = $scope.subjects[b].exam_type;
-								studentSubjectData.parent_subject_name = $scope.subjects[b].parent_subject_name;
-							}
-						}
-						// loop through terms and access term data
-						for(let c=0; c < $scope.terms.length; c++){
-							if($scope.terms[c].term_id == student.term_id){
-								studentSubjectData.term_name = $scope.terms[c].term_name;
-								studentSubjectData.term_year_name = $scope.terms[c].term_year_name;
-								studentSubjectData.year = $scope.terms[c].year;
-								studentSubjectData.end_date = $scope.terms[c].end_date;
-							}
-						}
-						// get the remaining parameters from the filters
-						studentSubjectData.class_id = $scope.filters.class.class_id;
-						studentSubjectData.class_name = $scope.filters.class.class_name;
-						studentSubjectData.class_teacher_id = $scope.filters.class.teacher_id;
-						studentSubjectData.class_teacher_name = $scope.filters.class.teacher_name;
-
-						reportCardUpdateData.push(studentSubjectData);
-					}
-				});
-			}
-			console.log(reportCardUpdateData);
-
 
 			var data = {
 				user_id: $rootScope.currentUser.user_id,
@@ -471,19 +422,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			}
 
 			apiService.addExamMarks(data,createCompleted,apiError);
-
-			apiService.updateReportCardData({"exam_marks":reportCardUpdateData},function ( response, status, params )
-																						{
-																							var result = angular.fromJson( response );
-																							if( result.response == 'success' )
-																							{
-																								console.log("Report cards updated successfully",result);
-																							}else
-																							{
-																								$scope.error = true;
-																								$scope.errMsg = result.data;
-																							}
-																						},apiError);
 
 		}
 	}
@@ -507,7 +445,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	}
 
 	$scope.advancedMarksEdit = function(){
-		console.log($scope);
+		// console.log($scope);
+		document.getElementById('advBtn').disabled = false;
 		$scope.btnState = 'warning';
 		$scope.toOperate = 'move';
 		$scope.isMove = true;
@@ -529,7 +468,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			}
 		});
 		$scope.fromExamOptions = [fromExamOptions]
-		console.log($scope.fromExamOptions);
+		// console.log($scope.fromExamOptions);
 		$scope.fromExam = $scope.fromExamOptions[0];
 		$("#move_from_exam").mousedown(function(event){ event.preventDefault(); });
 		//to classe
@@ -589,7 +528,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	}
 
 	$scope.advancedEdit = function(){
-		console.log($scope);
+		// console.log($scope);
 
 		let data = {
 			operation: $scope.toOperate,
@@ -625,8 +564,38 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var result = angular.fromJson( response );
 			if( result.response == 'success' )
 			{
-				document.getElementById('advancedMarksEdit').style.background = '';
-				$uibModalInstance.close(result.data);
+				$scope.btnState = 'info';
+				$scope.btnText = 'SUCCESS';
+				$scope.btnIcon = 'ok-circle';
+				setTimeout(function(){
+					// $scope.cancel();
+					document.getElementById('advBtn').disabled = true;
+					var request = $scope.filters.class_id + '/' + $scope.filters.exam_type_id;
+					request += ( $scope.isTeacher ? '/' + $rootScope.currentUser.emp_id : '/0');
+					apiService.getAllClassExams(request, function(response){
+						$scope.loading = false;
+						var result = angular.fromJson( response );
+						if( result.response == 'success' )
+						{
+							if( result.nodata !== undefined)
+							{
+								$scope.marksNotFound = true;
+								$scope.errMsg = "The selected exam is not set up for this class.";
+							}
+							else
+							{
+								$scope.subjects = result.data;
+
+								var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+								if( $scope.isTeacher ) request += '/' + $rootScope.currentUser.emp_id;
+								apiService.getClassExamMarks(request, loadMarks, apiError);
+
+								$scope.advancedBtns = true;
+							}
+						}
+					}, apiError)
+				}, 2500);
+
 			}
 			else
 			{
