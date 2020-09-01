@@ -122,6 +122,7 @@ function getSubDomain()
     	$parsedUrl = parse_url($url);
     	$host = explode('.', $parsedUrl['host']);
     	$schoolSubdomain = $host[0];
+			if($schoolSubdomain == "documentation"){$schoolSubdomain = 'dev2';}
     	// var_dump($schoolSubdomain); // echo's school subdomain eg "dev"
     	return $schoolSubdomain;
 

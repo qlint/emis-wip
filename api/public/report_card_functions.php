@@ -171,6 +171,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 		                              				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 		                              				INNER JOIN app.subjects s2 USING (subject_id)
 		                              				WHERE e2.student_id = :studentId
+																					AND cs2.class_id = :classId
 		                              				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE
 		                              				ORDER BY et2.sort_order ASC, s2.sort_order ASC
 																			)a
@@ -240,6 +241,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 													INNER JOIN app.subjects s2 USING (subject_id)
 													WHERE e2.student_id = :studentId
+													AND cs2.class_id = :classId
 													AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
@@ -277,6 +279,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 															INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 															INNER JOIN app.subjects s2 USING (subject_id)
 															WHERE e2.student_id = :studentId
+															AND cs2.class_id = :classId
 															AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 															ORDER BY et2.sort_order ASC, s2.sort_order ASC
 														)f
@@ -841,6 +844,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
                               		LEFT JOIN app.report_cards em USING (student_id) /* this is not a mistake */
                               		INNER JOIN app.terms t USING (term_id)
                               		WHERE em.term_id = :termId
+																	AND em.class_id = :classId
                               		AND s.student_id = :studentId
                               	)a
                               )d");
@@ -1002,6 +1006,7 @@ $app->get('/getClassReportCardData/:class_id/:term_id', function ($classId, $ter
 																INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 																INNER JOIN app.subjects s2 USING (subject_id)
 																WHERE e2.student_id = :studentId
+																AND cs2.class_id = :classId
 																AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE
 																ORDER BY et2.sort_order ASC, s2.sort_order ASC
 															)f
@@ -1760,6 +1765,7 @@ $app->get('/getLiveReportCardData/:student_id/:class_id/:term_id', function ($st
 													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 													INNER JOIN app.subjects s2 USING (subject_id)
 													WHERE e2.student_id = :studentId
+													AND cs2.class_id = :classId
 													AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f

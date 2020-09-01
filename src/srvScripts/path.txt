@@ -219,3 +219,5 @@ FPDF error: Unexpected end of stream
 FPDF error: Unexpected end of stream
 FPDF error: Unexpected end of stream
 FPDF error: Unexpected end of stream
+FPDF error: Unexpected end of stream
+FPDF error: Unexpected end of stream

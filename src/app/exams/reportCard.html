@@ -330,7 +330,7 @@ function getChartPath()
 								<label>Current Term Marks:</label>
 							</div>
 							<div ng-show="isSchool" class="col-xs-2 lesspad">
-								<p class="form-control-static inline" style="border-bottom: 1px dotted #000000 !important;">{{reportCd.positions[0].this_term_position.total_mark||'-'}} / {{reportCd.positions[0].this_term_position.total_grade_weight||'-'}}</p>
+								<p class="form-control-static inline" style="border-bottom: 1px dotted #000000 !important;">{{reportCd.calculation_mode == 'Last Exam' ? reportCd.positions_by_last_exams[0].this_term_position.total_mark : reportCd.positions[0].this_term_position.total_mark||'-'}} / {{reportCd.positions[0].this_term_position.total_grade_weight||'-'}}</p>
 							</div>
 						</div>
 					</div>
@@ -1316,13 +1316,13 @@ function getChartPath()
 								<label>Name:</label>
 							</div>
 							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{student.student_name}}</p>
+								<p class="form-control-static">{{reportCd.student_name}}</p>
 							</div>
 							<div class="col-xs-1 nopad-right">
 								<label>Class:</label>
 							</div>
 							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{report.class_name}}</p>
+								<p class="form-control-static">{{reportCd.class_name}}</p>
 							</div>
 						</div>
 						<!-- class, term and year -->
@@ -1331,13 +1331,13 @@ function getChartPath()
 								<label>Class Teacher:</label>
 							</div>
 							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{report.teacher_name}}</p>
+								<p class="form-control-static">{{reportCd.report_card_comments.teacher_name}}</p>
 							</div>
 							<div class="col-xs-1 nopad-right">
 								<label>Term:</label>
 							</div>
 							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{report.term}}, {{report.year}}</p>
+								<p class="form-control-static">{{reportCd.term_name}}</p>
 							</div>
 						</div>
 						<div class="row">
@@ -1345,10 +1345,11 @@ function getChartPath()
 								<label>Date:</label>
 							</div>
 							<div class="col-xs-5 lesspad">
-								<p class="form-control-static">{{currentTermEndDate|date}}</p>
+								<p class="form-control-static">{{reportCd.closing_date}}</p>
 							</div>
 						</div>
 					</div>
+					<!--
 					<table class="display dataTable" cellspacing="0" width="100%">
 						<thead>
 							<tr>
@@ -1366,7 +1367,23 @@ function getChartPath()
 							</tr>
 						</tbody>
 					</table>
+					-->
+					<table class="display dataTable" cellspacing="0" width="100%">
+						<thead>
+							<tr>
+								<th class="center">Subject</th>
+								<th class="center" width="75%">Remarks</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="item in reportCd.kindergarten_report_card track by $index">
+								<td style="vertical-align:top" ng-class="{'strong uppercase': item.parent_subject_name===null, 'indent' : item.parent_subject_name!==null}">{{item.subject_name}}</td>
+								<td>{{item.remarks}}</td>
+							</tr>
+						</tbody>
+					</table>
 
+					<!--
 					<div class="progress-report-remarks">
 						<h3>Remarks</h3>
 						<table width="100%">
@@ -1404,6 +1421,36 @@ function getChartPath()
 								<td colspan="2">
 									<label>Next term begins on:</label>
 									<p class="form-control-static">{{nextTermStartDate}}</p>
+								</td>
+							</tr>
+						</table>
+					</div>
+					-->
+					<div class="progress-report-remarks">
+						<h3>Remarks</h3>
+						<table width="100%">
+							<tr>
+								<td width="75%">
+									<label>CLASS TEACHER'S COMMENTS</label>
+									<div>{{reportCd.report_card_comments.teacher_comments}}</div>
+								</td>
+								<td>
+									<label>Sign:</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<label>HEAD TEACHER</label>
+									<div>{{reportCd.report_card_comments.principle_comments}}</div>
+								</td>
+								<td>
+									<label>Sign:</label>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2">
+									<label>Next term begins on:</label>
+									<p class="form-control-static">{{reportCd.next_term_begins}}</p>
 								</td>
 							</tr>
 						</table>

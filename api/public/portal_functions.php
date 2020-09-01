@@ -617,7 +617,6 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
             $registrationMessageObj->message_text = "Hello $registrationData->first_name, Your code for the Eduweb Mobile App registration is $uniqueCode ";
             $registrationMessageObj->subscriber_name = "api";// $school;
 
-
             $msgRecipientsObj = new stdClass();
             $msgRecipientsObj->recipient_name = "$registrationData->first_name $registrationData->last_name";
             $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
@@ -666,54 +665,56 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
       $qry = $db1->query("SELECT * FROM registration_codes WHERE telephone = '$phoneNumber' LIMIT 1;");
       $usr = $qry->fetch(PDO::FETCH_OBJ);
 
-      // first we need to change the phone format to +[code]phone
-      $firstChar = substr($phoneNumber, 0, 1);
-      if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
-      // we now create & send the actual sms
-      $registrationMessageObj = new stdClass();
-      $registrationMessageObj->message_recipients = Array();
-      $registrationMessageObj->message_by = "Eduweb Mobile App Registration";
-      $registrationMessageObj->message_date = date('Y-m-d H:i:s');
-      $registrationMessageObj->message_text = "Hello $usr->first_name, Your code for the Eduweb Mobile App registration is $usr->code ";
-      $registrationMessageObj->subscriber_name = "api";// $school;
+      if(isset($usr->first_name)){
+        // first we need to change the phone format to +[code]phone
+        $firstChar = substr($phoneNumber, 0, 1);
+        if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
+        // we now create & send the actual sms
+        $registrationMessageObj = new stdClass();
+        $registrationMessageObj->message_recipients = Array();
+        $registrationMessageObj->message_by = "Eduweb Mobile App Registration";
+        $registrationMessageObj->message_date = date('Y-m-d H:i:s');
+        $registrationMessageObj->message_text = "Hello $usr->first_name, Your code for the Eduweb Mobile App registration is $usr->code ";
+        $registrationMessageObj->subscriber_name = "api";// $school;
 
-      $msgRecipientsObj = new stdClass();
-      $msgRecipientsObj->recipient_name = "$usr->first_name $usr->last_name";
-      $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
-      array_push($registrationMessageObj->message_recipients, clone $msgRecipientsObj);
+        $msgRecipientsObj = new stdClass();
+        $msgRecipientsObj->recipient_name = "$usr->first_name $usr->last_name";
+        $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
+        array_push($registrationMessageObj->message_recipients, clone $msgRecipientsObj);
 
-      // send the message
-      $ch = curl_init();
-      curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
-      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-      curl_setopt($ch, CURLOPT_HEADER, FALSE);
-      curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
-      curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($registrationMessageObj)); // the data to post
-      curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+        // send the message
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($registrationMessageObj)); // the data to post
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
 
-      $resp = curl_exec($ch);
+        $resp = curl_exec($ch);
 
-      if($resp === false)
-      {
+        if($resp === false)
+        {
+          $app->response()->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found but there seems to be a slight problem sending the SMS. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch), "phone" => $phoneNumber, "code" => $usr->code ));
+        }
+        else
+        {
+          $app->response()->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password.", "status" => "SMS sent successfully", "phone" => $phoneNumber, "code" => $usr->code ));
+        }
+
+        curl_close($ch);
+        $db1 = null;
+      }else{
         $app->response()->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found but there seems to be a slight problem sending the SMS. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch), "phone" => $phoneNumber ));
+        echo  json_encode(array('response' => 'error', 'message' => "The submitted phone number is already in use, either by you or another user.", "status" => "Phone number already in use" ));
       }
-      else
-      {
-        $app->response()->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password.", "status" => "SMS sent successfully", "phone" => $phoneNumber ));
-      }
-
-      curl_close($ch);
-
-      // $app->response()->setStatus(200);
-      // $app->response()->headers->set('Content-Type', 'application/json');
-      // echo  json_encode(array('response' => 'error', 'message' => "The submitted phone number is already in use, either by you or another user.", "status" => "Phone number already in use" ));
-      $db1 = null;
     }
 
   } catch(PDOException $e) {
@@ -994,9 +995,61 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
         echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records.", "status" => "Phone number not found, no sms will be sent." ));
       }
     }else{
-      $app->response()->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo  json_encode(array('response' => 'error', 'message' => "You seem to have previously tried to reset your password but did not complete the process.", "status" => "Incomplete password reset process detected." ));
+      $user = $db0->query("SELECT p.first_name, p.last_name, fp.usr_name, fp.temp_pwd
+                                          FROM forgot_password fp
+                                          INNER JOIN parents p USING (parent_id)
+                                          WHERE usr_name = '$phoneNumber'
+                                          LIMIT 1");
+      $userDetails = $user->fetch(PDO::FETCH_OBJ);
+      $fName = $userDetails->first_name;
+      $lName = $userDetails->last_name;
+      $code = $userDetails->temp_pwd;
+      $phone = $userDetails->usr_name;
+
+      // first we need to change the phone format to +[code]phone
+      $firstChar = substr($phoneNumber, 0, 1);
+      if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
+      // we now create & send the actual sms
+      $forgotPwdObj = new stdClass();
+      $forgotPwdObj->message_recipients = Array();
+      $forgotPwdObj->message_by = "Eduweb Mobile App Forgot Password";
+      $forgotPwdObj->message_date = date('Y-m-d H:i:s');
+      $forgotPwdObj->message_text = "Hello $fName, use $code as your temporary password for the Eduweb Mobile App.";
+      $forgotPwdObj->subscriber_name = "api";// to be replaced;
+
+
+      $msgRecipientsObj = new stdClass();
+      $msgRecipientsObj->recipient_name = "$fName $lName";
+      $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
+      array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
+
+      // send the message
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_HEADER, FALSE);
+      curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+      curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($forgotPwdObj)); // the data to post
+      curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+
+      $resp = curl_exec($ch);
+
+      if($resp === false)
+      {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'Success', 'message' => "An error was encountered while attempting to SMS you your temporary password for confirmation and reset. Please try again.", "status" => "SMS not sent", "temporary-code" => $temporaryPwd, "phone" => $phoneNumber, "error" => curl_error($ch) ));
+      }
+      else
+      {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'Success', 'message' => "You seem to have previously tried to reset your password but did not complete the process. An SMS has been resent with your temporary password.", "status" => "SMS resent.", "temporary-code" => $temporaryPwd, "phone" => $phoneNumber ));
+      }
+
+      curl_close($ch);
     }
     $db0 = null;
 
@@ -2535,6 +2588,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                                   				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
                                   				INNER JOIN app.subjects s2 USING (subject_id)
                                   				WHERE e2.student_id = :studentId
+                                          AND cs2.class_id = :classId
                                   				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE AND s2.active IS TRUE
                                   				ORDER BY et2.sort_order ASC, s2.sort_order ASC
                                       )a
@@ -2638,7 +2692,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 															INNER JOIN app.exam_types et2 USING (exam_type_id)
 															INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 															INNER JOIN app.subjects s2 USING (subject_id)
-															WHERE e2.student_id = :studentId AND s2.active IS TRUE
+															WHERE e2.student_id = :studentId AND s2.active IS TRUE AND s2.use_for_grading IS TRUE
 															AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 															ORDER BY et2.sort_order ASC, s2.sort_order ASC
 														)f
@@ -2670,6 +2724,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 													INNER JOIN app.subjects s2 USING (subject_id)
 													WHERE e2.student_id = :studentId AND s2.active IS TRUE
+                          AND cs2.class_id = :classId
 													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
@@ -2723,7 +2778,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 															INNER JOIN app.exam_types et2 USING (exam_type_id)
 															INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 															INNER JOIN app.subjects s2 USING (subject_id)
-															WHERE e2.student_id = :studentId AND s2.active IS TRUE
+															WHERE e2.student_id = :studentId AND s2.active IS TRUE and s2.use_for_grading IS TRUE
 															AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 															AND cse2.exam_type_id = (
 																					  SELECT cc.exam_type_id FROM (
@@ -3207,6 +3262,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                               		LEFT JOIN app.report_cards em USING (student_id) /* this is not a mistake */
                               		INNER JOIN app.terms t USING (term_id)
                               		WHERE em.term_id = :termId
+                                  AND em.class_id = :classId
                               		AND s.student_id = :studentId
                               	)a
                               )d");
@@ -3287,6 +3343,7 @@ $app = \Slim\Slim::getInstance();
     				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
     				INNER JOIN app.subjects s2 USING (subject_id)
     				WHERE e2.student_id = d.student_id
+            AND cs2.class_id = d.class_id
     				AND e2.term_id = d.term_id AND s2.use_for_grading IS TRUE
     				ORDER BY et2.sort_order ASC, s2.sort_order ASC
         )a
@@ -3320,6 +3377,7 @@ $app = \Slim\Slim::getInstance();
 						INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 						INNER JOIN app.subjects s2 USING (subject_id)
 						WHERE e2.student_id = d.student_id
+            AND cs2.class_id = d.class_id
 						AND e2.term_id = d.term_id AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 						ORDER BY et2.sort_order ASC, s2.sort_order ASC
 					)f
@@ -3353,6 +3411,7 @@ $app = \Slim\Slim::getInstance();
 					INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 					INNER JOIN app.subjects s2 USING (subject_id)
 					WHERE e2.student_id = d.student_id
+          AND cs2.class_id = d.class_id
 					AND e2.term_id = d.term_id AND parent_subject_id IS null AND use_for_grading IS TRUE
 					ORDER BY et2.sort_order ASC, s2.sort_order ASC
 				)f
@@ -3389,7 +3448,8 @@ $app = \Slim\Slim::getInstance();
 								INNER JOIN app.exam_types et2 USING (exam_type_id)
 								INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 								INNER JOIN app.subjects s2 USING (subject_id)
-								WHERE e2.student_id = d.student_id
+								WHERE e2.student_id = d.student_id and s2.use_for_grading IS TRUE
+                AND cs2.class_id = d.class_id
 								AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = d.term_id) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 								ORDER BY et2.sort_order ASC, s2.sort_order ASC
 							)f
@@ -3421,6 +3481,7 @@ $app = \Slim\Slim::getInstance();
 							INNER JOIN app.class_subjects cs2 USING (class_subject_id)
 							INNER JOIN app.subjects s2 USING (subject_id)
 							WHERE e2.student_id = d.student_id
+              AND cs2.class_id = d.class_id
 							AND e2.term_id = d.term_id AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
 							ORDER BY et2.sort_order ASC, s2.sort_order ASC
 						)f
@@ -3560,30 +3621,16 @@ $app = \Slim\Slim::getInstance();
 	) AS subjects_column,
   rc.report_data::json AS report_card_comments
 FROM (
-	SELECT DISTINCT ON (term_id) term_id, class_id, student_id, class_name, student_name, term_name, closing_date, year, next_term_begins,
-		admission_number
-	FROM(
-		SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
-			em.term_id, t.term_name, t.end_date AS closing_date, date_part('year', t.start_date) AS year,
-			(SELECT start_date FROM app.terms WHERE start_date > (SELECT end_date FROM app.terms WHERE term_id = z.term_id) LIMIT 1) AS next_term_begins,
-			z.class_id, (SELECT class_name FROM app.classes WHERE class_id = z.class_id) AS class_name, s.admission_number
-		FROM app.students s
-		LEFT JOIN app.exam_marks em USING (student_id)
-		INNER JOIN app.terms t USING (term_id)
-		INNER JOIN
-		(
-			SELECT DISTINCT em.term_id, t.term_name, em.student_id, cs.class_id, c.class_name
-			FROM app.exam_marks em
-			INNER JOIN app.terms t USING (term_id)
-			INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
-			INNER JOIN app.class_subjects cs USING (class_subject_id)
-			INNER JOIN app.classes c USING (class_id)
-			WHERE em.student_id = :studentId
-			ORDER BY term_id DESC
-		)z
-		ON t.term_id = z.term_id
-		WHERE s.student_id = :studentId
-	)a
+  SELECT DISTINCT r.term_id, t.term_name, r.class_id, c.class_name, r.student_id, s.admission_number,
+        s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+        t.end_date AS closing_date, date_part('year', t.start_date) AS year,
+        (SELECT start_date FROM app.terms WHERE start_date > (SELECT end_date FROM app.terms WHERE term_id = r.term_id) LIMIT 1) AS next_term_begins
+  FROM app.report_cards r
+  INNER JOIN app.terms t USING (term_id)
+  INNER JOIN app.classes c USING (class_id)
+  INNER JOIN app.students s USING (student_id)
+  WHERE r.student_id = :studentId AND published IS TRUE
+  ORDER BY term_id DESC
 )d
 INNER JOIN
 app.report_cards rc ON d.class_id = rc.class_id AND d.term_id = rc.term_id AND d.student_id = rc.student_id");
@@ -3592,13 +3639,13 @@ app.report_cards rc ON d.class_id = rc.class_id AND d.term_id = rc.term_id AND d
   $results = $sth->fetchAll(PDO::FETCH_OBJ);
   foreach($results as $result){
     $result->exam_marks = json_decode($result->exam_marks);
-$result->subject_overalls_column = json_decode($result->subject_overalls_column);
-$result->totals = json_decode($result->totals);
-$result->overall_marks_and_grade = json_decode($result->overall_marks_and_grade);
-$result->positions = json_decode($result->positions);
-$result->subjects_column = json_decode($result->subjects_column);
-$result->report_card_comments = json_decode($result->report_card_comments);
-$result->report_card_comments = ($result->report_card_comments == null ? null : $result->report_card_comments->comments);
+    $result->subject_overalls_column = json_decode($result->subject_overalls_column);
+    $result->totals = json_decode($result->totals);
+    $result->overall_marks_and_grade = json_decode($result->overall_marks_and_grade);
+    $result->positions = json_decode($result->positions);
+    $result->subjects_column = json_decode($result->subjects_column);
+    $result->report_card_comments = json_decode($result->report_card_comments);
+    $result->report_card_comments = ($result->report_card_comments == null ? null : $result->report_card_comments->comments);
   }
 
       // traffic analysis start

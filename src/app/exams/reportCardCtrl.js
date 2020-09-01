@@ -161,7 +161,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 							let exam =  item.exam_marks;
 							exam.forEach((cat, i) => {
 								if(subj.subject_name.toLowerCase() == cat.subject_name.toLowerCase()){
-									console.log("Pushing to subjects_column >",cat);
+									// console.log("Pushing to subjects_column >",cat);
 									subj.exam_marks.push(cat);
 								}
 							});
@@ -1105,14 +1105,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
     		$scope.overall = data.overall;
 			$scope.overallLastTerm = data.overallLastTerm;
 		}
-		$scope.graphPoints = data.graphPoints;
+		// $scope.graphPoints = data.graphPoints;
+		$scope.graphPoints = $scope.reportCd.totals[0].total_marks;
 
 		var performanceLabels = [];
 		var performanceData = [];
 
 		angular.forEach($scope.graphPoints, function (item, key) {
 		    performanceLabels.push(item.exam_type);
-		    performanceData.push(item.average_grade);
+		    performanceData.push(item.total);
 		});
 
 		var lineChartData = {
