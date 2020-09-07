@@ -384,7 +384,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
                      apiService.rmvPickUpIndividualImg(imgParam,createCompleted,apiError);
         		}
 
-				$scope.student.admission_date = {startDate: ($scope.student.admission_date != undefined || tudent.admission_date != null ? $scope.student.admission_date : null)};
+				$scope.student.admission_date = {startDate: ($scope.student.admission_date != undefined || $scope.student.admission_date != null ? $scope.student.admission_date : null)};
 
 				//get lower school report cards start
         		var setExistingDocReportCards  = function(response,status)
@@ -1835,7 +1835,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					if( sum.indexOf(item.alt_term_name) === -1 ) sum.push(item.alt_term_name);
 					return sum;
 				}, []).sort();
-				console.log($scope.reportCards.terms);
+				// console.log($scope.reportCards.terms);
 
 
 				// group the reports by class
@@ -1906,6 +1906,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 				});
 				$scope.reportCards.classes[(i-1)].reports = reports;
+				console.log($scope.reportCards);
 			}
 		}
 		else
@@ -2011,7 +2012,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						current_class_cat : $scope.student.class_cat_id,
 						student_image : ( uploader.queue[0] !== undefined ? uploader.queue[0].file.name : $scope.student.student_image),
 						active : ( $scope.student.active ? 't' : 'f' ),
-						admission_date: moment($scope.student.admission_date.startDate).format('YYYY-MM-DD'),
+						admission_date: ($scope.student.admission_date.startDate ? moment($scope.student.admission_date.startDate).format('YYYY-MM-DD') : null),
 						admission_number: $scope.student.admission_number,
 						new_student : ( $scope.student.new_student ? 't' : 'f' ),
                         student_type: $scope.student.student_type,

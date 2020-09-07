@@ -14,7 +14,7 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
 							INNER JOIN app.class_cats cc USING (class_cat_id)
 							LEFT JOIN app.employees ON c.teacher_id = employees.emp_id
 							WHERE c.active = :status
-							ORDER BY c.sort_order");
+							ORDER BY c.class_name ASC /* c.sort_order */");
        $sth->execute( array(':status' => $status ) );
 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);

@@ -4,7 +4,6 @@ angular.module('eduwebApp').
 controller('postFormCtrl', ['$scope', '$rootScope', 'apiService', 'dialogs', 'FileUploader','$timeout','$state',
 function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $state){
 
-
 	$scope.loadingPost = true;
 	$scope.editingBlogName = false;
 
@@ -868,6 +867,7 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 
 		if( !form.$invalid )
 		{
+			console.log($scope.filters.class);
 		    $scope.optionsSelected = true;
 			$scope.selectedClass = undefined;
 			$scope.setupBlog = false
@@ -875,10 +875,12 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			/* set variables for display of type of message they are entering */
 			$scope.selectedAudience = angular.copy($scope.filters.audience.audience);
 			$scope.selectedType = angular.copy($scope.filters.com_type.com_type);
-			$scope.selectedParent = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.parent_full_name) : undefined );
+			// $scope.selectedParent = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.parent_full_name) : undefined );
+			$scope.selectedParent = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.map(a => a.parent_full_name)) : undefined );
 			$scope.selectedRoute = ( $scope.theroute.selected !== undefined ? angular.copy($scope.theroute.selected.route) : undefined );
 			$scope.selectedActivity = ( $scope.theactivity.selected !== undefined ? angular.copy($scope.theactivity.selected.fee_item) : undefined );
-			$scope.selectedClassName = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_name) : undefined );
+			// $scope.selectedClassName = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_name) : undefined );
+			$scope.selectedClassName = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.map(a => a.class_name)) : undefined );
 			$scope.selectedEmployee = ( $scope.theemployee2.selected !== undefined ? angular.copy($scope.theemployee2.selected.employee_full_name) : undefined );
 			$scope.selectedDepartment = ( $scope.thedepartment.selected !== undefined ? angular.copy($scope.thedepartment.selected.dept_name) : undefined );
 			$scope.selectedCategory = ( $scope.thecategory.selected !== undefined ? angular.copy($scope.thecategory.selected.emp_cat_name) : undefined );
@@ -888,11 +890,14 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.selectedMethod =	angular.copy($scope.filters.send_method).toUpperCase();
 
 			/* set variables to post of selected criteria */
-			$scope.post.student_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.student_id) : undefined );
-			$scope.post.guardian_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.guardian_id) : undefined );
+			// $scope.post.student_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.student_id) : undefined );
+			$scope.post.student_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.map(a => a.student_id)) : undefined );
+			// $scope.post.guardian_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.guardian_id) : undefined );
+			$scope.post.guardian_id = ( $scope.theparent.selected !== undefined ? angular.copy($scope.theparent.selected.map(a => a.guardian_id)) : undefined );
 			$scope.post.transport_id = ( $scope.theroute.selected !== undefined ? angular.copy($scope.theroute.selected.transport_id) : undefined );
 			$scope.post.fee_item = ( $scope.theactivity.selected !== undefined ? angular.copy($scope.theactivity.selected.fee_item) : undefined );
-			$scope.post.class_id = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_id) : undefined );
+			// $scope.post.class_id = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.class_id) : undefined );
+			$scope.post.class_id = ( $scope.filters.class !== undefined ? angular.copy($scope.filters.class.map(a => a.class_id)) : undefined );
 			$scope.post.emp_id = ( $scope.theemployee2.selected !== undefined ? angular.copy($scope.theemployee2.selected.emp_id) : undefined );
 			$scope.post.to_employee = ( $scope.theemployee2.selected !== undefined ? angular.copy($scope.theemployee2.selected.emp_id) : undefined );
 			$scope.post.dept_id = ( $scope.thedepartment.selected !== undefined ? angular.copy($scope.thedepartment.selected.dept_id) : undefined );
@@ -903,6 +908,10 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 			$scope.post.audience_id = angular.copy($scope.filters.audience.audience_id);
 			$scope.post.com_type_id = angular.copy($scope.filters.com_type.com_type_id);
 			$scope.post.send_method = angular.copy($scope.filters.send_method);
+			// console.log("Selected Parent > ",$scope.selectedParent);
+			// console.log("Selected Class > ",$scope.selectedClassName);
+			// console.log("Guardian Id > ",$scope.post.guardian_id);
+			// console.log("Class Id > ",$scope.post.class_id);
 
 			/* if the user is not associated with an employee id, need to ask for one */
 			// console.log($scope.noEmpId);
@@ -1180,21 +1189,41 @@ function($scope, $rootScope, apiService, $dialogs, FileUploader, $timeout, $stat
 						user_id: $rootScope.currentUser.user_id,
 						post: $scope.post
 					}
-					console.log(data);
-                      if( $scope.post.post_status_id === 1 )
-                      {
-                        console.log($scope.post);
-                        var dlg = $dialogs.confirm('Publishing Communication', 'You have selected to publish this communication. This will cause the email/sms to be sent to the selected audience. You will no longer be able to edit this message. Do you wish to continue?',{size:'sm'});
-            			var imageUploads = [$scope.post];
-            			var seeImageUploads = JSON.stringify(imageUploads);
-                        dlg.result.then(function(btn){
-                          apiService.addCommunication(data,createCompleted,apiError);
-                        });
-                      }
-                      else
-                      {
-                        apiService.addCommunication(data,createCompleted,apiError);
-                      }
+
+					if( $scope.post.post_status_id === 1 )
+					{
+						console.log(data);
+						var dlg = $dialogs.confirm('Publishing Communication', 'You have selected to publish this communication. This will cause the email/sms to be sent to the selected audience. You will no longer be able to edit this message. Do you wish to continue?',{size:'sm'});
+						var imageUploads = [$scope.post];
+						var seeImageUploads = JSON.stringify(imageUploads);
+						dlg.result.then(function(btn){
+							if(data.post.guardian_id != null || data.post.guardian_id != undefined){
+								data.post.guardian_id.forEach((guardian, i) => {
+									// console.log("Guardian Id = " + guardian + " at index " + i);
+									// console.log("Student id > ",data.post.student_id[i]);
+									let newData = JSON.parse(JSON.stringify(data));
+									newData.post.guardian_id = guardian;
+									newData.post.student_id = newData.post.student_id[i];
+									// console.log(newData);
+									apiService.addCommunication(newData,createCompleted,apiError);
+								});
+
+							}else if(data.post.class_id != null || data.post.class_id != undefined){
+								data.post.class_id.forEach((classid, i) => {
+									// console.log("Class Id = " + classid + " at index " + i);
+									let newData = JSON.parse(JSON.stringify(data));
+									newData.post.class_id = classid;
+									// console.log(newData);
+									apiService.addCommunication(newData,createCompleted,apiError);
+								});
+							}else{
+								apiService.addCommunication(data,createCompleted,apiError);
+							}
+							// apiService.addCommunication(data,createCompleted,apiError);
+						});
+					}else{
+						apiService.addCommunication(data,createCompleted,apiError);
+					}
 				}
 				else
 				{
