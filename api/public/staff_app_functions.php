@@ -8,6 +8,9 @@ $app->post('/staffLogin', function () use($app) {
   $username = $allPostVars['user_name'];
   $pwd = $allPostVars['user_pwd'];
 
+  $username = pg_escape_string($username);
+  $pwd = pg_escape_string($pwd);
+
   //$hash = password_hash($pwd, PASSWORD_BCRYPT);
 
   try
@@ -46,16 +49,6 @@ $app->post('/staffLogin', function () use($app) {
                   if( $db !== null ) $db = null;
                   $db = setDBConnection($result->school);
                 }
-
-                /*
-                $myStudents = Array();
-                $subjectsIteachOnly = Array();
-                $subjectsWhereImAclassTeacher = Array();
-                $myStudentsParents = Array;
-                $myProfile = null;
-                $mySchoolDetails = null;
-                $myTopStudents = Array();
-                */
 
                 // get the teacher's students
                 if($result->user_type == "TEACHER"){
@@ -193,6 +186,44 @@ $app->post('/staffLogin', function () use($app) {
                     $sth11->execute(array(':teacherId' => $result->emp_id));
                     $myTopStudents = $sth11->fetchAll(PDO::FETCH_OBJ);
 
+                    $sth12 = $db->prepare("SELECT class_id, class_name, term_id, term_name, year,
+                                          	array_to_json(array_agg(day_lessons)) AS timetable
+                                          FROM (
+                                          	SELECT class_id, class_name, term_id, term_name, year,
+                                          		'{\"' || day || '\":' || day_details ||'}' AS day_lessons
+                                          	FROM (
+                                          		SELECT class_id, class_name, term_id, term_name, year, day,
+                                          			array_to_json(array_agg(class_details)) AS day_details
+                                          		FROM (
+                                          			SELECT tt.class_id, c.class_name, tt.term_id, t.term_name, tt.year, tt.day,
+                                          				row_to_json(a) AS class_details
+                                          			FROM (
+                                          				SELECT teacher_timetable_id, tt.day, tt.subject_name, tt.start_hour, tt.start_minutes, tt.end_hour, tt.end_minutes,
+                                          					class_name
+                                          				FROM app.teacher_timetables tt
+                                          				--INNER JOIN app.subjects s USING (subject_id)
+                                          				INNER JOIN app.classes c USING (class_id)
+                                          				WHERE tt.teacher_id = :teacherId
+                                          			)a
+                                          			INNER JOIN app.teacher_timetables tt USING (teacher_timetable_id)
+                                          			INNER JOIN app.classes c USING (class_id)
+                                          			INNER JOIN app.terms t USING (term_id)
+                                          			--INNER JOIN app.students s ON c.class_id = s.current_class
+                                          			WHERE tt.teacher_id = :teacherId
+                                          		)b
+                                          		GROUP BY class_id, class_name, term_id, term_name, year, day
+                                          	)c
+                                          )d
+                                          GROUP BY class_id, class_name, term_id, term_name, year");
+                    $sth12->execute(array(':teacherId' => $result->emp_id));
+                    $myTimetable = $sth12->fetch(PDO::FETCH_OBJ);
+                    if($myTimetable){
+                      $myTimetable->timetable = json_decode($myTimetable->timetable);
+                      for ($i=0; $i < count($myTimetable->timetable); $i++) {
+                        $myTimetable->timetable[$i] = json_decode($myTimetable->timetable[$i]);
+                      }
+                    }
+
                 }
 
 
@@ -259,6 +290,7 @@ $app->post('/staffLogin', function () use($app) {
               $result->myTopStudents = $myTopStudents;
               $result->news = $news;
               $result->feedback = $feedback;
+              $result->myTimetable = $myTimetable;
 
               $app->response->setStatus(200);
               $app->response()->headers->set('Content-Type', 'application/json');
@@ -289,6 +321,105 @@ $app->post('/staffLogin', function () use($app) {
 
         }
     }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->post('/staffSubscriber', function () use($app) {
+  // Log staff in
+
+  $allPostVars = $app->request->post();
+
+  $username = $allPostVars['user_name'];
+  $pwd = $allPostVars['user_pwd'];
+
+  $username = pg_escape_string($username);
+  $pwd = pg_escape_string($pwd);
+
+  //$hash = password_hash($pwd, PASSWORD_BCRYPT);
+
+  try
+  {
+    $db = getLoginDB();
+
+    $userCheckQry = $db->query("SELECT (CASE
+                                    		WHEN EXISTS (SELECT usernm FROM staff WHERE usernm = '$username') THEN 'proceed'
+                                    		ELSE 'stop'
+                                    	END) AS status");
+    $userStatus = $userCheckQry->fetch(PDO::FETCH_OBJ);
+    $userStatus = $userStatus->status;
+
+    if($userStatus === "proceed"){
+
+            $sth = $db->prepare("SELECT emp_id, usernm AS username, active, first_name, middle_name, last_name, email,
+                          first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS staff_full_name, telephone, user_id, user_type,
+                          subdomain AS school
+                        FROM staff
+                        WHERE usernm= :username
+                        AND password = :password
+                        AND active is true");
+            $sth->execute( array(':username' => $username, ':password' => $pwd) );
+            $result = $sth->fetch(PDO::FETCH_OBJ);
+
+            if($result) {
+
+                if($result->user_type == "TEACHER"){
+
+                    // $myStudents = Array();
+
+                    if( $db !== null ) $db = null;
+                    $db = setDBConnection($result->school);
+
+                    $sth9 = $db->prepare("SELECT emp_cat_id, dept_id, emp_number, gender, 
+                                          CASE WHEN emp_image IS NULL THEN NULL ELSE 'https://cdn.eduweb.co.ke/employees/' || emp_image END AS emp_image
+                                          FROM app.employees
+                                          WHERE emp_id = :teacherId");
+                    $sth9->execute(array(':teacherId' => $result->emp_id));
+                    $myProfile = $sth9->fetch(PDO::FETCH_OBJ);
+
+                    $result->emp_cat_id = $myProfile->emp_cat_id;
+                    $result->dept_id = $myProfile->dept_id;
+                    $result->emp_number = $myProfile->emp_number;
+                    $result->gender = $myProfile->gender;
+                    $result->emp_image = $myProfile->emp_image;
+
+                }
+
+              $app->response->setStatus(200);
+              $app->response()->headers->set('Content-Type', 'application/json');
+              $db = null;
+
+              echo json_encode(array('response' => 'success', 'data' => $result ));
+
+            } else {
+
+                $app->response->setStatus(200);
+                $app->response()->headers->set('Content-Type', 'application/json');
+                echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
+
+            }
+
+    } else {
+        if($userStatus === "stop"){
+
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array("response" => "error", "code" => 2, "data" => 'The username you entered does not exist. Please confirm and try again.'));
+
+        } else {
+
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
+
+        }
+    }
+
   } catch(PDOException $e) {
     $app->response()->setStatus(401);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -1886,7 +2017,7 @@ $app->post('/getStudentsFromClassInBus/:school', function ($school) {
   try
   {
     $db = setDBConnection($school);
-    
+
     /*
     $fetchStudents = $db->prepare("SELECT student_id, student_name, class_name, array_agg('{' || 'guardian_id:' || guardian_id || ',' || 'guardian_name:' || guardian_name || ',' || 'relationship:' || relationship || ',' || 'telephone:' || telephone || '}') AS parents, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route FROM (
                                         SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
@@ -1927,13 +2058,13 @@ $app->post('/getStudentsFromClassInBus/:school', function ($school) {
                                                             INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
                                                             LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
                                                             WHERE b.bus_id = :busId
-                                                            AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history) 
+                                                            AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history)
                                         												THEN
                                         													(
                                         													SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
                                         													AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
                                         													AND student_id IS NOT NULL AND activity = :activity)
-                                        												ELSE 0 
+                                        												ELSE 0
                                         											END)
                                                             AND s.student_id NOT IN (SELECT student_id FROM app.student_buses WHERE bus_id = :busId)
                                                             AND s.current_class IN (".implode(',',$classId).")
@@ -1958,13 +2089,13 @@ $app->post('/getStudentsFromClassInBus/:school', function ($school) {
                                                             INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
                                                             LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
                                                             WHERE b.bus_id = :busId
-                                                            AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history) 
+                                                            AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history)
                                         												THEN
                                         													(
                                         													SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
                                         													AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
                                         													AND student_id IS NOT NULL AND activity = :activity)
-                                        												ELSE 0 
+                                        												ELSE 0
                                         											END)
                                                             AND s.current_class IN (".implode(',',$classId).")
                                                     )a
@@ -2027,13 +2158,13 @@ $app->get('/getStudentsInARoute/:school/:routeId/:activity', function ($school,$
             			INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
             			WHERE s.active IS TRUE
             			AND tr.transport_id = :routeId
-            			AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history) 
+            			AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history)
     												THEN
     													(
     													SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
     													AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
     													AND student_id IS NOT NULL AND activity = :activity)
-    												ELSE 0 
+    												ELSE 0
     											END)
                         )
                         ");

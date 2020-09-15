@@ -572,6 +572,99 @@ $app->get('/getStudentDetails/:studentId', function ($studentId) {
 
 });
 
+$app->get('/getStudentsInClass/:class_id', function ($classId) {
+  //Students in a class with their details
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT
+                            student_id, student_name,
+                            case when admission_number IS NOT NULL then admission_number else '-' end as admission_number,
+                            student_category, nationality, class_name,
+                            case when date_of_birth IS NOT NULL then date_of_birth else '-' end as date_of_birth,
+                            case when student_type IS NOT NULL then student_type else '-' end as student_type,
+                            case when house is not null then house else '-' end as house,
+                            case when club IS NOT NULL then club else '-' end as club,
+                            case when mother_name IS NOT NULL then mother_name else '-' end as mother_name,
+                            case when mother_telephone IS NOT NULL then mother_telephone else '-' end as mother_telephone,
+                            case when father_name IS NOT NULL then father_name else '-' end as father_name,
+                            case when father_telephone IS NOT NULL then father_telephone else '-' end as father_telephone
+                          FROM (
+                                SELECT one.*, mother_name, mother_telephone, father_name, father_telephone
+                                                  FROM (
+                                                    SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, admission_number, student_category, nationality,
+                                                      class_name, CASE WHEN adopted IS FALSE THEN 'False' ELSE 'True' END AS adopted, emergency_name AS emergency_contact, emergency_relationship, emergency_telephone,
+                                                      dob AS date_of_birth, pick_up_drop_off_individual, pick_up_drop_off_individual_phone, payment_method AS fee_payment_method, payment_plan_name AS payment_plan,
+                                                      route, student_type, nemis, house, club, movement, destination AS neighborhood
+                                                    FROM app.students s
+                                                    LEFT JOIN app.classes c ON s.current_class = c.class_id
+                                                    LEFT JOIN app.class_cats cc ON c.class_cat_id = cc.class_cat_id
+                                                    LEFT JOIN app.installment_options io ON s.installment_option_id = io.installment_id
+                                                    LEFT JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                                                    WHERE s.current_class = :classId
+                                        AND s.active = true AND cc.entity_id != 100 OR entity_id IS null
+                                                    ORDER BY student_name ASC, class_name ASC
+                                                  )one
+                                                  LEFT JOIN
+                                                  (
+                                                    SELECT student_id, mother_name, mother_telephone, father_name, father_telephone
+                                                    FROM (
+                                                      SELECT * FROM
+                                                      (
+                                                      SELECT * FROM (
+                                                        SELECT student_id,
+                                                          CASE WHEN sg.relationship = 'Mother' THEN g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name END AS mother_name,
+                                                          CASE WHEN sg.relationship = 'Mother' THEN telephone END AS mother_telephone
+                                                        FROM app.student_guardians sg
+                                                        INNER JOIN app.guardians g USING (guardian_id)
+                                                        ORDER BY student_id ASC
+                                                        )inner1 WHERE mother_name IS NOT NULL
+                                                      )one
+                                                      FULL OUTER JOIN
+                                                      (
+                                                      SELECT * FROM (
+                                                        SELECT student_id,
+                                                          CASE WHEN sg.relationship = 'Father' THEN g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name END AS father_name,
+                                                          CASE WHEN sg.relationship = 'Father' THEN telephone END AS father_telephone
+                                                        FROM app.student_guardians sg
+                                                        INNER JOIN app.guardians g USING (guardian_id)
+                                                        ORDER BY student_id ASC
+                                                        )inner2 WHERE father_name IS NOT NULL
+                                                      )two
+                                                      USING (student_id)
+                                                      ORDER BY student_id ASC
+                                                    )three
+                                                  )four
+                                                  USING (student_id)
+                          )five
+                          ORDER BY student_name ASC");
+    $sth->execute( array(':classId' => $classId));
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+    } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/getStudentBalance/:studentId', function ($studentId) {
   // Return students next payment
 

@@ -18,6 +18,7 @@ function getDB()
 	else
 	{
 		echo "No user found!";
+		// var_dump($_SERVER['HTTP_ORIGIN']);
 	}
 }
 
@@ -129,9 +130,19 @@ function getSubDomain()
     }
     else
     {
-       //it was not sent, perform your default actions here
-       $referrer = ( isset($_SERVER['HTTP_X_SCHOOL_IDENTIFIER']) ? $_SERVER['HTTP_X_SCHOOL_IDENTIFIER'] : '');
-       return $referrer;
+		//it was not sent, perform your default actions here
+		// $referrer = ( isset($_SERVER['HTTP_X_SCHOOL_IDENTIFIER']) ? $_SERVER['HTTP_X_SCHOOL_IDENTIFIER'] : '');
+		// return $referrer;
+			 if(isset($_SERVER['HTTP_X_SCHOOL_IDENTIFIER'])){
+				 $referrer = ( isset($_SERVER['HTTP_X_SCHOOL_IDENTIFIER']) ? $_SERVER['HTTP_X_SCHOOL_IDENTIFIER'] : '');
+				 return $referrer;
+			 }elseif(isset($_SERVER['HTTP_ORIGIN'])){
+				 $url = $_SERVER['HTTP_ORIGIN'];
+				 $parsedUrl = parse_url($url);
+				 $host = explode('.', $parsedUrl['host']);
+				 $schoolSubdomain = $host[0];
+				 return $schoolSubdomain;
+			 }
        // note that the above initiates OPTIONS request which is vulnerable
     }
 	/*

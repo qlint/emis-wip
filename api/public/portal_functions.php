@@ -6,6 +6,10 @@ $app->post('/parentLogin', function () use($app) {
   $pwd = $allPostVars['user_pwd'];
   $devId = ( isset($allPostVars['device_user_id']) ? $allPostVars['device_user_id']: false);
 
+  $username = pg_escape_string($username);
+  $pwd = pg_escape_string($pwd);
+  $devId = pg_escape_string($devId);
+
   //$hash = password_hash($pwd, PASSWORD_BCRYPT);
 
   try
@@ -53,6 +57,28 @@ $app->post('/parentLogin', function () use($app) {
         $updateDeviceId = $db->prepare("UPDATE parents SET device_user_id = :devId WHERE parent_id = :parentId");
         $updateDeviceId->execute( array(':devId' => $devId, ':parentId' => $theParentId) );
       }
+
+      if(strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE)
+       $browser = 'Internet explorer';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Trident') !== FALSE) //For Supporting IE 11
+        $browser = 'Internet explorer';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Firefox') !== FALSE)
+       $browser = 'Mozilla Firefox';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE)
+       $browser = 'Google Chrome';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera Mini') !== FALSE)
+       $browser = "Opera Mini";
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera') !== FALSE)
+       $browser = "Opera";
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== FALSE)
+       $browser = "Safari";
+    elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'insomnia') !== FALSE)
+       $browser = "Insomnia";
+     else
+       $browser = 'Something else';
+      $activityUpdate = $db->prepare("UPDATE parents SET browser = :browser, last_active = now()
+                                    WHERE parent_id = :parentId");
+      $activityUpdate->execute(array(':browser' => $browser, ':parentId' => $theParentId));
 
             $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
                           first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id, guardian_id AS school_guardian_id
@@ -453,7 +479,7 @@ $app->post('/studentLogin', function () use($app) {
      else
        $browser = 'Something else';
 
-      $stdntUpdate = $db->prepare("UPDATE students_portal SET device = :browser, last_active = now()
+      $stdntUpdate = $db->prepare("UPDATE students_portal SET browser = :browser, last_active = now()
                                     WHERE email = :email AND pwd = :pwd");
       $stdntUpdate->execute(array(':browser' => $browser, ':email' => $email, ':pwd' => $pwd));
 
@@ -476,10 +502,86 @@ $app->post('/studentLogin', function () use($app) {
   }
 });
 
+$app->post('/studentSubscriber', function () use($app) {
+  // Log student in
+  $allPostVars = $app->request->post();
+  $email = $allPostVars['email'];
+  $pwd = $allPostVars['password'];
+
+  //$hash = password_hash($pwd, PASSWORD_BCRYPT);
+
+  try
+  {
+    $db = getLoginDB();
+
+    $stdntCheckQry = $db->prepare("SELECT * FROM students_portal WHERE email = :email AND pwd = :pwd");
+    $stdntCheckQry->execute(array(':email' => $email, ':pwd' => $pwd));
+    $stdntStatus = $stdntCheckQry->fetch(PDO::FETCH_OBJ);
+    $theStudent = (isset($stdntStatus->student_portal_id) ? $stdntStatus->student_portal_id : null);
+    $theSchool = (isset($stdntStatus->school) ? $stdntStatus->school : null);
+    $theStudentId = (isset($stdntStatus->student_id) ? $stdntStatus->student_id : null);
+
+    if($theStudent){
+      $getDb = setDBConnection($theSchool);
+      $studentQry = $getDb->prepare("SELECT s.first_name, s.middle_name, s.last_name,
+                                    		s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                                    		admission_number, gender, date_text_to_date(dob) AS dob, c.class_name, student_category,
+                                    		TO_CHAR(admission_date :: DATE, 'dd/mm/yyyy') AS admission_date,
+                                    		CASE WHEN student_image IS NULL THEN NULL ELSE 'https://cdn.eduweb.co.ke/students/' || student_image END AS image,
+                                        :email AS email
+                                    FROM app.students s
+                                    INNER JOIN app.classes c ON s.current_class = c.class_id
+                                    WHERE s.student_id = :theStudentId");
+      $studentQry->execute(array(':email' => $email, ':theStudentId' => $theStudentId));
+      $student = $studentQry->fetch(PDO::FETCH_OBJ);
+
+      if(strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE)
+       $browser = 'Internet explorer';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Trident') !== FALSE) //For Supporting IE 11
+        $browser = 'Internet explorer';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Firefox') !== FALSE)
+       $browser = 'Mozilla Firefox';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE)
+       $browser = 'Google Chrome';
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera Mini') !== FALSE)
+       $browser = "Opera Mini";
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera') !== FALSE)
+       $browser = "Opera";
+     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== FALSE)
+       $browser = "Safari";
+    elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'insomnia') !== FALSE)
+       $browser = "Insomnia";
+     else
+       $browser = 'Something else';
+
+      $stdntUpdate = $db->prepare("UPDATE students_portal SET browser = :browser, last_active = now()
+                                    WHERE email = :email AND pwd = :pwd");
+      $stdntUpdate->execute(array(':browser' => $browser, ':email' => $email, ':pwd' => $pwd));
+
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $student ));
+      $db = null;
+      $getDb = null;
+    }else{
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'message' => 'The credentials you have entered to not match. Confirm and/or check your spellings and try again.' ));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
 $app->get('/registrationStatus/:phone', function ($phoneNumber){
   error_reporting(E_ALL);  // uncomment this only when testing
   ini_set('display_errors', 1); // uncomment this only when testing
   // Get the registration status
+  $phoneNumber = pg_escape_string($phoneNumber);
   $app = \Slim\Slim::getInstance();
 
   try
@@ -732,6 +834,8 @@ $app->get('/checkRegCode/:phone/:code', function ($phone,$code) {
     try
     {
       $db = getLoginDB();
+      $phone = pg_escape_string($phone);
+      $code = pg_escape_string($code);
 
       $checkCode = $db->query("SELECT (CASE
                                           WHEN EXISTS (SELECT telephone,code FROM registration_codes WHERE telephone = '$phone' AND code='$code') THEN 'proceed'
@@ -767,6 +871,9 @@ $app->post('/registerPwd', function () use($app) {
   $allPostVars = $app->request->post();
   $pwd = $allPostVars['pwd'];
   $phone = $allPostVars['phone'];
+
+  $pwd = pg_escape_string($pwd);
+  $phone = pg_escape_string($phone);
 
   try
   {
@@ -859,7 +966,26 @@ $app->put('/updatePassword', function () use($app) {
 				$mistrafficdb = null;
 				// traffic analysis end
 
-      $sth2 = $db->prepare("UPDATE parents SET password = :newPwd WHERE parent_id = :userId");
+        if(strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE)
+         $browser = 'Internet explorer';
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Trident') !== FALSE) //For Supporting IE 11
+          $browser = 'Internet explorer';
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Firefox') !== FALSE)
+         $browser = 'Mozilla Firefox';
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE)
+         $browser = 'Google Chrome';
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera Mini') !== FALSE)
+         $browser = "Opera Mini";
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera') !== FALSE)
+         $browser = "Opera";
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== FALSE)
+         $browser = "Safari";
+      elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'insomnia') !== FALSE)
+         $browser = "Insomnia";
+       else
+         $browser = 'Something else';
+
+      $sth2 = $db->prepare("UPDATE parents SET password = :newPwd, browser = :browser, last_active = now() WHERE parent_id = :userId");
       $sth2->execute( array(':userId' => $userId, ':newPwd' => $newPwd) );
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');
@@ -1240,6 +1366,28 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
   try
   {
     $db = getLoginDB();
+
+    if(strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE)
+     $browser = 'Internet explorer';
+   elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Trident') !== FALSE) //For Supporting IE 11
+      $browser = 'Internet explorer';
+   elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Firefox') !== FALSE)
+     $browser = 'Mozilla Firefox';
+   elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE)
+     $browser = 'Google Chrome';
+   elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera Mini') !== FALSE)
+     $browser = "Opera Mini";
+   elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera') !== FALSE)
+     $browser = "Opera";
+   elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== FALSE)
+     $browser = "Safari";
+  elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'insomnia') !== FALSE)
+     $browser = "Insomnia";
+   else
+     $browser = 'Something else';
+    $activityUpdate = $db->prepare("UPDATE parents SET browser = :browser, last_active = now()
+                                  WHERE parent_id = :parentId");
+    $activityUpdate->execute(array(':browser' => $browser, ':parentId' => $parentId));
 
     // get the parents' students and add to result
     $sth1 = $db->prepare("SELECT student_id, guardian_id AS school_guardian_id, subdomain, dbusername, dbpassword FROM parent_students WHERE parent_id = :parentId ORDER BY subdomain");
@@ -5209,6 +5357,209 @@ $app->get('/getStudentSubjPerformanceByTermAnalysis/:school/:studentId/:classId/
                         	ORDER BY et2.sort_order ASC, s2.sort_order ASC");
     $sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId));
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getStudentSubjPerformanceByYearAnalysis/:school/:studentId/:classId', function ($school, $studentId, $classId) {
+  // Return students resources
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+      $db = setDBConnection($school);
+
+    $sth = $db->prepare("SELECT e2.term_id, t2.term_name, e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
+                        			s2.subject_name, s2.subject_id, coalesce(e2.mark,0) AS mark,
+                        			round((mark/cse2.grade_weight::float)*100) AS percentage,
+                        			cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
+                        	FROM app.exam_marks e2
+                        	INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+                        	INNER JOIN app.exam_types et2 USING (exam_type_id)
+                        	INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+                        	INNER JOIN app.subjects s2 USING (subject_id)
+                          INNER JOIN app.terms t2 USING (term_id)
+                        	WHERE e2.student_id = :studentId
+                        	AND cs2.class_id = :classId
+                          AND s2.use_for_grading IS TRUE AND s2.active IS TRUE
+                        	AND s2.parent_subject_id IS NULL
+                        	ORDER BY e2.term_id ASC, et2.sort_order ASC, s2.sort_order ASC");
+    $sth->execute( array(':studentId' => $studentId, ':classId' => $classId));
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getSubjGradePerfByTermAnalysis/:school/:studentId/:classId/:termId', function ($school, $studentId, $classId, $termId) {
+  // Return students resources
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+      $db = setDBConnection($school);
+
+    $sth = $db->prepare("SELECT DISTINCT ON (exam_type_id) exam_type_id, subject_name, exam_type, exam_sort,
+                        		mark as max_mark
+                        FROM (
+                        	SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
+                        			s2.subject_name, s2.subject_id, coalesce(e2.mark,0) AS mark,
+                        			round((mark/cse2.grade_weight::float)*100) AS percentage,
+                        			cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
+                        	FROM app.exam_marks e2
+                        	INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+                        	INNER JOIN app.exam_types et2 USING (exam_type_id)
+                        	INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+                        	INNER JOIN app.subjects s2 USING (subject_id)
+                        	WHERE e2.student_id = :studentId
+                        	AND cs2.class_id = :classId
+                        	AND e2.term_id = :termId AND s2.use_for_grading IS TRUE AND s2.active IS TRUE
+                        	AND s2.parent_subject_id IS NULL
+                        	ORDER BY et2.sort_order DESC, s2.sort_order ASC
+                        )a
+                        ORDER BY exam_type_id, mark DESC NULLS LAST;");
+    $sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId));
+    $highest = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    $sth2 = $db->prepare("SELECT DISTINCT ON (exam_type_id) exam_type_id, subject_name, exam_type, exam_sort,
+                          		mark as low_mark
+                          FROM (
+                          	SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
+                          			s2.subject_name, s2.subject_id, coalesce(e2.mark,0) AS mark,
+                          			round((mark/cse2.grade_weight::float)*100) AS percentage,
+                          			cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
+                          	FROM app.exam_marks e2
+                          	INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+                          	INNER JOIN app.exam_types et2 USING (exam_type_id)
+                          	INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+                          	INNER JOIN app.subjects s2 USING (subject_id)
+                          	WHERE e2.student_id = :studentId
+                          	AND cs2.class_id = :classId
+                          	AND e2.term_id = :termId AND s2.use_for_grading IS TRUE AND s2.active IS TRUE
+                          	AND s2.parent_subject_id IS NULL
+                          	ORDER BY et2.sort_order ASC, s2.sort_order ASC
+                          )a
+                          ORDER BY exam_type_id, mark ASC NULLS LAST;");
+    $sth2->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId));
+    $lowest = $sth2->fetchAll(PDO::FETCH_OBJ);
+
+    $results = new stdClass();
+    $results->highest = $highest;
+    $results->lowest = $lowest;
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getSubjGradePerfByYearAnalysis/:school/:studentId/:classId', function ($school, $studentId, $classId) {
+  // Return students resources
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+      $db = setDBConnection($school);
+
+    $sth = $db->prepare("SELECT DISTINCT ON (term_id, exam_type_id) term_id, exam_type_id, term_name, subject_name, exam_type, exam_sort,
+                          		max_mark
+                          FROM (
+                          	SELECT e2.term_id, t2.term_name, e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
+                          			s2.subject_name, s2.subject_id, coalesce(e2.mark,0) AS max_mark,
+                          			round((mark/cse2.grade_weight::float)*100) AS percentage,
+                          			cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
+                          	FROM app.exam_marks e2
+                          	INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+                          	INNER JOIN app.exam_types et2 USING (exam_type_id)
+                          	INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+                          	INNER JOIN app.subjects s2 USING (subject_id)
+                          	INNER JOIN app.terms t2 USING (term_id)
+                          	WHERE e2.student_id = :studentId
+                          	AND cs2.class_id = :classId
+                          	AND s2.use_for_grading IS TRUE AND s2.active IS TRUE
+                          	AND s2.parent_subject_id IS NULL
+                          	ORDER BY term_id ASC, et2.sort_order ASC, s2.sort_order ASC
+                          )a
+                          ORDER BY term_id, exam_type_id, max_mark DESC NULLS LAST;");
+    $sth->execute( array(':studentId' => $studentId, ':classId' => $classId));
+    $highest = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    $sth2 = $db->prepare("SELECT DISTINCT ON (term_id, exam_type_id) term_id, exam_type_id, term_name, subject_name, exam_type, exam_sort,
+                          		low_mark
+                          FROM (
+                          	SELECT e2.term_id, t2.term_name, e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
+                          			s2.subject_name, s2.subject_id, coalesce(e2.mark,0) AS low_mark,
+                          			round((mark/cse2.grade_weight::float)*100) AS percentage,
+                          			cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
+                          	FROM app.exam_marks e2
+                          	INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
+                          	INNER JOIN app.exam_types et2 USING (exam_type_id)
+                          	INNER JOIN app.class_subjects cs2 USING (class_subject_id)
+                          	INNER JOIN app.subjects s2 USING (subject_id)
+                          	INNER JOIN app.terms t2 USING (term_id)
+                          	WHERE e2.student_id = :studentId
+                          	AND cs2.class_id = :classId
+                          	AND s2.use_for_grading IS TRUE AND s2.active IS TRUE
+                          	AND s2.parent_subject_id IS NULL
+                          	ORDER BY term_id ASC, et2.sort_order ASC, s2.sort_order ASC
+                          )a
+                          ORDER BY term_id, exam_type_id, low_mark ASC NULLS LAST;");
+    $sth2->execute( array(':studentId' => $studentId, ':classId' => $classId));
+    $lowest = $sth2->fetchAll(PDO::FETCH_OBJ);
+
+    $results = new stdClass();
+    $results->highest = $highest;
+    $results->lowest = $lowest;
 
     if($results) {
       $app->response->setStatus(200);

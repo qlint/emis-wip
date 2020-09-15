@@ -16,6 +16,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			if( result.response == 'success') $scope.teachers = result.data;
 		},apiError);
 
+		apiService.getAllClasses({}, function(response){
+			var result = angular.fromJson(response);
+
+			// store these as they do not change often
+			if( result.response == 'success')
+			{
+				//$rootScope.allClasses = ;
+				$scope.classes = result.data;
+				console.log($scope.classes);
+			}
+
+		}, function(){});
+
 		if( $scope.edit )
 		{
 			$scope.subject = ( data.subject !== undefined ? data.subject : {} );
@@ -62,14 +75,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			var data = $scope.subject;
 			data.user_id = $rootScope.currentUser.user_id;
 			data.use_for_grading = (data.use_for_grading ? 't' : 'f');
+			console.log(data);
 
 			if( $scope.edit )
 			{
-				apiService.updateSubject(data,createCompleted,apiError);
+				// apiService.updateSubject(data,createCompleted,apiError);
 			}
 			else
 			{
-				apiService.addSubject(data,createCompleted,apiError);
+				// apiService.addSubject(data,createCompleted,apiError);
 			}
 
 

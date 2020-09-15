@@ -50,15 +50,17 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $s
 		$params = array(':status' => $status);
 		$query = "SELECT class_id, class_name, classes.class_cat_id, teacher_id, classes.active, class_cat_name,
 					classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, report_card_type,
-					(select array_agg(subject_name order by sort_order)
-						from (
-							select subject_name, sort_order
-							from app.class_subjects
-							inner join app.subjects on class_subjects.subject_id = subjects.subject_id and subjects.active is true
-							where class_subjects.class_id = classes.class_id
-							and class_subjects.active is true
-							group by subject_name, sort_order
-						)a ) as subjects
+					(
+					  SELECT array_to_json(array_agg(row_to_json(d)))
+					  FROM (
+						SELECT subject_id, subject_name, sort_order
+						FROM app.class_subjects
+						INNER JOIN app.subjects USING (subject_id)
+						WHERE class_subjects.class_id = classes.class_id
+						AND class_subjects.active IS TRUE
+						ORDER BY sort_order ASC
+					  ) d
+					) AS subjects
             FROM app.classes
 			INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 			LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
@@ -82,7 +84,7 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $s
 
 			foreach( $results as $result)
 			{
-				$result->subjects = pg_array_parse($result->subjects);
+				$result->subjects = json_decode($result->subjects);
 			}
 			$app->response->setStatus(200);
 			$app->response()->headers->set('Content-Type', 'application/json');
@@ -145,12 +147,12 @@ $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $sta
         $db = getDB();
 		$sth = $db->prepare("SELECT classes.class_id, class_name, classes.class_cat_id, entity_id, classes.teacher_id, classes.active, class_cat_name,
 					first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name,
-					(select array_agg(distinct subject_name)
-						from app.class_subjects
-						inner join app.subjects on class_subjects.subject_id = subjects.subject_id
-						where class_subjects.class_id = classes.class_id
-						and class_subjects.active is true
-						and teacher_id = :teacherId) as subjects,
+					(SELECT array_agg(distinct subject_name)
+					FROM app.subjects
+					INNER JOIN app.class_subjects USING (subject_id)
+					INNER JOIN app.classes USING (class_id)
+					INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id AND subjects.class_cat_id = class_cats.class_cat_id
+					AND subjects.teacher_id = :teacherId AND subjects.active IS TRUE AND classes.active IS TRUE AND class_cats.active IS TRUE) as subjects,
 					(select count(*)
 								from app.students
 								inner join app.classes c
@@ -1152,6 +1154,7 @@ $app->get('/getClassCats(/:teacher_id)', function ($teacherId=null) {
 								ON class_cats.class_cat_id = classes.class_cat_id
 								WHERE class_cats.active is true
 								AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
+								AND classes.active IS TRUE
 								GROUP BY class_cats.class_cat_id, class_cat_name
 								ORDER BY class_cats.class_cat_id");
 			$sth->execute(array(':teacherId' => $teacherId));

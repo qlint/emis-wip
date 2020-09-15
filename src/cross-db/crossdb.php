@@ -46,10 +46,10 @@
                                                           WHERE terms.term_id = s.term_id;"); // executing the query
             */
 
-            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.class_timetables
+            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.teacher_timetables
                                                       ADD COLUMN subject_id integer;"); // executing the query
-            $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.class_timetables
-                                                      ADD CONSTRAINT fk_class_timetable_subject
+            $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.teacher_timetables
+                                                      ADD CONSTRAINT fk_teacher_timetable_subject
                                                       FOREIGN KEY (subject_id)
                                                       REFERENCES app.subjects(subject_id);");
             // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query

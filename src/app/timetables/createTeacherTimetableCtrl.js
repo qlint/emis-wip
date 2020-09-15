@@ -11,12 +11,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.filterShowing = false;
 	$scope.toolsShowing = false;
 	var currentStatus = true;
-	var isFiltered = false;	
+	var isFiltered = false;
 	$rootScope.modalLoading = false;
 	$scope.alert = {};
 	$scope.getReport = "examsTable";
 	$scope.setListener = false;
 	$scope.showSave = false;
+	$scope.ttDay = null;
+	$scope.ttSubject = null;
+	$scope.ttStartTime = null;
+	$scope.ttEndTime = null;
 	// our array that will be used to post to DB
 	$scope.saveTeacherTimetable = [];
 	$scope.colorCodes = [
@@ -76,24 +80,24 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		})(i);
 		}
 	}
-	
-	var initializeController = function () 
+
+	var initializeController = function ()
 	{
 		// get classes
 		var requests = [];
-		
+
 		var deferred = $q.defer();
 		requests.push(deferred.promise);
-		
+
 		if( $rootScope.allClasses === undefined )
 		{
 			if ( $rootScope.currentUser.user_type == 'TEACHER' )
 			{
 				apiService.getTeacherClasses($rootScope.currentUser.emp_id, function(response){
 					var result = angular.fromJson(response);
-					
+
 					// store these as they do not change often
-					if( result.response == 'success') 
+					if( result.response == 'success')
 					{
 						$scope.classes = result.data || [];
 						$scope.filters.class = $scope.classes[0];
@@ -104,16 +108,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					{
 						deferred.reject();
 					}
-					
+
 				}, function(){deferred.reject();});
 			}
 			else
 			{
 				apiService.getAllClasses({}, function(response){
 					var result = angular.fromJson(response);
-					
+
 					// store these as they do not change often
-					if( result.response == 'success') 
+					if( result.response == 'success')
 					{
 						$scope.classes = result.data || [];
 						$scope.filters.class = $scope.classes[0];
@@ -125,7 +129,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					{
 						deferred.reject();
 					}
-					
+
 				}, function(){deferred.reject();});
 			}
 		}
@@ -166,10 +170,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			{
 				var result = angular.fromJson(response);
 				if( result.response == 'success')
-				{ 
-					$scope.terms = result.data;	
+				{
+					$scope.terms = result.data;
 					$rootScope.terms = result.data;
-					
+
 					var currentTerm = $scope.terms.filter(function(item){
 						if( item.current_term ) return item;
 					})[0];
@@ -180,7 +184,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				{
 					deferred2.reject();
 				}
-				
+
 			}, function(){deferred2.reject();});
 		}
 		else
@@ -192,13 +196,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.filters.term_id = currentTerm.term_id;
 			deferred2.resolve();
 		}
-		
-		
-		/* taking the out, going to need user to choose exam then click load 
+
+
+		/* taking the out, going to need user to choose exam then click load
 		// need to wait for three data pieces, then run this
 		$q.all(requests).then(function () {
 			//if( $scope.filters.class_id !== null ) $scope.getStudentExams();
-		});	
+		});
 		*/
 	}
 	$timeout(initializeController,1);
@@ -210,20 +214,20 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 		apiService.getExamTypes(newVal.class_cat_id, function(response){
 			var result = angular.fromJson(response);
-			if( result.response == 'success' && !result.nodata ){ 
+			if( result.response == 'success' && !result.nodata ){
 				$scope.examTypes = result.data;
 				$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
 				$timeout(setSearchBoxPosition,10);
 			}
 		}, apiError);
-		
-		
+
+
 	});
-	
+
 	// hide the timetable setup until the class and term are selected
 	var ttView = document.getElementsByClassName("ttView")[0];
 	ttView.style.display = "none";
-	
+
 	$scope.setUpTt = function(){
 		//we create an object to store the selected parameters
 		console.log($scope.filters);
@@ -233,15 +237,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	    };
 	    ttView.style.display = "block";
 	}
-	
+
 	var entryCount = 0;
-	
+
 	// initialize the timetable
 	var timetable = new Timetable();
 	timetable.setScope(7,18); // limit the time range to between 7am and 6pm
     // timetable.useTwelveHour();
     timetable.addLocations(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
-    
+
     $scope.getClassTimetableParams = function()
 	{
 		// our array that will hold data to draw the timetable
@@ -252,9 +256,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		var ttSubject_id = document.getElementById("subject").value;
 		var startTime = document.getElementById("startTime").value;
 		var endTime = document.getElementById("endTime").value;
-		
+
 		var day = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-		
+
 		var subjName = $("#subject option:selected").text();
 		var className = $("#class option:selected").text();
 		$scope.subjColor = null;
@@ -264,7 +268,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				$scope.subjColor =  $scope.subjects[y].color;
 			}
 		}
-		
+
 		var timeframeObj = {
 		    class_id: $scope.filters.class.class_id,
 			term_id: $scope.filters.term_id,
@@ -278,14 +282,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		    }
 		}
 		// console.log(timeframeObj);
-	
+
 	    // push the created object into an array that will contain all timetable data
 	    $scope.timetableData.push(timeframeObj);
-	    
+
 		let subjectObj = {
 			class_id: $scope.filters.class_id,
 			term_id: $scope.filters.term_id,
 			teacher_id: $scope.filters.teacher.teacher_id,
+			subject_id: parseInt($scope.ttSubject),
 			subject_name: subjName,
 			label_name: className + ' (' + subjName + ')',
 			year: new Date().getFullYear(),
@@ -302,10 +307,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.saveTeacherTimetable.push(subjectObj);
 
         var a;
-        for (a = 0; a < $scope.timetableData.length; a++) { 
-            var startHour = subjectObj.start_hour; 
+        for (a = 0; a < $scope.timetableData.length; a++) {
+            var startHour = subjectObj.start_hour;
             var startMinutes = subjectObj.start_minutes;
-            var endHour = subjectObj.end_hour; 
+            var endHour = subjectObj.end_hour;
 			var endMinutes = subjectObj.end_minutes;
 			var options = {url: '#', class: subjectObj.color};
 			timetable.addEvent(subjectObj.label_name, subjectObj.day, new Date(2020,7,17,startHour,startMinutes), new Date(2020,7,17,endHour,endMinutes),{url: '#', class: subjectObj.color});
@@ -325,14 +330,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					}
 				}
 			}, 2000);
-            
+
             var renderer = new Timetable.Renderer(timetable);
             renderer.draw('.timetable');
         }
-      
+
       // increment our counter
       entryCount++;
-	  
+
 	  // add an event listener to allow element to be dragged (easier editing)
 	  // addTtListener();
 
@@ -359,7 +364,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 		apiService.addTeacherTimetable(data,createCompleted,apiError);
 	}
-	
+
 	var setSearchBoxPosition = function()
 	{
 		if( !$rootScope.isSmallScreen )
@@ -368,11 +373,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$('#resultsTable_filter').css('left',filterFormWidth+55);
 		}
 	}
-			
+
 	$scope.toggleFilter = function()
 	{
 		$scope.filterShowing = !$scope.filterShowing;
-		
+
 		if( $scope.filterShowing || $scope.toolsShowing )
 		{
 			$('#resultsTable_filter').hide();
@@ -385,11 +390,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			},500);
 		}
 	}
-	
+
 	$scope.toggleTools = function()
 	{
 		$scope.toolsShowing = !$scope.toolsShowing;
-		
+
 		if( $scope.filterShowing || $scope.toolsShowing )
 		{
 			$('#resultsTable_filter').hide();
@@ -402,23 +407,23 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			},500);
 		}
 	}
-	
+
 	$scope.importExamMarks = function()
 	{
 		$rootScope.wipNotice();
 	}
-	
+
 	$scope.exportData = function()
 	{
 		$rootScope.wipNotice();
 	}
-	
-	var apiError = function (response, status) 
+
+	var apiError = function (response, status)
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
 		$scope.errMsg = result.data;
 	}
-	
+
 
 } ]);

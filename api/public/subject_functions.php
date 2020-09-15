@@ -267,6 +267,7 @@ $app->put('/updateSubject', function () use($app) {
 	$subjectId =		( isset($allPostVars['subject_id']) ? $allPostVars['subject_id']: null);
 	$subjectName =		( isset($allPostVars['subject_name']) ? $allPostVars['subject_name']: null);
 	$classCatId =		( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+	$classId =		( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
 	$teacherId =		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
 	$parentSubjectId =	( isset($allPostVars['parent_subject_id']) ? $allPostVars['parent_subject_id']: null);
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
@@ -282,12 +283,13 @@ $app->put('/updateSubject', function () use($app) {
 													parent_subject_id = :parentSubjectId,
 													use_for_grading = :forGrading,
 													modified_date = now(),
-													modified_by = :userId
+													modified_by = :userId,
+													class_id = :classId
 												WHERE subject_id = :subjectId");
 
 		$sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId,
-					 ':subjectId' => $subjectId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId, ':forGrading' => $forGrading
-					 ) );
+					 ':subjectId' => $subjectId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId, ':forGrading' => $forGrading,
+					 ':class_id' => $classId) );
 
 		$app->response->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
