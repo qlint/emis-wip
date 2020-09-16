@@ -74,12 +74,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 				if( result.response == 'success')
 				{
 					$scope.classes = ( result.nodata ? [] : result.data );
-
+					
 					$scope.classes.forEach((clss, i) => {
 						clss.plainSubjects = [];
-						clss.subjects.forEach((classSubj, j) => {
-							clss.plainSubjects.push(classSubj.subject_name);
-						});
+						if(clss.subjects != null){
+							clss.subjects.forEach((classSubj, j) => {
+								clss.plainSubjects.push(classSubj.subject_name);
+							});
+						}
 
 					});
 

@@ -2904,6 +2904,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																		INNER JOIN app.class_subjects USING (class_subject_id)
 																		WHERE term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 																		AND class_id = :classId
+                                    AND mark IS NOT NULL
 																		AND class_subject_exams.exam_type_id = (
 																												  SELECT cc.exam_type_id FROM (
 																													SELECT * FROM (
@@ -2915,6 +2916,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																															INNER JOIN app.exam_types et USING (exam_type_id)
 																															WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 																															AND cs.class_id = :classId
+                                                              AND mark IS NOT NULL
 																															ORDER BY em.creation_date DESC
 																														)aa
 																													)bb ORDER BY creation_date DESC LIMIT 1
@@ -2939,6 +2941,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																								INNER JOIN app.exam_types et USING (exam_type_id)
 																								WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 																								AND cs.class_id = :classId
+                                                AND mark IS NOT NULL
 																								ORDER BY em.creation_date DESC
 																							)aa
 																						)bb ORDER BY creation_date DESC LIMIT 1
@@ -2967,6 +2970,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																INNER JOIN app.class_subjects USING (class_subject_id)
 																WHERE term_id = :termId
 																AND class_id = :classId
+                                AND mark IS NOT NULL
 																AND class_subject_exams.exam_type_id = (
 																										  SELECT cc.exam_type_id FROM (
 																											SELECT * FROM (
@@ -2978,6 +2982,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																													INNER JOIN app.exam_types et USING (exam_type_id)
 																													WHERE em.term_id = :termId
 																													AND cs.class_id = :classId
+                                                          AND mark IS NOT NULL
 																													ORDER BY em.creation_date DESC
 																												)aa
 																											)bb ORDER BY creation_date DESC LIMIT 1
@@ -3002,6 +3007,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																						INNER JOIN app.exam_types et USING (exam_type_id)
 																						WHERE em.term_id = :termId
 																						AND cs.class_id = :classId
+                                            AND mark IS NOT NULL
 																						ORDER BY em.creation_date DESC
 																					)aa
 																				)bb ORDER BY creation_date DESC LIMIT 1
@@ -3178,6 +3184,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                                           			INNER JOIN app.exam_types et USING (exam_type_id)
                                           			WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
                                           			AND cs.class_id = :classId
+                                                AND mark IS NOT NULL
                                           			ORDER BY em.creation_date DESC
                                           		)a
                                           	)b ORDER BY creation_date DESC LIMIT 1
@@ -3192,6 +3199,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																									INNER JOIN app.class_subjects USING (class_subject_id)
 																									WHERE term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 																									AND class_id = :classId
+                                                  AND mark IS NOT NULL
                                                   AND class_subject_exams.exam_type_id = (
                                                     SELECT exam_type_id FROM (
                                                     	SELECT * FROM (
@@ -3203,6 +3211,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                                                     			INNER JOIN app.exam_types et USING (exam_type_id)
                                                     			WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
                                                     			AND cs.class_id = :classId
+                                                          AND mark IS NOT NULL
                                                     			ORDER BY em.creation_date DESC
                                                     		)a
                                                     	)b ORDER BY creation_date DESC LIMIT 1
@@ -3220,6 +3229,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																	ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
 																	INNER JOIN app.students USING (student_id)
 																	WHERE class_subjects.class_id = :classId AND subjects.active IS TRUE
+                                  AND mark IS NOT NULL
 																	AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 																	AND subjects.parent_subject_id is null
 																	AND subjects.use_for_grading is true
@@ -3235,6 +3245,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                                     			INNER JOIN app.exam_types et USING (exam_type_id)
                                     			WHERE em.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
                                     			AND cs.class_id = :classId
+                                          AND mark IS NOT NULL
                                     			ORDER BY em.creation_date DESC
                                     		)a
                                     	)b ORDER BY creation_date DESC LIMIT 1
@@ -3273,6 +3284,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																		INNER JOIN app.class_subjects cs USING (class_subject_id)
 																		INNER JOIN app.students s USING (student_id)
 																		WHERE cs.class_id = :classId
+                                    AND mark IS NOT NULL
                                     AND em.term_id = :termId
                                     AND s.active IS TRUE
                                     AND cse.exam_type_id = (
@@ -3286,6 +3298,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                                       			INNER JOIN app.exam_types et USING (exam_type_id)
                                       			WHERE em.term_id = :termId
                                       			AND cs.class_id = :classId
+                                            AND mark IS NOT NULL
                                       			ORDER BY em.creation_date DESC
                                       		)a
                                       	)b ORDER BY creation_date DESC LIMIT 1
@@ -3299,6 +3312,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 																							INNER JOIN app.class_subjects USING (class_subject_id)
 																							WHERE term_id = :termId
 																							AND class_id = :classId
+                                              AND mark IS NOT NULL
                                               AND class_subject_exams.exam_type_id = (
                                                 SELECT exam_type_id FROM (
                                                 	SELECT * FROM (
@@ -3310,6 +3324,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                                                 			INNER JOIN app.exam_types et USING (exam_type_id)
                                                 			WHERE em.term_id = :termId
                                                 			AND cs.class_id = :classId
+                                                      AND mark IS NOT NULL
                                                 			ORDER BY em.creation_date DESC
                                                 		)a
                                                 	)b ORDER BY creation_date DESC LIMIT 1
@@ -3328,6 +3343,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
 															INNER JOIN app.students USING (student_id)
 															WHERE class_subjects.class_id = :classId
 															AND term_id = :termId
+                              AND mark IS NOT NULL
 															AND subjects.parent_subject_id is null
 															AND subjects.use_for_grading is true
 															AND students.active is true
@@ -3342,6 +3358,7 @@ $app->get('/getStudentReportCardData/:school/:studentId/:termId/:classId', funct
                                 			INNER JOIN app.exam_types et USING (exam_type_id)
                                 			WHERE em.term_id = :termId
                                 			AND cs.class_id = :classId
+                                      AND mark IS NOT NULL
                                 			ORDER BY em.creation_date DESC
                                 		)a
                                 	)b ORDER BY creation_date DESC LIMIT 1

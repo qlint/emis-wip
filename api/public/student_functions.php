@@ -51,8 +51,33 @@ $app->post('/createStudentLogin', function () use($app) {
       mail ($to,$subject,$message,$header);
     }else{
       // insert
-      $insertCreds = $db->prepare("INSERT INTO public.students_portal(school, email, pwd, first_name, middle_name, last_name, gender, student_id, dob, active, country, creation_date, school_id)
-                                    VALUES (:subdomain, :email, :pwd, :firstName, :middleName, :lastName, :gender, :studentId, :dob, true, :country, now(), (SELECT client_id FROM clients WHERE subdomain = :subdomain));");
+      $insertCreds = $db->prepare("INSERT INTO public.students_portal(school,
+                                                                      email,
+                                                                      pwd,
+                                                                      first_name,
+                                                                      middle_name,
+                                                                      last_name,
+                                                                      gender,
+                                                                      student_id,
+                                                                      dob,
+                                                                      active,
+                                                                      country,
+                                                                      creation_date,
+                                                                      school_id)
+                                    VALUES (CAST(:subdomain AS TEXT),
+                                            :email,
+                                            :pwd,
+                                            :firstName,
+                                            :middleName,
+                                            :lastName,
+                                            :gender,
+                                            :studentId,
+                                            :dob,
+                                            true,
+                                            :country,
+                                            now(),
+                                            (SELECT client_id FROM clients WHERE subdomain = :subdomain)
+                                          );");
       $insertCreds->execute(array(':subdomain' => $subdomain,
                                   ':email' => $email,
                                   ':pwd' => $pwd,
@@ -87,7 +112,7 @@ $app->post('/createStudentLogin', function () use($app) {
   } catch(PDOException $e) {
     $app->response()->setStatus(401);
     $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage(), 'posted' => $allPostVars ));
   }
 });
 
