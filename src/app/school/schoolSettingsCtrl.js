@@ -24,6 +24,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 					$scope.countries.push(item.countries_name);
 				});
 				$scope.countries.sort();
+				setSettings();
 				// console.log($scope.countries);
 			}
 
@@ -33,10 +34,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		// $scope.curriculums = ['8-4-4','I.G.C.S.E','Montessori','Dual Curriculum (8-4-4/IGCSE)'];
 		// $scope.currencies = ['Ksh'];
 		$scope.schoolLevels = ['Primary','Secondary'];
-
 		if( $rootScope.currentUser.settings['School Name'] === undefined ) $scope.initialSetup = true;
-		setSettings();
-
 	}
 	$timeout(initializeController,1);
 
@@ -44,7 +42,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		$scope.allCountries.forEach((cntry, i) => {
 			if(cntry.countries_name == el.settings.Country){
 				$scope.curriculums = cntry.curriculum;
-				$scope.currencies = [cntry.currency_symbol];
+				$scope.currencies = [{name: cntry.currency_name, symbol: cntry.currency_symbol}];
 			}
 		});
 	}
@@ -74,6 +72,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Address 1' : angular.copy($rootScope.currentUser.settings['Address 1']),
 			'Address 2' : angular.copy($rootScope.currentUser.settings['Address 2']),
 			'Country' : angular.copy($rootScope.currentUser.settings['Country']),
+			'Currency' : angular.copy($rootScope.currentUser.settings['Currency']),
 			'Curriculum' : angular.copy($rootScope.currentUser.settings['Curriculum']),
 			'Email Address' : angular.copy($rootScope.currentUser.settings['Email Address']),
 			'Email From' : angular.copy($rootScope.currentUser.settings['Email From']),
@@ -82,7 +81,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'School Type' : angular.copy($rootScope.currentUser.settings['School Type']	),
 			'School Level' : angular.copy($rootScope.currentUser.settings['School Level']	),
 			'logo' : angular.copy($rootScope.currentUser.settings['logo']	),
-			'Currency' : angular.copy($rootScope.currentUser.settings['Currency']	),
 			'Letterhead' : angular.copy($rootScope.currentUser.settings['Letterhead']	),
 			'Bank Name' : angular.copy($rootScope.currentUser.settings['Bank Name']	),
 			'Bank Branch' : angular.copy($rootScope.currentUser.settings['Bank Branch']	),
@@ -115,6 +113,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		}
 		if($scope.settings['Use Receipt Items'] == undefined){
 			$scope.settings['Use Receipt Items'] = "true";
+		}
+		if($scope.settings.Currency){
+			$scope.allCountries.forEach((cntry, i) => {
+				if(cntry.countries_name == $scope.settings.Country){
+					$scope.curriculums = cntry.curriculum;
+					console.log($scope.curriculums);
+					$scope.currencies = [{name: cntry.currency_name, symbol: cntry.currency_symbol}];
+				}
+			});
 		}
 		// console.log($scope.settings);
 

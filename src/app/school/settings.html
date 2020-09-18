@@ -89,6 +89,18 @@
 								</div>
 							</div>
 
+							<!-- currency -->
+							<div class="form-group" ng-class="{ 'has-error' : schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted) }">
+								<label for="currency" class="col-sm-4 control-label nopad-right">Currency</label>
+								<div class="col-sm-8">
+									<select name="currency" class="form-control" ng-model="settings['Currency']" required>
+										<option value="">--select currency--</option>
+										<option ng-repeat="currency in currencies track by $index" value="{{currency.symbol}}">{{currency.name}}</option>
+									</select>
+									<p ng-show="schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email From is required.</p>
+								</div>
+							</div>
+
 							<!-- Address -->
 							<div class="form-group" ng-class="{ 'has-error' : schoolForm.address_1.$invalid && (schoolForm.address_1.$touched || schoolForm.$submitted) }">
 								<label for="address_1" class="col-sm-4 control-label nopad-right">Address</label>
@@ -133,17 +145,6 @@
 								<label for="email_from" class="col-sm-4 control-label nopad-right">Email From</label>
 								<div class="col-sm-8">
 									<input type="text" class="form-control" name="email_from" ng-model="settings['Email From']">
-									<p ng-show="schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email From is required.</p>
-								</div>
-							</div>
-
-							<!-- currency -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted) }">
-								<label for="currency" class="col-sm-4 control-label nopad-right">Currency</label>
-								<div class="col-sm-8">
-									<select name="currency" class="form-control" ng-options="item for item in currencies"  ng-model="settings['Currency']" required>
-										<option value="">--select currency--</option>
-									</select>
 									<p ng-show="schoolForm.email_from.$invalid && (schoolForm.email_from.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Email From is required.</p>
 								</div>
 							</div>

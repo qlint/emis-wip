@@ -447,7 +447,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.advancedMarksEdit = function(){
 		console.log($scope.currentFilters);
-		$scope.allTerms = null;
+
 		apiService.getTerms(undefined, function(response,status)
 		{
 			var result = angular.fromJson(response);
@@ -483,11 +483,15 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		$scope.fromExam = $scope.fromExamOptions[0];
 		//set from term
 		let fromTermOptions = {};
-		$scope.allTerms.forEach((term, i) => {
-			if(term.term_id == $scope.currentFilters.term_id){
-				fromTermOptions = $scope.currentFilters;
-			}
-		});
+		if($scope.allTerms){
+			$scope.allTerms.forEach((term, i) => {
+				console.log(term.term_id,$scope.currentFilters.term_id);
+				if(term.term_id == $scope.currentFilters.term_id){
+					fromTermOptions = $scope.currentFilters;
+					console.log(fromTermOptions);
+				}
+			});
+		}
 		$scope.fromTermOptions = [fromTermOptions];
 		console.log($scope.fromTermOptions);
 		$("#move_from_exam").mousedown(function(event){ event.preventDefault(); });
