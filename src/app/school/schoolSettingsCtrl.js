@@ -11,19 +11,43 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	{
 		//var deptCats = $rootScope.currentUser.settings['Department Categories'];
 		//$scope.deptCats = deptCats.split(',');
+		apiService.getAllCountries({},function(response){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				$scope.countries = [];
+				$scope.allCountries = result.data;
+				$scope.allCountries.forEach((item, i) => {
+					if(item.curriculum){
+						item.curriculum = item.curriculum.split(',');
+					}
+					$scope.countries.push(item.countries_name);
+				});
+				$scope.countries.sort();
+				// console.log($scope.countries);
+			}
+
+		},apiError);
 
 		$scope.schoolTypes = ['Private School','Public School'];
-		$scope.curriculums = ['8-4-4','I.G.C.S.E','Montessori','Dual Curriculum (8-4-4/IGCSE)'];
-		$scope.currencies = ['Ksh'];
+		// $scope.curriculums = ['8-4-4','I.G.C.S.E','Montessori','Dual Curriculum (8-4-4/IGCSE)'];
+		// $scope.currencies = ['Ksh'];
 		$scope.schoolLevels = ['Primary','Secondary'];
 
-
 		if( $rootScope.currentUser.settings['School Name'] === undefined ) $scope.initialSetup = true;
-
 		setSettings();
 
 	}
 	$timeout(initializeController,1);
+
+	$scope.modifyCurr = function(el){
+		$scope.allCountries.forEach((cntry, i) => {
+			if(cntry.countries_name == el.settings.Country){
+				$scope.curriculums = cntry.curriculum;
+				$scope.currencies = [cntry.currency_symbol];
+			}
+		});
+	}
 
 	var getSettings = function()
 	{

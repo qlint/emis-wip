@@ -8,6 +8,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.terms = data.terms;
 	$scope.examTypes = data.examTypes;
 	$scope.filters = data.filters;
+	$scope.allTerms = null;
 	var ignoreCols = ['student_id','student_name','sum','total'];
 
 	$scope.isTeacher = ($rootScope.currentUser.user_type == 'TEACHER' ? true : false);
@@ -445,7 +446,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	}
 
 	$scope.advancedMarksEdit = function(){
-		// console.log($scope);
+		console.log($scope.currentFilters);
+		$scope.allTerms = null;
+		apiService.getTerms(undefined, function(response,status)
+		{
+			var result = angular.fromJson(response);
+			if( result.response == 'success')
+			{
+				$scope.allTerms = result.data;
+				console.log($scope.allTerms);
+			}
+		}, function(err){ console.log('An error was encountered:',err); });
 		document.getElementById('advBtn').disabled = false;
 		$scope.btnState = 'warning';
 		$scope.toOperate = 'move';
@@ -467,9 +478,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				fromExamOptions.exam_type = et.exam_type;
 			}
 		});
-		$scope.fromExamOptions = [fromExamOptions]
+		$scope.fromExamOptions = [fromExamOptions];
 		// console.log($scope.fromExamOptions);
 		$scope.fromExam = $scope.fromExamOptions[0];
+		//set from term
+		let fromTermOptions = {};
+		$scope.allTerms.forEach((term, i) => {
+			if(term.term_id == $scope.currentFilters.term_id){
+				fromTermOptions = $scope.currentFilters;
+			}
+		});
+		$scope.fromTermOptions = [fromTermOptions];
+		console.log($scope.fromTermOptions);
 		$("#move_from_exam").mousedown(function(event){ event.preventDefault(); });
 		//to classe
 		$scope.toClass = null;

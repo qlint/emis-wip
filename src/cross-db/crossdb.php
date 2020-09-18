@@ -46,12 +46,12 @@
                                                           WHERE terms.term_id = s.term_id;"); // executing the query
             */
 
-            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.teacher_timetables
-                                                      ADD COLUMN subject_id integer;"); // executing the query
-            $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.teacher_timetables
-                                                      ADD CONSTRAINT fk_teacher_timetable_subject
-                                                      FOREIGN KEY (subject_id)
-                                                      REFERENCES app.subjects(subject_id);");
+            $executeOnSchoolDb3 = pg_query($schoolDb,"UPDATE app.countries SET currency_name = 'Kenyan Shilling', currency_symbol = 'KSH', curriculum = '8-4-4,I.G.C.S.E,Montessori,Dual Curriculum (8-4-4/IGCSE)'
+                                                    WHERE countries_name = 'Kenya';"); // executing the query
+            $executeOnSchoolDb4 = pg_query($schoolDb,"UPDATE app.countries SET currency_name = 'Canadian Dollar', currency_symbol = 'CAD', curriculum = 'ONTARIO K8,ONTARIO K12'
+                                                    WHERE countries_name = 'Canada';");
+            $executeOnSchoolDb5 = pg_query($schoolDb,"UPDATE app.countries SET currency_name = 'Ugandan Shilling', currency_symbol = 'USH', curriculum = '7-4-2-4,I.G.C.S.E,Montessori,Dual Curriculum'
+                                                    WHERE countries_name = 'Uganda';");
             // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
       	    // echo $dbOutput; // just an output of all our db's
       }

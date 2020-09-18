@@ -137,6 +137,9 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGetWithData(request, path + "/getBanking", successFunction, errorFunction, params);
 	};
 
+	this.getAllCountries = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getAllCountries", successFunction, errorFunction, params);
+	};
 
 	/*********** grading ***********/
 	this.getGrading = function (request, successFunction, errorFunction, params) {

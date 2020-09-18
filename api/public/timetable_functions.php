@@ -263,42 +263,40 @@ $app = \Slim\Slim::getInstance();
   try
   {
       $db = getDB();
-      $sth = $db->prepare("SELECT class_id, class_name, term_id, term_name, year,
-                              array_to_json(array_agg(day_lessons)) AS timetable
+      $sth = $db->prepare("SELECT array_to_json(array_agg(d)) AS timetable
                             FROM (
-                              SELECT class_id, class_name, term_id, term_name, year,
+                              SELECT day, term_id, term_name, year,
                                 '{\"' || day || '\":' || day_details ||'}' AS day_lessons
                               FROM (
-                                SELECT class_id, class_name, term_id, term_name, year, day,
+                                SELECT term_id, term_name, year, day,
                                   array_to_json(array_agg(class_details)) AS day_details
                                 FROM (
-                                  SELECT tt.class_id, c.class_name, tt.term_id, t.term_name, tt.year, tt.day,
+                                  SELECT c.class_name, tt.term_id, t.term_name, tt.year, tt.day,
                                     row_to_json(a) AS class_details
                                   FROM (
                                     SELECT teacher_timetable_id, tt.day, tt.subject_id, tt.subject_name, tt.start_hour, tt.start_minutes, tt.end_hour, tt.end_minutes,
-                                      class_name
+                                      class_name, tt.class_id
                                     FROM app.teacher_timetables tt
                                     --INNER JOIN app.subjects s USING (subject_id)
                                     INNER JOIN app.classes c USING (class_id)
                                     WHERE tt.teacher_id = :teacherId
                                   )a
                                   INNER JOIN app.teacher_timetables tt USING (teacher_timetable_id)
-                                  INNER JOIN app.classes c USING (class_id)
+                                  INNER JOIN app.classes c ON a.class_id = c.class_id
                                   INNER JOIN app.terms t USING (term_id)
                                   --INNER JOIN app.students s ON c.class_id = s.current_class
                                   WHERE tt.teacher_id = :teacherId
                                 )b
-                                GROUP BY class_id, class_name, term_id, term_name, year, day
+                                GROUP BY term_id, term_name, year, day
                               )c
-                            )d
-                            GROUP BY class_id, class_name, term_id, term_name, year");
+                            )d");
       $sth->execute(array(':teacherId' => $teacherId));
       $timetable = $sth->fetch(PDO::FETCH_OBJ);
 
       if($timetable) {
 					$timetable->timetable = json_decode($timetable->timetable);
 					for ($i=0; $i < count($timetable->timetable); $i++) {
-	          $timetable->timetable[$i] = json_decode($timetable->timetable[$i]);
+	          $timetable->timetable[$i]->day_lessons = json_decode($timetable->timetable[$i]->day_lessons);
 	        }
           $app->response->setStatus(200);
           $app->response()->headers->set('Content-Type', 'application/json');
