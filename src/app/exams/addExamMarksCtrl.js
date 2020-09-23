@@ -8,17 +8,30 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.terms = data.terms;
 	$scope.examTypes = data.examTypes;
 	$scope.filters = data.filters;
-	$scope.allTerms = null;
 	var ignoreCols = ['student_id','student_name','sum','total'];
+	var classExamTypes = function(cat){
+		console.log("Fetching class exam types",cat);
+		apiService.getExamTypes(cat, function(response){
+			var result = angular.fromJson(response);
+			if( result.response == 'success'){ console.log("Exam types found > ",result.data);$scope.toExamTypesOptions = result.data;}
+		}, apiError);
+	}
 
 	$scope.isTeacher = ($rootScope.currentUser.user_type == 'TEACHER' ? true : false);
 	$scope.advancedBtns = false;
+
+	apiService.getTerms(undefined, function(response,status)
+	{
+		var result = angular.fromJson(response);
+		if( result.response == 'success'){$scope.allTerms = result.data;}
+	}, function(err){ console.log('An error was encountered:',err); });
 
 	var initializeController = function()
 	{
 		document.getElementsByClassName('modal-lg')[0].style.width = '85%';
 		//getClassDetails($scope.filters.class_id);
 		//$scope.getStudentExams();
+		// $scope.allTerms = getAllTerms();
 	}
 	setTimeout(initializeController,1);
 
@@ -40,10 +53,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 		apiService.getAllClassExams(classId,function(response){
 			var result = angular.fromJson(response);
-			if( result.response == 'success')
-			{
-				$scope.classSubjectExams = result.data;
-			}
+			if( result.response == 'success'){ $scope.classSubjectExams = result.data; }
 		}, apiError);
 	}
 */
@@ -447,16 +457,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.advancedMarksEdit = function(){
 		console.log($scope.currentFilters);
-
-		apiService.getTerms(undefined, function(response,status)
-		{
-			var result = angular.fromJson(response);
-			if( result.response == 'success')
-			{
-				$scope.allTerms = result.data;
-				console.log($scope.allTerms);
-			}
-		}, function(err){ console.log('An error was encountered:',err); });
 		document.getElementById('advBtn').disabled = false;
 		$scope.btnState = 'warning';
 		$scope.toOperate = 'move';
@@ -468,6 +468,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		let fromClassOptions = $scope.currentFilters.class;
 		$scope.fromClassOptions = [fromClassOptions];
 		$scope.fromClass = $scope.fromClassOptions[0];
+		$scope.toClassOptions2 = [$scope.currentFilters.class];
+		console.log("To Class Options >",$scope.toClassOptions2);
+		$scope.toClss = $scope.toClassOptions2[0];
+		classExamTypes($scope.currentFilters.class.class_cat_id);
+		// console.log($scope.toExamTypesOptions);
 		$("#move_from_class").mousedown(function(event){ event.preventDefault(); });
 		//set from exam
 		let fromExamOptions = {};
@@ -485,14 +490,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		let fromTermOptions = {};
 		if($scope.allTerms){
 			$scope.allTerms.forEach((term, i) => {
-				console.log(term.term_id,$scope.currentFilters.term_id);
-				if(term.term_id == $scope.currentFilters.term_id){
-					fromTermOptions = $scope.currentFilters;
-					console.log(fromTermOptions);
-				}
+				if(term.term_id == $scope.currentFilters.term_id){fromTermOptions = term;}
 			});
 		}
 		$scope.fromTermOptions = [fromTermOptions];
+		$scope.fromTerm = $scope.fromTermOptions[0];
 		console.log($scope.fromTermOptions);
 		$("#move_from_exam").mousedown(function(event){ event.preventDefault(); });
 		//to classe
@@ -562,8 +564,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		if(data.operation == 'move'){
 			data.from_class_id = $scope.fromClass.class_id;
 			data.from_et_id = $scope.fromExam.exam_type_id;
-			data.to_class_id = $scope.toClass;
-			data.to_et_id = $scope.toExam;
+			data.from_term_id = $scope.fromTerm.term_id;
+			data.to_class_id = $scope.toClss.class_id;
+			data.to_et_id = parseInt($scope.toExam);
+			data.to_term_id = parseInt($scope.toTerm);
 		}else if(data.operation == 'delete'){
 			data.from_class_id = $scope.fromClass.class_id;
 			data.from_et_id = $scope.fromExam.exam_type_id;

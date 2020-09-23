@@ -1,16 +1,20 @@
-CREATE TABLE app.communications_failed_sms
+CREATE TABLE app.absenteeism
 (
-    failed_sms_id serial NOT NULL,
-    subscriber_name character varying COLLATE pg_catalog."default",
-    message_by character varying COLLATE pg_catalog."default",
-    message_text character varying COLLATE pg_catalog."default",
-    recipient_name character varying COLLATE pg_catalog."default",
-    phone_number character varying COLLATE pg_catalog."default",
-    message_date character varying COLLATE pg_catalog."default",
-    CONSTRAINT communications_failed_sms_pkey PRIMARY KEY (failed_sms_id)
+    absentee_id serial NOT NULL,
+	  student_id integer NOT NULL,
+    reason character varying,
+    message character varying NOT NULL,
+    start_date timestamp without time zone,
+    end_date timestamp without time zone,
+    creation_date timestamp without time zone NOT NULL DEFAULT now(),
+    modified_date timestamp without time zone,
+    CONSTRAINT student_id FOREIGN KEY (student_id)
+        REFERENCES app.students (student_id) MATCH FULL
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE app.communications_failed_sms
+ALTER TABLE app.absenteeism
     OWNER to postgres;

@@ -317,7 +317,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse, $sce){
 														name: $scope.resourceNm,
 														description: $scope.resourceDsc,
 														upload: {
-															link: "https://"+ $scope.school +".eduweb.co.ke/assets/resources/"+ $scope.school +"/videos/"+$scope.resourceFile.name,
+															link: encodeURI("https://"+ $scope.school +".eduweb.co.ke/assets/resources/"+ $scope.school +"/videos/"+$scope.resourceFile.name),
 															approach: 'pull',
 															size: document.getElementById('file_data').files[0].size
 														},

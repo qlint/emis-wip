@@ -18,7 +18,7 @@
       }
   	  $output_object->ready_status = "DB's selected and ready to run";
       $output_object->school_dbs = $dbArray;
-      // $queryInTextFile = file_get_contents('create-db.txt'); // for larger or more complex queries and create statements, we put in a text file
+      $queryInTextFile = file_get_contents('create-db.txt'); // for larger or more complex queries and create statements, we put in a text file
       // echo $queryInTextFile ."<br>";
 
       foreach ($dbArray as $key => $value) {
@@ -46,13 +46,15 @@
                                                           WHERE terms.term_id = s.term_id;"); // executing the query
             */
 
+            /*
             $executeOnSchoolDb3 = pg_query($schoolDb,"UPDATE app.countries SET currency_name = 'Kenyan Shilling', currency_symbol = 'KSH', curriculum = '8-4-4,I.G.C.S.E,Montessori,Dual Curriculum (8-4-4/IGCSE)'
                                                     WHERE countries_name = 'Kenya';"); // executing the query
             $executeOnSchoolDb4 = pg_query($schoolDb,"UPDATE app.countries SET currency_name = 'Canadian Dollar', currency_symbol = 'CAD', curriculum = 'ONTARIO K8,ONTARIO K12'
                                                     WHERE countries_name = 'Canada';");
             $executeOnSchoolDb5 = pg_query($schoolDb,"UPDATE app.countries SET currency_name = 'Ugandan Shilling', currency_symbol = 'USH', curriculum = '7-4-2-4,I.G.C.S.E,Montessori,Dual Curriculum'
                                                     WHERE countries_name = 'Uganda';");
-            // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
+            */
+            $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
       	    // echo $dbOutput; // just an output of all our db's
       }
       $output = json_encode($output_object);

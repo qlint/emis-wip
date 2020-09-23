@@ -132,11 +132,11 @@
 							<div class="col-sm-5">
 								<h4>FROM</h4>
 								<label for="move_from_class"><span class="glyphicon glyphicon-circle-arrow-down"></span> Class:</label>
-								<select class="form-control" name="move_from_class" id="move_from_class" ng-options="fromClassOptions as item.class_name for item in fromClassOptions track by item.class_id" ng-model="fromClass">
-								</select>
+								<select class="form-control" name="move_from_class" id="move_from_class" ng-options="fromClassOptions as item.class_name for item in fromClassOptions track by item.class_id" ng-model="fromClass" disabled></select>
 								<label for="move_from_exam"><span class="glyphicon glyphicon-circle-arrow-down"></span> Exam:</label>
-								<select class="form-control" name="move_from_exam" id="move_from_exam" ng-options="fromExamOptions as item.exam_type for item in fromExamOptions track by item.exam_type_id" ng-model="fromExam">
-								</select>
+								<select class="form-control" name="move_from_exam" id="move_from_exam" ng-options="fromExamOptions as item.exam_type for item in fromExamOptions track by item.exam_type_id" ng-model="fromExam" disabled></select>
+								<label for="move_from_term"><span class="glyphicon glyphicon-circle-arrow-down"></span> Term:</label>
+								<select class="form-control" name="move_from_term" id="move_from_term" ng-options="fromTermOptions as item.term_name for item in fromTermOptions track by item.term_id" ng-model="fromTerm" disabled></select>
 							</div>
 
 							<div class="col-sm-2"></div>
@@ -144,16 +144,21 @@
 							<div class="col-sm-5">
 								<h4>TO</h4>
 								<label for="move_to_class"><span class="glyphicon glyphicon-circle-arrow-down"></span> Class:</label>
-								<select class="form-control" name="move_to_class" id="move_to_class" ng-model="toClass" ng-change="fetchClassExams(this,item,toClass)">
-									<option ng-repeat="item in toClassOptions track by $index" value="{{item.class_cat_id}}">{{item.class_name}}</option>
-								</select>
+								<select class="form-control" name="move_to_class" id="move_to_class" ng-options="toClassOptions2 as item.class_name for item in toClassOptions2 track by item.class_id" ng-model="toClss" disabled></select>
 								<label for="move_to_exam"><span class="glyphicon glyphicon-circle-arrow-down"></span> Exam:</label>
 								<select class="form-control" name="move_to_exam" id="move_to_exam" ng-model="toExam" ng-change="finalSelection(this)">
+									<option value="">--select exam--</option>
 									<option ng-repeat="item in toExamTypesOptions track by $index" value="{{item.exam_type_id}}">{{item.exam_type}}</option>
+								</select>
+								<label for="move_to_term"><span class="glyphicon glyphicon-circle-arrow-down"></span> Term:</label>
+								<select class="form-control" name="move_to_term" id="move_to_term" ng-model="toTerm" ng-change="finalSelection(this)">
+									<option value="">--select term--</option>
+									<option ng-repeat="item in allTerms track by $index" value="{{item.term_id}}">{{item.term_name}}</option>
 								</select>
 							</div>
 						</div>
 					</div>
+					<h4 style="text-align:center;font-size:12px;font-weight:600;">Ensure the exam type you want to move the marks to is empty (has no class marks at all).</h4>
 					<button class="btn btn-default btn-{{btnState}} btn-block" id="advBtn" ng-click="advancedEdit()"><span class="glyphicon glyphicon-{{btnIcon}}"></span>&nbsp;&nbsp;{{btnText}}</button>
 				</form>
 			</div>

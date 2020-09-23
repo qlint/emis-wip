@@ -4842,6 +4842,78 @@ $app->post('/addFeedback/:school', function ($school) {
   }
 });
 
+$app->post('/reportAbsenteeism', function () {
+
+  $app = \Slim\Slim::getInstance();
+
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $students = $allPostVars['students'];
+  $message = $allPostVars['message'];
+  $reason = $allPostVars['reason'];
+  $startDate = $allPostVars['start_date'];
+  $endDate = $allPostVars['end_date'];
+  $school = $allPostVars['school'];
+
+  try
+  {
+
+    $db = setDBConnection($school);
+    foreach($students as $studentId)
+    {
+      $sth = $db->prepare("INSERT INTO app.absenteeism(student_id, reason, message, start_date, end_date)
+  	                       VALUES (:studentId, :reason, :message, :startDate, :endDate);");
+      $sth->execute( array(':studentId' => $studentId, ':message' => $message, ':reason' => $reason, ':startDate' => $startDate, ':endDate' => $endDate) );
+    }
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", 'data' => 'The absenteeism has been successfully recorded.'));
+
+    $db = null;
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->get('/getStudentAbsenteeism/:school/:studentId', function ($school,$studentId) {
+    //Show student's absenteeism
+
+  $app = \Slim\Slim::getInstance();
+    try
+    {
+        $db = setDBConnection($school);
+        $sth = $db->prepare("SELECT *, 
+                              TO_CHAR(creation_date :: DATE, 'dd/mm/yyyy') AS frmt_creation,
+                              TO_CHAR(start_date :: DATE, 'dd/mm/yyyy') AS frmt_start_date,
+                              TO_CHAR(end_date :: DATE, 'dd/mm/yyyy') AS frmt_end_dat
+                            FROM app.absenteeism 
+                            WHERE student_id = :studentId ORDER BY creation_date DESC");
+        $sth->execute(array(':studentId' => $studentId));
+        $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->post('/addHomeworkFeedback', function () {
 
   $app = \Slim\Slim::getInstance();

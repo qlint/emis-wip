@@ -58,7 +58,7 @@ $app->post('/addClassTimetable', function () use($app) {
 });
 
 $app->get('/fetchClassTimetable/:classId/:termId', function ($classId, $termId) {
-	// Return students school bus history
+	// Return class timetable
 
 	$app = \Slim\Slim::getInstance();
 
@@ -229,6 +229,67 @@ $app = \Slim\Slim::getInstance();
                           )d
                           GROUP BY student_name, class_id, class_name, term_id, term_name, year");
       $sth->execute(array(':studentId' => $studentId));
+      $timetable = $sth->fetch(PDO::FETCH_OBJ);
+
+      if($timetable) {
+					$timetable->timetable = json_decode($timetable->timetable);
+					for ($i=0; $i < count($timetable->timetable); $i++) {
+						$timetable->timetable[$i] = json_decode($timetable->timetable[$i]);
+					}
+          $app->response->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo json_encode(array('response' => 'success', 'data' => $timetable ));
+          $db = null;
+      } else {
+          $app->response->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+          $db = null;
+      }
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(404);
+  		$app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getClassTimetable/:classId', function ($classId) {
+  //Show student timetable
+
+$app = \Slim\Slim::getInstance();
+
+  try
+  {
+      $db = getDB();
+      $sth = $db->prepare("SELECT class_id, class_name, term_id, term_name, year,
+                            array_to_json(array_agg(day_lessons)) AS timetable
+                          FROM (
+                            SELECT class_id, class_name, term_id, term_name, year,
+                              '{\"' || day || '\":' || day_details ||'}' AS day_lessons
+                            FROM (
+                              SELECT class_id, class_name, term_id, term_name, year, day,
+                                array_to_json(array_agg(subject_details)) AS day_details
+                              FROM (
+                                SELECT ct.class_id, c.class_name, ct.term_id, t.term_name, ct.year, ct.day, row_to_json(a) AS subject_details
+                                FROM (
+                                  SELECT class_timetable_id, ctt.day, ctt.subject_id, ctt.subject_name, ctt.start_hour, ctt.start_minutes, ctt.end_hour, ctt.end_minutes,
+                                    e.emp_id AS teacher_id, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name AS teacher_name
+                                  FROM app.class_timetables ctt
+                                  INNER JOIN app.subjects s USING (subject_id)
+                                  LEFT JOIN app.employees e ON s.teacher_id = e.emp_id
+                                  WHERE ctt.class_id = :classId
+                                )a
+                                INNER JOIN app.class_timetables ct USING (class_timetable_id)
+                                INNER JOIN app.classes c USING (class_id)
+                                INNER JOIN app.terms t USING (term_id)
+                              )b
+                              GROUP BY class_id, class_name, term_id, term_name, year, day
+                            )c
+                          )d
+                          GROUP BY class_id, class_name, term_id, term_name, year");
+      $sth->execute(array(':classId' => $classId));
       $timetable = $sth->fetch(PDO::FETCH_OBJ);
 
       if($timetable) {

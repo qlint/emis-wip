@@ -1314,12 +1314,16 @@ $app->post('/advncedExamEdit', function () use($app) {
 	if($operation == 'move'){
 		$fromClassId =	( isset($allPostVars['from_class_id']) ? $allPostVars['from_class_id']: null);
 		$fromExamTypeId =		( isset($allPostVars['from_et_id']) ? $allPostVars['from_et_id']: null);
-		$toClassId =		( isset($allPostVars['to_class_id']) ? $allPostVars['to_class_id']: false);
-		$toExamTypeId =		( isset($allPostVars['to_et_id']) ? $allPostVars['to_et_id']: false);
+		$fromTermId =		( isset($allPostVars['from_term_id']) ? $allPostVars['from_term_id']: null);
+		$toClassId =		( isset($allPostVars['to_class_id']) ? $allPostVars['to_class_id']: null);
+		$toExamTypeId =		( isset($allPostVars['to_et_id']) ? $allPostVars['to_et_id']: null);
+		$toTermId =		( isset($allPostVars['to_term_id']) ? $allPostVars['to_term_id']: null);
 		$results->from_class_id = $fromClassId;
 		$results->from_exam_type_id = $fromExamTypeId;
+		$results->from_term_id = $fromTermId;
 		$results->to_class_id = $toClassId;
 		$results->to_exam_type_id = $toExamTypeId;
+		$results->to_term_id = $toTermId;
 	}elseif($operation == 'delete'){
 		$deleteClassId =	( isset($allPostVars['from_class_id']) ? $allPostVars['from_class_id']: null);
 		$deleteExamTypeId =		( isset($allPostVars['from_et_id']) ? $allPostVars['from_et_id']: null);
@@ -1339,23 +1343,63 @@ $app->post('/advncedExamEdit', function () use($app) {
 				$studentId =	( isset($subjMark['student_id']) ? $subjMark['student_id']: null);
 				$subjectId =	( isset($subjMark['subject_id']) ? $subjMark['subject_id']: null);
 
-				$sth0 = $db->prepare("UPDATE app.class_subject_exams
-															SET exam_type_id = :toExamTypeId
-															FROM (
-																	SELECT class_sub_exam_id FROM app.exam_marks
-																	WHERE class_sub_exam_id = :classSubExamId
-																	AND student_id = :studentId
-																	AND term_id = :termId
-																 ) AS subquery
-															WHERE class_subject_exams.class_sub_exam_id = subquery.class_sub_exam_id
-															AND class_subject_exams.exam_type_id = :fromExamTypeId;");
+				if($toExamTypeId == $fromExamTypeId){
+					/*
+					$sth0 = $db->prepare("UPDATE app.class_subject_exams
+																SET exam_type_id = :toExamTypeId, modified_date = now()
+																FROM (
+																		SELECT class_sub_exam_id FROM app.exam_marks
+																		WHERE class_sub_exam_id = :classSubExamId
+																		AND student_id = :studentId
+																		AND term_id = :fromTermId
+																	 ) AS subquery
+																WHERE class_subject_exams.class_sub_exam_id = subquery.class_sub_exam_id
+																AND class_subject_exams.exam_type_id = :fromExamTypeId;");
 
-				$sth0->execute( array(':fromExamTypeId' => $fromExamTypeId,
-															':toExamTypeId' => $toExamTypeId,
-															':classSubExamId' => $classSubExamId,
-															':studentId' => $studentId,
-															':termId' => $termId
-														) );
+					$sth0->execute( array(':fromExamTypeId' => $fromExamTypeId, ':toExamTypeId' => $toExamTypeId, ':classSubExamId' => $classSubExamId, ':studentId' => $studentId, ':fromTermId' => $fromTermId) );
+					*/
+
+					$sth1 = $db->prepare("UPDATE app.exam_marks
+																SET term_id = :toTermId, modified_date = now()
+																WHERE class_sub_exam_id = :classSubExamId
+																AND student_id = :studentId
+																AND term_id = :fromTermId;");
+
+					$sth1->execute( array(':toTermId' => $toTermId,
+																':classSubExamId' => $classSubExamId,
+																':studentId' => $studentId,
+																':fromTermId' => $fromTermId
+															) );
+				}else{
+					$sth0 = $db->prepare("SELECT class_sub_exam_id FROM app.class_subject_exams
+																WHERE exam_type_id = :toExamTypeId
+																AND class_subject_id = (
+																	SELECT class_subject_id FROM app.class_subjects
+																	WHERE subject_id = :subjectId AND class_id = :fromClassId
+																);");
+
+					$sth0->execute( array(':toExamTypeId' => $toExamTypeId,
+																':fromClassId' => $fromClassId,
+																':subjectId' => $subjectId) );
+					$classSubExamIdResult = $sth0->fetch(PDO::FETCH_OBJ);
+					$toClassSubExamId = $classSubExamIdResult->class_sub_exam_id;
+
+					$sth1 = $db->prepare("UPDATE app.exam_marks
+																SET term_id = :toTermId,
+																		class_sub_exam_id = :toClassSubExamId,
+																		modified_date = now()
+																WHERE student_id = :studentId
+																AND term_id = :fromTermId
+																AND class_sub_exam_id = :classSubExamId;");
+
+					$sth1->execute( array(':toTermId' => $toTermId,
+																':classSubExamId' => $classSubExamId,
+																':toClassSubExamId' => $toClassSubExamId,
+																':studentId' => $studentId,
+																':fromTermId' => $fromTermId
+															) );
+				}
+
 			}
 			$db->commit();
 		}elseif($operation == 'delete'){
