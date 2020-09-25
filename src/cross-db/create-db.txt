@@ -1,20 +1,17 @@
-CREATE TABLE app.absenteeism
+CREATE TABLE app.school_bnks
 (
-    absentee_id serial NOT NULL,
-	  student_id integer NOT NULL,
-    reason character varying,
-    message character varying NOT NULL,
-    start_date timestamp without time zone,
-    end_date timestamp without time zone,
+    bnk_id serial NOT NULL,
+    name character varying,
+    branch character varying,
+    acc_name character varying,
+    acc_number character varying,
+    active boolean NOT NULL DEFAULT true,
     creation_date timestamp without time zone NOT NULL DEFAULT now(),
     modified_date timestamp without time zone,
-    CONSTRAINT student_id FOREIGN KEY (student_id)
-        REFERENCES app.students (student_id) MATCH FULL
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+    CONSTRAINT "PK_bnk_id" PRIMARY KEY (bnk_id)
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE app.absenteeism
+ALTER TABLE app.school_bnks
     OWNER to postgres;

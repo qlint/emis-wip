@@ -28,7 +28,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	];
 
 	$scope.loadSubjects = function(){
-		apiService.getClassSubjects($scope.filters.class.class_id, function(response,status){
+		apiService.getAllClassSubjects($scope.filters.class.class_id, function(response,status){
 			var result = angular.fromJson(response);
 			if( result.response == 'success')
 			{
@@ -216,6 +216,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	        class_id: $scope.filters.class_id,
 	        term_id: $scope.filters.term_id
 	    };
+			$scope.loadSubjects();
 	    ttView.style.display = "block";
 	}
 

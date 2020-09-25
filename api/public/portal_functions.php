@@ -4817,8 +4817,11 @@ $app->post('/addFeedback/:school', function ($school) {
   {
 
     $db = setDBConnection($school);
-    $sth = $db->prepare("INSERT INTO app.communication_feedback (subject, message, message_from, student_id, guardian_id) VALUES (:subject, :message, :messageFrom, :studentId, :guardianId)");
-    $sth->execute( array(':subject' => $subject, ':message' => $message, ':messageFrom' => $messageFrom, ':studentId' => $studentId, ':guardianId' => $guardianId) );
+    foreach($studentId as $student)
+    {
+      $sth = $db->prepare("INSERT INTO app.communication_feedback (subject, message, message_from, student_id, guardian_id) VALUES (:subject, :message, :messageFrom, :student, :guardianId)");
+      $sth->execute( array(':subject' => $subject, ':message' => $message, ':messageFrom' => $messageFrom, ':student' => $student, ':guardianId' => $guardianId) );
+    }
 
     $app->response->setStatus(200);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -4885,11 +4888,11 @@ $app->get('/getStudentAbsenteeism/:school/:studentId', function ($school,$studen
     try
     {
         $db = setDBConnection($school);
-        $sth = $db->prepare("SELECT *, 
+        $sth = $db->prepare("SELECT *,
                               TO_CHAR(creation_date :: DATE, 'dd/mm/yyyy') AS frmt_creation,
                               TO_CHAR(start_date :: DATE, 'dd/mm/yyyy') AS frmt_start_date,
                               TO_CHAR(end_date :: DATE, 'dd/mm/yyyy') AS frmt_end_dat
-                            FROM app.absenteeism 
+                            FROM app.absenteeism
                             WHERE student_id = :studentId ORDER BY creation_date DESC");
         $sth->execute(array(':studentId' => $studentId));
         $results = $sth->fetchAll(PDO::FETCH_OBJ);

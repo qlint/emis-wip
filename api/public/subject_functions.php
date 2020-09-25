@@ -607,5 +607,43 @@ $app->get('/getClassSubjects/:class_id', function ($classId) {
 
 });
 
+$app->get('/getAllClassSubjects/:class_id', function ($classId) {
+	//Show class subjects for specific class
+
+	$app = \Slim\Slim::getInstance();
+
+	try
+	{
+			$db = getDB();
+	$sth = $db->prepare("SELECT c.class_name, s.subject_id, LEFT(s.subject_name,9) AS subject_name, s.subject_name AS subj_name, s.sort_order, cs.class_id, s.class_cat_id, s.parent_subject_id
+												FROM app.subjects s
+												INNER JOIN app.class_subjects cs USING (subject_id)
+												INNER JOIN app.classes c ON cs.class_id = c.class_id
+												WHERE cs.class_id = :classId AND cs.active IS TRUE
+												ORDER BY s.sort_order");
+
+			$sth->execute( array(':classId' => $classId));
+
+			$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+			if($results) {
+					$app->response->setStatus(200);
+					$app->response()->headers->set('Content-Type', 'application/json');
+					echo json_encode(array('response' => 'success', 'data' => $results ));
+					$db = null;
+			} else {
+					 $app->response->setStatus(200);
+					$app->response()->headers->set('Content-Type', 'application/json');
+					echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+					$db = null;
+			}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
 
 ?>

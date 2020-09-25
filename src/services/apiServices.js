@@ -334,6 +334,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getClassSubjects/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getAllClassSubjects = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllClassSubjects/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getSubjects = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getSubjects/" + param, successFunction, errorFunction, params);
 	};
