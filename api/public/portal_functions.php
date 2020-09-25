@@ -4891,7 +4891,8 @@ $app->get('/getStudentAbsenteeism/:school/:studentId', function ($school,$studen
         $sth = $db->prepare("SELECT *,
                               TO_CHAR(creation_date :: DATE, 'dd/mm/yyyy') AS frmt_creation,
                               TO_CHAR(start_date :: DATE, 'dd/mm/yyyy') AS frmt_start_date,
-                              TO_CHAR(end_date :: DATE, 'dd/mm/yyyy') AS frmt_end_dat
+                              TO_CHAR(end_date :: DATE, 'dd/mm/yyyy') AS frmt_end_date,
+                              DATE_PART('day', end_date - start_date) AS days_absent
                             FROM app.absenteeism
                             WHERE student_id = :studentId ORDER BY creation_date DESC");
         $sth->execute(array(':studentId' => $studentId));
