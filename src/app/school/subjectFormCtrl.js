@@ -79,11 +79,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 			if( $scope.edit )
 			{
-				// apiService.updateSubject(data,createCompleted,apiError);
+				apiService.updateSubject(data,createCompleted,apiError);
 			}
 			else
 			{
-				// apiService.addSubject(data,createCompleted,apiError);
+				apiService.addSubject(data,createCompleted,apiError);
 			}
 
 
