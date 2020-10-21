@@ -8,6 +8,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
   $scope.filters = {};
   $scope.filters.status = 'true';
   $scope.filters.date = {startDate:null, endDate:null};
+  console.log($rootScope.permissions);
 
   var lastQueriedDateRange = null;
   var requery = false;

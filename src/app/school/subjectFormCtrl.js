@@ -10,6 +10,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 
 	$scope.initializeController = function()
 	{
+		$scope.classCats = $rootScope.classCats;
+		console.log($scope.classCats);
 		apiService.getAllTeachers(true,function(response){
 			var result = angular.fromJson(response);
 			console.log(result);
@@ -75,6 +77,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			var data = $scope.subject;
 			data.user_id = $rootScope.currentUser.user_id;
 			data.use_for_grading = (data.use_for_grading ? 't' : 'f');
+
 			console.log(data);
 
 			if( $scope.edit )

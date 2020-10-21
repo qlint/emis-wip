@@ -18,6 +18,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	$scope.filters = {};
 	$scope.filters.method = 'system';
 	$scope.creditApplied = false;
+	$scope.saving = false;
 	// $scope.invoice.custom_invoice_no = undefined;
 
 	$scope.initializeController = function()
@@ -273,6 +274,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			fee_item:undefined,
 			amount:undefined
 		});
+		$scope.saving = ($scope.invoiceLineItems.length > 1 ? true : false);
+		console.log("Saving? ",$scope.saving);
 	}
 
 	$scope.applyCredit = function()

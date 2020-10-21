@@ -40,6 +40,46 @@ $app->get('/getAllEmployees(/:status)', function ($status) {
 
 });
 
+$app->get('/allStaffSubscriber', function () {
+
+  $app = \Slim\Slim::getInstance();
+
+  //$hash = password_hash($pwd, PASSWORD_BCRYPT);
+
+  try
+  {
+    $db = getDB();
+
+    $sth = $db->prepare("SELECT emp_id, u.username, e.active, e.first_name, e.middle_name, e.last_name, e.email,
+													e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name AS staff_full_name, telephone, u.user_id, u.user_type,
+													e.emp_cat_id, dept_id, e.emp_number, e.gender,
+													CASE WHEN e.emp_image IS NULL THEN NULL ELSE 'https://cdn.eduweb.co.ke/employees/' || emp_image END AS emp_image
+												FROM app.employees e
+												INNER JOIN app.users u ON e.login_id = u.user_id
+												AND e.active IS TRUE AND u.active IS TRUE AND u.user_type = 'TEACHER'
+												ORDER BY emp_id ASC");
+    $sth->execute( array() );
+		$result = $sth->fetchAll(PDO::FETCH_OBJ);
+
+		if($result) {
+			$app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      $db = null;
+      echo json_encode(array('response' => 'success', 'data' => $result ));
+		} else {
+			$app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
+		}
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->get('/exportAllStaffDetails', function () {
   //Get all staff details
 

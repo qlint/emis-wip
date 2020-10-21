@@ -253,9 +253,9 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 						},
 						'students':{
 							'view': true,
-							'add': false,
+							'add': true,
 							'edit': false,
-							'import': false
+							'import': true
 						},
 						'staff':{
 							'view': true,

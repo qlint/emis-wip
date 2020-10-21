@@ -4855,6 +4855,8 @@ $app->post('/reportAbsenteeism', function () {
   $reason = $allPostVars['reason'];
   $startDate = $allPostVars['start_date'];
   $endDate = $allPostVars['end_date'];
+  $starting = $allPostVars['starting'];
+  $ending = $allPostVars['ending'];
   $school = $allPostVars['school'];
 
   try
@@ -4863,9 +4865,11 @@ $app->post('/reportAbsenteeism', function () {
     $db = setDBConnection($school);
     foreach($students as $studentId)
     {
-      $sth = $db->prepare("INSERT INTO app.absenteeism(student_id, reason, message, start_date, end_date)
-  	                       VALUES (:studentId, :reason, :message, :startDate, :endDate);");
-      $sth->execute( array(':studentId' => $studentId, ':message' => $message, ':reason' => $reason, ':startDate' => $startDate, ':endDate' => $endDate) );
+      $sth = $db->prepare("INSERT INTO app.absenteeism(student_id, reason, message, start_date, end_date, starting, ending)
+  	                       VALUES (:studentId, :reason, :message, :startDate, :endDate, :starting, :ending);");
+      $sth->execute( array(':studentId' => $studentId, ':message' => $message, ':reason' => $reason,
+                            ':startDate' => $startDate, ':endDate' => $endDate, ':starting' => $starting,
+                            ':ending' => $ending) );
     }
 
     $app->response->setStatus(200);
@@ -4889,10 +4893,10 @@ $app->get('/getStudentAbsenteeism/:school/:studentId', function ($school,$studen
     {
         $db = setDBConnection($school);
         $sth = $db->prepare("SELECT *,
-                              TO_CHAR(creation_date :: DATE, 'dd/mm/yyyy') AS frmt_creation,
-                              TO_CHAR(start_date :: DATE, 'dd/mm/yyyy') AS frmt_start_date,
-                              TO_CHAR(end_date :: DATE, 'dd/mm/yyyy') AS frmt_end_date,
-                              DATE_PART('day', end_date - start_date) AS days_absent
+                              TO_CHAR(creation_date :: DATE, 'dd/mm/yyyy') AS formatted_creation,
+                              TO_CHAR(starting :: DATE, 'dd/mm/yyyy') AS formatted_start_date,
+                              TO_CHAR(ending :: DATE, 'dd/mm/yyyy') AS formatted_end_date,
+                              ending - starting AS days_absent
                             FROM app.absenteeism
                             WHERE student_id = :studentId ORDER BY creation_date DESC");
         $sth->execute(array(':studentId' => $studentId));

@@ -61,6 +61,19 @@ function getAfricasTalkingDB()
 
 }
 
+function getSmsDB()
+{
+	$dbhost="localhost";
+	$dbport= ( strpos($_SERVER['HTTP_HOST'], 'localhost') === false ? "5433" : "5434");
+	$dbuser="postgres";
+	$dbpass="pg_edu@8947";
+	$dbname="sms_server";
+	$dbConnection = new PDO("pgsql:host=$dbhost;port=$dbport;dbname=$dbname", $dbuser, $dbpass);
+	$dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	return $dbConnection;
+
+}
+
 function getClientDBData()
 {
 	$dbConnection = getMISDB();

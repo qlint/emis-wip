@@ -32,6 +32,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			/* wait till the class cats are ready, then fetch subjects for first cat */
 			if( $rootScope.classCats && $rootScope.classCats.length > 0 )
 			{
+				console.log($rootScope.classCats);
 				$scope.filters.class_cat_id = $rootScope.classCats[0].class_cat_id;
 				getSubjects($rootScope.classCats[0].class_cat_id);
 			}

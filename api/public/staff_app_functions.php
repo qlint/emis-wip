@@ -375,7 +375,7 @@ $app->post('/staffSubscriber', function () use($app) {
                     if( $db !== null ) $db = null;
                     $db = setDBConnection($result->school);
 
-                    $sth9 = $db->prepare("SELECT emp_cat_id, dept_id, emp_number, gender, 
+                    $sth9 = $db->prepare("SELECT emp_cat_id, dept_id, emp_number, gender,
                                           CASE WHEN emp_image IS NULL THEN NULL ELSE 'https://cdn.eduweb.co.ke/employees/' || emp_image END AS emp_image
                                           FROM app.employees
                                           WHERE emp_id = :teacherId");

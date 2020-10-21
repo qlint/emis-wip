@@ -13,7 +13,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 	$scope.totals = {};
 	$scope.creditApplied = false;
 
-
 	// can no longer edit an invoice if it is fully paid
 	if( $scope.invoice.balance == 0 && $scope.invoice.total_paid > 0 ) $scope.edit = false;
 

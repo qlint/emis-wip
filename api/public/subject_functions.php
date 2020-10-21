@@ -267,7 +267,6 @@ $app->put('/updateSubject', function () use($app) {
 	$subjectId =		( isset($allPostVars['subject_id']) ? $allPostVars['subject_id']: null);
 	$subjectName =		( isset($allPostVars['subject_name']) ? $allPostVars['subject_name']: null);
 	$classCatId =		( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
-	$classId =		( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
 	$teacherId =		( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
 	$parentSubjectId =	( isset($allPostVars['parent_subject_id']) ? $allPostVars['parent_subject_id']: null);
 	$userId =			( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
@@ -283,13 +282,11 @@ $app->put('/updateSubject', function () use($app) {
 													parent_subject_id = :parentSubjectId,
 													use_for_grading = :forGrading,
 													modified_date = now(),
-													modified_by = :userId,
-													class_id = :classId
+													modified_by = :userId
 												WHERE subject_id = :subjectId");
 
 		$sth->execute( array(':subjectName' => $subjectName, ':classCatId' => $classCatId, ':teacherId' => $teacherId,
-					 ':subjectId' => $subjectId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId, ':forGrading' => $forGrading,
-					 ':class_id' => $classId) );
+					 ':subjectId' => $subjectId, ':userId' => $userId, ':parentSubjectId' => $parentSubjectId, ':forGrading' => $forGrading) );
 
 		$app->response->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
@@ -615,12 +612,13 @@ $app->get('/getAllClassSubjects/:class_id', function ($classId) {
 	try
 	{
 			$db = getDB();
-	$sth = $db->prepare("SELECT c.class_name, s.subject_id, LEFT(s.subject_name,9) AS subject_name, s.subject_name AS subj_name, s.sort_order, cs.class_id, s.class_cat_id, s.parent_subject_id
-												FROM app.subjects s
-												INNER JOIN app.class_subjects cs USING (subject_id)
-												INNER JOIN app.classes c ON cs.class_id = c.class_id
-												WHERE cs.class_id = :classId AND cs.active IS TRUE
-												ORDER BY s.sort_order");
+	$sth = $db->prepare("SELECT c.class_name, s.subject_id, LEFT(s.subject_name,9) AS subject_name,
+												s.subject_name AS subj_name, s.sort_order, c.class_id, s.class_cat_id,
+												s.parent_subject_id
+											FROM app.subjects s
+											INNER JOIN app.classes c ON s.class_cat_id = c.class_cat_id
+											WHERE c.class_id = :classId AND s.active IS TRUE
+											ORDER BY s.sort_order");
 
 			$sth->execute( array(':classId' => $classId));
 

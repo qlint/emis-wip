@@ -12,7 +12,7 @@
 					<div class="form-group" ng-class="{ 'has-error' : subjectForm.class_cat.$invalid && (subjectForm.class_cat.$touched || subjectForm.$submitted) }">
 						<label for="class_cat" class="col-sm-3 control-label">Class Category</label>
 						<div class="col-sm-5">
-							<select name="class_cat" class="form-control" ng-options="class.class_id as class.class_name for class in classes"  ng-model="subject.class_id" required>
+							<select name="class_cat" class="form-control" ng-options="cat.class_cat_id as cat.class_cat_name for cat in classCats"  ng-model="subject.class_cat_id" required>
 								<option value="">--select class--</option>
 							</select>
 							<p ng-show="subjectForm.class_cat.$invalid && (subjectForm.class_cat.$touched || subjectForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Class Category is required.</p>
