@@ -724,6 +724,8 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
             $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
             array_push($registrationMessageObj->message_recipients, clone $msgRecipientsObj);
 
+            sendSms($registrationMessageObj->message_by, $registrationMessageObj->message_text, $registrationMessageObj->message_recipients, "dev2");
+            /*
             // send the message
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
@@ -751,10 +753,10 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
             }
 
             curl_close($ch);
-
-            // $app->response()->setStatus(200);
-            // $app->response()->headers->set('Content-Type', 'application/json');
-            // echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password." ));
+            */
+            $app->response()->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo  json_encode(array('response' => 'Success', 'message' => "Your request is being processed. You will receive an SMS shortly." ));
 
         }else{
           $app->response()->setStatus(200);
@@ -784,6 +786,8 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
         $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
         array_push($registrationMessageObj->message_recipients, clone $msgRecipientsObj);
 
+        sendSms($registrationMessageObj->message_by, $registrationMessageObj->message_text, $registrationMessageObj->message_recipients, "dev2");
+        /*
         // send the message
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
@@ -811,6 +815,7 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
         }
 
         curl_close($ch);
+        */
         $db1 = null;
       }else{
         $app->response()->setStatus(200);
@@ -1088,6 +1093,8 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
           $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
           array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
 
+          sendSms($forgotPwdObj->message_by, $forgotPwdObj->message_text, $forgotPwdObj->message_recipients, "dev2");
+          /*
           // send the message
           $ch = curl_init();
           curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
@@ -1113,8 +1120,11 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
             $app->response()->headers->set('Content-Type', 'application/json');
             echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully", "temporary-code" => $temporaryPwd, "phone" => $phoneNumber ));
           }
-
           curl_close($ch);
+          */
+          $app->response()->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo  json_encode(array('response' => 'Success', 'message' => "The request is being processed", "status" => "You will receive an sms shortly" ));
       }else{
         $app->response()->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -1149,6 +1159,8 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
       $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
       array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
 
+      sendSms($forgotPwdObj->message_by, $forgotPwdObj->message_text, $forgotPwdObj->message_recipients, "dev2");
+      /*
       // send the message
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
@@ -1176,6 +1188,10 @@ $app->get('/forgotPassword/:phone', function ($phoneNumber){
       }
 
       curl_close($ch);
+      */
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'Success', 'message' => "You should receive an SMS shortly with your temporary password.", "status" => "SMS resent.", "temporary-code" => $temporaryPwd, "phone" => $phoneNumber ));
     }
     $db0 = null;
 
@@ -1279,6 +1295,8 @@ $app->get('/resendOtp/:phone', function ($phoneNumber){
       $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
       array_push($messageObj->message_recipients, clone $msgRecipientsObj);
 
+      sendSms($messageObj->message_by, $messageObj->message_text, $messageObj->message_recipients, "dev2");
+      /*
       // send the message
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
@@ -1306,10 +1324,11 @@ $app->get('/resendOtp/:phone', function ($phoneNumber){
       }
 
       curl_close($ch);
+      */
 
-      // $app->response()->setStatus(200);
-      // $app->response()->headers->set('Content-Type', 'application/json');
-      // echo  json_encode(array('response' => 'error', 'message' => "Still in development.", "data" => $messageObj ));
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'Success', 'message' => "Phone record has been found. A confirmation SMS will be sent to you for validation to allow you to proceed to register your password.", "status" => "SMS will be sent shortly." ));
 
     }else{
       $app->response()->setStatus(200);

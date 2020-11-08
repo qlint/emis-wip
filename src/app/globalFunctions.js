@@ -177,6 +177,137 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 	}, function(e){console.log(e)});
 	// $rootScope.userTypes = ['SYS_ADMIN','ADMIN','PRINCIPAL','ADMIN-FINANCE','ADMIN-TRANSPORT','FINANCE','FINANCE_CONTROLLED','TEACHER'];
 
+	$rootScope.postTxt = function(id){
+
+		let param = window.location.host.split('.')[0];
+		apiService.getComUserToken(param, function(response){
+			var result = angular.fromJson(response);
+
+			function makeid(length) {
+				 var result = '';
+				 var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+				 var charactersLength = characters.length;
+				 for ( var i = 0; i < length; i++ ) {
+						result += characters.charAt(Math.floor(Math.random() * charactersLength));
+				 }
+				 return result;
+			}
+
+			if( result.response == 'success'){
+				let data = result.data;
+				console.log(data);
+				let params = {
+					AuthDetails: [
+						{
+							UserID: data.user_name,
+							Token: data.token,
+							Timestamp: data.timestamp
+						}
+					],
+					MessageType: ["3"],
+					BatchType: ["1"],
+					SourceAddr: [data.source],
+					MessagePayload: [{Text: null }],
+					DestinationAddr: [],
+					DeliveryRequest: [
+						{
+							EndPoint: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/rxSms.php",
+							Correlator: "ED" + makeid(12)
+						}
+					]
+				}
+				console.log("Received com_id > ",id);
+
+				apiService.getSmsDetails(id, function(response, status){
+					var result = angular.fromJson(response);
+
+					if( result.response == 'success')
+					{
+						if( result.nodata )
+						{ /* no sms to send */ }
+						else
+						{
+							let post = result.data;
+							params.MessagePayload[0].Text = post[0].message_text;
+							let allRecipients = [];
+							post.forEach((item, i) => {
+								let recipient = {
+									"MSISDN": "254" + item.phone_number,
+									"LinkID": "",
+									"SourceID": 0
+								}
+								allRecipients.push(recipient);
+							});
+							// we use a batch size of 90 so large sms's will
+							// be sent to recipients in chunks of 90
+							var i,j,temparray,chunk = 90;
+							for (i=0,j=allRecipients.length; i<j; i+=chunk) {
+									temparray = allRecipients.slice(i,i+chunk);
+									params.DestinationAddr = temparray;
+									console.log(params);
+									let xhr = new XMLHttpRequest();
+									xhr.onload = () => {
+											if (xhr.status >= 200 && xhr.status < 300) {
+													let response = JSON.parse(xhr.responseText);
+													console.log('SMS sent >',response);
+													function smsLength(text){return text.length}
+													function smsPages(text){return Math.ceil(parseInt(text.length)/160);}
+													let recpients = response;
+													recpients.forEach((recipient, i) => {
+														let recipientPhone = recipient.MSISDN.slice(3);
+														for (var p = 0; p < post.length; p++) {
+															if(recipientPhone == post[p].phone_number){
+																recipient.recipient_name = post[p].recipient_name;
+															}
+														}
+													});
+													console.log('Modified Recipients > ',recpients);
+
+													let dataLog = {
+														message_text: post[0].message_text,
+														message_by: post[0].message_by,
+														message_length: smsLength(post[0].message_text),
+														page_count: smsPages(post[0].message_text),
+														token: data.token,
+														subscriber_id: data.subscriber_id,
+														recipients: recpients
+													}
+													console.log("Save to DB >",dataLog);
+													apiService.logToSmsServer(dataLog,function(response, status){
+														var res = angular.fromJson( response );
+														if( res.response == 'success' )
+														{
+															console.log("Logged successfully.",res);
+														}
+														else
+														{
+															$scope.error = true;
+															$scope.errMsg = res.data;
+														}
+													}, function(err){console.log("An Erros Ocurred :: ",err)});
+													params.DestinationAddr = null;
+											}
+									};
+									xhr.open('POST', 'https://api.pasha.biz/submit1.php');
+									xhr.setRequestHeader('Content-Type', 'application/json');
+									xhr.send(JSON.stringify(params));
+									params.DestinationAddr = null;
+							}
+
+						}
+					}
+					else
+					{
+						$scope.error = true;
+						$scope.errMsg = result.data;
+					}
+				}, function(err){console.log("An error has occurred: ",err);});
+			}
+
+		}, function(err){console.log("An error occurred: ",err)});
+
+	}
+
 	$rootScope.formatStudentData = function(data)
 	{
 		// make adjustments to student data

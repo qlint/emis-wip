@@ -1,0 +1,15 @@
+SUCCESS
+2020-11-04 10:11:23am
+[{"ResponseCode":"1001","MSISDN":"254740334102","Correlator":"ED2jdPPMiRrkU2","MessageID":"fc1d6f18-093b-4ab5-b2a7-83415684307f"}]
+SUCCESS
+2020-11-04 09:23:34pm
+[{"ResponseCode":"1001","MSISDN":"254723854984","Correlator":"EDJ9Ic1dBBhASD","MessageID":"0e7c3520-d869-4424-8044-25a1ac13191f"}]
+SUCCESS
+2020-11-04 09:37:14pm
+[{"ResponseCode":"1001","MSISDN":"254721416727","Correlator":"EDuSO8KOdKxNE3","MessageID":"ad73f184-c5d7-4b0a-a9d7-32f75d0b102e"}]
+SUCCESS
+2020-11-04 10:57:54pm
+[{"ResponseCode":"1001","MSISDN":"254723738845","Correlator":"EDYk3AAXHy12ad","MessageID":"d15bce07-05ac-4cbf-99e1-963c6aa0a7e2"}]
+SUCCESS
+2020-11-05 05:59:38am
+[{"ResponseCode":"1001","MSISDN":"254721644194","Correlator":"EDe9eYNsNGVjPZ","MessageID":"b496eaee-582e-4f00-a899-2d8b546edd47"}]

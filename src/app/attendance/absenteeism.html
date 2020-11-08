@@ -1,0 +1,67 @@
+<style>
+	.col-half-offset{margin-left:4.166666667%}
+</style>
+<div ng-controller="absenteeismCtrl">
+
+	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
+
+		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
+			<strong>Success!</strong> {{notificationMsg}}
+		</div>
+		<div class="notification alert alert-danger alert-dismissible" ng-show="error">
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			{{errMsg}}
+		</div>
+
+		<div class="fixed content-fixed-header">
+			<div class="subnavbar non-printable" ng-hide="isPrinting">
+				<ul class="nav nav-tabs main-sub-nav" >
+					<li ng-class="{active: item.subSection == activeSubSection}" ng-repeat="item in mainSubNavItems"><a ui-sref="{{item.id}}">{{item.label}}</a></li>
+				</ul>
+			</div>
+
+			<div class="clearfix">
+				<h1 id="pageTitle">Absenteeism</h1>
+			</div>
+
+			<!-- search form -->
+			<div class="dataFilterForm">
+				<h4 ng-show="!isSmallScreen">Filters</h4>
+				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
+				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
+					<!-- category select -->
+					<div class="form-group">
+						<label for="category">Class</label>
+						<select class="form-control" id="classes" name="class_id" ng-options="item.class_name for item in classes" ng-model="filters.class_id">
+							<option value="">All Classes</option>
+						</select>
+					</div>
+
+					<!-- search btn -->
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="filter()" value="Load" />
+						<img src="assets/spinner.gif" ng-show="loading" />
+						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+					</div>
+
+					<div class="form-group grid-filter">
+						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' placeholder="Filter"/>
+						<button class="btn btn-xs btn-primary" ng-click='filterDataTable()'>Filter</button>
+						<button class="btn btn-xs " ng-click='clearFilterDataTable()'>Clear</button>
+					</div>
+
+				</form>
+			</div>
+			<!-- // end search form -->
+
+		</div>
+
+		<div class="full-height datagrid main-datagrid">
+			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
+			<div id="grid1" ui-grid="gridOptions" ui-grid-exporter class="myGrid">
+				<div ng-if="!gridOptions.data.length" class="no-results">No results found.</div>
+			</div>
+		</div>
+
+	</div>
+</div>

@@ -534,3 +534,134 @@ function dateDiff($dt1, $dt2) {
     $diff/= 3600*24;
     return $diff;
 }
+
+function sendSms($textBy, $text, $recipients, $client) {
+	// generate token & get client data
+	$db = getSmsDB();
+	$sth = $db->prepare("SELECT * FROM subscribers WHERE subscriber_name = :subdomain");
+	$sth->execute(array(':subdomain' => $client));
+
+	$dte = date("Y-m-d");
+	$tme = date("h:i:sa");
+	$datetime = $dte . " " . $tme;
+
+	$results = $sth->fetch(PDO::FETCH_OBJ);
+	if($results) {
+			$usrNme = $results->user_name;
+			$pwd = $results->password;
+			$token = md5($pwd);
+			$source = $results->source;
+			$subscriberId = $results->subscriber_id;
+			$msgLength = strlen($text);
+			$pages = ceil($msgLength/160);
+
+			$data = new stdClass();
+			$data->user_name = $usrNme;
+			$data->token = $token;
+			$data->source = $source;
+			$data->timestamp = date("d") . date("m") . date("Y") . date("h") . date("i") . date("s");
+			$data->subscriber_id = $subscriberId;
+
+			function generateRandomString($length) {
+	        $include_chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	        /* Uncomment below to include symbols */
+	        /* $include_chars .= "[{(!@#$%^/&*_+;?\:)}]"; */
+	        $charLength = strlen($include_chars);
+	        $randomString = '';
+	        for ($i = 0; $i < $length; $i++) {
+	            $randomString .= $include_chars [rand(0, $charLength - 1)];
+	        }
+	        return $randomString;
+	    }
+
+	    // Call function
+	    $length = 12; # Set result string lenght
+	    $data->correlator = generateRandomString($length);
+
+			// build sms object
+			$payload = new stdClass();
+			$payload->AuthDetails = array();
+			$payload->MessageType = array("3");
+			$payload->BatchType = array("1");
+			$payload->SourceAddr = array($data->source);
+			$payload->MessagePayload = array();
+			$payload->DestinationAddr = array();
+			$payload->DeliveryRequest = array();
+
+			$authDetailsObj = new stdClass();
+			$authDetailsObj->UserID = $data->user_name;
+			$authDetailsObj->Token = $data->token;
+			$authDetailsObj->Timestamp = $data->timestamp;
+			array_push($payload->AuthDetails,$authDetailsObj);
+
+			$msgPayloadObj = new stdClass();
+			$msgPayloadObj->Text = $text;
+			array_push($payload->MessagePayload,$msgPayloadObj);
+
+			for ($i=0; $i < count($recipients); $i++) {
+				$recipientsObj = new stdClass();
+				$recipientsObj->MSISDN = $recipients[$i]->phone_number;
+				$recipientsObj->LinkID = "";
+				$recipientsObj->SourceID = 0;
+				array_push($payload->DestinationAddr,$recipientsObj);
+			}
+
+			$deliveryReqObj = new stdClass();
+			$deliveryReqObj->EndPoint = "https://" . $client . ".eduweb.co.ke/srvScripts/rxSms.php";
+			$deliveryReqObj->Correlator = 'ED' . $data->correlator;
+			array_push($payload->DeliveryRequest,$deliveryReqObj);
+
+			try
+	    {
+	        $sth = $db->prepare("INSERT INTO public.messages(token, message_date, message_by, message_length, page_count, subscriber_id, message_text)
+	                              VALUES (:token, now(), :msgBy, :msgLen, :pageCount, :subscriberId, :msgTxt) returning message_id;");
+	        $sth->execute( array(':token' => $data->token, ':msgBy' => $textBy, ':msgLen' => $msgLength, ':pageCount' => $pages, ':subscriberId' => $data->subscriber_id, ':msgTxt' => $text ) );
+	        $msgId = $sth->fetch(PDO::FETCH_OBJ);
+	        $msgId = $msgId->message_id;
+
+	        $db->beginTransaction();
+
+	        foreach( $recipients as $recipient )
+	        {
+	          $phoneNumber = ( isset($recipient['phone_number']) ? "+".$recipient['phone_number']: null);
+	          $name = ( isset($recipient['recipient_name']) ? $recipient['recipient_name'] : null);
+
+	          $sth2 = $db->prepare("INSERT INTO public.recipients(message_id, phone_number, recipient_name)
+	          VALUES (:msgId, :phoneNumber, :name);");
+	          $sth2->execute( array(':msgId' => $msgId, ':phoneNumber' => $phoneNumber, ':name' => $name ) );
+	        }
+	        $db->commit();
+
+					try {
+						// send the payload
+						$ch = curl_init();
+						curl_setopt($ch, CURLOPT_URL, "https://api.pasha.biz/submit1.php"); // the endpoint url
+						curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+						curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+						curl_setopt($ch, CURLOPT_HEADER, FALSE);
+						curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+						curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload)); // the data to post
+						curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+						curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+
+						$resp = curl_exec($ch);
+						file_put_contents('smsLog.txt', print_r("SUCCESS" . PHP_EOL, true), FILE_APPEND);
+						file_put_contents('smsLog.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+		      	file_put_contents('smsLog.txt', print_r($resp . PHP_EOL, true), FILE_APPEND);
+						curl_close($ch);
+					} catch(PDOException $e3) {
+			      $errMsg = $e3->getMessage();
+						file_put_contents('smsLog.txt', print_r("ERROR 3" . PHP_EOL, true), FILE_APPEND);
+						file_put_contents('smsLog.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+		      	file_put_contents('smsLog.txt', print_r($errMsg . PHP_EOL, true), FILE_APPEND);
+			    }
+
+		  } catch(PDOException $e2) {
+				$errMsg = $e2->getMessage();
+				file_put_contents('smsLog.txt', print_r("ERROR 2" . PHP_EOL, true), FILE_APPEND);
+				file_put_contents('smsLog.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+				file_put_contents('smsLog.txt', print_r($errMsg . PHP_EOL, true), FILE_APPEND);
+		  }
+
+	}
+}

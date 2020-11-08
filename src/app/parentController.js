@@ -242,6 +242,18 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true,
 						},
+					},
+					'attendance':{
+						'student_attendance':{
+							'view': true,
+							'add': true,
+							'edit': true,
+						},
+						'list_absenteeism':{
+							'view': true,
+							'add': true,
+							'edit': true,
+						}
 					}
 
 				};

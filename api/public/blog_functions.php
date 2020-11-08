@@ -248,6 +248,57 @@ $app->post('/addCommViaAfricasTalking', function () use($app) {
 
 });
 
+$app->post('/logToSmsServer', function () use($app) {
+  // Log out going sms
+
+    $allPostVars = json_decode($app->request()->getBody(),true);
+    $msgTxt =   ( isset($allPostVars['message_text']) ? $allPostVars['message_text']: null);
+    $msgBy =  ( isset($allPostVars['message_by']) ? $allPostVars['message_by']: null);
+    $msgLen =    ( isset($allPostVars['message_length']) ? $allPostVars['message_length']: null);
+    $pageCount =    ( isset($allPostVars['page_count']) ? $allPostVars['page_count']: null);
+    $subscriberId =    ( isset($allPostVars['subscriber_id']) ? $allPostVars['subscriber_id']: null);
+    $token =    ( isset($allPostVars['token']) ? $allPostVars['token']: null);
+    $recipients =    ( isset($allPostVars['recipients']) ? $allPostVars['recipients']: null);
+
+    try
+    {
+        $db = getSmsDB();
+        $sth = $db->prepare("INSERT INTO public.messages(token, message_date, message_by, message_length, page_count, subscriber_id, message_text)
+                              VALUES (:token, now(), :msgBy, :msgLen, :pageCount, :subscriberId, :msgTxt) returning message_id;");
+        $sth->execute( array(':token' => $token, ':msgBy' => $msgBy, ':msgLen' => $msgLen, ':pageCount' => $pageCount, ':subscriberId' => $subscriberId, ':msgTxt' => $msgTxt ) );
+        $msgId = $sth->fetch(PDO::FETCH_OBJ);
+        $msgId = $msgId->message_id;
+
+        $db->beginTransaction();
+
+        foreach( $recipients as $recipient )
+        {
+          $phoneNumber = ( isset($recipient['MSISDN']) ? "+".$recipient['MSISDN']: null);
+          $apiMessageId = ( isset($recipient['MessageID']) ? $recipient['MessageID'] : null);
+          $respCode = ( isset($recipient['ResponseCode']) ? $recipient['ResponseCode'] : null);
+          $name = ( isset($recipient['recipient_name']) ? $recipient['recipient_name'] : null);
+
+          $sth2 = $db->prepare("INSERT INTO public.recipients(message_id, phone_number, recipient_name, status_code, api_messageid)
+          VALUES (:msgId, :phoneNumber, :name, :respCode, :apiMessageId);");
+          $sth2->execute( array(':msgId' => $msgId, ':phoneNumber' => $phoneNumber, ':name' => $name, ':respCode' => $respCode, ':apiMessageId' => $apiMessageId ) );
+        }
+
+        $db->commit();
+
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array("response" => "success", "data" => "Message sent succcessfully!"));
+        $db = null;
+
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(404);
+        $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->post('/logFailedSms', function () use($app) {
   // log failed sms for reference purposes
 
@@ -296,13 +347,60 @@ $app->post('/logFailedSms', function () use($app) {
 
 });
 
+$app->get('/getComUserToken/:subdomain', function ($subdomain) {
+    //Return token if user exists
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+      $db = getSmsDB();
+
+			$sth = $db->prepare("SELECT * FROM subscribers WHERE subscriber_name = :subdomain");
+			$sth->execute(array(':subdomain' => $subdomain));
+
+      $results = $sth->fetch(PDO::FETCH_OBJ);
+
+        if($results) {
+          $usrNme = $results->user_name;
+          $pwd = $results->password;
+          $token = md5($pwd);
+          $source = $results->source;
+          $subscriberId = $results->subscriber_id;
+
+          $data = new stdClass();
+          $data->user_name = $usrNme;
+          $data->token = $token;
+          $data->source = $source;
+          $data->timestamp = date("d") . date("m") . date("Y") . date("h") . date("i") . date("s");
+          $data->subscriber_id = $subscriberId;
+
+          $app->response->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo json_encode(array('response' => 'success', 'data' => $data ));
+          $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'SMS messages canno be sent from this account. Contact EDUWEB to enable this feature.' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+      $app->response()->setStatus(404);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->post('/addBlog', function () use($app) {
   // Add blog
 
-$allPostVars = json_decode($app->request()->getBody(),true);
-$blogName =   ( isset($allPostVars['blog_name']) ? $allPostVars['blog_name']: null);
-$teacherId =  ( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
-$classId =    ( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $blogName =   ( isset($allPostVars['blog_name']) ? $allPostVars['blog_name']: null);
+  $teacherId =  ( isset($allPostVars['teacher_id']) ? $allPostVars['teacher_id']: null);
+  $classId =    ( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
 
   try
   {

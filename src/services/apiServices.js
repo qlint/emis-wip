@@ -991,8 +991,16 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPost2(request, path + "/addCommViaAfricasTalking", successFunction, errorFunction, params);
 	};
 
+	this.logToSmsServer = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/logToSmsServer", successFunction, errorFunction, params);
+	};
+
 	this.logFailedSms = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/logFailedSms", successFunction, errorFunction, params);
+	};
+
+	this.getComUserToken = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getComUserToken/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getCommunication = function (param, successFunction, errorFunction, params) {
@@ -1267,6 +1275,12 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.updateVimeoUri = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateVimeoUri", successFunction, errorFunction, params);
+	};
+
+	/*********** attendance & absenteeism ***********/
+	this.getAbsenteeism = function (param, successFunction, errorFunction, params) {
+		if( param === undefined ) ajaxService.AjaxGet(path + "/getAbsenteeism", successFunction, errorFunction, params);
+		else ajaxService.AjaxGet(path + "/getAbsenteeism/" + param, successFunction, errorFunction, params);
 	};
 
 	return this;

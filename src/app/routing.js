@@ -468,6 +468,20 @@ function($stateProvider, $urlRouterProvider, USER_ROLES) {
 	         authorizedRoles: [USER_ROLES.admin, USER_ROLES.finance_controlled, USER_ROLES.sys_admin, USER_ROLES.teacher]
 	      }
 	    })
+			.state('attendance/list_absenteeism', {
+       url: "/attendance/list_absenteeism",
+ 	  	 templateUrl: 'app/attendance/absenteeism.html',
+       data: {
+          authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+       }
+     })
+ 	.state('attendance/student_attendance', {
+       url: "/attendance/student_attendance",
+ 	  	 templateUrl: 'app/attendance/attendance.html',
+       data: {
+          authorizedRoles: [USER_ROLES.admin, USER_ROLES.teacher, USER_ROLES.sys_admin]
+       }
+     })
 
 	;
 }]);

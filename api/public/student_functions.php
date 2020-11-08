@@ -3083,5 +3083,58 @@ $app->delete('/deleteDocReport/:studentId/:termId', function ($studentId, $termI
 
 });
 
+$app->get('/getAbsenteeism(/:classId)', function ($classId = null) {
+		//Show all absenteeism if null or class specific is class is set
+
+	$app = \Slim\Slim::getInstance();
+
+		try
+		{
+		$db = getDB();
+		if( $classId == null )
+		{
+			$query = $db->prepare("SELECT *,
+                            TO_CHAR(creation_date :: DATE, 'dd/mm/yyyy') AS formatted_creation,
+                            TO_CHAR(starting :: DATE, 'dd/mm/yyyy') AS formatted_start_date,
+                            TO_CHAR(ending :: DATE, 'dd/mm/yyyy') AS formatted_end_date,
+                            ending - starting AS days_absent
+                          FROM app.absenteeism
+                          ORDER BY creation_date DESC");
+			$query->execute();
+		}
+		else
+		{
+			$query = $db->prepare("SELECT *,
+                            TO_CHAR(creation_date :: DATE, 'dd/mm/yyyy') AS formatted_creation,
+                            TO_CHAR(starting :: DATE, 'dd/mm/yyyy') AS formatted_start_date,
+                            TO_CHAR(ending :: DATE, 'dd/mm/yyyy') AS formatted_end_date,
+                            ending - starting AS days_absent
+                          FROM app.absenteeism
+                          WHERE student_id IN (SELECT student_id FROM app.students WHERE active IS TRUE AND current_class = :classId)
+                          ORDER BY creation_date DESC");
+			$query->execute(array(':classId' => $classId));
+		}
+
+				$results = $query->fetchAll(PDO::FETCH_ASSOC);
+
+				if($results) {
+						$app->response->setStatus(200);
+						$app->response()->headers->set('Content-Type', 'application/json');
+						echo json_encode(array('response' => 'success', 'data' => $results ));
+						$db = null;
+				} else {
+						$app->response->setStatus(200);
+						$app->response()->headers->set('Content-Type', 'application/json');
+						echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+						$db = null;
+				}
+
+		} catch(PDOException $e) {
+				$app->response()->setStatus(404);
+		    $app->response()->headers->set('Content-Type', 'application/json');
+				echo	json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		}
+
+});
 
 ?>

@@ -1,0 +1,10 @@
+INSERT INTO app.settings (name, value) VALUES ('Marital Statuses', 'Married,Separated,Divorced,Widowed,Single');
+INSERT INTO app.settings (name, value) VALUES ('Guardian Relationships', 'Father,Mother,Guardian,Step Parent,Other');
+INSERT INTO app.settings (name, value) VALUES ('Medical Conditions', 'Allergies,Asthma,Convulsions,Diabetes,Disability,Ear Problems,Epilepsy,Eye Problems,Extreme Tiredness,Fainting Spells,Frequent Headaches,Memory Problems,Meningitis,Sleeping Problems,Other');
+INSERT INTO app.settings (name, value) VALUES ('Titles', 'Mr,Mrs,Ms,Dr');
+INSERT INTO app.settings (name, value) VALUES ('Term Start Month', '1');
+INSERT INTO app.settings (name, value) VALUES ('Payment Options', 'Annually,Installments');
+INSERT INTO app.settings (name, value) VALUES ('Frequencies', 'per term,yearly,once');
+INSERT INTO app.settings (name, value) VALUES ('Student Types', 'Boarder,Day Scholar');
+INSERT INTO app.settings (name, value) VALUES ('Student Categories', 'Regular,Scholarship,Fully Sponsored');
+INSERT INTO app.settings (name, value) VALUES ('Payment Methods', 'Cash,Cheque,Bank receipts,Bank transfer,M-Pesa');

@@ -8,15 +8,10 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 	$scope.error = false;
 	$scope.loggingIn = false;
 
-	var initializeController = function ()
-	{
-	}
+	var initializeController = function (){}
 	//setTimeout(initializeController,10);
 
-	$scope.hitEnter = function(evt)
-	{
-		$scope.submit();
-	}; // end hitEnter
+	$scope.hitEnter = function(evt){ $scope.submit(); }; // end hitEnter
 
 	//when the form is submitted
 	$scope.submit = function()
@@ -34,39 +29,24 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 		}
 	};
 
-	$scope.cancel = function()
-	{
-		$uibModalInstance.dismiss('canceled');
-	}; // end cancel
-
+	$scope.cancel = function(){ $uibModalInstance.dismiss('canceled'); }; // end cancel
 
 	//Performs the login function, by sending a request to the server with the Auth service
 	$scope.login = function(credentials)
 	{
 		$scope.error = false;
-
 		Auth.login(credentials, function(user) {
 			//success function
-
 			$scope.loggingIn = false;
-
-			setTimeout(
-				function(){
-					$uibModalInstance.dismiss('cancel');
-				}
-			, 100);
+			setTimeout(function(){ $uibModalInstance.dismiss('cancel'); }, 100);
 
 			if( $rootScope.currentUser.user_type == 'PARENT' ) $state.go('portal_dashboard');
 			else $state.go('dashboard');
-
-
 		}, function(err) {
 			$scope.credentials.user_pwd = '';
 			$scope.error = true;
 			$scope.loggingIn = false;
 		});
-
-
 	};
 
 	$rootScope.$on('displayLoginError', function(event, args) {
@@ -86,8 +66,6 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 		$scope.loginForm.user_pwd.$invalid = false;
 		$('input[name=user_pwd]').focus();
 	});
-
-
 
 	// if a session exists for current user (page was refreshed)
 	// log him in again
@@ -111,16 +89,12 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 
 		//-- Methods --//
 
-		$scope.cancel = function(){
-			$uibModalInstance.dismiss('Canceled');
-		}; // end cancel
+		$scope.cancel = function(){ $uibModalInstance.dismiss('Canceled'); }; // end cancel
 
 		$scope.updatePwd = function(form){
 
 			if( $scope.user.old_pwd == $scope.user.user_pwd )
-			{
-				form.user_pwd.$error.pwdnotnew = true;
-			}
+			{ form.user_pwd.$error.pwdnotnew = true; }
 			else
 			{
 				// make API call to save password
@@ -156,10 +130,7 @@ function($scope, $rootScope, $state, $uibModalInstance, $window, Auth, apiServic
 					}
 				}
 
-				var apiError = function (response, status)
-				{
-					console.log("There is a problem somewhere");
-				}
+				var apiError = function (response, status){ console.log("An error has been encountered :: ",response); }
 
 				// apiService.postUserRequest(change_pass,updateSuccess,apiError);
 				apiService.postUserRequest(angular.toJson(change_pass), function (response, status) {
