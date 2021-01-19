@@ -30,55 +30,65 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				if( result.response == 'success')
 				{
 					$scope.terms = result.data;
-					// console.log($scope.terms);
+					$scope.termNums = [...new Set($scope.terms.map(item => "TERM " + item.term_number))].sort();
 				}
 
 			}, apiError);
 
-		// get classes
-		if( $rootScope.allClasses === undefined )
-		{
-			if ( $rootScope.currentUser.user_type == 'TEACHER' )
-			{
-				apiService.getTeacherClasses($rootScope.currentUser.emp_id, function(response){
-					var result = angular.fromJson(response);
+			apiService.getReportCardYears({},function(response){
+				var result = angular.fromJson( response );
+				if( result.response == 'success' )
+				{
+					$scope.years = result.data;
+					$scope.filters.year = $scope.years[0].year;
 
-					// store these as they do not change often
-					if( result.response == 'success')
+					// get classes
+					if( $rootScope.allClasses === undefined )
 					{
-						$scope.classes = result.data || [];
+						if ( $rootScope.currentUser.user_type == 'TEACHER' )
+						{
+							apiService.getTeacherClasses($rootScope.currentUser.emp_id, function(response){
+								var result = angular.fromJson(response);
+
+								// store these as they do not change often
+								if( result.response == 'success')
+								{
+									$scope.classes = result.data || [];
+									$scope.filters.class = $scope.classes[0];
+									$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
+									$scope.getStudentReportCards();
+								}
+
+							}, apiError);
+
+						}
+						else
+						{
+							apiService.getAllClasses({}, function(response){
+								var result = angular.fromJson(response);
+
+								// store these as they do not change often
+								if( result.response == 'success')
+								{
+									$scope.classes = result.data || [];
+									$scope.filters.class = $scope.classes[0];
+									$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
+									$scope.getStudentReportCards();
+								}
+
+							}, apiError);
+						}
+					}
+					else
+					{
+						$scope.classes = $rootScope.allClasses;
 						$scope.filters.class = $scope.classes[0];
-						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
+						$scope.filters.class_id = $scope.classes[0].class_id;
 						$scope.getStudentReportCards();
 					}
+				}
 
-				}, apiError);
-
-			}
-			else
-			{
-				apiService.getAllClasses({}, function(response){
-					var result = angular.fromJson(response);
-
-					// store these as they do not change often
-					if( result.response == 'success')
-					{
-						$scope.classes = result.data || [];
-						$scope.filters.class = $scope.classes[0];
-						$scope.filters.class_id = ( $scope.classes[0] ? $scope.classes[0].class_id : null);
-						$scope.getStudentReportCards();
-					}
-
-				}, apiError);
-			}
-		}
-		else
-		{
-			$scope.classes = $rootScope.allClasses;
-			$scope.filters.class = $scope.classes[0];
-			$scope.filters.class_id = $scope.classes[0].class_id;
-			$scope.getStudentReportCards();
-		}
+			},apiError);
 
         //get all students
         var loadStudents = function(response,status, params)
@@ -113,8 +123,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.reportsNotFound = false;
 		$scope.getReport = "";
 
-		var request = $scope.filters.class.class_id;
-		apiService.getAllStudentReportCards(request, loadReportCards, apiError);
+		// var request = $scope.filters.class.class_id;
+		// apiService.getAllStudentReportCards(request, loadReportCards, apiError);
+		var request = $scope.filters.class.class_id + '/' + $scope.filters.year;
+		apiService.getAllStudentReportCardsInYear(request, loadReportCards, apiError);
 	}
 
 	var loadReportCards = function(response,status)
@@ -170,7 +182,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						i++;
 
 					}
-					reports[item.term_name] = {
+					reports[item.alt_term_name] = {
 						term_id : item.term_id,
 						year: item.year,
 						published : item.published,
@@ -188,7 +200,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 				});
 				$scope.reportCards.students[(i-1)].reports = reports;
-
+				console.log("Report Cards >",$scope.reportCards.students);
 
 				$scope.getReport = "reportTable";
 				$timeout(initDataGrid,100);
@@ -357,6 +369,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	}
 
 	$scope.batchClassReportCards = function(){
+		$scope.batchRptCardsBtnTxt = "Processing...";
 		// console.log("Filters >",$scope.filters);
 		let  param = $scope.filters.class.class_id + '/' + $scope.filters.term.term_id;
 		apiService.getClassReportCardData(param, function(response,status)
@@ -368,10 +381,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				{
 					$scope.reportsNotFound = true;
 					$scope.errMsg = "There are no report cards found for the chosen class and term.";
+					$scope.batchRptCardsBtnTxt = "Try Again";
 				}
 				else
 				{
 					$scope.classRptCds = result.data;
+					$scope.batchRptCardsBtnTxt = "Success";
 					// console.log("Class report cards",$scope.classRptCds);
 
 					$scope.openModal('exams', 'reportCardBatch', 'lg', {filters: $scope.filters, report: $scope.classRptCds});
@@ -622,6 +637,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	}
 
 	$scope.preBulkPrint = function(){
+		$scope.batchRptCardsBtnTxt = "Load Report Cards";
 		// Show the modal
 		var modal = document.getElementById("batchPrntParams");
 		var btn = document.getElementById("batchPreModal");

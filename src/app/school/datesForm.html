@@ -1,4 +1,4 @@
-<form name="termForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(termForm)">		
+<form name="termForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(termForm)">
 	<div class="modal-header dialog-header-form">
 				<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> {{ ( edit ? 'Update' : 'Add' ) }} Date</h4>
@@ -9,18 +9,18 @@
 						{{errMsg}}
 					</div>
 					<!-- term name -->
-					<div class="form-group" ng-class="{ 'has-error' : termForm.term_name.$invalid && (termForm.term_name.$touched || termForm.$submitted) }">		
+					<div class="form-group" ng-class="{ 'has-error' : termForm.term_name.$invalid && (termForm.term_name.$touched || termForm.$submitted) }">
 						<label for="term_name" class="col-sm-3 control-label">Term Name</label>
 						<div class="col-sm-5">
-							<input type="text" name="term_name" ng-model="date.term_name" class="form-control" required >						
+							<input type="text" name="term_name" ng-model="date.term_name" class="form-control" required >
 							<p ng-show="termForm.term_name.$invalid && (termForm.term_name.$touched || termForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Term Name is required.</p>
-						</div>	
+						</div>
 					</div>
 					<!-- start date -->
 					<div class="form-group" ng-class="{ 'has-error' : termForm.start_date.$invalid && (termForm.start_date.$touched || termForm.$submitted) }">
 						<label for="start_date" class="col-sm-3 control-label">Start Date</label>
 						<div class="col-sm-9">
-							<!-- date range picker -->				
+							<!-- date range picker -->
 							<div class="input-group">
 								<input type="text" name="start_date" date-range-picker class="form-control date-picker input-sm" ng-model="start_date" options="{singleDatePicker: true,autoApply: true}" />
 								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
@@ -32,7 +32,7 @@
 					<div class="form-group" ng-class="{ 'has-error' : termForm.end_date.$invalid && (termForm.end_date.$touched || termForm.$submitted) }">
 						<label for="end_date" class="col-sm-3 control-label">End Date</label>
 						<div class="col-sm-9">
-							<!-- date range picker -->				
+							<!-- date range picker -->
 							<div class="input-group">
 								<input type="text" name="end_date" date-range-picker class="form-control date-picker input-sm" ng-model="end_date" options="{singleDatePicker: true,autoApply: true}" />
 								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
@@ -40,12 +40,20 @@
 							<p ng-show="termForm.end_date.$invalid && (termForm.end_date.$touched || termForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Start Date is required.</p>
 						</div>
 					</div>
+					<!-- term number -->
+					<div class="form-group" ng-class="{ 'has-error' : termForm.term_number.$invalid && (termForm.term_number.$touched || termForm.$submitted) }">
+						<label for="term_number" class="col-sm-3 control-label">Term Number</label>
+						<div class="col-sm-5">
+							<input type="text" maxlength="1" oninput="this.value=this.value.replace(/[^0-9]/g,'');" name="term_number" ng-model="date.term_number" class="form-control" required >
+							<p ng-show="termForm.term_number.$invalid && (termForm.term_number.$touched || termForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Term Number is required.</p>
+						</div>
+					</div>
 			</div>
 			<div class="modal-footer">
 				<div class="pull-left" ng-show="canDelete">
-					<button type="button" class="btn btn-danger" ng-click="deleteTerm()">Delete</button>	
+					<button type="button" class="btn btn-danger" ng-click="deleteTerm()">Delete</button>
 				</div>
-			
+
 				<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>
 				<button ng-show="!edit" type="submit" class="btn btn-primary">Save</button>
 				<button ng-show="edit" type="submit" class="btn btn-primary">Update</button>

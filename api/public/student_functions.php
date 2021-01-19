@@ -2411,6 +2411,137 @@ $app->post('/addMedicalConditions', function () use($app) {
 
 });
 
+$app->post('/addDisciplinary', function () use($app) {
+  // Add disciplinary notes
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  $studentId = ( isset($allPostVars['student_id']) ? $allPostVars['student_id']: null);
+  $empId = ( isset($allPostVars['emp_id']) ? $allPostVars['emp_id']: null);
+  $notes = ( isset($allPostVars['notes']) ? $allPostVars['notes']: null);
+  $classId = ( isset($allPostVars['class_id']) ? $allPostVars['class_id']: null);
+  $termId = ( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
+  $otherStudents = ( isset($allPostVars['other_students']) ? $allPostVars['other_students']: null);
+
+  try
+  {
+    $db = getDB();
+    $query = $db->prepare("INSERT INTO app.disciplinary(student_id, emp_id, notes, class_id, term_id, other_students)
+	                         VALUES (:studentId, :empId, :notes, :classId, :termId, :otherStudents);");
+
+    $db->beginTransaction();
+    $query->execute( array(':studentId' => $studentId, ':empId' => $empId, ':notes' => $notes,
+                          ':classId' => $classId, ':termId' => $termId, ':otherStudents' => $otherStudents) );
+    $db->commit();
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success"));
+    $db = null;
+  } catch(PDOException $e) {
+    $db->rollBack();
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->post('/editDisciplinary', function () use($app) {
+  // Add disciplinary notes
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  $disciplinaryId = ( isset($allPostVars['disciplinary_id']) ? $allPostVars['disciplinary_id']: null);
+  $notes = ( isset($allPostVars['notes']) ? $allPostVars['notes']: null);
+
+  try
+  {
+    $db = getDB();
+    $query = $db->prepare("UPDATE app.disciplinary
+                        	SET notes = :notes, modified_date= now()
+                        	WHERE disciplinary_id = :disciplinaryId;");
+
+    $db->beginTransaction();
+    $query->execute( array(':disciplinaryId' => $disciplinaryId, ':notes' => $notes) );
+    $db->commit();
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success"));
+    $db = null;
+  } catch(PDOException $e) {
+    $db->rollBack();
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->get('/getDisciplinaryNotes/:student_id', function ($studentId) {
+  // Get all disciplinary notes for the student
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+      $db = getDB();
+      $sth = $db->prepare("SELECT disciplinary_id, d.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                          notes, TO_CHAR(d.creation_date :: DATE, 'dd/mm/yyyy') AS creation_date,
+                          	c.class_name, t.term_name, other_students, u.first_name || ' ' || coalesce(u.middle_name,'') || ' ' || u.last_name AS staff
+                          FROM app.disciplinary d
+                          INNER JOIN app.students s USING (student_id)
+                          INNER JOIN app.terms t USING (term_id)
+                          INNER JOIN app.classes c USING (class_id)
+                          INNER JOIN app.users u ON d.emp_id = u.user_id
+                          WHERE d.student_id = :studentId
+                          ORDER BY disciplinary_id DESC");
+    $sth->execute( array(':studentId' => $studentId) );
+    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+    if($results) {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => $results ));
+      $db = null;
+    } else {
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+      $db = null;
+    }
+
+} catch(PDOException $e) {
+  $app->response()->setStatus(200);
+  $app->response()->headers->set('Content-Type', 'application/json');
+  echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
+$app->get('/deleteDisciplinary/:disciplinary_id', function ($disciplinaryId) {
+  // Delete discipliniary item
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+      $db = getDB();
+      $sth = $db->prepare("DELETE FROM app.disciplinary WHERE disciplinary_id = :disciplinaryId");
+      $sth->execute( array(':disciplinaryId' => $disciplinaryId) );
+
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success', 'data' => "Disciplinary item has been deleted." ));
+      $db = null;
+
+} catch(PDOException $e) {
+  $app->response()->setStatus(200);
+  $app->response()->headers->set('Content-Type', 'application/json');
+  echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+}
+
+});
+
 $app->post('/addStudentDestination', function () use($app) {
   // Add student destination
   $allPostVars = json_decode($app->request()->getBody(),true);
@@ -3093,25 +3224,41 @@ $app->get('/getAbsenteeism(/:classId)', function ($classId = null) {
 		$db = getDB();
 		if( $classId == null )
 		{
-			$query = $db->prepare("SELECT *,
-                            TO_CHAR(creation_date :: DATE, 'dd/mm/yyyy') AS formatted_creation,
+			$query = $db->prepare("SELECT s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                            a.*, c.class_name,
+                            TO_CHAR(a.creation_date :: DATE, 'dd/mm/yyyy') AS formatted_creation,
                             TO_CHAR(starting :: DATE, 'dd/mm/yyyy') AS formatted_start_date,
                             TO_CHAR(ending :: DATE, 'dd/mm/yyyy') AS formatted_end_date,
-                            ending - starting AS days_absent
-                          FROM app.absenteeism
-                          ORDER BY creation_date DESC");
+                            CASE
+                              WHEN ending = starting THEN
+                                '1'
+                              ELSE
+                                ending - starting
+                            END AS days_absent
+                          FROM app.absenteeism a
+                          INNER JOIN app.students s USING (student_id)
+                          INNER JOIN app.classes c ON s.current_class = c.class_id
+                          ORDER BY a.creation_date DESC");
 			$query->execute();
 		}
 		else
 		{
-			$query = $db->prepare("SELECT *,
-                            TO_CHAR(creation_date :: DATE, 'dd/mm/yyyy') AS formatted_creation,
+			$query = $db->prepare("SELECT s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                            a.*, c.class_name,
+                            TO_CHAR(a.creation_date :: DATE, 'dd/mm/yyyy') AS formatted_creation,
                             TO_CHAR(starting :: DATE, 'dd/mm/yyyy') AS formatted_start_date,
                             TO_CHAR(ending :: DATE, 'dd/mm/yyyy') AS formatted_end_date,
-                            ending - starting AS days_absent
-                          FROM app.absenteeism
-                          WHERE student_id IN (SELECT student_id FROM app.students WHERE active IS TRUE AND current_class = :classId)
-                          ORDER BY creation_date DESC");
+                            CASE
+                              WHEN ending = starting THEN
+                                '1'
+                              ELSE
+                                ending - starting
+                            END AS days_absent
+                          FROM app.absenteeism a
+                          INNER JOIN app.students s USING (student_id)
+                          INNER JOIN app.classes c ON s.current_class = c.class_id
+                          WHERE a.student_id IN (SELECT student_id FROM app.students WHERE active IS TRUE AND current_class = :classId)
+                          ORDER BY a.creation_date DESC");
 			$query->execute(array(':classId' => $classId));
 		}
 

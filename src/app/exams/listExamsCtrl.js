@@ -16,6 +16,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.alert = {};
 	$scope.refreshing = false;
 	$scope.getReport = "examsTable";
+	$scope.showExpSheet = false;
 	//$scope.loading = true;
 
 	var initializeController = function ()
@@ -137,6 +138,8 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				$scope.examTypes = result.data;
 				$scope.filters.exam_type_id = $scope.examTypes[0].exam_type_id;
 				$timeout(setSearchBoxPosition,10);
+			}else if(result.response == 'success' && result.nodata){
+				$scope.examTypes = [];
 			}
 		}, apiError);
 
@@ -390,14 +393,140 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.openModal('exams', 'addExamMarks', 'lg', data);
 	}
 
-	$scope.importExamMarks = function()
+	$scope.importModal = function()
 	{
-		$rootScope.wipNotice();
+		// $rootScope.wipNotice();
+		$scope.importFilterBtn = "Load";
+		$scope.importBtnStatus = "info";
 	}
 
 	$scope.exportData = function()
 	{
 		$rootScope.wipNotice();
+	}
+
+	$scope.importExamMarks = function()
+	{
+		$scope.isUpload = false;
+		console.log($scope.filters);
+		if(!$scope.filters.class_id || !$scope.filters.term_id || !$scope.filters.exam_type_id || !$scope.filters.action_type){
+			$scope.importFilterBtn = "Retry";
+			$scope.importBtnStatus = "danger";
+		}else{
+			$scope.importBtnStatus = "info";
+			$scope.importFilterBtn = "Processing";
+			if($scope.filters.action_type == "download_csv"){
+				$scope.importFilterBtn = "Preparing Exam Sheet";
+				$scope.loading = true;
+				// fetch class data
+				var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+				if( $rootScope.currentUser.user_type == 'TEACHER' ) request += '/' + $rootScope.currentUser.emp_id;
+				apiService.getStudentSubjectsForExams(request, function(response,status)
+				{
+					$scope.loading = false;
+					var result = angular.fromJson( response );
+					if( result.response == 'success' )
+					{
+						if( result.nodata )
+						{
+							$scope.loading = false;
+							$scope.errMsg = "The selected search criteria did not find any results.";
+						}
+						else
+						{
+							$scope.expClassSheet = result.data;
+							$scope.expClassSheet.forEach((item, i) => {
+								item.subjects = item.subjects.split(',');
+							});
+							$scope.classSheetSubjs = $scope.expClassSheet[0].subjects;
+
+							$scope.showExpSheet = true;
+							console.log("Class Sheet >",$scope.expClassSheet);
+							console.log("Subj Headers >",$scope.classSheetSubjs);
+						}
+					}
+					else
+					{
+						$scope.loading = false;
+						$scope.errMsg = result.data;
+					}
+				}, apiError);
+			}else if($scope.filters.action_type == "upload_csv"){
+				$scope.importFilterBtn = "Processing Exam Sheet";
+			}
+		}
+	}
+
+	$scope.exportData = function(){
+
+		var divToExport=document.getElementById("expSheetDiv");
+		var attr = $('table.expSheetDiv tr').attr('style');
+		if(typeof attr !== typeof undefined && attr !== false){
+			console.log("Table is unfiltered");
+		}else{
+			console.log("Table has been filtered");
+		}
+
+		var rows = document.querySelectorAll('table.expSheetDiv tr[style="display: table-row;"]');
+		if(rows.length == 0){
+			var rows = document.querySelectorAll('table.expSheetDiv tr');
+		}
+
+		function downloadCSV(csv, filename) {
+		    var csvFile;
+		    var downloadLink;
+
+		    // CSV file
+		    csvFile = new Blob([csv], {type: "text/csv"});
+
+		    // Download link
+		    downloadLink = document.createElement("a");
+
+		    // File name
+		    downloadLink.download = filename;
+
+		    // Create a link to the file
+		    downloadLink.href = window.URL.createObjectURL(csvFile);
+
+		    // Hide download link
+		    downloadLink.style.display = "none";
+
+		    // Add the link to DOM
+		    document.body.appendChild(downloadLink);
+
+		    // Click download link
+		    downloadLink.click();
+		}
+
+		function exportTableToCSV(filename) {
+		    var csv = [];
+		    // var rows = document.querySelectorAll('table tr[style*="display: table-row;"]');
+				console.log("rows data",typeof rows);
+				var headerRow = divToExport.querySelectorAll('table thead tr')[0];
+				var titles = headerRow.querySelectorAll("th");
+				var titlesText = [];
+				for(let x=0; x<titles.length;x++){
+					titlesText.push(titles[x].innerText);
+				}
+				var titlesToCsv = titlesText.join(',');
+				console.log(titlesToCsv);
+				csv.push(titlesToCsv);
+
+		    for (var i = 0; i < rows.length; i++) {
+		        var row = [], cols = rows[i].querySelectorAll("td, th");
+
+		        for (var j = 0; j < cols.length; j++)
+		            row.push(cols[j].innerText);
+
+		        csv.push(row.join(","));
+		    }
+
+		    // Download CSV file
+		    downloadCSV(csv.join("\n"), filename);
+		}
+
+		exportTableToCSV($scope.filters.class.class_name + '_class_sheet' + '.csv');
+
 	}
 
 	$scope.$on('refreshExamMarks', function(event, args) {

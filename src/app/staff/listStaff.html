@@ -22,7 +22,7 @@
 			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
-				    <div class="btn add-btn" title="Privileges" ng-show="permissions.staff.add" ng-click="userPrivileges()" data-toggle="modal" data-target="#privilegesModal"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Privileges</span></a></div>
+				  <div class="btn add-btn" title="Privileges" ng-show="permissions.staff.add" ng-click="userPrivileges()" data-toggle="modal" data-target="#privilegesModal"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Privileges</span></a></div>
 					<div class="btn add-btn" title="Add Employee" ng-show="permissions.staff.add" ng-click="addEmployee()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Staff</span></a></div>
 					<!--div class="btn" title="Print" ng-hide="isSmallScreen" ng-click="printablePage()"><a class="print-btn"><span class="glyphicon glyphicon-print"></span> <span class="tool-text">Print</span></a></div-->
 					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>

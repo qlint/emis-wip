@@ -45,16 +45,16 @@
                                                           FROM sample s
                                                           WHERE terms.term_id = s.term_id;"); // executing the query
             */
-
-            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.subjects
-                                                      ADD COLUMN teacher_class_id integer;"); // executing the query
             /*
+            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.credits
+    ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
+
             $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.absenteeism
                                                       ADD COLUMN ending date;");
             $executeOnSchoolDb5 = pg_query($schoolDb,"UPDATE app.countries SET currency_name = 'Ugandan Shilling', currency_symbol = 'USH', curriculum = '7-4-2-4,I.G.C.S.E,Montessori,Dual Curriculum'
                                                     WHERE countries_name = 'Uganda';");
             */
-            // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
+            $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
       	    // echo $dbOutput; // just an output of all our db's
       }
       $output = json_encode($output_object);

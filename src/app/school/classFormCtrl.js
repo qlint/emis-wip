@@ -13,7 +13,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.subjectExamSelection = {};
 	$scope.apply_to_all_subjects = [];
 	$scope.gradeWeight = {};
-	$scope.reportCardTypes = ["Standard","Kindergarten","Playgroup"];
+	$scope.reportCardTypes = ["Standard","Kindergarten","Playgroup","CBC"];
 	$scope.examTypes = [];
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );

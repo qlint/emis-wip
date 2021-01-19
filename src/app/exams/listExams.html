@@ -1,7 +1,13 @@
-<div ng-controller="listExamsCtrl">	
-	
+<style type="text/css">
+    #resultsTable{width:100%;border:1px solid #404040;border-collapse:collapse;}
+    #resultsTable thead tr th,#resultsTable tbody tr td{padding:5px;border:#303030 1px solid;text-align:center;}
+    #resultsTable tbody tr:nth-child(odd){background:#e8e8e8;}
+</style>
+<script src="components/jquery.table2excel.js"></script>
+<div ng-controller="listExamsCtrl">
+
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
-		
+
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
 		</div>
@@ -9,7 +15,7 @@
 			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 			{{errMsg}}
 		</div>
-		
+
 		<div class="fixed content-fixed-header">
 			<div class="subnavbar non-printable" ng-hide="isPrinting">
 				<ul class="nav nav-tabs main-sub-nav" >
@@ -20,44 +26,45 @@
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
 					<div class="btn add-btn" title="Add Exam Marks" ng-show="permissions.exams.exams.add" ng-click="addExamMarks()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add/Update Exam Marks</span></a></div>
-					<div class="btn" title="Import" ng-click="importExamMarks()"><a class="export-btn"><span class="glyphicon glyphicon-upload"></span> <span class="tool-text">Import Exam Marks</span></a></div>
+					<!-- <div class="btn" title="Import" ng-click="importExamMarks()"><a class="export-btn"><span class="glyphicon glyphicon-upload"></span> <span class="tool-text">Import Exam Marks</span></a></div> -->
+					<div class="btn" title="Import" ng-show="permissions.exams.exams.add" ng-click="importModal()" data-toggle="modal" data-target="#importModal"><a class="export-btn"><span class="glyphicon glyphicon-upload"></span> <span class="tool-text">Import Exam Marks</span></a></div>
 					<div class="btn" title="Export" ng-click="exportData()"><a class="export-btn"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
-				</div>			
+				</div>
 			</div>
-			
+
 			<div class="clearfix">
 				<h1 id="pageTitle">Exams</h1>
 			</div>
-			
+
 			<!-- search form -->
-			<div class="dataFilterForm">	
+			<div class="dataFilterForm">
 				<h4 ng-show="!isSmallScreen">Filters</h4>
 				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
 				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
 					<!-- class select -->
 					<div class="form-group">
-						<label for="class">Class</label>	
+						<label for="class">Class</label>
 						<select name="class" id="class" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
 							<option value="">--select class--</option>
 						</select>
-					</div>		
+					</div>
 
 					<!-- term select -->
 					<div class="form-group">
-						<label for="term">Term</label>	
+						<label for="term">Term</label>
 						<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" >
 							<option value="">--select term--</option>
-						</select>	
+						</select>
 					</div>
-					
+
 					<!-- exam select -->
 					<div class="form-group">
-						<label for="term">Exam</label>	
+						<label for="term">Exam</label>
 						<select id="term" class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" >
-							<option value="">-- select exam --</option>				
+							<option value="">-- select exam --</option>
 						</select>
-					</div>	
-					
+					</div>
+
 					<!-- search btn -->
 					<div class="form-group submit-btn">
 						<input type="submit" class="btn btn-sm btn-info" ng-click="getStudentExams()" value="Load" />
@@ -68,20 +75,16 @@
 				</form>
 			</div>
 			<!-- // end search form -->
-			
-			
 		</div>
-		
-		
-		
+
 		<div class="full-height datagrid main-datagrid" >
 			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
 			<p ng-show="marksNotFound" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
-			
+
 			<div ng-include="getReport"></div>
-			
+
 			<script type="text/ng-template" id="examsTable">
 				<table id="resultsTable" class="display dataTable" cellspacing="0" width="100%" ng-show="!loading">
 					<thead>
@@ -92,7 +95,7 @@
 							<th class="center">Total<br>/{{totalGradeWeight}}</th>
 							<th class="center" ng-repeat="col in tableHeader">{{ col.title | limitTo: 9 }}{{col.title.length > 9 ? '...' : ''}}<br>/{{col.weight}}</th>
 						</tr>
-					</thead>	
+					</thead>
 					<tbody>
 						<tr ng-repeat="item in examMarks track by $index">
 							<td></td>
@@ -104,12 +107,108 @@
 					</tbody>
 				</table>
 			</script>
-			
-			
+
 		</div>
-		
+
+		<!-- Import Modal -->
+		<div class="modal fade" id="importModal" role="dialog">
+			<div class="modal-dialog" style="width:65%;">
+				<!-- Modal content-->
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h2 class="modal-title">Import Class Exam Marks</h2>
+					</div>
+					<div class="modal-body">
+						<p><b>Make the selections to proceed, then download the given CSV, fill only the marks then upload back here.</b></p>
+						<hr>
+
+						<div class="row">
+							<!-- search form -->
+							<div class="dataFilterForm">
+								<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" style="margin-left:1%;">
+									<!-- class select -->
+									<div class="form-group">
+										<label for="class">Class</label>
+										<select name="class" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
+											<option value="">--select class--</option>
+										</select>
+									</div>
+
+									<!-- term select -->
+									<div class="form-group">
+										<label for="term">Term</label>
+										<select class="form-control" ng-options="item.term_id as item.term_year_name for item in terms" ng-model="filters.term_id" >
+											<option value="">--select term--</option>
+										</select>
+									</div>
+
+									<!-- exam select -->
+									<div class="form-group">
+										<label for="exam">Exam</label>
+										<select class="form-control" ng-options="exam.exam_type_id as exam.exam_type for exam in examTypes" ng-model="filters.exam_type_id" >
+											<option value="">-- select exam --</option>
+										</select>
+									</div>
+
+									<!-- action select -->
+									<div class="form-group">
+										<label for="action">Action</label>
+										<select class="form-control" ng-model="filters.action_type" >
+											<option value="download_csv">Downoad Class Sheet</option>
+											<option value="upload_csv">Upload Class Sheet</option>
+										</select>
+									</div>
+
+									<!-- search btn -->
+									<div class="form-group submit-btn">
+										<input type="submit" class="btn btn-sm btn-{{importBtnStatus}}" ng-click="importExamMarks()" value="{{importFilterBtn}}" style="width:140px;font-weight:600;" />
+										<img src="assets/spinner.gif" ng-show="loading" />
+										<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
+									</div>
+
+								</form>
+							</div>
+							<!-- // end search form -->
+						</div>
+
+						<div class="row">
+							<b><p id="notifySelection" style="margin-left:15px;font-style:italic;font-size:17px;border:1px solid #000000;padding-left:2%;padding-right:2%;border-radius:6px;background-color:#FAEBD7;width:44%;" ng-show="showWarning">{{selectionMsg}}</p></b>
+							<div ng-show="showExpSheet" id="expSheetDiv" style="max-height: 340px;overflow-y: auto;">
+									<table id='resultsTable' class="expSheetDiv">
+													<thead>
+															<tr>
+																<td colspan="{{expClassSheet[0].subjects.length + 1}}" style="text-align:center;">{{filters.class_id}}/{{filters.term_id}}/{{filters.exam_type_id}}</td>
+															</tr>
+															<tr id="tblHeader" style="background-color:#49E747;">
+																	<th>STUDENT</th>
+																	<th ng-repeat="subj in classSheetSubjs track by $index">{{subj}}</th>
+															</tr>
+													</thead>
+													<tbody>
+															<tr ng-repeat="student in expClassSheet track by $index">
+																	<td>{{student.student_name}}</td>
+																	<td ng-repeat="subj in student.subjects track by $index"></td>
+															</tr>
+													</tbody>
+									</table>
+							</div>
+							<button type="button" class="btn btn-primary" ng-show="showExpSheet" ng-click="exportData()" style="margin-left:15px">Download Class Sheet</button>
+						</div>
+
+						<div ng-show="selectionsReady" class="row">
+							<h4 style="margin-left:15px;">Make the necessary changes by ticking / unticking then save.</h4>
+						</div>
+
+					</div>
+
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" data-dismiss="modal" ng-show="isUpload">Save</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
 	</div>
 </div>
-
-
-

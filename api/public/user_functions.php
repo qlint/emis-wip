@@ -133,9 +133,9 @@ $app->get('/usrRights/:sch/:group', function ($sch,$group) {
         $db = getLoginDB();
         $sth = $db->prepare("SELECT row_to_json(e) AS rights FROM (
 															SELECT user_type, jsonb_agg(rights) AS rights FROM (
-																SELECT user_type, '{\"'||school_module||'\":'||rights||'}'::text AS rights FROM (
+																SELECT user_type, '{\"mod_name\":\"'||school_module||'\", \"'||school_module||'\":'||rights||'}'::text AS rights FROM (
 																	SELECT user_type, school_module, jsonb_agg(rights) AS rights FROM (
-																		SELECT user_type, school_module, '{\"id\":'||user_auth_id||', \"'||sub_module||'\":'||rights||'}'::text AS rights FROM (
+																		SELECT user_type, school_module, '{\"id\":'||user_auth_id||', \"sub_mod_name\":\"'||sub_module||'\", \"'||sub_module||'\":'||rights||'}'::text AS rights FROM (
 																			SELECT user_auth_id, ut.user_type, sm.school_module,
 																				CASE WHEN ua.sub_module_id IS NULL THEN '-' ELSE ssm.sub_module END AS sub_module,
 																				'{\"add\":'||add||', \"edit\":'||edit||', \"view\":'||view||', \"delete\":'||delete||', \"export\":'||export||'}'::text AS rights
@@ -145,6 +145,8 @@ $app->get('/usrRights/:sch/:group', function ($sch,$group) {
 																			LEFT JOIN school_sub_modules ssm USING (sub_module_id)
 																			WHERE subdomain = :sch
 																			AND user_type = :group
+																			AND view = true --user only interacts with modules they can view
+																			ORDER BY sm.sort_order ASC, ssm.sort_order ASC
 																		)a
 																	)b
 																	GROUP BY school_module, user_type
@@ -158,18 +160,16 @@ $app->get('/usrRights/:sch/:group', function ($sch,$group) {
 
         if($results) {
 						$results->rights = json_decode($results->rights);
-
-						for ($x = 0; $x <= count($results->rights->rights); $x++) {
-							if(isset($results->rights->rights[$x])){
-									$results->rights->rights[$x] = json_decode($results->rights->rights[$x]);
-
-									foreach ($results->rights->rights[$x] as $name => $value) {
-								      for ($y = 0; $y <= count($results->rights->rights[$x]->$name); $y++) {
-												if(isset($results->rights->rights[$x]->$name[$y])){
-													$results->rights->rights[$x]->$name[$y] = json_decode($results->rights->rights[$x]->$name[$y]);
-												}
-											}
-								  }
+						// var_dump($results->rights->rights);
+						for ($i=0; $i < count($results->rights->rights); $i++) {
+							if(isset($results->rights->rights[$i])){
+								$results->rights->rights[$i] = json_decode($results->rights->rights[$i]);
+								$modName = $results->rights->rights[$i]->mod_name;
+								// var_dump($results->rights->rights[$i]->{$modName});
+								for ($k=0; $k < count($results->rights->rights[$i]->{$modName}); $k++) {
+									$results->rights->rights[$i]->{$modName}[$k] = json_decode($results->rights->rights[$i]->{$modName}[$k]);
+									// var_dump($results->rights->rights[$i]->{$modName}[$k]);
+								}
 							}
 						}
 

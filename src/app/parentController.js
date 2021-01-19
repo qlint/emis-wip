@@ -51,7 +51,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 			if( result.response == 'success')
 			{
 				var rawPermissions = (result.nondata !== undefined ? [] : result.data);
-				// console.log(rawPermissions);
+				console.log("Fetched Permissions >",rawPermissions);
 			}
 			else
 			{
@@ -1131,7 +1131,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 			$rootScope.permissions.communications.teacher_communications.add = false;
 
 		}
-		// console.log("perms >",$rootScope.permissions);
+		console.log("Default Perms >",$rootScope.permissions);
 
 		$scope.navItems = [];
 		$scope.subOptions = [];

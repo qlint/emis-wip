@@ -318,6 +318,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getAllSubjects/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getAllSubjectsInExamTypes = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllSubjectsInExamTypes/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getAllTeacherSubjects = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getAllTeacherSubjects/" + param, successFunction, errorFunction, params);
 	};
@@ -484,8 +488,16 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	/*********** report cards ***********/
 
+	this.getReportCardYears = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getReportCardYears", successFunction, errorFunction, params);
+	};
+
 	this.getAllStudentReportCards = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getAllStudentReportCards/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getAllStudentReportCardsInYear = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAllStudentReportCardsInYear/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getStudentReportCards = function (param, successFunction, errorFunction, params) {
@@ -605,6 +617,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getAllStudentExamMarks/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getStudentSubjectsForExams = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStudentSubjectsForExams/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getResultSlips = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getResultSlips/" + param, successFunction, errorFunction, params);
 	};
@@ -687,6 +703,22 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.postMedicalConditions = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addMedicalConditions", successFunction, errorFunction, params);
+	};
+
+	this.postDisciplinary = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addDisciplinary", successFunction, errorFunction, params);
+	};
+
+	this.updateDisciplinary = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/editDisciplinary", successFunction, errorFunction, params);
+	};
+
+	this.getDisciplinaryNotes = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getDisciplinaryNotes/" + param, successFunction, errorFunction, params);
+	};
+
+	this.deleteDisciplinary = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/deleteDisciplinary/" + param, successFunction, errorFunction, params);
 	};
 
 	this.addStudentDestination = function (request, successFunction, errorFunction, params) {

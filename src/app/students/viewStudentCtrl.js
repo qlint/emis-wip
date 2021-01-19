@@ -8,15 +8,6 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	$scope.hasDestination = false;
 	$scope.studentCredsStatus = "success";
 
-	// this is a delay function - we'll use it to pause & wait for an ajax response
-    function sleep(milliseconds) {
-        var start = new Date().getTime();
-        for (var i = 0; i < 1e7; i++) {
-            if ((new Date().getTime() - start) > milliseconds){
-                break;
-            }
-        }
-    }
     $scope.isDynamicMovement = (window.location.host.split('.')[0] == 'thomasburke' ? true : false);
     $scope.selectTrip = [];
 		$scope.preFilteredTrips = [];
@@ -43,9 +34,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
 
 		if( $rootScope.currentUser.user_type == 'TEACHER' ){
-		    $scope.tabs = ['Exams','Report Cards','Transport'];
+		    $scope.tabs = ['Exams','Report Cards','Disciplinary','Transport'];
 		}else if( $rootScope.currentUser.user_type == 'ADMIN' ){
-		    $scope.tabs = ['Details','Family','Medical History','Exams','Report Cards','Transport'];
+		    $scope.tabs = ['Details','Family','Medical History','Exams','Report Cards','Disciplinary','Transport'];
 		}else if( $rootScope.currentUser.user_type == 'ADMIN-FINANCE' ){
 		    $scope.tabs = ['Details','Family','Fees'];
 		}else if( $rootScope.currentUser.user_type == 'FINANCE' ){
@@ -53,7 +44,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}else if( $rootScope.currentUser.user_type == 'ADMIN-TRANSPORT' ){
 		    $scope.tabs = ['Transport'];
 		}else{
-		    $scope.tabs = ['Details','Family','Medical History','Fees','Exams','Report Cards','Transport'];
+		    $scope.tabs = ['Details','Family','Medical History','Fees','Exams','Report Cards','Disciplinary','Transport'];
 		}
 		$scope.addingFeeItem = false;
 		$scope.rawRoutes = [];
@@ -751,6 +742,45 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			}
 			$scope.getStudentReportCards();
 		}
+		else if( tab == 'Disciplinary' )
+		{
+			console.log("Disciplinary Tab");
+			console.log("Scope >",$scope);
+			//get all students
+			var loadStudents = function(response,status, params)
+			{
+					var result = angular.fromJson(response);
+					if( result.response == 'success')
+					{
+						if( result.nodata ) var formatedResults = [];
+						else {
+							// make adjustments to student data
+							var formatedResults = $rootScope.formatStudentData(result.data);
+						}
+						$scope.allOtherStudents = formatedResults;
+						console.log("All other students >",$scope.allOtherStudents);
+					}
+					else
+					{
+						$scope.error = true;
+						$scope.errMsg = result.data;
+					}
+			}
+			apiService.getAllStudents(true, loadStudents, apiError);
+			$scope.getDisciplinaryNotes = function(){
+				apiService.getDisciplinaryNotes($scope.student.student_id,function(response){
+					var result = angular.fromJson( response );
+					if( result.response == 'success' )
+					{
+						$scope.disciplinary = (result.nodata ? [] : result.data);
+					}
+				},apiError);
+			}
+
+			// fetch
+			$scope.getDisciplinaryNotes();
+
+		}
 		else if( tab == 'Transport' )
 		{
 		    // console.log("Transport");
@@ -1120,6 +1150,83 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				{
 					// remove row
 					$scope.student.medical_history.splice(params.index,1);
+
+				}
+				else
+				{
+					$scope.error = true;
+					$scope.errMsg = result.data;
+				}
+
+			}, apiError,{index:index});
+
+		});
+	}
+
+	/************************************* Displinary Function ***********************************************/
+
+	$scope.addDisciplinary = function()
+	{
+		// show small dialog with add form
+		var data = {
+			student: $scope.student,
+			staff: $rootScope.currentUser,
+			notes: null,
+			terms: $scope.currentYearTerms,
+			action: 'add',
+			other_students: $scope.allOtherStudents
+		};
+		var dlg = $dialogs.create('addDisciplinary.html','addDisciplinaryCtrl',data,{size: 'md',backdrop:'static'});
+		dlg.result.then(function(disciplinary){
+
+			angular.forEach(disciplinary, function(item,key){
+				$scope.student.disciplinary.push(item);
+			});
+
+		},function(){
+
+		});
+	}
+
+	$scope.editDisciplinary = function(item)
+	{
+		console.log("2");
+		/* only open this if can edit */
+		if( $scope.edit )
+		{
+			// show small dialog with add form
+			var data = {
+				student_id: $scope.student.student_id,
+				notes: item,
+				action: 'edit'
+			};
+			var dlg = $dialogs.create('updateDisciplinary.html','updateDisciplinaryCtrl',data,{size: 'md',backdrop:'static'});
+			dlg.result.then(function(disciplinary){
+
+				// find medical condition and update
+				angular.forEach( $scope.student.disciplinary, function(item,key){
+					if( item.medical_id == medicalCondition.medical_id ) $scope.student.medical_history[key] = medicalCondition;
+				});
+
+			},function(){
+
+			});
+		}
+	}
+
+	$scope.deleteDisciplinary = function(item,index)
+	{
+		// show small dialog with add form
+		console.log("item >",item);
+		console.log("index >",index);
+		var dlg = $dialogs.confirm('Please Confirm','Are you sure you want to delete these disciplinary notes for this student? <br><br><b><i>(THIS CAN NOT BE UNDONE)</i></b>',{size:'sm'});
+		dlg.result.then(function(btn){
+			apiService.deleteDisciplinary(item.disciplinary_id, function(response,status,params){
+				var result = angular.fromJson(response);
+				if( result.response == 'success')
+				{
+					// remove row
+					$scope.student.disciplinary.splice(params.index,1);
 
 				}
 				else
@@ -2070,6 +2177,19 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 						other_medical_conditions: ($scope.student.other_medical_conditions ? 't' : 'f'),
 						other_medical_conditions_description: ($scope.student.other_medical_conditions ? $scope.student.other_medical_conditions_description : null)
 					}
+				}
+
+			}
+			else if ( $scope.currentTab == 'Disciplinary' )
+			{
+				console.log("Dicsiplinary Scope >",$scope);
+				var postData = {
+					student_id : $scope.student.student_id,
+					user_id : $rootScope.currentUser.user_id,
+					notes : null,
+					class_id: null,
+					term_id: null,
+					other_students: null
 				}
 
 			}
@@ -3155,6 +3275,274 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 			'<div class="modal-footer">' +
 				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
 				'<button ng-show="!edit" type="button" class="btn btn-primary" ng-click="save()">Save</button>' +
+			'</div>'
+		);
+}])
+.controller('addDisciplinaryCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){
+		//-- Variables --//
+		console.log("Data >",data);
+		$scope.disciplinarySetup = data;
+		$scope.allOtherStudents = data.other_students;
+
+		//-- Methods --//
+
+		$scope.cancel = function(){
+			$uibModalInstance.dismiss('Canceled');
+		}; // end cancel
+
+		$scope.save = function()
+		{
+			// console.log($scope.disciplinarySetup);
+			var postData = {
+				student_id: $scope.disciplinarySetup.student.student_id,
+				emp_id: $scope.disciplinarySetup.staff.user_id,
+				notes: $scope.disciplinarySetup.notes,
+				user_id: $rootScope.currentUser.user_id,
+				class_id: $scope.disciplinarySetup.student.current_class.class_id,
+				term_id: parseInt($scope.disciplinarySetup.selected_term_id),
+				other_students: $scope.disciplinarySetup.selected_students
+			}
+			let otherStudentsStr = [];
+			postData.other_students.forEach((item, i) => { otherStudentsStr.push(item.student_name); });
+			postData.other_students = otherStudentsStr.join(', ');
+
+			console.log(postData);
+			apiService.postDisciplinary(postData, createCompleted, apiError);
+
+
+		}; // end save
+
+		var createCompleted = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				$uibModalInstance.close($scope.conditionSelection);
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		}
+
+		var apiError = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+
+		$scope.hitEnter = function(evt){
+			if( angular.equals(evt.keyCode,13) )
+				$scope.save();
+		};
+
+		$scope.conditionSelection = [];
+		$scope.toggleMedicalCondition = function(item)
+		{
+
+			var id = $scope.conditionSelection.indexOf(item);
+
+			// is currently selected
+			if (id > -1) {
+				$scope.conditionSelection.splice(id, 1);
+			}
+
+			// is newly selected
+			else {
+				$scope.conditionSelection.push(item);
+			}
+	};
+
+	}]) // end controller(addCargoCtrl)
+.run(['$templateCache',function($templateCache){
+			$templateCache.put('addDisciplinary.html',
+			'<div class="modal-header dialog-header-form">'+
+				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> Add Disciplinary Item</h4>' +
+			'</div>' +
+			'<div class="modal-body cleafix">' +
+				'<ng-form name="cargoDialog" class="form-horizontal modalForm" novalidate role="form">' +
+					'<div ng-show="error" class="alert alert-danger">' +
+						'{{errMsg}}'+
+					'</div>' +
+					'<div class="row">' +
+						'<div class="col-sm-3">' +
+							'<h4>Student :</h4>' +
+						'</div>' +
+						'<div class="col-sm-6">' +
+							'<input type="text" class="form-control" value="{{disciplinarySetup.student.student_name}}" onkeypress="return false;">' +
+						'</div>' +
+					'</div>' +
+					'<div class="row">' +
+						'<div class="col-sm-3">' +
+							'<h4>Class :</h4>' +
+						'</div>' +
+						'<div class="col-sm-6">' +
+							'<input type="text" class="form-control" value="{{disciplinarySetup.student.current_class.class_name}}" onkeypress="return false;">' +
+						'</div>' +
+					'</div>' +
+					'<div class="row">' +
+						'<div class="col-sm-3">' +
+							'<h4>For Term :</h4>' +
+						'</div>' +
+						'<div class="col-sm-6">' +
+							'<select ng-model="disciplinarySetup.selected_term_id" class="form-control" required>' +
+								'<option value="">--select term--</option>' +
+								'<option value="{{item.term_id}}" ng-repeat="item in disciplinarySetup.terms">{{item.term_name}}</option>' +
+							'</select>' +
+						'</div>' +
+					'</div>' +
+					'<div class="row">' +
+						'<div class="col-sm-3">' +
+							'<h4>Added By :</h4>' +
+						'</div>' +
+						'<div class="col-sm-6">' +
+							'<input type="text" class="form-control" value="{{disciplinarySetup.staff.first_name}} {{disciplinarySetup.staff.first_name}}" onkeypress="return false;">' +
+						'</div>' +
+					'</div>' +
+					'<div class="row" style="margin-bottom:2%">' +
+						'<div class="col-sm-3">' +
+							'<h4>Disciplinary Notes :</h4>' +
+						'</div>' +
+						'<div class="col-sm-6">' +
+							'<textarea name="notes" ng-model="disciplinarySetup.notes" rows="5" class="form-control"></textarea>' +
+						'</div>' +
+					'</div>' +
+					'<div class="row">' +
+						'<div class="col-sm-3">' +
+							'<h4>Other Students :</h4>' +
+						'</div>' +
+						'<div class="col-sm-6">' +
+							'<ui-select multiple ng-model="disciplinarySetup.selected_students" theme="select2" class="form-control" close-on-select="false" name="other_students">' +
+								'<ui-select-match placeholder="Select or search...">' +
+									'<span>{{$item.student_name}} ({{$item.class_name}})</span>' +
+								'</ui-select-match>' +
+								'<ui-select-choices repeat="student in allOtherStudents | filter: $select.search">' +
+									'<span ng-bind-html="student.student_name | highlight: $select.search"></span> -' +
+									'<span ng-bind-html="student.class_name | highlight: $select.search"></span>' +
+								'</ui-select-choices>' +
+							'</ui-select>' +
+						'</div>' +
+					'</div>' +
+				'</ng-form>' +
+			'</div>'+
+			'<div class="modal-footer">' +
+				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
+				'<button ng-show="!edit" type="button" class="btn btn-primary" ng-click="save()">Save</button>' +
+			'</div>'
+		);
+}])
+.controller('updateDisciplinaryCtrl',['$scope','$rootScope','$uibModalInstance','apiService','data',
+function($scope,$rootScope,$uibModalInstance,apiService,data){
+		console.log(data);
+		//-- Variables --//
+
+		$scope.disciplinary =  data.notes || {};
+		$scope.isEditDisciplinary = false;
+
+		$scope.updateDisciplinaryNotes = function(){
+			$scope.isEditDisciplinary = true;
+		}
+
+		$scope.cancel = function(){
+			$uibModalInstance.dismiss('Canceled');
+		}; // end cancel
+
+		$scope.updateDisciplinaryItem = function()
+		{
+			console.log($scope.disciplinary);
+			let postData = {
+				disciplinary_id: $scope.disciplinary.disciplinary_id,
+				notes: $scope.disciplinary.notes
+			}
+			apiService.updateDisciplinary(postData, createCompleted, apiError);
+		}; // end update
+
+		var createCompleted = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				// loop through results and add medical_id to each condition
+				$uibModalInstance.close($scope.medicalCondition);
+			}
+			else
+			{
+				$scope.error = true;
+				$scope.errMsg = result.data;
+			}
+		}
+
+		var apiError = function(response,status)
+		{
+			var result = angular.fromJson( response );
+			$scope.error = true;
+			$scope.errMsg = result.data;
+		}
+
+		$scope.hitEnter = function(evt){
+			if( angular.equals(evt.keyCode,13) )
+				$scope.save();
+		};
+
+
+	}]) // end controller(addCargoCtrl)
+.run(['$templateCache',function($templateCache){
+			$templateCache.put('updateDisciplinary.html',
+			'<div class="modal-header dialog-header-form">'+
+				'<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> View / Update Disciplinary Item</h4>' +
+			'</div>' +
+			'<div class="modal-body cleafix">' +
+				'<ng-form name="cargoDialog" class="form-horizontal modalForm" novalidate role="form">' +
+					'<div class="row">' +
+						'<div class="col-sm-12">' +
+							'<div ng-show="error" class="alert alert-danger">' +
+								'{{errMsg}}'+
+							'</div>' +
+							'<!-- Student -->' +
+							'<div class="form-group">' +
+								'<div class="col-sm-12"><label for="student_name">Student</label></div>' +
+								'<div class="col-sm-8"><input type="text" name="student_name" ng-model="disciplinary.student_name" class="form-control" onkeypress="return false;" ></div>' +
+							'</div>' +
+							'<!-- Date -->' +
+							'<div class="form-group">' +
+								'<div class="col-sm-12"><label for="date">Date Created</label></div>' +
+								'<div class="col-sm-8"><input type="text" name="date" ng-model="disciplinary.creation_date" class="form-control" onkeypress="return false;" ></div>' +
+							'</div>' +
+							'<!-- Class -->' +
+							'<div class="form-group">' +
+								'<div class="col-sm-12"><label for="class_name">Class</label></div>' +
+								'<div class="col-sm-8"><input type="text" name="class_name" ng-model="disciplinary.class_name" class="form-control" onkeypress="return false;" ></div>' +
+							'</div>' +
+							'<!-- Notes -->' +
+							'<div class="form-group">' +
+								'<div class="col-sm-12"><label for="notes">Notes</label></div>' +
+								'<div class="col-sm-12"><textarea name="notes" rows="3" ng-model="disciplinary.notes" ng-change="updateDisciplinaryNotes()" class="form-control"></textarea></div>' +
+							'</div>' +
+							'<!-- Others -->' +
+							'<div class="form-group">' +
+								'<div class="col-sm-12"><label for="others">Others Involved</label></div>' +
+								'<div class="col-sm-12"><input type="text" name="others" ng-model="disciplinary.other_students" class="form-control" onkeypress="return false;" ></div>' +
+							'</div>' +
+							'<!-- By -->' +
+							'<div class="form-group">' +
+								'<div class="col-sm-12"><label for="staff">Created By</label></div>' +
+								'<div class="col-sm-8"><input type="text" name="staff" ng-model="disciplinary.staff" class="form-control" onkeypress="return false;" ></div>' +
+							'</div>' +
+							'<!-- Term -->' +
+							'<div class="form-group">' +
+								'<div class="col-sm-12"><label for="term">Term</label></div>' +
+								'<div class="col-sm-8"><input type="text" name="term" ng-model="disciplinary.term_name" class="form-control" onkeypress="return false;" ></div>' +
+							'</div>' +
+						'</div>' +
+					'</div>' +
+				'</ng-form>' +
+			'</div>'+
+			'<div class="modal-footer">' +
+				'<button type="button" class="btn btn-link" ng-click="cancel()">Cancel</button>' +
+				'<button ng-show="isEditDisciplinary" type="button" class="btn btn-primary" ng-click="updateDisciplinaryItem()">Save</button>' +
 			'</div>'
 		);
 }])

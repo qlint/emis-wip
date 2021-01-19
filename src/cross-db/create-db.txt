@@ -1,17 +1,29 @@
-CREATE TABLE app.school_bnks
+CREATE TABLE app.disciplinary
 (
-    bnk_id serial NOT NULL,
-    name character varying,
-    branch character varying,
-    acc_name character varying,
-    acc_number character varying,
-    active boolean NOT NULL DEFAULT true,
+    disciplinary_id serial,
+    student_id integer NOT NULL,
+    emp_id integer NOT NULL,
+    notes character varying NOT NULL,
+    class_id integer,
+    term_id integer,
+	other_students character varying,
     creation_date timestamp without time zone NOT NULL DEFAULT now(),
     modified_date timestamp without time zone,
-    CONSTRAINT "PK_bnk_id" PRIMARY KEY (bnk_id)
+    CONSTRAINT student_id FOREIGN KEY (student_id)
+        REFERENCES app.students (student_id) MATCH FULL
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+	CONSTRAINT class_id FOREIGN KEY (class_id)
+        REFERENCES app.classes (class_id) MATCH FULL
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+	CONSTRAINT term_id FOREIGN KEY (term_id)
+        REFERENCES app.terms (term_id) MATCH FULL
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE app.school_bnks
+ALTER TABLE app.disciplinary
     OWNER to postgres;

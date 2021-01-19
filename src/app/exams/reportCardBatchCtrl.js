@@ -34,6 +34,27 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		return objArr;
 	}
 
+	function dateConverter(str){
+		let strArr = str.split('-');
+		let year = strArr[0];
+		let month = parseInt(strArr[1]);
+		let day = parseInt(strArr[2]);
+		let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+		let postFix = '';
+		if(day == 1 || day == 21 || day == 31){
+			postFix = 'st';
+		}else if(day == 2 || day == 22){
+			postFix = 'nd';
+		}else if(day == 3 || day == 23){
+			postFix = 'rd';
+		}else{
+			postFix = 'th';
+		}
+		let theDate = day + postFix + ' ' + months[month] + ', ' + year;
+		// console.log(theDate);
+		return theDate;
+	}
+
 	$scope.removeNullTotals = function(objArr){
 		for(let b = 0;b < objArr.length;b++){
 			let totExamType = objArr[b];
@@ -56,26 +77,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		if(item.report_card.totals[0].total_marks != null){
 			item.report_card.totals[0].total_marks = $scope.removeNullTotals(item.report_card.totals[0].total_marks);
 		}
-		function dateConverter(str){
-			let strArr = str.split('-');
-			let year = strArr[0];
-			let month = parseInt(strArr[1]);
-			let day = parseInt(strArr[2]);
-			let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-			let postFix = '';
-			if(day == 1 || day == 21 || day == 31){
-				postFix = 'st';
-			}else if(day == 2 || day == 22){
-				postFix = 'nd';
-			}else if(day == 3 || day == 23){
-				postFix = 'rd';
-			}else{
-				postFix = 'th';
-			}
-			let theDate = day + postFix + ' ' + months[month] + ', ' + year;
-			// console.log(theDate);
-			return theDate;
-		}
+
 		item.report_card.closing_date = (item.report_card.closing_date == null ? null : dateConverter(item.report_card.closing_date));
 		item.report_card.next_term_begins = (item.report_card.next_term_begins == null ? null : dateConverter(item.report_card.next_term_begins));
 		if(i == 10){ console.log("New Report Card Api",item.report_card); }
@@ -199,26 +201,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					if($scope.reportCd.totals[0].total_marks != null){
 						$scope.reportCd.totals[0].total_marks = $scope.removeNullTotals($scope.reportCd.totals[0].total_marks);
 					}
-					function dateConverter(str){
-						let strArr = str.split('-');
-						let year = strArr[0];
-						let month = parseInt(strArr[1]);
-						let day = parseInt(strArr[2]);
-						let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-						let postFix = '';
-						if(day == 1 || day == 21 || day == 31){
-							postFix = 'st';
-						}else if(day == 2 || day == 22){
-							postFix = 'nd';
-						}else if(day == 3 || day == 23){
-							postFix = 'rd';
-						}else{
-							postFix = 'th';
-						}
-						let theDate = day + postFix + ' ' + months[month] + ', ' + year;
-						console.log(theDate);
-						return theDate;
-					}
+
 					$scope.reportCd.closing_date = ($scope.reportCd.closing_date == null ? null : dateConverter($scope.reportCd.closing_date));
 					$scope.reportCd.next_term_begins = ($scope.reportCd.next_term_begins == null ? null : dateConverter($scope.reportCd.next_term_begins));
 					console.log("New Report Card Api",$scope.reportCd);
@@ -462,7 +445,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 
 		// give the report card time to load then execute
-		setTimeout(function(){ $scope.screenshotReportCard(); }, 7000);
+		// setTimeout(function(){ $scope.screenshotReportCard(); }, 7000);
 
 	}
 	$timeout(initializeController,1);

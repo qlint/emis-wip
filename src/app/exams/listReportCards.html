@@ -6,7 +6,7 @@
 	.modal-content .modal-header {padding: 0px 15px;}
 	.modal-body {padding: 0px 16px;}
 	.modal-footer {padding: 0px 16px;background-color: #4CAF50;color: white;text-align:center;border-top:none;}
-	.modal-content {position: relative;background-color: #ffffff;margin: auto;padding: 0;border: 1px solid #888;width: 50%;box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);animation-name: animatetop;animation-duration: 0.4s;}
+	.modal-content {position: relative;background-color: #ffffff;margin: auto;padding: 0;border: 1px solid #888;width: 50%;box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);animation-name: animatetop;animation-duration: 0.4s;width:100% !important;}
 	@keyframes animatetop {
 	  from {top: -300px; opacity: 0}
 	  to {top: 0; opacity: 1}
@@ -53,6 +53,13 @@
 						<label for="class">Class</label>
 						<select name="class" id="class" class="form-control" ng-options="class.class_name for class in classes track by class.class_id" ng-model="filters.class">
 							<option value="">--select class--</option>
+						</select>
+					</div>
+					<!-- year select -->
+					<div class="form-group">
+						<label for="year">Year</label>
+						<select class="form-control" ng-model="filters.year" >
+							<option ng-repeat="item in years track by $index" value="{{item.year}}">{{item.year}}</option>
 						</select>
 					</div>
 
@@ -105,7 +112,7 @@
 
 						<!-- search btn -->
 						<div class="form-group submit-btn">
-							<input type="button" class="btn btn-sm btn-info" ng-click="batchClassReportCards()" value="Load Report Cards" />
+							<input type="button" class="btn btn-sm btn-info" ng-click="batchClassReportCards()" value="{{batchRptCardsBtnTxt}}" />
 							<span ng-show="loading" class="fa fa-spinner fa-pulse"></span>
 						</div>
 					</div>
@@ -187,16 +194,16 @@
 						<tr>
 							<th></th>
 							<th>Student</th>
-							<th class="center" ng-repeat="item in terms">{{item.term_name}}</th>
+							<th class="center" ng-repeat="item in termNums">{{item}}</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr ng-repeat="item in reportCards.students track by $index">
 							<td></td>
 							<td width="75">{{item.student_name}}</td>
-							<td class="center" ng-repeat="term in terms track by $index">
-								<span ng-show="item.reports[term.term_name]" ng-click="getReportCard(item, term.term_name, item.reports[term.term_name])" class="glyphicon glyphicon-file icon-lg"></span>
-								<span ng-show="!item.reports[term.term_name]" >-</span>
+							<td class="center" ng-repeat="term in termNums track by $index">
+								<span ng-show="item.reports[term]" ng-click="getReportCard(item, term, item.reports[term])" class="glyphicon glyphicon-file icon-lg"></span>
+								<span ng-show="!item.reports[term]" >-</span>
 							</td>
 						</tr>
 					</tbody>

@@ -14,7 +14,7 @@ function($scope, $rootScope, $state, $window, Auth, apiService, token ) {
 	//setTimeout(initializeController,10);
 
 	// check if school has dual links
-	apiService.checkMultiLinks($scope.schoolName, function(response){
+	apiService.checkMultiLinks(window.location.host.split('.')[0], function(response){
 				var result = angular.fromJson(response);
 				if( result.response == 'success')
 				{

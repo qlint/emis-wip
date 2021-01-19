@@ -19,6 +19,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.comments = {};
 	$scope.principal_comment = {};
 	$scope.entity_id = ($scope.student.entity_id == null || $scope.student.entity_id == undefined ? null : $scope.student.entity_id);
+	console.log("Entity :",$scope.entity_id);
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 	$scope.schoolName = window.location.host.split('.')[0];
 	$scope.wantStreamPos = ( window.location.host.split('.')[0] == 'kingsinternational' || window.location.host.split('.')[0] == 'lasalle' ? true : false );
@@ -108,7 +109,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				else
 				{
 					$scope.reportCd = result.data;
-					if($scope.schoolName == "lasalle" && $scope.reportCd.entity_id <= 6){
+					if($scope.schoolName == "lasalle" && $scope.reportCd.entity_id <= 7){
 						// console.log("Entity >",$scope.reportCd.entity_id);
 			        getGrading2();
 			    }
@@ -138,10 +139,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						}else{
 							postFix = 'th';
 						}
-						let theDate = day + postFix + ' ' + months[month] + ', ' + year;
+						let theDate = day + postFix + ' ' + months[month - 1] + ', ' + year;
 						// console.log(theDate);
 						return theDate;
 					}
+					console.log("Unconverted date >",$scope.reportCd.closing_date);
 					$scope.reportCd.closing_date = ($scope.reportCd.closing_date == null ? null : dateConverter($scope.reportCd.closing_date));
 					$scope.reportCd.next_term_begins = ($scope.reportCd.next_term_begins == null ? null : dateConverter($scope.reportCd.next_term_begins));
 					console.log("New Report Card Api",$scope.reportCd);
@@ -170,7 +172,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 					}
 					$scope.reportCd.subjects_column.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
 					$scope.reportCd.subject_overalls_column[0].subject_overalls.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
-					if($scope.schoolName == "lasalle" && $scope.entity_id <= 6){
+					if($scope.schoolName == "lasalle" && $scope.entity_id <= 7){
 						for(let x=0;x < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;x++){
 							$scope.reportCd.subject_overalls_column[0].subject_overalls[x].grade = $scope.reportCd.subject_overalls_column[0].subject_overalls[x].grade2;
 							$scope.reportCd.subject_overalls_column[0].subject_overalls[x].comment = $scope.reportCd.subject_overalls_column[0].subject_overalls[x].comment2;
@@ -282,8 +284,64 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.errMsg = result.data;
 			}
 		}
+
+		if( $scope.schoolName == 'lasalle' && $scope.filters.class.report_card_type == 'CBC' ){
+			console.log("Lower Sch.");
+			var params = '';
+			if( $scope.isTeacher && !$scope.isClassTeacher ) params = $scope.filters.class.class_cat_id + '/true/' + $rootScope.currentUser.emp_id;
+			else  params = $scope.filters.class.class_cat_id + '/true/0';
+			console.log("ReportCd Obj",$scope.reportCd);
+			$scope.reportCd = {};
+			$scope.reportCd.playgroup_report_card = [];
+			apiService.getAllSubjects(params,
+																function(response, status){
+																	var result = angular.fromJson(response);
+																	console.log("Lower school result >",result);
+																	if( result.response == 'success'){
+																		for (var i = 0; i < result.data.length; i++) {
+																			let subjObj = {};
+																			subjObj.active = result.data[i].active;
+																			subjObj.class_cat_id = result.data[i].class_cat_id;
+																			subjObj.class_cat_name = result.data[i].class_cat_name;
+																			subjObj.has_children = result.data[i].has_children;
+																			subjObj.parent_subject_id = result.data[i].parent_subject_id;
+																			subjObj.parent_subject_name = result.data[i].parent_subject_name;
+																			subjObj.sort_order = result.data[i].sort_order;
+																			subjObj.subject_id = result.data[i].subject_id;
+																			subjObj.subject_name = result.data[i].subject_name;
+																			subjObj.remarks = null;
+																			subjObj.skill_level = null;
+																			subjObj.use_for_grading = result.data[i].use_for_grading;
+																			subjObj.teacher_id = result.data[i].teacher_id;
+																			subjObj.teacher_name = result.data[i].teacher_name;
+																			$scope.reportCd.playgroup_report_card.push(subjObj);
+																		}
+
+																	}
+																},
+																apiError);
+		}else{
+			console.log("Params > " + rptCardParams);
+			apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
+		}
+
 		console.log("Params > " + rptCardParams);
 		apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
+		/*
+		var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.updateReportTermId;
+		if( $scope.isTeacher && !$scope.isClassTeacher ){ params += '/' + $rootScope.currentUser.emp_id };
+		// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
+
+		if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 7 || $scope.entity_id == undefined || $scope.entity_id == null) ){
+			// console.log("Lsl. Lower Sch.");
+				apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
+		}else{
+			// console.log("Upper Sch.");
+			// console.log(params);
+			apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
+			if($scope.isSpecialExam == true){ apiService.getSpecialExamMarksforReportCard(params, loadSpecialExamMarks, apiError); }
+		}
+		*/
 	}
 
 	$scope.screenshotReportCard = function(){
@@ -347,7 +405,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			html2canvas(reportCardElement).then(function(canvas) {
 				getCanvas = canvas;
 				var dataURL = canvas.toDataURL();
-				var reportCardName = $scope.student.student_id + '_' + $scope.schoolName + '_' + $scope.student.student_name.split(' ').join('_') + '_' + $scope.report.term_id
+				var reportCardName = $scope.student.student_id + '_' + $scope.schoolName + '_' + $scope.student.student_name.split(' ').join('_') + '_' + ($scope.report.term_id ? $scope.report.term_id : $scope.filters.term_id)
 				// console.log("File Name >",reportCardName + ".png");
 				// console.log("Base 64 img ::: ",dataURL);
 				// POST the data
@@ -358,7 +416,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						imgBase64: dataURL,
 						fileName: reportCardName + ".png",
 						student_id: $scope.student.student_id,
-						term_id: $scope.report.term_id
+						term_id: ($scope.report.term_id ? $scope.report.term_id : $scope.filters.term_id)
 				 }
 			 }).done(function(o) {
 				 console.log('Report card data has been saved',o);
@@ -386,7 +444,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			getLiveReportCardData($scope.student.student_id,$scope.filters.class.class_id,(data.term_id == null || data.term_id == undefined ? $scope.filters.term_id : data.term_id));
 		}else{ getReportCardData(); }
 	    // get lower school grading
-	    if($scope.schoolName == "lasalle" && $scope.entity_id <= 6){
+	    if($scope.schoolName == "lasalle" && $scope.entity_id <= 7){
 	        getGrading2();
 	    }
 
@@ -688,8 +746,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		// "real time"
 		var loadRptCd = function(response,status)
 		{
-			console.log("Generating report card with live data");
 			var result = angular.fromJson( response );
+			console.log("Generating report card with live data",result);
 			if( result.response == 'success' )
 			{
 				if( result.nodata )
@@ -764,7 +822,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		}
 		var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + $scope.filters.term.term_id;
 		console.log("Params for live data : " + rptCardParams);
-		apiService.getReportCardData(rptCardParams, loadRptCd, apiError);
+		console.log(data);
+		if(data.generateOrFetch == 'generate'){
+			apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
+		}else{
+			apiService.getReportCardData(rptCardParams, loadRptCd, apiError);
+		}
 
 		$scope.showReportCard = false;
 		$scope.report = {};
@@ -805,7 +868,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			if( $scope.isTeacher && !$scope.isClassTeacher ){ params += '/' + $rootScope.currentUser.emp_id };
 			// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
 
-			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6 || $scope.entity_id == undefined || $scope.entity_id == null) ){
+			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 7 || $scope.entity_id == undefined || $scope.entity_id == null) ){
 				// console.log("Lsl. Lower Sch.");
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
 			}else{
@@ -841,7 +904,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params += '/' + $rootScope.currentUser.emp_id;
 			// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
 
-			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6) ){
+			// if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 7) ){
+			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 7) ){
 				// console.log("Lsl. Lower Sch.");
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
 			}else{
@@ -855,7 +919,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params += '/' + $rootScope.currentUser.emp_id;
 			// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
 
-			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6 || $scope.entity_id == undefined || $scope.entity_id == null) ){
+			// if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 7 || $scope.entity_id == undefined || $scope.entity_id == null) ){
+			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 7 || $scope.entity_id == undefined || $scope.entity_id == null) ){
 				// console.log("Lsl. Lower Sch.");
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
 			}else{
@@ -869,7 +934,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params += '/' + $rootScope.currentUser.emp_id;
 			// apiService.getExamMarksforReportCard(params, loadExamMarks, apiError);
 
-			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6 || $scope.entity_id == undefined || $scope.entity_id == null) ){
+			// if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 7 || $scope.entity_id == undefined || $scope.entity_id == null) ){
+			if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 7 || $scope.entity_id == undefined || $scope.entity_id == null) ){
 				// console.log("Lsl. Lower Sch.");
 			    apiService.getLowerSchoolExamMarksforReportCard(params, loadExamMarks, apiError);
 			}else{
@@ -886,7 +952,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var params = '';
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params = $scope.filters.class.class_cat_id + '/true/' + $rootScope.currentUser.emp_id;
 			else  params = $scope.filters.class.class_cat_id + '/true/0';
-			apiService.getAllSubjects(params, loadSubjects, apiError);
+			// apiService.getAllSubjects(params, loadSubjects, apiError);
+			apiService.getAllSubjectsInExamTypes(params, loadSubjects, apiError);
 		}
 	}
 
@@ -928,9 +995,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				$scope.showReportCard = true;
 				$scope.reportData = {};
 				$scope.reportData.subjects = result.data;
+				console.log("Fetched subjects",$scope.reportData.subjects);
 
 				// this if logic is simply to enable us indent subjects appropriately on the report card by adding some object keys
-				if($scope.reportCardType == 'Playgroup' && $scope.schoolName == 'lasalle'){
+				if($scope.reportCardType == 'Playgroup' && $scope.schoolName == 'lasalle' || $scope.reportCardType == 'CBC' && $scope.schoolName == 'lasalle'){
 
 				    var parentSubjectIds = [];
 
@@ -975,9 +1043,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 						{
 							if( $scope.reportCardType == 'Kindergarten'){
 							    item.remarks = angular.copy(orgData.remarks);
-							}else if( $scope.reportCardType == 'Playgroup'){
+							}else if( $scope.reportCardType == 'Playgroup' || $scope.reportCardType == 'CBC'){
 							    item.remarks = angular.copy(orgData.remarks);
 							    item.indent = angular.copy(orgData.indent);
+									item.skill_level = angular.copy(orgData.skill_level);
 							}else{
 							    item.skill_level = angular.copy(orgData.skill_level);
 							}
@@ -986,8 +1055,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 				}
 
-				if( $scope.reportCardType == 'Playgroup'){
-					$scope.reportData.subjects = $scope.savedReportData.subjects;
+				if( $scope.reportCardType == 'Playgroup' || $scope.reportCardType == 'CBC'){
+					if($scope.savedReportData){
+						$scope.reportData.subjects = $scope.savedReportData.subjects;
+					}
 				}
 
 			}
@@ -1251,7 +1322,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				if( $scope.schoolName != 'thomasburke' || $scope.schoolName == 'kingsinternational' ){ if( orgData !== undefined ) 	item.remarks = angular.copy(orgData.remarks); }
 
 				// automated comments
-				if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 6 || $scope.entity_id == undefined || $scope.entity_id == null) ){
+				if( $scope.schoolName == 'lasalle' && ($scope.entity_id <= 7 || $scope.entity_id == undefined || $scope.entity_id == null) ){
 				    var overall = $scope.overallSubjectMarks.filter(function(item2){
     					if( item.subject_name == item2.subject_name ) return item2;
     				})[0];
@@ -1739,7 +1810,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			examTypes: $scope.examTypes,
 			// reportData: $scope.reportData,
 			grades2: $scope.grades2,
-			reportData: ( $scope.reportCardType == 'Playgroup' ? $scope.savedReportData : $scope.reportData ),
+			reportData: ( $scope.reportCardType == 'Playgroup' || $scope.reportCardType == 'CBC' ? $scope.savedReportData : $scope.reportData ),
 			totals: $scope.totals,
 			comments: $scope.comments,
 			nextTermStartDate: $scope.nextTermStartDate,
@@ -1852,7 +1923,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			report_data : JSON.stringify($scope.reportData),
 			published: $scope.report.published || 'f'
 		}
-		// console.log("Updata :::",data);
+		console.log("Add report card data :::",data);
 		apiService.addReportCard(data,createCompleted,apiError);
 
 		// give the report card time to load then execute

@@ -1,4 +1,38 @@
 <?php
+$app->get('/getReportCardYears', function () {
+    //Show report card years
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+        $sth = $db->prepare("SELECT DISTINCT date_part('year',creation_date) AS year
+														FROM app.report_cards
+														ORDER BY year ASC");
+		$sth->execute();
+		$years = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($years) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $years ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
     //Get report cards for class
 
@@ -24,6 +58,55 @@ $app->get('/getAllStudentReportCards/:class_id', function ($classId) {
 							ORDER BY students.student_id");
 
 		$sth->execute( array($classId) );
+		$results = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($results) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        //echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		$app->response()->headers->set('Content-Type', 'application/json');
+		 echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
+    }
+
+});
+
+$app->get('/getAllStudentReportCardsInYear/:class_id/:year', function ($classId,$year) {
+    //Get report cards for class
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+
+		$db = getDB();
+
+		$sth = $db->prepare("SELECT report_cards.student_id, students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name AS student_name,
+									admission_number, report_cards.class_id, class_cat_id,
+									class_name, report_cards.term_id, term_name, date_part('year', start_date) as year, report_data, report_cards.report_card_type,
+									report_cards.teacher_id, employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as teacher_name,
+									report_cards.creation_date::date as date, published, terms.term_number, 'TERM '|| terms.term_number AS alt_term_name
+							FROM app.report_cards
+							INNER JOIN app.students ON report_cards.student_id = students.student_id
+							INNER JOIN app.classes ON report_cards.class_id = classes.class_id
+							INNER JOIN app.terms ON report_cards.term_id = terms.term_id
+							LEFT JOIN app.employees ON report_cards.teacher_id = employees.emp_id
+							WHERE report_cards.class_id = :classId
+							AND date_part('year',report_cards.creation_date) = :year
+							AND students.active IS TRUE
+							ORDER BY students.student_id");
+
+		$sth->execute( array($classId,$year) );
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 
         if($results) {
@@ -173,6 +256,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 		                              				WHERE e2.student_id = :studentId
 																					AND cs2.class_id = :classId
 		                              				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE
+																					AND s2.active IS TRUE --inactive subjects where showing on a report card
 		                              				ORDER BY et2.sort_order ASC, s2.sort_order ASC
 																			)a
                               			) b
@@ -209,6 +293,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 													INNER JOIN app.subjects s2 USING (subject_id)
 													WHERE e2.student_id = :studentId
 													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+													AND s2.active IS TRUE -- inactive subjects where showing on a report card
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
 												GROUP BY subject_id, subject_name, class_exam_count
@@ -243,6 +328,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 													WHERE e2.student_id = :studentId
 													AND cs2.class_id = :classId
 													AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE
+													AND s2.active IS TRUE -- inactive subjects where showing on a report card
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
 												GROUP BY student_id, exam_type_id, exam_type
@@ -281,6 +367,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 															WHERE e2.student_id = :studentId
 															AND cs2.class_id = :classId
 															AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+															AND s2.active IS TRUE -- to prevent inactive subjects being included
 															ORDER BY et2.sort_order ASC, s2.sort_order ASC
 														)f
 														GROUP BY subject_id, subject_name, class_exam_count
@@ -312,6 +399,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 													INNER JOIN app.subjects s2 USING (subject_id)
 													WHERE e2.student_id = :studentId
 													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
+													AND s2.active IS TRUE -- to prevent inactive subjects from being included
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
 												GROUP BY subject_id, subject_name, class_exam_count
@@ -661,6 +749,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 																	AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 																	AND subjects.parent_subject_id is null
 																	AND subjects.use_for_grading is true
+																	AND subjects.active IS TRUE
 																	AND students.active is true
 																	AND mark IS NOT NULL
 																	AND class_subject_exams.exam_type_id = (
@@ -816,7 +905,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 												) AS report_card_type,
 								(
 								SELECT CASE
-										WHEN report_card_type = 'Playgroup'
+										WHEN report_card_type IN ('Playgroup','CBC')
 										THEN (SELECT report_data FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId)
 									END AS report_card_data
 								FROM (
@@ -850,7 +939,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
                               )d");
 		$sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) );
         $results = $sth->fetch(PDO::FETCH_OBJ);
-		$results->exam_marks = json_decode($results->exam_marks);
+		$results->exam_marks = ($results->exam_marks == null ? null : json_decode($results->exam_marks));
 		$results->subject_overalls_column = json_decode($results->subject_overalls_column);
 		$results->totals = json_decode($results->totals);
 		$results->overall_marks_and_grade = json_decode($results->overall_marks_and_grade);
@@ -1580,7 +1669,7 @@ $app->get('/getClassReportCardData/:class_id/:term_id', function ($classId, $ter
 															) AS report_card_type,
 											(
 											SELECT CASE
-													WHEN report_card_type = 'Playgroup'
+													WHEN report_card_type IN ('Playgroup','CBC')
 													THEN (SELECT report_data FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId)
 												END AS report_card_data
 											FROM (
@@ -1677,7 +1766,7 @@ $app->get('/getLiveReportCardData/:student_id/:class_id/:term_id', function ($st
     {
         $db = getDB();
 
-		$sth = $db->prepare("SELECT d.*,
+				$sth = $db->prepare("SELECT d.*,
                               	(
                               		SELECT array_to_json(ARRAY_AGG(c)) FROM
                               		(
@@ -1989,7 +2078,7 @@ $app->get('/getLiveReportCardData/:student_id/:class_id/:term_id', function ($st
 												) AS report_card_type,
 								(
 								SELECT CASE
-										WHEN report_card_type = 'Playgroup'
+										WHEN report_card_type IN ('Playgroup','CBC')
 										THEN (SELECT report_data FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId)
 									END AS report_card_data
 								FROM (
@@ -2021,8 +2110,9 @@ $app->get('/getLiveReportCardData/:student_id/:class_id/:term_id', function ($st
                               	)a
                               )d");
 		$sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) );
-        $results = $sth->fetch(PDO::FETCH_OBJ);
-		$results->exam_marks = json_decode($results->exam_marks);
+		$results = $sth->fetch(PDO::FETCH_OBJ);
+		if($results) {
+		$results->exam_marks = (isset($results->exam_marks) ? json_decode($results->exam_marks) : null);;
 		$results->subject_overalls_column = json_decode($results->subject_overalls_column);
 		$results->totals = json_decode($results->totals);
 		$results->overall_marks_and_grade = json_decode($results->overall_marks_and_grade);
@@ -2037,7 +2127,7 @@ $app->get('/getLiveReportCardData/:student_id/:class_id/:term_id', function ($st
 		// $results->kindergarten_report_card = ($results->kindergarten_report_card == null ? null : $results->kindergarten_report_card->subjects);
 
 
-        if($results) {
+
             $app->response->setStatus(200);
             $app->response()->headers->set('Content-Type', 'application/json');
             echo json_encode(array('response' => 'success', 'data' => $results ));

@@ -506,6 +506,69 @@ $app->get('/getAllStudentExamMarks/:class/:term/:type(/:teacherId)', function ($
 
 });
 
+$app->get('/getStudentSubjectsForExams/:class/:term/:examTypeId(/:teacherId)', function ($classId,$termId,$examTypeId,$teacherId=null) {
+	//Get all student exam marks
+	$app = \Slim\Slim::getInstance();
+
+	try
+	{
+		// need to make sure class, term and type are integers
+		if( is_numeric($classId) && is_numeric($termId) && is_numeric($examTypeId) )
+		{
+			$db = getDB();
+
+			$query = "SELECT student_name, array_to_string(ARRAY_AGG(subject),',') AS subjects
+								FROM (
+									SELECT s.student_id, '(' || s.student_id || ') ' || s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+										c.class_name, '(' || cs.subject_id || ') ' || s2.subject_name AS subject, cse.grade_weight, s2.sort_order
+									FROM app.students s
+									INNER JOIN app.student_class_history sch USING (student_id)
+									INNER JOIN app.classes c USING (class_id)
+									INNER JOIN app.class_subjects cs ON c.class_id = cs.class_id
+									INNER JOIN app.subjects s2 USING (subject_id)
+									INNER JOIN app.class_subject_exams cse USING (class_subject_id)
+									INNER JOIN app.terms t ON sch.start_date >= t.start_date AND sch.end_date <= t.end_date
+									WHERE sch.class_id = $classId
+									AND t.term_id = $termId
+									AND cse.exam_type_id = $examTypeId AND s2.active IS TRUE AND s.active IS TRUE ";
+			if( $teacherId !== null )
+			{
+			$query .= " AND (s2.teacher_id = $teacherId) ";
+			}
+			$query .= " ORDER BY student_name ASC, s2.sort_order ASC
+								)a
+								GROUP BY student_name
+								ORDER BY student_name ASC";
+
+			$sth1 = $db->prepare($query);
+
+			$db->beginTransaction();
+			$sth1->execute();
+			$results = $sth1->fetchAll(PDO::FETCH_OBJ);
+			$db->commit();
+		}
+
+		if($results) {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'data' => $results ));
+			$db = null;
+		} else {
+			$app->response->setStatus(200);
+			$app->response()->headers->set('Content-Type', 'application/json');
+			echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+			$db = null;
+		}
+
+	} catch(PDOException $e) {
+		$app->response()->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		//echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		echo json_encode(array('response' => 'success', 'nodata' => 'No students found' ));
+	}
+
+});
+
 $app->get('/getResultSlips/:class/:term/:type(/:teacherId)', function ($classId,$termId,$examTypeId,$teacherId=null) {
 	//Get all student exam marks
 	$app = \Slim\Slim::getInstance();

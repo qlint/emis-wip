@@ -13,10 +13,11 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name, start_date, end_date,
 										case when term_id = (select term_id from app.current_term) then true else false end as current_term, date_part('year',start_date) as year,
 										(select count(*) from app.exam_marks where term_id = terms.term_id )::int as has_exams,
-										(select count(*) from app.invoices where term_id = invoices.term_id)::int as has_invoices
+										(select count(*) from app.invoices where term_id = invoices.term_id)::int as has_invoices,
+										'TERM ' || term_number AS term, term_number
 										FROM app.terms
 										--WHERE date_part('year',start_date) <= date_part('year',now())
-										ORDER BY date_part('year',start_date), term_name");
+										ORDER BY date_part('year',start_date) DESC, term_number DESC");
 			$query->execute();
 		}
 		else
@@ -24,10 +25,11 @@ $app->get('/getTerms(/:year)', function ($year = null) {
 			$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name,start_date, end_date,
 											case when term_id = (select term_id from app.current_term) then true else false end as current_term,
 											date_part('year',start_date) as year,
-											(select count(*) from app.exam_marks where term_id = terms.term_id) as has_exams
-										FROM app.terms
-										--WHERE date_part('year',start_date) = :year
-										ORDER BY date_part('year',start_date), term_name");
+											(select count(*) from app.exam_marks where term_id = terms.term_id) as has_exams,
+											'TERM ' || term_number AS term, term_number
+											FROM app.terms
+											--WHERE date_part('year',start_date) <= date_part('year',now())
+											ORDER BY date_part('year',start_date) DESC, term_number DESC");
 			$query->execute(/*array(':year' => $year)*/);
 		}
 
@@ -61,7 +63,7 @@ $app->get('/getTermsByYear/:year', function ($year) {
 		try
 		{
     		$db = getDB();
-    		
+
     		$query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name,start_date, end_date,
     											case when term_id = (select term_id from app.current_term) then true else false end as current_term,
     											date_part('year',start_date) as year,
@@ -70,9 +72,9 @@ $app->get('/getTermsByYear/:year', function ($year) {
     										WHERE date_part('year',start_date) = :year
     										ORDER BY date_part('year',start_date), term_name");
     		$query->execute(array(':year' => $year));
-    
+
     		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-    
+
     		if($results) {
     						$app->response->setStatus(200);
     						$app->response()->headers->set('Content-Type', 'application/json');
@@ -102,7 +104,7 @@ $app->get('/getCurrentTerm', function () {
 	{
 		$db = getDB();
 
-		$query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.current_term");
+		$query = $db->prepare("SELECT term_id, term_name, term_number, start_date, end_date, date_part('year', start_date) as year FROM app.current_term");
 		$query->execute();
 		$results = $query->fetch(PDO::FETCH_ASSOC);
 
@@ -213,15 +215,15 @@ $app->get('/getTermRange', function () {
 	{
 		$db = getDB();
 
-		$query = $db->prepare("SELECT 'previous' as type, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.previous_term 
+		$query = $db->prepare("SELECT 'previous' as type, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.previous_term
 														UNION
-														SELECT 'current', term_name, start_date, end_date, date_part('year', start_date) as year FROM app.current_term 
+														SELECT 'current', term_name, start_date, end_date, date_part('year', start_date) as year FROM app.current_term
 														UNION
-														SELECT 'next', term_name, start_date, end_date, date_part('year', start_date) as year FROM app.next_term 
+														SELECT 'next', term_name, start_date, end_date, date_part('year', start_date) as year FROM app.next_term
 														order by start_date");
 		$query->execute();
 		$results = $query->fetchAll(PDO::FETCH_OBJ);
-		
+
 		$obj = array();
 		foreach($results as $result){
 			$obj[$result->type] = $result;
@@ -256,15 +258,16 @@ $app->post('/addTerm', function () use($app) {
 	$termName =		( isset($allPostVars['term_name']) ? $allPostVars['term_name']: null);
 	$startDate =	( isset($allPostVars['start_date']) ? $allPostVars['start_date']: null);
 	$endDate =		( isset($allPostVars['end_date']) ? $allPostVars['end_date']: null);
+	$termNumber =		( isset($allPostVars['term_number']) ? $allPostVars['term_number']: null);
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
 		try
 		{
 				$db = getDB();
-				$sth = $db->prepare("INSERT INTO app.terms(term_name, start_date, end_date, created_by)
-						VALUES(:termName, :startDate, :endDate, :userId)");
+				$sth = $db->prepare("INSERT INTO app.terms(term_name, start_date, end_date, created_by, term_number)
+						VALUES(:termName, :startDate, :endDate, :userId, :termNumber)");
 
-				$sth->execute( array(':termName' => $termName, ':startDate' => $startDate, ':endDate' => $endDate, ':userId' => $userId ) );
+				$sth->execute( array(':termName' => $termName, ':startDate' => $startDate, ':endDate' => $endDate, ':userId' => $userId, ':termNumber' => $termNumber ) );
 
 		$app->response->setStatus(200);
 				$app->response()->headers->set('Content-Type', 'application/json');
@@ -288,6 +291,7 @@ $app->put('/updateTerm', function () use($app) {
 	$termName =		( isset($allPostVars['term_name']) ? $allPostVars['term_name']: null);
 	$startDate =	( isset($allPostVars['start_date']) ? $allPostVars['start_date']: null);
 	$endDate =		( isset($allPostVars['end_date']) ? $allPostVars['end_date']: null);
+	$termNumber =		( isset($allPostVars['term_number']) ? $allPostVars['term_number']: null);
 	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
 		try
@@ -296,10 +300,11 @@ $app->put('/updateTerm', function () use($app) {
 				$sth = $db->prepare("UPDATE app.terms
 			SET term_name = :termName,
 				start_date = :startDate,
-				end_date = :endDate
+				end_date = :endDate,
+				term_number = :termNumber
 						WHERE term_id = :termId");
 
-				$sth->execute( array(':termName' => $termName, ':startDate' => $startDate, ':endDate' => $endDate, ':termId' => $termId ) );
+				$sth->execute( array(':termName' => $termName, ':startDate' => $startDate, ':endDate' => $endDate, ':termId' => $termId, ':termNumber' => $termNumber ) );
 
 		$app->response->setStatus(200);
 				$app->response()->headers->set('Content-Type', 'application/json');
