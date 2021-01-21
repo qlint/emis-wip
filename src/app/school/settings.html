@@ -1,3 +1,6 @@
+<style>
+	.col-half-offset{margin-left:4.166666667%}
+</style>
 <div ng-controller="schoolSettingsCtrl">
 
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
@@ -165,171 +168,19 @@
 								</div>
 							</div>
 
-							<!-- Bank -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_name.$invalid && (schoolForm.bank_name.$touched || schoolForm.$submitted) }">
-								<label for="bank_name" class="col-sm-4 control-label nopad-right">Bank</label>
+							<!-- Bank Settings -->
+							<div class="form-group">
+								<label for="bank_name" class="col-sm-4 control-label nopad-right">Banking</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_name" ng-model="settings['Bank Name']" placeholder="Optional" />
-									<p ng-show="schoolForm.bank_name.$invalid && (schoolForm.bank_name.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Bank name is required.</p>
+									<button type="button" class="btn btn-primary btn-xs" style="width:100%;" data-toggle="modal" data-target="#bankingMod" ng-click="getBankingDetails()">Enter Bank Details</button>
 								</div>
 							</div>
 
-							<!-- Bank branch -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_branch.$invalid && (schoolForm.bank_branch.$touched || schoolForm.$submitted) }">
-								<label for="bank_branch" class="col-sm-4 control-label nopad-right">Bank Branch</label>
+							<!-- Payment Terms -->
+							<div class="form-group">
+								<label for="pay_terms" class="col-sm-4 control-label nopad-right">Pay Terms</label>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_branch" ng-model="settings['Bank Branch']" placeholder="Optional" />
-									<p ng-show="schoolForm.bank_branch.$invalid && (schoolForm.bank_branch.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Bank branch is required.</p>
-								</div>
-							</div>
-
-							<!-- Account Name -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_name.$invalid && (schoolForm.account_name.$touched || schoolForm.$submitted) }">
-								<label for="account_name" class="col-sm-4 control-label nopad-right">Account Name</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_name" ng-model="settings['Account Name']" placeholder="Optional" />
-									<p ng-show="schoolForm.account_name.$invalid && (schoolForm.account_name.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Account name is required.</p>
-								</div>
-							</div>
-
-							<!-- Account Number -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_number.$invalid && (schoolForm.account_number.$touched || schoolForm.$submitted) }">
-								<label for="account_number" class="col-sm-4 control-label nopad-right">Account Number</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_number" ng-model="settings['Account Number']" placeholder="Optional" />
-									<p ng-show="schoolForm.account_number.$invalid && (schoolForm.account_number.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Account number is required.</p>
-								</div>
-							</div>
-
-							<!-- Bank 2 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_name_2.$invalid && (schoolForm.bank_name_2.$touched || schoolForm.$submitted) }">
-								<label for="bank_name_2" class="col-sm-4 control-label nopad-right">Bank 2</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_name_2" ng-model="settings['Bank Name 2']" placeholder="Optional" />
-									<p ng-show="schoolForm.bank_name_2.$invalid && (schoolForm.bank_name_2.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Bank name 2 is required.</p>
-								</div>
-							</div>
-
-							<!-- Bank branch 2 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_branch_2.$invalid && (schoolForm.bank_branch_2.$touched || schoolForm.$submitted) }">
-								<label for="bank_branch_2" class="col-sm-4 control-label nopad-right">Bank Branch 2</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_branch_2" ng-model="settings['Bank Branch 2']" placeholder="Optional" />
-									<p ng-show="schoolForm.bank_branch_2.$invalid && (schoolForm.bank_branch_2.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Bank branch 2 is required.</p>
-								</div>
-							</div>
-
-							<!-- Account Name 2 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_name_2.$invalid && (schoolForm.account_name_2.$touched || schoolForm.$submitted) }">
-								<label for="account_name_2" class="col-sm-4 control-label nopad-right">Account Name 2</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_name_2" ng-model="settings['Account Name 2']" placeholder="Optional" />
-									<p ng-show="schoolForm.account_name_2.$invalid && (schoolForm.account_name_2.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Account name 2 is required.</p>
-								</div>
-							</div>
-
-							<!-- Account Number 2 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_number_2.$invalid && (schoolForm.account_number_2.$touched || schoolForm.$submitted) }">
-								<label for="account_number_2" class="col-sm-4 control-label nopad-right">Account Number 2</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_number_2" ng-model="settings['Account Number 2']" placeholder="Optional" />
-									<p ng-show="schoolForm.account_number_2.$invalid && (schoolForm.account_number_2.$touched || schoolForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Account number 2 is required.</p>
-								</div>
-							</div>
-
-							<!-- Bank 3 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_name_3.$invalid && (schoolForm.bank_name_3.$touched || schoolForm.$submitted) }">
-								<label for="bank_name_3" class="col-sm-4 control-label nopad-right">Bank 3</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_name_3" ng-model="settings['Bank Name 3']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Bank branch 3 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_branch_3.$invalid && (schoolForm.bank_branch_3.$touched || schoolForm.$submitted) }">
-								<label for="bank_branch_3" class="col-sm-4 control-label nopad-right">Bank Branch 3</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_branch_3" ng-model="settings['Bank Branch 3']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Account Name 3 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_name_3.$invalid && (schoolForm.account_name_3.$touched || schoolForm.$submitted) }">
-								<label for="account_name_3" class="col-sm-4 control-label nopad-right">Account Name 3</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_name_3" ng-model="settings['Account Name 3']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Account Number 3 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_number_3.$invalid && (schoolForm.account_number_3.$touched || schoolForm.$submitted) }">
-								<label for="account_number_3" class="col-sm-4 control-label nopad-right">Account Number 3</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_number_3" ng-model="settings['Account Number 3']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Bank 4 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_name_4.$invalid && (schoolForm.bank_name_4.$touched || schoolForm.$submitted) }">
-								<label for="bank_name_4" class="col-sm-4 control-label nopad-right">Bank 4</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_name_4" ng-model="settings['Bank Name 4']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Bank branch 4 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_branch_4.$invalid && (schoolForm.bank_branch_4.$touched || schoolForm.$submitted) }">
-								<label for="bank_branch_4" class="col-sm-4 control-label nopad-right">Bank Branch 4</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_branch_4" ng-model="settings['Bank Branch 4']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Account Name 4 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_name_4.$invalid && (schoolForm.account_name_4.$touched || schoolForm.$submitted) }">
-								<label for="account_name_4" class="col-sm-4 control-label nopad-right">Account Name 4</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_name_4" ng-model="settings['Account Name 4']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Account Number 4 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_number_4.$invalid && (schoolForm.account_number_4.$touched || schoolForm.$submitted) }">
-								<label for="account_number_4" class="col-sm-4 control-label nopad-right">Account Number 4</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_number_4" ng-model="settings['Account Number 4']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Bank 5 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_name_5.$invalid && (schoolForm.bank_name_5.$touched || schoolForm.$submitted) }">
-								<label for="bank_name_5" class="col-sm-4 control-label nopad-right">Bank 5</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_name_5" ng-model="settings['Bank Name 5']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Bank branch 5 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.bank_branch_5.$invalid && (schoolForm.bank_branch_5.$touched || schoolForm.$submitted) }">
-								<label for="bank_branch_5" class="col-sm-4 control-label nopad-right">Bank Branch 5</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="bank_branch_5" ng-model="settings['Bank Branch 5']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Account Name 5 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_name_5.$invalid && (schoolForm.account_name_5.$touched || schoolForm.$submitted) }">
-								<label for="account_name_5" class="col-sm-4 control-label nopad-right">Account Name 5</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_name_5" ng-model="settings['Account Name 5']" placeholder="Optional" />
-								</div>
-							</div>
-
-							<!-- Account Number 5 -->
-							<div class="form-group" ng-class="{ 'has-error' : schoolForm.account_number_5.$invalid && (schoolForm.account_number_5.$touched || schoolForm.$submitted) }">
-								<label for="account_number_5" class="col-sm-4 control-label nopad-right">Account Number 5</label>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" name="account_number_5" ng-model="settings['Account Number 5']" placeholder="Optional" />
+									<button type="button" class="btn btn-primary btn-xs" style="width:100%;" data-toggle="modal" data-target="#payTermsMod" ng-click="getPayTerms()">Payment Terms</button>
 								</div>
 							</div>
 
@@ -522,5 +373,123 @@
 				-->
 			</div>
 		</div>
+
+		<!-- Modal -->
+	  <div class="modal fade" id="bankingMod" role="dialog">
+	    <div class="modal-dialog modal-lg">
+
+	      <!-- Modal content-->
+	      <div class="modal-content">
+	        <div class="modal-header">
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	          <h4 class="modal-title">Bank Settings</h4>
+	        </div>
+	        <div class="modal-body">
+	          <h4>Enter new banking details.</h4>
+						<div class="row">
+							<div class="col-xs-2">
+								<div class="row">
+									<div class="form-group">
+										<label for="bank_name" class="col-sm-12 control-label nopad-right">Bank Name</label>
+										<div class="col-sm-12">
+											<input type="text" class="form-control" id="bnkName" name="bank_name" placeholder="Enter Bank Name" style="height:18px;width:140%;" />
+										</div>
+									</div>
+								</div>
+							</div>
+			        <div class="col-xs-2 col-half-offset">
+								<div class="row">
+									<div class="form-group">
+										<label for="bank_branch" class="col-sm-12 control-label nopad-right">Bank Branch</label>
+										<div class="col-sm-12">
+											<input type="text" class="form-control" id="bnkBranch" name="bank_branch" placeholder="Enter Bank Branch" style="height:18px;width:140%;" />
+										</div>
+									</div>
+								</div>
+							</div>
+			        <div class="col-xs-2 col-half-offset">
+								<div class="form-group">
+									<label for="account_name" class="col-sm-12 control-label nopad-right">Account Name</label>
+									<div class="col-sm-12">
+										<input type="text" class="form-control" id="accName" name="account_name" placeholder="Enter Account Name" style="height:18px;width:180%;" />
+									</div>
+								</div>
+							</div>
+			        <div class="col-xs-2 col-half-offset">
+								<div class="form-group">
+									<label for="account_number" class="col-sm-12 control-label nopad-right">Account Number</label>
+									<div class="col-sm-12">
+										<input type="text" class="form-control" id="accNumber" name="account_number" placeholder="Enter Account No." style="height:18px;width:160%;" />
+									</div>
+								</div>
+							</div>
+			        <div class="col-xs-2 col-half-offset">
+								<div class="form-group">
+									<button type="button" class="btn btn-success col-sm-12" ng-click="saveBank()">Save</button>
+								</div>
+							</div>
+						</div>
+
+						<div class="row" style="margin-top:15px;">
+							<div class="col-sm-12">
+								<h3 ng-hide="bankDetails">No banking details created yet</h3>
+								<table ng-show="bankDetails" style="width:100%;">
+									<thead>
+										<th style="width:4%;">#</th>
+										<th style="width:25%;">Bank</th>
+										<th style="width:25%;">Branch</th>
+										<th style="width:25%;">Acc. Name</th>
+										<th style="width:21%;">Acc. Number</th>
+									</thead>
+									<tbody>
+										<tr ng-repeat="item in bankData track by $index">
+											<td>{{$index + 1}}</td>
+											<td>{{item.name}}</td>
+											<td>{{item.branch}}</td>
+											<td>{{item.acc_name}}</td>
+											<td>{{item.acc_number}}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+	        </div>
+	        <div class="modal-footer">
+	          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        </div>
+	      </div>
+
+	    </div>
+	  </div>
+
+		<div class="modal fade" id="payTermsMod" role="dialog">
+	    <div class="modal-dialog modal-lg">
+
+	      <!-- Modal content-->
+	      <div class="modal-content">
+	        <div class="modal-header">
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	          <h4 class="modal-title">Terms Of Payment</h4>
+	        </div>
+	        <div class="modal-body">
+	          <h4>These details will appear on the invoice.</h4>
+						<div class="row">
+							<div class="col-xs-12">
+								<trix-editor class="trix-content" ng-model="termsTxt" ng-change="createTerms()" angular-trix prevent-trix-file-accept="true"></trix-editor>
+							</div>
+						</div>
+
+						<div class="row" style="margin-top:15px;">
+
+						</div>
+	        </div>
+	        <div class="modal-footer">
+						<button type="button" class="btn btn-primary" ng-show="saveTerms" ng-click="saveTermsTxt()">Save</button>
+	          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        </div>
+	      </div>
+
+	    </div>
+	  </div>
 	</div>
 </div>

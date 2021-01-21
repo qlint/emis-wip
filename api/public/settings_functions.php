@@ -209,4 +209,108 @@ $app->get('/getAllCountries', function () {
 
 });
 
+$app->get('/getAllBnkDetails', function () {
+    //Show settings
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+    $db = getDB();
+    $sth = $db->prepare("SELECT * FROM app.school_bnks");
+		$sth->execute();
+		$settings = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($settings) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $settings ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->post('/addBnk', function () use($app) {
+		// Add term
+
+	$allPostVars = json_decode($app->request()->getBody(),true);
+
+	$bank =		( isset($allPostVars['bank']) ? $allPostVars['bank']: null);
+	$branch =	( isset($allPostVars['branch']) ? $allPostVars['branch']: null);
+	$accName =		( isset($allPostVars['acc_name']) ? $allPostVars['acc_name']: null);
+	$accNum =		( isset($allPostVars['acc_number']) ? $allPostVars['acc_number']: null);
+
+		try
+		{
+				$db = getDB();
+				$sth = $db->prepare("INSERT INTO app.school_bnks(name, branch, acc_name, acc_number)
+														VALUES (:bank, :branch, :accName, :accNum);");
+
+				$sth->execute( array(':bank' => $bank, ':branch' => $branch, ':accName' => $accName, ':accNum' => $accNum ) );
+
+		$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array("response" => "success", "code" => 1));
+				$db = null;
+
+
+		} catch(PDOException $e) {
+				$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+				echo	json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		}
+
+});
+
+$app->post('/addPaymentTerms', function () use($app) {
+		// Add payment term
+
+	$allPostVars = json_decode($app->request()->getBody(),true);
+
+	$terms =		( isset($allPostVars['terms']) ? $allPostVars['terms']: null);
+
+		try
+		{
+				$db = getDB();
+				$sth = $db->prepare("SELECT value FROM app.settings WHERE name = 'Payment Terms'");
+				$sth->execute(array());
+				$results = $sth->fetch(PDO::FETCH_OBJ);
+
+				if($results) {
+					// update
+					$sth2 = $db->prepare("UPDATE app.settings SET value = :terms
+																WHERE name = 'Payment Terms';");
+					$sth2->execute( array(':terms' => $terms) );
+				}else{
+					// insert
+					$sth2 = $db->prepare("INSERT INTO app.settings(name, value)
+															VALUES ('Payment Terms', :terms);");
+					$sth2->execute( array(':terms' => $terms) );
+				}
+
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array("response" => "success", "code" => 1));
+				$db = null;
+
+
+		} catch(PDOException $e) {
+				$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+				echo	json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		}
+
+});
+
 ?>

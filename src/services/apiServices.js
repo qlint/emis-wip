@@ -137,6 +137,22 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGetWithData(request, path + "/getBanking", successFunction, errorFunction, params);
 	};
 
+	this.getAllBnkDetails = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getAllBnkDetails", successFunction, errorFunction, params);
+	};
+
+	this.addBnk = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addBnk", successFunction, errorFunction, params);
+	};
+
+	this.addPaymentTerms = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addPaymentTerms", successFunction, errorFunction, params);
+	};
+
+	this.getPaymentTerms = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getPaymentTerms", successFunction, errorFunction, params);
+	};
+
 	this.getAllCountries = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getAllCountries", successFunction, errorFunction, params);
 	};

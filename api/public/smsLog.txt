@@ -2380,3 +2380,165 @@ bnVZeDTICzDq
 (6) MESSAGE ID
 2021-01-16 04:56:17pm
 67891
+(1.1) RECIPIENTS COUNT
+2021-01-19 06:41:48pm
+1
+(2) CLIENT DATA
+2021-01-19 06:41:48pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-01-19 06:41:48pm
+yi8QboIYbc1m
+(4) JUST ONE RECIPIENT
+2021-01-19 06:41:48pm
++254733692644
+(5) PAYLOAD
+2021-01-19 06:41:48pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"19012021064148"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Josephine, use bootie-rigging as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254733692644","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDyi8QboIYbc1m"}]}
+(6) MESSAGE ID
+2021-01-19 06:41:48pm
+67892
+(1.1) RECIPIENTS COUNT
+2021-01-19 06:43:23pm
+1
+(2) CLIENT DATA
+2021-01-19 06:43:23pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-01-19 06:43:23pm
+7VuyvKTDANsZ
+(4) JUST ONE RECIPIENT
+2021-01-19 06:43:23pm
++254733692644
+(5) PAYLOAD
+2021-01-19 06:43:23pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"19012021064323"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Josephine, use bootie-rigging as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254733692644","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"ED7VuyvKTDANsZ"}]}
+(6) MESSAGE ID
+2021-01-19 06:43:23pm
+67893
+(1.1) RECIPIENTS COUNT
+2021-01-20 05:11:02pm
+1
+(2) CLIENT DATA
+2021-01-20 05:11:02pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-01-20 05:11:02pm
+GVnSMGVBiKCq
+(4) JUST ONE RECIPIENT
+2021-01-20 05:11:02pm
++254712279690
+(5) PAYLOAD
+2021-01-20 05:11:02pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"20012021051102"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello MARTHA, use presoak-sabbath as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254712279690","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDGVnSMGVBiKCq"}]}
+(6) MESSAGE ID
+2021-01-20 05:11:02pm
+67894
+(1.1) RECIPIENTS COUNT
+2021-01-21 10:34:15am
+1
+(2) CLIENT DATA
+2021-01-21 10:34:15am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-01-21 10:34:16am
+IEy1nGfEDC0U
+(4) JUST ONE RECIPIENT
+2021-01-21 10:34:15am
++254720897883
+(5) PAYLOAD
+2021-01-21 10:34:15am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"21012021103416"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello IGNATIUS, Your code for the Eduweb Mobile App registration is 19214 "}],"DestinationAddr":[{"MSISDN":"+254720897883","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDIEy1nGfEDC0U"}]}
+(6) MESSAGE ID
+2021-01-21 10:34:15am
+67895
+(1.1) RECIPIENTS COUNT
+2021-01-21 10:34:52am
+1
+(2) CLIENT DATA
+2021-01-21 10:34:52am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-01-21 10:34:52am
+USP8PJmKKhbe
+(4) JUST ONE RECIPIENT
+2021-01-21 10:34:52am
++254720897883
+(5) PAYLOAD
+2021-01-21 10:34:52am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"21012021103452"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello IGNATIUS, Your code for the Eduweb Mobile App registration is 19214 "}],"DestinationAddr":[{"MSISDN":"+254720897883","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDUSP8PJmKKhbe"}]}
+(6) MESSAGE ID
+2021-01-21 10:34:52am
+67896
+(1.1) RECIPIENTS COUNT
+2021-01-21 10:34:53am
+1
+(2) CLIENT DATA
+2021-01-21 10:34:53am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-01-21 10:34:53am
+x8w6ZHP6PEDc
+(4) JUST ONE RECIPIENT
+2021-01-21 10:34:53am
++254720897883
+(5) PAYLOAD
+2021-01-21 10:34:53am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"21012021103453"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello IGNATIUS, Your code for the Eduweb Mobile App registration is 19214 "}],"DestinationAddr":[{"MSISDN":"+254720897883","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDx8w6ZHP6PEDc"}]}
+(6) MESSAGE ID
+2021-01-21 10:34:53am
+67897
+(1.1) RECIPIENTS COUNT
+2021-01-21 10:35:58am
+1
+(2) CLIENT DATA
+2021-01-21 10:35:58am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-01-21 10:35:58am
+vDZa1DQrTCBn
+(4) JUST ONE RECIPIENT
+2021-01-21 10:35:58am
++254720897883
+(5) PAYLOAD
+2021-01-21 10:35:58am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"21012021103558"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello IGNATIUS, Your code for the Eduweb Mobile App registration is 19214 "}],"DestinationAddr":[{"MSISDN":"+254720897883","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDvDZa1DQrTCBn"}]}
+(6) MESSAGE ID
+2021-01-21 10:35:58am
+67898
+(1.1) RECIPIENTS COUNT
+2021-01-21 11:04:31am
+1
+(2) CLIENT DATA
+2021-01-21 11:04:31am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-01-21 11:04:31am
+8NqgLbCWuY8p
+(4) JUST ONE RECIPIENT
+2021-01-21 11:04:31am
++254720897883
+(5) PAYLOAD
+2021-01-21 11:04:31am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"21012021110431"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello IGNATIUS, Your code for the Eduweb Mobile App registration is 19214 "}],"DestinationAddr":[{"MSISDN":"+254720897883","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"ED8NqgLbCWuY8p"}]}
+(6) MESSAGE ID
+2021-01-21 11:04:31am
+67899
+(1.1) RECIPIENTS COUNT
+2021-01-21 11:04:36am
+1
+(2) CLIENT DATA
+2021-01-21 11:04:36am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-01-21 11:04:36am
+5uAGVekxcWPq
+(4) JUST ONE RECIPIENT
+2021-01-21 11:04:36am
++254720897883
+(5) PAYLOAD
+2021-01-21 11:04:36am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"21012021110436"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello IGNATIUS, Your code for the Eduweb Mobile App registration is 19214 "}],"DestinationAddr":[{"MSISDN":"+254720897883","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"ED5uAGVekxcWPq"}]}
+(6) MESSAGE ID
+2021-01-21 11:04:36am
+67900

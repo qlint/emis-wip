@@ -4,8 +4,9 @@ angular.module('eduwebApp').
 controller('schoolSettingsCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window','$filter','FileUploader','dialogs',
 function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploader, $dialogs){
 
-
 	$scope.alert = {};
+	$scope.bankDetails = false;
+	$scope.saveTerms = false;
 
 	var initializeController = function ()
 	{
@@ -313,6 +314,71 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			apiService.updateSettings(updateExamCalculation, createCompleted, apiError);
 		}
 
+		$scope.getBankingDetails = function(){
+			apiService.getAllBnkDetails({},function(response){
+				var result = angular.fromJson( response );
+				if( result.response == 'success' )
+				{
+					$scope.bankDetails = (result.nodata ? false : true);
+					$scope.bankData = (result.data ? result.data : []);
+				}
+
+			},apiError);
+		}
+
+		$scope.saveBank = function(){
+			let bnkNameInp = document.getElementById("bnkName");
+			let bnkBranchInp = document.getElementById("bnkBranch");
+			let accNameInp = document.getElementById("accName");
+			let accNumInp = document.getElementById("accNumber");
+			let bnkName = bnkNameInp.value;
+			let bnkBranch = bnkBranchInp.value;
+			let accName = accNameInp.value;
+			let accNumber = accNumInp.value;
+			if(bnkName == null || bnkName == ''){
+				bnkNameInp.style.border = '2px solid red';
+				setTimeout(function(){ bnkNameInp.style.border = '1px solid #cccccc'; }, 2000);
+			}
+			if(bnkBranch == null || bnkBranch == ''){
+				bnkBranchInp.style.border = '2px solid red';
+				setTimeout(function(){ bnkBranchInp.style.border = '1px solid #cccccc'; }, 2000);
+			}
+			if(accName == null || accName == ''){
+				accNameInp.style.border = '2px solid red';
+				setTimeout(function(){ accNameInp.style.border = '1px solid #cccccc'; }, 2000);
+			}
+			if(accNumber == null || accNumber == '2px solid red'){
+				accNumInp.style.border = '2px solid red';
+				setTimeout(function(){ accNumInp.style.border = '1px solid #cccccc'; }, 2000);
+			}
+			if(bnkName && bnkBranch && accName && accNumber){
+				// post
+				let data =  {
+					bank: bnkName,
+					branch: bnkBranch,
+					acc_name: accName,
+					acc_number: accNumber
+				}
+				apiService.addBnk(data,function ( response, status, params )
+				{
+					var result = angular.fromJson( response );
+					if( result.response == 'success' ){
+						alert("Record saved successfully.");
+						bnkNameInp.value = null;
+						bnkBranchInp.value = null;
+						accNameInp.value = null;
+						accNumInp.value = null;
+						$scope.getBankingDetails();
+					}
+					else
+					{
+						$scope.error = true;
+						$scope.errMsg = result.data;
+					}
+				},apiError);
+			}
+		}
+
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){
 		// need to watch the uploaded and manually set form to dirty if changed
 		if( newVal === undefined) return;
@@ -563,6 +629,30 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		}
 		$rootScope.isModal = false;
     });
+
+		$scope.createTerms = function(){
+		$scope.saveTerms = true;
+	}
+
+	$scope.saveTermsTxt = function(){
+		console.log($scope.termsTxt);
+		// post
+		let data = {terms: $scope.termsTxt}
+
+		apiService.addPaymentTerms(data,function ( response, status, params )
+		{
+			var result = angular.fromJson( response );
+			if( result.response == 'success' ){
+				alert("Payment terms have been saved successfully.");
+				// $scope.getBankingDetails();
+			}
+			else
+			{
+				$scope.error = true;
+				alert("An error occured while trying to save the payment terms.");
+			}
+		},apiError);
+	}
 
 } ])
 .controller('addEmpCategoryCtrl',[ '$scope','$rootScope','$uibModalInstance','apiService','dialogs','data',

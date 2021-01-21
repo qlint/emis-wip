@@ -4,7 +4,10 @@
 			<h4 class="modal-title">Invoice</h4>
 		</div>
 		<div class="modal-body receipt">
-            <style type="text/css"> @import url("components/css/customSettingPrintInvoice.css"); </style>
+            <style type="text/css">
+							@import url("components/css/customSettingPrintInvoice.css");
+							@import "components/css/bootstrap.min.css" print;
+						</style>
 			<p ng-show="error" class="error alert alert-danger">
 				{{errMsg}}
 			</p>
@@ -34,13 +37,13 @@
 			</div>
 
 			<div class="printInv">
-				<span class="text-group"><strong>Invoice No:</strong> {{custom_invoice_no || invoice.inv_id}}</span>
+				<span class="text-group"><strong>Invoice For:</strong> {{student.student_name}}</span>
 				<span class="text-group"><strong>Invoice Date:</strong> {{invoice.inv_date|date}}</span>
 				<span class="text-group"><strong>Due Date:</strong> {{invoice.due_date|date}}</span>
 			</div>
 
 			<div class="printInv">
-				<span class="text-group"><strong>Invoice For:</strong> {{student.student_name}}</span>
+				<span class="text-group"><strong>Invoice No:</strong> {{custom_invoice_no || invoice.inv_id}}</span>
 				<span class="text-group"><strong>Admission No:</strong> {{student.admission_number}}</span>
 				<span class="text-group"><strong>Class:</strong> {{student.class_name}}</span>
 				<!-- <span class="text-group"><strong>Term:</strong> {{invoice.term_name}}, {{invoice.year}}</span> -->
@@ -81,71 +84,20 @@
           <!-- <p class="text-group"><strong>Outstanding Balance: {{ ( grandTotal > 0 ? '0' : grandTotal)|numeric }} {{currency}}</strong></p> -->
           <!-- <p class="text-group"><strong>Outstanding Balance: {{ grandTotal|numeric }} {{currency}}</strong></p> --> <!-- USE THIS IF NEEDED -->
 
-					<!-- <div ng-show="wantBankDetails" id="printDetails" style="border:2px solid black;"> -->
-					<!--
-					<div id="printDetails" style="border:2px solid black;">
-						<h3 id="printDetailsH3" style="text-align:center;"><strong>SCHOOL BANK ACCOUNT DETAILS</strong><h3>
-						<div class="row">
-							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>ACCOUNT NAME:</strong></p></div>
-							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ account_name }}</strong></p></div>
+					<div id="printDetails" class="row" style="border:2px solid black;max-width:90%;margin-right:auto;margin-left:auto;">
+						<div class="col-sm-12">
+							<h5 style="text-align: center;line-height: 0px;padding-bottom: 0px;"><strong>PAYMENT OPTIONS</strong><h5><hr>
 						</div>
-						<div class="row">
-							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>BANK:</strong></p></div>
-							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ bank_name }}</strong></p></div>
-						</div>
-						<div class="row">
-							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>BRANCH:</strong></p></div>
-							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ bank_branch }}</strong></p></div>
-						</div>
-						<div class="row">
-							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>ACCOUNT NUMBER:</strong></p></div>
-							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ account_number }}</strong></p></div>
+						<div ng-repeat="item in paymentOptions track by $index" class="col-sm-{{bnkCol}}">
+							<p class="text-group"><strong>#{{$index +1}}: {{item.name}}</strong></p>
+							<p ng-show="{{item.branch == null ? false : true}}" class="text-group"><strong>Branch: {{item.branch}}</strong></p>
+							<p ng-show="{{item.acc_name == null ? false : true}}" class="text-group"><strong>Ac. Name: {{item.acc_name}}</strong></p>
+							<p ng-show="{{item.acc_number == null ? false : true}}" class="text-group"><strong>{{item.name == 'MPESA' ? 'Till/PB':'Ac. Num'}}: {{item.acc_number}}</strong></p>
 						</div>
 					</div>
-					-->
 
-					<div id="printDetails" class="row" style="border:2px solid black;max-width:90%;margin-right:auto;margin-left:auto;">
-					    <div id="bank_one" class="col-md-6" style="border-right: 1px solid;">
-    					        <h5 id="printDetailsH3" style="text-align:center;"><strong>BANK DETAILS</strong><h5><hr style="margin-top:-5px;">
-        						<div class="row">
-        							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>A/C NAME:</strong></p></div>
-        							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ account_name }}</strong></p></div>
-        						</div>
-        						<div class="row">
-        							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>BANK:</strong></p></div>
-        							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ bank_name }}</strong></p></div>
-        						</div>
-        						<div class="row">
-        							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>BRANCH:</strong></p></div>
-        							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ bank_branch }}</strong></p></div>
-        						</div>
-        						<div class="row">
-        							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>A/C NUMBER:</strong></p></div>
-        							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ account_number }}</strong></p></div>
-        						</div>
-					    </div>
-					    <div id="bank_two" class="col-md-6">
-					            <h5 id="printDetailsH3_2" style="text-align:center;"><strong>SCHOOL BANK DETAILS (2)</strong><h5><hr style="margin-top:-5px;">
-        						<div class="row">
-        							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>A/C NAME:</strong></p></div>
-        							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ account_name_2 }}</strong></p></div>
-        						</div>
-        						<div class="row">
-        							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>BANK:</strong></p></div>
-        							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ bank_name_2 }}</strong></p></div>
-        						</div>
-        						<div class="row">
-        							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>BRANCH:</strong></p></div>
-        							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ bank_branch_2 }}</strong></p></div>
-        						</div>
-        						<div class="row">
-        							<div class="col-sm-6 right" style="text-align:right;"><p class="text-group"><strong>A/C NUMBER:</strong></p></div>
-        							<div class="col-sm-6 left" style="text-align:left;"><p class="text-group"><strong>{{ account_number_2 }}</strong></p></div>
-        						</div>
-					    </div>
-					    <div id="bank_three" class="col-md-12" style="border-top: 1px solid;">
-					        <h5 id="printDetailsH3_3" style="text-align:center;"><strong>MPESA: {{ mpesa_details }}</strong><h5>
-					    </div>
+					<div class="row" style="max-width:90%;margin-right:auto;margin-left:auto;" ng-show="paymentTermsExist">
+						<div class="col-sm-12" id="paymentTerms"></div>
 					</div>
 				</div>
 			</div>

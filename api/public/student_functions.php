@@ -2852,7 +2852,7 @@ $app->get('/getLatestAdmission', function () {
   {
     $db = getDB();
     $sth = $db->prepare("SELECT student_id, admission_number FROM app.students
-                        WHERE student_id = (SELECT max(student_id) FROM app.students)");
+                        WHERE student_id = (SELECT student_id FROM app.students ORDER BY creation_date DESC LIMIT 1)");
     $sth->execute();
     $results = $sth->fetch(PDO::FETCH_OBJ);
 

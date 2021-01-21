@@ -15,6 +15,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 	$scope.student = data.student;
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
 	$scope.isSchool = window.location.host.split('.')[0];
+	$scope.paymentTermsExist = false;
 
 	var termName = $scope.invoice.term_name;
 	// we only want the number
@@ -61,43 +62,25 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			var result = angular.fromJson( response );
 			if( result.response == 'success' )
 			{
-				console.log("Banking data success");
+				$scope.bnkExists = (result.data ? true : false);
+				if($scope.bnkExists){
+					$scope.paymentOptions = result.data;
+					$scope.bnkCol = (result.data.length > 3 || result.data.length == 2 ? 6 : (result.data.length == 3 ? 4 : (result.data.length == 1 ? 12 : 6)));
+				}
+
+			}
+
+		},apiError);
+
+		apiService.getPaymentTerms({},function(response){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
 				console.log(result);
-				$scope.bank_name = result.data[0].bank_name;
-				$scope.bank_branch = result.data[0].bank_branch;
-				$scope.account_name = result.data[0].account_name;
-				$scope.account_number = result.data[0].account_number;
-				$scope.bank_name_2 = result.data[0].bank_name_2;
-				$scope.bank_branch_2 = result.data[0].bank_branch_2;
-				$scope.account_name_2 = result.data[0].account_name_2;
-				$scope.account_number_2 = result.data[0].account_number_2;
-				$scope.mpesa_details = result.data[0].mpesa_details;
-				console.log(result.data);
-
-				var bankOne = document.getElementById("bank_one");
-				var bankTwo = document.getElementById("bank_two");
-				var bankThree = document.getElementById("bank_three");
-				var allBanks = document.getElementById("printDetails");
-
-				if( $scope.bank_name == null || $scope.bank_name == undefined ){
-				    // We hide this div and convert the next div from col-6 to col-12
-				    bankOne.style.display = 'none';
-				    bankTwo.className = "col_md_12";
-				}else if( $scope.bank_name_2 == null || $scope.bank_name_2 == undefined ){
-				    // We hide this div and convert te previous div from col-6 to col-12
-				    bankTwo.style.display = 'none';
-				    bankOne.className = "col_md_12";
-				}else if( $scope.mpesa_details == null || $scope.mpesa_details == undefined){
-				    // We hide the mpesa div
-				    bankThree.style.display = 'none';
-				}else if( $scope.bank_name_2 == null || $scope.bank_name_2 == undefined && $scope.mpesa_details == null || $scope.mpesa_details == undefined){
-				    // We hide the second div and mpesa div and convert the remaining first div to col-12
-				    bankTwo.style.display = 'none';
-				    bankThree.style.display = 'none';
-				    bankOne.className = "col_md_12";
-				}else if( $scope.bank_name == null || $scope.bank_name == undefined && $scope.bank_name_2 == null || $scope.bank_name_2 == undefined && $scope.mpesa_details == null || $scope.mpesa_details == undefined ){
-				    // No details have been entered at all - we hide the entire div
-				    allBanks.style.display = 'none';
+				$scope.paymentTermsExist = (result.data.value ? true : false);
+				$scope.pTerms = result.data.value;
+				if($scope.paymentTermsExist){
+					document.getElementById('paymentTerms').innerHTML = $scope.pTerms;
 				}
 			}
 
@@ -174,21 +157,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			hasCredit: $scope.hasCredit,
 			arrears: $scope.arrears,
 			hasArrears: $scope.hasArrears,
-            grandTotal: $scope.grandTotal,
-			bank_name: $scope.bank_name,
-			bank_branch: $scope.bank_branch,
-			account_name: $scope.account_name,
-			account_number: $scope.account_number,
+			grandTotal: $scope.grandTotal,
 			custom_invoice_no: $scope.custom_invoice_no,
-			bank_name: $scope.bank_name,
-			bank_branch: $scope.bank_branch,
-			account_name: $scope.account_name,
-			account_number: $scope.account_number,
-			bank_name_2: $scope.bank_name_2,
-			bank_branch_2: $scope.bank_branch_2,
-			account_name_2: $scope.account_name_2,
-			account_number_2: $scope.account_number_2,
-			mpesa_details: $scope.mpesa_details,
+			paymentOptions: $scope.paymentOptions,
+			bnkCol: $scope.bnkCol,
+			pTerms: $scope.pTerms,
 			user: $rootScope.currentUser
 		}
 

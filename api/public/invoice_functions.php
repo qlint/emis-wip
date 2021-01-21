@@ -640,6 +640,7 @@ $app->get('/getBanking', function () {
                             ON q8.join8 = q9.join9
                             ");
         */
+				/*
         $sth = $db->prepare("SELECT (SELECT value as bank_name FROM app.settings WHERE name = 'Bank Name') AS bank_name,
                                     (SELECT value as bank_branch FROM app.settings WHERE name = 'Bank Branch') AS bank_branch,
                                     (SELECT value as account_name FROM app.settings WHERE name = 'Account Name') AS account_name,
@@ -650,6 +651,11 @@ $app->get('/getBanking', function () {
                                     (SELECT value as account_number_2 FROM app.settings WHERE name = 'Account Number 2') AS account_number_2,
                                     (SELECT value as mpesa_details FROM app.settings WHERE name = 'Mpesa Details') AS mpesa_details
                             ");
+				*/
+		$sth = $db->prepare("SELECT sb.* FROM app.school_bnks sb
+													UNION
+													SELECT 0 AS bnk_id, 'MPESA' AS name, null AS branch, null AS acc_name, (SELECT value FROM app.settings WHERE name = 'Mpesa Details') AS acc_number, true AS active, now() AS creation_date, null AS modified_date
+													ORDER BY bnk_id DESC");
 		$sth->execute();
 		$settings = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -668,6 +674,38 @@ $app->get('/getBanking', function () {
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
 		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getPaymentTerms', function () {
+    //Show payment terms
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = getDB();
+				$sth = $db->prepare("SELECT value FROM app.settings WHERE name = 'Payment Terms'");
+				$sth->execute();
+				$terms = $sth->fetch(PDO::FETCH_OBJ);
+
+        if($terms) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $terms ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+				$app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 

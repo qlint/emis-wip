@@ -363,10 +363,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		                        			    $scope.student.admission_number = newAdmNo + shortYear;
 																			// console.log("New admission = " + $scope.student.admission_number);
 																	}else{
-																			if(latestAdmission.search(/-/) > -1){
-																					var lastSegment = latestAdmission.split('-').reverse()[0];
+																			if(latestAdmission.search(/_/) > -1){
+																					var firstSegment = latestAdmission.split('_')[0];
+																					var lastSegment = latestAdmission.split('_').reverse()[0];
 																					var admissionIncrement = Number(lastSegment) + 1;
-																					var newAdmissionNumber = window.location.host.split('.')[0] + '-' + new Date().getFullYear() + '-' + admissionIncrement;
+																					var newAdmissionNumber = firstSegment + '_' + /* new Date().getFullYear() + '_' + */ admissionIncrement;
 																					$scope.student.admission_number = newAdmissionNumber;
 																			}else{
 																					var admissionIncrement = Number(latestAdmission) + 1;
@@ -387,7 +388,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     		},apiError);
 
 	// }
-	
+
 	$scope.captureClubs = function(){
 	    $scope.student.clubs = $scope.student.club.join(',');
 	}
