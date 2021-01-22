@@ -23,7 +23,11 @@ function($scope, $rootScope){
 		$scope.paymentOptions = data.paymentOptions;
 		$scope.bnkCol = data.bnkCol;
 		$scope.pTerms = data.pTerms;
+		$scope.paymentTermsExist = data.paymentTermsExist;
 		$rootScope.currentUser = data.user;
+		if($scope.paymentTermsExist){
+			document.getElementById('paymentTerms').innerHTML = $scope.pTerms;
+		}
 
 		$scope.loading = false;
 

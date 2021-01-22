@@ -111,6 +111,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Clubs' : angular.copy($rootScope.currentUser.settings['Clubs']	),
 			'Houses' : angular.copy($rootScope.currentUser.settings['Houses']	),
 			'Exam Calculation' : angular.copy($rootScope.currentUser.settings['Exam Calculation']),
+			'Payment Terms' : angular.copy($rootScope.currentUser.settings['Payment Terms']),
+		}
+		if($scope.settings['Payment Terms']){
+			$scope.termsTxt = $scope.settings['Payment Terms'];
 		}
 		if($scope.settings['Use Receipt Items'] == undefined){
 			$scope.settings['Use Receipt Items'] = "true";

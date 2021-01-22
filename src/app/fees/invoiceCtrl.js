@@ -65,7 +65,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 				$scope.bnkExists = (result.data ? true : false);
 				if($scope.bnkExists){
 					$scope.paymentOptions = result.data;
-					$scope.bnkCol = (result.data.length > 3 || result.data.length == 2 ? 6 : (result.data.length == 3 ? 4 : (result.data.length == 1 ? 12 : 6)));
+					$scope.bnkCol = (result.data.length == 1 ? '100' : (result.data.length == 2 ? '50' : (result.data.length == 3 ? '33.3' : (result.data.length == 4 ? '25' : '20'))));
 				}
 
 			}
@@ -77,8 +77,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			if( result.response == 'success' )
 			{
 				console.log(result);
-				$scope.paymentTermsExist = (result.data.value ? true : false);
-				$scope.pTerms = result.data.value;
+				if(result.data){
+					$scope.paymentTermsExist = (result.data.value ? true : false);
+					$scope.pTerms = result.data.value;
+				}else{
+					$scope.paymentTermsExist = false;
+				}
 				if($scope.paymentTermsExist){
 					document.getElementById('paymentTerms').innerHTML = $scope.pTerms;
 				}
@@ -162,6 +166,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $q, data){
 			paymentOptions: $scope.paymentOptions,
 			bnkCol: $scope.bnkCol,
 			pTerms: $scope.pTerms,
+			paymentTermsExist: $scope.paymentTermsExist,
 			user: $rootScope.currentUser
 		}
 

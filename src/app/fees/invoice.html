@@ -3,7 +3,7 @@
 			<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 			<h4 class="modal-title">Invoice</h4>
 		</div>
-		<div class="modal-body receipt">
+		<div class="modal-body receipt" id="receiptBdy">
             <style type="text/css">
 							@import url("components/css/customSettingPrintInvoice.css");
 							@import "components/css/bootstrap.min.css" print;
@@ -84,19 +84,23 @@
           <!-- <p class="text-group"><strong>Outstanding Balance: {{ ( grandTotal > 0 ? '0' : grandTotal)|numeric }} {{currency}}</strong></p> -->
           <!-- <p class="text-group"><strong>Outstanding Balance: {{ grandTotal|numeric }} {{currency}}</strong></p> --> <!-- USE THIS IF NEEDED -->
 
-					<div id="printDetails" class="row" style="border:2px solid black;max-width:90%;margin-right:auto;margin-left:auto;">
-						<div class="col-sm-12">
-							<h5 style="text-align: center;line-height: 0px;padding-bottom: 0px;"><strong>PAYMENT OPTIONS</strong><h5><hr>
+					<div id="printDetails" class="row" style="border:2px solid black;max-width:100%;margin-right:auto;margin-left:auto;">
+						<div class="col-lg-12">
+							<h5 style="text-align: center;line-height: 0px;padding-bottom: 0px;"><strong>PAYMENT OPTIONS</strong><h5>
 						</div>
-						<div ng-repeat="item in paymentOptions track by $index" class="col-sm-{{bnkCol}}">
-							<p class="text-group"><strong>#{{$index +1}}: {{item.name}}</strong></p>
-							<p ng-show="{{item.branch == null ? false : true}}" class="text-group"><strong>Branch: {{item.branch}}</strong></p>
-							<p ng-show="{{item.acc_name == null ? false : true}}" class="text-group"><strong>Ac. Name: {{item.acc_name}}</strong></p>
-							<p ng-show="{{item.acc_number == null ? false : true}}" class="text-group"><strong>{{item.name == 'MPESA' ? 'Till/PB':'Ac. Num'}}: {{item.acc_number}}</strong></p>
-						</div>
+						<table>
+							<tr>
+								<td ng-repeat="item in paymentOptions track by $index" style="width:{{bnkCol}}%;">
+									<p class="text-group"><strong>#{{$index +1}}: {{item.name}}</strong></p>
+									<p ng-show="{{item.branch == null ? false : true}}" class="text-group"><strong>Branch: {{item.branch}}</strong></p>
+									<p ng-show="{{item.acc_name == null ? false : true}}" class="text-group"><strong>Ac. Name: {{item.acc_name}}</strong></p>
+									<p ng-show="{{item.acc_number == null ? false : true}}" class="text-group"><strong>{{item.name == 'MPESA' ? 'Till/PB':'Ac. Num'}}: {{item.acc_number}}</strong></p>
+								</td>
+							</tr>
+						</table>
 					</div>
 
-					<div class="row" style="max-width:90%;margin-right:auto;margin-left:auto;" ng-show="paymentTermsExist">
+					<div class="row" style="max-width:100%;margin-right:auto;margin-left:auto;" ng-show="paymentTermsExist">
 						<div class="col-sm-12" id="paymentTerms"></div>
 					</div>
 				</div>
@@ -105,6 +109,23 @@
 		</div>
 		<div class="modal-footer">
 			<button type="button" class="btn btn-link" ng-click="cancel()">Close</button>
-			<button type="button" class="btn btn-success" ng-click="print()"><i class="glyphicon glyphicon-print"></i> Print</button>
+			<button id="printInv" type="button" class="btn btn-success"><i class="glyphicon glyphicon-print"></i> Print</button>
 		</div>
 </form>
+<script type="text/javascript" src="components/printThis.js"></script>
+<script>
+    $('#printInv').on("click", function () {
+      $('#receiptBdy').printThis({
+				debug: false,
+		    importCSS: true,
+		    importStyle: true,
+		    printContainer: true,
+		    loadCSS: ["/min/css/dependencies.min.css","/css/template.css","/components/css/customSettingPrintInvoice.css","/components/css/bootstrap.min.css"],
+		    pageTitle: "Invoice",
+		    removeInline: false,
+		    printDelay: 333,
+		    header: null,
+		    formValues: true
+      });
+    });
+  </script>
