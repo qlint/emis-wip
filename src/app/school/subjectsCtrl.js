@@ -9,14 +9,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.alert = {};
 	$scope.loading = true;
 
-	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
+	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? ($rootScope.currentUser.super_teacher == true ? false : true) : false );
 
 	var initializeController = function ()
 	{
 		// get class categories
 		if( $rootScope.classCats === undefined )
 		{
-			var params = ( $rootScope.currentUser.user_type == 'TEACHER' ? $rootScope.currentUser.emp_id : undefined);
+			var params = ( $scope.isTeacher ? $rootScope.currentUser.emp_id : undefined);
 			apiService.getClassCats(params, function(response){
 				var result = angular.fromJson(response);
 
@@ -49,7 +49,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 			$scope.dataGrid.destroy();
 		}
 
-		if ( $scope.isTeacher )
+		if ( $scope.isTeacher && !$rootScope.currentUser.super_teacher )
 		{
 			var params = $rootScope.currentUser.emp_id + '/' + class_cat_id + '/' + $scope.filters.status;
 			apiService.getAllTeacherSubjects(params, function(response,status,params){

@@ -188,7 +188,7 @@ $app->post('/parentLogin', function () use($app) {
                           AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
                           --AND students.active IS TRUE
                           AND communications.com_type_id NOT IN (6)
-                          AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
+                          AND date_trunc('year', communications.creation_date) >=  date_trunc('year', now() - interval '1 year')
                           ORDER BY creation_date desc");
 
                 $studentsArray = "{" . implode(',',$students) . "}";
@@ -1512,7 +1512,7 @@ $app->get('/getParentStudents/:parent_id', function ($parentId){
                   AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
                   --AND students.active IS TRUE
                   AND communications.com_type_id NOT IN (6)
-                  AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
+                  AND date_trunc('year', communications.creation_date) >=  date_trunc('year', now() - interval '1 year')
                   ORDER BY creation_date desc");
 
       $studentsArray = "{" . implode(',',$students) . "}";
@@ -1611,6 +1611,56 @@ $app->get('/getSchoolCurrency/:school', function ($school) {
     } catch(PDOException $e) {
         $app->response()->setStatus(404);
     $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getSchDetails/:school', function ($school) {
+    //Show school details
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = setDBConnection($school);
+        $sth = $db->prepare("SELECT
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'School Name') THEN (SELECT value FROM app.settings WHERE name = 'School Name') ELSE null END) AS school_name,
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'School Level') THEN (SELECT value FROM app.settings WHERE name = 'School Level') ELSE null END) AS school_level,
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'School Type') THEN (SELECT value FROM app.settings WHERE name = 'School Type') ELSE null END) AS school_type,
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'Address 1') THEN (SELECT value FROM app.settings WHERE name = 'Address 1') ELSE null END) AS address_1,
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'Address 2') THEN (SELECT value FROM app.settings WHERE name = 'Address 2') ELSE null END) AS address_2,
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'Country') THEN (SELECT value FROM app.settings WHERE name = 'Country') ELSE null END) AS country,
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'Email Address') THEN (SELECT value FROM app.settings WHERE name = 'Email Address') ELSE null END) AS email_address,
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'Phone Number') THEN (SELECT value FROM app.settings WHERE name = 'Phone Number') ELSE null END) AS phone_number,
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'logo') THEN (SELECT value FROM app.settings WHERE name = 'logo') ELSE null END) AS logo,
+                          	(CASE WHEN EXISTS (SELECT value FROM app.settings WHERE name = 'Letterhead') THEN (SELECT value FROM app.settings WHERE name = 'Letterhead') ELSE null END) AS letterhead");
+        $sth->execute();
+        $details = $sth->fetch(PDO::FETCH_OBJ);
+
+        $sth2 = $db->prepare("SELECT sb.* FROM app.school_bnks sb WHERE active IS TRUE
+                              UNION
+                              SELECT 0 AS bnk_id, 'MPESA' AS name, null AS branch, null AS acc_name, (SELECT value FROM app.settings WHERE name = 'Mpesa Details') AS acc_number, true AS active, now() AS creation_date, null AS modified_date
+                              ORDER BY bnk_id DESC");
+        $sth2->execute();
+        $bankingDetails = $sth2->fetchAll(PDO::FETCH_OBJ);
+
+        if($details) {
+            $details->banking_details = $bankingDetails;
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $details ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        $app->response()->headers->set('Content-Type', 'application/json');
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
@@ -1887,7 +1937,7 @@ $app->get('/getGalleryCommunications/:school/:student_id', function ($school, $s
               AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
               AND communications.send_as_email IS TRUE
               --AND students.active IS TRUE
-              AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
+              AND date_trunc('year', communications.creation_date) >=  date_trunc('year', now() - interval '1 year')
               ORDER BY creation_date desc");
 
     $sth->execute( array(':studentId' => $studentId) );
@@ -2130,7 +2180,7 @@ $app->get('/getParticularCommunication/:school/:student_id/:commId', function ($
               AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
               --AND students.active IS TRUE
               AND communications.com_type_id NOT IN (6)
-              AND date_trunc('year', communications.creation_date) =  date_trunc('year', now())
+              AND date_trunc('year', communications.creation_date) >=  date_trunc('year', now() - interval '1 year')
               ORDER BY creation_date desc");
     $sth->execute( array(':studentId' => $studentId, ':commId' => $commId) );
     $results = $sth->fetch(PDO::FETCH_OBJ);

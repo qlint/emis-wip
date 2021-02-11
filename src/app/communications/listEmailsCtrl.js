@@ -238,69 +238,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, $state){
 														}
 													}, apiError);
 												}else{
-													// console.log(smsData);
-													// initialize messase object
-													var message = {
-														"message_by": smsData[0].message_by,
-														"message_date": new Date(),
-														"message_recipients": [],
-														"message_text": smsData[0].message_text,
-														"subscriber_name": $scope.subdomain
-													};
-													// create recipients object & push into arr
-													for (var i = 0; i < smsData.length; i++) {
-														message.message_recipients.push({
-															"phone_number": "+254" + smsData[i].phone_number,
-															"recipient_name": smsData[i].recipient_name
-														});
-													}
-													// done
-													console.log(message);
-													message.message_recipients.forEach((recipient) => {
-													  console.log(recipient);
-														let newMsg = {
-															"message_by": smsData[0].message_by,
-															"message_date": new Date(),
-															"message_recipients": [recipient],
-															"message_text": smsData[0].message_text,
-															"subscriber_name": $scope.subdomain
-														};
-														console.log(newMsg);
-														/*
-														$.ajax({
-																type: "POST",
-																url: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/postSms.php",
-																data: JSON.stringify(newMsg),
-																success: function (data, status, jqXHR) {
-																		console.log(data,status,jqXHR);
-																},
-																error: function (xhr) {
-																		console.log("Error. Data not posted.",newMsg);
-																}
-														});
-														*/
-														$.ajax({
-						                        type: "POST",
-						                        url: "https://sms_api.eduweb.co.ke/api/sendBulkSms",
-						                        data: JSON.stringify(newMsg),
-						                        contentType: "application/json; charset=utf-8",
-						                        dataType: "json",
-						                        processData: true,
-						                        success: function (data, status, jqXHR) {
-						                            console.log(data,status,jqXHR);
-						                        },
-						                        error: function (xhr) {
-																			console.log("Error. Data not posted.",newMsg,xhr);
-																			// log failed msg
-																			apiService.logFailedSms(newMsg,function(response, status){
-																				var result = angular.fromJson( response );
-																				if( result.response == 'success' ){ console.log("The failed message has been logged."); }else{ console.log("There was a problem logging the failed message."); }
-																			}, apiError);
-						                        }
-						                });
-													});
-													// end
-										}
+													// use new method to post sms
+													// ie
+												}
 									}else{console.log("An error was encountered retrieving sms data",result.data);}
 
 								}, apiError);

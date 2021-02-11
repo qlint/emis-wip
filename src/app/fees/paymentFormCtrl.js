@@ -22,19 +22,23 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $fil
 	$scope.slip_check_ready = false;
 	$scope.bankSelected = false;
 
+	$scope.getBankingDetails = function(){
+		apiService.getAllBnkDetails({},function(response){
+			var result = angular.fromJson( response );
+			if( result.response == 'success' )
+			{
+				$scope.bankDetails = (result.nodata ? false : true);
+				$scope.paymentBanks = (result.data ? result.data : []);
+			}
+
+		},apiError);
+	}
+
 	var initializeController = function()
 	{
 		var paymentMethods = $rootScope.currentUser.settings['Payment Methods'];
 		$scope.paymentMethods = paymentMethods.split(',');
-
-		$scope.paymentBanks = [
-													$rootScope.currentUser.settings['Bank Name'],
-													$rootScope.currentUser.settings['Bank Name 2'],
-													$rootScope.currentUser.settings['Bank Name 3'],
-													$rootScope.currentUser.settings['Bank Name 4'],
-													$rootScope.currentUser.settings['Bank Name 5'],
-												];
-		// console.log("Payment Banks",$scope.paymentBanks);
+		$scope.getBankingDetails();
 
 		if( $scope.selectedStudent === undefined )
 		{

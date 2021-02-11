@@ -45,16 +45,14 @@
                                                           FROM sample s
                                                           WHERE terms.term_id = s.term_id;"); // executing the query
             */
-            /*
-            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.credits
-    ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
 
-            $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.absenteeism
-                                                      ADD COLUMN ending date;");
-            $executeOnSchoolDb5 = pg_query($schoolDb,"UPDATE app.countries SET currency_name = 'Ugandan Shilling', currency_symbol = 'USH', curriculum = '7-4-2-4,I.G.C.S.E,Montessori,Dual Curriculum'
-                                                    WHERE countries_name = 'Uganda';");
-            */
-            $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
+            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.payments ADD COLUMN custom_receipt_no character varying;"); // executing the query
+            // $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.communication_sms ADD COLUMN last_name text;"); // executing the query
+
+            // $executeOnSchoolDb5 = pg_query($schoolDb,"SELECT setval('app.students_student_id_seq', (SELECT MAX(student_id) FROM app.students)+1);");
+            // $executeOnSchoolDb5 = pg_query($schoolDb,"SELECT setval('app.guardians_guardian_id_seq', (SELECT MAX(guardian_id) FROM app.guardians)+1);");
+
+            // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
       	    // echo $dbOutput; // just an output of all our db's
       }
       $output = json_encode($output_object);

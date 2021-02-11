@@ -72,27 +72,27 @@
 	                        }
 	                        var trElems = document.getElementsByTagName('tr')[0];
 	                        trElems.style.fontWeight = 'bold';
-							trElems.style.backgroundColor = "#555555";
-							trElems.style.color = "#ffffff";
+													trElems.style.backgroundColor = "#555555";
+													trElems.style.color = "#ffffff";
 
-							//create a button to execute posting of the above data
-							var anchor = document.createElement('a');
-							var linkText = document.createTextNode("Looks Fine. Upload It");
-							anchor.appendChild(linkText);
-							anchor.title = "Upload to database";
-							anchor.href = "#";
-							var anchorStyle = "color: #ffffff;border: 2px solid #ffffff;border-radius: 16px;text-align: center;padding: 7px;";
-							anchor.style.cssText = anchorStyle;
-							var fakerElement = document.getElementById('faker');
-							fakerElement.appendChild(anchor);
-							
-							// script to extract data from table
-							var tableRows = tableElem.rows;
-							
-							var students = [{}];
-							for (var y = 0; y<tableRows.length; y++) {
-							
-							    var colmn = tableRows[y].cells;
+													//create a button to execute posting of the above data
+													var anchor = document.createElement('a');
+													var linkText = document.createTextNode("Looks Fine. Upload It");
+													anchor.appendChild(linkText);
+													anchor.title = "Upload to database";
+													anchor.href = "#";
+													var anchorStyle = "color: #ffffff;border: 2px solid #ffffff;border-radius: 16px;text-align: center;padding: 7px;";
+													anchor.style.cssText = anchorStyle;
+													var fakerElement = document.getElementById('faker');
+													fakerElement.appendChild(anchor);
+
+													// script to extract data from table
+													var tableRows = tableElem.rows;
+
+													var students = [{}];
+													for (var y = 0; y<tableRows.length; y++) {
+
+													    var colmn = tableRows[y].cells;
 
                                 students.push({
                                     "student_id": colmn[0].innerHTML,
@@ -104,17 +104,17 @@
                                     "gender": colmn[6].innerHTML
                                 });
 	                        }
-	                        
+
 	                        //remove null values
 	                        var removeByAttr = function(arr, attr, value){
                                 var z = students.length;
                                 while(z--){
-                                   if( students[z] 
-                                       && students[z].hasOwnProperty(attr) 
-                                       && (arguments.length > 2 && students[z][attr] === value ) ){ 
-                            
+                                   if( students[z]
+                                       && students[z].hasOwnProperty(attr)
+                                       && (arguments.length > 2 && students[z][attr] === value ) ){
+
                                        students.splice(z,1);
-                            
+
                                    }
                                 }
                                 return students;
@@ -123,7 +123,7 @@
                             //we remove the first two objects (empty object & column headers) -- there are better ways to do this
                             students.shift();students.shift();
 	                        console.log(students.length);
-	                        
+
 	                        //convert the object array to one large object
                             var newObj = {};
                             for (var k=0; k < students.length; k++) {
@@ -132,7 +132,7 @@
                             }
                             //result
                             console.log(newObj);
-	                        
+
 	                        // php script url
 	                        var domain = window.location.host.split('.')[0];
 	                        var url = "http://" + domain + ".eduweb.co.ke/starter/students.php"; console.log(url);

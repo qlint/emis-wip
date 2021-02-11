@@ -71,7 +71,7 @@
 						<div class="col-sm-8">
 							<select name="payment_bank" ng-model="payment.payment_bank" class="form-control">
 								<option value="">--select the bank--</option>
-								<option value="{{item}}" ng-repeat="item in paymentBanks track by $index">{{item}}</option>
+								<option value="{{item.name}}" ng-repeat="item in paymentBanks track by $index">{{item.name}} ({{item.branch}})</option>
 							</select>
 						</div>
 					</div>

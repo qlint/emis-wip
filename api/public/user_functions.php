@@ -132,28 +132,30 @@ $app->get('/usrRights/:sch/:group', function ($sch,$group) {
     {
         $db = getLoginDB();
         $sth = $db->prepare("SELECT row_to_json(e) AS rights FROM (
-															SELECT user_type, jsonb_agg(rights) AS rights FROM (
-																SELECT user_type, '{\"mod_name\":\"'||school_module||'\", \"'||school_module||'\":'||rights||'}'::text AS rights FROM (
-																	SELECT user_type, school_module, jsonb_agg(rights) AS rights FROM (
-																		SELECT user_type, school_module, '{\"id\":'||user_auth_id||', \"sub_mod_name\":\"'||sub_module||'\", \"'||sub_module||'\":'||rights||'}'::text AS rights FROM (
-																			SELECT user_auth_id, ut.user_type, sm.school_module,
-																				CASE WHEN ua.sub_module_id IS NULL THEN '-' ELSE ssm.sub_module END AS sub_module,
-																				'{\"add\":'||add||', \"edit\":'||edit||', \"view\":'||view||', \"delete\":'||delete||', \"export\":'||export||'}'::text AS rights
-																			FROM user_auth ua
-																			INNER JOIN user_types ut USING (user_type_id)
-																			INNER JOIN school_modules sm USING (module_id)
-																			LEFT JOIN school_sub_modules ssm USING (sub_module_id)
-																			WHERE subdomain = :sch
-																			AND user_type = :group
-																			AND view = true --user only interacts with modules they can view
-																			ORDER BY sm.sort_order ASC, ssm.sort_order ASC
-																		)a
-																	)b
-																	GROUP BY school_module, user_type
-																)c
-															)d
-															GROUP BY user_type
-														)e");
+								SELECT user_type, jsonb_agg(rights) AS rights FROM (
+									SELECT user_type, '{\"mod_name\":\"'||school_module||'\", \"sort\":'||sm_sort||', \"'||school_module||'\":'||rights||'}'::text AS rights FROM (
+										SELECT user_type, school_module, sm_sort, jsonb_agg(rights) AS rights FROM (
+											SELECT user_type, school_module, sm_sort, '{\"id\":'||user_auth_id||', \"sub_mod_name\":\"'||sub_module||'\", \"'||sub_module||'\":'||rights||'}'::text AS rights FROM (
+												SELECT user_auth_id, ut.user_type, sm.school_module, sm.sort_order AS sm_sort, ssm.sort_order AS ssm_sort,
+													CASE WHEN ua.sub_module_id IS NULL THEN '-' ELSE ssm.sub_module END AS sub_module,
+													'{\"add\":'||add||', \"edit\":'||edit||', \"view\":'||view||', \"delete\":'||delete||', \"export\":'||export||'}'::text AS rights
+												FROM user_auth ua
+												INNER JOIN user_types ut USING (user_type_id)
+												INNER JOIN school_modules sm USING (module_id)
+												LEFT JOIN school_sub_modules ssm USING (sub_module_id)
+												WHERE subdomain = :sch
+												AND user_type = :group
+												AND view = true --user only interacts with modules they can view
+												ORDER BY sm.sort_order ASC, ssm.sort_order ASC
+											)a
+											ORDER BY sm_sort ASC
+										)b
+										GROUP BY school_module, sm_sort, user_type
+										ORDER BY sm_sort ASC
+									)c
+								)d
+								GROUP BY user_type
+							)e");
        $sth->execute( array(':sch' => $sch, ':group' => $group ) );
 
         $results = $sth->fetch(PDO::FETCH_OBJ);

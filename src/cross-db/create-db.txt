@@ -1,29 +1,16 @@
-CREATE TABLE app.disciplinary
+CREATE TABLE app.school_menu
 (
-    disciplinary_id serial,
-    student_id integer NOT NULL,
-    emp_id integer NOT NULL,
-    notes character varying NOT NULL,
-    class_id integer,
-    term_id integer,
-	other_students character varying,
+    menu_id serial,
+    day_name character varying,
+    break_name character varying,
+    meal character varying,
+    active boolean NOT NULL DEFAULT true,
     creation_date timestamp without time zone NOT NULL DEFAULT now(),
     modified_date timestamp without time zone,
-    CONSTRAINT student_id FOREIGN KEY (student_id)
-        REFERENCES app.students (student_id) MATCH FULL
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-	CONSTRAINT class_id FOREIGN KEY (class_id)
-        REFERENCES app.classes (class_id) MATCH FULL
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-	CONSTRAINT term_id FOREIGN KEY (term_id)
-        REFERENCES app.terms (term_id) MATCH FULL
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+    CONSTRAINT "PK_menu_id" PRIMARY KEY (menu_id)
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE app.disciplinary
+ALTER TABLE app.school_menu
     OWNER to postgres;

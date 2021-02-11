@@ -17,6 +17,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.refreshing = false;
 	$scope.getReport = "examsTable";
 	$scope.showExpSheet = false;
+	$scope.showUploadSheet = false;
+	$scope.showUploadBtn = false;
+	$scope.notCsvUpld = false;
+	$scope.showUploadTitle = false;
+	$scope.importReady = false;
+	$scope.importFilters = null;
 	//$scope.loading = true;
 
 	var initializeController = function ()
@@ -408,52 +414,237 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.importExamMarks = function()
 	{
 		$scope.isUpload = false;
-		console.log($scope.filters);
-		if(!$scope.filters.class_id || !$scope.filters.term_id || !$scope.filters.exam_type_id || !$scope.filters.action_type){
-			$scope.importFilterBtn = "Retry";
-			$scope.importBtnStatus = "danger";
-		}else{
-			$scope.importBtnStatus = "info";
-			$scope.importFilterBtn = "Processing";
-			if($scope.filters.action_type == "download_csv"){
-				$scope.importFilterBtn = "Preparing Exam Sheet";
-				$scope.loading = true;
-				// fetch class data
-				var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
-				if( $rootScope.currentUser.user_type == 'TEACHER' ) request += '/' + $rootScope.currentUser.emp_id;
-				apiService.getStudentSubjectsForExams(request, function(response,status)
-				{
-					$scope.loading = false;
-					var result = angular.fromJson( response );
-					if( result.response == 'success' )
+		// console.log($scope.filters);
+		if($scope.filters.action_type != null || $scope.filters.action_type != "" || $scope.filters.action_type != undefined){
+			if($scope.filters.action_type == "download_csv" && (!$scope.filters.class_id || !$scope.filters.term_id || !$scope.filters.exam_type_id)){
+				$scope.importFilterBtn = "All Selections Are Required";
+				$scope.importBtnStatus = "danger";
+				$scope.showUploadTitle = false;
+			}else{
+				$scope.importBtnStatus = "info";
+				$scope.importFilterBtn = "Processing";
+				if($scope.filters.action_type == "download_csv"){
+					$scope.showUploadTitle = false;
+					$scope.csvData = null;
+					$scope.importFilterBtn = "Preparing Exam Sheet";
+					$scope.loading = true;
+					$scope.showUploadBtn = false;
+					// fetch class data
+					var request = $scope.filters.class_id + '/' + $scope.filters.term_id + '/' + $scope.filters.exam_type_id;
+					if( $rootScope.currentUser.user_type == 'TEACHER' ) request += '/' + $rootScope.currentUser.emp_id;
+					apiService.getStudentSubjectsForExams(request, function(response,status)
 					{
-						if( result.nodata )
+						$scope.loading = false;
+						var result = angular.fromJson( response );
+						if( result.response == 'success' )
 						{
-							$scope.loading = false;
-							$scope.errMsg = "The selected search criteria did not find any results.";
+							if( result.nodata )
+							{
+								$scope.loading = false;
+								$scope.errMsg = "The selected search criteria did not find any results.";
+							}
+							else
+							{
+								$scope.expClassSheet = result.data;
+								$scope.expClassSheet.forEach((item, i) => {
+									item.subjects = item.subjects.split(',');
+								});
+								$scope.classSheetSubjs = $scope.expClassSheet[0].subjects;
+
+								$scope.showExpSheet = true;
+								$scope.showUploadSheet = false;
+								// console.log("Class Sheet >",$scope.expClassSheet);
+								// console.log("Subj Headers >",$scope.classSheetSubjs);
+							}
 						}
 						else
 						{
-							$scope.expClassSheet = result.data;
-							$scope.expClassSheet.forEach((item, i) => {
-								item.subjects = item.subjects.split(',');
-							});
-							$scope.classSheetSubjs = $scope.expClassSheet[0].subjects;
-
-							$scope.showExpSheet = true;
-							console.log("Class Sheet >",$scope.expClassSheet);
-							console.log("Subj Headers >",$scope.classSheetSubjs);
+							$scope.loading = false;
+							$scope.errMsg = result.data;
 						}
+					}, apiError);
+				}else if($scope.filters.action_type == "upload_csv"){
+					// console.log("Should Upload");
+					$scope.importFilterBtn = "Processing Exam Sheet";
+					$scope.showUploadBtn = true;
+					// console.log($scope.csvData);
+					// Check for the various File API support.
+					if (window.File && window.FileReader && window.FileList && window.Blob) {
+						$scope.showUploadSheet = true;
+						$scope.showExpSheet = false;
+					  // Great success! All the File APIs are supported.
+						// console.log("File API's are supported");
+						let inp = document.getElementById('csvInp').files[0];
+						// console.log(inp);
+						var reader = new FileReader();
+						reader.readAsArrayBuffer(inp);
+						reader.onload = function(e) {
+							// load external excel script
+							$.getScript('/components/xlsx.full.min.js', function()
+							{
+								$scope.importReady = true;
+								var data = new Uint8Array(reader.result);
+								var wb = XLSX.read(data,{type:'array'});
+								var processThisObj = {};
+								processThisObj.data = wb;
+								var nameOfSheet = processThisObj.data.SheetNames[0];
+								// console.log(processThisObj.data);
+								var htmlstr = XLSX.write(wb,{sheet:nameOfSheet, type:'binary',bookType:'html'});
+								// console.log(htmlstr);
+
+								$('#csvWrapper')[0].innerHTML += htmlstr;
+								let tbl = document.getElementById('csvWrapper').getElementsByTagName("table")[0];
+								tbl.style.width = '95%';
+								tbl.style.marginLeft = 'auto';
+								tbl.style.marginRight = 'auto'; // set headers bg to green
+								let tbody = tbl.getElementsByTagName("tbody")[0];
+								let tr = tbody.getElementsByTagName("tr");
+								tr[1].style.backgroundColor = '#0BDA51';
+								tr[1].style.fontWeight = '600';
+
+								var cols = [];
+								var testCols = [];
+								var result = [];
+								$(tr[1]).map(function(index) {
+									// testCols.push($(this).find('td'));
+									let theTd = $(this).find('td');
+									for (var i = 0; i < theTd.length; i++) {
+										cols.push(theTd[i].innerText);
+									}
+								});
+								// console.log("test Cols >",cols);
+								$(tr).each(function(id){
+								    var row = {'id': id+1};
+								    $(this).find('td').each(function(index){
+								        row[cols[index]] = $(this).text();
+												if(row.id == 1){
+													if(row[cols[index]]){
+														// console.log("First row >",row[cols[index]]);
+														let filters = row[cols[index]].split('/');
+														// console.log($scope.filters,$rootScope,$scope);
+														$scope.filters.class_id = parseInt(filters[0]);
+														$scope.filters.term_id = parseInt(filters[1]);
+														$scope.filters.exam_type_id = parseInt(filters[2]);
+														// get the class for the uploaded csv
+														var filteredClass = $scope.classes.filter(function(item){
+															if(item.class_id == $scope.filters.class_id){
+																// console.log("Class >",item);
+																let selectedClass = item.class_name;
+																// get the exam types for the uploaded csv
+																apiService.getExamTypes(item.class_cat_id, function(response){
+																	var result = angular.fromJson(response);
+																	if( result.response == 'success' && !result.nodata ){
+																		let examTypes = result.data;
+																		var filteredExmTypes = examTypes.filter(function(item3){
+																			if(item3.exam_type_id == $scope.filters.exam_type_id){
+																				console.log("Exam Type >",item3);
+																				let selectedExmType = item3.exam_type;
+																				// get the term for the uploaded csv
+																				$scope.filteredTerm = $scope.terms.filter(function(item2){
+																					if(item2.term_id == $scope.filters.term_id){
+																						console.log("Term >",item2);
+																						let selectedTerm = item2.term_name;
+																						$scope.uploadTitle = "( " + selectedClass + ", " + selectedTerm + ", " + selectedExmType + " Exam )";
+																						$scope.showUploadTitle = true;
+																						$scope.importFilters = {term_id: item2.term_id, exam_type_id: item3.exam_type_id, class_cat_id: item.class_cat_id, class_id: item.class_id};
+																						console.log("Import Filters >",$scope.importFilters);
+																					}
+																				});
+																			}
+																		});
+																	}
+																}, apiError);
+
+															}
+														});
+													}
+												}
+												if(row.id > 2){
+													row.student_id = parseInt(row.STUDENT.split(' ')[0].match(/\(([^)]+)\)/)[1]);
+												}
+								    });
+								    result.push(row);
+								});
+
+								setTimeout(function(){ // half a sec to allow the above operation time
+									let studentsCsvData = [];
+									// console.log("Result >",result);
+									result.forEach((student, i) => {
+										if(i>1){
+											// console.log(i,student);
+											let studentObj = {
+												student_id: student.student_id,
+												subjects: []
+											}
+
+											for (let prop in student) {
+												let skip = ["student_id", "id", "STUDENT"];
+												if(!skip.includes(prop)){
+													let subjObj = {
+														subject_name: prop,
+														subject_id: parseInt(prop.split(' ')[0].match(/\(([^)]+)\)/)[1]),
+														mark: (student[prop] == "" || student[prop] == null ? null : parseInt(student[prop]))
+													}
+													studentObj.subjects.push(subjObj);
+												}
+											  // console.log(`${prop}: ${dataObj[prop]}`);
+											}
+											// console.log(studentObj);
+											studentsCsvData.push(studentObj);
+										}
+									});
+									// console.log(studentsCsvData);
+									// we want to remove null subject marks to reducee the overall payload
+									let importPayload = [];
+									studentsCsvData.forEach((studentObj, i) => {
+										studentObj.subjects = studentObj.subjects.filter(function( obj ) {
+										    return obj.mark !== null;
+										});
+										if(studentObj.subjects.length > 0){importPayload.push(studentObj);}
+									});
+									console.log(importPayload);
+
+									var data = {
+										user_id: $rootScope.currentUser.user_id,
+										exam_marks: importPayload,
+										params: $scope.importFilters
+									}
+									console.log("Data >",data);
+
+									$( "#imptReady" ).click(function() {
+										apiService.importExamMarks(data,
+																							function ( response, status, params )
+																							{
+																								var result = angular.fromJson( response );
+																								if( result.response == 'success' )
+																								{
+																									console.log(result);
+																									alert("Exam marks have been successfully imported.")
+																									// $uibModalInstance.close();
+																									// clear the inputs and filters etc
+																								}else{
+																									$scope.error = true;
+																									$scope.errMsg = result.data;
+																								}
+																							},
+																							apiError);
+									});
+								}, 500);
+
+							/*
+
+							 */
+
+							});
+						}
+					} else {
+					  alert('File functionalities are not fully supported in this browser. Try updating your browser to the lastest versioin or using a different one.');
 					}
-					else
-					{
-						$scope.loading = false;
-						$scope.errMsg = result.data;
-					}
-				}, apiError);
-			}else if($scope.filters.action_type == "upload_csv"){
-				$scope.importFilterBtn = "Processing Exam Sheet";
+				}
 			}
+		}else{
+			$scope.importFilterBtn = "Make A Selection";
+			$scope.importBtnStatus = "danger";
 		}
 	}
 
@@ -527,6 +718,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 		exportTableToCSV($scope.filters.class.class_name + '_class_sheet' + '.csv');
 
+	}
+
+	$scope.actionChanged = function(){
+		console.log($scope.filters.action_type);
+		$scope.showUploadBtn = ($scope.filters.action_type == 'upload_csv' ? true : false);
+		$scope.notCsvUpld = ($scope.showUploadBtn ? false : true);
+	}
+
+	$scope.visualizeUpload = function(){
+		console.log("$scope.csvData >",$scope.csvData);
+		console.log("Init Read");
 	}
 
 	$scope.$on('refreshExamMarks', function(event, args) {

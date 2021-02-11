@@ -220,7 +220,13 @@
 								</div>
 							</div>
 
-
+							<!-- Menu -->
+							<div class="form-group">
+								<label for="sch_menu" class="col-sm-4 control-label nopad-right">Meals Menu</label>
+								<div class="col-sm-8">
+									<button type="button" class="btn btn-primary btn-xs" style="width:100%;" data-toggle="modal" data-target="#schMenu" ng-click="getSchMenu()">School Menu</button>
+								</div>
+							</div>
 
 							<div class="form-group">
 								<div class="col-sm-8 col-sm-offset-4">
@@ -485,6 +491,57 @@
 	        </div>
 	        <div class="modal-footer">
 						<button type="button" class="btn btn-primary" ng-show="saveTerms" ng-click="saveTermsTxt()">Save</button>
+	          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        </div>
+	      </div>
+
+	    </div>
+	  </div>
+
+		<style media="screen">
+			#schMenu .trix-content{overflow-y: auto;width: 340px;}
+			#schMenu .trix-toolbar .button_group {display:inline !important;}
+			#schMenu .button_group button {height:20px; width:30px;}
+		</style>
+		<div class="modal fade" id="schMenu" role="dialog">
+	    <div class="modal-dialog modal-lg">
+
+	      <!-- Modal content-->
+	      <div class="modal-content">
+	        <div class="modal-header">
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	          <h4 class="modal-title">School Meals Menu</h4>
+	        </div>
+	        <div class="modal-body">
+	          <h4>Create / update the school meals menu.</h4>
+						<div class="row">
+							<div class="col-xs-12">
+								<table style="width:100%;border-collapse: collapse;">
+									<thead style="background-color:#7CFC00; line-height:18px;">
+										<tr>
+											<th style="width:14%;">Day</th>
+											<th style="width:43%;" ng-repeat="time in mealTimes track by $index">{{time.time}}</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr ng-repeat="day in days track by $index" style="border-bottom: 1pt solid #ccc;">
+											<td style="width:14%;">{{day.day}}</td>
+											<td style="width:43%;" ng-repeat="time in day.mealTimes track by $index">
+												<trix-editor class="trix-content" ng-model="time.meal" ng-change="saveMeal()" angular-trix prevent-trix-file-accept="true"></trix-editor>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+								<!-- <trix-editor class="trix-content" ng-model="termsTxt" ng-change="createTerms()" angular-trix prevent-trix-file-accept="true"></trix-editor> -->
+							</div>
+						</div>
+
+						<div class="row" style="margin-top:15px;">
+
+						</div>
+	        </div>
+	        <div class="modal-footer">
+						<button type="button" class="btn btn-primary" ng-show="saveTerms" ng-click="saveSchMenu()">Save</button>
 	          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 	        </div>
 	      </div>

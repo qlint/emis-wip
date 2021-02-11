@@ -10,11 +10,11 @@ $app->get('/getExamTypes/:class_cat_id', function ($classCatId) {
 		$db = getDB();
 
 		$sth = $db->prepare("SELECT exam_type_id, exam_type, exam_types.class_cat_id, class_cat_name
-							FROM app.exam_types
-							LEFT JOIN app.class_cats
-							ON exam_types.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
-							WHERE exam_types.class_cat_id = :classCatId
-							ORDER BY sort_order");
+												FROM app.exam_types
+												LEFT JOIN app.class_cats
+												ON exam_types.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
+												WHERE exam_types.class_cat_id = :classCatId
+												ORDER BY sort_order");
 		$sth->execute(array(':classCatId' => $classCatId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -519,18 +519,18 @@ $app->get('/getStudentSubjectsForExams/:class/:term/:examTypeId(/:teacherId)', f
 
 			$query = "SELECT student_name, array_to_string(ARRAY_AGG(subject),',') AS subjects
 								FROM (
-									SELECT s.student_id, '(' || s.student_id || ') ' || s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+									SELECT sch.student_id, '(' || sch.student_id || ') ' || s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
 										c.class_name, '(' || cs.subject_id || ') ' || s2.subject_name AS subject, cse.grade_weight, s2.sort_order
-									FROM app.students s
-									INNER JOIN app.student_class_history sch USING (student_id)
+									FROM app.student_class_history sch
+									INNER JOIN app.students s USING (student_id)
 									INNER JOIN app.classes c USING (class_id)
 									INNER JOIN app.class_subjects cs ON c.class_id = cs.class_id
 									INNER JOIN app.subjects s2 USING (subject_id)
 									INNER JOIN app.class_subject_exams cse USING (class_subject_id)
-									INNER JOIN app.terms t ON sch.start_date >= t.start_date AND sch.end_date <= t.end_date
+									INNER JOIN app.terms t ON t.start_date >= sch.start_date AND (t.end_date <= sch.end_date OR sch.end_date IS null)
 									WHERE sch.class_id = $classId
 									AND t.term_id = $termId
-									AND cse.exam_type_id = $examTypeId AND s2.active IS TRUE AND s.active IS TRUE ";
+									AND cse.exam_type_id = $examTypeId AND s2.active IS TRUE ";
 			if( $teacherId !== null )
 			{
 			$query .= " AND (s2.teacher_id = $teacherId) ";
@@ -1509,6 +1509,88 @@ $app->post('/advncedExamEdit', function () use($app) {
 		$app->response->setStatus(200);
 		$app->response()->headers->set('Content-Type', 'application/json');
 		echo json_encode(array("response" => "success", "data" => $results));
+		$db = null;
+	} catch(PDOException $e) {
+		$app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+	}
+
+});
+
+$app->post('/importExamMarks', function () use($app) {
+	// Add exam type
+
+	$allPostVars = json_decode($app->request()->getBody(),true);
+
+	$examTypeId =		( isset($allPostVars['params']['exam_type_id']) ? $allPostVars['params']['exam_type_id']: null);
+	$classCatId =	( isset($allPostVars['params']['class_cat_id']) ? $allPostVars['params']['class_cat_id']: null);
+	$classId =	( isset($allPostVars['params']['class_id']) ? $allPostVars['params']['class_id']: null);
+	$termId =	( isset($allPostVars['params']['term_id']) ? $allPostVars['params']['term_id']: null);
+	$examMarks =	( isset($allPostVars['exam_marks']) ? $allPostVars['exam_marks']: null);
+	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+
+	try
+	{
+		$db = getDB();
+		$db->beginTransaction();
+
+		if( count($examMarks) > 0 )
+		{
+			foreach($examMarks as $mark)
+			{
+				$studentId = ( isset($mark['student_id']) ? $mark['student_id']: null);
+				$subjects = $mark['subjects'];
+
+				if( count($subjects) > 0 )
+				{
+					foreach($subjects as $subject)
+					{
+						$getClassSubExam = $db->prepare("SELECT class_sub_exam_id FROM app.class_subject_exams
+																							WHERE class_subject_id = (SELECT class_subject_id FROM app.class_subjects WHERE subject_id = :subjectId AND class_id = :classId)
+																							AND exam_type_id = :examTypeId");
+						$getClassSubExam->execute(array(':examTypeId' => $examTypeId, ':subjectId' => $subject['subject_id'], ':classId' => $classId ));
+						$subExamId = $getClassSubExam->fetch(PDO::FETCH_OBJ);
+						$classSubExamId = $subExamId->class_sub_exam_id;
+						// var_dump($classSubExamId);
+
+						if($classSubExamId){
+							$getExam = $db->prepare("SELECT exam_id FROM app.exam_marks WHERE student_id = :studentId AND class_sub_exam_id = :classSubExamId AND term_id = :termId");
+							$currentExamMarks = $getExam->execute(array(':studentId' => $studentId, ':classSubExamId' => $classSubExamId, ':termId' => $termId ));
+							$examId = $getExam->fetch(PDO::FETCH_OBJ);
+
+							$mark = $subject['mark'];
+
+
+							if( $examId )
+							{
+								$updateMark = $db->prepare("UPDATE app.exam_marks
+															SET mark = :mark,
+																modified_date = now(),
+																modified_by = :userId
+															WHERE exam_id = :examId");
+								$updateMark->execute( array(':mark' => $mark, ':examId' => $examId->exam_id, ':userId' => $userId  ) );
+							}
+							else
+							{
+								$addMark = $db->prepare("INSERT INTO app.exam_marks(student_id, class_sub_exam_id, term_id, mark, created_by)
+														VALUES(:studentId, :classSubExamId, :termId, :mark, :userId)");
+								$addMark->execute( array(':studentId' => $studentId, ':classSubExamId' => $classSubExamId, ':termId' => $termId, ':mark' => $mark, ':userId' => $userId ) );
+							}
+						}
+
+					}
+				}
+
+			}
+		}
+
+		$db->commit();
+
+		$app->response->setStatus(200);
+		$app->response()->headers->set('Content-Type', 'application/json');
+		echo json_encode(array("response" => "success", "code" => 1, "examTypeId" => $examTypeId, "examMarks" => $examMarks));
+
 		$db = null;
 	} catch(PDOException $e) {
 		$app->response()->setStatus(404);

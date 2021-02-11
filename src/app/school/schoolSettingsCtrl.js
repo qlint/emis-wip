@@ -123,7 +123,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			$scope.allCountries.forEach((cntry, i) => {
 				if(cntry.countries_name == $scope.settings.Country){
 					$scope.curriculums = cntry.curriculum;
-					console.log($scope.curriculums);
 					$scope.currencies = [{name: cntry.currency_name, symbol: cntry.currency_symbol}];
 				}
 			});
@@ -381,6 +380,26 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 					}
 				},apiError);
 			}
+		}
+
+		$scope.getSchMenu = function(){
+			$scope.days = [
+				{num: 1, day: 'Monday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+				{num: 2, day: 'Tuesday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+				{num: 3, day: 'Wednesday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+				{num: 4, day: 'Thursday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+				{num: 5, day: 'Friday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+				{num: 6, day: 'Saturday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+				{num: 7, day: 'Sunday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] }
+			];
+			$scope.mealTimes = [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}];
+			setTimeout(function(){
+				let mod = document.getElementById('schMenu');
+				let undoBtns = mod.getElementsByClassName('history_tools');
+				for (let i = 0; i < undoBtns.length; i++) {undoBtns[i].style.display = 'none';}
+				let boxes = mod.getElementsByClassName('trix-content');
+				for (let j = 0; j < boxes.length; j++) {boxes[j].style.minHeight = '0'; boxes[j].style.height = '125px';}
+			}, 2000);
 		}
 
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){

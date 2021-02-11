@@ -604,7 +604,7 @@ $app->delete('/deleteInvoice/:inv_id', function ($invId){
 });
 
 $app->get('/getBanking', function () {
-    //Show settings
+    //Show banking details
 
 	$app = \Slim\Slim::getInstance();
 

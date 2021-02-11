@@ -18,6 +18,7 @@
   $authDetailsObj->UserID = '';
   $authDetailsObj->Token = '';
   $authDetailsObj->Timestamp = '';
+  /*
   let params = {
     AuthDetails: [
       {
@@ -36,6 +37,7 @@
       }
     ]
   }
+  */
 
   try{
     if( isset($_POST['src']) ) {}

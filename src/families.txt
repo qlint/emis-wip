@@ -1,0 +1,65 @@
+SELECT array_agg(parent_name) as parents, array_agg(student_name) as students
+FROM (
+    SELECT DISTINCT ON (t.student_id)
+        *
+    FROM (
+        SELECT student_id, array_agg(parent_id) as parents
+        FROM (
+			SELECT DISTINCT ON(parent_id, student_id)parent_id, student_id, parent_name, student_name
+			FROM (
+				SELECT parents.guardian_id AS parent_id, students.student_id, parents.parent_name, parents.relationship, students.student_name, students.class_name
+				FROM
+				(
+					SELECT DISTINCT sg.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS parent_name,
+						(CASE WHEN sg.relationship is null THEN 'Non Given' ELSE sg.relationship END)
+					FROM app.student_guardians sg
+					INNER JOIN app.guardians g USING (guardian_id)
+					WHERE sg.active IS TRUE AND g.active IS TRUE
+					ORDER BY guardian_id ASC
+				) AS parents
+				INNER JOIN
+				(
+					SELECT sg.student_id, guardian_id,
+						s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name
+					FROM app.student_guardians sg
+					INNER JOIN app.students s USING (student_id)
+					INNER JOIN app.classes c ON s.current_class = c.class_id
+					WHERE sg.active IS TRUE AND s.active IS TRUE
+					ORDER BY student_id ASC
+				) AS students
+				ON parents.guardian_id = students.guardian_id
+				ORDER BY student_id ASC, class_name ASC
+			)a
+		)b
+        GROUP BY student_id
+    ) s JOIN (
+		SELECT DISTINCT ON(parent_id, student_id)parent_id, student_id, parent_name, student_name
+		FROM (
+			SELECT parents.guardian_id AS parent_id, students.student_id, parents.parent_name, parents.relationship, students.student_name, students.class_name
+			FROM
+			(
+				SELECT DISTINCT sg.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS parent_name,
+					(CASE WHEN sg.relationship is null THEN 'Non Given' ELSE sg.relationship END)
+				FROM app.student_guardians sg
+				INNER JOIN app.guardians g USING (guardian_id)
+				WHERE sg.active IS TRUE AND g.active IS TRUE
+				ORDER BY guardian_id ASC
+			) AS parents
+			INNER JOIN
+			(
+				SELECT sg.student_id, guardian_id,
+					s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name
+				FROM app.student_guardians sg
+				INNER JOIN app.students s USING (student_id)
+				INNER JOIN app.classes c ON s.current_class = c.class_id
+				WHERE sg.active IS TRUE AND s.active IS TRUE
+				ORDER BY student_id ASC
+			) AS students
+			ON parents.guardian_id = students.guardian_id
+			ORDER BY student_id ASC, class_name ASC
+		)c
+	) t ON t.parent_id = ANY(s.parents)
+    ORDER BY t.student_id, CARDINALITY(parents) DESC
+) s
+GROUP BY parents
+ORDER BY parents ASC

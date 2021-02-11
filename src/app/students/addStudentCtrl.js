@@ -370,8 +370,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 																					var newAdmissionNumber = firstSegment + '_' + /* new Date().getFullYear() + '_' + */ admissionIncrement;
 																					$scope.student.admission_number = newAdmissionNumber;
 																			}else{
+																				  latestAdmission = latestAdmission.split('-').reverse()[0];
 																					var admissionIncrement = Number(latestAdmission) + 1;
-																					var newAdmissionNumber = window.location.host.split('.')[0] + '-' + new Date().getFullYear() + '-' + admissionIncrement;
+																					var newAdmissionNumber = window.location.host.split('.')[0] /* + '-' + new Date().getFullYear() */ + '-' + admissionIncrement;
 																					$scope.student.admission_number = newAdmissionNumber;
 																			}
 																	}

@@ -1244,10 +1244,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 	$scope.$watch('student.payment_method', function(newVal, oldVal){
 		if( newVal == oldVal) return;
-
 		// want to set all selected fee item payment methods to this value
-
-
 	});
 
 	$scope.$watch('student.transport_route', function(newVal, oldVal){
@@ -2729,7 +2726,10 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 		    $scope.isNewParent = false;
 		    setTimeout(function(){
 		        $("#idbtn").css("display", "none");
-		        document.getElementById("id_number").readOnly = true;
+						if(window.location.host.split('.')[0] != 'immaculate'){
+							document.getElementById("id_number").readOnly = true;
+						}
+		        // document.getElementById("id_number").readOnly = true;
 		    }, 1000);
 
 		}

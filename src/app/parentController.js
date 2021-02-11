@@ -21,7 +21,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				 token: function () {
 				   return args.token;
 				 }
-			   }
+			  }
 			});
 
 			modalInstance.result.then(function() {
@@ -50,8 +50,121 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 			// store these as they do not change often
 			if( result.response == 'success')
 			{
-				var rawPermissions = (result.nondata !== undefined ? [] : result.data);
+				var rawPermissions = (result.nondata !== undefined ? [] : result.data.rights.rights);
 				console.log("Fetched Permissions >",rawPermissions);
+				let perms = {};
+				rawPermissions.forEach((item, i) => {
+					let modName = item.mod_name.toLowerCase().split(' ').join('_');
+					if(item[item.mod_name].length == 1){
+						perms[modName] = item[item.mod_name][0]['-'];
+					}else{
+						perms[modName] = {};
+						item[item.mod_name].forEach((item2, j) => {
+							let subModName = item2.sub_mod_name.toLowerCase().split(' ').join('_');
+							perms[modName][subModName] = item2[item2.sub_mod_name];
+						});
+					}
+				});
+				// console.log(perms);
+				$rootScope.permissions = perms;
+				// dynamic access rights
+				console.log('Is super teacher? ' + $rootScope.currentUser.super_teacher);
+				if($rootScope.currentUser.super_teacher == true){
+
+					if($rootScope.permissions.resources == undefined){
+						$rootScope.permissions.resources = {};
+					}
+					$rootScope.permissions.resources.list_resources = {};
+					$rootScope.permissions.resources.list_resources.view = true;
+					$rootScope.permissions.resources.list_resources.edit = false;
+					$rootScope.permissions.resources.list_resources.add = false;
+
+					if($rootScope.permissions.communications == undefined){
+						$rootScope.permissions.communications = {};
+					}
+					$rootScope.permissions.communications.all_homework = {};
+					$rootScope.permissions.communications.all_homework.view = true;
+					$rootScope.permissions.communications.all_homework.edit = false;
+					$rootScope.permissions.communications.all_homework.add = false;
+
+					$rootScope.permissions.communications.all_homework_feedback = {};
+					$rootScope.permissions.communications.all_homework_feedback.view = true;
+					$rootScope.permissions.communications.all_homework_feedback.edit = false;
+					$rootScope.permissions.communications.all_homework_feedback.add = false;
+
+					$rootScope.permissions.communications.teacher_communications = {};
+					$rootScope.permissions.communications.teacher_communications.view = true;
+					$rootScope.permissions.communications.teacher_communications.edit = false;
+					$rootScope.permissions.communications.teacher_communications.add = false;
+
+					$rootScope.permissions.school.subjects.add = true;
+					$rootScope.permissions.school.subjects.view = true;
+					$rootScope.permissions.school.subjects.edit = true;
+					$rootScope.permissions.school.subjects.delete = true;
+					$rootScope.permissions.school.subjects.export = true;
+
+				}
+				console.log("Default Perms >",$rootScope.permissions);
+
+				$scope.navItems = [];
+				$scope.subOptions = [];
+				var i = 0,
+				    j = 0;
+
+				angular.forEach( $rootScope.permissions, function(permission, sectionName){
+					// if no view permission, likely an object of arrays, dig deeper
+
+					if( permission.view === undefined )
+					{
+						var navItem = {};
+						var subnavItem = {};
+						angular.forEach( permission, function(permission2, subSectionName){
+
+							var label = ( permission.alt_label !== undefined ? $filter('titlecase')(permission.alt_label.split("_").join(" ")) : $filter('titlecase')(sectionName.split("_").join(" ")));
+
+							if( subSectionName != 'alt_label' )
+							{
+								if( i == 0 ) navItem = {id: sectionName + "/" + subSectionName, label: label, section: sectionName, subnav: []};
+
+								navItem.subnav.push({id: sectionName + "/" + subSectionName, label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName}); //, filters:permission2.filters});
+
+								i++;
+							}
+
+						});
+
+						$scope.navItems.push(navItem);
+
+					}
+					else
+					{
+						if( permission.view )
+						{
+							var label = ( permission.alt_label !== undefined ? $filter('titlecase')(permission.alt_label.split("_").join(" ")) : $filter('titlecase')(sectionName.split("_").join(" ")));
+							$scope.navItems.push({id: sectionName, label: label, section: sectionName}); //, icon: icons[sectionName]});
+						}
+					}
+
+					i = 0;
+				});
+
+
+
+				$rootScope.navItems = $scope.navItems;
+
+				var section = $rootScope.currentPage;
+				section = section.split('/');
+				var page = section[0];
+				var params = section[1];
+
+				angular.forEach( $rootScope.navItems, function( item, key) {
+					var section = item.section;
+
+					if( section.toUpperCase() == page.toUpperCase() )
+					{
+						$rootScope.mainSubNavItems = item.subnav;
+					}
+				});
 			}
 			else
 			{
@@ -59,6 +172,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 		}, function(err){console.log(err)});
 
+		/*
 		switch( $rootScope.currentUser.user_type ){
 			case "SYS_ADMIN":
 				$rootScope.permissions = {
@@ -220,13 +334,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': true,
 							'edit': true
 						},
-						/*
-						'pick_up_and_drop_off': {
-							'view': true,
-							'add': true,
-							'edit': true,
-						},
-						*/
+						// 'pick_up_and_drop_off': {
+							// 'view': true,
+							// 'add': true,
+							// 'edit': true,
+						// },
 						'mapped_history': {
 							'view': true,
 							'add': true,
@@ -418,13 +530,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 								'add': true,
 								'edit': true
 							},
-							/*
-							'pick_up_and_drop_off': {
-								'view': true,
-								'add': true,
-								'edit': true,
-							},
-							*/
+							// 'pick_up_and_drop_off': {
+								// 'view': true,
+								// 'add': true,
+								// 'edit': true,
+							// },
 							'mapped_history': {
 								'view': true,
 								'add': true,
@@ -567,13 +677,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 										'add': true,
 										'edit': true
 									},
-									/*
-									'pick_up_and_drop_off': {
-										'view': true,
-										'add': true,
-										'edit': true,
-									},
-									*/
+									// 'pick_up_and_drop_off': {
+										// 'view': true,
+										// 'add': true,
+										// 'edit': true,
+									// },
 									'mapped_history': {
 										'view': true,
 										'add': true,
@@ -716,13 +824,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 										'add': true,
 										'edit': true
 									},
-									/*
-									'pick_up_and_drop_off': {
-										'view': true,
-										'add': true,
-										'edit': true,
-									},
-									*/
+									// 'pick_up_and_drop_off': {
+										// 'view': true,
+										// 'add': true,
+										// 'edit': true,
+									// },
 									'mapped_history': {
 										'view': true,
 										'add': true,
@@ -871,13 +977,11 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 											'add': true,
 											'edit': true
 										},
-										/*
-										'pick_up_and_drop_off': {
-											'view': true,
-											'add': true,
-											'edit': true,
-										},
-										*/
+										// 'pick_up_and_drop_off': {
+											// 'view': true,
+											// 'add': true,
+											// 'edit': true,
+										// },
 										'mapped_history': {
 											'view': true,
 											'add': true,
@@ -1048,14 +1152,12 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							'add': false,
 							'edit': false
 						},
-						/*
-						'pick_up_and_drop_off': {
-    							'view': true,
-    							'add': true,
-    							'edit': true,
-    					},
-							*/
-    					'mapped_history': {
+						// 'pick_up_and_drop_off': {
+    							// 'view': true,
+    							// 'add': true,
+    							// 'edit': true,
+    					// },
+							'mapped_history': {
     							'view': true,
     							'add': true,
     							'edit': true,
@@ -1100,98 +1202,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 					}
 				};
 		}
-
-		// dynamic access rights
-		if($rootScope.currentUser.super_teacher == true){
-
-			if($rootScope.permissions.resources == undefined){
-				$rootScope.permissions.resources = {};
-			}
-			$rootScope.permissions.resources.list_resources = {};
-			$rootScope.permissions.resources.list_resources.view = true;
-			$rootScope.permissions.resources.list_resources.edit = false;
-			$rootScope.permissions.resources.list_resources.add = false;
-
-			if($rootScope.permissions.communications == undefined){
-				$rootScope.permissions.communications = {};
-			}
-			$rootScope.permissions.communications.all_homework = {};
-			$rootScope.permissions.communications.all_homework.view = true;
-			$rootScope.permissions.communications.all_homework.edit = false;
-			$rootScope.permissions.communications.all_homework.add = false;
-
-			$rootScope.permissions.communications.all_homework_feedback = {};
-			$rootScope.permissions.communications.all_homework_feedback.view = true;
-			$rootScope.permissions.communications.all_homework_feedback.edit = false;
-			$rootScope.permissions.communications.all_homework_feedback.add = false;
-
-			$rootScope.permissions.communications.teacher_communications = {};
-			$rootScope.permissions.communications.teacher_communications.view = true;
-			$rootScope.permissions.communications.teacher_communications.edit = false;
-			$rootScope.permissions.communications.teacher_communications.add = false;
-
-		}
-		console.log("Default Perms >",$rootScope.permissions);
-
-		$scope.navItems = [];
-		$scope.subOptions = [];
-		var i = 0,
-		    j = 0;
-
-		angular.forEach( $rootScope.permissions, function(permission, sectionName){
-			// if no view permission, likely an object of arrays, dig deeper
-
-			if( permission.view === undefined )
-			{
-				var navItem = {};
-				var subnavItem = {};
-				angular.forEach( permission, function(permission2, subSectionName){
-
-					var label = ( permission.alt_label !== undefined ? $filter('titlecase')(permission.alt_label.split("_").join(" ")) : $filter('titlecase')(sectionName.split("_").join(" ")));
-
-					if( subSectionName != 'alt_label' )
-					{
-						if( i == 0 ) navItem = {id: sectionName + "/" + subSectionName, label: label, section: sectionName, subnav: []};
-
-						navItem.subnav.push({id: sectionName + "/" + subSectionName, label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName}); //, filters:permission2.filters});
-
-						i++;
-					}
-
-				});
-
-				$scope.navItems.push(navItem);
-
-			}
-			else
-			{
-				if( permission.view )
-				{
-					var label = ( permission.alt_label !== undefined ? $filter('titlecase')(permission.alt_label.split("_").join(" ")) : $filter('titlecase')(sectionName.split("_").join(" ")));
-					$scope.navItems.push({id: sectionName, label: label, section: sectionName}); //, icon: icons[sectionName]});
-				}
-			}
-
-			i = 0;
-		});
-
-
-
-		$rootScope.navItems = $scope.navItems;
-
-		var section = $rootScope.currentPage;
-		section = section.split('/');
-		var page = section[0];
-		var params = section[1];
-
-		angular.forEach( $rootScope.navItems, function( item, key) {
-			var section = item.section;
-
-			if( section.toUpperCase() == page.toUpperCase() )
-			{
-				$rootScope.mainSubNavItems = item.subnav;
-			}
-		});
+		*/
 
 		// communications notifications icon
 

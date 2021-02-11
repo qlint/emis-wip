@@ -102,7 +102,7 @@
 						<p class="text-group col-sm-12" id="wordAmount" style="{{itemized ? 'padding-bottom:7px !important;':'padding-bottom:7px;'}}"><strong>Amount in words:</strong> {{receiptAmountInWords}}</p>
 						<p class="text-group col-sm-12" id="cashier" style="{{itemized ? 'padding-bottom:7px !important;':'padding-bottom:7px;'}}"><strong>Cashier's Name:</strong> {{cashierName}}</p>
 						<div id="bank_adjust" class="col-sm-12" style="{{itemized ? 'margin-left:62%;margin-top:-10%;':'margin-left:50%;margin-top:-14%;'}}">
-							<p id="bnkName"><strong>Bank:</strong> {{payment.payment_bank}}</p>
+							<p id="bnkName"><strong>Bank:</strong> {{payment.payment_bank.name}}</p>
 							<p id="bnkDate"><strong>Bank Date:</strong> {{payment.banking_date}}</p>
 							<p id="paymentMethod"><strong>{{payment.payment_method}}:</strong> {{payment.slip_cheque_no}}</p>
 							<p><strong>Official Stamp:</strong></p>
