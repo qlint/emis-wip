@@ -212,7 +212,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 					DeliveryRequest: [
 						{
 							EndPoint: "https://" + window.location.host.split('.')[0] + ".eduweb.co.ke/srvScripts/rxSms.php",
-							Correlator: "ED" + makeid(12)
+							Correlator: null /* "ED" + makeid(12) */
 						}
 					]
 				}
@@ -244,6 +244,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 							for (i=0,j=allRecipients.length; i<j; i+=chunk) {
 									temparray = allRecipients.slice(i,i+chunk);
 									params.DestinationAddr = temparray;
+									params.DeliveryRequest[0].Correlator = "ED" + makeid(12);
 									console.log(params);
 									let xhr = new XMLHttpRequest();
 									xhr.onload = () => {

@@ -153,6 +153,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGetWithData(request, path + "/getPaymentTerms", successFunction, errorFunction, params);
 	};
 
+	this.updateSchoolMenu = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/updateSchoolMenu", successFunction, errorFunction, params);
+	};
+
+	this.getSchMenu = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxGetWithData(request, path + "/getSchMenu", successFunction, errorFunction, params);
+	};
+
 	this.getAllCountries = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxGetWithData(request, path + "/getAllCountries", successFunction, errorFunction, params);
 	};

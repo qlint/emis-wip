@@ -8,7 +8,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
   $scope.filters = {};
   $scope.filters.status = 'true';
   $scope.filters.date = {startDate:null, endDate:null};
-  console.log($rootScope.permissions);
+  // console.log($rootScope.permissions);
 
   var lastQueriedDateRange = null;
   var requery = false;
@@ -471,7 +471,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 
     if( $scope.activeFilters.route_id )
     {
-      console.log($scope.activeFilters.route_id);
+      // console.log($scope.activeFilters.route_id);
       filteredResults = filteredResults.filter(function(item) {
         if( item.transport_route_id && item.transport_route_id.toString() == $scope.activeFilters.route_id.toString() ) return item;
       });

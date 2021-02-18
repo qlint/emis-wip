@@ -36,6 +36,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		// $scope.currencies = ['Ksh'];
 		$scope.schoolLevels = ['Primary','Secondary'];
 		if( $rootScope.currentUser.settings['School Name'] === undefined ) $scope.initialSetup = true;
+		$scope.menuReady = false;
 	}
 	$timeout(initializeController,1);
 
@@ -383,23 +384,87 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 		}
 
 		$scope.getSchMenu = function(){
-			$scope.days = [
-				{num: 1, day: 'Monday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
-				{num: 2, day: 'Tuesday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
-				{num: 3, day: 'Wednesday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
-				{num: 4, day: 'Thursday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
-				{num: 5, day: 'Friday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
-				{num: 6, day: 'Saturday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
-				{num: 7, day: 'Sunday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] }
-			];
-			$scope.mealTimes = [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}];
-			setTimeout(function(){
-				let mod = document.getElementById('schMenu');
-				let undoBtns = mod.getElementsByClassName('history_tools');
-				for (let i = 0; i < undoBtns.length; i++) {undoBtns[i].style.display = 'none';}
-				let boxes = mod.getElementsByClassName('trix-content');
-				for (let j = 0; j < boxes.length; j++) {boxes[j].style.minHeight = '0'; boxes[j].style.height = '125px';}
-			}, 2000);
+			apiService.getSchMenu({},function(response){
+				var result = angular.fromJson( response );
+				let menu = null;
+				if( result.response == 'success' )
+				{
+					menu = (result.data ? result.data : []);
+				}else{
+					menu = [];
+				}
+				console.log("DB menu >",menu);
+				$scope.days = [
+					{num: 1, day: 'Monday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+					{num: 2, day: 'Tuesday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+					{num: 3, day: 'Wednesday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+					{num: 4, day: 'Thursday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+					{num: 5, day: 'Friday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+					{num: 6, day: 'Saturday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] },
+					{num: 7, day: 'Sunday', mealTimes: [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}] }
+				];
+				$scope.mealTimes = [{num:1, time:'BREAK'},{num:2, time:'LUNCH'}];
+				setTimeout(function(){
+					let mod = document.getElementById('schMenu');
+					let undoBtns = mod.getElementsByClassName('history_tools');
+					for (let i = 0; i < undoBtns.length; i++) {undoBtns[i].style.display = 'none';}
+					let boxes = mod.getElementsByClassName('trix-content');
+					for (let j = 0; j < boxes.length; j++) {boxes[j].style.minHeight = '0'; boxes[j].style.height = '125px';}
+				}, 2000);
+				if(menu.length > 0){
+					$scope.days.forEach((item, i) => {
+						console.log("Processing each day ie " + item.day);
+						for(let j=0;j < menu.length;j++){
+							console.log("Searching menu items");
+							if(item.day == menu[j].day_name){
+								console.log("Day Match ie " + item.day + " and " + menu[j].day_name);
+								item.mealTimes.forEach((item2, k) => {
+									if(item2.time == menu[j].break_name){
+										item2.meal = menu[j].meal;
+									}
+								});
+
+							}
+						}
+					});
+
+				}
+			},apiError);
+
+		}
+
+		$scope.saveMealBtn = function(){ $scope.menuReady = true; }
+
+		$scope.saveSchMenu = function(){
+			// console.log($scope.days);
+			let payload = [];
+			$scope.days.forEach((item, i) => {
+				let payloadObj = {};
+				payloadObj.day = item.day;
+				item.mealTimes.forEach((item2, j) => {
+					if('meal' in item2){
+						payloadObj.time = item2.time;
+						payloadObj.meal = item2.meal;
+						payload.push(payloadObj);
+					}
+				});
+			});
+			console.log("Payload >",payload);
+			let data = {menu: payload}
+
+			apiService.updateSchoolMenu(data,function ( response, status, params )
+			{
+				var result = angular.fromJson( response );
+				if( result.response == 'success' ){
+					alert("The school menu changes have been saved successfully.");
+					// $scope.getBankingDetails();
+				}
+				else
+				{
+					$scope.error = true;
+					alert("An error occured while trying to save the menu changes.");
+				}
+			},apiError);
 		}
 
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){

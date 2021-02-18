@@ -313,4 +313,77 @@ $app->post('/addPaymentTerms', function () use($app) {
 
 });
 
+$app->post('/updateSchoolMenu', function () use($app) {
+		// Add or edit school menu
+
+	$allPostVars = json_decode($app->request()->getBody(),true);
+
+	$menu =		( isset($allPostVars['menu']) ? $allPostVars['menu']: null);
+
+		try
+		{
+				$db = getDB();
+				foreach($menu as $mn)
+				{
+					$sth = $db->prepare("SELECT menu_id FROM app.school_menu WHERE day_name = :day AND break_name = :break");
+					$sth->execute(array(':day' => $mn["day"], ':break' => $mn["time"]));
+					$results = $sth->fetch(PDO::FETCH_OBJ);
+
+					if($results) {
+						// update
+						$sth2 = $db->prepare("UPDATE app.school_menu SET meal = :meal, modified_date = now() WHERE menu_id = :menuId;");
+						$sth2->execute( array(':menuId' => $results->menu_id) );
+					}else{
+						// insert
+						$sth2 = $db->prepare("INSERT INTO app.school_menu(day_name, break_name, meal)
+																	VALUES (:day, :break, :meal);");
+						$sth2->execute( array(':day' => $mn["day"], ':break' => $mn["time"], ':meal' => $mn["meal"]) );
+					}
+				}
+
+				$app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array("response" => "success", "code" => 1));
+				$db = null;
+
+		} catch(PDOException $e) {
+				$app->response()->setStatus(404);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo	json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		}
+
+});
+
+$app->get('/getSchMenu', function () {
+    //Show menu
+
+	$app = \Slim\Slim::getInstance();
+
+    try
+    {
+    $db = getDB();
+    $sth = $db->prepare("SELECT * FROM app.school_menu");
+		$sth->execute();
+		$menu = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        if($menu) {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $menu ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+		$app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 ?>

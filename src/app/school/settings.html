@@ -527,7 +527,7 @@
 										<tr ng-repeat="day in days track by $index" style="border-bottom: 1pt solid #ccc;">
 											<td style="width:14%;">{{day.day}}</td>
 											<td style="width:43%;" ng-repeat="time in day.mealTimes track by $index">
-												<trix-editor class="trix-content" ng-model="time.meal" ng-change="saveMeal()" angular-trix prevent-trix-file-accept="true"></trix-editor>
+												<trix-editor class="trix-content" ng-model="time.meal" ng-change="saveMealBtn()" angular-trix prevent-trix-file-accept="true"></trix-editor>
 											</td>
 										</tr>
 									</tbody>
@@ -541,7 +541,7 @@
 						</div>
 	        </div>
 	        <div class="modal-footer">
-						<button type="button" class="btn btn-primary" ng-show="saveTerms" ng-click="saveSchMenu()">Save</button>
+						<button type="button" class="btn btn-primary" ng-show="menuReady" ng-click="saveSchMenu()">Save</button>
 	          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 	        </div>
 	      </div>

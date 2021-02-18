@@ -97,6 +97,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 
 	var loadPaymentDetails = function(response, status)
 	{
+		function IsJsonString(str) {
+		    try {JSON.parse(str);} catch (e) {return str;}
+		    return JSON.parse(str);
+		}
 		var result = angular.fromJson(response);
 
 		if( result.response == 'success')
@@ -106,7 +110,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, data){
 			$scope.paymentDetails = results.paymentItems;
 			$scope.payment.slip_cheque_no = results.payment.slip_cheque_no; // the transaction # for the mode of payment
 			$scope.payment.payment_method = results.payment.payment_method; // drop down for mode of payment
-			$scope.payment.payment_bank = JSON.parse(results.payment.payment_bank);
+			$scope.payment.payment_bank = IsJsonString(results.payment.payment_bank);
 			$scope.payment.banking_date = results.payment.banking_date;
 			$scope.payment.custom_receipt_no = "Receipt #: " + ($scope.school == "thomasburke" ? results.payment.payment_id : results.payment.custom_receipt_no); // for schools that want to use custom receipt #'s
 			$scope.wantReceipt = ( window.location.host.split('.')[0] == "appleton" || window.location.host.split('.')[0] == "hog" || window.location.host.split('.')[0] == "thomasburke" ? true : false);

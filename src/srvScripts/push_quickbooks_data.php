@@ -70,7 +70,7 @@
 
                 $paymentsObj = new stdClass();
                 $paymentsQry = pg_query($schoolDb,"SELECT '$value' AS client_id, p.payment_id AS eduweb_payment_id, s.admission_number, pii.amount,
-                                                        p.payment_date, pii.inv_id AS eduweb_invoice_id
+                                                        p.payment_date, pii.inv_id AS eduweb_invoice_id, p.payment_id AS receipt_number
                                                     FROM app.payments p
                                                     INNER JOIN app.students s USING (student_id)
                                                     INNER JOIN app.payment_inv_items pii USING (payment_id)
@@ -81,7 +81,7 @@
 
                 $creditsObj = new stdClass();
                 $creditsQry = pg_query($schoolDb,"SELECT '$value' AS client_id, c.credit_id AS eduweb_credit_id, s.admission_number,
-                                                  		c.amount, c.payment_id AS eduweb_payment_id, pii.inv_id AS eduweb_invoice_id
+                                                  		c.amount, c.payment_id AS eduweb_payment_id, pii.inv_id AS eduweb_invoice_id, p.payment_date, c.payment_id AS receipt_number
                                                   FROM app.credits c
                                                   INNER JOIN app.students s USING (student_id)
                                                   INNER JOIN app.payments p USING (payment_id)
@@ -195,9 +195,10 @@
 							$amount = $value["amount"];
 							$payment_date = pg_escape_string($value["payment_date"]);
 							$eduweb_invoice_id = $value["eduweb_invoice_id"];
+              $receipt_number = $value["receipt_number"];
 
-							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id)
-																		SELECT $eduweb_payment_id, '$client_id', '$admission_number', $amount, '$payment_date', $eduweb_invoice_id
+							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number)
+																		SELECT $eduweb_payment_id, '$client_id', '$admission_number', $amount, '$payment_date', $eduweb_invoice_id, '$receipt_number'
 																		WHERE NOT EXISTS (SELECT eduweb_payment_id FROM public.to_quickbooks_payments WHERE eduweb_payment_id = $eduweb_payment_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)
 																			;"); // executing the query
 							/*
@@ -224,9 +225,11 @@
 							$amount = $value["amount"];
 							$eduweb_payment_id = $value["eduweb_payment_id"];
 							$eduweb_invoice_id = $value["eduweb_invoice_id"];
+              $payment_date = pg_escape_string($value["payment_date"]);
+              $receipt_number = $value["receipt_number"];
 
-							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_credits(client_id, eduweb_credit_id, admission_number, amount, eduweb_payment_id, eduweb_invoice_id)
-																		SELECT '$client_id', $eduweb_credit_id, '$admission_number', $amount, $eduweb_payment_id, $eduweb_invoice_id
+							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_credits(client_id, eduweb_credit_id, admission_number, amount, eduweb_payment_id, eduweb_invoice_id, payment_date, receipt_number)
+																		SELECT '$client_id', $eduweb_credit_id, '$admission_number', $amount, $eduweb_payment_id, $eduweb_invoice_id, '$payment_date', '$receipt_number'
 																		WHERE NOT EXISTS (SELECT eduweb_credit_id FROM public.to_quickbooks_credits WHERE eduweb_credit_id = $eduweb_credit_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)
 																			;"); // executing the query
 							/*
@@ -258,7 +261,7 @@
 		$dte = date("Y-m-d");
         $tme = date("h:i:sa");
         $datetime = $dte . " " . $tme;
-        
+
         file_put_contents('to_qb_log.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
         file_put_contents('to_qb_log.txt', print_r($outputJson . PHP_EOL, true), FILE_APPEND);
 

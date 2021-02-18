@@ -51,7 +51,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 			if( result.response == 'success')
 			{
 				var rawPermissions = (result.nondata !== undefined ? [] : result.data.rights.rights);
-				console.log("Fetched Permissions >",rawPermissions);
+				// console.log("Fetched Permissions >",rawPermissions);
 				let perms = {};
 				rawPermissions.forEach((item, i) => {
 					let modName = item.mod_name.toLowerCase().split(' ').join('_');
@@ -68,7 +68,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				// console.log(perms);
 				$rootScope.permissions = perms;
 				// dynamic access rights
-				console.log('Is super teacher? ' + $rootScope.currentUser.super_teacher);
+				// console.log('Is super teacher? ' + $rootScope.currentUser.super_teacher);
 				if($rootScope.currentUser.super_teacher == true){
 
 					if($rootScope.permissions.resources == undefined){
@@ -104,7 +104,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 					$rootScope.permissions.school.subjects.export = true;
 
 				}
-				console.log("Default Perms >",$rootScope.permissions);
+				// console.log("Default Perms >",$rootScope.permissions);
 
 				$scope.navItems = [];
 				$scope.subOptions = [];

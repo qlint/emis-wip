@@ -14,7 +14,7 @@ $app->get('/getAllClasses(/:status)', function ($status = true) {
 							INNER JOIN app.class_cats cc USING (class_cat_id)
 							LEFT JOIN app.employees ON c.teacher_id = employees.emp_id
 							WHERE c.active = :status
-							ORDER BY c.class_name ASC /* c.sort_order */");
+							ORDER BY c.sort_order ASC, c.class_name ASC");
        $sth->execute( array(':status' => $status ) );
 
         $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -49,22 +49,22 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $s
 		$db = getDB();
 		$params = array(':status' => $status);
 		$query = "SELECT class_id, class_name, classes.class_cat_id, teacher_id, classes.active, class_cat_name,
-					classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, report_card_type,
-					(
-					  SELECT array_to_json(array_agg(row_to_json(d)))
-					  FROM (
-						SELECT subject_id, subject_name, sort_order
-						FROM app.class_subjects
-						INNER JOIN app.subjects USING (subject_id)
-						WHERE class_subjects.class_id = classes.class_id
-						AND class_subjects.active IS TRUE
-						ORDER BY sort_order ASC
-					  ) d
-					) AS subjects
-            FROM app.classes
-			INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
-			LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
-			WHERE classes.active = :status
+									classes.teacher_id, first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name as teacher_name, report_card_type,
+									(
+									  SELECT array_to_json(array_agg(row_to_json(d)))
+									  FROM (
+										SELECT subject_id, subject_name, sort_order
+										FROM app.class_subjects
+										INNER JOIN app.subjects USING (subject_id)
+										WHERE class_subjects.class_id = classes.class_id
+										AND class_subjects.active IS TRUE
+										ORDER BY sort_order ASC
+									  ) d
+									) AS subjects
+				      FROM app.classes
+							INNER JOIN app.class_cats ON classes.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
+							LEFT JOIN app.employees ON classes.teacher_id = employees.emp_id
+							WHERE classes.active = :status
 			";
 
 		if( $classCatid != 'ALL' )
@@ -73,7 +73,7 @@ $app->get('/getClasses/(:classCatid/:status)', function ($classCatid = 'ALL', $s
 			$params[':classCatid'] = $classCatid;
 		}
 
-		$query .= " ORDER BY sort_order";
+		$query .= " ORDER BY classes.sort_order";
 
 		$sth = $db->prepare($query);
 		$sth->execute( $params );
@@ -174,7 +174,7 @@ $app->get('/getTeacherClasses/:teacher_id(/:status)', function ($teacherId, $sta
 					AND classes.active = :status AND subjects.active IS TRUE
 					GROUP BY classes.class_id, class_name, classes.class_cat_id, entity_id, classes.teacher_id, classes.active, class_cat_name,
 					teacher_name, subjects, num_students, blog_id, blog_name
-					ORDER BY classes.sort_order");
+					ORDER BY classes.sort_order ASC");
 
         $sth->execute( array(':teacherId' => $teacherId, ':status' => $status));
 
@@ -1145,18 +1145,18 @@ $app->get('/getClassCats(/:teacher_id)', function ($teacherId=null) {
 		if( $teacherId !== null )
 		{
 			$sth = $db->prepare("SELECT class_cats.class_cat_id, class_cat_name
-								FROM app.class_cats
-								INNER JOIN app.classes
-									INNER JOIN app.class_subjects
-									INNER JOIN app.subjects
-									ON class_subjects.subject_id = subjects.subject_id
-								ON classes.class_id = class_subjects.class_id
-								ON class_cats.class_cat_id = classes.class_cat_id
-								WHERE class_cats.active is true
-								AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
-								AND classes.active IS TRUE
-								GROUP BY class_cats.class_cat_id, class_cat_name
-								ORDER BY class_cats.class_cat_id");
+														FROM app.class_cats
+														INNER JOIN app.classes
+															INNER JOIN app.class_subjects
+															INNER JOIN app.subjects
+															ON class_subjects.subject_id = subjects.subject_id
+														ON classes.class_id = class_subjects.class_id
+														ON class_cats.class_cat_id = classes.class_cat_id
+														WHERE class_cats.active is true
+														AND (classes.teacher_id = :teacherId OR subjects.teacher_id = :teacherId)
+														AND classes.active IS TRUE
+														GROUP BY class_cats.class_cat_id, class_cat_name, classes.sort_order, classes.class_name
+														ORDER BY /* class_cats.class_cat_id */ classes.sort_order ASC, classes.class_name ASC");
 			$sth->execute(array(':teacherId' => $teacherId));
 		}
 		else
