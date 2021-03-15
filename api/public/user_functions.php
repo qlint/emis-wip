@@ -133,12 +133,13 @@ $app->get('/usrRights/:sch/:group', function ($sch,$group) {
         $db = getLoginDB();
         $sth = $db->prepare("SELECT row_to_json(e) AS rights FROM (
 								SELECT user_type, jsonb_agg(rights) AS rights FROM (
-									SELECT user_type, '{\"mod_name\":\"'||school_module||'\", \"sort\":'||sm_sort||', \"'||school_module||'\":'||rights||'}'::text AS rights FROM (
-										SELECT user_type, school_module, sm_sort, jsonb_agg(rights) AS rights FROM (
-											SELECT user_type, school_module, sm_sort, '{\"id\":'||user_auth_id||', \"sub_mod_name\":\"'||sub_module||'\", \"'||sub_module||'\":'||rights||'}'::text AS rights FROM (
-												SELECT user_auth_id, ut.user_type, sm.school_module, sm.sort_order AS sm_sort, ssm.sort_order AS ssm_sort,
+									SELECT user_type, '{\"mod_name\":\"'||school_module||'\", \"icon\":\"'||icon||'\", \"sort\":'||sm_sort||', \"'||school_module||'\":'||rights||'}'::text AS rights FROM (
+										SELECT user_type, school_module, sm_sort, icon, jsonb_agg(rights) AS rights FROM (
+											SELECT user_type, school_module, icon, sm_sort, '{\"id\":'||user_auth_id||', \"sub_mod_name\":\"'||sub_module||'\", \"'||sub_module||'\":'||rights||'}'::text AS rights FROM (
+												SELECT user_auth_id, ut.user_type, sm.school_module, sm.sort_order AS sm_sort, sm.icon, ssm.sort_order AS ssm_sort,
 													CASE WHEN ua.sub_module_id IS NULL THEN '-' ELSE ssm.sub_module END AS sub_module,
-													'{\"add\":'||add||', \"edit\":'||edit||', \"view\":'||view||', \"delete\":'||delete||', \"export\":'||export||'}'::text AS rights
+													'{\"add\":'||add||', \"edit\":'||edit||', \"view\":'||view||', \"delete\":'||delete||', \"export\":'||export||'}'::text AS rights,
+													sm_icon
 												FROM user_auth ua
 												INNER JOIN user_types ut USING (user_type_id)
 												INNER JOIN school_modules sm USING (module_id)
@@ -150,7 +151,7 @@ $app->get('/usrRights/:sch/:group', function ($sch,$group) {
 											)a
 											ORDER BY sm_sort ASC
 										)b
-										GROUP BY school_module, sm_sort, user_type
+										GROUP BY school_module, sm_sort, icon, user_type
 										ORDER BY sm_sort ASC
 									)c
 								)d
@@ -793,6 +794,184 @@ $app->get('/getUserGroups', function () {
         echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
     }
 
+});
+
+$app->get('/fgtPwd/:phone', function ($phoneNumber){
+
+  $file = "wordlist.txt";
+  $twoRndWords = Array();
+  // we need to merge two words eg "dog-town" so we create a loop of only 2
+  for ($x = 0; $x <= 1; $x++) {
+    // Convert the text fle into array and get text of each line in each array index
+    $file_arr = file($file);
+    // Total number of lines in file
+    $num_lines = count($file_arr);
+    // Getting the last array index number
+    $last_arr_index = $num_lines - 1;
+    // Random index number
+    $rand_index = rand(0, $last_arr_index);
+    // random text from a line. The line will be a random number within the indexes of the array
+    $rand_text = $file_arr[$rand_index];
+    array_push($twoRndWords,$rand_text);
+  }
+  $pwdString = implode("-",$twoRndWords);
+  $temporaryPwd = preg_replace('~[\r\n]+~', '', $pwdString);
+  // echo $temporaryPwd;
+
+  $app = \Slim\Slim::getInstance();
+
+  try
+  {
+    //first check if this number is in use in active use ie taken
+    $db0 = getDB();
+
+    $previousIncomplete = $db0->query("SELECT (CASE WHEN EXISTS (SELECT usr_phone AS phone FROM app.forgot_pwd WHERE usr_phone = '$phoneNumber') THEN 'incomplete-reset' ELSE 'continue' END) AS state");
+    $checkOne = $previousIncomplete->fetch(PDO::FETCH_OBJ);
+    $incompleteStatus = $checkOne->state;
+    if($incompleteStatus === "continue"){
+
+      $checkOne = $db0->query("SELECT (CASE
+                                      		WHEN EXISTS (SELECT * FROM (
+                                                        SELECT username AS phone FROM app.users WHERE username = '$phoneNumber'
+                                                        )a
+                                                        LIMIT 1) THEN 'found'
+                                      		ELSE 'not-found'
+                                        END) AS check_one, (SELECT user_id FROM app.users WHERE username = '$phoneNumber') AS user_id,
+                                        (SELECT first_name FROM app.users WHERE username = '$phoneNumber') AS staff_name");
+      $lineCheck = $checkOne->fetch(PDO::FETCH_OBJ);
+      $phoneCheck = $lineCheck->check_one;
+      $userId = $lineCheck->user_id;
+      $staffName = $lineCheck->staff_name;
+
+      if($phoneCheck === "found"){
+          $sth2 = $db0->prepare("INSERT INTO forgot_password(usr_name, temp_pwd, parent_id)
+                                VALUES ('$phoneNumber','$temporaryPwd',$parentId);");
+          $sth2->execute( array() );
+
+          // first we need to change the phone format to +[code]phone
+          $firstChar = substr($phoneNumber, 0, 1);
+          if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
+          // we now create & send the actual sms
+          $forgotPwdObj = new stdClass();
+          $forgotPwdObj->message_recipients = Array();
+          $forgotPwdObj->message_by = "Eduweb Mobile App Forgot Password";
+          $forgotPwdObj->message_date = date('Y-m-d H:i:s');
+          $forgotPwdObj->message_text = "Hello $parentName, use $temporaryPwd as your temporary password for the Eduweb Mobile App.";
+          $forgotPwdObj->subscriber_name = "api";// to be replaced;
+
+
+          $msgRecipientsObj = new stdClass();
+          $msgRecipientsObj->recipient_name = "$parentName";
+          $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
+          array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
+
+          sendSms($forgotPwdObj->message_by, $forgotPwdObj->message_text, json_encode($forgotPwdObj->message_recipients), "dev2");
+          /*
+          // send the message
+          $ch = curl_init();
+          curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
+          curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+          curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+          curl_setopt($ch, CURLOPT_HEADER, FALSE);
+          curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+          curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($forgotPwdObj)); // the data to post
+          curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+          curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+
+          $resp = curl_exec($ch);
+
+          if($resp === false)
+          {
+            $app->response()->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo  json_encode(array('response' => 'Success', 'message' => "An error was encountered while attempting to SMS you your temporary password for confirmation and reset. Please try again.", "status" => "SMS not sent", "error" => curl_error($ch) ));
+          }
+          else
+          {
+            $app->response()->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo  json_encode(array('response' => 'Success', 'message' => "A temporary password has been sent to you via SMS for confirmation and reset.", "status" => "SMS sent successfully", "temporary-code" => $temporaryPwd, "phone" => $phoneNumber ));
+          }
+          curl_close($ch);
+          */
+          $app->response()->setStatus(200);
+          $app->response()->headers->set('Content-Type', 'application/json');
+          echo  json_encode(array('response' => 'Success', 'message' => "The request is being processed", "status" => "You will receive an sms shortly" ));
+      }else{
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records.", "status" => "Phone number not found, no sms will be sent." ));
+      }
+    }else{
+      $user = $db0->query("SELECT p.first_name, p.last_name, fp.usr_name, fp.temp_pwd
+                                          FROM forgot_password fp
+                                          INNER JOIN parents p USING (parent_id)
+                                          WHERE usr_name = '$phoneNumber'
+                                          LIMIT 1");
+      $userDetails = $user->fetch(PDO::FETCH_OBJ);
+      $fName = $userDetails->first_name;
+      $lName = $userDetails->last_name;
+      $code = $userDetails->temp_pwd;
+      $phone = $userDetails->usr_name;
+
+      // first we need to change the phone format to +[code]phone
+      $firstChar = substr($phoneNumber, 0, 1);
+      if($firstChar === "0"){$phoneNumber = preg_replace('/^0/', '', $phoneNumber);}
+      // we now create & send the actual sms
+      $forgotPwdObj = new stdClass();
+      $forgotPwdObj->message_recipients = Array();
+      $forgotPwdObj->message_by = "Eduweb Mobile App Forgot Password";
+      $forgotPwdObj->message_date = date('Y-m-d H:i:s');
+      $forgotPwdObj->message_text = "Hello $fName, use $code as your temporary password for the Eduweb Mobile App.";
+      $forgotPwdObj->subscriber_name = "api";// to be replaced;
+
+
+      $msgRecipientsObj = new stdClass();
+      $msgRecipientsObj->recipient_name = "$fName $lName";
+      $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
+      array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
+
+      sendSms($forgotPwdObj->message_by, $forgotPwdObj->message_text, json_encode($forgotPwdObj->message_recipients), "dev2");
+      /*
+      // send the message
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, "https://sms_api.eduweb.co.ke/api/sendBulkSms"); // the endpoint url
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8')); // the content type headers
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_HEADER, FALSE);
+      curl_setopt($ch, CURLOPT_POST, TRUE); // the request type
+      curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($forgotPwdObj)); // the data to post
+      curl_setopt($ch, CURLOPT_FRESH_CONNECT, true); // this works like jquery ajax (asychronous)
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // disable SSL certificate checks and it's complications
+
+      $resp = curl_exec($ch);
+
+      if($resp === false)
+      {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'Success', 'message' => "An error was encountered while attempting to SMS you your temporary password for confirmation and reset. Please try again.", "status" => "SMS not sent", "temporary-code" => $temporaryPwd, "phone" => $phoneNumber, "error" => curl_error($ch) ));
+      }
+      else
+      {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'Success', 'message' => "You seem to have previously tried to reset your password but did not complete the process. An SMS has been resent with your temporary password.", "status" => "SMS resent.", "temporary-code" => $temporaryPwd, "phone" => $phoneNumber ));
+      }
+
+      curl_close($ch);
+      */
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'Success', 'message' => "You should receive an SMS shortly with your temporary password.", "status" => "SMS resent.", "temporary-code" => $temporaryPwd, "phone" => $phoneNumber ));
+    }
+    $db0 = null;
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(401);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
 });
 
 ?>

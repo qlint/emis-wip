@@ -8,10 +8,25 @@ function($scope, $rootScope, $state, $window, Auth, apiService, token ) {
 	$scope.error = false;
 	$scope.loggingIn = false;
 
+	$scope.phoneInp = true;
+	$scope.phoneWaiting = false;
+	$scope.phoneCode = false;
+	$scope.enteredPhone = null;
+	$scope.errDesc = false;
+	$scope.usrPhone = null;
+
 	var initializeController = function ()
 	{
+		$scope.pwdDesc = "Did you forget your password? We could help you reset it. Enter the phone number known to your school below.";
+		$(document).ready(function(){
+		  $("#fgtPwdBtn").click(function(){
+		    $("#forgotPwdModal").modal();
+				$scope.phoneInp = true;
+		  });
+		});
+		$scope.nxtStatus = "phone";
 	}
-	//setTimeout(initializeController,10);
+	setTimeout(initializeController,10);
 
 	// check if school has dual links
 	apiService.checkMultiLinks(window.location.host.split('.')[0], function(response){
@@ -92,6 +107,128 @@ function($scope, $rootScope, $state, $window, Auth, apiService, token ) {
 
 
 	};
+
+	$scope.fgtPwdModal= function(){
+		document.getElementById("nextBtn").disabled = false;
+		$scope.nxtStatus = "phone";
+	}
+
+	$scope.forgotPwdCode = function(){
+		console.log($scope.nxtStatus);
+		if($scope.nxtStatus == "phone"){
+			let phoneEntry = document.getElementById('enteredPhone').value;
+			if(phoneEntry == null || phoneEntry.length < 10){
+				$scope.errDesc = true;
+				$scope.nextErr = "Please enter a valid phone number to continue";
+			}else{
+				$scope.errDesc = false;
+				console.log(phoneEntry);
+				$scope.usrPhone = phoneEntry;
+				$scope.phoneInp = false;
+				$scope.phoneWaiting = true;
+				$scope.pwdDesc = "Checking if the phone number you have entered is known to your school.";
+
+				apiService.fgtPwd(phoneEntry, function(response){
+					var result = angular.fromJson(response);
+					//console.log(result.data);
+					if( result.response == 'Success')
+					{
+						var pwdResp = result;
+						console.log(pwdResp);
+						$scope.pwdDesc = "Success! Enter the code that has been sent to your phone and click Next.";
+						$scope.phoneWaiting = false;
+						$scope.phoneCode = true;
+						$scope.nxtStatus = "code";
+						// $scope.usrPhone = pwdResp.phone;
+						console.log("Entered Phone = " + $scope.usrPhone,pwdResp);
+					}else{
+						document.getElementById("nextBtn").disabled = true;
+						$scope.errDesc = true;
+						$scope.phoneWaiting = false;
+						$scope.pwdDesc = "Oops!";
+						$scope.nextErr = result.message + "\n\r Confirm the phone number and try again";
+						console.log(result);
+					}
+				}, function(err){console.log("AN ERROR WAS ENCOUNTERED : ",err)});
+
+			}
+		}else if($scope.nxtStatus == "code"){
+			let enteredCode = document.getElementById('enteredCode').value;
+			let codeParam = $scope.usrPhone + '/' + enteredCode;
+			console.log($scope,codeParam);
+
+			apiService.confirmTemporaryPassword(codeParam, function(response){
+				var result = angular.fromJson(response);
+				//console.log(result.data);
+				if( result.response == 'success' || result.response == 'Success')
+				{
+					var codeResp = result;
+					$scope.pwdDesc = codeResp.message;
+					document.getElementById("nextBtn").disabled = true;
+					$scope.phoneCode = false;
+					// $scope.nxtStatus = "code";
+					// console.log(pwdResp);
+				}else{
+					console.log(result);
+					// document.getElementById("nextBtn").disabled = true;
+					// $scope.errDesc = true;
+					// $scope.phoneWaiting = false;
+					// $scope.pwdDesc = "Oops!";
+					// $scope.nextErr = result.message + "\n\r Confirm the phone number and try again";
+					// console.log(result);
+				}
+			}, function(err){console.log("AN ERROR WAS ENCOUNTERED : ",err)});
+		}else if($scope.nxtStatus == "started"){
+			let phone = document.getElementById('enteredPhone').value;
+			let code = document.getElementById('enteredCode').value;
+			let param = phone + '/' + code;
+			apiService.confirmTemporaryPassword(param, function(response){
+				var result = angular.fromJson(response);
+				//console.log(result.data);
+				if( result.response == 'success' || result.response == 'Success')
+				{
+					var codeResp = result;
+					$scope.pwdDesc = codeResp.message;
+					document.getElementById("nextBtn").disabled = true;
+					$scope.phoneCode = false;
+					// $scope.nxtStatus = "code";
+					// console.log(pwdResp);
+				}else{
+					console.log(result);
+					// document.getElementById("nextBtn").disabled = true;
+					// $scope.errDesc = true;
+					// $scope.phoneWaiting = false;
+					// $scope.pwdDesc = "Oops!";
+					// $scope.nextErr = result.message + "\n\r Confirm the phone number and try again";
+					// console.log(result);
+				}
+			}, function(err){console.log("AN ERROR WAS ENCOUNTERED : ",err)});
+		}
+	}
+
+	$scope.haveCode = function(){
+		$scope.pwdDesc = "If you already received an sms with a code, enter it here along side your phone number that received the sms, then click next.";
+		$scope.phoneWaiting = false;
+		$scope.phoneCode = true;
+		$scope.nxtStatus = "started";
+	}
+
+	$scope.enteredCode = function(){
+		$scope.phoneWaiting = false;
+		$scope.phoneCode = true;
+	}
+
+	$scope.clrModal = function(){
+		let phoneEntry = null;
+		$scope.phoneInp = true;
+		$scope.phoneWaiting = false;
+		$scope.phoneCode = false;
+		$scope.enteredPhone = null;
+		$scope.errDesc = false;
+		$scope.usrPhone = null;
+		$scope.pwdDesc = "Did you forget your password? We could help you reset it. Enter the phone number known to your school below.";
+		document.getElementById('enteredPhone').value = null;
+	}
 
 	$rootScope.$on('displayLoginError', function(event, args) {
 		$scope.errorMsg = args.errorMsg;

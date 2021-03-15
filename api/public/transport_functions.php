@@ -1,5 +1,5 @@
 <?php
-$app->get('/getAllBuses/:status', function ($status) {
+$app->get('/getBuses/:status', function ($status) {
   //Show all students
 
   $app = \Slim\Slim::getInstance();
@@ -33,7 +33,7 @@ $app->get('/getAllBuses/:status', function ($status) {
 
 });
 
-$app->get('/getAllAssignedBuses/:status', function ($status) {
+$app->get('/getAssignedBuses/:status', function ($status) {
   //Show all students
 
   $app = \Slim\Slim::getInstance();
@@ -116,43 +116,45 @@ $app->get('/getStudentTransportDetails/:studentId', function ($studentId) {
     $db = getDB();
 
     $sth = $db->prepare("SELECT DISTINCT ON (two.trip_id)two.trip_id, one.student_id, student_destination, bus_id, bus, destinations, bus_driver, bus_guide, driver_name, driver_telephone, guide_name,
-	trip_name, fee_item, three.route, amount, parent_name, parent_telephone
-FROM
-			(
-        SELECT raw1.*, trip_name
-				FROM (
-  					SELECT s.student_id, s.destination AS student_destination, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.destinations, b.bus_driver,
-  						b.bus_guide, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id,
-  						e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name, e.telephone AS driver_telephone,
-  						e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name,
-  						g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_name, g.telephone AS parent_telephone
-  					FROM app.buses b
-  					INNER JOIN app.students s ON b.destinations ILIKE '%' || s.destination || '%'
-  					LEFT JOIN app.student_guardians sg USING (student_id)
-  					LEFT JOIN app.guardians g USING (guardian_id)
-  					LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
-  					LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
-  					WHERE student_id = :studentId
-  				)raw1
-				INNER JOIN app.schoolbus_bus_trips sbt ON raw1.bus_id = sbt.bus_id AND raw1.trip_id = sbt.bus_trip_id
-				INNER JOIN app.schoolbus_trips st ON st.schoolbus_trip_id = sbt.schoolbus_trip_id
-                      )one
-                        INNER JOIN
-			                     (
-                        SELECT student_id, UNNEST(string_to_array(trip_ids, ',')::int[]) AS trip_id
-                        FROM app.students
-                        WHERE student_id = :studentId)two
-                        ON one.student_id = two.student_id AND one.trip_id = two.trip_id
-                        INNER JOIN
-                        (
-                        SELECT sfi.student_id, sfi.fee_item_id, fi.fee_item, tr.route, fi.default_amount, sfi.amount
-                  			FROM app.student_fee_items sfi
-                  			INNER JOIN app.fee_items fi USING (fee_item_id)
-                  			INNER JOIN app.students s USING (student_id)
-                  			INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
-                  			WHERE student_id = :studentId
-                  			AND fee_item = 'Transport')three
-                                          ON two.student_id = three.student_id");
+                        	trip_name, fee_item, three.route, amount, parent_name, parent_telephone
+                        FROM
+                  			(
+                          SELECT raw1.*, trip_name
+                  				FROM (
+                      					SELECT s.student_id, s.destination AS student_destination, b.bus_id, b.bus_type || ' - ' || b.bus_registration AS bus, b.destinations, b.bus_driver,
+                      						b.bus_guide, UNNEST(string_to_array(s.trip_ids, ',')::int[]) AS trip_id,
+                      						e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name, e.telephone AS driver_telephone,
+                      						e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name,
+                      						g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_name, g.telephone AS parent_telephone
+                      					FROM app.buses b
+                      					INNER JOIN app.students s ON b.destinations ILIKE '%' || s.destination || '%'
+                      					LEFT JOIN app.student_guardians sg USING (student_id)
+                      					LEFT JOIN app.guardians g USING (guardian_id)
+                      					LEFT JOIN app.employees e ON b.bus_driver = e.emp_id
+                      					LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                      					WHERE student_id = :studentId
+                      				)raw1
+                    				INNER JOIN app.schoolbus_bus_trips sbt ON raw1.bus_id = sbt.bus_id AND raw1.trip_id = sbt.bus_trip_id
+                    				INNER JOIN app.schoolbus_trips st ON st.schoolbus_trip_id = sbt.schoolbus_trip_id
+                          )one
+                          INNER JOIN
+			                    (
+                            SELECT student_id, UNNEST(string_to_array(trip_ids, ',')::int[]) AS trip_id
+                            FROM app.students
+                            WHERE student_id = :studentId
+                          )two
+                          ON one.student_id = two.student_id AND one.trip_id = two.trip_id
+                          INNER JOIN
+                          (
+                            SELECT sfi.student_id, sfi.fee_item_id, fi.fee_item, tr.route, fi.default_amount, sfi.amount
+                      			FROM app.student_fee_items sfi
+                      			INNER JOIN app.fee_items fi USING (fee_item_id)
+                      			INNER JOIN app.students s USING (student_id)
+                      			INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                      			WHERE student_id = :studentId
+                      			AND fee_item = 'Transport'
+                          )three
+                        ON two.student_id = three.student_id");
     $sth->execute( array(':studentId' => $studentId) );
 
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -353,8 +355,8 @@ $app->get('/getAllBusesRoutesAndDrivers/:status', function ($status) {
                         	FULL OUTER JOIN app.employees e ON buses.bus_driver = e.emp_id
                         	FULL OUTER JOIN app.employees e2 ON buses.bus_guide = e2.emp_id
                         	FULL OUTER JOIN app.schoolbus_bus_trips USING (bus_id)
-				FULL OUTER JOIN app.schoolbus_trips USING (schoolbus_trip_id)
-				WHERE buses.active = :status
+                  				FULL OUTER JOIN app.schoolbus_trips USING (schoolbus_trip_id)
+                  				WHERE buses.active = :status
                         	ORDER BY bus_id DESC
                         )A");
     $sth->execute( array(':status' => $status) );
@@ -475,11 +477,11 @@ $app->get('/getStudentsInBus/:busId', function ($busId) {
       $db = null;
     }
 
-} catch(PDOException $e) {
-    $app->response()->setStatus(200);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-}
+  } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
 
 });
 

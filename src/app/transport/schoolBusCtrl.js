@@ -59,7 +59,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 		// get all active buses
 		var getBusesParam = true;
-		apiService.getAllBuses(getBusesParam, function(response,status){
+		apiService.getBuses(getBusesParam, function(response,status){
 			var result = angular.fromJson(response);
 
 			if( result.response == 'success')
@@ -77,7 +77,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 		// get all buses with assigned routes
 		var getAssignedBusesParam = true;
-		apiService.getAllAssignedBuses(getAssignedBusesParam, function(response,status){
+		apiService.getAssignedBuses(getAssignedBusesParam, function(response,status){
 			var result = angular.fromJson(response);
 
 			if( result.response == 'success')

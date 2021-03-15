@@ -1666,6 +1666,64 @@ $app->get('/getSchDetails/:school', function ($school) {
 
 });
 
+$app->get('/getMealsMenu/:school', function ($school) {
+    //Show school menu
+
+  $app = \Slim\Slim::getInstance();
+
+    try
+    {
+        $db = setDBConnection($school);
+        $sth = $db->prepare("SELECT sm.*
+                            FROM app.school_menu sm
+                            ORDER BY
+                                 CASE
+                                      WHEN day_name = 'MONDAY' THEN 1
+                                      WHEN day_name = 'TUESDAY' THEN 2
+                                      WHEN day_name = 'WEDNESDAY' THEN 3
+                                      WHEN day_name = 'THURSDAY' THEN 4
+                                      WHEN day_name = 'FRIDAY' THEN 5
+                                      WHEN day_name = 'SATURDAY' THEN 6
+                                      WHEN day_name = 'SUNDAY' THEN 7
+                                 END ASC,
+                            	 CASE
+                            	 	WHEN break_name = 'BREAK' THEN 1
+                            		WHEN break_name = 'LUNCH' THEN 2
+                            	 END ASC");
+        $sth->execute();
+        $menu = $sth->fetchAll(PDO::FETCH_OBJ);
+
+        $sth2 = $db->prepare("SELECT CASE 
+                                        WHEN exists (SELECT value FROM app.settings WHERE name = 'Menu Attchment') 
+                                          THEN (SELECT value FROM app.settings WHERE name = 'Menu Attchment') 
+                                        ELSE null 
+                                      END AS menu_attachment");
+        $sth2->execute();
+        $menuAttachment = $sth2->fetch(PDO::FETCH_OBJ);
+
+        if($menu) {
+            $results = new stdClass();
+            $results->menu = $menu;
+            $results->menu_attachment = $menuAttachment;
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'data' => $results ));
+            $db = null;
+        } else {
+            $app->response->setStatus(200);
+            $app->response()->headers->set('Content-Type', 'application/json');
+            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+            $db = null;
+        }
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(404);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
 $app->get('/schoolTerms/:school/:studentId', function ($school,$studentId) {
     //Show school terms
 
@@ -1674,6 +1732,7 @@ $app->get('/schoolTerms/:school/:studentId', function ($school,$studentId) {
     try
     {
         $db = setDBConnection($school);
+        /*
         $sth = $db->prepare("SELECT a.* FROM (
                               SELECT DISTINCT em.term_id, t.term_name, t.term_number, em.student_id, cs.class_id, c.class_name
                               FROM app.exam_marks em
@@ -1685,6 +1744,15 @@ $app->get('/schoolTerms/:school/:studentId', function ($school,$studentId) {
                               ORDER BY term_id DESC
                             )a
                             INNER JOIN app.report_cards rc ON a.student_id = rc.student_id AND a.term_id = rc.term_id AND a.class_id = rc.class_id AND rc.published IS TRUE");
+        */
+        $sth = $db->prepare("SELECT DISTINCT em.term_id, t.term_name, t.term_number, em.student_id, cs.class_id, c.class_name
+                              FROM app.exam_marks em
+                              INNER JOIN app.terms t USING (term_id)
+                              INNER JOIN app.class_subject_exams cse USING (class_sub_exam_id)
+                              INNER JOIN app.class_subjects cs USING (class_subject_id)
+                              INNER JOIN app.classes c USING (class_id)
+                              WHERE em.student_id = :studentId
+                              ORDER BY term_id DESC");
     		$sth->execute(array(':studentId' => $studentId));
     		$terms = $sth->fetchAll(PDO::FETCH_OBJ);
 

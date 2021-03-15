@@ -325,20 +325,41 @@ $app->post('/updateSchoolMenu', function () use($app) {
 				$db = getDB();
 				foreach($menu as $mn)
 				{
-					$sth = $db->prepare("SELECT menu_id FROM app.school_menu WHERE day_name = :day AND break_name = :break");
-					$sth->execute(array(':day' => $mn["day"], ':break' => $mn["time"]));
-					$results = $sth->fetch(PDO::FETCH_OBJ);
+					try {
+						$sth = $db->prepare("SELECT menu_id FROM app.school_menu WHERE day_name = :day AND break_name = :break");
+						$sth->execute(array(':day' => $mn["day"], ':break' => $mn["time"]));
+						$results = $sth->fetch(PDO::FETCH_OBJ);
 
-					if($results) {
-						// update
-						$sth2 = $db->prepare("UPDATE app.school_menu SET meal = :meal, modified_date = now() WHERE menu_id = :menuId;");
-						$sth2->execute( array(':menuId' => $results->menu_id) );
-					}else{
-						// insert
-						$sth2 = $db->prepare("INSERT INTO app.school_menu(day_name, break_name, meal)
-																	VALUES (:day, :break, :meal);");
-						$sth2->execute( array(':day' => $mn["day"], ':break' => $mn["time"], ':meal' => $mn["meal"]) );
+						if(isset($results->menu_id)) {
+							// update
+							try {
+								$sth2 = $db->prepare("UPDATE app.school_menu SET meal = :meal, modified_date = now() WHERE menu_id = :menuId;");
+								$sth2->execute( array(':menuId' => $results->menu_id, ':meal' => $mn["meal"]) );
+							} catch (PDOException $e3) {
+								$app->response()->setStatus(404);
+								$app->response()->headers->set('Content-Type', 'application/json');
+								echo	json_encode(array('response' => 'error 3', 'data' => $e3->getMessage() ));
+							}
+
+						}else{
+							// insert
+							try {
+								$sth2 = $db->prepare("INSERT INTO app.school_menu(day_name, break_name, meal)
+																			VALUES (:day, :break, :meal);");
+								$sth2->execute( array(':day' => $mn["day"], ':break' => $mn["time"], ':meal' => $mn["meal"]) );
+							} catch (PDOException $e4) {
+								$app->response()->setStatus(404);
+								$app->response()->headers->set('Content-Type', 'application/json');
+								echo	json_encode(array('response' => 'error 4', 'data' => $e4->getMessage() ));
+							}
+
+						}
+					} catch (PDOException $e2) {
+						$app->response()->setStatus(404);
+						$app->response()->headers->set('Content-Type', 'application/json');
+						echo	json_encode(array('response' => 'error 2', 'data' => $e2->getMessage() ));
 					}
+
 				}
 
 				$app->response->setStatus(200);

@@ -1,16 +1,13 @@
-CREATE TABLE app.school_menu
+CREATE TABLE app.forgot_pwd
 (
-    menu_id serial,
-    day_name character varying,
-    break_name character varying,
-    meal character varying,
-    active boolean NOT NULL DEFAULT true,
+    usr_phone character varying NOT NULL,
+    temp_pwd character varying NOT NULL,
+    user_id integer NOT NULL,
     creation_date timestamp without time zone NOT NULL DEFAULT now(),
-    modified_date timestamp without time zone,
-    CONSTRAINT "PK_menu_id" PRIMARY KEY (menu_id)
+    CONSTRAINT "PK_usr_phone" PRIMARY KEY (usr_phone)
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE app.school_menu
+ALTER TABLE app.forgot_pwd
     OWNER to postgres;

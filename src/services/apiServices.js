@@ -17,6 +17,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/checkMultiLinks/" + param, successFunction, errorFunction, params);
 	};
 
+	this.fgtPwd = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/fgtPwd/" + param, successFunction, errorFunction, params);
+	};
+
 	/*********** class categories ***********/
 	this.getClassCats = function (param, successFunction, errorFunction, params) {
 		if( param === undefined ) ajaxService.AjaxGet(path + "/getClassCats", successFunction, errorFunction, params);
@@ -1117,12 +1121,12 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPost2(request, path + "/createSchoolBus", successFunction, errorFunction, params);
 	};
 
-	this.getAllBuses = function (param, successFunction, errorFunction, params) {
-		ajaxService.AjaxGet(path + "/getAllBuses/" + param, successFunction, errorFunction, params);
+	this.getBuses = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getBuses/" + param, successFunction, errorFunction, params);
 	};
 
-	this.getAllAssignedBuses = function (param, successFunction, errorFunction, params) {
-		ajaxService.AjaxGet(path + "/getAllAssignedBuses/" + param, successFunction, errorFunction, params);
+	this.getAssignedBuses = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getAssignedBuses/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getStudentTransportDetails = function (param, successFunction, errorFunction, params) {

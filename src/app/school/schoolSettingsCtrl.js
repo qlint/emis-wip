@@ -7,6 +7,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	$scope.alert = {};
 	$scope.bankDetails = false;
 	$scope.saveTerms = false;
+	$scope.upldMenuAttchmnt = false;
+	$scope.uploadTxt = '* Optional';
+	var uploader3 = $scope.uploader3 = new FileUploader({
+						url: 'upload.php',
+			formData : [{
+				'dir': 'students'
+			}]
+		});
 
 	var initializeController = function ()
 	{
@@ -413,14 +421,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 				}, 2000);
 				if(menu.length > 0){
 					$scope.days.forEach((item, i) => {
-						console.log("Processing each day ie " + item.day);
 						for(let j=0;j < menu.length;j++){
-							console.log("Searching menu items");
 							if(item.day == menu[j].day_name){
 								console.log("Day Match ie " + item.day + " and " + menu[j].day_name);
 								item.mealTimes.forEach((item2, k) => {
 									if(item2.time == menu[j].break_name){
 										item2.meal = menu[j].meal;
+
+										// console.log("id = " + idName);
+										// document.getElementById(idName).innerHTML = menu[j].meal;
 									}
 								});
 
@@ -431,18 +440,46 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 				}
 			},apiError);
 
+			// init meu attachment button
+			// $( document ).ready(function() {
+				$("#upload3_menu")
+				.change(function(){
+					/*
+					if( uploader3.queue[0] !== undefined )
+					{
+						// need a unique filename
+						$scope.filename3 =  window.location.host.split('.')[0] + '_reportCard_' + '_' + $scope.student.student_name.split(" ")[0] + '_' + $scope.student.student_id + "_termId-" + el.term.term_id + "_" + uploader3.queue[0].file.name;
+						uploader3.queue[0].file.name = $scope.filename3;
+						uploader3.uploadAll();
+					}
+					*/
+					console.log('Change has been detected...');
+					// let filename = $("#upload3_menu").val();
+					$scope.upldMenuAttchmnt = true;
+					let filename = document.getElementById("upload3_menu").files[0].name;
+					let exts = ['jpg','png','pdf'];
+					let ext = filename.split('.').pop();
+					if(exts.includes(ext)){
+						$scope.uploadTxt = filename;
+					}else{
+						$scope.uploadTxt = "Only 'jpg' or 'png' images are allowed or pdf's";
+					}
+					console.log('The file name is ' + filename, 'Show attachment? ' + $scope.upldMenuAttchmnt, 'Text is = ' + $scope.uploadTxt);
+				});
+			// });
+
 		}
 
-		$scope.saveMealBtn = function(){ $scope.menuReady = true; }
+		$scope.saveMealBtn = function(){ $scope.menuReady = true; console.log($scope.days);}
 
 		$scope.saveSchMenu = function(){
 			// console.log($scope.days);
 			let payload = [];
 			$scope.days.forEach((item, i) => {
-				let payloadObj = {};
-				payloadObj.day = item.day;
 				item.mealTimes.forEach((item2, j) => {
 					if('meal' in item2){
+						let payloadObj = {};
+						payloadObj.day = item.day;
 						payloadObj.time = item2.time;
 						payloadObj.meal = item2.meal;
 						payload.push(payloadObj);
@@ -464,7 +501,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 					$scope.error = true;
 					alert("An error occured while trying to save the menu changes.");
 				}
-			},apiError);
+			},function(err){console.log(err)});
+		}
+
+		$scope.attachMenu = function(el)
+		{
+		    $("#upload3_menu")
+				.change(function(){
+					if( uploader3.queue[0] !== undefined )
+					{
+						// need a unique filename
+						$scope.filename3 =  window.location.host.split('.')[0] + '_reportCard_' + '_' + $scope.student.student_name.split(" ")[0] + '_' + $scope.student.student_id + "_termId-" + el.term.term_id + "_" + uploader3.queue[0].file.name;
+						uploader3.queue[0].file.name = $scope.filename3;
+						uploader3.uploadAll();
+					}
+				});
 		}
 
 	$scope.$watch('uploader.queue[0]', function(newVal, oldVal){

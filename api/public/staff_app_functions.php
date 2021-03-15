@@ -439,7 +439,7 @@ $app->get('/getStaffData/:school/:user_id', function ($school, $userId) {
     $db = getLoginDB();
 
     $userCheckQry = $db->query("SELECT (CASE
-                                    		WHEN EXISTS (SELECT usernm FROM staff WHERE user_id = '$userId' AND subdomain = '$school') THEN 'proceed'
+                                    		WHEN EXISTS (SELECT usernm FROM staff WHERE user_id = $userId AND subdomain = '$school') THEN 'proceed'
                                     		ELSE 'stop'
                                     	END) AS status");
     $userStatus = $userCheckQry->fetch(PDO::FETCH_OBJ);
@@ -1232,7 +1232,7 @@ $app->delete('/deleteHomeworkFromApp/:school/:homework_id', function ($school,$h
 
 });
 
-$app->post('/updateDeviceUserId', function () use($app) {
+$app->post('/updateStaffDeviceUserId', function () use($app) {
   // update users device id
   $allPostVars = $app->request->post();
   $staffId = $allPostVars['staff_id'];
@@ -1259,334 +1259,9 @@ $app->post('/updateDeviceUserId', function () use($app) {
   }
 });
 
-$app->get('/getSchoolCurrency/:school', function ($school) {
-    //Show currency
-
-  $app = \Slim\Slim::getInstance();
-
-    try
-    {
-        $db = setDBConnection($school);
-        $sth = $db->prepare("SELECT value FROM app.settings WHERE name = 'Currency'");
-    $sth->execute();
-    $settings = $sth->fetch(PDO::FETCH_OBJ);
-
-        if($settings) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $settings ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-    $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->get('/getSchoolContactInfo/:school', function ($school) {
-    //Show contact info
-
-  $app = \Slim\Slim::getInstance();
-
-    try
-    {
-      $db = setDBConnection($school);
-      $sth = $db->prepare("SELECT name, value FROM app.settings");
-      $sth->execute();
-      $settings = $sth->fetchAll(PDO::FETCH_OBJ);
-
-        if($settings) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $settings ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-    $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-/* ********** TERM API's ********** */
-
-$app->get('/getCurrentTerm/:school', function ($school) {
-    //Get current term
-
-  $app = \Slim\Slim::getInstance();
-
-    try
-    {
-    $db = setDBConnection($school);
-
-    $query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.current_term");
-    $query->execute();
-        $results = $query->fetch(PDO::FETCH_ASSOC);
-
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-    $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->get('/getPreviousTerm/:school', function ($school) {
-    //Get previous term
-
-  $app = \Slim\Slim::getInstance();
-
-    try
-    {
-        $db = setDBConnection($school);
-
-        $query = $db->prepare("SELECT term_id, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.previous_term");
-        $query->execute();
-            $results = $query->fetch(PDO::FETCH_ASSOC);
-
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-    $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->get('/getSchoolTerms/:school(/:year)', function ($school, $year = null) {
-    //Show all terms for given year (or this year if null)
-
-  $app = \Slim\Slim::getInstance();
-
-    try
-    {
-    $db = setDBConnection($school);
-    if( $year === null )
-    {
-      $query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name, start_date, end_date,
-                      case when term_id = (select term_id from app.current_term) then true else false end as current_term, date_part('year',start_date) as year
-                    FROM app.terms
-                    ORDER BY date_part('year',start_date), term_name");
-      $query->execute(array());
-    }
-    else
-    {
-      $query = $db->prepare("SELECT term_id, term_name, term_name || ' ' || date_part('year',start_date) as term_year_name,start_date, end_date,
-                      case when term_id = (select term_id from app.current_term) then true else false end as current_term,
-                      date_part('year',start_date) as year
-                    FROM app.terms
-                    WHERE date_part('year',start_date) = :year
-                    ORDER BY date_part('year',start_date), term_name");
-      $query->execute(array(':year' => $year));
-    }
-
-        $results = $query->fetchAll(PDO::FETCH_ASSOC);
-
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $results ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-    $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->get('/getTermRange/:school', function ($school) {
-    //Get previous term
-
-  $app = \Slim\Slim::getInstance();
-
-    try
-    {
-        $db = setDBConnection($school);
-
-        $query = $db->prepare("SELECT 'previous' as type, term_name, start_date, end_date, date_part('year', start_date) as year FROM app.previous_term
-														UNION
-														SELECT 'current', term_name, start_date, end_date, date_part('year', start_date) as year FROM app.current_term
-														UNION
-														SELECT 'next', term_name, start_date, end_date, date_part('year', start_date) as year FROM app.next_term
-														order by start_date");
-        $query->execute();
-        $results = $query->fetchAll(PDO::FETCH_OBJ);
-
-        $obj = array();
-		foreach($results as $result){
-			$obj[$result->type] = $result;
-		}
-
-        if($results) {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'data' => $obj ));
-            $db = null;
-        } else {
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-            $db = null;
-        }
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->post('/addTerm/:school', function ($school) {
-    // Add term
-
-    $app = \Slim\Slim::getInstance();
-
-    $allPostVars = json_decode($app->request()->getBody(),true);
-
-    $termName =		( isset($allPostVars['term_name']) ? $allPostVars['term_name']: null);
-	$startDate =	( isset($allPostVars['start_date']) ? $allPostVars['start_date']: null);
-	$endDate =		( isset($allPostVars['end_date']) ? $allPostVars['end_date']: null);
-	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
-
-  try
-  {
-    $db = setDBConnection($school);
-
-    $sth = $db->prepare("INSERT INTO app.terms(term_name, start_date, end_date, created_by)
-						VALUES(:termName, :startDate, :endDate, :userId)");
-
-    $db->beginTransaction();
-
-    $sth->execute( array(':termName' => $termName, ':startDate' => $startDate, ':endDate' => $endDate, ':userId' => $userId ) );
-
-    $db->commit();
-
-    $app->response->setStatus(200);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo json_encode(array("response" => "success", "code" => 1, "data" => "New term created successfully."));
-    $db = null;
-
-
-  } catch(PDOException $e) {
-    $db->rollBack();
-    $app->response()->setStatus(404);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-  }
-
-});
-
-$app->put('/updateTerm/:school', function ($school) {
-    // Update term
-
-    $app = \Slim\Slim::getInstance();
-
-	$allPostVars = json_decode($app->request()->getBody(),true);
-	$termId =		( isset($allPostVars['term_id']) ? $allPostVars['term_id']: null);
-	$termName =		( isset($allPostVars['term_name']) ? $allPostVars['term_name']: null);
-	$startDate =	( isset($allPostVars['start_date']) ? $allPostVars['start_date']: null);
-	$endDate =		( isset($allPostVars['end_date']) ? $allPostVars['end_date']: null);
-	$userId =		( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
-
-    try
-    {
-        $db = setDBConnection($school);
-        $sth = $db->prepare("UPDATE app.terms
-			                SET term_name = :termName,
-                				start_date = :startDate,
-                				end_date = :endDate
-						    WHERE term_id = :termId");
-        $sth->execute( array(':termName' => $termName, ':startDate' => $startDate, ':endDate' => $endDate, ':termId' => $termId ) );
-
-		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1, "data" => "Term updated successfully."));
-        $db = null;
-
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->delete('/deleteTerm/:school/:term_id', function ($school,$termId) {
-    // Delete term
-
-    $app = \Slim\Slim::getInstance();
-
-    try
-    {
-        $db = setDBConnection($school);
-        $sth = $db->prepare("DELETE FROM app.terms WHERE term_id = :termId");
-        $sth->execute( array(':termId' => $termId) );
-
-		$app->response->setStatus(200);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo json_encode(array("response" => "success", "code" => 1, "data" => "Term deleted successfully."));
-        $db = null;
-
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-		$app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
 /* ********** TRANSPORT API's ********** */
 
-$app->get('/getAllBuses/:school/:status', function ($school,$status) {
+$app->get('/getAllBuses/:school(/:status)', function ($school,$status = true) {
   //Show all school buses
 
   $app = \Slim\Slim::getInstance();
@@ -1620,7 +1295,7 @@ $app->get('/getAllBuses/:school/:status', function ($school,$status) {
 
 });
 
-$app->get('/getAllAssignedBuses/:school/:status', function ($school,$status) {
+$app->get('/getAllAssignedBuses/:school(/:status)', function ($school,$status = true) {
   //Show all assigned buses
 
   $app = \Slim\Slim::getInstance();
@@ -1629,11 +1304,10 @@ $app->get('/getAllAssignedBuses/:school/:status', function ($school,$status) {
   {
     $db = setDBConnection($school);
 
-    $sth = $db->prepare("SELECT bus_id, bus_type, bus_registration, route_id, route FROM app.buses
-                        INNER JOIN app.transport_routes ON buses.route_id = transport_routes.transport_id
-                        WHERE buses.active = :status
-                        AND buses.route_id IS NOT NULL
-                        ORDER BY bus_id DESC");
+    $sth = $db->prepare("SELECT bus_id, bus_type, bus_registration, destinations AS route FROM app.buses
+                          WHERE buses.active = :status
+                          AND buses.bus_driver IS NOT NULL OR buses.bus_guide IS NOT NULL
+                          ORDER BY bus_id DESC");
     $sth->execute( array(':status' => $status) );
 
     $results = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -1658,7 +1332,7 @@ $app->get('/getAllAssignedBuses/:school/:status', function ($school,$status) {
 
 });
 
-$app->get('/getActiveRoutes/:school/:status', function ($school,$status) {
+$app->get('/getActiveRoutes/:school(/:status)', function ($school,$status = true) {
   //Show all active routes
 
   $app = \Slim\Slim::getInstance();
@@ -1851,18 +1525,19 @@ $app->get('/getAllBusesRoutesAndDrivers/:school/:status', function ($school,$sta
   {
     $db = setDBConnection($school);
 
-    $sth = $db->prepare("SELECT bus_id, bus_type, bus_registration, route_id, route, bus_driver,
+    $sth = $db->prepare("SELECT bus_id, bus_type, bus_registration, bus_description, bus_capacity, destinations, trip_name, bus_driver,
                         	(case when driver_name is null then 'Unassigned' else driver_name end) as driver_name,
                         	bus_guide, (case when guide_name is null then 'Unassigned' else guide_name end) as guide_name
                         FROM(
-                        	SELECT bus_id, bus_type, bus_registration, route_id, route, bus_driver, bus_guide,
+                        	SELECT buses.bus_id, bus_type, bus_registration, bus_description, bus_capacity, destinations, trip_name, bus_driver, bus_guide,
                         		e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as driver_name,
                         		e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name as guide_name
                         	FROM app.buses
-                        	FULL OUTER JOIN app.transport_routes ON buses.route_id = transport_routes.transport_id
                         	FULL OUTER JOIN app.employees e ON buses.bus_driver = e.emp_id
                         	FULL OUTER JOIN app.employees e2 ON buses.bus_guide = e2.emp_id
-                        	WHERE buses.active = :status
+                        	FULL OUTER JOIN app.schoolbus_bus_trips USING (bus_id)
+                  				FULL OUTER JOIN app.schoolbus_trips USING (schoolbus_trip_id)
+                  				WHERE buses.active = :status
                         	ORDER BY bus_id DESC
                         )A");
     $sth->execute( array(':status' => $status) );
@@ -1915,12 +1590,13 @@ $app->get('/getDriverOrGuideRouteBusStudents/:school/:empId', function ($school,
     $employeeCheckBusCount = $employeeCheckBusCount->count;
 
     /* Employee's assigned bus(es), route(s) */
-    $employeeBuses = $db->query("SELECT bus_id, bus_type, bus_registration, route_id, e1.emp_id AS driver_id, e2.emp_id AS guide_id,
+    $employeeBuses = $db->query("SELECT bus_id, bus_type, bus_registration, st.schoolbus_trip_id AS route_id, e1.emp_id AS driver_id, e2.emp_id AS guide_id,
                                 	e1.first_name || ' ' || coalesce(e1.middle_name,'') || ' ' || e1.last_name AS driver,
-                                	e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS guide,
-                                	ts.route
+                                    e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS guide,
+                                    buses.destinations AS route
                                 FROM app.buses
-                                INNER JOIN app.transport_routes ts ON buses.route_id = ts.transport_id
+                                INNER JOIN app.schoolbus_bus_trips sbt USING (bus_id)
+                                INNER JOIN app.schoolbus_trips st USING (schoolbus_trip_id)
                                 INNER JOIN app.employees e1 ON buses.bus_driver = e1.emp_id
                                 INNER JOIN app.employees e2 ON buses.bus_guide = e2.emp_id
                                 WHERE e1.emp_id = $empId
@@ -1928,11 +1604,11 @@ $app->get('/getDriverOrGuideRouteBusStudents/:school/:empId', function ($school,
     $assignedBuses = $employeeBuses->fetchAll(PDO::FETCH_OBJ);
 
     $results =  new stdClass();
-	$results->employeeCheck = $employeeCheck;
-	$results->employeeCheckBusCount = $employeeCheckBusCount;
-	$results->assignedBuses = $assignedBuses;/*
-	$results->overallLastTerm = $overallLastTerm;
-	$results->graphPoints = $graphPoints;*/
+  	$results->employeeCheck = $employeeCheck;
+  	$results->employeeCheckBusCount = $employeeCheckBusCount;
+  	$results->assignedBuses = $assignedBuses;/*
+  	$results->overallLastTerm = $overallLastTerm;
+  	$results->graphPoints = $graphPoints;*/
 
     if($results) {
         $app->response->setStatus(200);
@@ -1964,42 +1640,43 @@ $app->get('/getStudentsInBus/:school/:busId', function ($school,$busId) {
     $db = setDBConnection($school);
 
      $sth = $db->prepare("SELECT student_id, student_name, class_name, array_agg('{' || 'guardian_id:' || guardian_id || ',' || 'guardian_name:' || guardian_name || ',' || 'relationship:' || relationship || ',' || 'telephone:' || telephone || '}') AS parents, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route FROM (
-                    			SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
-                                            	g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS guardian_name, sg.relationship, g.telephone,
-                                            	b.bus_driver AS driver_id, e1.first_name || ' ' || coalesce(e1.middle_name,'') || ' ' || e1.last_name AS driver_name,
-                                            	b.bus_guide AS guide_id, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS assistant_name,
-                                            	b.bus_id, b.bus_registration, b.bus_type, b.route_id, tr.route
-                                            FROM app.students s
-                                            INNER JOIN app.classes c ON s.current_class = c.class_id
-                                            LEFT JOIN app.student_guardians sg USING (student_id)
-                                            LEFT JOIN app.guardians g USING (guardian_id)
-                                            INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
-                                            INNER JOIN app.buses b ON tr.transport_id = b.route_id
-                                            INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
-                                            LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
-                                            WHERE b.bus_id = :busId
-                    )a
-                    GROUP BY student_id, student_name, class_name, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route");
-    $sth->execute( array(':busId' => $busId) );
-    $results = $sth->fetchAll(PDO::FETCH_OBJ);
+                          	SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name, c.class_name,
+                          		g.guardian_id, g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name AS guardian_name, sg.relationship, g.telephone,
+                                  b.bus_driver AS driver_id, e1.first_name || ' ' || coalesce(e1.middle_name,'') || ' ' || e1.last_name AS driver_name,
+                                  b.bus_guide AS guide_id, e2.first_name || ' ' || coalesce(e2.middle_name,'') || ' ' || e2.last_name AS assistant_name,
+                                  b.bus_id, b.bus_registration, b.bus_type, sbt.schoolbus_trip_id AS route_id, st.trip_name AS route
+                          	FROM app.students s
+                          	INNER JOIN app.classes c ON s.current_class = c.class_id
+                          	LEFT JOIN app.student_guardians sg USING (student_id)
+                          	LEFT JOIN app.guardians g USING (guardian_id)
+                              INNER JOIN app.schoolbus_trips st ON st.schoolbus_trip_id = any(string_to_array(s.trip_ids, ',')::int[])
+                          	INNER JOIN app.schoolbus_bus_trips sbt USING (schoolbus_trip_id)
+                              INNER JOIN app.buses b USING (bus_id)
+                              INNER JOIN app.employees e1 ON b.bus_driver = e1.emp_id
+                              LEFT JOIN app.employees e2 ON b.bus_guide = e2.emp_id
+                              WHERE b.bus_id = :busId
+                          )a
+                          GROUP BY student_id, student_name, class_name, driver_id, driver_name, guide_id, assistant_name, bus_id, bus_registration, bus_type, route_id, route");
+      $sth->execute( array(':busId' => $busId) );
+      $results = $sth->fetchAll(PDO::FETCH_OBJ);
 
-    if($results) {
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array('response' => 'success', 'data' => $results ));
-      $db = null;
-    } else {
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
-      $db = null;
-    }
+      if($results) {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'data' => $results ));
+        $db = null;
+      } else {
+        $app->response->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo json_encode(array('response' => 'success', 'nodata' => 'No records found' ));
+        $db = null;
+      }
 
-} catch(PDOException $e) {
-    $app->response()->setStatus(200);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-}
+  } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
 
 });
 
@@ -2135,39 +1812,44 @@ $app->get('/getStudentsInARoute/:school/:routeId/:activity', function ($school,$
     $db = setDBConnection($school);
 
     $sth = $db->prepare("SELECT * FROM
-			(
-			SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, s.current_class AS class_id, c.class_name,
-                        	s.transport_route_id AS transport_id, tr.route
-                        FROM app.students s
-                        INNER JOIN app.classes c ON s.current_class = c.class_id
-                        INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
-                        WHERE tr.active IS TRUE AND s.active IS TRUE
-                        AND transport_id = :routeId
-                        AND s.student_id NOT IN (SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
-                                                AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
-                                                AND student_id IS NOT NULL AND activity = :activity)
-                        AND s.student_id NOT IN (SELECT student_id FROM app.student_buses)
-                        )route
-                        UNION ALL
-                        (
-            			SELECT sb.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
-            				s.current_class AS class_id, c.class_name, s.transport_route_id AS transport_id, tr.route
-            			FROM app.student_buses sb
-            			INNER JOIN app.students s USING (student_id)
-            			INNER JOIN app.classes c ON s.current_class = c.class_id
-            			INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
-            			WHERE s.active IS TRUE
-            			AND tr.transport_id = :routeId
-            			AND s.student_id NOT IN (SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history)
-    												THEN
-    													(
-    													SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
-    													AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
-    													AND student_id IS NOT NULL AND activity = :activity)
-    												ELSE 0
-    											END)
-                        )
-                        ");
+                  			(
+                  				SELECT s.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name, s.current_class AS class_id, c.class_name,
+                  					s.transport_route_id AS transport_id, tr.route
+                  				FROM app.students s
+                  				INNER JOIN app.classes c ON s.current_class = c.class_id
+                                  INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                  				INNER JOIN app.schoolbus_trips st ON st.schoolbus_trip_id = any(string_to_array(s.trip_ids, ',')::int[])
+                                  WHERE tr.active IS TRUE AND s.active IS TRUE
+                                  AND st.schoolbus_trip_id = :routeId
+                                  AND s.student_id NOT IN (
+                  											SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
+                                                              AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
+                                                              AND student_id IS NOT NULL AND activity = :activity
+                  										)
+                  				AND s.student_id NOT IN (SELECT student_id FROM app.student_buses)
+                  			)route
+                  		   	UNION ALL
+                  			(
+                  				SELECT sb.student_id, s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                  					s.current_class AS class_id, c.class_name, s.transport_route_id AS transport_id, tr.route
+                  				FROM app.student_buses sb
+                              	INNER JOIN app.students s USING (student_id)
+                              	INNER JOIN app.classes c ON s.current_class = c.class_id
+                              	INNER JOIN app.transport_routes tr ON s.transport_route_id = tr.transport_id
+                  				INNER JOIN app.schoolbus_trips st ON st.schoolbus_trip_id = any(string_to_array(s.trip_ids, ',')::int[])
+                              	WHERE s.active IS TRUE
+                              	AND st.schoolbus_trip_id = :routeId
+                              	AND s.student_id NOT IN (
+                  											SELECT CASE WHEN EXISTS (SELECT student_id FROM app.schoolbus_history)
+                      												THEN
+                      													(
+                      													SELECT student_id FROM app.schoolbus_history WHERE date_part('year',creation_date) = (SELECT date_part('year',now()))
+                      													AND date_part('month',creation_date) = (SELECT date_part('month',now())) AND date_part('day',creation_date) = (SELECT date_part('day',now()))
+                      													AND student_id IS NOT NULL AND activity = :activity)
+                      												ELSE 0
+                      											END
+                  										)
+                  			)");
     $sth->execute( array(':routeId' => $routeId,':activity' => $activity) );
 
     $results = $sth->fetchAll(PDO::FETCH_OBJ);

@@ -1,9 +1,9 @@
 <div class="full-height" ng-controller="landingCtrl">
-		
+
 	<div id="body-content" class="row">
-	
+
 		<div class="login center-block col-sm-4">
-		
+
 			<p ng-show="error" class="error alert alert-danger">
 				{{errorMsg}}
 			</p>
@@ -18,7 +18,7 @@
 			</p>
 
 			<form name="loginForm" class="form-horizontal" method="post" ng-submit="submit()" novalidate >
-				
+
 				<div class="input-group" ng-class="{'input-error':(submitted  || loginForm.user_name.$dirty)  && loginForm.user_name.$invalid}">
 					<span class="input-group-addon"><i
 						class="glyphicon glyphicon-user"></i></span> <input type="text"
@@ -45,24 +45,57 @@
 					<!-- Button -->
 
 					<div class="col-sm-12 controls">
-						<button type="submti" class="btn btn-success">
+						<button type="submti" class="btn btn-success col-sm-5">
 							<span ng-hide="loggingIn">Login</span>
 							<span ng-show="loggingIn" class="fa fa-spinner fa-pulse"></span>
 						</button>
-						
-						<!--button type="button" class="btn btn-link pull-right">
+
+						<button type="button" class="btn btn-link pull-right col-sm-4" id="fgtPwdBtn" ng-click="fgtPwdModal()">
 							Forgot Password?
-						</button-->
+						</button>
 					</div>
 
-				</div>			
+				</div>
 
 			</form>
-		
+
 		</div>
-		
+
 	</div>
 
+	<!-- Forgot Password Modal -->
+  <div class="modal fade" id="forgotPwdModal" role="dialog">
+    <div class="modal-dialog">
+
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Forgot Password</h4>
+        </div>
+        <div class="modal-body">
+					<p class="fgtPwdDesc">{{pwdDesc}}</p>
+					<p ng-show="errDesc" style="color:red;font-weight:bold;font-size:13px;">{{nextErr}}</p>
+					<div ng-show="phoneInp">
+						<input id="enteredPhone" type="number" name="forgotPhone" value="{{phoneEntry}}" placeholder="07XXAAABBB" min="10" max="11" class="fgtPwdPhone" style="width:100px;">
+					</div>
+					<div ng-show="phoneWaiting">
+						<img src="assets/load-indicator.gif" class="img-responsive" style="margin-left:auto;margin-right:auto;" />
+					</div>
+					<div ng-show="phoneCode">
+						<input id="enteredCode" type="text" name="code" placeholder="your-code" value="{{code}}" class="fgtPwdPhone">
+					</div>
+        </div>
+        <div class="modal-footer">
+					<button id="nextBtn" type="button" class="btn btn-info" name="next" ng-click="forgotPwdCode()" style="float:left;">Next Step</button>
+					<button id="startedBtn" type="button" class="btn btn-warning" name="next" ng-click="haveCode()" style="float:left;">Already have a code?</button>
+					<span>
+          	<button ng-click="clrModal()" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
-
-

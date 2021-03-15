@@ -38,7 +38,7 @@ function($scope, $rootScope, apiService, $dialogs, $timeout, $window){
 	{
     // get all active buses
 		var getBusesParam = true;
-		apiService.getAllBuses(getBusesParam, function(response,status){
+		apiService.getBuses(getBusesParam, function(response,status){
 			var result = angular.fromJson(response);
 
 			if( result.response == 'success')

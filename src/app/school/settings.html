@@ -524,10 +524,11 @@
 										</tr>
 									</thead>
 									<tbody>
-										<tr ng-repeat="day in days track by $index" style="border-bottom: 1pt solid #ccc;">
-											<td style="width:14%;">{{day.day}}</td>
-											<td style="width:43%;" ng-repeat="time in day.mealTimes track by $index">
-												<trix-editor class="trix-content" ng-model="time.meal" ng-change="saveMealBtn()" angular-trix prevent-trix-file-accept="true"></trix-editor>
+										<tr ng-repeat="dy in days track by $index" style="border-bottom: 1pt solid #ccc;">
+											<td style="width:14%;">{{dy.day}}</td>
+											<td style="width:43%;" ng-repeat="time in dy.mealTimes track by $index">
+												<trix-editor id="{{dy.day}}-{{time.time}}" class="trix-content" ng-model="time.meal" ng-change="saveMealBtn()" angular-trix prevent-trix-file-accept="true">
+												</trix-editor>
 											</td>
 										</tr>
 									</tbody>
@@ -541,6 +542,17 @@
 						</div>
 	        </div>
 	        <div class="modal-footer">
+						<style media="screen">
+							.upload-btn-wrapper {position: relative;overflow: hidden;display: inline;float: left;}
+							.filebtn {border: 2px solid gray;color: gray;background-color: white;padding: 3px 13px;border-radius: 5px;font-size: 15px;font-weight: bold;}
+							.upload-btn-wrapper input[type=file] {font-size: 100px;position: absolute;left: 0;top: 0;opacity: 0;}
+						</style>
+						<div class="upload-btn-wrapper">
+						  <button class="filebtn">Attach a menu</button>
+						  <input id="upload3_menu" type="file" name="menufile" nv-file-select="" uploader="uploader3" />
+							<h5 style="color: brown;font-weight: 600;font-size: 13px;float:right;display:contents;">{{uploadTxt}}</h5>
+						</div>
+
 						<button type="button" class="btn btn-primary" ng-show="menuReady" ng-click="saveSchMenu()">Save</button>
 	          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 	        </div>

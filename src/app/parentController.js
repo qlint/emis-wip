@@ -55,7 +55,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 				let perms = {};
 				rawPermissions.forEach((item, i) => {
 					let modName = item.mod_name.toLowerCase().split(' ').join('_');
-					if(item[item.mod_name].length == 1){
+					if(item[item.mod_name].length == 1 && item[item.mod_name][0].sub_mod_name == '-'){
 						perms[modName] = item[item.mod_name][0]['-'];
 					}else{
 						perms[modName] = {};

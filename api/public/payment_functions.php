@@ -328,7 +328,7 @@ $app->post('/addPayment', function () use($app) {
   $amount =         ( isset($allPostVars['amount']) ? $allPostVars['amount']: null);
   $paymentMethod =    ( isset($allPostVars['payment_method']) ? $allPostVars['payment_method']: null);
   $paymentBank =    ( isset($allPostVars['payment_bank']) ? $allPostVars['payment_bank']: null);
-  $paymentBankDate =    ( isset($allPostVars['payment_bank_date']) ? $allPostVars['payment_bank_date']: null);
+  // $paymentBankDate =    ( isset($allPostVars['payment_bank_date']) ? $allPostVars['payment_bank_date']: null);
   $slipChequeNo =     ( isset($allPostVars['slip_cheque_no']) ? $allPostVars['slip_cheque_no']: null);
   $replacementPayment =   ( isset($allPostVars['replacement_payment']) ? $allPostVars['replacement_payment']: null);
   $lineItems =      ( isset($allPostVars['line_items']) ? $allPostVars['line_items']: null);
@@ -343,7 +343,7 @@ $app->post('/addPayment', function () use($app) {
   {
     $db = getDB();
     $payment = $db->prepare("INSERT INTO app.payments(student_id, payment_date, amount, payment_method, slip_cheque_no, replacement_payment, created_by, custom_receipt_no, payment_bank, banking_date)
-                  VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId, :custom_receipt_no, :paymentBank, :paymentBankDate) returning payment_id");
+                  VALUES(:studentId, :paymentDate, :amount, :paymentMethod, :slipChequeNo, :replacementPayment, :userId, :custom_receipt_no, :paymentBank, :paymentDate) returning payment_id");
 
     $credit = $db->prepare("INSERT INTO app.credits(student_id, payment_id, amount, created_by)
                   VALUES(:studentId, currval('app.payments_payment_id_seq'), :creditAmt, :userId)");
@@ -378,7 +378,7 @@ $app->post('/addPayment', function () use($app) {
     $payment->execute( array(':studentId' => $studentId,
                  ':paymentDate' => $paymentDate,
                  ':paymentBank' => $paymentBank,
-                 ':paymentBankDate' => $paymentBankDate,
+                 // ':paymentBankDate' => $paymentBankDate,
                  ':amount' => $amount,
                  ':paymentMethod' => $paymentMethod,
                  ':slipChequeNo' => $slipChequeNo,
