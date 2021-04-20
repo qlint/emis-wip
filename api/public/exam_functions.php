@@ -283,18 +283,15 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 							  ,mark
 							  ,grade_weight
 							  ,(select grade from app.grading where (mark::float/grade_weight::float)*100 between min_mark and max_mark) as grade
-						FROM app.exam_marks
-						INNER JOIN app.class_subject_exams
-						INNER JOIN app.exam_types
-						ON class_subject_exams.exam_type_id = exam_types.exam_type_id
-						INNER JOIN app.class_subjects
-							INNER JOIN app.subjects
-							ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true
-						ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
-						ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+						FROM app.subjects
+						INNER JOIN app.class_subjects USING (subject_id)
+						INNER JOIN app.class_subject_exams USING (class_subject_id)
+						INNER JOIN app.exam_types USING (exam_type_id)
+						LEFT JOIN app.exam_marks USING (class_sub_exam_id)
 						WHERE class_subjects.class_id = :classId
 						AND term_id = :termId
 						AND student_id = :studentId
+						AND subjects.active is true
 						";
 
 		if( $examTypeId !== null )

@@ -9,10 +9,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 	$scope.saveTerms = false;
 	$scope.upldMenuAttchmnt = false;
 	$scope.uploadTxt = '* Optional';
+	function saveMenuName(fileName){
+		console.log('Saving the file name ' + fileName);
+		var postData = {
+			settings: [{
+				name: 'Menu Attchment',
+				value: fileName,
+				append: false
+			}]
+		}
+		apiService.updateSettings(postData, createCompleted, apiError);
+	}
 	var uploader3 = $scope.uploader3 = new FileUploader({
-						url: 'upload.php',
+			url: 'upload.php',
 			formData : [{
-				'dir': 'students'
+				'dir': 'menus'
 			}]
 		});
 
@@ -121,6 +132,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 			'Houses' : angular.copy($rootScope.currentUser.settings['Houses']	),
 			'Exam Calculation' : angular.copy($rootScope.currentUser.settings['Exam Calculation']),
 			'Payment Terms' : angular.copy($rootScope.currentUser.settings['Payment Terms']),
+			'Menu Attchment' : angular.copy($rootScope.currentUser.settings['Menu Attchment']),
 		}
 		if($scope.settings['Payment Terms']){
 			$scope.termsTxt = $scope.settings['Payment Terms'];
@@ -461,6 +473,16 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 					let ext = filename.split('.').pop();
 					if(exts.includes(ext)){
 						$scope.uploadTxt = filename;
+						if( uploader3.queue[0] !== undefined )
+						{
+							console.log('uploader3.queue[0] >',uploader3.queue[0]);
+							// need a unique filename
+							console.log('Will upload now...');
+							$scope.filename3 =  window.location.host.split('.')[0] + '_menu_' + uploader3.queue[0].file.name;
+							uploader3.queue[0].file.name = $scope.filename3;
+							uploader3.uploadAll();
+							saveMenuName($scope.filename3);
+						}
 					}else{
 						$scope.uploadTxt = "Only 'jpg' or 'png' images are allowed or pdf's";
 					}
@@ -511,7 +533,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter, FileUploade
 					if( uploader3.queue[0] !== undefined )
 					{
 						// need a unique filename
-						$scope.filename3 =  window.location.host.split('.')[0] + '_reportCard_' + '_' + $scope.student.student_name.split(" ")[0] + '_' + $scope.student.student_id + "_termId-" + el.term.term_id + "_" + uploader3.queue[0].file.name;
+						$scope.filename3 =  window.location.host.split('.')[0] + '_menu_' + uploader3.queue[0].file.name;
 						uploader3.queue[0].file.name = $scope.filename3;
 						uploader3.uploadAll();
 					}

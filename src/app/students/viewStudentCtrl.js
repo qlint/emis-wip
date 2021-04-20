@@ -362,7 +362,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
     				}
 			    }
 
-				$scope.lowerSchool = ( $scope.student.entity_id < 7 ? true : false );
+				$scope.lowerSchool = ( $scope.student.entity_id < 8 ? true : false );
 
 				$scope.existsImg = ( $scope.student.student_image === undefined || $scope.student.student_image === null ? true : false );
         		$scope.rmvImg = function(){
@@ -2373,7 +2373,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 	var uploader3 = $scope.uploader3 = new FileUploader({
 						url: 'upload.php',
 			formData : [{
-				'dir': 'students'
+				'dir': 'reportcards'
 			}]
 		});
 
@@ -3605,7 +3605,7 @@ function($scope,$rootScope,$uibModalInstance,apiService,data){
 								if( result.response == 'success' )
 								{
 									$scope.marks = (result.nodata ? [] : result.data);
-
+									console.log('Raw Marks >',$scope.marks);
 									if( $scope.marks.length > 0 )
 									{
 										$scope.subjects = subjects.map(function(item){

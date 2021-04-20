@@ -174,7 +174,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 		else{
 			// console.log("User groups blank >",result);
 		}
-	}, function(e){console.log(e)});
+	}, function(e){console.log('Error Getting U-Grps',e)});
 	// $rootScope.userTypes = ['SYS_ADMIN','ADMIN','PRINCIPAL','ADMIN-FINANCE','ADMIN-TRANSPORT','FINANCE','FINANCE_CONTROLLED','TEACHER'];
 
 	$rootScope.postTxt = function(id){

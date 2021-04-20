@@ -257,7 +257,7 @@ $app->post('/parentLogin', function () use($app) {
               $result->students = $studentDetails;
               $result->news = $news;
               $result->feedback = $feedback;
-              $result->resources = $resources;
+              $result->resources = (isset($resources) ? $resources : null);
 
               $app->response->setStatus(200);
               $app->response()->headers->set('Content-Type', 'application/json');
@@ -817,6 +817,9 @@ $app->get('/registrationStatus/:phone', function ($phoneNumber){
         curl_close($ch);
         */
         $db1 = null;
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'success', 'message' => "A registration code has been resent. Use it to complete registration.", "status" => "SMS re-sent." ));
       }else{
         $app->response()->setStatus(200);
         $app->response()->headers->set('Content-Type', 'application/json');
@@ -1693,10 +1696,10 @@ $app->get('/getMealsMenu/:school', function ($school) {
         $sth->execute();
         $menu = $sth->fetchAll(PDO::FETCH_OBJ);
 
-        $sth2 = $db->prepare("SELECT CASE 
-                                        WHEN exists (SELECT value FROM app.settings WHERE name = 'Menu Attchment') 
-                                          THEN (SELECT value FROM app.settings WHERE name = 'Menu Attchment') 
-                                        ELSE null 
+        $sth2 = $db->prepare("SELECT CASE
+                                        WHEN exists (SELECT value FROM app.settings WHERE name = 'Menu Attchment')
+                                          THEN (SELECT value FROM app.settings WHERE name = 'Menu Attchment')
+                                        ELSE null
                                       END AS menu_attachment");
         $sth2->execute();
         $menuAttachment = $sth2->fetch(PDO::FETCH_OBJ);
@@ -5849,17 +5852,19 @@ $app->get('/getStudentClasses/:school/:studentId', function ($school, $studentId
     try
     {
        $db = setDBConnection($school);
-       $sth = $db->prepare("SELECT 1 as ord, student_id, class_id, class_name,
+       $sth = $db->prepare("SELECT 1 as ord, student_id, class_id, class_name, cc.entity_id,
                 case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 1') then true else false end as term_1,
                 case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 2') then true else false end as term_2,
                 case when now() > (select start_date from app.terms where date_trunc('year', start_date) = date_trunc('year', now()) and term_name = 'Term 3') then true else false end as term_3
               FROM app.students
               INNER JOIN app.classes ON students.current_class = classes.class_id
+              INNER JOIN app.class_cats cc USING (class_cat_id)
               WHERE student_id = :studentId AND students.active IS TRUE
               UNION
-              SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, true, true, true
+              SELECT class_history_id as ord, student_id, student_class_history.class_id, class_name, cc.entity_id, true, true, true
               FROM app.student_class_history
               INNER JOIN app.classes ON student_class_history.class_id = classes.class_id
+              INNER JOIN app.class_cats cc USING (class_cat_id)
               WHERE student_id = :studentId
               AND student_class_history.class_id != (select current_class from app.students where student_id = :studentId AND students.active IS TRUE)
               ORDER BY class_id DESC");
@@ -6378,7 +6383,7 @@ $app->get('/getDocReport/:school/:studentId', function ($school,$studentId) {
   {
     $db = setDBConnection($school);
 
-    $sth = $db->prepare("SELECT term_name, sch.class_id, class_name, lr.* FROM app.lowersch_reportcards lr
+    $sth = $db->prepare("SELECT term_name, term_number, sch.class_id, class_name, lr.* FROM app.lowersch_reportcards lr
                         INNER JOIN app.terms t USING (term_id)
                         INNER JOIN app.student_class_history sch ON t.start_date >= sch.start_date AND t.end_date <= sch.end_date AND lr.student_id = sch.student_id
                         INNER JOIN app.classes c USING (class_id)

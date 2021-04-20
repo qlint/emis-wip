@@ -37,7 +37,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	function dateConverter(str){
 		let strArr = str.split('-');
 		let year = strArr[0];
-		let month = parseInt(strArr[1]);
+		let month = parseInt(strArr[1])-1;
 		let day = parseInt(strArr[2]);
 		let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 		let postFix = '';
@@ -69,6 +69,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	}
 
 	$scope.classRptCds.forEach((item, i) => {
+		console.log("Each response item >",item);
 		// remove exam types not done
 		if(item.report_card.exam_marks != null){
 			item.report_card.exam_marks = $scope.removeExamsNotDone(item.report_card.exam_marks);
@@ -338,21 +339,27 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				if( result.response == 'success')
 				{
 				    $scope.rawExamTypes = result.data;
-						console.log("Raw Exam Types > ",$scope.rawExamTypes);
+						// console.log("Raw Exam Types > ",$scope.rawExamTypes);
 						$scope.examTypes = [];
 						for(let r=0;r < $scope.rawExamTypes.length;r++){
 							// loop through all students exams & get unique exam types
 							$scope.classRptCds.forEach((student, i) => {
-								// console.log("Student > ",student);
+								console.log("Student > ",student);
+								// console.log("Each exam type >",$scope.rawExamTypes[r]);
 								student.report_card.exam_marks.forEach((exam, j) => {
-									if(exam.exam_type_id == $scope.rawExamTypes[r].exam_type_id){
-										$scope.examTypes.push($scope.rawExamTypes[r]);
-										$scope.rawExamTypes.splice(r,1);
+									if($scope.rawExamTypes[r] != undefined){
+										if(exam.exam_type_id == $scope.rawExamTypes[r].exam_type_id){
+											$scope.examTypes.push($scope.rawExamTypes[r]);
+											$scope.rawExamTypes.splice(r,1);
+										}
 									}
 								});
 
 							});
-
+							// console.log("SCOPE >",$scope.filters.term);
+							$scope.start_date = dateConverter($scope.filters.term.start_date);
+							$scope.end_date = dateConverter($scope.filters.term.end_date);
+							console.log('START DATE >',$scope.start_date);
 						}
 					initReportCard();
 				}

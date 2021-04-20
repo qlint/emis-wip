@@ -78,7 +78,12 @@
                 $body = $doc.find("body");
 
             // add base tag to ensure elements use the parent domain
+            /*
             $head.append('<base href="' + document.location.protocol + '//' + document.location.host + '">');
+            */
+            var loc = window.location.pathname;
+            var dir = loc.substring(0, loc.lastIndexOf('/'));
+            $head.append('<base href="' + document.location.protocol + '//' + document.location.host + dir + '/">');
 
             // import page stylesheets
             if (opt.importCSS) $("link[rel=stylesheet]").each(function() {

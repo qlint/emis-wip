@@ -550,7 +550,10 @@
 						<div class="upload-btn-wrapper">
 						  <button class="filebtn">Attach a menu</button>
 						  <input id="upload3_menu" type="file" name="menufile" nv-file-select="" uploader="uploader3" />
-							<h5 style="color: brown;font-weight: 600;font-size: 13px;float:right;display:contents;">{{uploadTxt}}</h5>
+							<h5 ng-show="!settings['Menu Attchment']" style="color: brown;font-weight: 600;font-size: 13px;float:right;display:contents;">{{uploadTxt}}</h5>
+							<a ng-show="settings['Menu Attchment']" href="assets/menus/{{settings['Menu Attchment']}}" target="_blank">
+								<h5 style="color: blue;font-weight: 600;font-size: 13px;float:right;display:contents;">{{settings['Menu Attchment']}}</h5>
+							</a>
 						</div>
 
 						<button type="button" class="btn btn-primary" ng-show="menuReady" ng-click="saveSchMenu()">Save</button>

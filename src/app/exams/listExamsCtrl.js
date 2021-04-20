@@ -453,7 +453,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 
 								$scope.showExpSheet = true;
 								$scope.showUploadSheet = false;
-								// console.log("Class Sheet >",$scope.expClassSheet);
+								console.log("Class Sheet >",$scope.expClassSheet);
 								// console.log("Subj Headers >",$scope.classSheetSubjs);
 							}
 						}

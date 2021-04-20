@@ -484,9 +484,11 @@ $app->get('/getPaymentDetails/:payment_id', function ($paymentId) {
 
     // get payment data
     $sth = $db->prepare("SELECT payments.payment_id, payment_date, payments.amount, payments.payment_method, slip_cheque_no, custom_receipt_no,
-                  payments.student_id, replacement_payment, reversed, reversed_date, credit_id, payments.payment_bank, payments.banking_date --,payments.inv_id
+                  payments.student_id, replacement_payment, reversed, reversed_date, credit_id, payments.payment_bank, payments.banking_date,
+                  u.first_name || ' ' || coalesce(u.middle_name,'') || ' ' || u.last_name AS receipted_by--,payments.inv_id
               FROM app.payments
               LEFT JOIN app.credits ON payments.payment_id = credits.payment_id
+              LEFT JOIN app.users u ON payments.created_by = u.user_id
               WHERE payments.payment_id = :paymentId
     ");
     $sth->execute( array(':paymentId' => $paymentId) );

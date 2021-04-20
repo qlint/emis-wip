@@ -244,20 +244,40 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 																					(SELECT comment FROM app.grading WHERE percentage >= min_mark AND percentage <= max_mark) AS comment,
 																					out_of, subject_sort, parent_subject_id, percentage
 																			FROM (
-		                              				SELECT e2.student_id, cse2.exam_type_id, et2.exam_type, et2.sort_order AS exam_sort,
-		                              						s2.subject_name, s2.subject_id, e2.mark,
-																							round((mark/cse2.grade_weight::float)*100) AS percentage,
-		                              						cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id
-		                              				FROM app.exam_marks e2
-		                              				INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
-		                              				INNER JOIN app.exam_types et2 USING (exam_type_id)
-		                              				INNER JOIN app.class_subjects cs2 USING (class_subject_id)
-		                              				INNER JOIN app.subjects s2 USING (subject_id)
-		                              				WHERE e2.student_id = :studentId
-																					AND cs2.class_id = :classId
-		                              				AND e2.term_id = :termId AND s2.use_for_grading IS TRUE
-																					AND s2.active IS TRUE --inactive subjects where showing on a report card
-		                              				ORDER BY et2.sort_order ASC, s2.sort_order ASC
+																				SELECT f.*,
+																					g.student_id, g.mark, g.percentage, g.out_of
+																				FROM
+																				(
+																				SELECT cs2.class_subject_id, s2.subject_name, s2.subject_id,
+																					s2.sort_order AS subject_sort, s2.parent_subject_id,
+																					cse.class_sub_exam_id, cse.exam_type_id, et.exam_type,
+																					et.sort_order AS exam_sort
+																				FROM app.subjects s2
+																				LEFT JOIN app.class_subjects cs2 USING (subject_id)
+																				LEFT JOIN app.class_subject_exams cse USING (class_subject_id)
+																				LEFT JOIN app.exam_types et USING (exam_type_id)
+																				WHERE cs2.class_id = :classId
+																				--AND s2.use_for_grading IS TRUE
+																				ORDER BY et.sort_order ASC, s2.sort_order ASC
+																				)f
+																				LEFT JOIN
+																				(
+																				SELECT e2.student_id, cse2.class_subject_id,
+																					s2.subject_name, s2.subject_id, e2.mark,
+																					round((mark/cse2.grade_weight::float)*100) AS percentage,
+																					cse2.grade_weight AS out_of, s2.sort_order AS subject_sort, s2.parent_subject_id,
+																					cse2.class_sub_exam_id
+																				FROM app.subjects s2
+																				LEFT JOIN app.class_subjects cs2 USING (subject_id)
+																				LEFT JOIN app.class_subject_exams cse2 USING (class_subject_id)
+																				LEFT JOIN app.exam_marks e2 USING (class_sub_exam_id)
+																				LEFT JOIN app.exam_types et2 USING (exam_type_id)
+																				WHERE e2.student_id = :studentId
+																				AND cs2.class_id = :classId
+																				AND e2.term_id = :termId
+																				--AND s2.use_for_grading IS TRUE
+																				)g
+																				USING (class_sub_exam_id)
 																			)a
                               			) b
                               			GROUP BY exam_type_id, exam_type
@@ -286,14 +306,13 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 																WHERE term_id = :termId
 																AND class_id = :classId
 															) AS class_exam_count
-													FROM app.exam_marks e2
-													INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
-													INNER JOIN app.exam_types et2 USING (exam_type_id)
-													INNER JOIN app.class_subjects cs2 USING (class_subject_id)
-													INNER JOIN app.subjects s2 USING (subject_id)
+															FROM app.subjects s2
+															LEFT JOIN app.class_subjects cs2 USING (subject_id)
+															LEFT JOIN app.class_subject_exams cse2 USING (class_subject_id)
+															LEFT JOIN app.exam_marks e2 USING (class_sub_exam_id)
+															LEFT JOIN app.exam_types et2 USING (exam_type_id)
 													WHERE e2.student_id = :studentId
-													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
-													AND s2.active IS TRUE -- inactive subjects where showing on a report card
+													AND e2.term_id = :termId AND parent_subject_id IS null --AND s2.use_for_grading IS TRUE
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
 												GROUP BY subject_id, subject_name, class_exam_count
@@ -328,7 +347,6 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 													WHERE e2.student_id = :studentId
 													AND cs2.class_id = :classId
 													AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE
-													AND s2.active IS TRUE -- inactive subjects where showing on a report card
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
 												GROUP BY student_id, exam_type_id, exam_type
@@ -367,7 +385,6 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 															WHERE e2.student_id = :studentId
 															AND cs2.class_id = :classId
 															AND e2.term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 ) AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
-															AND s2.active IS TRUE -- to prevent inactive subjects being included
 															ORDER BY et2.sort_order ASC, s2.sort_order ASC
 														)f
 														GROUP BY subject_id, subject_name, class_exam_count
@@ -399,7 +416,6 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 													INNER JOIN app.subjects s2 USING (subject_id)
 													WHERE e2.student_id = :studentId
 													AND e2.term_id = :termId AND parent_subject_id IS null AND s2.use_for_grading IS TRUE
-													AND s2.active IS TRUE -- to prevent inactive subjects from being included
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
 												GROUP BY subject_id, subject_name, class_exam_count
@@ -749,7 +765,6 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 																	AND term_id = (select term_id from app.terms where start_date < (select start_date from app.terms where term_id = :termId) order by start_date desc limit 1 )
 																	AND subjects.parent_subject_id is null
 																	AND subjects.use_for_grading is true
-																	AND subjects.active IS TRUE
 																	AND students.active is true
 																	AND mark IS NOT NULL
 																	AND class_subject_exams.exam_type_id = (
@@ -887,14 +902,15 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 									SELECT DISTINCT ON (subject_id) subject_id, subject_name, teacher_id, sort_order, parent_subject_id,
 										e.initials
 									FROM app.subjects s
-									INNER JOIN app.class_subjects cs USING (subject_id)
-									INNER JOIN app.class_subject_exams cse USING (class_subject_id)
-									INNER JOIN app.exam_marks em USING (class_sub_exam_id)
+									LEFT JOIN app.class_subjects cs USING (subject_id)
+									LEFT JOIN app.class_subject_exams cse USING (class_subject_id)
+									LEFT JOIN app.exam_marks em USING (class_sub_exam_id)
 									LEFT JOIN app.employees e ON s.teacher_id = e.emp_id
 									WHERE s.active IS TRUE
 									AND cs.class_id = :classId
 									AND em.term_id = :termId
-									AND s.use_for_grading IS TRUE
+									AND em.student_id = :studentId /* for when students select subjects */
+									--AND s.use_for_grading IS TRUE
 								  )p
 								) AS subjects_column,
 								(
@@ -905,7 +921,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 												) AS report_card_type,
 								(
 								SELECT CASE
-										WHEN report_card_type IN ('Playgroup','CBC')
+										WHEN report_card_type = 'Playgroup'
 										THEN (SELECT report_data FROM app.report_cards rc WHERE student_id = :studentId AND class_id = :classId AND term_id = :termId)
 									END AS report_card_data
 								FROM (
@@ -1713,6 +1729,51 @@ $app->get('/getClassReportCardData/:class_id/:term_id', function ($classId, $ter
 			                              )d");
 					$sth->execute( array(':studentId' => $studentId, ':classId' => $classId, ':termId' => $termId) );
 					$results = $sth->fetch(PDO::FETCH_OBJ);
+
+					$sth4 = $db->prepare("SELECT student_id,
+																	case when denominator > 1 then round(total_mark/denominator) else total_mark end as current_term_marks,
+																	case when denominator > 1 then round(total_grade_weight/denominator) else '500' end as current_term_marks_out_of, percentage,
+																	(select grade from app.grading where (total_mark::float/total_grade_weight::float)*100 between min_mark and max_mark) as grade,
+																	rank AS position, position_out_of
+																FROM (
+																	SELECT student_id,class_id,total_mark,total_grade_weight,
+																		round((total_grade_weight/500)) as denominator,round((total_mark/total_grade_weight)*100) as percentage,
+																		rank() over w as rank,position_out_of
+																	FROM (
+																			SELECT student_id, first_name, middle_name, last_name, class_id, class_name, sum(total_mark) AS total_mark, sum(total_grade_weight) AS total_grade_weight, position_out_of
+																			FROM (
+																				SELECT student_id, first_name, middle_name, last_name, subject_name, class_id, class_name, round(total_mark::float/3) AS total_mark,
+																					round(total_grade_weight/3) AS total_grade_weight, position_out_of
+																				FROM (
+																					SELECT exam_marks.student_id,first_name,middle_name,last_name,subject_name,class_subjects.class_id,class_subjects.subject_id,class_name,
+																						coalesce(sum(case when subjects.parent_subject_id is null then mark end),0) as total_mark,
+																						coalesce(sum(case when subjects.parent_subject_id is null then grade_weight end),0) as total_grade_weight,
+																						(SELECT count(student_id) FROM app.students WHERE active IS TRUE AND current_class IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (select class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id = (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId)))))) as position_out_of
+																					FROM app.exam_marks
+																					INNER JOIN app.students ON exam_marks.student_id = students.student_id
+																					INNER JOIN app.class_subject_exams
+																					INNER JOIN app.exam_types ON class_subject_exams.exam_type_id = exam_types.exam_type_id
+																					INNER JOIN app.class_subjects
+																					INNER JOIN app.subjects ON class_subjects.subject_id = subjects.subject_id AND subjects.active is true AND use_for_grading is true
+																					INNER JOIN app.classes ON class_subjects.class_id = classes.class_id AND classes.active is true
+																								ON class_subject_exams.class_subject_id = class_subjects.class_subject_id
+																								ON exam_marks.class_sub_exam_id = class_subject_exams.class_sub_exam_id
+																					WHERE term_id = :termId
+																					AND students.active is true AND parent_subject_id IS NULL
+																					AND class_subjects.class_id IN (SELECT class_id FROM app.classes WHERE class_cat_id IN (SELECT class_cat_id FROM app.class_cats WHERE entity_id = (SELECT entity_id FROM app.class_cats WHERE class_cat_id IN (SELECT class_cat_id FROM app.classes WHERE class_id = (SELECT current_class FROM app.students WHERE student_id = :studentId)))))
+																					GROUP BY exam_marks.student_id, first_name, middle_name, last_name, subject_name, class_subjects.class_id, class_name, class_subjects.subject_id
+																				)b
+																				GROUP BY student_id, first_name, middle_name, last_name, subject_name, class_id, class_name, position_out_of, total_mark, total_grade_weight
+																				ORDER BY student_id ASC
+																			)c
+																			GROUP BY student_id, first_name, middle_name, last_name, class_id, class_name, position_out_of
+																			ORDER BY total_mark DESC
+																	) a
+																	WINDOW w AS (PARTITION BY position_out_of ORDER BY total_mark desc)
+																) q
+																WHERE student_id = :studentId");
+					$sth4->execute( array(':studentId' => $studentId, ':termId' => $termId) );
+					$results2 = $sth4->fetch(PDO::FETCH_OBJ);
 					// json_decode($results->exam_marks)
 					if($results){
 						$results->exam_marks = (isset($results->exam_marks) ? json_decode($results->exam_marks) : null);
@@ -1728,6 +1789,7 @@ $app->get('/getClassReportCardData/:class_id/:term_id', function ($classId, $ter
 						$results->playgroup_report_card = ($results->playgroup_report_card == null ? null : $results->playgroup_report_card->subjects);
 						$results->kindergarten_report_card = json_decode($results->kindergarten_report_card);
 						$results->kindergarten_report_card = ($results->kindergarten_report_card == null ? null : $results->kindergarten_report_card->subjects);
+						$results->stream_pos = $results2;
 
 						$student_object->report_card = $results;
 

@@ -103,6 +103,13 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 					$rootScope.permissions.school.subjects.delete = true;
 					$rootScope.permissions.school.subjects.export = true;
 
+					if(!$rootScope.permissions.school.school_settings){
+						$rootScope.permissions.school.school_settings = {};
+						$rootScope.permissions.school.school_settings.add = true;
+						$rootScope.permissions.school.school_settings.view = true;
+						$rootScope.permissions.school.school_settings.edit = true;
+					}
+
 				}
 				// console.log("Default Perms >",$rootScope.permissions);
 

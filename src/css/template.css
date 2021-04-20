@@ -1730,7 +1730,8 @@ img.transpBg {max-height:190px;margin-left: 25%;margin-right: 25%;margin-top: -9
     div.printInv {font-size:12px !important}
     table.printInv, div.printInv p.text-group {font-size:12px !important;}
     img.invLogo {max-width: 400px !important;}
-
+  .nxtPage {page-break-after: always !important;}
+  .noPrint {display: none !important;}
 }
 
 /* settings page toggle buttons */
