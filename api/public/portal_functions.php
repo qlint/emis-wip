@@ -16,7 +16,7 @@ $app->post('/parentLogin', function () use($app) {
   {
     $db = getLoginDB();
 
-    $userCheckQry = $db->query("SELECT status, parent_id, guardian_id, student_id, subdomain
+    $userCheckQry = $db->query("SELECT status, parent_id, guardian_id, student_id, c.subdomain, c.active AS school_active
                                 FROM (
                                 	SELECT (CASE
                                 			WHEN EXISTS (SELECT username FROM parents WHERE username = '$username' AND active IS TRUE) THEN 'proceed' ELSE 'stop'
@@ -26,7 +26,8 @@ $app->post('/parentLogin', function () use($app) {
                                   			THEN (SELECT parent_id FROM parents WHERE username = '$username' AND active IS TRUE) ELSE 0
                                   		END) AS parent_id
                                 )one
-                                LEFT JOIN parent_students USING (parent_id)");
+                                LEFT JOIN parent_students USING (parent_id)
+                                LEFT JOIN clients c USING (subdomain)");
     $userStatus = $userCheckQry->fetch(PDO::FETCH_OBJ);
     $theStatus = $userStatus->status;
     // THE BELOW VALUES ARE USED ONLY WHEN status = 'proceed'
@@ -34,297 +35,305 @@ $app->post('/parentLogin', function () use($app) {
     $theGuardianId = $userStatus->guardian_id;
     $theStudentId = $userStatus->student_id;
     $theSubDomain = $userStatus->subdomain;
+    $schActive = $userStatus->school_active;
     $gStatus = '';
 
-    if($theStatus === "proceed"){
-      $getDb = setDBConnection($theSubDomain);
-      $checkIfStudentActive = $getDb->prepare("SELECT (CASE
-                                                    		WHEN EXISTS (SELECT active FROM app.student_guardians WHERE guardian_id = :guardianId AND active IS TRUE)
-                                                    		THEN 'proceed'
-                                                    		ELSE 'stop'
-                                                    	END) AS active");
-      $checkIfStudentActive->execute(array(':guardianId' => $theGuardianId));
-      $guardianStatus = $checkIfStudentActive->fetch(PDO::FETCH_OBJ);
-      $gStatus = $guardianStatus->active;
-    }else{
-      $gStatus = 'stop';
-    }
-
-    if($gStatus === "proceed"){
-      if(isset($allPostVars['device_user_id'])){
-          $devId = str_replace('"', "", $devId); // remove all double quotes if they exist
-          $devId = str_replace("'", "", $devId); // remove all single quotes if they exist
-        $updateDeviceId = $db->prepare("UPDATE parents SET device_user_id = :devId WHERE parent_id = :parentId");
-        $updateDeviceId->execute( array(':devId' => $devId, ':parentId' => $theParentId) );
+    if($schActive == true){
+      if($theStatus === "proceed"){
+        $getDb = setDBConnection($theSubDomain);
+        $checkIfStudentActive = $getDb->prepare("SELECT (CASE
+                                                      		WHEN EXISTS (SELECT active FROM app.student_guardians WHERE guardian_id = :guardianId AND active IS TRUE)
+                                                      		THEN 'proceed'
+                                                      		ELSE 'stop'
+                                                      	END) AS active");
+        $checkIfStudentActive->execute(array(':guardianId' => $theGuardianId));
+        $guardianStatus = $checkIfStudentActive->fetch(PDO::FETCH_OBJ);
+        $gStatus = $guardianStatus->active;
+      }else{
+        $gStatus = 'stop';
       }
 
-      if(strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE)
-       $browser = 'Internet explorer';
-     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Trident') !== FALSE) //For Supporting IE 11
-        $browser = 'Internet explorer';
-     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Firefox') !== FALSE)
-       $browser = 'Mozilla Firefox';
-     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE)
-       $browser = 'Google Chrome';
-     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera Mini') !== FALSE)
-       $browser = "Opera Mini";
-     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera') !== FALSE)
-       $browser = "Opera";
-     elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== FALSE)
-       $browser = "Safari";
-    elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'insomnia') !== FALSE)
-       $browser = "Insomnia";
-     else
-       $browser = 'Something else';
-      $activityUpdate = $db->prepare("UPDATE parents SET browser = :browser, last_active = now()
-                                    WHERE parent_id = :parentId");
-      $activityUpdate->execute(array(':browser' => $browser, ':parentId' => $theParentId));
+      if($gStatus === "proceed"){
+        if(isset($allPostVars['device_user_id'])){
+            $devId = str_replace('"', "", $devId); // remove all double quotes if they exist
+            $devId = str_replace("'", "", $devId); // remove all single quotes if they exist
+          $updateDeviceId = $db->prepare("UPDATE parents SET device_user_id = :devId WHERE parent_id = :parentId");
+          $updateDeviceId->execute( array(':devId' => $devId, ':parentId' => $theParentId) );
+        }
 
-            $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
-                          first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id, guardian_id AS school_guardian_id
-                        FROM parents
-                        INNER JOIN parent_students ON parents.parent_id = parent_students.parent_id
-                        WHERE username= :username
-                        AND password = :password
-                        AND active is true");
-            $sth->execute( array(':username' => $username, ':password' => $pwd) );
-            $result = $sth->fetch(PDO::FETCH_OBJ);
+        if(strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== FALSE)
+         $browser = 'Internet explorer';
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Trident') !== FALSE) //For Supporting IE 11
+          $browser = 'Internet explorer';
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Firefox') !== FALSE)
+         $browser = 'Mozilla Firefox';
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE)
+         $browser = 'Google Chrome';
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera Mini') !== FALSE)
+         $browser = "Opera Mini";
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Opera') !== FALSE)
+         $browser = "Opera";
+       elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== FALSE)
+         $browser = "Safari";
+      elseif(strpos($_SERVER['HTTP_USER_AGENT'], 'insomnia') !== FALSE)
+         $browser = "Insomnia";
+       else
+         $browser = 'Something else';
+        $activityUpdate = $db->prepare("UPDATE parents SET browser = :browser, last_active = now()
+                                      WHERE parent_id = :parentId");
+        $activityUpdate->execute(array(':browser' => $browser, ':parentId' => $theParentId));
 
-            if($result) {
+              $sth = $db->prepare("SELECT parents.parent_id, username, active, first_name, middle_name, last_name, email,
+                            first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS parent_full_name, device_user_id, guardian_id AS school_guardian_id
+                          FROM parents
+                          INNER JOIN parent_students ON parents.parent_id = parent_students.parent_id
+                          WHERE username= :username
+                          AND password = :password
+                          AND active is true");
+              $sth->execute( array(':username' => $username, ':password' => $pwd) );
+              $result = $sth->fetch(PDO::FETCH_OBJ);
 
-                // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app login')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
+              if($result) {
 
-              // get the parents' students and add to result
-              $sth1 = $db->prepare("SELECT student_id, guardian_id AS school_guardian_id, subdomain, dbusername, dbpassword
-                                    FROM parent_students
-                                    WHERE parent_id = :parentId
-                                    ORDER BY subdomain");
-              $sth1->execute(array(':parentId' => $result->parent_id));
-              $students = $sth1->fetchAll(PDO::FETCH_OBJ);
-              $db = null;
+                  // traffic analysis start
+  				$mistrafficdb = getMISDB();
+  				$subdom = getSubDomain();
+  				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+  												VALUES('$subdom','parent-app login')");
+  				$trafficMonitor->execute( array() );
+  				$mistrafficdb = null;
+  				// traffic analysis end
 
-              $studentDetails = Array();
-              $curSubDomain = '';
-              $studentsBySchool = Array();
-              foreach( $students as $student )
-              {
-                // get individual student details
-                // only get new db connection if different subdomain
-                if( $curSubDomain != $student->subdomain )
+                // get the parents' students and add to result
+                $sth1 = $db->prepare("SELECT student_id, guardian_id AS school_guardian_id, subdomain, dbusername, dbpassword
+                                      FROM parent_students
+                                      WHERE parent_id = :parentId
+                                      ORDER BY subdomain");
+                $sth1->execute(array(':parentId' => $result->parent_id));
+                $students = $sth1->fetchAll(PDO::FETCH_OBJ);
+                $db = null;
+
+                $studentDetails = Array();
+                $curSubDomain = '';
+                $studentsBySchool = Array();
+                foreach( $students as $student )
                 {
-                  if( $db !== null ) $db = null;
-                  $db = setDBConnection($student->subdomain);
-                }
-                $sth3 = $db->prepare("SELECT student_id, first_name, middle_name, last_name, student_image, admission_number,
-                               first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-                               students.active, class_name, class_id, class_cat_id, report_card_type, TO_CHAR(admission_date :: DATE, 'dd/mm/yyyy') AS admission_date, student_category, gender, date_text_to_date(dob) AS dob, payment_method, payment_plan_name,
-                               (SELECT value FROM app.settings WHERE name = 'School Name') as school_name,
-                               (SELECT value FROM app.settings WHERE name = 'subdomain') as school_subdomain,
-                               (SELECT value FROM app.settings WHERE name = 'Use Feedback') as use_feedback
-                            FROM app.students
-                            INNER JOIN app.classes ON students.current_class = classes.class_id
-                            LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
-                            WHERE student_id = :studentId  AND students.active IS TRUE");
-                $sth3->execute(array(':studentId' => $student->student_id));
-                $details = $sth3->fetch(PDO::FETCH_OBJ);
-
-                if( $details ) {
-                  $details->school = $student->subdomain;
-
-                  if( $details->student_id !== null )
+                  // get individual student details
+                  // only get new db connection if different subdomain
+                  if( $curSubDomain != $student->subdomain )
                   {
-                    $studentDetails[] = $details;
-                    $curSubDomain = $student->subdomain;
+                    if( $db !== null ) $db = null;
+                    $db = setDBConnection($student->subdomain);
+                  }
+                  $sth3 = $db->prepare("SELECT student_id, first_name, middle_name, last_name, student_image, admission_number,
+                                 first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
+                                 students.active, class_name, class_id, class_cat_id, report_card_type, TO_CHAR(admission_date :: DATE, 'dd/mm/yyyy') AS admission_date, student_category, gender, date_text_to_date(dob) AS dob, payment_method, payment_plan_name,
+                                 (SELECT value FROM app.settings WHERE name = 'School Name') as school_name,
+                                 (SELECT value FROM app.settings WHERE name = 'subdomain') as school_subdomain,
+                                 (SELECT value FROM app.settings WHERE name = 'Use Feedback') as use_feedback
+                              FROM app.students
+                              INNER JOIN app.classes ON students.current_class = classes.class_id
+                              LEFT JOIN app.installment_options ON students.installment_option_id = installment_options.installment_id
+                              WHERE student_id = :studentId  AND students.active IS TRUE");
+                  $sth3->execute(array(':studentId' => $student->student_id));
+                  $details = $sth3->fetch(PDO::FETCH_OBJ);
 
-                    /* build an array for grabbing news */
-                    $studentsBySchool[$curSubDomain][] = $student->student_id;
+                  if( $details ) {
+                    $details->school = $student->subdomain;
+
+                    if( $details->student_id !== null )
+                    {
+                      $studentDetails[] = $details;
+                      $curSubDomain = $student->subdomain;
+
+                      /* build an array for grabbing news */
+                      $studentsBySchool[$curSubDomain][] = $student->student_id;
+                    }
                   }
                 }
+
+                /* get news for students, only want new once per school, and student specific news */
+                $news = Array();
+                foreach( $studentsBySchool as $school => $students )
+                {
+                  if( $db !== null ) $db = null;
+                  $db = setDBConnection($school);
+
+                  $sth5 = $db->prepare("SELECT
+                              com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
+                              employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
+                              audience, attachment, reply_to,
+                              students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
+                              guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
+                              communications.guardian_id, communications.student_id, classes.class_name, post_status,
+                              sent, sent_date, message_from,
+                              case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method,
+                              seen_count, seen_by,
+                              (
+                								CASE
+                									WHEN string_to_array(seen_by, ',') && '{". implode(',',$students) ."}'::text[] THEN true
+  		                            ELSE false
+                								END
+                							) AS seen
+                            FROM app.communications
+                            LEFT JOIN app.students ON communications.student_id = students.student_id
+                            LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
+                            LEFT JOIN app.classes ON communications.class_id = classes.class_id
+                            INNER JOIN app.employees ON communications.message_from = employees.emp_id
+                            INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
+                            INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
+                            INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
+                            WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
+                            AND communications.sent IS TRUE
+                            AND communications.post_status_id = 1
+                            AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
+                            OR communications.class_id is null)
+                            AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
+                            --AND students.active IS TRUE
+                            AND communications.com_type_id NOT IN (6)
+                            AND date_trunc('year', communications.creation_date) >=  date_trunc('year', now() - interval '1 year')
+                            ORDER BY creation_date desc");
+
+                  $studentsArray = "{" . implode(',',$students) . "}";
+                  $sth5->execute(array(':studentIds' => $studentsArray));
+                  $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
+
+                  $sthResources = $db->prepare("SELECT student_id, resource_id, r.class_id, r.term_id, r.emp_id, resource_name,
+                                resource_type, file_name, additional_text, r.active AS active_resource, vimeo_path,
+                                e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name AS teacher_name,
+                                 s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
+                                 term_name, class_name, TO_CHAR(r.creation_date :: DATE, 'dd/mm/yyyy') AS creation_date
+                              FROM app.school_resources r
+                              INNER JOIN app.classes c USING (class_id)
+                              INNER JOIN app.students s ON s.current_class = c.class_id
+                              INNER JOIN app.employees e USING (emp_id)
+                              INNER JOIN app.terms t USING (term_id)
+                              WHERE s.student_id = :studentId");
+                  $sthResources->execute(array(':studentId' => $student->student_id));
+                  $resources[$school] = $sthResources->fetchAll(PDO::FETCH_OBJ);
+
+                }
+
+                /* get sent messages by student's parent */
+                $feedback = Array();
+                foreach( $studentsBySchool as $school => $students )
+                {
+                  if( $db !== null ) $db = null;
+                  $db = setDBConnection($school);
+
+                  $sth6 = $db->prepare("SELECT *, TO_CHAR(sent_date :: DATE, 'dd/mm/yyyy') AS formatted_date FROM (
+                                        	SELECT 'News' AS feedback_type, cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
+                                        		cf.message_from as posted_by,
+                                        		s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                                        		g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
+                                        		c.class_name, student_id, null AS emp_id, null AS teacher_name,
+                                            null AS student_attachment
+                                        	FROM app.communication_feedback cf
+                                        	LEFT JOIN app.students s USING (student_id)
+                                        	LEFT JOIN app.guardians g USING (guardian_id)
+                                        	LEFT JOIN app.classes c USING (class_id)
+                                        	WHERE cf.student_id = any(:studentIds)
+                                        	AND s.active IS TRUE
+                                        	UNION
+                                        	SELECT 'Homework' AS feedback_type, hf.homework_feedback_id as post_id, hf.creation_date as sent_date, hf.title AS subject, hf.message,
+                                        		hf.added_by as posted_by,
+                                        		s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
+                                        		g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
+                                        		c.class_name, student_id, hf.emp_id, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as teacher_name,
+                                            student_attachment
+                                        	FROM app.homework_feedback hf
+                                        	INNER JOIN app.students s USING (student_id)
+                                        	INNER JOIN app.guardians g USING (guardian_id)
+                                        	INNER JOIN app.classes c USING (class_id)
+                                          LEFT JOIN app.employees e USING (emp_id)
+                                        	WHERE hf.student_id = any(:studentIds)
+                                        	AND s.active IS TRUE
+                                        )a
+                                        ORDER BY sent_date DESC");
+
+                  $studentsArray = "{" . implode(',',$students) . "}";
+                  $sth6->execute(array(':studentIds' => $studentsArray));
+                  $feedback[$school] = $sth6->fetchAll(PDO::FETCH_OBJ);
+
+                }
+
+                $result->students = $studentDetails;
+                $result->news = $news;
+                $result->feedback = $feedback;
+                $result->resources = (isset($resources) ? $resources : null);
+
+                $app->response->setStatus(200);
+                $app->response()->headers->set('Content-Type', 'application/json');
+                $db = null;
+
+                echo json_encode(array('response' => 'success', 'data' => $result, 'post' => $allPostVars ));
+
+              } else {
+                  $app->response->setStatus(200);
+                  $app->response()->headers->set('Content-Type', 'application/json');
+                  echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
+                  /*
+                  $responseJSON = json_encode($theResponse);
+                  // throw new PDOException('The username or password you have entered is incorrect.');
+                  throw new PDOException($responseJSON);
+                  // throw new PDOException('The username you entered does not exist. Please confirm and try again.');
+                  */
               }
 
-              /* get news for students, only want new once per school, and student specific news */
-              $news = Array();
-              foreach( $studentsBySchool as $school => $students )
-              {
-                if( $db !== null ) $db = null;
-                $db = setDBConnection($school);
+      } else {
+          if($userStatus === "stop"){
 
-                $sth5 = $db->prepare("SELECT
-                            com_id, com_date, communications.creation_date, com_type, subject, message, send_as_email, send_as_sms,
-                            employees.first_name || ' ' || coalesce(employees.middle_name,'') || ' ' || employees.last_name as posted_by,
-                            audience, attachment, reply_to,
-                            students.first_name || ' ' || coalesce(students.middle_name,'') || ' ' || students.last_name as student_name,
-                            guardians.first_name || ' ' || coalesce(guardians.middle_name,'') || ' ' || guardians.last_name as parent_full_name,
-                            communications.guardian_id, communications.student_id, classes.class_name, post_status,
-                            sent, sent_date, message_from,
-                            case when send_as_email is true then 'email' when send_as_sms is true then 'sms' end as send_method,
-                            seen_count, seen_by,
-                            (
-              								CASE
-              									WHEN string_to_array(seen_by, ',') && '{". implode(',',$students) ."}'::text[] THEN true
-		                            ELSE false
-              								END
-              							) AS seen
-                          FROM app.communications
-                          LEFT JOIN app.students ON communications.student_id = students.student_id
-                          LEFT JOIN app.guardians ON communications.guardian_id = guardians.guardian_id
-                          LEFT JOIN app.classes ON communications.class_id = classes.class_id
-                          INNER JOIN app.employees ON communications.message_from = employees.emp_id
-                          INNER JOIN app.communication_types ON communications.com_type_id = communication_types.com_type_id
-                          INNER JOIN app.communication_audience ON communications.audience_id = communication_audience.audience_id
-                          INNER JOIN app.blog_post_statuses ON communications.post_status_id = blog_post_statuses.post_status_id
-                          WHERE communications.student_id = any(:studentIds) OR communications.student_id is null
-                          AND communications.sent IS TRUE
-                          AND communications.post_status_id = 1
-                          AND (communications.class_id = any(select current_class from app.students where student_id = any(:studentIds))
-                          OR communications.class_id is null)
-                          AND communications.audience_id NOT IN (3,4,7,9,10,11,13)
-                          --AND students.active IS TRUE
-                          AND communications.com_type_id NOT IN (6)
-                          AND date_trunc('year', communications.creation_date) >=  date_trunc('year', now() - interval '1 year')
-                          ORDER BY creation_date desc");
-
-                $studentsArray = "{" . implode(',',$students) . "}";
-                $sth5->execute(array(':studentIds' => $studentsArray));
-                $news[$school] = $sth5->fetchAll(PDO::FETCH_OBJ);
-
-                $sthResources = $db->prepare("SELECT student_id, resource_id, r.class_id, r.term_id, r.emp_id, resource_name,
-                              resource_type, file_name, additional_text, r.active AS active_resource, vimeo_path,
-                              e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name AS teacher_name,
-                               s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name AS student_name,
-                               term_name, class_name, TO_CHAR(r.creation_date :: DATE, 'dd/mm/yyyy') AS creation_date
-                            FROM app.school_resources r
-                            INNER JOIN app.classes c USING (class_id)
-                            INNER JOIN app.students s ON s.current_class = c.class_id
-                            INNER JOIN app.employees e USING (emp_id)
-                            INNER JOIN app.terms t USING (term_id)
-                            WHERE s.student_id = :studentId");
-                $sthResources->execute(array(':studentId' => $student->student_id));
-                $resources[$school] = $sthResources->fetchAll(PDO::FETCH_OBJ);
-
-              }
-
-              /* get sent messages by student's parent */
-              $feedback = Array();
-              foreach( $studentsBySchool as $school => $students )
-              {
-                if( $db !== null ) $db = null;
-                $db = setDBConnection($school);
-
-                $sth6 = $db->prepare("SELECT *, TO_CHAR(sent_date :: DATE, 'dd/mm/yyyy') AS formatted_date FROM (
-                                      	SELECT 'News' AS feedback_type, cf.com_feedback_id as post_id, cf.creation_date as sent_date, cf.subject, cf.message,
-                                      		cf.message_from as posted_by,
-                                      		s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
-                                      		g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
-                                      		c.class_name, student_id, null AS emp_id, null AS teacher_name,
-                                          null AS student_attachment
-                                      	FROM app.communication_feedback cf
-                                      	LEFT JOIN app.students s USING (student_id)
-                                      	LEFT JOIN app.guardians g USING (guardian_id)
-                                      	LEFT JOIN app.classes c USING (class_id)
-                                      	WHERE cf.student_id = any(:studentIds)
-                                      	AND s.active IS TRUE
-                                      	UNION
-                                      	SELECT 'Homework' AS feedback_type, hf.homework_feedback_id as post_id, hf.creation_date as sent_date, hf.title AS subject, hf.message,
-                                      		hf.added_by as posted_by,
-                                      		s.first_name || ' ' || coalesce(s.middle_name,'') || ' ' || s.last_name as student_name,
-                                      		g.first_name || ' ' || coalesce(g.middle_name,'') || ' ' || g.last_name as parent_full_name,
-                                      		c.class_name, student_id, hf.emp_id, e.first_name || ' ' || coalesce(e.middle_name,'') || ' ' || e.last_name as teacher_name,
-                                          student_attachment
-                                      	FROM app.homework_feedback hf
-                                      	INNER JOIN app.students s USING (student_id)
-                                      	INNER JOIN app.guardians g USING (guardian_id)
-                                      	INNER JOIN app.classes c USING (class_id)
-                                        LEFT JOIN app.employees e USING (emp_id)
-                                      	WHERE hf.student_id = any(:studentIds)
-                                      	AND s.active IS TRUE
-                                      )a
-                                      ORDER BY sent_date DESC");
-
-                $studentsArray = "{" . implode(',',$students) . "}";
-                $sth6->execute(array(':studentIds' => $studentsArray));
-                $feedback[$school] = $sth6->fetchAll(PDO::FETCH_OBJ);
-
-              }
-
-              $result->students = $studentDetails;
-              $result->news = $news;
-              $result->feedback = $feedback;
-              $result->resources = (isset($resources) ? $resources : null);
+              // traffic analysis start
+  				$mistrafficdb = getMISDB();
+  				$subdom = getSubDomain();
+  				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+  												VALUES('$subdom','parent-app failed login')");
+  				$trafficMonitor->execute( array() );
+  				$mistrafficdb = null;
+  				// traffic analysis end
 
               $app->response->setStatus(200);
               $app->response()->headers->set('Content-Type', 'application/json');
-              $db = null;
+              echo json_encode(array("response" => "error", "code" => 2, "data" => 'The username you entered does not exist. Please confirm and try again.'));
+              /*
+              $theResponse->data = 'The username you entered does not exist. Please confirm and try again.';
+              $theResponse->status = array(2=>"The username you entered does not exist. Please confirm and try again.");
 
-              echo json_encode(array('response' => 'success', 'data' => $result, 'post' => $allPostVars ));
+              $responseJSON = json_encode($theResponse);
 
-            } else {
-                $app->response->setStatus(200);
-                $app->response()->headers->set('Content-Type', 'application/json');
-                echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
-                /*
-                $responseJSON = json_encode($theResponse);
-                // throw new PDOException('The username or password you have entered is incorrect.');
-                throw new PDOException($responseJSON);
-                // throw new PDOException('The username you entered does not exist. Please confirm and try again.');
-                */
-            }
+              // throw new PDOException('The username you entered does not exist. Please confirm and try again.');
+              throw new PDOException($responseJSON);
+              */
+          } else {
 
-    } else {
-        if($userStatus === "stop"){
+              // traffic analysis start
+  				$mistrafficdb = getMISDB();
+  				$subdom = getSubDomain();
+  				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
+  												VALUES('$subdom','parent-app failed login')");
+  				$trafficMonitor->execute( array() );
+  				$mistrafficdb = null;
+  				// traffic analysis end
 
-            // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app failed login')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
+              $app->response->setStatus(200);
+              $app->response()->headers->set('Content-Type', 'application/json');
+              echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
+              /*
+              $theResponse->data = 'The password you have entered is incorrect. Please check the spelling and / or capitalization.';
+              $theResponse->status = array(3=>"The password you have entered is incorrect. Please check the spelling and / or capitalization.");
 
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array("response" => "error", "code" => 2, "data" => 'The username you entered does not exist. Please confirm and try again.'));
-            /*
-            $theResponse->data = 'The username you entered does not exist. Please confirm and try again.';
-            $theResponse->status = array(2=>"The username you entered does not exist. Please confirm and try again.");
-
-            $responseJSON = json_encode($theResponse);
-
-            // throw new PDOException('The username you entered does not exist. Please confirm and try again.');
-            throw new PDOException($responseJSON);
-            */
-        } else {
-
-            // traffic analysis start
-				$mistrafficdb = getMISDB();
-				$subdom = getSubDomain();
-				$trafficMonitor = $mistrafficdb->prepare("INSERT INTO traffic(school, module)
-												VALUES('$subdom','parent-app failed login')");
-				$trafficMonitor->execute( array() );
-				$mistrafficdb = null;
-				// traffic analysis end
-
-            $app->response->setStatus(200);
-            $app->response()->headers->set('Content-Type', 'application/json');
-            echo json_encode(array("response" => "error", "code" => 3, "data" => 'The password you have entered is incorrect. Please check the spelling and / or capitalization.'));
-            /*
-            $theResponse->data = 'The password you have entered is incorrect. Please check the spelling and / or capitalization.';
-            $theResponse->status = array(3=>"The password you have entered is incorrect. Please check the spelling and / or capitalization.");
-
-            $responseJSON = json_encode($theResponse);
-            // throw new PDOException('The username or password you have entered is incorrect.');
-            throw new PDOException($responseJSON);
-            */
-        }
+              $responseJSON = json_encode($theResponse);
+              // throw new PDOException('The username or password you have entered is incorrect.');
+              throw new PDOException($responseJSON);
+              */
+          }
+      }
+    }else{
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "error", "code" => 3, "data" => 'Looks like your school is not subscribed to Eduweb. Please get in touch with your school to enable getting back online.'));
     }
+
   } catch(PDOException $e) {
     $app->response()->setStatus(401);
     $app->response()->headers->set('Content-Type', 'application/json');
@@ -1265,6 +1274,8 @@ $app->get('/confirmTemporaryPassword/:phone/:tempPwd', function ($phoneNumber,$t
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
 });
+
+
 
 $app->get('/resendOtp/:phone', function ($phoneNumber){
   error_reporting(E_ALL);  // uncomment this only when testing

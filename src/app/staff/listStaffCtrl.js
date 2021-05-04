@@ -23,6 +23,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	$scope.permsTable = {};
 	$scope.updateParams = [];
 	$scope.updated = false;
+	$scope.enableSetupBtn = false;
 
 	$scope.checkObjArr = function pushToArray(arr, obj) {
 	    let index = arr.findIndex((e) => e.id === obj.id);
@@ -712,17 +713,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 		}else{
 			$scope.showWarning = false;
 			let param = window.location.host.split('.')[0] + '/' + $scope.privileges.user_type;
-			apiService.usrRights(param, function(response){
+			apiService.allUsrRights(param, function(response){
 				var result = angular.fromJson(response);
 				if( result.response == 'success'){
 					$scope.userRights = result.data;
-					// console.log($scope.userRights);
+					// console.log($scope.userRights.rights.rights);
 				}
 				// console.log($scope.userRights);
 				$scope.permsTable.allPermissions.permissions = [];
 				// we use the results to create an object we will use to display on a table
 				for(let x=0;x < $scope.userRights.rights.rights.length; x++){
-					let parentRight = Object.getOwnPropertyNames($scope.userRights.rights.rights[x])[0];
+					// let parentRight = Object.getOwnPropertyNames($scope.userRights.rights.rights[x])[0];
+					let parentRight = $scope.userRights.rights.rights[x].mod_name;
 					let parentRightObj = $scope.userRights.rights.rights[x][parentRight];
 					// console.log("Obj Props >",parentRight);
 					// console.log("Parent right main obj",parentRightObj);
@@ -740,8 +742,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 															children: []
 													};
 					for(let y=0;y < parentRightObj.length;y++){
-						if( Object.getOwnPropertyNames(parentRightObj[y]).length > 0 && Object.getOwnPropertyNames(parentRightObj[y])[1] != '-' ){
-							let childName = Object.getOwnPropertyNames(parentRightObj[y])[1];
+						if( Object.getOwnPropertyNames(parentRightObj[y]).length > 0 && parentRightObj[y].sub_mod_name != '-' ){
+							// let childName = Object.getOwnPropertyNames(parentRightObj[y])[1];
+							let childName = parentRightObj[y].sub_mod_name;
 							let childId = parentRightObj[y].id;
 							let childObj = parentRightObj[y][childName];
 							// console.log("Has Children >",childName);
@@ -825,6 +828,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state){
 	    if($scope.privileges.user_type != null && $scope.selectionMsg == 'A user type has to be selected to proceed!'){
 	        $scope.selectionMsg = null;
 	    }
+			if($scope.privileges.user_type != null || $scope.privileges.user_type != ''){ $scope.enableSetupBtn = true; }else{ $scope.enableSetupBtn = false; }
 	    if($scope.privileges.user_type == 'SYS_ADMIN'){
 	        apiService.getSysAdmns(true, function(response){
 	    			var result = angular.fromJson(response);

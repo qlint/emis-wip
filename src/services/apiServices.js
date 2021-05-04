@@ -21,6 +21,14 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/fgtPwd/" + param, successFunction, errorFunction, params);
 	};
 
+	this.staffFgtPwd = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/staffFgtPwd/" + param, successFunction, errorFunction, params);
+	};
+
+	this.confirmStaffTemporaryPassword = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/confirmStaffTemporaryPassword/" + param, successFunction, errorFunction, params);
+	};
+
 	/*********** class categories ***********/
 	this.getClassCats = function (param, successFunction, errorFunction, params) {
 		if( param === undefined ) ajaxService.AjaxGet(path + "/getClassCats", successFunction, errorFunction, params);
@@ -892,6 +900,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.usrRights = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/usrRights/" + param, successFunction, errorFunction, params);
+	};
+
+	this.allUsrRights = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/allUsrRights/" + param, successFunction, errorFunction, params);
 	};
 
 	this.updateUsrRights = function (request, successFunction, errorFunction, params) {

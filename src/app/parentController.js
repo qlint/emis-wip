@@ -112,6 +112,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 				}
 				// console.log("Default Perms >",$rootScope.permissions);
+				console.log("Default Perms >",$rootScope.currentUser);
 
 				$scope.navItems = [];
 				$scope.subOptions = [];
@@ -132,8 +133,14 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 							if( subSectionName != 'alt_label' )
 							{
 								if( i == 0 ) navItem = {id: sectionName + "/" + subSectionName, label: label, section: sectionName, subnav: []};
+								// console.log('Permission >',permission);
+								// console.log('Section Name >',sectionName);
+								// console.log('Permission 2 from permission arr >',permission2);
+								// console.log('Sub Section Name >',subSectionName);
 
-								navItem.subnav.push({id: sectionName + "/" + subSectionName, label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName}); //, filters:permission2.filters});
+								if(permission2.view == true){
+									navItem.subnav.push({id: sectionName + "/" + subSectionName, label: $filter('titlecase')(subSectionName.split("_").join(" ")), section: sectionName + '/' + subSectionName, subSection: subSectionName}); //, filters:permission2.filters});
+								}
 
 								i++;
 							}

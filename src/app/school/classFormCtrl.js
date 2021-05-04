@@ -273,6 +273,8 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
 		{
+			$rootScope.getAllClasses();
+			initializeController();
 			$uibModalInstance.close();
 			var msg = ($scope.deleted ? 'Class was deleted.' : ( $scope.edit  ? 'Class was updated' :  'Class was added.'));
 			$rootScope.$emit('classAdded', {'msg' : msg, 'clear' : true});

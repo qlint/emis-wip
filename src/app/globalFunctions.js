@@ -13,6 +13,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 	var refreshingPromise;
 	var isRefreshing = false;
 
+
 	$rootScope.$on('$stateChangeStart', function (event, next, toParams)
 	{
 		var domain = window.location.host;
@@ -37,6 +38,7 @@ function($rootScope, $state, $window, $timeout, Session, Auth, AUTH_EVENTS, apiS
 			loggedIn = true;
 			$rootScope.loggedIn = true;
 			$rootScope.currentUser = JSON.parse($window.sessionStorage["userInfo"]);
+			// if($rootScope.currentUser.super_teacher == true){ $rootScope.currentUser.user_type = 'SYS_ADMIN'; }
 			Session.create($rootScope.currentUser);
 			// console.log($rootScope.currentUser);
 

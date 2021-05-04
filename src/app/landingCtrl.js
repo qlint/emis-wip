@@ -128,7 +128,7 @@ function($scope, $rootScope, $state, $window, Auth, apiService, token ) {
 				$scope.phoneWaiting = true;
 				$scope.pwdDesc = "Checking if the phone number you have entered is known to your school.";
 
-				apiService.fgtPwd(phoneEntry, function(response){
+				apiService.staffFgtPwd(phoneEntry, function(response){
 					var result = angular.fromJson(response);
 					//console.log(result.data);
 					if( result.response == 'Success')
@@ -157,7 +157,7 @@ function($scope, $rootScope, $state, $window, Auth, apiService, token ) {
 			let codeParam = $scope.usrPhone + '/' + enteredCode;
 			console.log($scope,codeParam);
 
-			apiService.confirmTemporaryPassword(codeParam, function(response){
+			apiService.confirmStaffTemporaryPassword(codeParam, function(response){
 				var result = angular.fromJson(response);
 				//console.log(result.data);
 				if( result.response == 'success' || result.response == 'Success')
@@ -182,7 +182,7 @@ function($scope, $rootScope, $state, $window, Auth, apiService, token ) {
 			let phone = document.getElementById('enteredPhone').value;
 			let code = document.getElementById('enteredCode').value;
 			let param = phone + '/' + code;
-			apiService.confirmTemporaryPassword(param, function(response){
+			apiService.confirmStaffTemporaryPassword(param, function(response){
 				var result = angular.fromJson(response);
 				//console.log(result.data);
 				if( result.response == 'success' || result.response == 'Success')

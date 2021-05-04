@@ -238,7 +238,7 @@
 
         			<div class="row">
         			    <b><p id="notifySelection" style="margin-left:15px;font-style:italic;font-size:17px;border:1px solid #000000;padding-left:2%;padding-right:2%;border-radius:6px;background-color:#FAEBD7;width:44%;" ng-show="showWarning">{{selectionMsg}}</p></b>
-        			    <button type="button" class="btn btn-primary" ng-click="checkPrivilegeSelection()" style="margin-left:15px">Set Up Privileges</button>
+        			    <button type="button" class="btn btn-primary {{enableSetupBtn == false ? 'disabled':''}}" ng-click="checkPrivilegeSelection()" style="margin-left:15px">Set Up Privileges</button>
         			</div>
 
         			<div ng-show="selectionsReady" class="row">

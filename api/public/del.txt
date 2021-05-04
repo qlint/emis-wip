@@ -48,3 +48,19 @@ UPDATE user_auth SET edit = false WHERE user_auth_id = 1745
 UPDATE user_auth SET add = true WHERE user_auth_id = 1748
 2020-08-19 04:38:07pm
 UPDATE user_auth SET add = true WHERE user_auth_id = 1747
+2021-04-23 06:58:58am
+UPDATE user_auth SET export = false WHERE user_auth_id = 19615
+2021-04-23 06:58:58am
+UPDATE user_auth SET export = false WHERE user_auth_id = 19616
+2021-04-23 06:58:58am
+UPDATE user_auth SET export = false WHERE user_auth_id = 19617
+2021-04-23 06:58:58am
+UPDATE user_auth SET export = false WHERE user_auth_id = 19618
+2021-04-23 06:58:58am
+UPDATE user_auth SET export = false WHERE user_auth_id = 19619
+2021-04-23 06:58:58am
+UPDATE user_auth SET export = false WHERE user_auth_id = 19620
+2021-04-26 01:10:47am
+UPDATE user_auth SET view = false WHERE user_auth_id = 21436
+2021-04-26 01:30:21am
+UPDATE user_auth SET view = false WHERE user_auth_id = 1871

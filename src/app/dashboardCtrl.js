@@ -14,6 +14,7 @@ function($scope, $rootScope, apiService){
 
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false);
 	$scope.isTransport = ( $rootScope.currentUser.user_type == 'ADMIN-TRANSPORT' ? true : false);
+	if($rootScope.currentUser.super_teacher == true){ $rootScope.currentUser.user_type = 'SYS_ADMIN'; $scope.isTeacher = false; }
 
 	var getStudentCount = function()
 	{

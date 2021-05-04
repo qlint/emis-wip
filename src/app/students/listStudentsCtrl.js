@@ -25,6 +25,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
   $scope.gridFilter.filterValue  = '';
 
   $scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false);
+  if($rootScope.currentUser.super_teacher == true){ $rootScope.currentUser.user_type = 'SYS_ADMIN'; $scope.isTeacher = false; }
 
   var rowTemplate = function()
   {
