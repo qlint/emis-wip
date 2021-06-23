@@ -112,7 +112,7 @@ function($scope, $rootScope, $uibModal, $dialogs, Auth, AUTH_EVENTS, USER_ROLES,
 
 				}
 				// console.log("Default Perms >",$rootScope.permissions);
-				console.log("Default Perms >",$rootScope.currentUser);
+				// console.log("Default Perms >",$rootScope.currentUser);
 
 				$scope.navItems = [];
 				$scope.subOptions = [];
