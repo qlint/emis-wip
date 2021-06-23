@@ -356,6 +356,7 @@ $app->post('/addPayment', function () use($app) {
     $updateCreditQry = $db->prepare("UPDATE app.credits
                     SET amount = :amtApplied,
                       modified_date = now(),
+                      in_quickbooks = false,
                       modified_by = :userId
                     WHERE credit_id = :creditId");
 
@@ -612,6 +613,7 @@ $app->put('/updatePayment', function() use($app){
                       custom_receipt_no = :custom_receipt_no,
                       replacement_payment = :replacementPayment,
                       modified_date = now(),
+                      in_quickbooks = false,
                       modified_by = :userId
                     WHERE payment_id = :paymentId");
 
@@ -621,7 +623,8 @@ $app->put('/updatePayment', function() use($app){
     $updateCreditQry = $db->prepare("UPDATE app.credits
                     SET amount = :creditAmt,
                       modified_date = now(),
-                      modified_by = :userId
+                      modified_by = :userId,
+                      in_quickbooks = false
                     WHERE credit_id = :creditId");
 
     $deleteCredit = $db->prepare("DELETE FROM app.credits WHERE credit_id = :creditId");
@@ -1002,6 +1005,7 @@ $app->put('/applyCredit', function() use($app){
     $updateCreditQry = $db->prepare("UPDATE app.credits
                     SET amount = :creditAmt,
                       modified_date = now(),
+                      in_quickbooks = false,
                       modified_by = :userId
                     WHERE credit_id = :creditId");
 

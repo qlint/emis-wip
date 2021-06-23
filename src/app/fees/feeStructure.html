@@ -19,6 +19,7 @@
 			<h4 class="pageToolsToggler" ng-show="isSmallScreen" data-toggle="collapse" data-target="#pageTools" aria-expanded="false" aria-controls="pageTools" ng-click="toggleTools()">Tools <span class="caret"></span></h4>
 			<div class="pull-right toolbar-container clearfix non-printable" ng-class="{'collapse': isSmallScreen}" ng-hide="isPrinting" id="pageTools">
 				<div class="btn-group toolbar">
+				    <div class="btn add-btn" title="Make Payment" ng-show="permissions.fees.fee_structure.add" data-toggle="modal" data-target="#tickFeeItems" ng-click="studentFeeItems()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Student Fee Items</span></a></div>
 					<div class="btn add-btn" title="Make Payment" ng-show="permissions.fees.fee_structure.add" ng-click="addFeeItem()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Fee Item</span></a></div>
 					<div class="btn" title="Export" ng-click="exportItems()"><a class="clickable"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
 				</div>				
@@ -92,7 +93,68 @@
 				</tbody>
 			</table>
 			-->
-		</div>	
+		</div>
+		
+		<!-- Tick Fee Items Modal -->
+        <div id="tickFeeItems" class="modal fade" role="dialog">
+          <div class="modal-dialog modal-lg">
+        
+            <!-- Modal content-->
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add Or Remove Fee Items From Students</h4>
+              </div>
+              <div class="modal-body">
+                <form name="dataFilterForm" class="form-inline non-printable" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}">
+					
+					<!-- status select -->
+					<div class="form-group">
+						<label for="student_selection">Selection</label>	
+						<select name="student_selection" id="student_selection" class="form-control" ng-model="filters.student_selection" style="width:180px;" ng-change="resetItems()">
+							<option value="class">Class</option>
+							<option value="all">All Students</option>							
+						</select>
+					</div>
+					
+					<div class="form-group" ng-show="filters.student_selection == 'class'">
+						<label for="selection_class">Class</label>	
+						<select name="selection_class" id="selection_class" class="form-control" ng-model="filters.selection_class" style="width:180px;" ng-change="classFeeItems(this)">
+							<option ng-repeat="class in allClassCats track by $index" value="{{class.class_cat_id}}">{{class.class_cat_name}}</option>							
+						</select>
+					</div>
+					
+					<div class="form-group">
+						<label for="selection_item">Fee Item</label>	
+						<select name="selection_item" id="selection_item" class="form-control" ng-model="filters.selection_item" style="width:180px;">
+							<option ng-repeat="fItem in allFeeItems track by $index" value="{{fItem.fee_item_id}}">{{fItem.fee_item}}</option>							
+						</select>
+					</div>
+
+					<!-- apply btn -->
+					<div class="form-group submit-btn">
+						<input type="submit" class="btn btn-sm btn-info" ng-click="applyFeeItemsToStudents()" value="Apply" />
+						<img src="assets/spinner.gif" ng-show="loading" />
+					</div>
+
+				</form>
+				
+				<!--success msg -->
+				<div ng-show="showTickedMsg" style=" background-color: chartreuse;padding: 1px 8px;width: fit-content;border-radius: 6px;margin: 1% auto;">
+                    <h4 style="font-weight: 600;">{{tickedSuccessMsg}}</h4>
+                </div>
+				<!-- end success msg -->
+				
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+        
+          </div>
+        </div>
+        <!-- end modal -->
+        
 	</div>
 </div>
 

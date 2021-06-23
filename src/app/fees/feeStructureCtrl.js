@@ -12,6 +12,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	
 	$scope.gridFilter = {};
 	$scope.gridFilter.filterValue  = '';
+	$scope.showTickedMsg = false;
 	
 	var rowTemplate = function() 
 	{
@@ -177,6 +178,67 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 		$scope.gridApi.exporter.csvExport( 'visible', 'visible' );
 	}
 	
+	$scope.studentFeeItems = function(){
+	    $scope.allClassCats = $rootScope.classCats;
+	    $scope.allFeeItems = $scope.items;
+	}
+	
+	$scope.classFeeItems = function(el){
+	    $scope.allFeeItems = $scope.items;
+	    console.log('Selected Class >',el);
+	    let catId = parseInt(el.filters.selection_class);
+	    $scope.allFeeItems =  $scope.allFeeItems.filter(function(feeItem) {
+	        if(feeItem.class_cats_restriction.length == 0 || feeItem.class_cats_restriction.includes(catId)){
+	            return feeItem;
+	        }
+        });
+	}
+	
+	$scope.resetItems = function(){
+	    $scope.allFeeItems = $scope.items;
+	}
+	
+	$scope.applyFeeItemsToStudents = function(){
+	    // save the entered changes
+	    console.log($scope.filters,$scope);
+	    let feeItemObj = $scope.allFeeItems.filter(function(feeItem) {
+	        return feeItem.fee_item_id == parseInt($scope.filters.selection_item);
+        });
+	    
+	    let data = {
+	        fee_item_id: parseInt($scope.filters.selection_item),
+	        class_cat_id: ($scope.filters.student_selection == "class" ? parseInt($scope.filters.selection_class) : null),
+	        default_amount: parseInt(feeItemObj[0].default_amount_raw),
+	        user_id: $rootScope.currentUser.user_id
+	    }
+	    
+	    if(data.fee_item_id == null || data.fee_item_id == undefined){
+	        alert('Please Select A Fee Item Before Proceeding.');
+	    }else{
+	        // post
+	        console.log('Will Post >',data);
+	        apiService.tickStudentFeeItem(data,
+	                               function ( response, status, params )
+                                    {
+                                		var result = angular.fromJson( response );
+                                		if( result.response == 'success' )
+                                		{
+                                		    $scope.showTickedMsg = true;
+                                			$scope.tickedSuccessMsg = result.data;
+                                		}
+                                		else
+                                		{
+                                		    $scope.showTickedMsg = true;
+                                			$scope.tickedSuccessMsg = "There seems to be an error performing the update. Please try again.";
+                                		}
+                                		setTimeout(function(){ $scope.showTickedMsg = false; }, 3000);
+                                	},
+	                               function (err)
+                                	{
+                                		console.log(err);
+                                	});
+	    }
+	}
 
 	$scope.$on('refreshItems', function(event, args) {
 

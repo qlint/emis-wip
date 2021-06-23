@@ -64,3 +64,19 @@ UPDATE user_auth SET export = false WHERE user_auth_id = 19620
 UPDATE user_auth SET view = false WHERE user_auth_id = 21436
 2021-04-26 01:30:21am
 UPDATE user_auth SET view = false WHERE user_auth_id = 1871
+2021-05-15 12:07:06am
+UPDATE user_auth SET delete = true WHERE user_auth_id = 15290
+2021-05-15 12:07:06am
+UPDATE user_auth SET delete = true WHERE user_auth_id = 15291
+2021-05-15 12:07:06am
+UPDATE user_auth SET delete = true WHERE user_auth_id = 15292
+2021-05-15 12:07:06am
+UPDATE user_auth SET delete = true WHERE user_auth_id = 15293
+2021-05-15 12:07:06am
+UPDATE user_auth SET delete = true WHERE user_auth_id = 15294
+2021-05-15 12:07:06am
+UPDATE user_auth SET delete = true WHERE user_auth_id = 15295
+2021-05-27 12:09:10pm
+UPDATE user_auth SET view = false WHERE user_auth_id = 1675
+2021-05-27 12:10:01pm
+UPDATE user_auth SET view = true WHERE user_auth_id = 1675

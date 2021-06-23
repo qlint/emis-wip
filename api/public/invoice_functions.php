@@ -70,21 +70,13 @@ $app->get('/generateInvoices/:termId(/:studentId)', function ($termId, $studentI
 				student_id, student_fee_item_id, student_name, fee_item,
 				coalesce((CASE
 					WHEN frequency = 'Per Term' and payment_method = 'Installments' THEN
-						case when payment_plan_name = 'Per Month' then
-							round(yearly_amount/9,2)
-						else
-							round(yearly_amount/num_payments,2)
-						end
+						case when payment_plan_name = 'Per Month' then round(yearly_amount/9,2) else round(yearly_amount/num_payments,2) end
 					ELSE
 						round(yearly_amount,2)
 				END),0) AS invoice_amount,
 
 				CASE WHEN payment_method = 'Installments' THEN
-					case when num_payments_this_term > 1 THEN
-						TRUE
-					else
-						FALSE
-					end
+					case when num_payments_this_term > 1 THEN TRUE else FALSE end
 					 ELSE
 					FALSE
 				END as inv_date_bool,
@@ -367,7 +359,8 @@ $app->put('/updateInvoice', function() use($app){
 											due_date = :dueDate,
 											term_id = :termId,
 											modified_date = now(),
-											modified_by= :userId
+											modified_by= :userId,
+											in_quickbooks = false
 										WHERE inv_id = :invId");
 
 		// prepare the possible statements

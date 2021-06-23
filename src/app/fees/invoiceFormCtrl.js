@@ -171,6 +171,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 		if( result.response == 'success')
 		{
 			$scope.results = ( result.nodata ? [] : result.data );
+			console.log('Display Invoice >',$scope.results);
+			console.log('Selected Student >',$scope.selectedStudent);
+			console.log('Inv Creation Method >',$scope.invoice.creation_method);
 			$scope.invoices = [];
 
 			// group results by inv date
@@ -231,6 +234,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 
 	$scope.sumInvoice = function()
 	{
+	    console.log('Display Invoice >',$scope.invoiceLineItems);
+		console.log('Selected Student >',$scope.selectedStudent);
+		console.log('Inv Creation Method >',$scope.invoice.creation_method);
 		$scope.totals.balance = $scope.invoiceLineItems.reduce(function(sum,item){
 			if( item.amount == '' ) item.amount = 0;
 			sum = sum + parseFloat(item.amount);
@@ -274,7 +280,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			fee_item:undefined,
 			amount:undefined
 		});
-		$scope.saving = ($scope.invoiceLineItems.length > 1 ? true : false);
+		$scope.saving = ($scope.invoiceLineItems.length > 0 ? true : false);
 		console.log("Saving? ",$scope.saving);
 	}
 
@@ -373,7 +379,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $par
 			});
 		}
 		apiService.createInvoice(data,createCompleted,apiError);
-		// console.log(data);
+		console.log(data);
 
 	}
 

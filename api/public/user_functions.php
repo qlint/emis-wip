@@ -1138,7 +1138,7 @@ $app->get('/staffFgtPwd/:phone', function ($phoneNumber){
 
 
           $msgRecipientsObj = new stdClass();
-          $msgRecipientsObj->recipient_name = "$parentName";
+          $msgRecipientsObj->recipient_name = "$staffName";
           $msgRecipientsObj->phone_number = "+254" . $phoneNumber;
           array_push($forgotPwdObj->message_recipients, clone $msgRecipientsObj);
 
@@ -1180,16 +1180,16 @@ $app->get('/staffFgtPwd/:phone', function ($phoneNumber){
         echo  json_encode(array('response' => 'error', 'message' => "The submitted details were not found in our records.", "status" => "Phone number not found, no sms will be sent." ));
       }
     }else{
-      $user = $db0->query("SELECT p.first_name, p.last_name, fp.usr_name, fp.temp_pwd
-                                          FROM forgot_password fp
-                                          INNER JOIN parents p USING (parent_id)
-                                          WHERE usr_name = '$phoneNumber'
+      $user = $db0->query("SELECT u.first_name, u.last_name, fp.usr_phone, fp.temp_pwd
+                                          FROM app.forgot_pwd fp
+                                          INNER JOIN app.users u USING (user_id)
+                                          WHERE usr_phonr = '$phoneNumber'
                                           LIMIT 1");
       $userDetails = $user->fetch(PDO::FETCH_OBJ);
       $fName = $userDetails->first_name;
       $lName = $userDetails->last_name;
       $code = $userDetails->temp_pwd;
-      $phone = $userDetails->usr_name;
+      $phone = $userDetails->usr_phone;
 
       // first we need to change the phone format to +[code]phone
       $firstChar = substr($phoneNumber, 0, 1);

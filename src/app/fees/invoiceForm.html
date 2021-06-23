@@ -273,8 +273,8 @@
 		<div class="modal-footer">
 			<button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
 
-			<button type="submit" class="btn btn-success" ng-show="selectedStudent !== undefined && (results.length>0 || invoice.creation_method=='manual')">
-				<span ng-hide="saving">Create Invoice(s)</span>
+			<button type="submit" class="btn btn-success" ng-show="selectedStudent !== undefined && (results.length>0 || saving)">
+				<span ng-show="saving">Create Invoice(s)</span>
 				<span ng-show="saving" class="glyphicon glyphicon-refresh spin"></span>
 			</button>
 

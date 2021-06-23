@@ -139,7 +139,7 @@
 
 							$insertItemsQry = pg_query($quickbooksDb,"INSERT INTO public.fee_items(subdomain, client_identifier, fee_item, amount, eduweb_fee_item_id)
 																	SELECT '$subdomain', '$client_identifier', '$fee_item', $amount, $eduweb_fee_item_id
-																	WHERE NOT EXISTS (SELECT eduweb_fee_item_id FROM public.fee_items WHERE eduweb_fee_item_id = $eduweb_fee_item_id LIMIT 1)
+																	WHERE NOT EXISTS (SELECT eduweb_fee_item_id FROM public.fee_items WHERE eduweb_fee_item_id = $eduweb_fee_item_id AND subdomain='$subdomain LIMIT 1)
 														"); // executing the query
 							/*
 							$insertItemsQry = pg_query($quickbooksDb,"INSERT INTO public.fee_items(
@@ -166,6 +166,26 @@
 							$due_date = pg_escape_string($value["due_date"]);
 							$invoice_date = pg_escape_string($value["invoice_date"]);
 
+              // check for existence and either updte or insert
+
+              // $checkInvoiceQry = pg_query($quickbooksDb, "SELECT eduweb_invoice_id FROM public.to_quickbooks_invoices WHERE eduweb_invoice_id = $eduweb_invoice_id");
+              while ($checkInvs = pg_fetch_assoc($checkInvoiceQry))
+              {
+                if($checkInvs){
+                  //
+                }else{
+                  //
+                }
+                  $dbCreate = 'eduweb_' . $dbResults['subdomain']; // full name of the db's
+                  array_push($dbArray,$dbCreate); // push into dbArray the value of dbCreate
+              }
+
+              //update if it exists
+              $updateInvoicesQry = pg_query($quickbooksDb,"UPDATE public.to_quickbooks_invoices SET amount = $amount, due_date = '$due_date', invoice_date = '$invoice_date', in_quickbooks = false
+																		WHERE eduweb_invoice_id = $eduweb_invoice_id AND client_id = '$client_id' AND admission_number = '$admission_number' AND fee_item = '$fee_item'
+															"); // executing the query
+
+              // insert if it doesn't exist
 							$insertInvoicesQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_invoices(eduweb_invoice_id, client_id, admission_number, fee_item, amount, due_date, invoice_date)
 																		SELECT $eduweb_invoice_id, '$client_id', '$admission_number', '$fee_item', $amount, '$due_date', '$invoice_date'
 																		WHERE NOT EXISTS (SELECT eduweb_invoice_id FROM public.to_quickbooks_invoices WHERE eduweb_invoice_id = $eduweb_invoice_id AND fee_item = '$fee_item' AND amount = $amount LIMIT 1)
@@ -197,6 +217,12 @@
 							$eduweb_invoice_id = $value["eduweb_invoice_id"];
               $receipt_number = $value["receipt_number"];
 
+              // update if it exists
+              $updateInvoicesQry = pg_query($quickbooksDb,"UPDATE public.to_quickbooks_payments SET amount = $amount, payment_date = '$payment_date', in_quickbooks = false
+																		WHERE eduweb_payment_id = $eduweb_payment_id AND client_id = '$client_id' AND admission_number = '$admission_number' AND eduweb_invoice_id = $eduweb_invoice_id AND receipt_number = '$receipt_number'
+															"); // executing the query
+
+              // insert if it doesn't exist
 							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number)
 																		SELECT $eduweb_payment_id, '$client_id', '$admission_number', $amount, '$payment_date', $eduweb_invoice_id, '$receipt_number'
 																		WHERE NOT EXISTS (SELECT eduweb_payment_id FROM public.to_quickbooks_payments WHERE eduweb_payment_id = $eduweb_payment_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)
@@ -216,7 +242,7 @@
 						}
 					}
 
-                    // CREDITS
+          // CREDITS
 					if(is_array($creditsArray)){
 						foreach ($creditsArray as $key => $value) {
 							$eduweb_credit_id = $value["eduweb_credit_id"];
@@ -228,6 +254,7 @@
               $payment_date = pg_escape_string($value["payment_date"]);
               $receipt_number = $value["receipt_number"];
 
+              // check for existence and either updte or insert
 							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_credits(client_id, eduweb_credit_id, admission_number, amount, eduweb_payment_id, eduweb_invoice_id, payment_date, receipt_number)
 																		SELECT '$client_id', $eduweb_credit_id, '$admission_number', $amount, $eduweb_payment_id, $eduweb_invoice_id, '$payment_date', '$receipt_number'
 																		WHERE NOT EXISTS (SELECT eduweb_credit_id FROM public.to_quickbooks_credits WHERE eduweb_credit_id = $eduweb_credit_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)

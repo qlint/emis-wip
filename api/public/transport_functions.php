@@ -1,4 +1,31 @@
 <?php
+$app->put('/updateTransportRoute', function () use($app) {
+		// Update transport route name
+
+	$allPostVars = json_decode($app->request()->getBody(),true);
+	$transportId = ( isset($allPostVars['transport_id']) ? $allPostVars['transport_id']: null);
+	$routeName = ( isset($allPostVars['route']) ? $allPostVars['route']: null);
+
+		try
+		{
+				$db = getDB();
+				$sth = $db->prepare("UPDATE app.transport_routes SET route = :routeName WHERE transport_id = :transportId");
+				$sth->execute( array(':transportId' => $transportId, ':routeName' => $routeName ) );
+
+		    $app->response->setStatus(200);
+				$app->response()->headers->set('Content-Type', 'application/json');
+				echo json_encode(array("response" => "success", "code" => 1));
+				$db = null;
+
+
+		} catch(PDOException $e) {
+				$app->response()->setStatus(404);
+		    $app->response()->headers->set('Content-Type', 'application/json');
+				echo	json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+		}
+
+});
+
 $app->get('/getBuses/:status', function ($status) {
   //Show all students
 

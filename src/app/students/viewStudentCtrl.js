@@ -444,7 +444,10 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			if($rootScope.currentUser.user_type != 'ADMIN-TRANSPORT'){
 				if($scope.student.dob != null || $scope.student.dob != ''){
 					setTimeout(function(){
-						document.getElementById('dob').value = $scope.student.dob;
+						let dob = document.getElementById('dob');
+						if(dob){
+							dob.value = $scope.student.dob;
+						}
 					}, 1000);
 				}
 			}
@@ -546,6 +549,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
     				setTimeout(function(){
 							let tripsArr = ($scope.student.trip_ids != null || $scope.student.trip_ids != undefined ? $scope.student.trip_ids.split(',') : []);
+							if( tripsArr.length > 2){
+							    alert('This student has more than 2 trips selected. Please deselect one.');
+							}
     				    if( tripsArr.length > 0){
             			        for(let d = 0; d < tripsArr.length; d++){
             			            tripsArr[d] = parseInt(tripsArr[d]);
@@ -813,35 +819,45 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 							$scope.selectTrip = $scope.preFilteredTrips;
         	    if( $scope.selectTrip.includes(el.trip.trip_id) == true ){
             	   // remove from arr
-								 console.log("Trip Id " + el.trip.trip_id + " already is selected, so we remove it");
+                    console.log("Trip Id " + el.trip.trip_id + " already is selected, so we remove it");
             	   var index = $scope.selectTrip.indexOf(el.trip.trip_id);
                     if (index > -1) {
                        $scope.selectTrip.splice(index, 1);
                     }
             	}else if( $scope.selectTrip.includes(el.trip.trip_id) == false ){
-            	    // add to arr
-									console.log("Trip Id " + el.trip.trip_id + " is not in our current selection, so we add it");
-            	   $scope.selectTrip.push(el.trip.trip_id);
+                    // no selections above 2 should be possible
+                    if($scope.selectTrip.length <= 1){
+                        // add to arr
+                        console.log("Trip Id " + el.trip.trip_id + " is not in our current selection, so we add it");
+            	        $scope.selectTrip.push(el.trip.trip_id);
+            	        console.log('LENGTH ='+$scope.selectTrip.length);
+            	        console.log("Trip to post",$scope.selectTrip);
+                    }else{
+                        alert('You can only select a maximum of 2 trips. To make a change, deselect one then make another selection.');
+                    }
             	}
-							console.log("Trip to post",$scope.selectTrip);
         	}
 
         	$scope.saveTrip = function()
         	{
-        		var trips = ($scope.selectTrip.length > 0 ? $scope.selectTrip.join(',') : null);
-        		// post obj
-        	    var tripParam = {
-        	        student_id: $scope.student.student_id,
-        	        trip_ids: trips
-        	    }
+        	    if($scope.selectTrip.length <= 1){
+            		var trips = ($scope.selectTrip.length > 0 ? $scope.selectTrip.join(',') : null);
+            		// post obj
+            	    var tripParam = {
+            	        student_id: $scope.student.student_id,
+            	        trip_ids: trips
+            	    }
 
-        	    apiService.addStudentTrips(tripParam, function(response,status){
-        			var result = angular.fromJson(response);
-        			$scope.showTripUpdateMsg = true;
-        			$scope.tripUpdateMessage = "The trip has been updated successfully!";
-        			$scope.getStudentBusDetails($scope.student.student_id);
-        			$scope.getStudentTripOptions();
-        		}, apiError);
+            	    apiService.addStudentTrips(tripParam, function(response,status){
+            			var result = angular.fromJson(response);
+            			$scope.showTripUpdateMsg = true;
+            			$scope.tripUpdateMessage = "The trip has been updated successfully!";
+            			$scope.getStudentBusDetails($scope.student.student_id);
+            			$scope.getStudentTripOptions();
+            		}, apiError);
+        	    }else{
+        	        alert('You can only select a maximum of 2 trips. To make a change, deselect one then make another selection.');
+        	    }
         	}
 
 		}
@@ -2436,20 +2452,22 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 
 				$scope.saveTrip = function()
 				{
-					var trips = ($scope.selectTrip.length > 0 ? $scope.selectTrip.join(',') : null);
-					// post obj
-						var tripParam = {
-								student_id: $scope.student.student_id,
-								trip_ids: trips
-						}
+				    if($scope.selectTrip.length <= 1){
+    					var trips = ($scope.selectTrip.length > 0 ? $scope.selectTrip.join(',') : null);
+    					// post obj
+    						var tripParam = {
+    								student_id: $scope.student.student_id,
+    								trip_ids: trips
+    						}
 
-						apiService.addStudentTrips(tripParam, function(response,status){
-						var result = angular.fromJson(response);
-						$scope.showTripUpdateMsg = true;
-						$scope.tripUpdateMessage = "The trip has been updated successfully!";
-						$scope.getStudentBusDetails($scope.student.student_id);
-						$scope.getStudentTripOptions();
-					}, apiError);
+    						apiService.addStudentTrips(tripParam, function(response,status){
+    						var result = angular.fromJson(response);
+    						$scope.showTripUpdateMsg = true;
+    						$scope.tripUpdateMessage = "The trip has been updated successfully!";
+    						$scope.getStudentBusDetails($scope.student.student_id);
+    						$scope.getStudentTripOptions();
+    					}, apiError);
+				    }
 				}
 
 	}

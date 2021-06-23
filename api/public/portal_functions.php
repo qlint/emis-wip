@@ -6869,7 +6869,31 @@ $app->post('/addedToQuickbooks', function () use($app) {
         $getDb = setDBConnection($theSubDomain);
         /* QUERIES FOR QUICKBOOKS DB */
         if(isset($allPostVars['paymentIds'])){
-          // QUICKBOOKS
+
+          foreach ($paymentId as $payment) {
+            $qbTxnId = $payment['QBTxnID'];
+            $pId = $payment['eduweb_payment_id'];
+            // QUICKBOOKS
+            $paySth = $db->prepare("UPDATE public.to_quickbooks_payments SET transaction_id = :qbTxnId, in_quickbooks = true
+                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                    AND eduweb_payment_id = :pId;");
+            $paySth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbTxnId' => $qbTxnId, ':pId' => $pId) );
+
+            $credSth = $db->prepare("DELETE FROM public.to_quickbooks_credits
+                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                    AND eduweb_payment_id = :pId;");
+            $credSth->execute( array(':clientUsrnm' => $clientUsrnm, ':pId' => $pId) );
+
+            // SCHOOL
+            $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
+      	                                 WHERE payment_id = :pId;");
+            $paySth2->execute( array(':pId' => $pId) );
+
+            $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
+      	                                 WHERE payment_id = :pId;");
+            $credSth2->execute( array(':pId' => $pId) );
+          }
+          /*
           $paySth = $db->prepare("DELETE FROM public.to_quickbooks_payments
                                   WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
                                   AND eduweb_payment_id IN ($paymentId);");
@@ -6888,9 +6912,27 @@ $app->post('/addedToQuickbooks', function () use($app) {
           $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
     	                                 WHERE payment_id IN ($paymentId);");
           $credSth2->execute( array() );
+          */
         }
 
         if(isset($allPostVars['invoiceIds'])){
+
+          foreach ($invoiceId as $inv) {
+            $invId = $inv['invoice_id'];
+            $qbTxnId = $inv['QBTxnID'];
+
+            // QUICKBOOKS
+            $invSth = $db->prepare("UPDATE public.to_quickbooks_invoices SET transaction_id = :qbTxnId, in_quickbooks = true
+                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                    AND eduweb_invoice_id = :invId;");
+            $invSth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbTxnId' => $qbTxnId, ':invId' => $invId) );
+
+            // SCHOOL
+            $invSth2 = $getDb->prepare("UPDATE app.invoices SET in_quickbooks = true
+                                        WHERE inv_id = :invId;");
+            $invSth2->execute( array(':invId' => $invId) );
+          }
+          /*
           // QUICKBOOKS
           $invSth = $db->prepare("DELETE FROM public.to_quickbooks_invoices
                                   WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
@@ -6901,6 +6943,7 @@ $app->post('/addedToQuickbooks', function () use($app) {
           $invSth2 = $getDb->prepare("UPDATE app.invoices SET in_quickbooks = true
                                       WHERE inv_id IN ($invoiceId);");
           $invSth2->execute( array() );
+          */
         }
 
         if(isset($allPostVars['fee_ItemIds'])){

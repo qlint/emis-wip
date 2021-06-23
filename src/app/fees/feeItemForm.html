@@ -1,4 +1,4 @@
-<form name="feeItemForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(feeItemForm)">		
+<form name="feeItemForm" class="form-horizontal modalForm" method="post" novalidate ng-submit="save(feeItemForm)">
 	<div class="modal-header dialog-header-form">
 				<button type="button" class="close" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 				<h4 class="modal-title"><span class="glyphicon glyphicon-plus"></span> {{ (edit ? 'Update' : 'Add') }} Fee Item</h4>
@@ -17,15 +17,15 @@
 						</div>
 					</div>
 					<!-- amount -->
-					<div ng-if="!isTransport || !isUniform" class="form-group" ng-class="{ 'has-error' : feeItemForm.default_amount.$invalid && (feeItemForm.default_amount.$touched || feeItemForm.$submitted) }">		
+					<div ng-if="!isTransport || !isUniform" class="form-group" ng-class="{ 'has-error' : feeItemForm.default_amount.$invalid && (feeItemForm.default_amount.$touched || feeItemForm.$submitted) }">
 						<label for="default_amount" class="col-sm-3 control-label">Default Amount</label>
 						<div class="col-sm-5">
-							<input type="number" name="default_amount" ng-model="item.default_amount" class="form-control" required >	
+							<input type="number" name="default_amount" ng-model="item.default_amount" class="form-control" required >
 							<p ng-show="feeItemForm.default_amount.$invalid && (feeItemForm.default_amount.$touched || feeItemForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Default amount is required.</p>
-						</div>	
+						</div>
 					</div>
 					<!-- frequency -->
-					<div class="form-group" ng-class="{ 'has-error' : feeItemForm.frequency.$invalid && (feeItemForm.frequency.$touched || feeItemForm.$submitted) }">		
+					<div class="form-group" ng-class="{ 'has-error' : feeItemForm.frequency.$invalid && (feeItemForm.frequency.$touched || feeItemForm.$submitted) }">
 						<label for="frequency" class="col-sm-3 control-label">Frequency</label>
 						<div class="col-sm-5">
 							<select name="frequency" ng-model="item.frequency" class="form-control" required>
@@ -33,10 +33,10 @@
 								<option value="{{freq}}" ng-repeat="freq in frequencies">{{freq}}</option>
 							</select>
 							<p ng-show="feeItemForm.frequency.$invalid && (feeItemForm.frequency.$touched || feeItemForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Frequency is required.</p>
-						</div>	
+						</div>
 					</div>
 					<!-- new student only -->
-					<div class="form-group">		
+					<div class="form-group">
 						<label for="new_student_only" class="col-sm-3 control-label">New students only?</label>
 						<div class="col-sm-9">
 							<label class="radio-inline">
@@ -45,10 +45,10 @@
 							<label class="radio-inline">
 							  <input type="radio" name="new_student_only" ng-model="item.new_student_only" ng-value="false"> No
 							</label>
-						</div>	
-					</div>	
+						</div>
+					</div>
 					<!-- optional item -->
-					<div class="form-group">		
+					<div class="form-group">
 						<label for="optional" class="col-sm-3 control-label">Optional?</label>
 						<div class="col-sm-9">
 							<label class="radio-inline">
@@ -57,10 +57,10 @@
 							<label class="radio-inline">
 							  <input type="radio" name="optional" ng-model="item.optional" ng-value="false"> No
 							</label>
-						</div>	
-					</div>	
+						</div>
+					</div>
 					<!-- replaceable item -->
-					<div class="form-group">		
+					<div class="form-group">
 						<label for="replaceable" class="col-sm-3 control-label">Replaceable?</label>
 						<div class="col-sm-9">
 							<label class="radio-inline">
@@ -69,10 +69,10 @@
 							<label class="radio-inline">
 							  <input type="radio" name="replaceable" ng-model="item.replaceable" ng-value="false"> No
 							</label>
-						</div>	
-					</div>	
+						</div>
+					</div>
 					<!-- class cat restrictions -->
-					<div ng-if="!isTransport || !isUniform" class="form-group">		
+					<div ng-if="!isTransport || !isUniform" class="form-group">
 						<label for="replaceable" class="col-sm-3 control-label">Restrict this item to:</label>
 						<div class="col-sm-9">
 							  <label class="col-sm-6 nopad-left" ng-repeat="classCat in classCats">
@@ -83,10 +83,10 @@
 									ng-checked="classCatSelection.indexOf(classCat.class_cat_id) > -1"
 									ng-click="toggleClassCat(classCat.class_cat_id)"
 								  > {{classCat.class_cat_name}}
-							</label>							
-						</div>	
-					</div>	
-			
+							</label>
+						</div>
+					</div>
+
 					<div ng-if="isTransport">
 						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
 							<thead>
@@ -102,7 +102,8 @@
 										<span class="glyphicon glyphicon-trash" ng-click="removeRoute($index)"></span>
 									</td>
 									<td>
-										<span ng-show="route.transport_id!==undefined">{{route.route}}</span>
+										<span ng-show="route.transport_id!==undefined && route.edit==false" class="rtHighlite" ng-click="rtNameEdit(route.transport_id,route)">{{route.route}}</span>
+										<input ng-show="route.transport_id!==undefined && route.edit==true" type="text" ng-model="route.route" id="tr_{{route.transport_id}}" class="routeUpdate"><span class="glyphicon glyphicon-ok-circle routeUpdateIco" ng-show="route.transport_id!==undefined && route.edit==true" ng-click="updateRoute(route)"></span>
 										<input ng-show="route.transport_id===undefined" type="text" class="form-control" ng-model="route.route" />
 									</td>
 									<td>
@@ -113,7 +114,7 @@
 						</table>
 						<button type="button" class="btn btn-xs btn-success" ng-click="addRoute()"><i class="glyhpicon glyphicon-plus"></i> Add Route</button>
 					</div>
-					
+
 					<div ng-if="isUniform">
 						<table id="resultsTable2" class="display dataTable" cellspacing="0" width="100%">
 							<thead>
@@ -140,7 +141,7 @@
 						</table>
 						<button type="button" class="btn btn-xs btn-success" ng-click="addUniform()"><i class="glyhpicon glyphicon-plus"></i> Add Uniform</button>
 					</div>
-					
+
 			</div>
 			<div class="modal-footer">
 				<div class="pull-left">

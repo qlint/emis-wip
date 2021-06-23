@@ -183,6 +183,80 @@ $app->post('/addFeeItem', function () use($app) {
 
 });
 
+$app->post('/tickStudentFeeItem', function () use($app) {
+    // Add fee item to students
+
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  $feeItem =    ( isset($allPostVars['fee_item_id']) ? $allPostVars['fee_item_id']: null);
+  $defaultAmount =( isset($allPostVars['default_amount']) ? $allPostVars['default_amount']: null);
+  $classCatId =  ( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
+  $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
+  $paymentMethod = "Installments";
+
+  try
+  {
+    $db = getDB();
+    if(isset($classCatId)){
+        // get the class cat student id's
+        $query = $db->prepare("SELECT student_id FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id WHERE c.class_cat_id = :classCatId AND s.active IS TRUE");
+        $query->execute( array(':classCatId' => $classCatId) );
+        $students = $query->fetchAll(PDO::FETCH_OBJ);
+    
+        // tick for class cat only
+        foreach($students as $student)
+        {
+            $studentId =  ( isset($student->student_id) ? $student->student_id: null);
+          
+            $sth = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by)
+                            VALUES(:studentId,:feeItemID,:amount,:paymentMethod,:userId);");
+
+            $sth->execute( array(
+                ':studentId' => $studentId,
+                ':feeItemID' => $feeItem,
+                ':amount' => $defaultAmount,
+                ':paymentMethod' => $paymentMethod,
+                ':userId' => $userId
+            ) );
+        }
+        
+    }else{
+        // get all student id's
+        $query = $db->prepare("SELECT student_id FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id WHERE s.active IS TRUE");
+        $query->execute( array() );
+        $students = $query->fetchAll(PDO::FETCH_OBJ);
+        
+        // tick for all students
+        foreach($students as $student)
+        {
+            $studentId =  ( isset($student->student_id) ? $student->student_id: null);
+          
+            $sth = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by)
+                            VALUES(currval(:studentId,:feeItemID,:amount,:paymentMethod,:userId);");
+
+            $sth->execute( array(
+                ':studentId' => $studentId,
+                ':feeItemID' => $feeItem,
+                ':amount' => $defaultAmount,
+                ':paymentMethod' => $paymentMethod,
+                ':userId' => $userId
+            ) );
+        }
+        
+    }
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array("response" => "success", "data" => "The fee items have been added to the respective students successfully" ));
+    $db = null;
+  } catch(PDOException $e) {
+    $app->response()->setStatus(404);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
 $app->put('/updateFeeItem', function () use($app) {
     // Update fee item
 

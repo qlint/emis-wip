@@ -8,14 +8,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.edit = ( data !== undefined ? true : false );
 	$scope.item = ( data !== undefined ? data : {} );
 	$scope.deleted = false;
+	$scope.nameEdit = false;
 
-	
 	$scope.initializeController = function()
 	{
-	
+
 		var frequencies = $rootScope.currentUser.settings['Frequencies'];
-		$scope.frequencies = frequencies.split(',');	
-		
+		$scope.frequencies = frequencies.split(',');
+
 		if( !$scope.edit )
 		{
 			// set defaults for radio buttons
@@ -30,16 +30,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			$scope.classCatSelection = data.class_cats_restriction || [];
 
 			$scope.isTransport = ( data.fee_item == 'Transport' ? true : false );
-			
+
 			if( $scope.isTransport )
 			{
 				// get transport routes
 				apiService.getTansportRoutes({}, function(response){
 					var result = angular.fromJson(response);
-					
+
 					if( result.response == 'success')
 					{
-						if( result.nodata !== undefined) 
+						if( result.nodata !== undefined)
 						{
 							$scope.transportRoutes = [];
 						}
@@ -47,25 +47,26 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 						{
 							$scope.transportRoutes = result.data.map(function(item){
 								item.amount = parseFloat(item.amount);
+								item.edit = false; // we'll use this to enable editing on the ui
 								return item;
 							});
 						}
 					}
-					
+
 				}, function(){});
 			}
-			
+
 			$scope.isUniform = ( data.fee_item == 'Uniform' ? true : false );
-			
+
 			if( $scope.isUniform )
 			{
 				// get uniforms
 				apiService.getUniforms({}, function(response){
 					var result = angular.fromJson(response);
-					
+
 					if( result.response == 'success')
 					{
-						if( result.nodata !== undefined) 
+						if( result.nodata !== undefined)
 						{
 							$scope.uniforms = [];
 						}
@@ -77,21 +78,49 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 							});
 						}
 					}
-					
+
 				}, function(){});
 			}
 		}
-		
-		
+
+
 	}
 	$scope.initializeController();
-	
+
+	$scope.rtNameEdit = function(id,obj){
+		//Find index of specific object using findIndex method.
+		let objIndex = $scope.transportRoutes.findIndex((obj2 => obj2.transport_id == id));
+		//Log object to Console.
+		// console.log("Before update: ", $scope.transportRoutes[objIndex])
+		//Update object's edit property.
+		$scope.transportRoutes[objIndex].edit = true;
+		//Log object to console again.
+		// console.log("After update: ", $scope.transportRoutes[objIndex])
+	}
+
+	$scope.updateRoute = function(routeObj){
+		// console.log('Obj to update >',routeObj);
+		apiService.updateTransportRoute(routeObj,
+													function ( response, status, params )
+													{
+														var result = angular.fromJson( response );
+														if( result.response == 'success' )
+														{ routeObj.edit = false; $scope.initializeController(); }
+														else
+														{
+															$scope.error = true;
+															$scope.errMsg = result.data;
+														}
+													},
+													apiError);
+	}
+
 	$scope.cancel = function()
 	{
-		$uibModalInstance.dismiss('canceled');  
+		$uibModalInstance.dismiss('canceled');
 	}; // end cancel
-	
-	$scope.toggleClassCat = function(item) 
+
+	$scope.toggleClassCat = function(item)
 	{
 		var id = $scope.classCatSelection.indexOf(item);
 
@@ -101,16 +130,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		}
 
 		// is newly selected
-		else {		
+		else {
 			$scope.classCatSelection.push(item);
 		}
 
 	};
-	
+
 	$scope.save = function(form)
 	{
 
-		if ( !form.$invalid ) 
+		if ( !form.$invalid )
 		{
 			var data = $scope.item;
 			data.new_student_only = ( data.new_student_only ? 't' : 'f' );
@@ -118,7 +147,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			data.replaceable = ( data.replaceable ? 't' : 'f' );
 			data.class_cats_restriction = $scope.classCatSelection;
 			data.user_id = $rootScope.currentUser.user_id;
-			
+
 			if( $scope.edit )
 			{
 				if( $scope.isTransport )
@@ -138,7 +167,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 							$scope.error = true;
 							$scope.errMsg = result.data;
 						}
-						
+
 					},apiError);
 				}
 				if( $scope.isUniform )
@@ -158,7 +187,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 							$scope.error = true;
 							$scope.errMsg = result.data;
 						}
-						
+
 					},apiError);
 				}
 				else
@@ -170,12 +199,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			{
 				apiService.addFeeItem(data,createCompleted,apiError);
 			}
-			
-			
+
+
 		}
 	}
-	
-	var createCompleted = function ( response, status, params ) 
+
+	var createCompleted = function ( response, status, params )
 	{
 
 		var result = angular.fromJson( response );
@@ -191,12 +220,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			$scope.errMsg = result.data;
 		}
 	}
-	
-	var apiError = function (response, status) 
+
+	var apiError = function (response, status)
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
-		
+
 		if(result.data.indexOf('"U_route"') > -1){
 		    var msg = 'Duplicate route name.';
 		}else if(result.data.indexOf('"U_uniform"') > -1){
@@ -204,11 +233,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		}else{
 		    var msg = result.data;
 		}
-		
+
 		// var msg = ( result.data.indexOf('"U_route"') > -1 ? 'Duplicate route name.' : result.data);
 		$scope.errMsg = msg;
 	}
-	
+
 	$scope.deleteFeeItem = function()
 	{
 		$scope.error = false;
@@ -217,7 +246,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 			if( result.response == 'success' )
 			{
 				var canDelete = ( parseInt(result.data.num_students) == 0 ? true : false );
-				
+
 				if( canDelete )
 				{
 					var dlg = $dialogs.confirm('Delete Subject','Are you sure you want to permanently delete fee item <strong>' + $scope.item.fee_item + '</strong>? ',{size:'sm'});
@@ -246,9 +275,9 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 				$scope.errMsg = result.data;
 			}
 		},apiError)
-		
+
 	}
-	
+
 	$scope.activateFeeItem = function()
 	{
 		var data = {
@@ -258,34 +287,34 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		}
 		apiService.setFeeItemStatus(data,createCompleted,apiError);
 	}
-	
+
 	$scope.addRoute = function()
-	{		
+	{
 		$scope.transportRoutes.push({
 			transport_id:undefined,
 			route:undefined,
 			amount:undefined
 		});
 	}
-	
+
 	$scope.removeRoute = function(index)
 	{
 		$scope.transportRoutes.splice(index,1);
 	}
-	
+
 	$scope.addUniform = function()
-	{		
+	{
 		$scope.uniforms.push({
 			uniform_id:undefined,
 			uniform:undefined,
 			amount:undefined
 		});
 	}
-	
+
 	$scope.removeUniform = function(index)
 	{
 		$scope.uniforms.splice(index,1);
 	}
-	
-	
+
+
 } ]);

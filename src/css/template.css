@@ -13,9 +13,7 @@ body {
   color: #333;
   font: 12px Arial, Verdana, Helvetica, sans-serif; }
 
-#myHiddenPage {
-      display: none;
-  }
+#myHiddenPage { display: none; }
 
   .notifBox {
     background-color: #ff0000;
@@ -49,6 +47,12 @@ body {
 #page-wrap {
   height: 100%;
   position: relative; }
+
+.rtHighlite:hover{
+  font-weight: 600;
+  background-color: #98FB98;
+  cursor: pointer;
+}
 
  .dashboard-panel select.transportSelectWidth {
     width: 100%;
@@ -556,7 +560,16 @@ ul.table-view {
     margin-top: 10px; }
   .student-box .meta {
     font-size: 12px; }
-
+  input.routeUpdate { width: 93.5%; }
+  span.routeUpdateIco {
+    font-size: 21px;
+    color: green;
+    vertical-align: middle;
+  }
+  span.routeUpdateIco:hover {
+    cursor: pointer;
+    color: blue;
+  }
 /********************** Form Element Styles ******************************/
 ::-webkit-input-placeholder,
 .placeholder-text {

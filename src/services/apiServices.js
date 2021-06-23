@@ -285,6 +285,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.addFeeItem = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addFeeItem", successFunction, errorFunction, params);
 	};
+	
+	this.tickStudentFeeItem = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/tickStudentFeeItem", successFunction, errorFunction, params);
+	};
 
 	this.updateFeeItem = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPut(request, path + "/updateFeeItem", successFunction, errorFunction, params);
@@ -1128,6 +1132,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	};
 
 	/*********** Transport ***********/
+
+	this.updateTransportRoute = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPut(request, path + "/updateTransportRoute", successFunction, errorFunction, params);
+	};
 
 	this.createSchoolBus = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/createSchoolBus", successFunction, errorFunction, params);
