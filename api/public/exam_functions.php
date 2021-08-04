@@ -14,7 +14,7 @@ $app->get('/getExamTypes/:class_cat_id', function ($classCatId) {
 												LEFT JOIN app.class_cats
 												ON exam_types.class_cat_id = class_cats.class_cat_id AND class_cats.active is true
 												WHERE exam_types.class_cat_id = :classCatId
-												ORDER BY sort_order");
+												ORDER BY exam_types.sort_order ASC");
 		$sth->execute(array(':classCatId' => $classCatId));
 		$results = $sth->fetchAll(PDO::FETCH_OBJ);
 
@@ -300,7 +300,7 @@ $app->get('/getStudentExamMarks/:student_id/:class/:term(/:type)', function ($st
 			$queryArray[':examTypeId'] = $examTypeId;
 		}
 
-		$query .= "ORDER BY subjects.sort_order, exam_types.exam_type_id ";
+		$query .= "ORDER BY subjects.sort_order, exam_types.sort_order ASC ";
 
 		$sth = $db->prepare($query);
 		$sth->execute( $queryArray );

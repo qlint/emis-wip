@@ -100,179 +100,162 @@
                     $quickbooksDb = pg_connect("host=". $host . " port=" . $port . " dbname=quickbooks_api user=" . $user . " password=" . $pwd); // the db connect
 
                     // STUDENTS
-					if(is_array($studentsArray)){
-						foreach ($studentsArray as $key => $value) {
-							$client_id = $value["client_id"];
-							$admission_number = pg_escape_string($value["admission_number"]);
-							$first_name = pg_escape_string($value["first_name"]);
-							$middle_name = pg_escape_string($value["middle_name"]);
-							$last_name = pg_escape_string($value["last_name"]);
-							$full_name = pg_escape_string($value["full_name"]);
+          					if(is_array($studentsArray)){
+          						foreach ($studentsArray as $key => $val) {
+          							$client_id = $val["client_id"];
+          							$admission_number = pg_escape_string($val["admission_number"]);
+          							$first_name = pg_escape_string($val["first_name"]);
+          							$middle_name = pg_escape_string($val["middle_name"]);
+          							$last_name = pg_escape_string($val["last_name"]);
+          							$full_name = pg_escape_string($val["full_name"]);
 
-							$insertStudentsQry = pg_query($quickbooksDb,"INSERT INTO public.client_students(client_id, admission_number, first_name, middle_name, last_name, full_name)
-																		SELECT '$client_id', '$admission_number', '$first_name', '$middle_name', '$last_name', '$full_name'
-																		WHERE NOT EXISTS (SELECT admission_number FROM public.client_students WHERE admission_number = '$admission_number' LIMIT 1)
-																		;"); // executing the query
-							/*
-							$insertStudentsQry = pg_query($quickbooksDb,"INSERT INTO public.client_students(
-																			client_id, admission_number, first_name, middle_name, last_name, full_name)
-																		VALUES (
-																			'$client_id',
-																			'$admission_number',
-																			'$first_name',
-																			'$middle_name',
-																			'$last_name',
-																			'$full_name'
-																		);"); // executing the query
-							*/
-						}
-					}
+          							$insertStudentsQry = pg_query($quickbooksDb,"INSERT INTO public.client_students(client_id, admission_number, first_name, middle_name, last_name, full_name)
+          																		SELECT '$client_id', '$admission_number', '$first_name', '$middle_name', '$last_name', '$full_name'
+          																		WHERE NOT EXISTS (SELECT admission_number FROM public.client_students WHERE admission_number = '$admission_number' AND client_id = '$client_id' LIMIT 1)
+          																		;"); // executing the query
+                        /*
+                        $dte_1 = date("Y-m-d");
+                        $tme_1 = date("h:i:sa");
+                        $datetime_1 = $dte_1 . " " . $tme_1;
+
+                        file_put_contents('qb_logs/students.txt', print_r($datetime_1 . PHP_EOL, true), FILE_APPEND);
+                        file_put_contents('qb_logs/students.txt', print_r($client_id. ' Student ' . PHP_EOL, true), FILE_APPEND);
+                        file_put_contents('qb_logs/students.txt', print_r(json_encode($val) . PHP_EOL, true), FILE_APPEND);
+                        */
+          						}
+          					}
 
                     // FEE ITEMS
-					if(is_array($feeItemsArray)){
-						foreach ($feeItemsArray as $key => $value) {
-							$subdomain = pg_escape_string($value["subdomain"]);
-							$client_identifier = pg_escape_string($value["client_identifier"]);
-							$fee_item = pg_escape_string($value["fee_item"]);
-							$amount = $value["amount"];
-							$eduweb_fee_item_id = $value["eduweb_fee_item_id"];
+          					if(is_array($feeItemsArray)){
+          						foreach ($feeItemsArray as $key => $value) {
+          							$subdomain = pg_escape_string($value["subdomain"]);
+          							$client_identifier = pg_escape_string($value["client_identifier"]);
+          							$fee_item = pg_escape_string($value["fee_item"]);
+          							$amount = $value["amount"];
+          							$eduweb_fee_item_id = $value["eduweb_fee_item_id"];
 
-							$insertItemsQry = pg_query($quickbooksDb,"INSERT INTO public.fee_items(subdomain, client_identifier, fee_item, amount, eduweb_fee_item_id)
-																	SELECT '$subdomain', '$client_identifier', '$fee_item', $amount, $eduweb_fee_item_id
-																	WHERE NOT EXISTS (SELECT eduweb_fee_item_id FROM public.fee_items WHERE eduweb_fee_item_id = $eduweb_fee_item_id AND subdomain='$subdomain LIMIT 1)
-														"); // executing the query
-							/*
-							$insertItemsQry = pg_query($quickbooksDb,"INSERT INTO public.fee_items(
-																		subdomain, client_identifier, fee_item, amount, eduweb_fee_item_id)
-																	VALUES (
-																			'$subdomain',
-																			'$client_identifier',
-																			'$fee_item',
-																			$amount,
-																			$eduweb_fee_item_id
-																		);"); // executing the query
-							*/
-						}
-					}
+          							$insertItemsQry = pg_query($quickbooksDb,"INSERT INTO public.fee_items(subdomain, client_identifier, fee_item, amount, eduweb_fee_item_id)
+          																	SELECT '$subdomain', '$client_identifier', '$fee_item', $amount, $eduweb_fee_item_id
+          																	WHERE NOT EXISTS (SELECT eduweb_fee_item_id FROM public.fee_items WHERE eduweb_fee_item_id = $eduweb_fee_item_id AND subdomain='$subdomain' LIMIT 1)
+          														"); // executing the query
+          						}
+          					}
 
                     // INVOICES
-					if(is_array($invoicesArray)){
-						foreach ($invoicesArray as $key => $value) {
-							$eduweb_invoice_id = $value["eduweb_invoice_id"];
-							$client_id = pg_escape_string($value["client_id"]);
-							$admission_number = pg_escape_string($value["admission_number"]);
-							$fee_item = pg_escape_string($value["fee_item"]);
-							$amount = $value["amount"];
-							$due_date = pg_escape_string($value["due_date"]);
-							$invoice_date = pg_escape_string($value["invoice_date"]);
+          					if(is_array($invoicesArray)){
+          						foreach ($invoicesArray as $key => $value) {
+          							$eduweb_invoice_id = $value["eduweb_invoice_id"];
+          							$client_id = pg_escape_string($value["client_id"]);
+          							$admission_number = pg_escape_string($value["admission_number"]);
+          							$fee_item = pg_escape_string($value["fee_item"]);
+          							$amount = $value["amount"];
+          							$due_date = pg_escape_string($value["due_date"]);
+          							$invoice_date = pg_escape_string($value["invoice_date"]);
 
-              // check for existence and either updte or insert
+          							  // check for existence and either updte or insert
 
-              // $checkInvoiceQry = pg_query($quickbooksDb, "SELECT eduweb_invoice_id FROM public.to_quickbooks_invoices WHERE eduweb_invoice_id = $eduweb_invoice_id");
-              while ($checkInvs = pg_fetch_assoc($checkInvoiceQry))
-              {
-                if($checkInvs){
-                  //
-                }else{
-                  //
-                }
-                  $dbCreate = 'eduweb_' . $dbResults['subdomain']; // full name of the db's
-                  array_push($dbArray,$dbCreate); // push into dbArray the value of dbCreate
-              }
+          							  // $checkInvoiceQry = pg_query($quickbooksDb, "SELECT eduweb_invoice_id FROM public.to_quickbooks_invoices WHERE eduweb_invoice_id = $eduweb_invoice_id");
+          							  /*
+          							  while ($checkInvs = pg_fetch_assoc($checkInvoiceQry))
+          							  {
+          								  $dbCreate = 'eduweb_' . $dbResults['subdomain']; // full name of the db's
+          								  array_push($dbArray,$dbCreate); // push into dbArray the value of dbCreate
+          							  }
+          							  */
 
-              //update if it exists
-              $updateInvoicesQry = pg_query($quickbooksDb,"UPDATE public.to_quickbooks_invoices SET amount = $amount, due_date = '$due_date', invoice_date = '$invoice_date', in_quickbooks = false
-																		WHERE eduweb_invoice_id = $eduweb_invoice_id AND client_id = '$client_id' AND admission_number = '$admission_number' AND fee_item = '$fee_item'
-															"); // executing the query
+          							  //update if it exists
+          							  $updateInvoicesQry = pg_query($quickbooksDb,"UPDATE public.to_quickbooks_invoices SET amount = $amount, due_date = '$due_date', invoice_date = '$invoice_date', in_quickbooks = false
+          																		WHERE eduweb_invoice_id = $eduweb_invoice_id AND client_id = '$client_id' AND admission_number = '$admission_number' AND fee_item = '$fee_item'
+          															"); // executing the query
 
-              // insert if it doesn't exist
-							$insertInvoicesQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_invoices(eduweb_invoice_id, client_id, admission_number, fee_item, amount, due_date, invoice_date)
-																		SELECT $eduweb_invoice_id, '$client_id', '$admission_number', '$fee_item', $amount, '$due_date', '$invoice_date'
-																		WHERE NOT EXISTS (SELECT eduweb_invoice_id FROM public.to_quickbooks_invoices WHERE eduweb_invoice_id = $eduweb_invoice_id AND fee_item = '$fee_item' AND amount = $amount LIMIT 1)
-															"); // executing the query
-							/*
-							$insertInvoicesQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_invoices(
-																			eduweb_invoice_id, client_id, admission_number, fee_item, amount, due_date, invoice_date)
-																		VALUES (
-																				$eduweb_invoice_id,
-																				'$client_id',
-																				'$admission_number',
-																				'$fee_item',
-																				$amount,
-																				'$due_date',
-																				'$invoice_date'
-																			);"); // executing the query
-							*/
-						}
-					}
+          								// insert if it doesn't exist
+          								$insertInvoicesQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_invoices(eduweb_invoice_id, client_id, admission_number, fee_item, amount, due_date, invoice_date)
+          																		SELECT $eduweb_invoice_id, '$client_id', '$admission_number', '$fee_item', $amount, '$due_date', '$invoice_date'
+          																		WHERE NOT EXISTS (SELECT eduweb_invoice_id FROM public.to_quickbooks_invoices WHERE eduweb_invoice_id = $eduweb_invoice_id AND fee_item = '$fee_item' AND amount = $amount LIMIT 1)
+          															"); // executing the query
+          								/*
+          								$insertInvoicesQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_invoices(
+          																				eduweb_invoice_id, client_id, admission_number, fee_item, amount, due_date, invoice_date)
+          																			VALUES (
+          																					$eduweb_invoice_id,
+          																					'$client_id',
+          																					'$admission_number',
+          																					'$fee_item',
+          																					$amount,
+          																					'$due_date',
+          																					'$invoice_date'
+          																				);"); // executing the query
+          								*/
+          						}
+          					}
 
                     // PAYMENTS
-					if(is_array($paymentsArray)){
-						foreach ($paymentsArray as $key => $value) {
-							$eduweb_payment_id = $value["eduweb_payment_id"];
-							$client_id = pg_escape_string($value["client_id"]);
-							$admission_number = pg_escape_string($value["admission_number"]);
-							$amount = $value["amount"];
-							$payment_date = pg_escape_string($value["payment_date"]);
-							$eduweb_invoice_id = $value["eduweb_invoice_id"];
-              $receipt_number = $value["receipt_number"];
+          					if(is_array($paymentsArray)){
+          						foreach ($paymentsArray as $key => $value) {
+          							$eduweb_payment_id = $value["eduweb_payment_id"];
+          							$client_id = pg_escape_string($value["client_id"]);
+          							$admission_number = pg_escape_string($value["admission_number"]);
+          							$amount = $value["amount"];
+          							$payment_date = pg_escape_string($value["payment_date"]);
+          							$eduweb_invoice_id = $value["eduweb_invoice_id"];
+          							$receipt_number = $value["receipt_number"];
 
-              // update if it exists
-              $updateInvoicesQry = pg_query($quickbooksDb,"UPDATE public.to_quickbooks_payments SET amount = $amount, payment_date = '$payment_date', in_quickbooks = false
-																		WHERE eduweb_payment_id = $eduweb_payment_id AND client_id = '$client_id' AND admission_number = '$admission_number' AND eduweb_invoice_id = $eduweb_invoice_id AND receipt_number = '$receipt_number'
-															"); // executing the query
+          							  // update if it exists
+          							  $updateInvoicesQry = pg_query($quickbooksDb,"UPDATE public.to_quickbooks_payments SET amount = $amount, payment_date = '$payment_date', in_quickbooks = false
+          																		WHERE eduweb_payment_id = $eduweb_payment_id AND client_id = '$client_id' AND admission_number = '$admission_number' AND eduweb_invoice_id = $eduweb_invoice_id AND receipt_number = '$receipt_number'
+          															"); // executing the query
 
-              // insert if it doesn't exist
-							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number)
-																		SELECT $eduweb_payment_id, '$client_id', '$admission_number', $amount, '$payment_date', $eduweb_invoice_id, '$receipt_number'
-																		WHERE NOT EXISTS (SELECT eduweb_payment_id FROM public.to_quickbooks_payments WHERE eduweb_payment_id = $eduweb_payment_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)
-																			;"); // executing the query
-							/*
-							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(
-																			eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id)
-																		VALUES (
-																				$eduweb_payment_id,
-																				'$client_id',
-																				'$admission_number',
-																				$amount,
-																				'$payment_date',
-																				$eduweb_invoice_id
-																			);"); // executing the query
-							*/
-						}
-					}
+          							// insert if it doesn't exist
+          							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number)
+          																		SELECT $eduweb_payment_id, '$client_id', '$admission_number', $amount, '$payment_date', $eduweb_invoice_id, '$receipt_number'
+          																		WHERE NOT EXISTS (SELECT eduweb_payment_id FROM public.to_quickbooks_payments WHERE eduweb_payment_id = $eduweb_payment_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)
+          																			;"); // executing the query
+          							/*
+          							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(
+          																			eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id)
+          																		VALUES (
+          																				$eduweb_payment_id,
+          																				'$client_id',
+          																				'$admission_number',
+          																				$amount,
+          																				'$payment_date',
+          																				$eduweb_invoice_id
+          																			);"); // executing the query
+          							*/
+          						}
+          					}
 
-          // CREDITS
-					if(is_array($creditsArray)){
-						foreach ($creditsArray as $key => $value) {
-							$eduweb_credit_id = $value["eduweb_credit_id"];
-							$client_id = pg_escape_string($value["client_id"]);
-							$admission_number = pg_escape_string($value["admission_number"]);
-							$amount = $value["amount"];
-							$eduweb_payment_id = $value["eduweb_payment_id"];
-							$eduweb_invoice_id = $value["eduweb_invoice_id"];
-              $payment_date = pg_escape_string($value["payment_date"]);
-              $receipt_number = $value["receipt_number"];
+          					// CREDITS
+          					if(is_array($creditsArray)){
+          						foreach ($creditsArray as $key => $value) {
+          							$eduweb_credit_id = $value["eduweb_credit_id"];
+          							$client_id = pg_escape_string($value["client_id"]);
+          							$admission_number = pg_escape_string($value["admission_number"]);
+          							$amount = $value["amount"];
+          							$eduweb_payment_id = $value["eduweb_payment_id"];
+          							$eduweb_invoice_id = $value["eduweb_invoice_id"];
+          							$payment_date = pg_escape_string($value["payment_date"]);
+          							$receipt_number = $value["receipt_number"];
 
-              // check for existence and either updte or insert
-							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_credits(client_id, eduweb_credit_id, admission_number, amount, eduweb_payment_id, eduweb_invoice_id, payment_date, receipt_number)
-																		SELECT '$client_id', $eduweb_credit_id, '$admission_number', $amount, $eduweb_payment_id, $eduweb_invoice_id, '$payment_date', '$receipt_number'
-																		WHERE NOT EXISTS (SELECT eduweb_credit_id FROM public.to_quickbooks_credits WHERE eduweb_credit_id = $eduweb_credit_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)
-																			;"); // executing the query
-							/*
-							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(
-																			eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id)
-																		VALUES (
-																				$eduweb_payment_id,
-																				'$client_id',
-																				'$admission_number',
-																				$amount,
-																				'$payment_date',
-																				$eduweb_invoice_id
-																			);"); // executing the query
-							*/
-						}
-					}
+          							// check for existence and either updte or insert
+          							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_credits(client_id, eduweb_credit_id, admission_number, amount, eduweb_payment_id, eduweb_invoice_id, payment_date, receipt_number)
+          																		SELECT '$client_id', $eduweb_credit_id, '$admission_number', $amount, $eduweb_payment_id, $eduweb_invoice_id, '$payment_date', '$receipt_number'
+          																		WHERE NOT EXISTS (SELECT eduweb_credit_id FROM public.to_quickbooks_credits WHERE eduweb_credit_id = $eduweb_credit_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)
+          																			;"); // executing the query
+          							/*
+          							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(
+          																			eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id)
+          																		VALUES (
+          																				$eduweb_payment_id,
+          																				'$client_id',
+          																				'$admission_number',
+          																				$amount,
+          																				'$payment_date',
+          																				$eduweb_invoice_id
+          																			);"); // executing the query
+          							*/
+          						}
+          					}
 
                 } catch (Exception $ex1){
                     $logErr1 = $ex1->getMessage();
@@ -284,19 +267,19 @@
             }
         }
         $outputJson = json_encode($output);
-		print_r($outputJson); // save this to log
-		$dte = date("Y-m-d");
-        $tme = date("h:i:sa");
-        $datetime = $dte . " " . $tme;
+    		print_r($outputJson); // save this to log
+    		$dte_5 = date("Y-m-d");
+        $tme_5 = date("h:i:sa");
+        $datetime_5 = $dte_5 . " " . $tme_5;
 
-        file_put_contents('to_qb_log.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
-        file_put_contents('to_qb_log.txt', print_r($outputJson . PHP_EOL, true), FILE_APPEND);
+        // file_put_contents('to_qb_log.txt', print_r($datetime_5 . PHP_EOL, true), FILE_APPEND);
+        // file_put_contents('to_qb_log.txt', print_r($outputJson . PHP_EOL, true), FILE_APPEND);
 
     } catch (Exception $ex){
-		//append exception to errorLog
+		    //append exception to errorLog
         $logErr = $ex->getMessage();
         $output->error_message = $logErr;
         $outputJson = json_encode($output);
-		print_r($outputJson);
+		    print_r($outputJson);
 	}
 ?>

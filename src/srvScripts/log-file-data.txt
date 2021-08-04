@@ -230,3 +230,5 @@ mp4
 pdf
 docx
 jpg
+pdf
+pdf

@@ -326,7 +326,8 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 										SELECT ARRAY_AGG(row_to_json(h)) AS total_marks
 										FROM (
 												SELECT student_id, exam_type_id, exam_type, sum(mark) AS total, sum(out_of) AS out_of,
-														(SELECT grade FROM app.grading WHERE round(sum(mark)::float/sum(out_of))*100 >= min_mark AND round(sum(mark)::float/sum(out_of))*100 <= max_mark ) AS grade
+														(SELECT grade FROM app.grading WHERE round(sum(mark)::float/sum(out_of))*100 >= min_mark AND round(sum(mark)::float/sum(out_of))*100 <= max_mark ) AS grade,
+														exam_sort
 												FROM(
 													SELECT e2.student_id, cse2.exam_type_id, et2.exam_type,
 															s2.subject_name, s2.subject_id, e2.mark,
@@ -338,7 +339,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 																INNER JOIN app.class_subjects USING (class_subject_id)
 																WHERE term_id = :termId
 																AND class_id = :classId
-															) AS class_exam_count
+															) AS class_exam_count, et2.sort_order AS exam_sort
 													FROM app.exam_marks e2
 													INNER JOIN app.class_subject_exams cse2 USING (class_sub_exam_id)
 													INNER JOIN app.exam_types et2 USING (exam_type_id)
@@ -349,7 +350,7 @@ $app->get('/getReportCardData/:student_id/:class_id/:term_id', function ($studen
 													AND e2.term_id = :termId AND parent_subject_id IS null AND use_for_grading IS TRUE
 													ORDER BY et2.sort_order ASC, s2.sort_order ASC
 												)f
-												GROUP BY student_id, exam_type_id, exam_type
+												GROUP BY student_id, exam_type_id, exam_type, exam_sort
 										) h
 									) AS j
 								) AS totals,

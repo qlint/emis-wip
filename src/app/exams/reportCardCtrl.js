@@ -171,6 +171,12 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 					}
 					$scope.reportCd.subjects_column.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
+					$scope.reportCd.subjects_column.forEach((item, i) => {
+						item.exam_marks.sort((a, b) => (a.exam_sort > b.exam_sort) ? 1 : -1);
+					});
+					$scope.reportCd.totals[0].total_marks.sort((a, b) => (a.exam_sort > b.exam_sort) ? 1 : -1);
+
+					console.log('SORTED > ',$scope.reportCd.totals[0]);
 					$scope.reportCd.subject_overalls_column[0].subject_overalls.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
 					if($scope.schoolName == "lasalle" && $scope.entity_id <= 7){
 						for(let x=0;x < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;x++){

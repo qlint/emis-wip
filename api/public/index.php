@@ -208,6 +208,9 @@ require('blog_functions.php');
 // ************** Parent Portal  ****************** //
 require('portal_functions.php');
 
+// ************** Quickbooks  ****************** //
+require('quickbooks_functions.php');
+
 // ************** Staff App  ****************** //
 require('staff_app_functions.php');
 

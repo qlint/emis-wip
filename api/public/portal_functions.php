@@ -27,7 +27,8 @@ $app->post('/parentLogin', function () use($app) {
                                   		END) AS parent_id
                                 )one
                                 LEFT JOIN parent_students USING (parent_id)
-                                LEFT JOIN clients c USING (subdomain)");
+                                LEFT JOIN clients c USING (subdomain)
+                                WHERE c.using_portal IS TRUE");
     $userStatus = $userCheckQry->fetch(PDO::FETCH_OBJ);
     $theStatus = $userStatus->status;
     // THE BELOW VALUES ARE USED ONLY WHEN status = 'proceed'
@@ -6645,361 +6646,6 @@ $app->post('/addHomeworkFeedback', function () {
   }
 });
 
-$app->post('/pushQuickbooksData', function () use($app) {
-  // receive data from quickbooks
-  $allPostVars = json_decode($app->request()->getBody(),true);
-  $dataType = ( isset($allPostVars['data_type']) ? $allPostVars['data_type']: null); // either invoice or payment
-  $dataArr = ( isset($allPostVars['qb_data']) ? $allPostVars['qb_data']: null); // data from quickbooks
-
-  try
-  {
-    $db = getQuickbooksDB();
-
-    if($dataType === 'invoices'){
-      // initialize invoice data
-      foreach($dataArr as $invoice)
-			{
-				$qbInvoiceId = ( isset($invoice['qb_invoice_id']) ? $invoice['qb_invoice_id']: null);
-				$clientId = ( isset($invoice['client_id']) ? $invoice['client_id']: null);
-				$admissionNumber = ( isset($invoice['admission_number']) ? $invoice['admission_number']: null);
-        $feeItem = ( isset($invoice['fee_item']) ? $invoice['fee_item']: null);
-				$amount = ( isset($invoice['amount']) ? $invoice['amount']: null);
-        $dueDate = ( isset($invoice['due_date']) ? $invoice['due_date']: null);
-
-        $sth = $db->prepare("INSERT INTO public.to_eduweb_invoices(qb_invoice_id, client_id, admission_number, fee_item, amount, due_date)
-                            VALUES (:qbInvoiceId, :clientId, :admissionNumber, :feeItem, :amount, :dueDate);");
-        $sth->execute( array(':qbInvoiceId' => $qbInvoiceId,
-                            ':clientId' => $clientId,
-                            ':admissionNumber' => $admissionNumber,
-                            ':feeItem' => $feeItem,
-                            ':amount' => $amount,
-                            ':dueDate' => $dueDate) );
-      }
-
-      $message = "Quickbooks INVOICES received and posted successfully.";
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array("response" => "success", "code" => 1, "message" => $message));
-      $db = null;
-
-    }elseif($dataType === "payments"){
-      // initialize invoice data
-      foreach($dataArr as $payment)
-			{
-				$qbPaymentId = ( isset($payment['qb_payment_id']) ? $payment['qb_payment_id']: null);
-				$clientId = ( isset($payment['client_id']) ? $payment['client_id']: null);
-				$admissionNumber = ( isset($payment['admission_number']) ? $payment['admission_number']: null);
-        $amount = ( isset($payment['amount']) ? $payment['amount']: null);
-        $paymentDate = ( isset($payment['payment_date']) ? $payment['payment_date']: null);
-        $qbInvoiceId = ( isset($payment['qb_invoice_id']) ? $payment['qb_invoice_id']: null);
-
-        $sth = $db->prepare("INSERT INTO public.to_eduweb_payments(qb_payment_id, client_id, admission_number, amount, payment_date, qb_invoice_id)
-                              VALUES (:qbPaymentId, :clientId, :admissionNumber, :amount, :paymentDate, :qbInvoiceId);");
-        $sth->execute( array(':qbPaymentId' => $qbPaymentId,
-                            ':clientId' => $clientId,
-                            ':admissionNumber' => $admissionNumber,
-                            ':amount' => $amount,
-                            ':paymentDate' => $paymentDate,
-                            ':qbInvoiceId' => $qbInvoiceId) );
-      }
-
-      $message = "Quickbooks PAYMENTS received and posted successfully.";
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array("response" => "success", "code" => 1, "message" => $message));
-      $db = null;
-
-    }else{
-      $message = "The operation encountered an issue with the 'data_type'. Ensure it is either 'invoices' or 'payments'";
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array("response" => "error", "code" => 1, "message" => $message, "data_sent" => $allPostVars));
-      $db = null;
-    }
-
-  } catch(PDOException $e) {
-    $app->response()->setStatus(200);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-  }
-});
-
-$app->get('/getToQuickbooksData/:username/:password', function ($username,$password) {
-    //Get all data required for quickbooks sync
-
-  $app = \Slim\Slim::getInstance();
-  $results = new stdClass;
-
-    try
-    {
-      $db = getQuickbooksDB();
-
-      // get this client's details
-      $clientQry = $db->prepare("SELECT * FROM quickbooks_clients WHERE username = :username AND password = :password");
-      $clientQry->execute(array(':username' => $username, ':password' => $password));
-      $clientDetails = $clientQry->fetch(PDO::FETCH_OBJ);
-      $results->client = $clientDetails;
-
-      $results->IncomeAccount = array();
-      $incomeAccountData = new stdClass();
-      $incomeAccountData->account_id = $results->client->quickbooks_client_id;
-      $incomeAccountData->account_name = "FEES";
-      $incomeAccountData->account_type = "ENAccountType.atIncome";
-      array_push($results->IncomeAccount,$incomeAccountData);
-
-      $results->ReceivableAccount = array();
-      $accountData = new stdClass();
-      $accountData->account_id = $results->client->quickbooks_client_id;
-      $accountData->account_name = "Accounts Receivable";
-      $accountData->account_type = "ENAccountType.atAccountsReceivable";
-      array_push($results->ReceivableAccount,$accountData);
-
-      $feeItemsQry = $db->prepare("SELECT fi.*, 'FEES' AS account_name FROM fee_items fi
-                                  INNER JOIN quickbooks_clients qc USING (subdomain)
-                                  WHERE fi.client_identifier = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
-                                  AND fi.exists_in_quickbooks IS FALSE");
-      $feeItemsQry->execute(array(':username' => $username, ':password' => $password));
-      $itemsDetails = $feeItemsQry->fetchAll(PDO::FETCH_OBJ);
-      $results->fee_items = $itemsDetails;
-
-      $studentsQry = $db->prepare("SELECT * FROM client_students
-                                  WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password) AND exists_in_quickbooks IS FALSE
-                                  ");
-      $studentsQry->execute(array(':username' => $username, ':password' => $password));
-      $studentsList = $studentsQry->fetchAll(PDO::FETCH_OBJ);
-      $results->students = $studentsList;
-      /*
-      $paymentsQry = $db->prepare("SELECT *, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_payments
-                                    WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
-                                    ");
-      */
-      $paymentsQry = $db->prepare("SELECT * FROM (
-                                    	SELECT to_quickbooks_payment_id, eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_payments
-                                    	WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
-                                    	UNION
-                                    	SELECT to_quickbooks_credit_id, eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_credits
-                                    	WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
-                                    )a
-                                    ORDER BY admission_number ASC
-                                    ");
-      $paymentsQry->execute(array(':username' => $username, ':password' => $password));
-      $payments = $paymentsQry->fetchAll(PDO::FETCH_OBJ);
-      $results->payments = $payments;
-
-      $invoicesQry = $db->prepare("SELECT invoice_id, client_id, admission_number, due_date, invoice_date, line_items FROM (
-                                      	SELECT q2.eduweb_invoice_id AS invoice_id, q1.client_id, q1.admission_number, q1.due_date, q1.invoice_date,
-                                      			q2.line_items
-                                      	FROM
-                                      	(
-                                      		SELECT DISTINCT eduweb_invoice_id, client_id, admission_number, due_date, invoice_date  FROM to_quickbooks_invoices
-                                      		WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
-                                      	)q1
-                                      	INNER JOIN
-                                      	(
-                                      		SELECT eduweb_invoice_id, array_to_json(array_agg(row_to_json(d))) AS line_items
-                                      		  FROM (
-                                      			SELECT eduweb_invoice_id, fee_item, amount
-                                      			FROM to_quickbooks_invoices
-                                      			WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
-                                      			ORDER BY eduweb_invoice_id ASC
-                                      			) d
-                                      			GROUP BY eduweb_invoice_id
-                                      	)q2
-                                      	ON q1.eduweb_invoice_id = q2.eduweb_invoice_id
-                                      )q
-                                      ORDER BY invoice_id ASC");
-      $invoicesQry->execute(array(':username' => $username, ':password' => $password));
-      $invoices = $invoicesQry->fetchAll(PDO::FETCH_OBJ);
-      $results->invoices = $invoices;
-
-      foreach( $results->invoices as $inv )
-      {
-        $inv->line_items = json_decode($inv->line_items);
-      }
-
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array('response' => 'success',  'data' => $results ));
-      $db = null;
-
-    } catch(PDOException $e) {
-        $app->response()->setStatus(404);
-        $app->response()->headers->set('Content-Type', 'application/json');
-        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-    }
-
-});
-
-$app->post('/addedToQuickbooks', function () use($app) {
-  // receive data from quickbooks
-  $allPostVars = json_decode($app->request()->getBody(),true);
-
-  // logging
-  $dte = date("Y-m-d");
-  $tme = date("h:i:sa");
-  $datetime = $dte . " " . $tme;
-  file_put_contents('log-ids.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
-  file_put_contents('log-ids.txt', print_r($app->request()->getBody() . PHP_EOL, true), FILE_APPEND);
-
-  $clientUsrnm = ( isset($allPostVars['client']) ? $allPostVars['client']: null);
-  $accountArr = ( isset($allPostVars['Account']) ? $allPostVars['Account']: null);
-  $incomeAccountsArr = ( isset($allPostVars['incomeAccountIds']) ? $allPostVars['incomeAccountIds']: null);
-  $feeItemsArr = ( isset($allPostVars['fee_ItemIds']) ? $allPostVars['fee_ItemIds']: null);
-  $studentsArr = ( isset($allPostVars['studentIds']) ? $allPostVars['studentIds']: null);
-  $paymentsArr = ( isset($allPostVars['paymentIds']) ? $allPostVars['paymentIds']: null);
-  $invoicesArr = ( isset($allPostVars['invoiceIds']) ? $allPostVars['invoiceIds']: null);
-
-  $paymentId = ( isset($allPostVars['paymentIds']) ? implode(',', $paymentsArr) : null );
-  $invoiceId = ( isset($allPostVars['invoiceIds']) ? implode(',', $invoicesArr) : null );
-  $feeItemId = ( isset($allPostVars['fee_ItemIds']) ? implode(',', $feeItemsArr) : null );
-  $studentId = ( isset($allPostVars['studentIds']) ? implode(',', $studentsArr) : null );
-
-  try
-  {
-    $db = getQuickbooksDB();
-
-    if(!empty($incomeAccountsArr)){
-
-      foreach($incomeAccountsArr as $incomeAccount)
-			{
-        $userDomain = $db->query("SELECT subdomain FROM public.quickbooks_clients WHERE username = '$clientUsrnm'");
-        $res = $userDomain->fetch(PDO::FETCH_OBJ);
-        $theSubDomain = $res->subdomain;
-
-        $getDb = setDBConnection($theSubDomain);
-        /* QUERIES FOR QUICKBOOKS DB */
-        if(isset($allPostVars['paymentIds'])){
-
-          foreach ($paymentId as $payment) {
-            $qbTxnId = $payment['QBTxnID'];
-            $pId = $payment['eduweb_payment_id'];
-            // QUICKBOOKS
-            $paySth = $db->prepare("UPDATE public.to_quickbooks_payments SET transaction_id = :qbTxnId, in_quickbooks = true
-                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                    AND eduweb_payment_id = :pId;");
-            $paySth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbTxnId' => $qbTxnId, ':pId' => $pId) );
-
-            $credSth = $db->prepare("DELETE FROM public.to_quickbooks_credits
-                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                    AND eduweb_payment_id = :pId;");
-            $credSth->execute( array(':clientUsrnm' => $clientUsrnm, ':pId' => $pId) );
-
-            // SCHOOL
-            $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
-      	                                 WHERE payment_id = :pId;");
-            $paySth2->execute( array(':pId' => $pId) );
-
-            $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
-      	                                 WHERE payment_id = :pId;");
-            $credSth2->execute( array(':pId' => $pId) );
-          }
-          /*
-          $paySth = $db->prepare("DELETE FROM public.to_quickbooks_payments
-                                  WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                  AND eduweb_payment_id IN ($paymentId);");
-          $paySth->execute( array(':clientUsrnm' => $clientUsrnm) );
-
-          $credSth = $db->prepare("DELETE FROM public.to_quickbooks_credits
-                                  WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                  AND eduweb_payment_id IN ($paymentId);");
-          $credSth->execute( array(':clientUsrnm' => $clientUsrnm) );
-
-          // SCHOOL
-          $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
-    	                                 WHERE payment_id IN ($paymentId);");
-          $paySth2->execute( array() );
-
-          $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
-    	                                 WHERE payment_id IN ($paymentId);");
-          $credSth2->execute( array() );
-          */
-        }
-
-        if(isset($allPostVars['invoiceIds'])){
-
-          foreach ($invoiceId as $inv) {
-            $invId = $inv['invoice_id'];
-            $qbTxnId = $inv['QBTxnID'];
-
-            // QUICKBOOKS
-            $invSth = $db->prepare("UPDATE public.to_quickbooks_invoices SET transaction_id = :qbTxnId, in_quickbooks = true
-                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                    AND eduweb_invoice_id = :invId;");
-            $invSth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbTxnId' => $qbTxnId, ':invId' => $invId) );
-
-            // SCHOOL
-            $invSth2 = $getDb->prepare("UPDATE app.invoices SET in_quickbooks = true
-                                        WHERE inv_id = :invId;");
-            $invSth2->execute( array(':invId' => $invId) );
-          }
-          /*
-          // QUICKBOOKS
-          $invSth = $db->prepare("DELETE FROM public.to_quickbooks_invoices
-                                  WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                  AND eduweb_invoice_id IN ($invoiceId);");
-          $invSth->execute( array(':clientUsrnm' => $clientUsrnm) );
-
-          // SCHOOL
-          $invSth2 = $getDb->prepare("UPDATE app.invoices SET in_quickbooks = true
-                                      WHERE inv_id IN ($invoiceId);");
-          $invSth2->execute( array() );
-          */
-        }
-
-        if(isset($allPostVars['fee_ItemIds'])){
-          // QUICKBOOKS
-          $feeSth = $db->prepare("DELETE FROM public.fee_items
-                                  WHERE client_identifier = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                  AND eduweb_fee_item_id IN ($feeItemId);");
-          $feeSth->execute( array(':clientUsrnm' => $clientUsrnm) );
-
-          // SCHOOL
-          $feeSth2 = $getDb->prepare("UPDATE app.fee_items SET in_quickbooks = true
-                                      WHERE fee_item_id IN ($feeItemId);");
-          $feeSth2->execute( array() );
-        }
-
-        if(isset($allPostVars['studentIds'])){
-          // QUICKBOOKS
-          $stdntSth = $db->prepare("DELETE FROM public.client_students
-                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                    AND admission_number = ANY(string_to_array('$studentId',','))
-                                    --AND admission_number IN ('$studentId');
-                                    ");
-          $stdntSth->execute( array(':clientUsrnm' => $clientUsrnm) );
-
-          // SCHOOL
-          $stdntSth2 = $getDb->prepare("UPDATE app.students SET in_quickbooks = true
-                                        WHERE admission_number = ANY(string_to_array('$studentId',','))
-                                        --WHERE admission_number IN ('$studentId');
-                                        ");
-          $stdntSth2->execute( array() );
-        }
-
-
-      }
-
-      $message = "Process completed successfully. Parsed data has been removed.";
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array("response" => "success", "code" => 1, "message" => $message, "client" => $clientUsrnm, "account_id" => $incomeAccount, "payments" => $paymentId, "invoices" => $invoiceId, "students" => $studentId, "fee_items" => $feeItemId));
-      $db = null;
-
-    }else{
-      $message = "Processing of data could not proceed. Please ensure all required parameters are set.";
-      $app->response->setStatus(200);
-      $app->response()->headers->set('Content-Type', 'application/json');
-      echo json_encode(array("response" => "error", "code" => 1, "error_message" => $message, "received_data" => $allPostVars));
-      $db = null;
-    }
-
-  } catch(PDOException $e) {
-    $app->response()->setStatus(200);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
-  }
-});
-
 $app->get('/getStudentResources/:school/:studentId', function ($school, $studentId) {
   // Return students resources
 
@@ -7397,6 +7043,726 @@ $app->get('/getSubjGradePerfByYearAnalysis/:school/:studentId/:classId', functio
     echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
   }
 
+});
+
+$app->get('/getToQuickbooksDataV2/:username/:password', function ($username,$password) {
+    //Get all data (except payments) required for quickbooks sync
+
+  $app = \Slim\Slim::getInstance();
+  $results = new stdClass;
+
+  try
+  {
+    $db = getQuickbooksDB();
+
+    // get this client's details
+    $clientQry = $db->prepare("SELECT * FROM quickbooks_clients WHERE username = :username AND password = :password");
+    $clientQry->execute(array(':username' => $username, ':password' => $password));
+    $clientDetails = $clientQry->fetch(PDO::FETCH_OBJ);
+    $results->client = $clientDetails;
+
+    $results->IncomeAccount = array();
+    $incomeAccountData = new stdClass();
+    $incomeAccountData->account_id = $results->client->quickbooks_client_id;
+    $incomeAccountData->account_name = "FEES";
+    $incomeAccountData->account_type = "ENAccountType.atIncome";
+    array_push($results->IncomeAccount,$incomeAccountData);
+
+    $results->ReceivableAccount = array();
+    $accountData = new stdClass();
+    $accountData->account_id = $results->client->quickbooks_client_id;
+    $accountData->account_name = "Accounts Receivable";
+    $accountData->account_type = "ENAccountType.atAccountsReceivable";
+    array_push($results->ReceivableAccount,$accountData);
+
+    $feeItemsQry = $db->prepare("SELECT fi.*, 'FEES' AS account_name FROM fee_items fi
+                                INNER JOIN quickbooks_clients qc USING (subdomain)
+                                WHERE fi.client_identifier = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                AND fi.exists_in_quickbooks IS FALSE");
+    $feeItemsQry->execute(array(':username' => $username, ':password' => $password));
+    $itemsDetails = $feeItemsQry->fetchAll(PDO::FETCH_OBJ);
+    $results->fee_items = $itemsDetails;
+
+    $studentsQry = $db->prepare("SELECT * FROM client_students
+                                WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password) AND exists_in_quickbooks IS FALSE
+                                ");
+    $studentsQry->execute(array(':username' => $username, ':password' => $password));
+    $studentsList = $studentsQry->fetchAll(PDO::FETCH_OBJ);
+    $results->students = $studentsList;
+
+    $invoicesQry = $db->prepare("SELECT invoice_id, transaction_id AS qb_invoice_txn_id, client_id, admission_number, due_date, invoice_date, line_items FROM (
+                                      SELECT q2.eduweb_invoice_id AS invoice_id, transaction_id, q1.client_id, q1.admission_number, q1.due_date, q1.invoice_date,
+                                          q2.line_items
+                                      FROM
+                                      (
+                                        SELECT DISTINCT eduweb_invoice_id, client_id, admission_number, due_date, invoice_date, transaction_id  FROM to_quickbooks_invoices
+                                        WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                        AND in_quickbooks = false
+                                      )q1
+                                      INNER JOIN
+                                      (
+                                        SELECT eduweb_invoice_id, array_to_json(array_agg(row_to_json(d))) AS line_items
+                                          FROM (
+                                          SELECT eduweb_invoice_id, fee_item, amount
+                                          FROM to_quickbooks_invoices
+                                          WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                          ORDER BY eduweb_invoice_id ASC
+                                          ) d
+                                          GROUP BY eduweb_invoice_id
+                                      )q2
+                                      ON q1.eduweb_invoice_id = q2.eduweb_invoice_id
+                                    )q
+                                    ORDER BY invoice_id ASC");
+    $invoicesQry->execute(array(':username' => $username, ':password' => $password));
+    $invoices = $invoicesQry->fetchAll(PDO::FETCH_OBJ);
+    $results->invoices = $invoices;
+
+    foreach( $results->invoices as $inv )
+    {
+      $inv->line_items = json_decode($inv->line_items);
+    }
+
+    $app->response->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo json_encode(array('response' => 'success',  'data' => $results ));
+    $db = null;
+
+  } catch(PDOException $e) {
+      $app->response()->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+
+});
+
+$app->post('/pushQuickbooksData', function () use($app) {
+  // receive data from quickbooks
+  $allPostVars = json_decode($app->request()->getBody(),true);
+  $dataType = ( isset($allPostVars['data_type']) ? $allPostVars['data_type']: null); // either invoice or payment
+  $dataArr = ( isset($allPostVars['qb_data']) ? $allPostVars['qb_data']: null); // data from quickbooks
+
+  try
+  {
+    $db = getQuickbooksDB();
+
+    if($dataType === 'invoices'){
+      // initialize invoice data
+      foreach($dataArr as $invoice)
+			{
+				$qbInvoiceId = ( isset($invoice['qb_invoice_id']) ? $invoice['qb_invoice_id']: null);
+				$clientId = ( isset($invoice['client_id']) ? $invoice['client_id']: null);
+				$admissionNumber = ( isset($invoice['admission_number']) ? $invoice['admission_number']: null);
+        $feeItem = ( isset($invoice['fee_item']) ? $invoice['fee_item']: null);
+				$amount = ( isset($invoice['amount']) ? $invoice['amount']: null);
+        $dueDate = ( isset($invoice['due_date']) ? $invoice['due_date']: null);
+
+        $sth = $db->prepare("INSERT INTO public.to_eduweb_invoices(qb_invoice_id, client_id, admission_number, fee_item, amount, due_date)
+                            VALUES (:qbInvoiceId, :clientId, :admissionNumber, :feeItem, :amount, :dueDate);");
+        $sth->execute( array(':qbInvoiceId' => $qbInvoiceId,
+                            ':clientId' => $clientId,
+                            ':admissionNumber' => $admissionNumber,
+                            ':feeItem' => $feeItem,
+                            ':amount' => $amount,
+                            ':dueDate' => $dueDate) );
+      }
+
+      $message = "Quickbooks INVOICES received and posted successfully.";
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "success", "code" => 1, "message" => $message));
+      $db = null;
+
+    }elseif($dataType === "payments"){
+      // initialize invoice data
+      foreach($dataArr as $payment)
+			{
+				$qbPaymentId = ( isset($payment['qb_payment_id']) ? $payment['qb_payment_id']: null);
+				$clientId = ( isset($payment['client_id']) ? $payment['client_id']: null);
+				$admissionNumber = ( isset($payment['admission_number']) ? $payment['admission_number']: null);
+        $amount = ( isset($payment['amount']) ? $payment['amount']: null);
+        $paymentDate = ( isset($payment['payment_date']) ? $payment['payment_date']: null);
+        $qbInvoiceId = ( isset($payment['qb_invoice_id']) ? $payment['qb_invoice_id']: null);
+
+        $sth = $db->prepare("INSERT INTO public.to_eduweb_payments(qb_payment_id, client_id, admission_number, amount, payment_date, qb_invoice_id)
+                              VALUES (:qbPaymentId, :clientId, :admissionNumber, :amount, :paymentDate, :qbInvoiceId);");
+        $sth->execute( array(':qbPaymentId' => $qbPaymentId,
+                            ':clientId' => $clientId,
+                            ':admissionNumber' => $admissionNumber,
+                            ':amount' => $amount,
+                            ':paymentDate' => $paymentDate,
+                            ':qbInvoiceId' => $qbInvoiceId) );
+      }
+
+      $message = "Quickbooks PAYMENTS received and posted successfully.";
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "success", "code" => 1, "message" => $message));
+      $db = null;
+
+    }else{
+      $message = "The operation encountered an issue with the 'data_type'. Ensure it is either 'invoices' or 'payments'";
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "error", "code" => 1, "message" => $message, "data_sent" => $allPostVars));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->get('/getToQuickbooksData/:username/:password', function ($username,$password) {
+    //Get all data required for quickbooks sync
+
+  $app = \Slim\Slim::getInstance();
+  $results = new stdClass;
+
+    try
+    {
+      $db = getQuickbooksDB();
+
+      // get this client's details
+      $clientQry = $db->prepare("SELECT * FROM quickbooks_clients WHERE username = :username AND password = :password");
+      $clientQry->execute(array(':username' => $username, ':password' => $password));
+      $clientDetails = $clientQry->fetch(PDO::FETCH_OBJ);
+      $results->client = $clientDetails;
+
+      $results->IncomeAccount = array();
+      $incomeAccountData = new stdClass();
+      $incomeAccountData->account_id = $results->client->quickbooks_client_id;
+      $incomeAccountData->account_name = "FEES";
+      $incomeAccountData->account_type = "ENAccountType.atIncome";
+      array_push($results->IncomeAccount,$incomeAccountData);
+
+      $results->ReceivableAccount = array();
+      $accountData = new stdClass();
+      $accountData->account_id = $results->client->quickbooks_client_id;
+      $accountData->account_name = "Accounts Receivable";
+      $accountData->account_type = "ENAccountType.atAccountsReceivable";
+      array_push($results->ReceivableAccount,$accountData);
+
+      $feeItemsQry = $db->prepare("SELECT fi.*, 'FEES' AS account_name FROM fee_items fi
+                                  INNER JOIN quickbooks_clients qc USING (subdomain)
+                                  WHERE fi.client_identifier = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                  AND fi.exists_in_quickbooks IS FALSE");
+      $feeItemsQry->execute(array(':username' => $username, ':password' => $password));
+      $itemsDetails = $feeItemsQry->fetchAll(PDO::FETCH_OBJ);
+      $results->fee_items = $itemsDetails;
+
+      $studentsQry = $db->prepare("SELECT * FROM client_students
+                                  WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password) AND exists_in_quickbooks IS FALSE
+                                  ");
+      $studentsQry->execute(array(':username' => $username, ':password' => $password));
+      $studentsList = $studentsQry->fetchAll(PDO::FETCH_OBJ);
+      $results->students = $studentsList;
+
+      $paymentsQry = $db->prepare("SELECT * FROM (
+                                    	SELECT to_quickbooks_payment_id, eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_payments
+                                    	WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                    	UNION
+                                    	SELECT to_quickbooks_credit_id, eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_credits
+                                    	WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                    )a
+                                    ORDER BY admission_number ASC
+                                    ");
+      $paymentsQry->execute(array(':username' => $username, ':password' => $password));
+      $payments = $paymentsQry->fetchAll(PDO::FETCH_OBJ);
+      $results->payments = $payments;
+
+      $invoicesQry = $db->prepare("SELECT invoice_id, client_id, admission_number, due_date, invoice_date, line_items FROM (
+                                      	SELECT q2.eduweb_invoice_id AS invoice_id, q1.client_id, q1.admission_number, q1.due_date, q1.invoice_date,
+                                      			q2.line_items
+                                      	FROM
+                                      	(
+                                      		SELECT DISTINCT eduweb_invoice_id, client_id, admission_number, due_date, invoice_date  FROM to_quickbooks_invoices
+                                      		WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                      	)q1
+                                      	INNER JOIN
+                                      	(
+                                      		SELECT eduweb_invoice_id, array_to_json(array_agg(row_to_json(d))) AS line_items
+                                      		  FROM (
+                                      			SELECT eduweb_invoice_id, fee_item, amount
+                                      			FROM to_quickbooks_invoices
+                                      			WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                      			ORDER BY eduweb_invoice_id ASC
+                                      			) d
+                                      			GROUP BY eduweb_invoice_id
+                                      	)q2
+                                      	ON q1.eduweb_invoice_id = q2.eduweb_invoice_id
+                                      )q
+                                      ORDER BY invoice_id ASC");
+      $invoicesQry->execute(array(':username' => $username, ':password' => $password));
+      $invoices = $invoicesQry->fetchAll(PDO::FETCH_OBJ);
+      $results->invoices = $invoices;
+
+      foreach( $results->invoices as $inv )
+      {
+        $inv->line_items = json_decode($inv->line_items);
+      }
+
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success',  'data' => $results ));
+      $db = null;
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+$app->get('/getToQuickbooksPayments/:username/:password', function ($username,$password) {
+    //Get all data required for quickbooks sync
+
+  $app = \Slim\Slim::getInstance();
+  $results = new stdClass;
+
+    try
+    {
+      $db = getQuickbooksDB();
+
+      // get this client's details
+      $clientQry = $db->prepare("SELECT * FROM quickbooks_clients WHERE username = :username AND password = :password");
+      $clientQry->execute(array(':username' => $username, ':password' => $password));
+      $clientDetails = $clientQry->fetch(PDO::FETCH_OBJ);
+      $results->client = $clientDetails;
+
+      $results->IncomeAccount = array();
+      $incomeAccountData = new stdClass();
+      $incomeAccountData->account_id = $results->client->quickbooks_client_id;
+      $incomeAccountData->account_name = "FEES";
+      $incomeAccountData->account_type = "ENAccountType.atIncome";
+      array_push($results->IncomeAccount,$incomeAccountData);
+
+      $results->ReceivableAccount = array();
+      $accountData = new stdClass();
+      $accountData->account_id = $results->client->quickbooks_client_id;
+      $accountData->account_name = "Accounts Receivable";
+      $accountData->account_type = "ENAccountType.atAccountsReceivable";
+      array_push($results->ReceivableAccount,$accountData);
+
+      $paymentsQry = $db->prepare("SELECT * FROM (
+                                    	SELECT eduweb_payment_id, transaction_id AS qb_invoice_txn_id, payment_txn_id AS qb_payment_txn_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_payments
+                                    	WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                      AND in_quickbooks = false
+                                    	UNION
+                                    	SELECT eduweb_payment_id, transaction_id AS qb_invoice_txn_id, payment_txn_id AS qb_payment_txn_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_credits
+                                    	WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
+                                      AND in_quickbooks = false
+                                    )a
+                                    ORDER BY admission_number ASC
+                                    ");
+      $paymentsQry->execute(array(':username' => $username, ':password' => $password));
+      $payments = $paymentsQry->fetchAll(PDO::FETCH_OBJ);
+      $results->payments = $payments;
+
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array('response' => 'success',  'data' => $results ));
+      $db = null;
+
+    } catch(PDOException $e) {
+        $app->response()->setStatus(200);
+        $app->response()->headers->set('Content-Type', 'application/json');
+        echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+    }
+
+});
+
+
+
+$app->post('/addedToQuickbooks', function () use($app) {
+  // receive data from quickbooks
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  // logging
+  $dte = date("Y-m-d");
+  $tme = date("h:i:sa");
+  $datetime = $dte . " " . $tme;
+  file_put_contents('log-ids.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+  file_put_contents('log-ids.txt', print_r($app->request()->getBody() . PHP_EOL, true), FILE_APPEND);
+
+  $clientUsrnm = ( isset($allPostVars['client']) ? $allPostVars['client']: null);
+  $accountArr = ( isset($allPostVars['Account']) ? $allPostVars['Account']: null);
+  $incomeAccountsArr = ( isset($allPostVars['incomeAccountIds']) ? $allPostVars['incomeAccountIds']: null);
+  $feeItemsArr = ( isset($allPostVars['fee_ItemIds']) ? $allPostVars['fee_ItemIds']: null);
+  $studentsArr = ( isset($allPostVars['studentIds']) ? $allPostVars['studentIds']: null);
+  $paymentsArr = ( isset($allPostVars['paymentIds']) ? $allPostVars['paymentIds']: null);
+  $invoicesArr = ( isset($allPostVars['invoiceIds']) ? $allPostVars['invoiceIds']: null);
+
+  $paymentId = ( isset($allPostVars['paymentIds']) ? implode(',', $paymentsArr) : null );
+  $invoiceId = ( isset($allPostVars['invoiceIds']) ? implode(',', $invoicesArr) : null );
+  $feeItemId = ( isset($allPostVars['fee_ItemIds']) ? implode(',', $feeItemsArr) : null );
+  $studentId = ( isset($allPostVars['studentIds']) ? implode(',', $studentsArr) : null );
+
+  try
+  {
+    $db = getQuickbooksDB();
+
+    if(!empty($incomeAccountsArr)){
+
+      foreach($incomeAccountsArr as $incomeAccount)
+			{
+          $userDomain = $db->query("SELECT subdomain FROM public.quickbooks_clients WHERE username = '$clientUsrnm'");
+          $res = $userDomain->fetch(PDO::FETCH_OBJ);
+          $theSubDomain = $res->subdomain;
+
+          $getDb = setDBConnection($theSubDomain);
+          /* QUERIES FOR QUICKBOOKS DB */
+          if(isset($allPostVars['paymentIds'])){
+              // foreach ($paymentId as $payment){
+                  // $qbTxnId = $payment['QBTxnID'];
+                  // $pId = $payment['eduweb_payment_id'];
+                  // QUICKBOOKS
+                  $paySth = $db->prepare("DELETE FROM public.to_quickbooks_payments
+                                          WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                          AND eduweb_payment_id IN ($paymentId);");
+                  $paySth->execute( array(':clientUsrnm' => $clientUsrnm) );
+
+                  $credSth = $db->prepare("DELETE FROM public.to_quickbooks_credits
+                                          WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                          AND eduweb_payment_id IN ($paymentId);");
+                  $credSth->execute( array(':clientUsrnm' => $clientUsrnm) );
+
+                  // SCHOOL
+                  $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
+            	                                 WHERE payment_id IN ($paymentId);");
+                  $paySth2->execute( array() );
+
+                  $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
+            	                                 WHERE payment_id IN ($paymentId);");
+                  $credSth2->execute( array() );
+              // }
+          }
+
+          if(isset($allPostVars['invoiceIds'])){
+
+            // foreach ($invoiceId as $inv) {
+                // $invId = $inv['invoice_id'];
+                // $qbTxnId = $inv['QBTxnID'];
+
+                // QUICKBOOKS
+                $invSth = $db->prepare("DELETE FROM public.to_quickbooks_invoices
+                                        WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                        AND eduweb_invoice_id IN ($invoiceId);");
+                $invSth->execute( array(':clientUsrnm' => $clientUsrnm) );
+
+                // SCHOOL
+                $invSth2 = $getDb->prepare("UPDATE app.invoices SET in_quickbooks = true
+                                            WHERE inv_id IN ($invoiceId);");
+                $invSth2->execute( array() );
+            // }
+          }
+
+          if(isset($allPostVars['fee_ItemIds'])){
+              // QUICKBOOKS
+              $feeSth = $db->prepare("DELETE FROM public.fee_items
+                                      WHERE client_identifier = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                      AND eduweb_fee_item_id IN ($feeItemId);");
+              $feeSth->execute( array(':clientUsrnm' => $clientUsrnm) );
+
+              // SCHOOL
+              $feeSth2 = $getDb->prepare("UPDATE app.fee_items SET in_quickbooks = true
+                                          WHERE fee_item_id IN ($feeItemId);");
+              $feeSth2->execute( array() );
+          }
+
+          if(isset($allPostVars['studentIds'])){
+              // QUICKBOOKS
+              $stdntSth = $db->prepare("DELETE FROM public.client_students
+                                        WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                        AND admission_number = ANY(string_to_array('$studentId',','))
+                                        --AND admission_number IN ('$studentId');
+                                        ");
+              $stdntSth->execute( array(':clientUsrnm' => $clientUsrnm) );
+
+              // SCHOOL
+              $stdntSth2 = $getDb->prepare("UPDATE app.students SET in_quickbooks = true
+                                            WHERE admission_number = ANY(string_to_array('$studentId',','))
+                                            --WHERE admission_number IN ('$studentId');
+                                            ");
+              $stdntSth2->execute( array() );
+          }
+
+
+      }
+
+      $message = "Process completed successfully. Parsed data has been removed.";
+      file_put_contents('log-ids.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+      file_put_contents('log-ids.txt', print_r($message . PHP_EOL, true), FILE_APPEND);
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "success", "code" => 1, "message" => $message, "client" => $clientUsrnm, "account_id" => $incomeAccount, "payments" => $paymentId, "invoices" => $invoiceId, "students" => $studentId, "fee_items" => $feeItemId));
+      $db = null;
+
+    }else{
+      $message = "Processing of data could not proceed. Please ensure all required parameters are set.";
+      file_put_contents('log-ids.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+      file_put_contents('log-ids.txt', print_r($message . PHP_EOL, true), FILE_APPEND);
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "error", "code" => 1, "error_message" => $message, "received_data" => $allPostVars));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    file_put_contents('log-ids.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+    file_put_contents('log-ids.txt', print_r($e->getMessage() . PHP_EOL, true), FILE_APPEND);
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->post('/addedToQuickbooksV2', function () use($app) {
+  // receive data from quickbooks
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+
+  $clientUsrnm = ( isset($allPostVars['client']) ? $allPostVars['client']: null);
+  $accountArr = ( isset($allPostVars['Account']) ? $allPostVars['Account']: null);
+  $incomeAccountsArr = ( isset($allPostVars['incomeAccountIds']) ? $allPostVars['incomeAccountIds']: null);
+  $feeItemsArr = ( isset($allPostVars['fee_ItemIds']) ? $allPostVars['fee_ItemIds']: null);
+  $studentsArr = ( isset($allPostVars['studentIds']) ? $allPostVars['studentIds']: null);
+  $paymentsArr = ( isset($allPostVars['paymentIds']) ? $allPostVars['paymentIds']: null);
+  $invoicesArr = ( isset($allPostVars['invoiceIds']) ? $allPostVars['invoiceIds']: null);
+
+  // $paymentId = ( isset($allPostVars['paymentIds']) ? implode(',', $paymentsArr) : null );
+  // $invoiceId = ( isset($allPostVars['invoiceIds']) ? implode(',', $invoicesArr) : null );
+  $feeItemId = ( isset($allPostVars['fee_ItemIds']) ? implode(',', $feeItemsArr) : null );
+  $studentId = ( isset($allPostVars['studentIds']) ? implode(',', $studentsArr) : null );
+
+  try
+  {
+    $db = getQuickbooksDB();
+
+    if(!empty($incomeAccountsArr)){
+
+      foreach($incomeAccountsArr as $incomeAccount)
+			{
+          $userDomain = $db->query("SELECT subdomain FROM public.quickbooks_clients WHERE username = '$clientUsrnm'");
+          $res = $userDomain->fetch(PDO::FETCH_OBJ);
+          $theSubDomain = $res->subdomain;
+
+          $getDb = setDBConnection($theSubDomain);
+          /* QUERIES FOR QUICKBOOKS DB */
+          if(isset($allPostVars['invoiceIds'])){
+            $dte = date("Y-m-d");
+            $tme = date("h:i:sa");
+            $datetime = $dte . " " . $tme;
+            file_put_contents('log-idsv2.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+            file_put_contents('log-idsv2.txt', print_r('RECEIVE INVOICES FROM QB' . PHP_EOL, true), FILE_APPEND);
+            file_put_contents('log-idsv2.txt', print_r(json_encode($allPostVars['invoiceIds']) . PHP_EOL, true), FILE_APPEND);
+
+            foreach ($invoicesArr as $inv) {
+                $invId = $inv['invoice_id'];
+                $qbTxnId = $inv['qb_invoice_txn_id'];
+
+                // QUICKBOOKS
+                $invSth = $db->prepare("UPDATE public.to_quickbooks_invoices SET transaction_id = :qbTxnId, in_quickbooks = true
+                                        WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                        AND eduweb_invoice_id = :invId;");
+                $invSth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbTxnId' => $qbTxnId, ':invId' => $invId) );
+
+                // QUICKBOOKS RELATAED PAYMENTS
+                $payInvSth = $db->prepare("UPDATE public.to_quickbooks_payments SET transaction_id = :qbTxnId
+                                        WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                        AND eduweb_invoice_id = :invId;");
+                $payInvSth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbTxnId' => $qbTxnId, ':invId' => $invId) );
+
+                // SCHOOL
+                $invSth2 = $getDb->prepare("UPDATE app.invoices SET in_quickbooks = true
+                                            WHERE inv_id = :invId;");
+                $invSth2->execute( array(':invId' => $invId) );
+            }
+          }
+
+          if(isset($allPostVars['paymentIds'])){
+            $dte = date("Y-m-d");
+            $tme = date("h:i:sa");
+            $datetime = $dte . " " . $tme;
+            file_put_contents('log-idsv2.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+            file_put_contents('log-idsv2.txt', print_r('RECEIVE PAYMENTS FROM QB' . PHP_EOL, true), FILE_APPEND);
+            file_put_contents('log-idsv2.txt', print_r(json_encode($allPostVars['paymentIds']) . PHP_EOL, true), FILE_APPEND);
+
+            foreach ($paymentsArr as $payment) {
+              $qbPayTxnId = $payment['qb_payment_txn_id'];
+              // $qbInvTxnId = $payment['qb_invoice_txn_id'];
+              $pId = $payment['eduweb_payment_id'];
+              // QUICKBOOKS
+              if(isset($qbPayTxnId)){
+                $paySth = $db->prepare("UPDATE public.to_quickbooks_payments SET payment_txn_id = :qbPayTxnId, in_quickbooks = true
+                                        WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                        AND eduweb_payment_id = :pId;");
+                $paySth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbPayTxnId' => $qbPayTxnId, ':pId' => $pId) );
+
+                $credSth = $db->prepare("DELETE FROM public.to_quickbooks_credits
+                                        WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                        AND eduweb_payment_id = :pId;");
+                $credSth->execute( array(':clientUsrnm' => $clientUsrnm, ':pId' => $pId) );
+
+                // SCHOOL
+                $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
+          	                                 WHERE payment_id = :pId;");
+                $paySth2->execute( array(':pId' => $pId) );
+
+                $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
+          	                                 WHERE payment_id = :pId;");
+                $credSth2->execute( array(':pId' => $pId) );
+              }
+
+            }
+          }
+
+          if(isset($allPostVars['fee_ItemIds'])){
+              // QUICKBOOKS
+              $feeSth = $db->prepare("DELETE FROM public.fee_items
+                                      WHERE client_identifier = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                      AND eduweb_fee_item_id IN ($feeItemId);");
+              $feeSth->execute( array(':clientUsrnm' => $clientUsrnm) );
+
+              // SCHOOL
+              $feeSth2 = $getDb->prepare("UPDATE app.fee_items SET in_quickbooks = true
+                                          WHERE fee_item_id IN ($feeItemId);");
+              $feeSth2->execute( array() );
+          }
+
+          if(isset($allPostVars['studentIds'])){
+              // QUICKBOOKS
+              $stdntSth = $db->prepare("DELETE FROM public.client_students
+                                        WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                        AND admission_number = ANY(string_to_array('$studentId',','))
+                                        --AND admission_number IN ('$studentId');
+                                        ");
+              $stdntSth->execute( array(':clientUsrnm' => $clientUsrnm) );
+
+              // SCHOOL
+              $stdntSth2 = $getDb->prepare("UPDATE app.students SET in_quickbooks = true
+                                            WHERE admission_number = ANY(string_to_array('$studentId',','))
+                                            --WHERE admission_number IN ('$studentId');
+                                            ");
+              $stdntSth2->execute( array() );
+          }
+
+
+      }
+
+      $message = "Process completed successfully. Parsed data has been removed.";
+      file_put_contents('log-idsv2.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+      file_put_contents('log-idsv2.txt', print_r($message . PHP_EOL, true), FILE_APPEND);
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "success", "code" => 1, "message" => $message, "client" => $clientUsrnm, "account_id" => $incomeAccount, "payments" => $paymentsArr, "invoices" => $invoicesArr, "students" => $studentId, "fee_items" => $feeItemId));
+      $db = null;
+
+    }else{
+      $message = "Processing of data could not proceed. Please ensure all required parameters are set.";
+      file_put_contents('log-idsv2.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+      file_put_contents('log-idsv2.txt', print_r($message . PHP_EOL, true), FILE_APPEND);
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "error", "code" => 1, "error_message" => $message, "received_data" => $allPostVars));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    file_put_contents('log-idsv2.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+    file_put_contents('log-idsv2.txt', print_r('RECEIVE FROM QB ERROR' . PHP_EOL, true), FILE_APPEND);
+    file_put_contents('log-idsv2.txt', print_r($e->getMessage() . PHP_EOL, true), FILE_APPEND);
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
+});
+
+$app->post('/addedPaymentsToQBV2', function () use($app) {
+  // receive data from quickbooks
+  $allPostVars = json_decode($app->request()->getBody(),true);
+
+  // logging
+  $dte = date("Y-m-d");
+  $tme = date("h:i:sa");
+  $datetime = $dte . " " . $tme;
+  file_put_contents('log-idsv2.txt', print_r($datetime . PHP_EOL, true), FILE_APPEND);
+  file_put_contents('log-idsv2.txt', print_r('ADDING PAYMENTS START' . PHP_EOL, true), FILE_APPEND);
+  file_put_contents('log-idsv2.txt', print_r($app->request()->getBody() . PHP_EOL, true), FILE_APPEND);
+
+  $clientUsrnm = ( isset($allPostVars['client']) ? $allPostVars['client']: null);
+  $accountArr = ( isset($allPostVars['Account']) ? $allPostVars['Account']: null);
+  $incomeAccountsArr = ( isset($allPostVars['incomeAccountIds']) ? $allPostVars['incomeAccountIds']: null);
+  $paymentsArr = ( isset($allPostVars['paymentIds']) ? $allPostVars['paymentIds']: null);
+
+  $paymentId = ( isset($allPostVars['paymentIds']) ? implode(',', $paymentsArr) : null );
+
+  try
+  {
+    $db = getQuickbooksDB();
+
+    if(!empty($incomeAccountsArr)){
+
+      foreach($incomeAccountsArr as $incomeAccount)
+			{
+        $userDomain = $db->query("SELECT subdomain FROM public.quickbooks_clients WHERE username = '$clientUsrnm'");
+        $res = $userDomain->fetch(PDO::FETCH_OBJ);
+        $theSubDomain = $res->subdomain;
+
+        $getDb = setDBConnection($theSubDomain);
+        /* QUERIES FOR QUICKBOOKS DB */
+        if(isset($allPostVars['paymentIds'])){
+
+          foreach ($paymentId as $payment) {
+            $qbTxnId = $payment['qb_payment_txn_id'];
+            $pId = $payment['eduweb_payment_id'];
+            // QUICKBOOKS
+            $paySth = $db->prepare("UPDATE public.to_quickbooks_payments SET transaction_id = :qbTxnId, in_quickbooks = true
+                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                    AND eduweb_payment_id = :pId;");
+            $paySth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbTxnId' => $qbTxnId, ':pId' => $pId) );
+
+            $credSth = $db->prepare("DELETE FROM public.to_quickbooks_credits
+                                    WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
+                                    AND eduweb_payment_id = :pId;");
+            $credSth->execute( array(':clientUsrnm' => $clientUsrnm, ':pId' => $pId) );
+
+            // SCHOOL
+            $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
+      	                                 WHERE payment_id = :pId;");
+            $paySth2->execute( array(':pId' => $pId) );
+
+            $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
+      	                                 WHERE payment_id = :pId;");
+            $credSth2->execute( array(':pId' => $pId) );
+          }
+        }
+
+      }
+
+      $message = "Payments completed successfully. Txn Id's have been set.";
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "success", "code" => 1, "message" => $message, "client" => $clientUsrnm, "account_id" => $incomeAccount, "payments" => $paymentId));
+      $db = null;
+
+    }else{
+      $message = "Processing of payments could not proceed. Please ensure all required parameters are set.";
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "error", "code" => 1, "error_message" => $message, "received_data" => $allPostVars));
+      $db = null;
+    }
+
+  } catch(PDOException $e) {
+    $app->response()->setStatus(200);
+    $app->response()->headers->set('Content-Type', 'application/json');
+    file_put_contents('log-idsv2.txt', print_r('ADDING PAYMENTS ERROR' . PHP_EOL, true), FILE_APPEND);
+    file_put_contents('log-idsv2.txt', print_r($e->getMessage() . PHP_EOL, true), FILE_APPEND);
+    echo  json_encode(array('response' => 'error', 'data' => $e->getMessage() ));
+  }
 });
 
 ?>

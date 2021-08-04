@@ -80,3 +80,11 @@ UPDATE user_auth SET delete = true WHERE user_auth_id = 15295
 UPDATE user_auth SET view = false WHERE user_auth_id = 1675
 2021-05-27 12:10:01pm
 UPDATE user_auth SET view = true WHERE user_auth_id = 1675
+2021-07-05 10:26:40am
+UPDATE user_auth SET view = true WHERE user_auth_id = 15304
+2021-07-05 10:26:40am
+UPDATE user_auth SET view = false WHERE user_auth_id = 15303
+2021-07-05 10:26:40am
+UPDATE user_auth SET view = true WHERE user_auth_id = 15306
+2021-07-05 10:26:40am
+UPDATE user_auth SET view = false WHERE user_auth_id = 15305

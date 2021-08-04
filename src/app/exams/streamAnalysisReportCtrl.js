@@ -11,23 +11,23 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 	$scope.filterShowing = false;
 	$scope.toolsShowing = false;
 	var currentStatus = true;
-	var isFiltered = false;	
+	var isFiltered = false;
 	$rootScope.modalLoading = false;
 	$scope.alert = {};
 	$scope.refreshing = false;
 	$scope.getReport = "examsTable";
 	//$scope.loading = true;
-	
-	var initializeController = function () 
+
+	var initializeController = function ()
 	{
 		// get classes
 		var requests = [];
-		
+
 		var deferred = $q.defer();
 		requests.push(deferred.promise);
-		
+
 		$scope.filters.entity_id = 7; // We initialize the selection with class 4 as the default
-		
+
 		// get terms
 		var deferred2 = $q.defer();
 		requests.push(deferred2.promise);
@@ -35,12 +35,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		{
 			apiService.getTerms(undefined, function(response,status)
 			{
-				var result = angular.fromJson(response);				
+				var result = angular.fromJson(response);
 				if( result.response == 'success')
-				{ 
-					$scope.terms = result.data;	
+				{
+					$scope.terms = result.data;
 					$rootScope.terms = result.data;
-					
+
 					var currentTerm = $scope.terms.filter(function(item){
 						if( item.current_term ) return item;
 					})[0];
@@ -51,7 +51,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				{
 					deferred2.reject();
 				}
-				
+
 			}, function(){deferred2.reject();});
 		}
 		else
@@ -63,7 +63,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.filters.term_id = currentTerm.term_id;
 			deferred2.resolve();
 		}
-		
+
 	}
 	$timeout(initializeController,1);
 
@@ -78,12 +78,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			}
 		}, apiError);
 	}
-	
+
 	$scope.getTheCount = function()
 	{
 		$scope.doneSubject = {};
 		$scope.countNotFound = false;
-		
+
 		var entity = $scope.filters.entity_id;
 		var termText = document.getElementById('term').value;
 		var term = parseInt(termText.replace(/\D/g,''), 10);
@@ -121,7 +121,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.errMsg = result.data;
 		}
 	}
-	
+
 	$scope.getStudentExams = function()
 	{
 	    $scope.examMarks = {};
@@ -131,31 +131,31 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		$scope.tableHeader = [];
 		$scope.marksNotFound = false;
 		$scope.getReport = "";
-		
+
 		var entity = $scope.filters.entity_id;
 		var termText = document.getElementById('term').value;
 		var term = parseInt(termText.replace(/\D/g,''), 10);
 		console.log($scope.filters);
-		
+
 		var streamRequest = entity + '/' + term + '/' + $scope.filters.exam_type_id;
-		
+
 		apiService.getAllStudentStreamMarks(streamRequest, loadMarks, apiError);
 		$scope.getTheCount();
 
 		//this repositions the text search filter
 		$( document ).ready(function() {
-			setTimeout(function() { 
+			setTimeout(function() {
 			    $('.main-datagrid .dataTables_filter').css('left',"450px");
 			}, 2000);
 		});
 	}
-	
+
 	var loadMarks = function(response,status)
 	{
 	    $scope.loading = false;
 		var result = angular.fromJson( response );
 		if( result.response == 'success' )
-		{		
+		{
 		    if( result.nodata )
 			{
 			    $scope.marksNotFound = true;
@@ -163,17 +163,18 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			}
 			else
 			{
-			    
+
 				if( $scope.dataGrid !== undefined )
 				{
 					$('.fixedHeader-floating').remove();
 					$scope.dataGrid.clear();
 					$scope.dataGrid.destroy();
 				}
-				
+
 				$scope.examMarks = result.data;
+				// console.log($scope.examMarks);
 				$scope.totalStudents = result.data.length;
-				
+
 				/* loop through the first exam mark result to build the table columns */
 				$scope.tableHeader = [];
 				var ignoreCols = ['gender','student_id','student_name','rank'];
@@ -185,13 +186,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						// keys read like '7', 'C.R.E', '40', remove the ' and replace , with /
 						/* need the sort order id on the front so it orders correctly, seems to go alphabetical regardless of sort order applied to query
 						   in order to fix this, the first item needs to strip this off */
-						
+
 						var colRow = key.replace(/["']/g, "");
 						var subjectDetails = colRow.split(', '),
 							parentSubject = subjectDetails[1],
 							subjectName = subjectDetails[2],
 							gradeWeight = subjectDetails[3];
-						
+
 						/* each subject group needs to scored out of 100, if a subject does not have a parent, add 100 for grand total
 						   if a subject has a parent, add 100 for each parent subject
 						*/
@@ -202,7 +203,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							// no parent
 							subjectsWeights[subjectName] = 100;
 							if( subjectsObj[subjectName] === undefined )
-							{ 
+							{
 								subjectsObj[subjectName] = {
 									isParent:true,
 									subjectName:subjectName,
@@ -238,9 +239,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						var subjectDetails = colRow.split(', '),
 							parentSubject = subjectDetails[1],
 							subjectName = subjectDetails[2];
-						
+
 						var hasChildren = ( parentSubject == '' && subjectsObj[subjectName].children.length > 0 ? true : false );
-						
+
 						var kiswSubj = 'Kiswahili';
 						$scope.tableHeader.push({
 							// title: (hasChildren ? ( subjectName.toLowerCase() == kiswSubj.toLowerCase() ? 'Juml' : 'TOT') : formatTitle(subjectName)),
@@ -250,7 +251,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						});
 					}
 				});
-				
+
 
 				/* sum up the total grade weight value */
 				$scope.totalGradeWeight = 0;
@@ -261,11 +262,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 					//var value = subjectsWeights[key];
 					$scope.totalGradeWeight += subjectsWeights[key];
 				}
-				
+
 				/* loop through all exam mark results and calculate the students total score */
 				/* only total up the parent subjects */
 				// total up marks
-				
+
 				var total = 0;
 				// need to total up each subject for total marks in footer
 				$scope.totalMarks = {};
@@ -279,10 +280,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 							var colRow = key.replace(/["']/g, "");
 							var subjectDetails = colRow.split(', '),
 								parentSubject = subjectDetails[1];
-							
+
 							if( parentSubject == '' ) total += value;
-							
-							if( $scope.totalMarks[key] === undefined ) $scope.totalMarks[key] = 0; 
+
+							if( $scope.totalMarks[key] === undefined ) $scope.totalMarks[key] = 0;
 							$scope.totalMarks[key] = $scope.totalMarks[key] + value;
 							if( $scope.finalMean[key] === undefined ) $scope.finalMean[key] = 0;
 							$scope.finalMean[key] = $scope.finalMean[key];
@@ -302,7 +303,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$scope.errMsg = result.data;
 		}
 	}
-	
+
 	var formatTitle = function(title)
 	{
 	    console.log($scope.filters);
@@ -317,22 +318,22 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 		return result.join(" ");
 	}
-	
+
 	$scope.displayMark = function(index, key)
 	{
 		return $scope.examMarks[index][key] || '-';
 		//return $parse("examMarks[" + index + "][\"" + key + "\"]" )($scope) || '-' ;
 	}
-	
+
 	$scope.displayTotalMark = function(key)
 	{
 		return $scope.totalMarks[key] || '-' ;
 	}
-	
+
 	$scope.xlsdownload = function(){
 	    window.open('data:application/vnd.ms-excel,'+document.getElementById('meow').innerHTML.replace(/ /g, '%20'));
 	};
-	
+
 	$scope.displayMeanScore = function(key)
 	{
 		//this converts our array of # of students who did a subject into an object
@@ -380,10 +381,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		// return Math.round($scope.totalMarks[key]/$scope.totalStudents,1) || '-' ;
 
 	}
-	
-	var initDataGrid = function() 
+
+	var initDataGrid = function()
 	{
-		
+
 		var tableElement = $('#resultsTable');
 		$scope.dataGrid = tableElement.DataTable( {
 				paging: false,
@@ -403,9 +404,9 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 						emptyTable: "No students found."
 				},
 			} );
-		
+
 		tableElement.DataTable().columns(-1).order('asc').draw();
-		
+
 		var headerHeight = $('.navbar-fixed-top').height();
 		//var subHeaderHeight = $('.subnavbar-container.fixed').height();
 		var searchHeight = $('#body-content .content-fixed-header').height();
@@ -414,15 +415,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 				header: true,
 				headerOffset: (headerHeight + searchHeight) + offset
 			} );
-		
-		
+
+
 		// position search box
 		setSearchBoxPosition();
-		
+
 		if( initialLoad ) setResizeEvent();
-		
+
 	}
-	
+
 	var setSearchBoxPosition = function()
 	{
 		if( !$rootScope.isSmallScreen )
@@ -431,13 +432,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			$('#resultsTable_filter').css('left',filterFormWidth+55);
 		}
 	}
-	
+
 	var setResizeEvent = function()
 	{
 		 initialLoad = false;
 
 		 $window.addEventListener('resize', function() {
-			
+
 			$rootScope.isSmallScreen = (window.innerWidth < 768 ? true : false );
 			if( $rootScope.isSmallScreen )
 			{
@@ -446,15 +447,15 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			else
 			{
 				var filterFormWidth = $('.dataFilterForm form').width();
-				$('#resultsTable_filter').css('left',filterFormWidth-30);	
+				$('#resultsTable_filter').css('left',filterFormWidth-30);
 			}
 		}, false);
 	}
-		
+
 	$scope.toggleFilter = function()
 	{
 		$scope.filterShowing = !$scope.filterShowing;
-		
+
 		if( $scope.filterShowing || $scope.toolsShowing )
 		{
 			$('#resultsTable_filter').hide();
@@ -467,11 +468,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			},500);
 		}
 	}
-	
+
 	$scope.toggleTools = function()
 	{
 		$scope.toolsShowing = !$scope.toolsShowing;
-		
+
 		if( $scope.filterShowing || $scope.toolsShowing )
 		{
 			$('#resultsTable_filter').hide();
@@ -484,7 +485,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 			},500);
 		}
 	}
-	
+
 	$scope.addExamMarks = function()
 	{
 		var data = {
@@ -496,17 +497,17 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 		$scope.openModal('exams', 'addExamMarks', 'lg', data);
 	}
-	
+
 	$scope.importExamMarks = function()
 	{
 		$rootScope.wipNotice();
 	}
-	
+
 	$scope.exportData = function()
 	{
 		$rootScope.wipNotice();
 	}
-	
+
 	$scope.printReport = function()
 	{
 		var selectedTerm = $scope.terms.filter(function(item){
@@ -515,7 +516,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		var selectedExam =  $scope.examTypes.filter(function(item){
 			if( item.exam_type_id == $scope.filters.exam_type_id ) return item;
 		})[0];
-		
+
 		var data = {
 			criteria: {
 				class_name: $scope.selectedClass,
@@ -530,43 +531,43 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		var newWindowRef = window.open('https://' + domain + '/#/exams/analysis/print');
 		newWindowRef.printCriteria = data;
 	}
-	
+
 	$scope.$on('refreshExamMarks2', function(event, args) {
 
 		$scope.loading = true;
 		$rootScope.loading = true;
-		
+
 		if( args !== undefined )
 		{
 			$scope.updated = true;
 			$scope.notificationMsg = args.msg;
 		}
 		$scope.refresh();
-		
+
 		// wait a bit, then turn off the alert
 		$timeout(function() { $scope.alert.expired = true;  }, 2000);
-		$timeout(function() { 
+		$timeout(function() {
 			$scope.updated = false;
-			$scope.notificationMsg = ''; 
+			$scope.notificationMsg = '';
 			$scope.alert.expired = false;
 		}, 3000);
 	});
-	
-	$scope.refresh = function () 
+
+	$scope.refresh = function ()
 	{
 		$scope.loading = true;
 		$scope.refreshing = true;
 		$rootScope.loading = true;
 		$scope.getStudentExams();
 	}
-	
-	var apiError = function (response, status) 
+
+	var apiError = function (response, status)
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
 		$scope.errMsg = result.data;
 	}
-	
+
 	$scope.$on('$destroy', function() {
 		if($scope.dataGrid){
 			$('.fixedHeader-floating').remove();
@@ -576,6 +577,6 @@ function($scope, $rootScope, apiService, $timeout, $window, $q, $parse){
 		}
 		$rootScope.isModal = false;
     });
-	
+
 
 } ]);
