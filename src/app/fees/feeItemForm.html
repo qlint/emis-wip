@@ -35,6 +35,16 @@
 							<p ng-show="feeItemForm.frequency.$invalid && (feeItemForm.frequency.$touched || feeItemForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Frequency is required.</p>
 						</div>
 					</div>
+					<!-- year -->
+					<div class="form-group">
+						<label for="year" class="col-sm-3 control-label">Year</label>
+						<div class="col-sm-5">
+							<select name="year" ng-model="item.year" class="form-control">
+								<option value="">--select year--</option>
+								<option value="{{year}}" ng-repeat="year in years">{{year}}</option>
+							</select>
+						</div>
+					</div>
 					<!-- new student only -->
 					<div class="form-group">
 						<label for="new_student_only" class="col-sm-3 control-label">New students only?</label>

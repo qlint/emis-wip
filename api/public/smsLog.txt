@@ -9150,3 +9150,21 @@ ahVrqFWnTZKQ
 (6) MESSAGE ID
 2021-08-02 07:58:10pm
 68328
+(1.1) RECIPIENTS COUNT
+2021-08-05 11:12:33am
+1
+(2) CLIENT DATA
+2021-08-05 11:12:33am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-08-05 11:12:33am
+XmAP0ESHxi55
+(4) JUST ONE RECIPIENT
+2021-08-05 11:12:33am
++254791666364
+(5) PAYLOAD
+2021-08-05 11:12:33am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"05082021111233"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Arthur, Your code for the Eduweb Mobile App registration is 42356 "}],"DestinationAddr":[{"MSISDN":"+254791666364","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDXmAP0ESHxi55"}]}
+(6) MESSAGE ID
+2021-08-05 11:12:33am
+68329

@@ -26,6 +26,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 
   $scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false);
   if($rootScope.currentUser.super_teacher == true){ $rootScope.currentUser.user_type = 'SYS_ADMIN'; $scope.isTeacher = false; }
+  $scope.classLimit = $rootScope.currentUser.class_cat_limit;
 
   var rowTemplate = function()
   {
@@ -139,8 +140,14 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
           if( result.response == 'success')
           {
           //  $rootScope.allClasses = ;
+
+            if($scope.classLimit != null || $scope.classLimit != undefined){
+              result.data = result.data.filter(function( obj ) {
+                  return obj.class_cat_id == $scope.classLimit;
+              });
+            }
+
             $scope.classes = result.data;
-            // console.log($scope.classes);
 
             getStudents('true',false );
 
@@ -155,6 +162,12 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
       else
       {
         $scope.classes = $rootScope.allClasses;
+
+        if($scope.classLimit != null || $scope.classLimit != undefined){
+          $scope.classes = $scope.classes.filter(function( obj ) {
+              return obj.class_cat_id == $scope.classLimit;
+          });
+        }
 
         $scope.filters.class_cat_id = ( $state.params.class_cat_id !== '' ? $state.params.class_cat_id : null );
         $scope.filterClassCat = ( $state.params.class_cat_id !== '' ? true : false );
@@ -255,6 +268,13 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
       if( result.nodata ) var formatedResults = [];
       else {
         // make adjustments to student data
+
+        if($scope.classLimit != null || $scope.classLimit != undefined){
+          result.data = result.data.filter(function( obj ) {
+              return obj.class_cat_id == $scope.classLimit;
+          });
+        }
+
         var formatedResults = $rootScope.formatStudentData(result.data);
       }
 

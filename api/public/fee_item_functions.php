@@ -12,7 +12,7 @@ $app->get('/getFeeItems(/:status)', function ($status = true) {
                                 WHEN fee_item = 'Uniform' THEN
                                     (select min(to_char(amount, '999,999,999.99')) || '-' || max(to_char(amount, '999,999,999.99')) from app.fee_item_uniforms where active is true)
                             END as uniform_range,
-                            frequency, active, class_cats_restriction, optional, new_student_only, replaceable
+                            frequency, active, class_cats_restriction, optional, new_student_only, replaceable, fee_items.year
                                   FROM app.fee_items
                                   WHERE active = :status
                                   AND optional is false
@@ -145,6 +145,7 @@ $app->post('/addFeeItem', function () use($app) {
   $optional =   ( isset($allPostVars['optional']) ? $allPostVars['optional']: 'f');
   $newStudent = ( isset($allPostVars['new_student_only']) ? $allPostVars['new_student_only']: 'f');
   $replaceable =  ( isset($allPostVars['replaceable']) ? $allPostVars['replaceable']: 'f');
+  $year =    ( isset($allPostVars['year']) ? $allPostVars['year']: null);
   $userId =   ( isset($allPostVars['user_id']) ? $allPostVars['user_id']: null);
 
   // convert $classCats to postgresql array
@@ -153,8 +154,8 @@ $app->post('/addFeeItem', function () use($app) {
   try
   {
     $db = getDB();
-    $sth = $db->prepare("INSERT INTO app.fee_items(fee_item, default_amount, frequency, class_cats_restriction, optional, new_student_only, replaceable, created_by)
-           VALUES(:feeItem, :defaultAmount, :frequency, :classCats, :optional, :newStudent, :replaceable, :userId)");
+    $sth = $db->prepare("INSERT INTO app.fee_items(fee_item, default_amount, frequency, class_cats_restriction, optional, new_student_only, replaceable, created_by, year)
+           VALUES(:feeItem, :defaultAmount, :frequency, :classCats, :optional, :newStudent, :replaceable, :userId, :year)");
     $sth2 = $db->prepare("SELECT * FROM app.fee_items WHERE fee_item_id = CURRVAL('app.fee_items_fee_item_id_seq') ");
 
     $db->beginTransaction();
@@ -165,7 +166,8 @@ $app->post('/addFeeItem', function () use($app) {
            ':optional' => $optional,
            ':newStudent' => $newStudent,
            ':replaceable' => $replaceable,
-           ':userId' => $userId
+           ':userId' => $userId,
+           ':year' => $year
       ) );
     $sth2->execute();
     $results = $sth2->fetch(PDO::FETCH_OBJ);
@@ -291,6 +293,7 @@ $app->put('/updateFeeItem', function () use($app) {
   $allPostVars = json_decode($app->request()->getBody(),true);
   $feeItemId =  ( isset($allPostVars['fee_item_id']) ? $allPostVars['fee_item_id']: null);
   $feeItem =    ( isset($allPostVars['fee_item']) ? $allPostVars['fee_item']: null);
+  $year =    ( isset($allPostVars['year']) ? $allPostVars['year']: null);
   $defaultAmount =( isset($allPostVars['default_amount']) ? $allPostVars['default_amount']: null);
   $frequency =  ( isset($allPostVars['frequency']) ? $allPostVars['frequency']: null);
   $classCats =  ( isset($allPostVars['class_cats_restriction']) ? $allPostVars['class_cats_restriction']: null);
@@ -315,7 +318,8 @@ $app->put('/updateFeeItem', function () use($app) {
                 new_student_only = :newStudent,
                 replaceable = :replaceable,
                 modified_date = now(),
-                modified_by = :userId
+                modified_by = :userId,
+                year = :year
               WHERE fee_item_id = :feeItemId
               ");
         $sth->execute( array(':feeItemId' => $feeItemId,
@@ -326,7 +330,8 @@ $app->put('/updateFeeItem', function () use($app) {
                ':optional' => $optional,
                ':newStudent' => $newStudent,
                ':replaceable' => $replaceable,
-               ':userId' => $userId
+               ':userId' => $userId,
+               ':year' => $year
           ) );
 
     $app->response->setStatus(200);

@@ -10,6 +10,21 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 	$scope.deleted = false;
 	$scope.nameEdit = false;
 
+	let yr = new Date().getFullYear();
+	let years = [yr];
+	let y = yr;
+	for(let i=0; i < 2; i++){
+		y--;
+		years.push(y);
+	}
+	let y2 = yr
+	for(let i=0; i < 2; i++){
+		y2++;
+		years.push(y2);
+	}
+
+	$scope.years = years.sort();
+
 	$scope.initializeController = function()
 	{
 
@@ -142,6 +157,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data){
 		if ( !form.$invalid )
 		{
 			var data = $scope.item;
+
 			data.new_student_only = ( data.new_student_only ? 't' : 'f' );
 			data.optional = ( data.optional ? 't' : 'f' );
 			data.replaceable = ( data.replaceable ? 't' : 'f' );

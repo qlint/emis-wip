@@ -4664,3 +4664,6 @@
 2021-08-02 07:58:23pm
 [{"dlr_report":"DeliveredToTerminal","dlr_time":"2021-08-02 07:08:28","correlator":"EDahVrqFWnTZKQ","msg_id":"da636f56-b2a8-4210-8df5-84d38add3b2c"}]
 {"received":"[{\"dlr_report\":\"DeliveredToTerminal\",\"dlr_time\":\"2021-08-02 07:08:28\",\"correlator\":\"EDahVrqFWnTZKQ\",\"msg_id\":\"da636f56-b2a8-4210-8df5-84d38add3b2c\"}]"}
+2021-08-05 11:12:51am
+[{"dlr_report":"DeliveredToTerminal","dlr_time":"2021-08-05 11:08:04","correlator":"EDXmAP0ESHxi55","msg_id":"d83ee965-93b1-420c-871c-006486783b3c"}]
+{"received":"[{\"dlr_report\":\"DeliveredToTerminal\",\"dlr_time\":\"2021-08-05 11:08:04\",\"correlator\":\"EDXmAP0ESHxi55\",\"msg_id\":\"d83ee965-93b1-420c-871c-006486783b3c\"}]"}

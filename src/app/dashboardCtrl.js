@@ -26,8 +26,15 @@ function($scope, $rootScope, apiService){
 			if( result.response == 'success')
 			{
 				$scope.classCats = result.data;
-				// console.log($scope.classCats);
+				
 				if(Array.isArray($scope.classCats)){
+
+					if($rootScope.currentUser.class_cat_limit != null || $rootScope.currentUser.class_cat_limit != undefined){
+						$scope.classCats = $scope.classCats.filter(function( obj ) {
+								return obj.class_cat_id == $rootScope.currentUser.class_cat_limit;
+						});
+					}
+
 					for(var f=0; f < $scope.classCats.length; f++){
 					    var parseThis = $scope.classCats[f].classes;
 							function isEmpty(obj) {

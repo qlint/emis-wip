@@ -52,7 +52,8 @@
                                                         ELSE banking_date
                                                       END;"); // executing the query
             */
-            $executeOnSchoolDb4 = pg_query($schoolDb,"UPDATE app.guardians SET telephone = '0733000000' WHERE telephone = '0721876820';"); // executing the query
+            $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.fee_items
+                                                      ADD COLUMN year character varying;"); // executing the query
 
             // $executeOnSchoolDb5 = pg_query($schoolDb,"SELECT setval('app.students_student_id_seq', (SELECT MAX(student_id) FROM app.students)+1);");
             // $executeOnSchoolDb5 = pg_query($schoolDb,"SELECT setval('app.guardians_guardian_id_seq', (SELECT MAX(guardian_id) FROM app.guardians)+1);");
