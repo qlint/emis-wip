@@ -34,7 +34,7 @@
 						<label for="payment_date" class="col-sm-3 control-label nopad">Payment Date</label>
 						<div class="col-sm-4">
 							<div class="input-group">
-								<input type="text" name="payment_date" date-range-picker id="payment_date" class="form-control date-picker input-sm" ng-model="payment.payment_date" options="{singleDatePicker: true,autoApply: true}" />
+								<input type="text" name="payment_date" date-range-picker id="payment_date" class="form-control date-picker input-sm" ng-model="payment.payment_date" date-time max-date="2021-08-16" options="{singleDatePicker: true,autoApply: true}" />
 								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar" ng-click="showStartDatePicker = !showStartDatePicker"></i></span>
 							</div>
 							<p ng-show="paymentForm.payment_date.$invalid && (paymentForm.payment_date.$touched || paymentForm.$submitted)" class="help-block"><i class="fa fa-exclamation-triangle"></i> Payment Date is required.</p>

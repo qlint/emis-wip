@@ -69,12 +69,14 @@
                 array_push($data->{$value},$invoicesObj); // push into $data->{$value} the value $invoicesObj
 
                 $paymentsObj = new stdClass();
-                $paymentsQry = pg_query($schoolDb,"SELECT '$value' AS client_id, p.payment_id AS eduweb_payment_id, s.admission_number, pii.amount,
+                $paymentsQry = pg_query($schoolDb,"SELECT pii.payment_inv_item_id, '$value' AS client_id, p.payment_id AS eduweb_payment_id, s.admission_number, pii.amount,
                                                         p.payment_date, pii.inv_id AS eduweb_invoice_id, p.payment_id AS receipt_number
                                                     FROM app.payments p
                                                     INNER JOIN app.students s USING (student_id)
                                                     INNER JOIN app.payment_inv_items pii USING (payment_id)
-                                                    WHERE p.reversed IS FALSE AND p.in_quickbooks IS FALSE ORDER BY eduweb_payment_id ASC;"); // executing the query
+                                                    WHERE p.reversed IS FALSE AND p.in_quickbooks IS FALSE
+													AND p.payment_id NOT IN (4539,5088,319,2083,4622,4023,7269,4245,4425,4928,2791,1351,2417,7002,4650,1318,2062,2460,4455,4542,6886,6582,5027,4508,2524,44,4334,6129,2535,1867,6119)
+													ORDER BY eduweb_payment_id ASC;"); // executing the query
                 $paymentsArray = pg_fetch_all($paymentsQry );
                 $paymentsObj->payments = $paymentsArray; // all payments in this iteration
                 array_push($data->{$value},$paymentsObj); // push into $data->{$value} the value $paymentsObj
@@ -86,7 +88,9 @@
                                                   INNER JOIN app.students s USING (student_id)
                                                   INNER JOIN app.payments p USING (payment_id)
                                                   INNER JOIN app.payment_inv_items pii USING (payment_id)
-                                                  WHERE p.reversed IS FALSE AND p.in_quickbooks IS FALSE ORDER BY eduweb_payment_id ASC;"); // executing the query
+                                                  WHERE p.reversed IS FALSE AND p.in_quickbooks IS FALSE
+												  AND p.payment_id NOT IN (4539,5088,319,2083,4622,4023,7269,4245,4425,4928,2791,1351,2417,7002,4650,1318,2062,2460,4455,4542,6886,6582,5027,4508,2524,44,4334,6129,2535,1867,6119)
+												  ORDER BY eduweb_payment_id ASC;"); // executing the query
                 $creditsArray = pg_fetch_all($creditsQry );
                 $creditsObj->credits = $creditsArray; // all credits in this iteration
                 array_push($data->{$value},$creditsObj); // push into $data->{$value} the value $creditsObj
@@ -199,15 +203,16 @@
           							$payment_date = pg_escape_string($value["payment_date"]);
           							$eduweb_invoice_id = $value["eduweb_invoice_id"];
           							$receipt_number = $value["receipt_number"];
+									$paymentInvItemId = $value['payment_inv_item_id'];
 
           							  // update if it exists
-          							  $updateInvoicesQry = pg_query($quickbooksDb,"UPDATE public.to_quickbooks_payments SET amount = $amount, payment_date = '$payment_date', in_quickbooks = false
+          							  $updateInvoicesQry = pg_query($quickbooksDb,"UPDATE public.to_quickbooks_payments SET amount = $amount, payment_date = '$payment_date', in_quickbooks = false, payment_inv_item_id = $paymentInvItemId
           																		WHERE eduweb_payment_id = $eduweb_payment_id AND client_id = '$client_id' AND admission_number = '$admission_number' AND eduweb_invoice_id = $eduweb_invoice_id AND receipt_number = '$receipt_number'
           															"); // executing the query
 
           							// insert if it doesn't exist
-          							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number)
-          																		SELECT $eduweb_payment_id, '$client_id', '$admission_number', $amount, '$payment_date', $eduweb_invoice_id, '$receipt_number'
+          							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_payments(eduweb_payment_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, payment_inv_item_id)
+          																		SELECT $eduweb_payment_id, '$client_id', '$admission_number', $amount, '$payment_date', $eduweb_invoice_id, '$receipt_number', $paymentInvItemId
           																		WHERE NOT EXISTS (SELECT eduweb_payment_id FROM public.to_quickbooks_payments WHERE eduweb_payment_id = $eduweb_payment_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)
           																			;"); // executing the query
           							/*
@@ -238,8 +243,8 @@
           							$receipt_number = $value["receipt_number"];
 
           							// check for existence and either updte or insert
-          							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_credits(client_id, eduweb_credit_id, admission_number, amount, eduweb_payment_id, eduweb_invoice_id, payment_date, receipt_number)
-          																		SELECT '$client_id', $eduweb_credit_id, '$admission_number', $amount, $eduweb_payment_id, $eduweb_invoice_id, '$payment_date', '$receipt_number'
+          							$insertPaymentsQry = pg_query($quickbooksDb,"INSERT INTO public.to_quickbooks_credits(client_id, eduweb_credit_id, admission_number, amount, eduweb_payment_id, eduweb_invoice_id, payment_date, receipt_number, payment_inv_item_id)
+          																		SELECT '$client_id', $eduweb_credit_id, '$admission_number', $amount, $eduweb_payment_id, $eduweb_invoice_id, '$payment_date', '$receipt_number', 10001
           																		WHERE NOT EXISTS (SELECT eduweb_credit_id FROM public.to_quickbooks_credits WHERE eduweb_credit_id = $eduweb_credit_id AND amount = $amount AND admission_number = '$admission_number' LIMIT 1)
           																			;"); // executing the query
           							/*

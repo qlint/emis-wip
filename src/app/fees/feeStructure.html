@@ -1,7 +1,7 @@
-<div ng-controller="feeStructureCtrl" class="full-height">	
-	
+<div ng-controller="feeStructureCtrl" class="full-height">
+
 	<div id="body-content" class="row fixed-filter hasSubNav" ng-class="{'modal-body': isPrinting, 'smallScreen' : isSmallScreen}">
-		
+
 		<div class="notification alert alert-success" ng-show="updated" ng-class="{'fade-out': alert.expired}">
 			<strong>Success!</strong> {{notificationMsg}}
 		</div>
@@ -9,7 +9,7 @@
 			<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 			{{errMsg}}
 		</div>
-		
+
 		<div class="fixed content-fixed-header">
 			<div class="subnavbar non-printable" ng-hide="isPrinting">
 				<ul class="nav nav-tabs main-sub-nav" >
@@ -22,27 +22,36 @@
 				    <div class="btn add-btn" title="Make Payment" ng-show="permissions.fees.fee_structure.add" data-toggle="modal" data-target="#tickFeeItems" ng-click="studentFeeItems()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Student Fee Items</span></a></div>
 					<div class="btn add-btn" title="Make Payment" ng-show="permissions.fees.fee_structure.add" ng-click="addFeeItem()"><a class="clickable"><span class="glyphicon glyphicon-plus-sign"></span> <span class="tool-text">Add Fee Item</span></a></div>
 					<div class="btn" title="Export" ng-click="exportItems()"><a class="clickable"><span class="glyphicon glyphicon-download"></span> <span class="tool-text">Export</span></a></div>
-				</div>				
+				</div>
 			</div>
-			
+
 			<div class="clearfix">
 				<h1 id="pageTitle">Fee Structure</h1>
-			</div>		
+			</div>
 
 			<!-- search form -->
-			<div class="dataFilterForm">	
+			<div class="dataFilterForm">
 				<h4 ng-show="!isSmallScreen">Filters</h4>
 				<h4 ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">Filters <span class="caret"></span></h4>
 				<form name="dataFilterForm" class="form-inline non-printable" method="post" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}" id="filterForm">
-					
+
 					<!-- status select -->
 					<div class="form-group">
-						<label for="status">Status</label>	
+						<label for="status">Status</label>
 						<select name="status" id="status" class="form-control" ng-model="filters.status">
 							<option value="true">Active</option>
-							<option value="false">In-active</option>							
+							<option value="false">In-active</option>
 						</select>
-					</div>	
+					</div>
+
+					<!-- year select -->
+					<div class="form-group">
+						<label for="status">Year</label>
+						<select name="status" id="status" class="form-control" ng-model="filters.year">
+							<option value="">All Years</option>
+							<option value="{{year}}" ng-repeat="year in years track by $index">{{year}}</option>
+						</select>
+					</div>
 
 					<!-- search btn -->
 					<div class="form-group submit-btn">
@@ -50,7 +59,7 @@
 						<img src="assets/spinner.gif" ng-show="loading" />
 						<button type="button" class="btn btn-link" ng-show="isSmallScreen" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm" ng-click="toggleFilter()">cancel</button>
 					</div>
-					
+
 					<div class="form-group grid-filter">
 						<input class="ui-grid-filter" ng-model='gridFilter.filterValue' placeholder="Filter"/>
 						<button class="btn btn-xs btn-primary" ng-click='filterDataTable()'>Filter</button>
@@ -59,13 +68,13 @@
 
 				</form>
 			</div>
-			<!-- // end search form -->					
-			
+			<!-- // end search form -->
+
 		</div>
-		
+
 		<div class="full-height datagrid main-datagrid">
 			<div class="loading-indicator" ng-show="loading"><i class="fa fa-spinner fa-spin text-lg"></i></div>
-			
+
 			<div id="grid1" ui-grid="gridOptions" ui-grid-exporter class="myGrid">
 				<div ng-if="!gridOptions.data.length" class="no-results">No results found.</div>
 			</div>
@@ -80,7 +89,7 @@
 						<th>Class Categories</th>
 						<th>New Student Only</th>
 					</tr>
-				</thead>	
+				</thead>
 				<tbody>
 					<tr ng-repeat="item in items track by $index">
 						<td></td>
@@ -94,11 +103,11 @@
 			</table>
 			-->
 		</div>
-		
+
 		<!-- Tick Fee Items Modal -->
         <div id="tickFeeItems" class="modal fade" role="dialog">
-          <div class="modal-dialog modal-lg">
-        
+          <div class="modal-dialog modal-lg" style="width:70vw;">
+
             <!-- Modal content-->
             <div class="modal-content">
               <div class="modal-header">
@@ -107,56 +116,60 @@
               </div>
               <div class="modal-body">
                 <form name="dataFilterForm" class="form-inline non-printable" novalidate ng-hide="isPrinting" ng-class="{'collapse': isSmallScreen}">
-					
-					<!-- status select -->
-					<div class="form-group">
-						<label for="student_selection">Selection</label>	
-						<select name="student_selection" id="student_selection" class="form-control" ng-model="filters.student_selection" style="width:180px;" ng-change="resetItems()">
-							<option value="class">Class</option>
-							<option value="all">All Students</option>							
-						</select>
-					</div>
-					
-					<div class="form-group" ng-show="filters.student_selection == 'class'">
-						<label for="selection_class">Class</label>	
-						<select name="selection_class" id="selection_class" class="form-control" ng-model="filters.selection_class" style="width:180px;" ng-change="classFeeItems(this)">
-							<option ng-repeat="class in allClassCats track by $index" value="{{class.class_cat_id}}">{{class.class_cat_name}}</option>							
-						</select>
-					</div>
-					
-					<div class="form-group">
-						<label for="selection_item">Fee Item</label>	
-						<select name="selection_item" id="selection_item" class="form-control" ng-model="filters.selection_item" style="width:180px;">
-							<option ng-repeat="fItem in allFeeItems track by $index" value="{{fItem.fee_item_id}}">{{fItem.fee_item}}</option>							
-						</select>
-					</div>
+									<!-- operation -->
+									<div class="form-group">
+										<label for="operation">Operation</label>
+										<select name="operation" id="operation" class="form-control" ng-model="filters.operation" style="width:180px;">
+											<option value="add">Tick Fee Item</option>
+											<option value="remove">Untick Fee Item</option>
+										</select>
+									</div>
+									<!-- status select -->
+									<div class="form-group">
+										<label for="student_selection">Selection</label>
+										<select name="student_selection" id="student_selection" class="form-control" ng-model="filters.student_selection" style="width:180px;" ng-change="resetItems()">
+											<option value="class">Class</option>
+											<option value="all">All Students</option>
+										</select>
+									</div>
 
-					<!-- apply btn -->
-					<div class="form-group submit-btn">
-						<input type="submit" class="btn btn-sm btn-info" ng-click="applyFeeItemsToStudents()" value="Apply" />
-						<img src="assets/spinner.gif" ng-show="loading" />
-					</div>
+									<div class="form-group" ng-show="filters.student_selection == 'class'">
+										<label for="selection_class">Class</label>
+										<select name="selection_class" id="selection_class" class="form-control" ng-model="filters.selection_class" style="width:180px;" ng-change="classFeeItems(this)">
+											<option ng-repeat="class in allClassCats track by $index" value="{{class.class_cat_id}}">{{class.class_cat_name}}</option>
+										</select>
+									</div>
 
-				</form>
-				
+									<div class="form-group">
+										<label for="selection_item">Fee Item</label>
+										<select name="selection_item" id="selection_item" class="form-control" ng-model="filters.selection_item" style="width:180px;">
+											<option ng-repeat="fItem in allFeeItems track by $index" value="{{fItem.fee_item_id}}">{{fItem.fee_item}}</option>
+										</select>
+									</div>
+
+									<!-- apply btn -->
+									<div class="form-group submit-btn">
+										<input type="submit" class="btn btn-sm btn-info" ng-click="applyFeeItemsToStudents()" value="Apply" />
+										<img src="assets/spinner.gif" ng-show="loading" />
+									</div>
+
+								</form>
+
 				<!--success msg -->
 				<div ng-show="showTickedMsg" style=" background-color: chartreuse;padding: 1px 8px;width: fit-content;border-radius: 6px;margin: 1% auto;">
                     <h4 style="font-weight: 600;">{{tickedSuccessMsg}}</h4>
                 </div>
 				<!-- end success msg -->
-				
+
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
               </div>
             </div>
-        
+
           </div>
         </div>
         <!-- end modal -->
-        
+
 	</div>
 </div>
-
-
-

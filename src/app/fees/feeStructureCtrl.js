@@ -14,6 +14,21 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	$scope.gridFilter.filterValue  = '';
 	$scope.showTickedMsg = false;
 
+	let yr = new Date().getFullYear();
+	let years = [yr];
+	let y = yr;
+	for(let i=0; i < 2; i++){
+		y--;
+		years.push(y);
+	}
+	let y2 = yr
+	for(let i=0; i < 2; i++){
+		y2++;
+		years.push(y2);
+	}
+
+	$scope.years = years.sort();
+
 	var rowTemplate = function()
 	{
 		return '<div class="clickable" ng-class="{\'alert-warning\': row.entity.replacement_payment}" ng-click="grid.appScope.viewFeeItem(row.entity)">' +
@@ -103,9 +118,19 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 					});
 				}
 
+				// console.log('FILTERS >',$scope.filters);
+				if('year' in $scope.filters){
+					if($scope.filters.year != ''){
+						// filter by the selected year
+						$scope.items = $scope.items.filter(function (el) {
+						  return el.year != null && el.year.toString() == $scope.filters.year;
+						});
+					}
+				}
+
+				/*
 				let yearExists = false;
 				let thisYear = new Date().getFullYear();
-
 				$scope.items.forEach((itm, i) => {
 					if(itm.year != null && itm.year.toString() == thisYear){ yearExists = true; }
 				});
@@ -116,6 +141,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 					  return el.year != null && el.year.toString() == thisYear;
 					});
 				}
+				*/
 
 
 				initDataGrid($scope.items);
@@ -215,7 +241,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 
 	$scope.applyFeeItemsToStudents = function(){
 	    // save the entered changes
-	    // console.log($scope.filters,$scope);
+	    console.log($scope.filters,$scope);
 	    let feeItemObj = $scope.allFeeItems.filter(function(feeItem) {
 	        return feeItem.fee_item_id == parseInt($scope.filters.selection_item);
         });
@@ -224,10 +250,11 @@ function($scope, $rootScope, apiService, $timeout, $window, $filter){
 	        fee_item_id: parseInt($scope.filters.selection_item),
 	        class_cat_id: ($scope.filters.student_selection == "class" ? parseInt($scope.filters.selection_class) : null),
 	        default_amount: parseInt(feeItemObj[0].default_amount_raw),
-	        user_id: $rootScope.currentUser.user_id
+	        user_id: $rootScope.currentUser.user_id,
+					operation: $scope.filters.operation
 	    }
-
-	    if(data.fee_item_id == null || data.fee_item_id == undefined){
+			console.log('Payload > ',data);
+	    if(data.operation == null || data.operation == undefined || data.fee_item_id == null || data.fee_item_id == undefined){
 	        alert('Please Select A Fee Item Before Proceeding.');
 	    }else{
 	        // post

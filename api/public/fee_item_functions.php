@@ -190,6 +190,7 @@ $app->post('/tickStudentFeeItem', function () use($app) {
 
   $allPostVars = json_decode($app->request()->getBody(),true);
 
+  $operation =   ( isset($allPostVars['operation']) ? $allPostVars['operation']: null);
   $feeItem =    ( isset($allPostVars['fee_item_id']) ? $allPostVars['fee_item_id']: null);
   $defaultAmount =( isset($allPostVars['default_amount']) ? $allPostVars['default_amount']: null);
   $classCatId =  ( isset($allPostVars['class_cat_id']) ? $allPostVars['class_cat_id']: null);
@@ -201,23 +202,68 @@ $app->post('/tickStudentFeeItem', function () use($app) {
   try
   {
     $db = getDB();
-    if(isset($classCatId)){
-        // get the class cat student id's
-        $query = $db->prepare("SELECT student_id FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id WHERE c.class_cat_id = :classCatId AND s.active IS TRUE");
-        $query->execute( array(':classCatId' => $classCatId) );
-        $students = $query->fetchAll(PDO::FETCH_OBJ);
+    if($operation == "add"){
+      // add the selected fee items to the students
+      if(isset($classCatId)){
+          // get the class cat student id's
+          $query = $db->prepare("SELECT student_id FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id WHERE c.class_cat_id = :classCatId AND s.active IS TRUE");
+          $query->execute( array(':classCatId' => $classCatId) );
+          $students = $query->fetchAll(PDO::FETCH_OBJ);
 
-        // tick for class cat only
-        foreach($students as $student)
-        {
-            $studentId =  ( isset($student->student_id) ? $student->student_id: null);
+          // tick for class cat only
+          foreach($students as $student)
+          {
+              $studentId =  ( isset($student->student_id) ? $student->student_id: null);
 
-            $checkIfExists = $db->prepare("SELECT student_id, fee_item_id FROM app.student_fee_items WHERE student_id = :studentId AND fee_item_id = :feeItemId");
-            $checkIfExists->execute( array(':studentId' => $studentId, ':feeItemId' => $feeItem) );
-            $check = $checkIfExists->fetch(PDO::FETCH_OBJ);
+              $checkIfExists = $db->prepare("SELECT student_id, fee_item_id FROM app.student_fee_items WHERE student_id = :studentId AND fee_item_id = :feeItemId");
+              $checkIfExists->execute( array(':studentId' => $studentId, ':feeItemId' => $feeItem) );
+              $check = $checkIfExists->fetch(PDO::FETCH_OBJ);
 
-            $studentObj = new stdClass();
-            if(!isset($check->student_id)){
+              $studentObj = new stdClass();
+              if(!isset($check->student_id)){
+                $sth = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by)
+                                VALUES(:studentId,:feeItemID,:amount,:paymentMethod,:userId);");
+
+                $sth->execute( array(
+                    ':studentId' => $studentId,
+                    ':feeItemID' => $feeItem,
+                    ':amount' => $defaultAmount,
+                    ':paymentMethod' => $paymentMethod,
+                    ':userId' => $userId
+                ) );
+
+                $studentObj->student_id = $studentId;
+                $studentObj->fee_item_id = $feeItem;
+                $studentObj->amount = $defaultAmount;
+                $studentObj->payment_method = $paymentMethod;
+                $studentObj->inserted_students = $check;
+
+              }else{
+                $sth = $db->prepare("UPDATE app.student_fee_items SET active = true, amount = :amount
+                                    WHERE student_id = :studentId AND fee_item_id = :feeItemID AND amount = :amount;");
+
+                $sth->execute( array(
+                    ':studentId' => $studentId,
+                    ':feeItemID' => $feeItem,
+                    ':amount' => $defaultAmount
+                ) );
+
+                $studentObj->updated_students = array('studentId' => $studentId, 'feeItemID' => $feeItem, 'amount' => $defaultAmount);
+              }
+              array_push($affectedStudents, $studentObj);
+          }
+
+      }else{
+          // get all student id's
+          $query = $db->prepare("SELECT student_id FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id WHERE s.active IS TRUE");
+          $query->execute( array() );
+          $students = $query->fetchAll(PDO::FETCH_OBJ);
+
+          // tick for all students
+          foreach($students as $student)
+          {
+              $studentId =  ( isset($student->student_id) ? $student->student_id: null);
+
               $sth = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by)
                               VALUES(:studentId,:feeItemID,:amount,:paymentMethod,:userId);");
 
@@ -228,57 +274,61 @@ $app->post('/tickStudentFeeItem', function () use($app) {
                   ':paymentMethod' => $paymentMethod,
                   ':userId' => $userId
               ) );
+          }
 
-              $studentObj->student_id = $studentId;
-              $studentObj->fee_item_id = $feeItem;
-              $studentObj->amount = $defaultAmount;
-              $studentObj->payment_method = $paymentMethod;
-              $studentObj->inserted_students = $check;
+      }
 
-            }else{
-              $sth = $db->prepare("UPDATE app.student_fee_items SET active = true, amount = :amount
-                                  WHERE student_id = :studentId AND fee_item_id = :feeItemID AND amount = :amount;");
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "success", "data" => "The fee items have been added to the respective students successfully", "students" => $affectedStudents ));
+      $db = null;
+    }elseif ($operation == "remove") {
+      // remove the selected fee items from the students
+      if(isset($classCatId)){
+          // get the class cat student id's
+          $query = $db->prepare("SELECT student_id FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id WHERE c.class_cat_id = :classCatId AND s.active IS TRUE");
+          $query->execute( array(':classCatId' => $classCatId) );
+          $students = $query->fetchAll(PDO::FETCH_OBJ);
 
+          // tick for class cat only
+          foreach($students as $student)
+          {
+              $studentId =  ( isset($student->student_id) ? $student->student_id: null);
+
+              $sth = $db->prepare("DELETE FROM app.student_fee_items WHERE student_id = :studentId AND fee_item_id = :feeItemID;");
               $sth->execute( array(
                   ':studentId' => $studentId,
-                  ':feeItemID' => $feeItem,
-                  ':amount' => $defaultAmount
+                  ':feeItemID' => $feeItem
               ) );
 
-              $studentObj->updated_students = array('studentId' => $studentId, 'feeItemID' => $feeItem, 'amount' => $defaultAmount);
-            }
-            array_push($affectedStudents, $studentObj);
-        }
+          }
 
-    }else{
-        // get all student id's
-        $query = $db->prepare("SELECT student_id FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id WHERE s.active IS TRUE");
-        $query->execute( array() );
-        $students = $query->fetchAll(PDO::FETCH_OBJ);
+      }else{
+          // get all student id's
+          $query = $db->prepare("SELECT student_id FROM app.students s INNER JOIN app.classes c ON s.current_class = c.class_id WHERE s.active IS TRUE");
+          $query->execute( array() );
+          $students = $query->fetchAll(PDO::FETCH_OBJ);
 
-        // tick for all students
-        foreach($students as $student)
-        {
-            $studentId =  ( isset($student->student_id) ? $student->student_id: null);
+          // tick for all students
+          foreach($students as $student)
+          {
+              $studentId =  ( isset($student->student_id) ? $student->student_id: null);
 
-            $sth = $db->prepare("INSERT INTO app.student_fee_items(student_id, fee_item_id, amount, payment_method, created_by)
-                            VALUES(:studentId,:feeItemID,:amount,:paymentMethod,:userId);");
+              $sth = $db->prepare("DELETE FROM app.student_fee_items WHERE student_id = :studentId AND fee_item_id = :feeItemID;");
+              $sth->execute( array(
+                  ':studentId' => $studentId,
+                  ':feeItemID' => $feeItem
+              ) );
+          }
 
-            $sth->execute( array(
-                ':studentId' => $studentId,
-                ':feeItemID' => $feeItem,
-                ':amount' => $defaultAmount,
-                ':paymentMethod' => $paymentMethod,
-                ':userId' => $userId
-            ) );
-        }
+      }
 
+      $app->response->setStatus(200);
+      $app->response()->headers->set('Content-Type', 'application/json');
+      echo json_encode(array("response" => "success", "data" => "The fee item has been removed from the respective students successfully", "students" => $affectedStudents ));
+      $db = null;
     }
 
-    $app->response->setStatus(200);
-    $app->response()->headers->set('Content-Type', 'application/json');
-    echo json_encode(array("response" => "success", "data" => "The fee items have been added to the respective students successfully", "students" => $affectedStudents ));
-    $db = null;
   } catch(PDOException $e) {
     $app->response()->setStatus(404);
     $app->response()->headers->set('Content-Type', 'application/json');

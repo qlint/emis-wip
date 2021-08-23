@@ -7347,11 +7347,11 @@ $app->get('/getToQuickbooksPayments/:username/:password', function ($username,$p
       array_push($results->ReceivableAccount,$accountData);
 
       $paymentsQry = $db->prepare("SELECT * FROM (
-                                    	SELECT eduweb_payment_id, transaction_id AS qb_invoice_txn_id, payment_txn_id AS qb_payment_txn_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_payments
+                                    	SELECT payment_inv_item_id, eduweb_payment_id, transaction_id AS qb_invoice_txn_id, payment_txn_id AS qb_payment_txn_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_payments
                                     	WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
                                       AND in_quickbooks = false
                                     	UNION
-                                    	SELECT eduweb_payment_id, transaction_id AS qb_invoice_txn_id, payment_txn_id AS qb_payment_txn_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_credits
+                                    	SELECT payment_inv_item_id, eduweb_payment_id, transaction_id AS qb_invoice_txn_id, payment_txn_id AS qb_payment_txn_id, client_id, admission_number, amount, payment_date, eduweb_invoice_id, receipt_number, 'Accounts Receivable' AS ARAccountRef FROM to_quickbooks_credits
                                     	WHERE client_id = (SELECT subdomain FROM quickbooks_clients WHERE username = :username AND password = :password)
                                       AND in_quickbooks = false
                                     )a
@@ -7430,11 +7430,11 @@ $app->post('/addedToQuickbooks', function () use($app) {
                   $credSth->execute( array(':clientUsrnm' => $clientUsrnm) );
 
                   // SCHOOL
-                  $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
+                  $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true, modified_date = now()
             	                                 WHERE payment_id IN ($paymentId);");
                   $paySth2->execute( array() );
 
-                  $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
+                  $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true, modified_date = now()
             	                                 WHERE payment_id IN ($paymentId);");
                   $credSth2->execute( array() );
               // }
@@ -7453,7 +7453,7 @@ $app->post('/addedToQuickbooks', function () use($app) {
                 $invSth->execute( array(':clientUsrnm' => $clientUsrnm) );
 
                 // SCHOOL
-                $invSth2 = $getDb->prepare("UPDATE app.invoices SET in_quickbooks = true
+                $invSth2 = $getDb->prepare("UPDATE app.invoices SET in_quickbooks = true, modified_date = now()
                                             WHERE inv_id IN ($invoiceId);");
                 $invSth2->execute( array() );
             // }
@@ -7593,27 +7593,33 @@ $app->post('/addedToQuickbooksV2', function () use($app) {
             foreach ($paymentsArr as $payment) {
               $qbPayTxnId = $payment['qb_payment_txn_id'];
               // $qbInvTxnId = $payment['qb_invoice_txn_id'];
-              $pId = $payment['eduweb_payment_id'];
+              $pId = $payment['payment_inv_item_id'];
               // QUICKBOOKS
               if(isset($qbPayTxnId)){
                 $paySth = $db->prepare("UPDATE public.to_quickbooks_payments SET payment_txn_id = :qbPayTxnId, in_quickbooks = true
                                         WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                        AND eduweb_payment_id = :pId;");
+                                        AND payment_inv_item_id = :pId RETURNING eduweb_payment_id;");
                 $paySth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbPayTxnId' => $qbPayTxnId, ':pId' => $pId) );
+                $payId = $paySth->fetch(PDO::FETCH_OBJ);
+                $payId = $payId->eduweb_payment_id;
 
                 $credSth = $db->prepare("DELETE FROM public.to_quickbooks_credits
                                         WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                        AND eduweb_payment_id = :pId;");
-                $credSth->execute( array(':clientUsrnm' => $clientUsrnm, ':pId' => $pId) );
+                                        AND eduweb_payment_id  = :payId;");
+                $credSth->execute( array(':clientUsrnm' => $clientUsrnm, ':payId' => $payId) );
 
                 // SCHOOL
-                $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
-          	                                 WHERE payment_id = :pId;");
+                $paySth3 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
+                                        WHERE payment_id = :payId;");
+                $paySth3->execute( array(':payId' => $payId) );
+
+                $paySth2 = $getDb->prepare("UPDATE app.payment_inv_items SET in_quickbooks = true
+          	                                 WHERE payment_inv_item_id = :pId;");
                 $paySth2->execute( array(':pId' => $pId) );
 
                 $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
-          	                                 WHERE payment_id = :pId;");
-                $credSth2->execute( array(':pId' => $pId) );
+          	                                 WHERE payment_id = :payId;");
+                $credSth2->execute( array(':payId' => $payId) );
               }
 
             }
@@ -7717,26 +7723,32 @@ $app->post('/addedPaymentsToQBV2', function () use($app) {
 
           foreach ($paymentId as $payment) {
             $qbTxnId = $payment['qb_payment_txn_id'];
-            $pId = $payment['eduweb_payment_id'];
+            $pId = $payment['payment_inv_item_id'];
             // QUICKBOOKS
             $paySth = $db->prepare("UPDATE public.to_quickbooks_payments SET transaction_id = :qbTxnId, in_quickbooks = true
                                     WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                    AND eduweb_payment_id = :pId;");
+                                    AND payment_inv_item_id = :pId RETURNING eduweb_payment_id;");
             $paySth->execute( array(':clientUsrnm' => $clientUsrnm, ':qbTxnId' => $qbTxnId, ':pId' => $pId) );
+            $payId = $paySth->fetch(PDO::FETCH_OBJ);
+            $payId = $payId->eduweb_payment_id;
 
             $credSth = $db->prepare("DELETE FROM public.to_quickbooks_credits
                                     WHERE client_id = (SELECT client_identifier FROM public.quickbooks_clients WHERE username = :clientUsrnm)
-                                    AND eduweb_payment_id = :pId;");
-            $credSth->execute( array(':clientUsrnm' => $clientUsrnm, ':pId' => $pId) );
+                                    AND eduweb_payment_id = :payId;");
+            $credSth->execute( array(':clientUsrnm' => $clientUsrnm, ':payId' => $payId) );
 
             // SCHOOL
-            $paySth2 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
-      	                                 WHERE payment_id = :pId;");
+            $paySth3 = $getDb->prepare("UPDATE app.payments SET in_quickbooks = true
+                                    WHERE payment_id = :payId;");
+            $paySth3->execute( array(':payId' => $payId) );
+
+            $paySth2 = $getDb->prepare("UPDATE app.payment_inv_items SET in_quickbooks = true
+                                         WHERE payment_inv_item_id = :pId;");
             $paySth2->execute( array(':pId' => $pId) );
 
             $credSth2 = $getDb->prepare("UPDATE app.credits SET in_quickbooks = true
-      	                                 WHERE payment_id = :pId;");
-            $credSth2->execute( array(':pId' => $pId) );
+      	                                 WHERE payment_id = :payId;");
+            $credSth2->execute( array(':payId' => $payId) );
           }
         }
 

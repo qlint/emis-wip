@@ -45,15 +45,11 @@
                                                           FROM sample s
                                                           WHERE terms.term_id = s.term_id;"); // executing the query
             */
-            /*
-            $executeOnSchoolDb3 = pg_query($schoolDb,"UPDATE app.payments
-                                                      SET payment_date = CASE
-                                                      WHEN banking_date IS NULL THEN payment_date
-                                                        ELSE banking_date
-                                                      END;"); // executing the query
-            */
-            $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.fee_items
-                                                      ADD COLUMN year character varying;"); // executing the query
+
+            $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.invoice_line_items
+                                                      ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
+            $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.payment_inv_items
+                                                      ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
 
             // $executeOnSchoolDb5 = pg_query($schoolDb,"SELECT setval('app.students_student_id_seq', (SELECT MAX(student_id) FROM app.students)+1);");
             // $executeOnSchoolDb5 = pg_query($schoolDb,"SELECT setval('app.guardians_guardian_id_seq', (SELECT MAX(guardian_id) FROM app.guardians)+1);");
