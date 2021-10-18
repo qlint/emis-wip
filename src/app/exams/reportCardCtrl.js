@@ -3,7 +3,46 @@
 angular.module('eduwebApp').
 controller('reportCardCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'apiService', 'dialogs', 'data','$timeout','$window','$parse',
 function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $timeout, $window, $parse){
-	// console.log("PASSED DATA > ",data);
+	console.log("PASSED DATA > ",data);
+	if(data.cbc_mode == undefined){
+		$scope.isCbcMode = (data.filters.class.report_card_type == 'CBC' ? true : false);
+	}else{
+		$scope.isCbcMode = data.cbc_mode;
+	}
+	console.log('cbc mode >',$scope.isCbcMode);
+	if($scope.isCbcMode == true){
+		$scope.cbcModeExam = data.exam_type;
+		$scope.cbcExamTypeId = data.exam_type_id;
+	}
+
+	$scope.cbcClassExamTypes = [];
+
+	$scope.getClassExamTypes = function(cat){
+		console.log("Fetching class exam types",cat);
+		apiService.getExamTypes(cat, function(response){
+			var result = angular.fromJson(response);
+			if( result.response == 'success'){
+				console.log("Exam types found > ",result.data);
+				$scope.cbcClassExamTypes = result.data;
+			}
+		}, apiError);
+	}
+
+	$scope.getClassCat = function(class_id){
+		if(class_id){
+			console.log('Received id = '+class_id);
+			console.log($scope.classes);
+			var selectedClass = $scope.classes.filter(function (el) {
+			  return el.class_id == class_id;
+			});
+			console.log('Selected Class >',selectedClass);
+			$scope.getClassExamTypes(selectedClass.class_cat_id);
+		}
+	}
+
+	if($scope.isCbcMode == true){
+		$scope.getClassExamTypes(data.filters.class_cat_id);
+	}
 	// console.log($scope);
 	$rootScope.isPrinting = false;
 	$scope.student = data.student || undefined;
@@ -18,7 +57,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.specialExamTypes = {};
 	$scope.comments = {};
 	$scope.principal_comment = {};
-	$scope.entity_id = ($scope.student.entity_id == null || $scope.student.entity_id == undefined ? null : $scope.student.entity_id);
+	if($scope.student){ $scope.entity_id = ($scope.student.entity_id == null || $scope.student.entity_id == undefined ? null : $scope.student.entity_id); }
 	console.log("Entity :",$scope.entity_id);
 	$scope.parentPortalAcitve = ( $rootScope.currentUser.settings['Parent Portal'] && $rootScope.currentUser.settings['Parent Portal'] == 'Yes' ? true : false);
 	$scope.schoolName = window.location.host.split('.')[0];
@@ -39,7 +78,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false );
 	$scope.isAdmin = ( $rootScope.currentUser.user_type == 'SYS_ADMIN' || $rootScope.currentUser.user_type == 'ADMIN' || $rootScope.currentUser.user_type == 'FINANCE_CONTROLLED' ? true : false );
 	//$scope.noRanking = ( window.location.host.split('.')[0] == 'lasalle' ? true : false );
-	if( data.filters.class.class_cat_id == 21 || data.filters.class.class_cat_id == 5 || data.filters.class.class_cat_id == 6 || data.filters.class.class_cat_id == 7 || data.filters.class.class_cat_id == 8 || data.filters.class.class_cat_id == 9 ){
+	if( $scope.entity_id < 9 ){
 	    $scope.noRanking = ( window.location.host.split('.')[0] == 'lasalle' ? true : false );
 	    if( $scope.noRanking == true ){
     	    $scope.rmks = "Teachers Comments On Performance Of Curriculum Outcome";
@@ -95,113 +134,116 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	}
 
 	function getReportCardData(){
-		var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + (data.term_id == null || data.term_id == undefined ? $scope.filters.term_id : data.term_id);
-		var loadRptCd = function(response,status)
-		{
-			var result = angular.fromJson( response );
-			if( result.response == 'success' )
+		if($scope.student){
+			var rptCardParams = $scope.student.student_id + '/' + $scope.filters.class.class_id + '/' + (data.term_id == null || data.term_id == undefined ? $scope.filters.term_id : data.term_id);
+			var loadRptCd = function(response,status)
 			{
-				if( result.nodata )
+				var result = angular.fromJson( response );
+				if( result.response == 'success' )
 				{
-					$scope.reportsNotFound = true;
-					$scope.errMsg = "There was no report card data found for this student.";
+					if( result.nodata )
+					{
+						$scope.reportsNotFound = true;
+						$scope.errMsg = "There was no report card data found for this student.";
+					}
+					else
+					{
+						$scope.reportCd = result.data;
+						/* use cbc report card for grade 1 to 5 */
+						if($scope.schoolName == "lasalle" && $scope.reportCd.entity_id <= 9){
+							// console.log("Entity >",$scope.reportCd.entity_id);
+				        getGrading2();
+				    }
+						// console.log("Filtered Exam Types > ",$scope.examTypes);
+						if($scope.reportCd.report_card_type != null){$scope.reportCardType = ($scope.reportCd.report_card_type == null || $scope.reportCd.report_card_type == undefined ? 'Standard' : $scope.reportCd.report_card_type);}
+						// remove exam types not done
+						if($scope.reportCd.exam_marks != null){
+							$scope.reportCd.exam_marks = $scope.removeExamsNotDone($scope.reportCd.exam_marks);
+						}
+						// remove totals of exam types not done
+						if($scope.reportCd.totals[0].total_marks != null){
+							$scope.reportCd.totals[0].total_marks = $scope.removeNullTotals($scope.reportCd.totals[0].total_marks);
+						}
+						function dateConverter(str){
+							let strArr = str.split('-');
+							let year = strArr[0];
+							let month = parseInt(strArr[1]);
+							let day = parseInt(strArr[2]);
+							let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+							let postFix = '';
+							if(day == 1 || day == 21 || day == 31){
+								postFix = 'st';
+							}else if(day == 2 || day == 22){
+								postFix = 'nd';
+							}else if(day == 3 || day == 23){
+								postFix = 'rd';
+							}else{
+								postFix = 'th';
+							}
+							let theDate = day + postFix + ' ' + months[month - 1] + ', ' + year;
+							// console.log(theDate);
+							return theDate;
+						}
+						console.log("Unconverted date >",$scope.reportCd.closing_date);
+						$scope.reportCd.closing_date = ($scope.reportCd.closing_date == null ? null : dateConverter($scope.reportCd.closing_date));
+						$scope.reportCd.next_term_begins = ($scope.reportCd.next_term_begins == null ? null : dateConverter($scope.reportCd.next_term_begins));
+						console.log("New Report Card Api",$scope.reportCd);
+						if($scope.reportCd.subjects_column != null){
+						for(let a=0;a < $scope.reportCd.subjects_column.length;a++){
+							let subj = $scope.reportCd.subjects_column[a];
+							for(let b=0;b < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;b++){
+								let subjOvrl = $scope.reportCd.subject_overalls_column[0].subject_overalls[b];
+
+								if(subj.subject_id == subjOvrl.subject_id){
+									subj.overall = subjOvrl;
+									subjOvrl.sort_order = subj.sort_order;
+								}
+							}
+							subj.exam_marks = [];
+							$scope.reportCd.exam_marks.forEach((item, i) => {
+								let exam =  item.exam_marks;
+								exam.forEach((cat, i) => {
+									if(subj.subject_name.toLowerCase() == cat.subject_name.toLowerCase()){
+										// console.log("Pushing to subjects_column >",cat);
+										subj.exam_marks.push(cat);
+									}
+								});
+							});
+
+						}
+						$scope.reportCd.subjects_column.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
+						$scope.reportCd.subjects_column.forEach((item, i) => {
+							item.exam_marks.sort((a, b) => (a.exam_sort > b.exam_sort) ? 1 : -1);
+						});
+						$scope.reportCd.totals[0].total_marks.sort((a, b) => (a.exam_sort > b.exam_sort) ? 1 : -1);
+
+						console.log('SORTED > ',$scope.reportCd.totals[0]);
+						$scope.reportCd.subject_overalls_column[0].subject_overalls.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
+						if($scope.schoolName == "lasalle" && $scope.entity_id <= 7){
+							for(let x=0;x < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;x++){
+								$scope.reportCd.subject_overalls_column[0].subject_overalls[x].grade = $scope.reportCd.subject_overalls_column[0].subject_overalls[x].grade2;
+								$scope.reportCd.subject_overalls_column[0].subject_overalls[x].comment = $scope.reportCd.subject_overalls_column[0].subject_overalls[x].comment2;
+							}
+						}
+						console.log($scope);
+					}
+						// console.log("After Edit",$scope.reportCd);
+						if($scope.reportCd.calculation_mode == "Last Exam"){
+							console.log("By Last Exam");
+							$scope.reportCd.positions = $scope.reportCd.positions_by_last_exams;
+						}
+						console.log("After Edit",$scope.reportCd);
+					}
 				}
 				else
 				{
-					$scope.reportCd = result.data;
-					if($scope.schoolName == "lasalle" && $scope.reportCd.entity_id <= 7){
-						// console.log("Entity >",$scope.reportCd.entity_id);
-			        getGrading2();
-			    }
-					// console.log("Filtered Exam Types > ",$scope.examTypes);
-					if($scope.reportCd.report_card_type != null){$scope.reportCardType = ($scope.reportCd.report_card_type == null || $scope.reportCd.report_card_type == undefined ? 'Standard' : $scope.reportCd.report_card_type);}
-					// remove exam types not done
-					if($scope.reportCd.exam_marks != null){
-						$scope.reportCd.exam_marks = $scope.removeExamsNotDone($scope.reportCd.exam_marks);
-					}
-					// remove totals of exam types not done
-					if($scope.reportCd.totals[0].total_marks != null){
-						$scope.reportCd.totals[0].total_marks = $scope.removeNullTotals($scope.reportCd.totals[0].total_marks);
-					}
-					function dateConverter(str){
-						let strArr = str.split('-');
-						let year = strArr[0];
-						let month = parseInt(strArr[1]);
-						let day = parseInt(strArr[2]);
-						let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-						let postFix = '';
-						if(day == 1 || day == 21 || day == 31){
-							postFix = 'st';
-						}else if(day == 2 || day == 22){
-							postFix = 'nd';
-						}else if(day == 3 || day == 23){
-							postFix = 'rd';
-						}else{
-							postFix = 'th';
-						}
-						let theDate = day + postFix + ' ' + months[month - 1] + ', ' + year;
-						// console.log(theDate);
-						return theDate;
-					}
-					console.log("Unconverted date >",$scope.reportCd.closing_date);
-					$scope.reportCd.closing_date = ($scope.reportCd.closing_date == null ? null : dateConverter($scope.reportCd.closing_date));
-					$scope.reportCd.next_term_begins = ($scope.reportCd.next_term_begins == null ? null : dateConverter($scope.reportCd.next_term_begins));
-					console.log("New Report Card Api",$scope.reportCd);
-					if($scope.reportCd.subjects_column != null){
-					for(let a=0;a < $scope.reportCd.subjects_column.length;a++){
-						let subj = $scope.reportCd.subjects_column[a];
-						for(let b=0;b < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;b++){
-							let subjOvrl = $scope.reportCd.subject_overalls_column[0].subject_overalls[b];
-
-							if(subj.subject_id == subjOvrl.subject_id){
-								subj.overall = subjOvrl;
-								subjOvrl.sort_order = subj.sort_order;
-							}
-						}
-						subj.exam_marks = [];
-						$scope.reportCd.exam_marks.forEach((item, i) => {
-							let exam =  item.exam_marks;
-							exam.forEach((cat, i) => {
-								if(subj.subject_name.toLowerCase() == cat.subject_name.toLowerCase()){
-									// console.log("Pushing to subjects_column >",cat);
-									subj.exam_marks.push(cat);
-								}
-							});
-						});
-
-					}
-					$scope.reportCd.subjects_column.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
-					$scope.reportCd.subjects_column.forEach((item, i) => {
-						item.exam_marks.sort((a, b) => (a.exam_sort > b.exam_sort) ? 1 : -1);
-					});
-					$scope.reportCd.totals[0].total_marks.sort((a, b) => (a.exam_sort > b.exam_sort) ? 1 : -1);
-
-					console.log('SORTED > ',$scope.reportCd.totals[0]);
-					$scope.reportCd.subject_overalls_column[0].subject_overalls.sort((a, b) => (a.sort_order > b.sort_order) ? 1 : -1);
-					if($scope.schoolName == "lasalle" && $scope.entity_id <= 7){
-						for(let x=0;x < $scope.reportCd.subject_overalls_column[0].subject_overalls.length;x++){
-							$scope.reportCd.subject_overalls_column[0].subject_overalls[x].grade = $scope.reportCd.subject_overalls_column[0].subject_overalls[x].grade2;
-							$scope.reportCd.subject_overalls_column[0].subject_overalls[x].comment = $scope.reportCd.subject_overalls_column[0].subject_overalls[x].comment2;
-						}
-					}
-					console.log($scope);
-				}
-					// console.log("After Edit",$scope.reportCd);
-					if($scope.reportCd.calculation_mode == "Last Exam"){
-						console.log("By Last Exam");
-						$scope.reportCd.positions = $scope.reportCd.positions_by_last_exams;
-					}
-					console.log("After Edit",$scope.reportCd);
+					$scope.reportsNotFound = true;
+					$scope.errMsg = result.data;
 				}
 			}
-			else
-			{
-				$scope.reportsNotFound = true;
-				$scope.errMsg = result.data;
-			}
+			console.log("Params > " + rptCardParams);
+			apiService.getReportCardData(rptCardParams, loadRptCd, apiError);
 		}
-		console.log("Params > " + rptCardParams);
-		apiService.getReportCardData(rptCardParams, loadRptCd, apiError);
 	}
 
 	function getLiveReportCardData(studentId,classId,termId){
@@ -296,7 +338,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			var params = '';
 			if( $scope.isTeacher && !$scope.isClassTeacher ) params = $scope.filters.class.class_cat_id + '/true/' + $rootScope.currentUser.emp_id;
 			else  params = $scope.filters.class.class_cat_id + '/true/0';
-			console.log("ReportCd Obj",$scope.reportCd);
+			// console.log("ReportCd Obj",$scope.reportCd);
 			$scope.reportCd = {};
 			$scope.reportCd.playgroup_report_card = [];
 			apiService.getAllSubjects(params,
@@ -322,17 +364,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 																			subjObj.teacher_name = result.data[i].teacher_name;
 																			$scope.reportCd.playgroup_report_card.push(subjObj);
 																		}
-
+																		console.log("ReportCd Obj",$scope.reportCd);
 																	}
 																},
 																apiError);
 		}else{
-			console.log("Params > " + rptCardParams);
+			console.log("Params 1 > " + rptCardParams);
 			apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
 		}
 
-		console.log("Params > " + rptCardParams);
-		apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
+		console.log("Params 2 > " + rptCardParams);
+		if($scope.isCbcMode == true){
+			console.log('Using live cbc');
+			apiService.getLiveCbcReportCardData(rptCardParams, loadRptCd, apiError);
+		}else{
+			console.log('Using regular cbc');
+			apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
+		}
+
 		/*
 		var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.updateReportTermId;
 		if( $scope.isTeacher && !$scope.isClassTeacher ){ params += '/' + $rootScope.currentUser.emp_id };
@@ -448,11 +497,13 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 		if(data.generateOrFetch == 'generate'){
 			getLiveReportCardData($scope.student.student_id,$scope.filters.class.class_id,(data.term_id == null || data.term_id == undefined ? $scope.filters.term_id : data.term_id));
-		}else{ getReportCardData(); }
-	    // get lower school grading
-	    if($scope.schoolName == "lasalle" && $scope.entity_id <= 7){
-	        getGrading2();
-	    }
+		}else{
+			getReportCardData();
+		}
+		// get lower school grading
+		if($scope.schoolName == "lasalle" && $scope.entity_id <= 9){
+			getGrading2();
+		}
 
 		if( $scope.reportCardType == 'Standard' )
 		{
@@ -556,7 +607,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	{
 		if( data.reportData !== undefined )
 		{
-		    // console.log(data.reportData);
+		  // console.log('data.reportData > ',data.reportData);
 			/* passing in a report to view, load it */
 			$scope.savedReportData = angular.fromJson(data.reportData);
 			$scope.originalData = angular.copy($scope.savedReportData);
@@ -728,7 +779,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	});
 
 	$scope.conf = function(el){
-		console.log("TERM CHANGE DETECTED > ",el);
+		// console.log("TERM CHANGE DETECTED > ",el);
 		$scope.filters.term_id = el.filters.term.term_id;
 	}
 
@@ -748,7 +799,18 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 
 	$scope.getProgressReport = function(recreate)
 	{
-		console.log($scope);
+		// console.log($scope);
+
+		if($scope.isCbcMode == true){
+			// console.log($scope.filters);
+			var selectedExamType = $scope.cbcClassExamTypes.filter(function (el) {
+			  return el.exam_type_id == $scope.filters.exam_type_id.exam_type_id;
+			});
+			// console.log('Selected exam type >',selectedExamType);
+			$scope.cbcModeExam = selectedExamType[0].exam_type;
+			console.log('CBC Exam Type >',$scope.cbcModeExam);
+		}
+
 		// "real time"
 		var loadRptCd = function(response,status)
 		{
@@ -765,7 +827,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				else
 				{
 					$scope.reportCd = result.data;
-					if($scope.schoolName == "lasalle" && $scope.reportCd.entity_id <= 6){
+					if($scope.schoolName == "lasalle" && $scope.reportCd.entity_id <= 9){
 						console.log("Entity >",$scope.reportCd.entity_id);
 			        getGrading2();
 			    }
@@ -830,8 +892,16 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		console.log("Params for live data : " + rptCardParams);
 		console.log(data);
 		if(data.generateOrFetch == 'generate'){
-			apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
+			console.log('Generating a new one');
+			if($scope.isCbcMode == true){
+				console.log('Using live cbc');
+				apiService.getLiveCbcReportCardData(rptCardParams, loadRptCd, apiError);
+			}else{
+				console.log('Using regular live');
+				apiService.getLiveReportCardData(rptCardParams, loadRptCd, apiError);
+			}
 		}else{
+			console.log('Fetching existing one');
 			apiService.getReportCardData(rptCardParams, loadRptCd, apiError);
 		}
 
@@ -865,6 +935,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 		// check to see if there is already a report card with this criteria
 		if( recreate )
 		{
+			console.log('RECREATING');
 			/* user has requested to recreate an existing report card, fetch student exam marks and build report */
 			$scope.savedReport = false;
 			$scope.recreated = true;
@@ -1013,23 +1084,29 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 				        $scope.reportData.subjects[s].indent = ( $scope.reportData.subjects[s].parent_subject_id != null ? '30' : '0');
 
 				        if($scope.reportData.subjects[s].child == 'first'){ parentSubjectIds.push($scope.reportData.subjects[s].subject_id); }
-                    }
+						}
 
-                    for (var t = 0; t < $scope.reportData.subjects.length; t++) {
-                            if( $scope.reportData.subjects[t].child == 'first' ){
-                                $scope.reportData.subjects[t].child = (parentSubjectIds.indexOf($scope.reportData.subjects[t].parent_subject_id) == -1 ? 'first' : 'second');
-                                $scope.reportData.subjects[t].indent = (parentSubjectIds.indexOf($scope.reportData.subjects[t].parent_subject_id) == -1 ? '30' : '60');
-                            }
-                    }
+						for (var t = 0; t < $scope.reportData.subjects.length; t++) {
+								if( $scope.reportData.subjects[t].child == 'first' ){
+										$scope.reportData.subjects[t].child = (parentSubjectIds.indexOf($scope.reportData.subjects[t].parent_subject_id) == -1 ? 'first' : 'second');
+										$scope.reportData.subjects[t].indent = (parentSubjectIds.indexOf($scope.reportData.subjects[t].parent_subject_id) == -1 ? '30' : '60');
+								}
+            }
 
 				}
 				// end of indentation logic
 
 				/* look for saved report card data, if it was not passed in  */
+				console.log('$scope.savedReportData >',$scope.savedReportData);
 				if( $scope.savedReportData === undefined )
 				{
 					var params = $scope.student.student_id + '/' + $scope.report.class_id + '/' + $scope.report.term_id;
-					apiService.getStudentReportCard(params,loadReportCard, apiError);
+					if($scope.isCbcMode == true){
+						apiService.getStudentCbcReportCard(params,loadReportCard, apiError);
+					}else{
+						apiService.getStudentReportCard(params,loadReportCard, apiError);
+					}
+
 					getLiveReportCardData($scope.student.student_id,$scope.filters.class.class_id,$scope.filters.term_id);
 				}
 				else
@@ -1880,7 +1957,7 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 	$scope.save = function()
 	{
 		// console.log($scope.reportData);
-    	$scope.reportData.position = $scope.overall;
+    $scope.reportData.position = $scope.overall;
 		$scope.reportData.stream_position = $scope.streamPosition;
 		$scope.reportData.position_last_term = $scope.overallLastTerm;
 		$scope.reportData.totals = $scope.totals;
@@ -1930,7 +2007,14 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, data, $tim
 			published: $scope.report.published || 'f'
 		}
 		console.log("Add report card data :::",data);
-		apiService.addReportCard(data,createCompleted,apiError);
+		if(data.report_card_type == 'CBC'){
+			console.log('cbc et id',$scope.cbcExamTypeId);
+			data.exam_type_id = $scope.cbcExamTypeId;
+			console.log('PAYLOAD > ',data);
+			apiService.addCbcReportCard(data,createCompleted,apiError);
+		}else{
+			apiService.addReportCard(data,createCompleted,apiError);
+		}
 
 		// give the report card time to load then execute
 		setTimeout(function(){ $scope.screenshotReportCard(); }, 2000);

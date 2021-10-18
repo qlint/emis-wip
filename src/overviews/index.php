@@ -135,6 +135,20 @@
         <!-- PROJECT SEVEN -->
         <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
           <div class="card h-100">
+            <a href="cancelled-analysis.php">
+              <img class="card-img-top" src="img/cancelled.jpg" alt="Cancelled Invoices Analysis">
+            </a>
+            <div class="card-body">
+              <h4 class="card-title">
+                <a  class="btn btn-primary" href="cancelled-analysis.php">Cancelled Invoices</a>
+              </h4>
+              <p class="card-text">An overview of all cancelled invoices with cancellation details.</p>
+            </div>
+          </div>
+        </div>
+        <!-- PROJECT SEVEN -->
+        <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
+          <div class="card h-100">
             <a href="#">
               <img class="card-img-top" src="img/parents-and-students.jpg" alt="Student Fee Items Analysis">
             </a>

@@ -285,7 +285,7 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 	this.addFeeItem = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/addFeeItem", successFunction, errorFunction, params);
 	};
-	
+
 	this.tickStudentFeeItem = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/tickStudentFeeItem", successFunction, errorFunction, params);
 	};
@@ -548,8 +548,16 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxGet(path + "/getStudentReportCards/" + param, successFunction, errorFunction, params);
 	};
 
+	this.getStudentCbcReportCards = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStudentCbcReportCards/" + param, successFunction, errorFunction, params);
+	};
+
 	this.getStudentReportCard = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getStudentReportCard/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getStudentCbcReportCard = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getStudentCbcReportCard/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getReportCardData = function (param, successFunction, errorFunction, params) {
@@ -558,6 +566,10 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 
 	this.getLiveReportCardData = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxGet(path + "/getLiveReportCardData/" + param, successFunction, errorFunction, params);
+	};
+
+	this.getLiveCbcReportCardData = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxGet(path + "/getLiveCbcReportCardData/" + param, successFunction, errorFunction, params);
 	};
 
 	this.getClassReportCardData = function (param, successFunction, errorFunction, params) {
@@ -584,12 +596,24 @@ angular.module('eduwebApp').service('apiService', [ '$rootScope', 'ajaxService',
 		ajaxService.AjaxPost2(request, path + "/addReportCard", successFunction, errorFunction, params);
 	};
 
+	this.addCbcReportCard = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/addCbcReportCard", successFunction, errorFunction, params);
+	};
+
 	this.updateReportCardData = function (request, successFunction, errorFunction, params) {
 		ajaxService.AjaxPost2(request, path + "/updateReportCardData", successFunction, errorFunction, params);
 	};
 
+	this.updateCbcReportCardData = function (request, successFunction, errorFunction, params) {
+		ajaxService.AjaxPost2(request, path + "/updateCbcReportCardData", successFunction, errorFunction, params);
+	};
+
 	this.deleteReportCard = function (param, successFunction, errorFunction, params) {
 		ajaxService.AjaxDelete(path + "/deleteReportCard/" + param, successFunction, errorFunction, params);
+	};
+
+	this.deleteCbcReportCard = function (param, successFunction, errorFunction, params) {
+		ajaxService.AjaxDelete(path + "/deleteCbcReportCard/" + param, successFunction, errorFunction, params);
 	};
 
 	/*********** students ***********/

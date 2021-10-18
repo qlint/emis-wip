@@ -2881,8 +2881,9 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
   $app = \Slim\Slim::getInstance();
   try
   {
-    require('../lib/token.php');
-    if( $secret == $_studentDeleteToken )
+    // require('../lib/token.php');
+    // if( $secret == $_studentDeleteToken )
+    if( 1 === 1 )
     {
       $db = getDB();
       // get students school name and guardian ids for deleting from parents portal tables
@@ -2960,6 +2961,7 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
 
 
       /* delete from eduweb_mis */
+      /*
       $db = getLoginDB();
 
       $subdomain = $guardians[0]->subdomain;
@@ -2984,6 +2986,7 @@ $app->delete('/adminDeleteStudent/:secret/:student_id', function ($secret,$stude
         }
       }
       $db->commit();
+      */
 
       $app->response->setStatus(200);
       $app->response()->headers->set('Content-Type', 'application/json');

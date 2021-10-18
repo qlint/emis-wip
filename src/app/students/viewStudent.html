@@ -1057,6 +1057,40 @@ input#tripCheck{transform: scale(1.3);}
 				</table>
 			</script>
 
+      <script type="text/ng-template" id="CBC Report Cards">
+				<h2>CBC Report Cards</h2>
+				<button type="button" class="pull-right btn btn-link" ng-click="addCbcReportCard()"><i class="glyphicon glyphicon-plus-sign"></i> Generate Report Card</button>
+
+				<p ng-show="reportsNotFound" class="error alert alert-danger">
+					{{errMsg}}
+				</p>
+
+				<table id="resultsTable2" class="display dataTable clickable" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th>Class</th>
+							<th class="center" ng-repeat="item in reportCards.terms">{{item}}</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="item in reportCards.classes track by $index">
+							<td width="75">{{item.class_name}} ({{item.year}})</td>
+							<td class="center" ng-repeat="term in reportCards.terms track by $index">
+								<span ng-show="item.reports[term]" ng-click="getReportCard(item, term, item.reports[term])" class="glyphicon glyphicon-file icon-lg">
+									<sup ng-show="parentPortalAcitve && !item.reports[term].published" class="text-muted" title="Not Published">*</sup>
+								</span>
+								<span ng-show="!item.reports[term]" >-</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<p class="note" ng-show="parentPortalAcitve" style="margin-top:10px;border-top:1px solid #eee;padding-top:10px">
+					<sup>*</sup> The asterisk indicates that a report card is NOT published and not accessible to parents via the parent portal.
+				</p>
+        
+			</script>
+
 			<script type="text/ng-template" id="Transport">
 			    <h2>Student Transport Details</h2>
 				<div class="row">

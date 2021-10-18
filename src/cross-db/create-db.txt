@@ -1,13 +1,37 @@
-CREATE TABLE app.forgot_pwd
+CREATE TABLE app.report_cards_cbc
 (
-    usr_phone character varying NOT NULL,
-    temp_pwd character varying NOT NULL,
-    user_id integer NOT NULL,
+    cbc_report_card_id integer NOT NULL DEFAULT nextval('app.report_cards_cbc_cbc_report_card_id_seq'::regclass),
+    student_id integer,
+    term_id integer,
+    exam_type_id integer,
+    class_id integer,
+    report_data text COLLATE pg_catalog."default",
     creation_date timestamp without time zone NOT NULL DEFAULT now(),
-    CONSTRAINT "PK_usr_phone" PRIMARY KEY (usr_phone)
+    created_by integer,
+    modified_date timestamp without time zone,
+    modified_by integer,
+    report_card_type character varying COLLATE pg_catalog."default" NOT NULL,
+    teacher_id integer,
+    published boolean NOT NULL DEFAULT false,
+    class_teacher_comment text COLLATE pg_catalog."default",
+    head_teacher_comment text COLLATE pg_catalog."default",
+    CONSTRAINT "FK_cbc_report_card_id" PRIMARY KEY (cbc_report_card_id),
+    CONSTRAINT "FK_report_class" FOREIGN KEY (class_id)
+        REFERENCES app.classes (class_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT "FK_report_exam_type" FOREIGN KEY (exam_type_id)
+        REFERENCES app.exam_types (exam_type_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT "FK_report_student" FOREIGN KEY (student_id)
+        REFERENCES app.students (student_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT "FK_report_term" FOREIGN KEY (term_id)
+        REFERENCES app.terms (term_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
 )
 
 TABLESPACE pg_default;
-
-ALTER TABLE app.forgot_pwd
-    OWNER to postgres;

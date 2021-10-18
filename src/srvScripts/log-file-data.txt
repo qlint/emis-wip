@@ -232,3 +232,12 @@ docx
 jpg
 pdf
 pdf
+jpeg
+png
+jpeg
+jpeg
+jpeg
+jpeg
+png
+jpeg
+jpeg

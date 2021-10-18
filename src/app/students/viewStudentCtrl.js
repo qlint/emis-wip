@@ -34,9 +34,17 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		$scope.feeTabs = ['Fee Summary','Invoices','Payments Received','Fee Items'];
 
 		if( $rootScope.currentUser.user_type == 'TEACHER' ){
-		    $scope.tabs = ['Exams','Report Cards','Disciplinary','Transport'];
+			if(data.student.report_card_type == 'CBC'){
+				$scope.tabs = ['Exams','CBC Report Cards','Report Cards','Disciplinary','Transport'];
+			}else{
+				$scope.tabs = ['Exams','Report Cards','Disciplinary','Transport'];
+			}
 		}else if( $rootScope.currentUser.user_type == 'ADMIN' ){
-		    $scope.tabs = ['Details','Family','Medical History','Exams','Report Cards','Disciplinary','Transport'];
+			if(data.student.report_card_type == 'CBC'){
+				$scope.tabs = ['Details','Family','Medical History','Exams','CBC Report Cards','Report Cards','Disciplinary','Transport'];
+			}else{
+				$scope.tabs = ['Details','Family','Medical History','Exams','Report Cards','Disciplinary','Transport'];
+			}
 		}else if( $rootScope.currentUser.user_type == 'ADMIN-FINANCE' ){
 		    $scope.tabs = ['Details','Family','Fees'];
 		}else if( $rootScope.currentUser.user_type == 'FINANCE' ){
@@ -44,7 +52,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}else if( $rootScope.currentUser.user_type == 'ADMIN-TRANSPORT' ){
 		    $scope.tabs = ['Transport'];
 		}else{
-		    $scope.tabs = ['Details','Family','Medical History','Fees','Exams','Report Cards','Disciplinary','Transport'];
+			if(data.student.report_card_type == 'CBC'){
+				$scope.tabs = ['Details','Family','Medical History','Fees','Exams','CBC Report Cards','Report Cards','Disciplinary','Transport'];
+			}else{
+				$scope.tabs = ['Details','Family','Medical History','Fees','Exams','Report Cards','Disciplinary','Transport'];
+			}
 		}
 		$scope.addingFeeItem = false;
 		$scope.rawRoutes = [];
@@ -747,6 +759,39 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 				$scope.filters.term_id = currentTerm.term_id;
 			}
 			$scope.getStudentReportCards();
+		}
+		else if( tab == 'CBC Report Cards' )
+		{
+			// get data for filters
+			$scope.loading = true;
+
+			$scope.filters.class = $scope.student.current_class;
+			$scope.filters.class_cat_id = $scope.student.class_cat_id; // set the students current class category as default
+			$scope.filters.class_id = $scope.student.class_id;
+
+			// filter the classes based on class category
+			$scope.classes = $rootScope.allClasses.filter( function(item){
+				if( item.class_cat_id == $scope.filters.class_cat_id )
+				{
+					return item;
+				}
+			});
+
+			// get terms
+			if( $rootScope.terms === undefined )
+			{
+				var year = moment().format('YYYY');
+				apiService.getTerms(year, setTerms, function(){});
+			}
+			else
+			{
+				$scope.terms = $rootScope.terms;
+				var currentTerm = $scope.terms.filter(function(item){
+					if( item.current_term ) return item;
+				})[0];
+				$scope.filters.term_id = currentTerm.term_id;
+			}
+			$scope.getStudentCbcReportCards();
 		}
 		else if( tab == 'Disciplinary' )
 		{
@@ -1924,6 +1969,11 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		apiService.getStudentReportCards($scope.student.student_id, loadReportCards, apiError);
 	}
 
+	$scope.getStudentCbcReportCards = function(){
+		$scope.reportsNotFound = false;
+		apiService.getStudentCbcReportCards($scope.student.student_id, loadCbcReportCards, apiError);
+	}
+
 	var loadReportCards = function(response,status)
 	{
 		$scope.loading = false;
@@ -2036,6 +2086,122 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 		}
 	}
 
+	var loadCbcReportCards = function(response,status)
+	{
+		$scope.loading = false;
+		var result = angular.fromJson( response );
+		if( result.response == 'success' )
+		{
+			if( result.nodata )
+			{
+				$scope.reportCards = {};
+				$scope.reportsNotFound = true;
+				$scope.errMsg = "There are currently no cbc report cards entered for this student.";
+			}
+			else
+			{
+				$scope.isCbcMode = true;
+				$scope.rawReportCards = result.data;
+
+				$scope.reportCards = {};
+
+				// get unique terms
+				/*
+				$scope.reportCards.terms = $scope.rawReportCards.reduce(function(sum,item){
+					if( sum.indexOf(item.term_name) === -1 ) sum.push(item.term_name);
+					return sum;
+				}, []);
+				*/
+				console.log($scope.rawReportCards);
+				$scope.reportCards.terms = $scope.rawReportCards.reduce(function(sum,item){
+					if( sum.indexOf(item.alt_term_name) === -1 ) sum.push(item.alt_term_name);
+					return sum;
+				}, []).sort();
+				console.log($scope.reportCards.terms);
+
+
+				// group the reports by class
+				$scope.reportCards.classes = [];
+				var lastClass = '';
+				var lastTerm = '';
+				var reports = {};
+				var i = 0;
+				angular.forEach($scope.rawReportCards, function(item,key){
+
+					// if( item.class_name != lastClass )
+					// {
+						// changing to new class, store the report
+						if( i > 0 ) $scope.reportCards.classes[(i-1)].reports = reports;
+
+						$scope.reportCards.classes.push(
+							{
+								report_card_id: item.cbc_report_card_id,
+								class_name: item.class_name,
+								class_id: item.class_id,
+								class_cat_id: item.class_cat_id,
+								report_card_type: item.report_card_type,
+								teacher_id: item.teacher_id,
+								teacher_name: item.teacher_name,
+								term_id: item.term_id,
+								date: item.date,
+								year: item.year,
+								published: item.published,
+								alt_term_name: item.alt_term_name,
+								exam_type: item.exam_type,
+								exam_type_id: item.exam_type_id
+							}
+						);
+
+						reports = {};
+						i++;
+
+					// }
+					/*
+					reports[item.term_name] = {
+						term_id : item.term_id,
+						year: item.year,
+						published : item.published,
+						report_card_id: item.report_card_id,
+						report_card_type: item.report_card_type,
+						class_name: item.class_name,
+						class_id: item.class_id,
+						teacher_id: item.teacher_id,
+						teacher_name: item.teacher_name,
+						date: item.date,
+						data: item.report_data
+					};
+					*/
+					reports[item.alt_term_name] = {
+						term_id : item.term_id,
+						year: item.year,
+						published : item.published,
+						report_card_id: item.report_card_id,
+						report_card_type: item.report_card_type,
+						class_name: item.class_name,
+						class_id: item.class_id,
+						teacher_id: item.teacher_id,
+						teacher_name: item.teacher_name,
+						date: item.date,
+						data: item.report_data,
+						exam_type: item.exam_type,
+						exam_type_id: item.exam_type_id
+					};
+
+					lastClass = item.class_name;
+					lastTerm = item.term_name;
+
+				});
+				$scope.reportCards.classes[(i-1)].reports = reports;
+				console.log($scope.reportCards);
+			}
+		}
+		else
+		{
+			$scope.reportsNotFound = true;
+			$scope.errMsg = result.data;
+		}
+	}
+
 	$scope.addReportCard = function()
 	{
 		var data = {
@@ -2044,23 +2210,60 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 			terms: $scope.terms,
 			filters: $scope.filters,
 			adding: true,
+			cbc_mode: $scope.isCbcMode,
 			generateOrFetch: 'generate'
 		}
 
 		var domain = window.location.host;
 		var dlg = $dialogs.create('https://' + domain + '/app/exams/reportCard.html','reportCardCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(examMarks){
-			$scope.getStudentReportCards();
+			if($scope.isCbcMode == true){
+				$scope.getStudentCbcReportCards();
+			}else{
+				$scope.getStudentReportCards();
+			}
+
 		},function(){
-			$scope.getStudentReportCards();
+			if($scope.isCbcMode == true){
+				$scope.getStudentCbcReportCards();
+			}else{
+				$scope.getStudentReportCards();
+			}
+		});
+	}
+
+	$scope.addCbcReportCard = function()
+	{
+		console.log('$scope >',$scope);
+		console.log('$rootScope >',$rootScope);
+		var data = {
+			student : $scope.student,
+			classes: $scope.classes,
+			terms: $scope.terms,
+			filters: $scope.filters,
+			adding: true,
+			cbc_mode: $scope.isCbcMode,
+			generateOrFetch: 'generate'
+		}
+
+		var domain = window.location.host;
+		var dlg = $dialogs.create('https://' + domain + '/app/exams/reportCard.html','reportCardCtrl',data,{size: 'lg',backdrop:'static'});
+		dlg.result.then(function(examMarks){
+			$scope.getStudentCbcReportCards();
+		},function(){
+			$scope.getStudentCbcReportCards();
 		});
 	}
 
 	$scope.getReportCard = function(item, term_name, reportData)
 	{
+		console.log('item >',item);
+		console.log('reportData >',reportData);
 		var data = {
 			student : $scope.student,
-			report_card_id: reportData.report_card_id,
+			report_card_id: reportData.cbc_report_card_id,
+			exam_type: reportData.exam_type,
+			exam_type_id: reportData.exam_type_id,
 			class_name : reportData.class_name,
 			class_id : reportData.class_id,
 			published: reportData.published,
@@ -2082,15 +2285,24 @@ function($scope, $rootScope, $uibModalInstance, apiService, $dialogs, FileUpload
 					class_id: item.class_id,
 					class_cat_id: item.class_cat_id
 				}
-			}
+			},
+			cbc_mode: $scope.isCbcMode
 		};
 
 		var domain = window.location.host;
 		var dlg = $dialogs.create('https://' + domain + '/app/exams/reportCard.html','reportCardCtrl',data,{size: 'lg',backdrop:'static'});
 		dlg.result.then(function(examMarks){
-			$scope.getStudentReportCards();
+			if($scope.isCbcMode == true){
+				$scope.getStudentCbcReportCards();
+			}else{
+				$scope.getStudentReportCards();
+			}
 		},function(){
-			$scope.getStudentReportCards();
+			if($scope.isCbcMode == true){
+				$scope.getStudentCbcReportCards();
+			}else{
+				$scope.getStudentReportCards();
+			}
 		});
 	}
 
