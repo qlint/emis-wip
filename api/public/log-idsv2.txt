@@ -86,3 +86,59 @@ RECEIVE PAYMENTS FROM QB
 [{"payment_inv_item_id":"8167","qb_payment_txn_id":"29E60-1634289235"},{"payment_inv_item_id":"9485","qb_payment_txn_id":"29E63-1634289236"},{"payment_inv_item_id":"9486","qb_payment_txn_id":"29E66-1634289236"},{"payment_inv_item_id":"7589","qb_payment_txn_id":"29E69-1634289237"},{"payment_inv_item_id":"9476","qb_payment_txn_id":"29E6C-1634289237"},{"payment_inv_item_id":"9474","qb_payment_txn_id":"29E6F-1634289237"},{"payment_inv_item_id":"9488","qb_payment_txn_id":"29E72-1634289238"},{"payment_inv_item_id":"9452","qb_payment_txn_id":"29E75-1634289238"},{"payment_inv_item_id":"9477","qb_payment_txn_id":"29E78-1634289239"},{"payment_inv_item_id":"9481","qb_payment_txn_id":"29E7B-1634289240"},{"payment_inv_item_id":"9482","qb_payment_txn_id":"29E7E-1634289240"},{"payment_inv_item_id":"9470","qb_payment_txn_id":"29E81-1634289241"},{"payment_inv_item_id":"9483","qb_payment_txn_id":"29E84-1634289242"},{"payment_inv_item_id":"9479","qb_payment_txn_id":"29E87-1634289242"},{"payment_inv_item_id":"9378","qb_payment_txn_id":"29E8A-1634289243"},{"payment_inv_item_id":"9472","qb_payment_txn_id":"29E8D-1634289244"},{"payment_inv_item_id":"9431","qb_payment_txn_id":"29E90-1634289244"},{"payment_inv_item_id":"9441","qb_payment_txn_id":"29E93-1634289245"},{"payment_inv_item_id":"9442","qb_payment_txn_id":"29E96-1634289245"},{"payment_inv_item_id":"9464","qb_payment_txn_id":"29E99-1634289246"},{"payment_inv_item_id":"9084","qb_payment_txn_id":"29E9C-1634289246"},{"payment_inv_item_id":"9480","qb_payment_txn_id":"29E9F-1634289246"},{"payment_inv_item_id":"9456","qb_payment_txn_id":"29EA2-1634289247"}]
 2021-10-15 12:13:11pm
 Process completed successfully. Parsed data has been removed.
+2021-10-19 04:59:38pm
+RECEIVE INVOICES FROM QB
+[]
+2021-10-19 04:59:38pm
+RECEIVE PAYMENTS FROM QB
+[]
+2021-10-19 04:59:38pm
+Process completed successfully. Parsed data has been removed.
+2021-10-19 05:02:56pm
+RECEIVE INVOICES FROM QB
+[{"invoice_id":"4685","qb_invoice_txn_id":"29ED7-1634652178"},{"invoice_id":"4685","qb_invoice_txn_id":"29EDB-1634652180"},{"invoice_id":"4774","qb_invoice_txn_id":"29EDF-1634652180"},{"invoice_id":"4774","qb_invoice_txn_id":"29EE3-1634652181"},{"invoice_id":"4890","qb_invoice_txn_id":"29EE7-1634652181"},{"invoice_id":"4890","qb_invoice_txn_id":"29EEB-1634652181"},{"invoice_id":"5438","qb_invoice_txn_id":"29EEF-1634652181"},{"invoice_id":"5439","qb_invoice_txn_id":"29EF3-1634652182"},{"invoice_id":"5440","qb_invoice_txn_id":"29EF7-1634652182"}]
+2021-10-19 05:02:56pm
+RECEIVE PAYMENTS FROM QB
+[]
+2021-10-19 05:02:56pm
+Process completed successfully. Parsed data has been removed.
+2021-10-19 05:03:07pm
+RECEIVE INVOICES FROM QB
+[]
+2021-10-19 05:03:07pm
+RECEIVE PAYMENTS FROM QB
+[{"payment_inv_item_id":"9522","qb_payment_txn_id":"29EFB-1634652189"},{"payment_inv_item_id":"9524","qb_payment_txn_id":"29EFE-1634652190"},{"payment_inv_item_id":"9542","qb_payment_txn_id":"29F01-1634652191"},{"payment_inv_item_id":"9546","qb_payment_txn_id":"29F04-1634652191"},{"payment_inv_item_id":"9559","qb_payment_txn_id":"29F07-1634652193"},{"payment_inv_item_id":"9555","qb_payment_txn_id":"29F0A-1634652194"}]
+2021-10-19 05:03:07pm
+Process completed successfully. Parsed data has been removed.
+2021-10-21 12:10:22pm
+RECEIVE INVOICES FROM QB
+[]
+2021-10-21 12:10:22pm
+RECEIVE PAYMENTS FROM QB
+[]
+2021-10-21 12:10:22pm
+Process completed successfully. Parsed data has been removed.
+2021-10-21 12:13:25pm
+RECEIVE INVOICES FROM QB
+[{"invoice_id":"5437","qb_invoice_txn_id":"29F0D-1634807615"},{"invoice_id":"5437","qb_invoice_txn_id":"29F12-1634807617"},{"invoice_id":"5441","qb_invoice_txn_id":"29F17-1634807617"},{"invoice_id":"5442","qb_invoice_txn_id":"29F1B-1634807618"},{"invoice_id":"5443","qb_invoice_txn_id":"29F1F-1634807618"}]
+2021-10-21 12:13:25pm
+RECEIVE PAYMENTS FROM QB
+[]
+2021-10-21 12:13:25pm
+Process completed successfully. Parsed data has been removed.
+2021-10-21 12:13:34pm
+RECEIVE INVOICES FROM QB
+[]
+2021-10-21 12:13:34pm
+RECEIVE PAYMENTS FROM QB
+[{"payment_inv_item_id":"9594","qb_payment_txn_id":"29F23-1634807623"},{"payment_inv_item_id":"9593","qb_payment_txn_id":"29F26-1634807623"},{"payment_inv_item_id":"9585","qb_payment_txn_id":"29F29-1634807624"},{"payment_inv_item_id":"9587","qb_payment_txn_id":"29F2C-1634807624"},{"payment_inv_item_id":"9619","qb_payment_txn_id":"29F2F-1634807624"}]
+2021-10-21 12:13:34pm
+Process completed successfully. Parsed data has been removed.
+2021-10-25 12:10:43pm
+RECEIVE INVOICES FROM QB
+[]
+2021-10-25 12:10:43pm
+RECEIVE PAYMENTS FROM QB
+[]
+2021-10-25 12:10:43pm
+Process completed successfully. Parsed data has been removed.

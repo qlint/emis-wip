@@ -8,24 +8,29 @@ function($scope, $rootScope, apiService, $timeout, $window){
 	//var end_date = moment().add(1,'day').format('YYYY-MM-DD');
 	//$scope.date = {startDate: start_date, endDate: end_date};
 	$scope.currency = $rootScope.currentUser.settings['Currency'];
+	if($rootScope.currentUser.class_cat_limit){
+    $scope.classLimit = $rootScope.currentUser.class_cat_limit.split(',');
+    for (var i = 0; i < $scope.classLimit.length; i++) { $scope.classLimit[i] = parseInt($scope.classLimit[i]); }
+  }
+
 	$scope.paymentsLoading = true;
 	$scope.invoicesLoading = true;
 	$scope.pastDueLoading = true;
-	
+
 	$scope.gridFilter = {};
 	$scope.gridFilter.filterValue1 = '';
 	$scope.gridFilter.filterValue2 = '';
 	$scope.gridFilter.filterValue3 = '';
-	
-	var rowTemplate1 = function() 
+
+	var rowTemplate1 = function()
 	{
 		return '<div class="clickable" ng-click="grid.appScope.viewPayment(row.entity)">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
 		'  <div ng-if="!row.entity.merge" ng-repeat="(colRenderIndex, col) in colContainer.renderedColumns track by col.colDef.name" class="ui-grid-cell" ng-class="{ \'ui-grid-row-header-cell\': col.isRowHeader }"  ui-grid-cell></div>' +
 		'</div>';
 	}
-	
-	var rowTemplate2 = function() 
+
+	var rowTemplate2 = function()
 	{
 		return '<div class="clickable" ng-click="grid.appScope.viewStudent(row.entity)">' +
 		'  <div ng-if="row.entity.merge">{{row.entity.title}}</div>' +
@@ -48,7 +53,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		  $scope.gridApi1.grid.registerRowsProcessor( $scope.singleFilter1, 200 );
 		}
 	};
-	
+
 	$scope.gridOptions2 = {
 		enableSorting: true,
 		rowTemplate: rowTemplate2(),
@@ -63,7 +68,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		  $scope.gridApi2.grid.registerRowsProcessor( $scope.singleFilter2, 200 );
 		}
 	};
-	
+
 	$scope.gridOptions3 = {
 		enableSorting: true,
 		rowTemplate: rowTemplate2(),
@@ -78,35 +83,35 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		  $scope.gridApi3.grid.registerRowsProcessor( $scope.singleFilter3, 200 );
 		}
 	};
-	
-	var initializeController = function () 
+
+	var initializeController = function ()
 	{
 		/*
 		// get current term
 		apiService.getCurrentTerm({},function(response){
 			var result = angular.fromJson(response);
-			
-			if( result.response == 'success') 
+
+			if( result.response == 'success')
 			{
 				$scope.currentTerm = result.data;
 				$scope.currentTermTitle = $scope.currentTerm.term_name + ' ' + $scope.currentTerm.year;
 				//var end_date = moment().add(1,'day').format('YYYY-MM-DD');
 				$scope.date = {startDate: $scope.currentTerm.start_date, endDate: $scope.currentTerm.end_date};
 				getPaymentsReceived($scope.currentTerm.start_date, $scope.currentTerm.end_date);
-				
+
 			}
 		},apiError);
 		*/
-		
+
 		// get terms
 		var year = moment().format('YYYY');
 		apiService.getTerms(undefined, function(response){
 			var result = angular.fromJson(response);
 			if( result.response == 'success')
-			{ 
+			{
 				$rootScope.terms = result.data;
 				$rootScope.setTermRanges(result.data);
-				
+
 				$scope.currentTerm = result.data.filter(function(item){
 					if( item.current_term ) return item;
 				})[0];
@@ -115,44 +120,50 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				getPaymentsReceived($scope.currentTerm.start_date, $scope.currentTerm.end_date);
 			}
 		}, function(){});
-		
+
 		// get payments due this month
 		var start_date = moment().startOf('month').format('YYYY-MM-DD');
 		var end_date = moment().endOf('month').format('YYYY-MM-DD');
 		getPaymentsDue(start_date, end_date);
-		
+
 		getOverDuePayments();
 		getTotalsForTerm();
 	}
 	$timeout(initializeController,1);
-	
+
 	var getPaymentsReceived = function(startDate, endDate)
 	{
 		// get payments received for current term, that has not been reversed
 		var request = startDate + "/" + endDate + "/false";
 		apiService.getPaymentsReceived(request, loadPaymentsReceived, apiError);
 	}
-	
+
 	var loadPaymentsReceived = function(response, status)
 	{
 		var result = angular.fromJson(response);
-			
-		if( result.response == 'success') 
+
+		if( result.response == 'success')
 		{
+			// filter the results in case the user is "class cat" limited
+			console.log('Filter using >',$scope.classLimit);
+			if(result.data){
+				result.data = result.data.filter(cat => $scope.classLimit.includes(cat.class_cat_id));
+			}
+
 			$scope.paymentsReceived = result.data;
 			$scope.paymentsReceivedTotal = 0;
 			$scope.paymentsLoading = false;
-			
+
 			if( result.data  instanceof Array )
 			{
 				$scope.paymentsReceivedTotal = result.data.reduce(function(sum,item){
 					return sum = (sum + parseFloat(item.amount));
 				},0);
 			}
-			
+
 			$scope.gridOptions1.data = $scope.paymentsReceived;
 
-			
+
 			/*
 			setTimeout(function(){
 				var settings = {
@@ -161,7 +172,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 					noResultsTxt: "No payments received were found for selected date range."
 				}
 				initDataGrid(settings);
-				
+
 			},100
 			*/
 		}
@@ -171,31 +182,34 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$scope.prErrMsg = result.data;
 		}
 	}
-	
+
 	var getPaymentsDue = function(startDate, endDate)
 	{
 		// get payments received for curren term
 		var request = startDate + "/" + endDate;
 		apiService.getPaymentsDue(request, loadPaymentsDue, apiError);
 	}
-	
+
 	var loadPaymentsDue = function(response, status)
 	{
 		var result = angular.fromJson(response);
-			
-		if( result.response == 'success') 
+		if( result.response == 'success')
 		{
+			if(result.data){
+				result.data = result.data.filter(cat => $scope.classLimit.includes(cat.class_cat_id));
+			}
+
 			$scope.paymentsDue = result.data;
-			$scope.paymentsDueTotal = 0; 
+			$scope.paymentsDueTotal = 0;
 			$scope.invoicesLoading = false;
-			
+
 			if( result.data  instanceof Array )
 			{
 				$scope.paymentsDueTotal = result.data.reduce(function(sum,item){
 					return sum = (sum + parseFloat(item.balance));
 				},0);
 			}
-			
+
 			$scope.gridOptions2.data = $scope.paymentsDue;
 			/*
 			setTimeout(function(){
@@ -205,7 +219,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 					noResultsTxt: "No unpaid invoices were found for this month."
 				}
 				initDataGrid(settings);
-				
+
 			},100);
 			*/
 		}
@@ -215,31 +229,34 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$scope.prErrMsg = result.data;
 		}
 	}
-	
+
 	var getOverDuePayments = function()
 	{
 		apiService.getPaymentsPastDue({}, loadPaymentsPastDue, apiError);
 	}
-	
+
 	var loadPaymentsPastDue = function(response, status)
 	{
 		var result = angular.fromJson(response);
-			
-		if( result.response == 'success') 
+
+		if( result.response == 'success')
 		{
+			if(result.data){
+				result.data = result.data.filter(cat => $scope.classLimit.includes(cat.class_cat_id));
+			}
 			$scope.paymentsPastDue = result.data;
-			$scope.paymentsPastDueTotal = 0; 
+			$scope.paymentsPastDueTotal = 0;
 			$scope.pastDueLoading = false;
-			
+
 			if( result.data instanceof Array )
 			{
 				$scope.paymentsPastDueTotal = result.data.reduce(function(sum,item){
 					return sum = (sum + parseFloat(item.balance));
 				},0);
 			}
-			
+
 			$scope.gridOptions3.data = $scope.paymentsPastDue;
-			
+
 			/*
 			setTimeout(function(){
 				var settings = {
@@ -248,7 +265,7 @@ function($scope, $rootScope, apiService, $timeout, $window){
 					noResultsTxt: "No past invoices were found."
 				}
 				initDataGrid(settings);
-				
+
 			},100);
 			*/
 		}
@@ -258,17 +275,17 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$scope.prErrMsg = result.data;
 		}
 	}
-	
+
 	var getTotalsForTerm = function()
 	{
 		apiService.getTotalsForTerm({}, loadTotals, apiError);
 	}
-	
+
 	var loadTotals = function(response, status)
 	{
 		var result = angular.fromJson(response);
-			
-		if( result.response == 'success') 
+
+		if( result.response == 'success')
 		{
 			$scope.totals = result.data;
 		}
@@ -278,8 +295,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 			$scope.prErrMsg = result.data;
 		}
 	}
-	
-	$scope.filterDataTable = function(grid) 
+
+	$scope.filterDataTable = function(grid)
 	{
 		switch(grid){
 			case "1":
@@ -293,8 +310,8 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				break;
 		}
 	};
-	
-	$scope.clearFilterDataTable = function(grid) 
+
+	$scope.clearFilterDataTable = function(grid)
 	{
 		switch(grid){
 			case "1":
@@ -310,10 +327,10 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				$scope.gridApi3.grid.refresh();
 				break;
 		}
-		
-		
+
+
 	};
-	
+
 	$scope.singleFilter1 = function( renderableRows )
 	{
 		var matcher = new RegExp($scope.gridFilter.filterValue1, 'i');
@@ -362,38 +379,38 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		});
 		return renderableRows;
 	}
-	
-	
+
+
 	$scope.viewPayment = function(item)
 	{
 		$scope.openModal('fees', 'paymentDetails', 'lg', item);
 	}
-	
+
 	$scope.viewStudent = function(student)
 	{
 		var data = {
 			student: student
 		}
 		$scope.openModal('students', 'viewStudent', 'lg',data);
-	}	
-	
-	
+	}
+
+
 	$scope.addPayment = function()
 	{
 		$scope.openModal('fees', 'paymentForm', 'lg',{});
 	}
-	
+
 	$scope.adjustPayment = function()
 	{
 		$scope.openModal('fees', 'paymentDetails', 'lg',{});
 	}
-	
-	var apiError = function (response, status) 
+
+	var apiError = function (response, status)
 	{
 		var result = angular.fromJson( response );
 		$scope.error = true;
 		$scope.errMsg = result.data;
 	}
-	
-	
+
+
 } ]);

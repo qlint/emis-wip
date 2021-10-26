@@ -90,9 +90,10 @@ $app->get('/getPaymentsDue(/:startDate/:endDate)', function ($startDate=null,$en
         $db = getDB();
        $sth = $db->prepare("SELECT student_id,
                   first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-                  total_due as amount, total_paid, balance,  due_date
+                  total_due as amount, total_paid, balance,  due_date, c.class_cat_id
               FROM app.invoice_balances2
               INNER JOIN app.students using (student_id)
+              INNER JOIN app.classes c ON students.current_class = c.class_id
               WHERE date_trunc('month',due_date) = date_trunc('month', now())
               AND balance < 0
               AND canceled is false");
@@ -164,9 +165,10 @@ $app->get('/getPaymentsPastDue(/:student_id)', function ($studentId=null) {
         $db = getDB();
        $sth = $db->prepare("SELECT invoice_balances2.student_id,
                   first_name || ' ' || coalesce(middle_name,'') || ' ' || last_name AS student_name,
-                  balance,  due_date
+                  balance,  due_date, c.class_cat_id
               FROM app.invoice_balances2
               INNER JOIN app.students on invoice_balances2.student_id = students.student_id
+              INNER JOIN app.classes c ON students.current_class = c.class_id
               WHERE due_date < now() /* - interval '1 mon' */
               AND balance < 0
               AND canceled is false ");

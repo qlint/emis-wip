@@ -26,7 +26,10 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
 
   $scope.isTeacher = ( $rootScope.currentUser.user_type == 'TEACHER' ? true : false);
   if($rootScope.currentUser.super_teacher == true){ $rootScope.currentUser.user_type = 'SYS_ADMIN'; $scope.isTeacher = false; }
-  $scope.classLimit = $rootScope.currentUser.class_cat_limit;
+  if($rootScope.currentUser.class_cat_limit){
+    $scope.classLimit = $rootScope.currentUser.class_cat_limit.split(',');
+    for (var i = 0; i < $scope.classLimit.length; i++) { $scope.classLimit[i] = parseInt($scope.classLimit[i]); }
+  }
 
   var rowTemplate = function()
   {
@@ -142,9 +145,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
           //  $rootScope.allClasses = ;
 
             if($scope.classLimit != null || $scope.classLimit != undefined){
-              result.data = result.data.filter(function( obj ) {
-                  return obj.class_cat_id == $scope.classLimit;
-              });
+              result.data = result.data.filter(cat => $scope.classLimit.includes(cat.class_cat_id));
             }
 
             $scope.classes = result.data;
@@ -164,9 +165,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
         $scope.classes = $rootScope.allClasses;
 
         if($scope.classLimit != null || $scope.classLimit != undefined){
-          $scope.classes = $scope.classes.filter(function( obj ) {
-              return obj.class_cat_id == $scope.classLimit;
-          });
+          $scope.classes = $scope.classes.filter(cat => $scope.classLimit.includes(cat.class_cat_id));
         }
 
         $scope.filters.class_cat_id = ( $state.params.class_cat_id !== '' ? $state.params.class_cat_id : null );
@@ -270,9 +269,7 @@ function($scope, $rootScope, apiService, $timeout, $window, $state, $dialogs){
         // make adjustments to student data
 
         if($scope.classLimit != null || $scope.classLimit != undefined){
-          result.data = result.data.filter(function( obj ) {
-              return obj.class_cat_id == $scope.classLimit;
-          });
+          result.data = result.data.filter(cat => $scope.classLimit.includes(cat.class_cat_id));
         }
 
         var formatedResults = $rootScope.formatStudentData(result.data);

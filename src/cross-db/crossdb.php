@@ -50,13 +50,13 @@
               $executeOnSchoolDb3 = pg_query($schoolDb,"ALTER TABLE app.invoice_line_items
                                                         ADD COLUMN in_quickbooks boolean NOT NULL DEFAULT false;"); // executing the query
               */
-              $executeOnSchoolDb4 = pg_query($schoolDb,'ALTER TABLE app.report_cards_cbc
-    OWNER to postgres;'); // executing the query
+              $executeOnSchoolDb4 = pg_query($schoolDb,"ALTER TABLE app.users
+ALTER COLUMN class_cat_limit TYPE CHARACTER VARYING;"); // executing the query
 
               // $executeOnSchoolDb5 = pg_query($schoolDb,"SELECT setval('app.students_student_id_seq', (SELECT MAX(student_id) FROM app.students)+1);");
               // $executeOnSchoolDb5 = pg_query($schoolDb,"SELECT setval('app.guardians_guardian_id_seq', (SELECT MAX(guardian_id) FROM app.guardians)+1);");
 
-              $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
+              // $executeOnSchoolDb = pg_query($schoolDb,"$queryInTextFile"); // executing the query
         	    // echo $dbOutput; // just an output of all our db's
             }catch (Exception $e2){
               echo $e2->getMessage();

@@ -4,6 +4,11 @@ angular.module('eduwebApp').
 controller('paymentsReceivedCtrl', ['$scope', '$rootScope', 'apiService','$timeout','$window',
 function($scope, $rootScope, apiService, $timeout, $window){
 
+	if($rootScope.currentUser.class_cat_limit){
+    $scope.classLimit = $rootScope.currentUser.class_cat_limit.split(',');
+    for (var i = 0; i < $scope.classLimit.length; i++) { $scope.classLimit[i] = parseInt($scope.classLimit[i]); }
+  }
+
 	$scope.filters = {};
 	$scope.filters.status = 'true';
 	$scope.filterShowing = false;
@@ -78,7 +83,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				// store these as they do not change often
 				if( result.response == 'success')
 				{
-					//$rootScope.allClasses = result.data;
+					if(result.data){
+						result.data = result.data.filter(cat => $scope.classLimit.includes(cat.class_cat_id));
+					}
 					$scope.classes = result.data;
 				}
 
@@ -86,6 +93,9 @@ function($scope, $rootScope, apiService, $timeout, $window){
 		}
 		else
 		{
+			if($rootScope.allClasses){
+				$rootScope.allClasses = $rootScope.allClasses.filter(cat => $scope.classLimit.includes(cat.class_cat_id));
+			}
 			$scope.classes = $rootScope.allClasses;
 		}
 
@@ -130,6 +140,10 @@ function($scope, $rootScope, apiService, $timeout, $window){
 				}
 				else
 				{
+					if(result.data){
+						result.data = result.data.filter(cat => $scope.classLimit.includes(cat.class_cat_id));
+					}
+
 					lastQueriedDateRange = params.filters.date;
 
 					var payments = result.data;

@@ -26,13 +26,12 @@ function($scope, $rootScope, apiService){
 			if( result.response == 'success')
 			{
 				$scope.classCats = result.data;
-				
+
 				if(Array.isArray($scope.classCats)){
 
 					if($rootScope.currentUser.class_cat_limit != null || $rootScope.currentUser.class_cat_limit != undefined){
-						$scope.classCats = $scope.classCats.filter(function( obj ) {
-								return obj.class_cat_id == $rootScope.currentUser.class_cat_limit;
-						});
+						$rootScope.currentUser.class_cat_limit = $rootScope.currentUser.class_cat_limit.split(',');
+						$scope.classCats = $scope.classCats.filter(cat => $rootScope.currentUser.class_cat_limit.includes(cat.class_cat_id));
 					}
 
 					for(var f=0; f < $scope.classCats.length; f++){

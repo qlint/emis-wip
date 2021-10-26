@@ -1,5 +1,3 @@
-api/vendor/*
-api/public/web.config
 src/bak/*
 src/testData/*
 src/assets/charts/*
@@ -11,5 +9,3 @@ src/assets/resources/*
 src/assets/reportcards/*
 src/srvScripts/vimeo/vendor/*
 .sass-cache
-node_modules
-package.json

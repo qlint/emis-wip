@@ -16683,3 +16683,570 @@ p6JfXaFlbEFz
 CURL ERROR
 2021-10-17 04:59:40pm
 The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-18 05:06:09pm
+1
+(2) CLIENT DATA
+2021-10-18 05:06:09pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-18 05:06:09pm
+iR6SY1FlfWms
+(4) JUST ONE RECIPIENT
+2021-10-18 05:06:09pm
++254722371447
+(5) PAYLOAD
+2021-10-18 05:06:09pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"18102021050609"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Anita, use theme-salary as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722371447","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDiR6SY1FlfWms"}]}
+(6) MESSAGE ID
+2021-10-18 05:06:09pm
+68770
+CURL ERROR
+2021-10-18 05:06:09pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-19 11:32:04am
+1
+(2) CLIENT DATA
+2021-10-19 11:32:04am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-19 11:32:04am
+m96qKpGmCgn9
+(4) JUST ONE RECIPIENT
+2021-10-19 11:32:04am
++254727353153
+(5) PAYLOAD
+2021-10-19 11:32:04am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"19102021113204"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Faith, use posted-rice as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254727353153","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDm96qKpGmCgn9"}]}
+(6) MESSAGE ID
+2021-10-19 11:32:04am
+68771
+CURL ERROR
+2021-10-19 11:32:04am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-19 01:05:38pm
+1
+(2) CLIENT DATA
+2021-10-19 01:05:38pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-19 01:05:38pm
+TJuN6XpmA0zv
+(4) JUST ONE RECIPIENT
+2021-10-19 01:05:38pm
++254725706499
+(5) PAYLOAD
+2021-10-19 01:05:38pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"19102021010538"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Jane, use scored-dupe as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254725706499","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDTJuN6XpmA0zv"}]}
+(6) MESSAGE ID
+2021-10-19 01:05:38pm
+68772
+CURL ERROR
+2021-10-19 01:05:38pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-19 01:11:09pm
+1
+(2) CLIENT DATA
+2021-10-19 01:11:09pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-19 01:11:09pm
+jjq4topifVyG
+(4) JUST ONE RECIPIENT
+2021-10-19 01:11:09pm
++254725706499
+(5) PAYLOAD
+2021-10-19 01:11:09pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"19102021011109"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Jane, use scored-dupe as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254725706499","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDjjq4topifVyG"}]}
+(6) MESSAGE ID
+2021-10-19 01:11:09pm
+68773
+CURL ERROR
+2021-10-19 01:11:09pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-19 04:36:50pm
+1
+(2) CLIENT DATA
+2021-10-19 04:36:50pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-19 04:36:51pm
+SzGqQAd5i5Ug
+(4) JUST ONE RECIPIENT
+2021-10-19 04:36:50pm
++254722569579
+(5) PAYLOAD
+2021-10-19 04:36:50pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"19102021043651"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello JOSEPH, use vocalist-whisking as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722569579","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDSzGqQAd5i5Ug"}]}
+(6) MESSAGE ID
+2021-10-19 04:36:50pm
+68774
+CURL ERROR
+2021-10-19 04:36:50pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-19 05:05:39pm
+1
+(2) CLIENT DATA
+2021-10-19 05:05:39pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-19 05:05:39pm
+YpQOK6we20Ib
+(4) JUST ONE RECIPIENT
+2021-10-19 05:05:39pm
++254725327630
+(5) PAYLOAD
+2021-10-19 05:05:39pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"19102021050539"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello JOSHUA, use sensuous-snowman as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254725327630","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDYpQOK6we20Ib"}]}
+(6) MESSAGE ID
+2021-10-19 05:05:39pm
+68775
+CURL ERROR
+2021-10-19 05:05:39pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-19 07:17:32pm
+1
+(2) CLIENT DATA
+2021-10-19 07:17:32pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-19 07:17:32pm
+s5pTrEdaGcHh
+(4) JUST ONE RECIPIENT
+2021-10-19 07:17:32pm
++254729720495
+(5) PAYLOAD
+2021-10-19 07:17:32pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"19102021071732"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello PRISCILLA, use riveter-washbowl as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254729720495","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDs5pTrEdaGcHh"}]}
+(6) MESSAGE ID
+2021-10-19 07:17:32pm
+68776
+CURL ERROR
+2021-10-19 07:17:32pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-19 09:21:11pm
+1
+(2) CLIENT DATA
+2021-10-19 09:21:11pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-19 09:21:11pm
+Jdq4ifgQXeOR
+(4) JUST ONE RECIPIENT
+2021-10-19 09:21:11pm
++254717240900
+(5) PAYLOAD
+2021-10-19 09:21:11pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"19102021092111"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Caroline, use latitude-surviving as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254717240900","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDJdq4ifgQXeOR"}]}
+(6) MESSAGE ID
+2021-10-19 09:21:11pm
+68777
+CURL ERROR
+2021-10-19 09:21:11pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-20 06:45:58pm
+1
+(2) CLIENT DATA
+2021-10-20 06:45:58pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-20 06:45:58pm
+tr9aawTiXNSB
+(4) JUST ONE RECIPIENT
+2021-10-20 06:45:58pm
++254721827455
+(5) PAYLOAD
+2021-10-20 06:45:58pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"20102021064558"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Njomo, use nuclei-cesarean as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254721827455","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDtr9aawTiXNSB"}]}
+(6) MESSAGE ID
+2021-10-20 06:45:58pm
+68778
+CURL ERROR
+2021-10-20 06:45:58pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-20 08:41:35pm
+1
+(2) CLIENT DATA
+2021-10-20 08:41:35pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-20 08:41:35pm
+iD4DSC1Wvwjp
+(4) JUST ONE RECIPIENT
+2021-10-20 08:41:35pm
++254722924828
+(5) PAYLOAD
+2021-10-20 08:41:35pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"20102021084135"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello STANLEY, use unskilled-hangover as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722924828","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDiD4DSC1Wvwjp"}]}
+(6) MESSAGE ID
+2021-10-20 08:41:35pm
+68779
+CURL ERROR
+2021-10-20 08:41:35pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-20 08:43:08pm
+1
+(2) CLIENT DATA
+2021-10-20 08:43:08pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-20 08:43:08pm
+xTXjql6vGOrn
+(4) JUST ONE RECIPIENT
+2021-10-20 08:43:08pm
++254722924828
+(5) PAYLOAD
+2021-10-20 08:43:08pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"20102021084308"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello STANLEY, use unskilled-hangover as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722924828","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDxTXjql6vGOrn"}]}
+(6) MESSAGE ID
+2021-10-20 08:43:08pm
+68780
+CURL ERROR
+2021-10-20 08:43:08pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-21 08:52:45am
+1
+(2) CLIENT DATA
+2021-10-21 08:52:45am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-21 08:52:45am
+Khvw1PTjNyJe
+(4) JUST ONE RECIPIENT
+2021-10-21 08:52:45am
++254705252313
+(5) PAYLOAD
+2021-10-21 08:52:45am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"21102021085245"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello ANTHONY, use eclipse-smog as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254705252313","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDKhvw1PTjNyJe"}]}
+(6) MESSAGE ID
+2021-10-21 08:52:45am
+68781
+CURL ERROR
+2021-10-21 08:52:45am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-21 08:56:29am
+1
+(2) CLIENT DATA
+2021-10-21 08:56:29am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-21 08:56:29am
+BPAVqBoBcTn1
+(4) JUST ONE RECIPIENT
+2021-10-21 08:56:29am
++254705252313
+(5) PAYLOAD
+2021-10-21 08:56:29am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"21102021085629"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello ANTHONY, use eclipse-smog as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254705252313","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDBPAVqBoBcTn1"}]}
+(6) MESSAGE ID
+2021-10-21 08:56:29am
+68782
+CURL ERROR
+2021-10-21 08:56:29am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-22 09:04:50am
+1
+(2) CLIENT DATA
+2021-10-22 09:04:50am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-22 09:04:50am
+leC5qdtG92qt
+(4) JUST ONE RECIPIENT
+2021-10-22 09:04:50am
++254722371447
+(5) PAYLOAD
+2021-10-22 09:04:50am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"22102021090450"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Anita, use theme-salary as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722371447","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDleC5qdtG92qt"}]}
+(6) MESSAGE ID
+2021-10-22 09:04:50am
+68783
+CURL ERROR
+2021-10-22 09:04:50am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-22 09:06:38am
+1
+(2) CLIENT DATA
+2021-10-22 09:06:38am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-22 09:06:38am
+9LDyZ8bXbMld
+(4) JUST ONE RECIPIENT
+2021-10-22 09:06:38am
++254722371447
+(5) PAYLOAD
+2021-10-22 09:06:38am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"22102021090638"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Anita, use theme-salary as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722371447","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"ED9LDyZ8bXbMld"}]}
+(6) MESSAGE ID
+2021-10-22 09:06:38am
+68784
+CURL ERROR
+2021-10-22 09:06:38am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-22 09:09:18am
+1
+(2) CLIENT DATA
+2021-10-22 09:09:18am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-22 09:09:18am
+2STd9FhBXuND
+(4) JUST ONE RECIPIENT
+2021-10-22 09:09:18am
++254722371447
+(5) PAYLOAD
+2021-10-22 09:09:18am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"22102021090918"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Anita, use theme-salary as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722371447","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"ED2STd9FhBXuND"}]}
+(6) MESSAGE ID
+2021-10-22 09:09:18am
+68785
+CURL ERROR
+2021-10-22 09:09:18am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-22 09:11:40am
+1
+(2) CLIENT DATA
+2021-10-22 09:11:40am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-22 09:11:40am
+33ypPuR9jP5p
+(4) JUST ONE RECIPIENT
+2021-10-22 09:11:40am
++254722371447
+(5) PAYLOAD
+2021-10-22 09:11:40am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"22102021091140"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Anita, use theme-salary as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722371447","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"ED33ypPuR9jP5p"}]}
+(6) MESSAGE ID
+2021-10-22 09:11:40am
+68786
+CURL ERROR
+2021-10-22 09:11:40am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-22 03:23:45pm
+1
+(2) CLIENT DATA
+2021-10-22 03:23:45pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-22 03:23:45pm
+DcdnBcTPFSgO
+(4) JUST ONE RECIPIENT
+2021-10-22 03:23:45pm
++254727177706
+(5) PAYLOAD
+2021-10-22 03:23:45pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"22102021032345"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello ZACHARY, use huntsman-scouring as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254727177706","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDDcdnBcTPFSgO"}]}
+(6) MESSAGE ID
+2021-10-22 03:23:45pm
+68787
+CURL ERROR
+2021-10-22 03:23:45pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-22 05:50:37pm
+1
+(2) CLIENT DATA
+2021-10-22 05:50:37pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-22 05:50:37pm
+2HaDCqJ9KEUH
+(4) JUST ONE RECIPIENT
+2021-10-22 05:50:37pm
++254719575529
+(5) PAYLOAD
+2021-10-22 05:50:37pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"22102021055037"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello CAROLYNN, use watch-parade as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254719575529","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"ED2HaDCqJ9KEUH"}]}
+(6) MESSAGE ID
+2021-10-22 05:50:37pm
+68788
+CURL ERROR
+2021-10-22 05:50:37pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-24 09:18:07am
+1
+(2) CLIENT DATA
+2021-10-24 09:18:07am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-24 09:18:07am
+KVIkH5CwJXzJ
+(4) JUST ONE RECIPIENT
+2021-10-24 09:18:07am
++254720972466
+(5) PAYLOAD
+2021-10-24 09:18:07am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"24102021091807"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello CHARITY, use confetti-activate as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254720972466","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDKVIkH5CwJXzJ"}]}
+(6) MESSAGE ID
+2021-10-24 09:18:07am
+68789
+CURL ERROR
+2021-10-24 09:18:07am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-25 08:33:44am
+1
+(2) CLIENT DATA
+2021-10-25 08:33:44am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-25 08:33:44am
+78cW3NZrBHts
+(4) JUST ONE RECIPIENT
+2021-10-25 08:33:44am
++254720456653
+(5) PAYLOAD
+2021-10-25 08:33:44am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"25102021083344"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello CAROL, use relatable-reforest as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254720456653","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"ED78cW3NZrBHts"}]}
+(6) MESSAGE ID
+2021-10-25 08:33:44am
+68790
+CURL ERROR
+2021-10-25 08:33:44am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-25 02:21:22pm
+1
+(2) CLIENT DATA
+2021-10-25 02:21:22pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-25 02:21:22pm
+NExYxd7TDQUh
+(4) JUST ONE RECIPIENT
+2021-10-25 02:21:22pm
++254722371447
+(5) PAYLOAD
+2021-10-25 02:21:22pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"25102021022122"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Anita, use theme-salary as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722371447","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDNExYxd7TDQUh"}]}
+(6) MESSAGE ID
+2021-10-25 02:21:22pm
+68791
+CURL ERROR
+2021-10-25 02:21:22pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-25 05:20:16pm
+1
+(2) CLIENT DATA
+2021-10-25 05:20:16pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-25 05:20:16pm
+X5jZXCVEomtS
+(4) JUST ONE RECIPIENT
+2021-10-25 05:20:16pm
++254722877676
+(5) PAYLOAD
+2021-10-25 05:20:16pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"25102021052016"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Simon, use jolly-flock as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722877676","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDX5jZXCVEomtS"}]}
+(6) MESSAGE ID
+2021-10-25 05:20:16pm
+68792
+CURL ERROR
+2021-10-25 05:20:16pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-25 05:23:12pm
+1
+(2) CLIENT DATA
+2021-10-25 05:23:12pm
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-25 05:23:12pm
+RwKsVvfVOPEA
+(4) JUST ONE RECIPIENT
+2021-10-25 05:23:12pm
++254722877676
+(5) PAYLOAD
+2021-10-25 05:23:12pm
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"25102021052312"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Simon, use jolly-flock as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254722877676","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDRwKsVvfVOPEA"}]}
+(6) MESSAGE ID
+2021-10-25 05:23:12pm
+68793
+CURL ERROR
+2021-10-25 05:23:12pm
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-26 07:13:26am
+1
+(2) CLIENT DATA
+2021-10-26 07:13:26am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-26 07:13:26am
+1N6ZEA9PLqKp
+(4) JUST ONE RECIPIENT
+2021-10-26 07:13:26am
++254721585650
+(5) PAYLOAD
+2021-10-26 07:13:26am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"26102021071326"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Catherine, use synapse-chatting as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254721585650","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"ED1N6ZEA9PLqKp"}]}
+(6) MESSAGE ID
+2021-10-26 07:13:26am
+68794
+CURL ERROR
+2021-10-26 07:13:26am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-26 08:27:51am
+1
+(2) CLIENT DATA
+2021-10-26 08:27:51am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-26 08:27:51am
+Q1DUb7OqA5yq
+(4) JUST ONE RECIPIENT
+2021-10-26 08:27:51am
++254720687777
+(5) PAYLOAD
+2021-10-26 08:27:51am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"26102021082751"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Beth, use resource-clover as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254720687777","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDQ1DUb7OqA5yq"}]}
+(6) MESSAGE ID
+2021-10-26 08:27:51am
+68795
+CURL ERROR
+2021-10-26 08:27:51am
+The requested URL returned error: 422 Unprocessable Entity
+(1.1) RECIPIENTS COUNT
+2021-10-26 08:30:21am
+1
+(2) CLIENT DATA
+2021-10-26 08:30:21am
+{"subscriber_id":18,"subscriber_name":"dev2","application_id":2,"user_name":"1308","password":"wasomi63","source":"PashaMzazi"}
+(3) CORRELATOR
+2021-10-26 08:30:22am
+JrWCXlX0Hv5D
+(4) JUST ONE RECIPIENT
+2021-10-26 08:30:21am
++254720687777
+(5) PAYLOAD
+2021-10-26 08:30:21am
+{"AuthDetails":[{"UserID":"1308","Token":"94fcb0f7ffce87a73d197ef7b67a35fa","Timestamp":"26102021083022"}],"MessageType":["3"],"BatchType":["1"],"SourceAddr":["PashaMzazi"],"MessagePayload":[{"Text":"Hello Beth, use resource-clover as your temporary password for the Eduweb Mobile App."}],"DestinationAddr":[{"MSISDN":"+254720687777","LinkID":"","SourceID":0}],"DeliveryRequest":[{"EndPoint":"https:\/\/dev2.eduweb.co.ke\/srvScripts\/rxSms.php","Correlator":"EDJrWCXlX0Hv5D"}]}
+(6) MESSAGE ID
+2021-10-26 08:30:21am
+68796
+CURL ERROR
+2021-10-26 08:30:21am
+The requested URL returned error: 422 Unprocessable Entity
